@@ -32,3 +32,7 @@ Reproduction inputs were downloaded read-only to `/tmp/bt25-audit-logs/official-
 The official BT25-038 popup's special condition is Lv.4 TS for3, with YellowLv.4 + Blue/BlackLv.4 DNA for0. Astra added both lines and the printed Rule Angel sentence to the catalog; existing runtime types already included Angel. Luna corrected the module's alternate and DNA requirements. Typed source counts and full behavioral boundary review remain pending before approval.
 
 The official BT25-048 Bearmon effect specifically requires a **green** TS destination. The catalog now retains that color boundary, matching the direct IR correction and public non-green rejection. BT25-036 Craftmon now retains the official App Fusion sentence specifying that two named cards must already be linked and that the link card is stacked on top before evolution. Source: the same official English BT25 page and the saved per-card records used above.
+
+## Eighth checkpoint catalog restoration
+
+The catalog now retains the explicit App Fusion stacking sentence on 052, 056, 060, 070 and 072, in addition to the earlier 036 correction. It also retains the printed Rule trait sentences on 019, 025, 042, 050, 053, 055, 059, 069 and 103. All nine granted traits were already represented in their runtime `types` arrays; this is a printed-text restoration and does not establish behavioral proof. The same official English per-card records support each restoration. Missing alternate/DNA text on 103 and alternate/Burst text on 104 remain queued for their card audits.
