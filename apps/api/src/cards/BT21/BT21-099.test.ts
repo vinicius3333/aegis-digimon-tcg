@@ -1,6 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-099.js";
 import "../index.js";
@@ -31,6 +30,7 @@ describe("BT21-099 Xros Up", () => {
       s.inst("save").instanceId,
       s.inst("existing").instanceId,
     ]);
+    expect(s.state.memory).toBe(9);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
@@ -72,12 +72,21 @@ describe("BT21-099 Xros Up", () => {
           security: [{ card: "BT21-099", as: "option" }],
           trash: [{ card: "BT14-057", as: "save" }],
         },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("save").instanceId);
     expect(s.state.memory).toBe(0);
@@ -111,6 +120,36 @@ describe("BT21-099 Xros Up", () => {
     await settle(() => s.perm("host").topCard.instanceId === s.inst("evolved").instanceId);
     expect(s.perm("tamer").stack.some((card) => card.instanceId === s.inst("placed").instanceId)).toBe(true);
     expect(s.perm("host").topCard.cardId).toBe("BT21-066");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("publicly refuses both optional Main actions while retaining eligible Save cards", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "tamer" },
+            { card: "BT21-063", as: "host" },
+          ],
+          hand: [
+            { card: "BT21-099", as: "option" },
+            { card: "BT14-057", as: "save" },
+          ],
+          trash: [{ card: "BT21-066", as: "evolved" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("save").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("evolved").instanceId)).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-063");
+    expect(s.state.memory).toBe(2);
   });
 
   it("leaves both optional Main actions inert when no Save cards are available", async () => {
@@ -138,5 +177,31 @@ describe("BT21-099 Xros Up", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("unrelated").instanceId)).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.perm("host").topCard.cardId).toBe("BT21-063");
+  });
+
+  it("publicly plays a cost-5-or-less Save Digimon from hand during Security", async () => {
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-099", as: "option" }],
+          hand: [{ card: "BT14-057", as: "save" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("save").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("save").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 });
