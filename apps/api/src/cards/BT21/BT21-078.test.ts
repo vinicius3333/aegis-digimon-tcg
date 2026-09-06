@@ -132,10 +132,34 @@ describe("BT21-078 WereGarurumon", () => {
 
   it("grants inherited Alliance on a realistic evolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-079", as: "host", under: [{ card: "BT21-078", as: "source" }] }] },
+      0: {
+        battleArea: [{ card: "BT21-067", as: "base" }],
+        hand: [
+          { card: "BT21-078", as: "source" },
+          { card: "ST6-13", as: "host" },
+        ],
+      },
     });
+    s.state.memory = 10;
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-078");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST6-13");
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
   });
 
   it.each([
