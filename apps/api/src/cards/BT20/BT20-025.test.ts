@@ -104,4 +104,88 @@ describe("BT20-025 Wingdramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("examon").instanceId);
     expect(s.state.memory).toBe(0);
   });
+  it("publicly evolves Coredramon into Wingdramon and applies the printed deletion", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-023", as: "coredramon" }], hand: [{ card: "BT20-025", as: "wingdramon" }] },
+      1: {
+        battleArea: [
+          { card: "BT20-014", dp: 6000, as: "boundary" },
+          { card: "BT20-014", dp: 7000, as: "tooLarge" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("coredramon").permanentId,
+        instanceId: s.inst("wingdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("coredramon").topCard.cardId === "BT20-025");
+    expect(s.perm("coredramon").stack.map((card) => card.cardId)).toContain("BT20-023");
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT20-014" && permanent.baseDP === 6000,
+      ),
+    ).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT20-014" && permanent.baseDP === 7000,
+      ),
+    ).toBe(true);
+  });
+
+  it("makes a legal Wingdramon stack perform two security checks", async () => {
+    const withInherited = setupEngine({
+      0: { battleArea: [{ card: "BT20-027", dp: 12000, as: "attacker", under: ["BT20-025"] }] },
+      1: { security: ["BT1-015", "BT1-015"] },
+    });
+    expect(
+      withInherited.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: withInherited.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => withInherited.state.players[1]!.security.length === 0);
+    expect(withInherited.state.players[0]!.battleArea).toHaveLength(1);
+
+    const withoutInherited = setupEngine({
+      0: { battleArea: [{ card: "BT20-027", dp: 12000, as: "attacker" }] },
+      1: { security: ["BT1-015", "BT1-015"] },
+    });
+    expect(
+      withoutInherited.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: withoutInherited.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => withoutInherited.state.players[1]!.security.length === 1);
+    expect(withoutInherited.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("uses the ordinary public Examon DNA route from Breakdramon and Slayerdramon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-044", as: "breakdramon" },
+          { card: "BT20-027", as: "slayerdramon" },
+        ],
+        hand: [{ card: "BT20-045", as: "examon" }],
+      },
+      1: { battleArea: [{ card: "BT20-014", dp: 7000, as: "opponent" }] },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("breakdramon").permanentId, s.perm("slayerdramon").permanentId],
+        instanceId: s.inst("examon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-045"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("examon").instanceId)).toBe(false);
+  });
 });

@@ -1,0 +1,32 @@
+{
+  "cardId": "BT20-025",
+  "status": "awaiting-lead-review",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "Catalog: Wingdramon level5 blue/red Sky Dragon; alternate Coredramon cost3; On Play/When Digivolving deletes one opponent Digimon at 6000 DP or less; All Turns field-only treated as Lv6 Slayerdramon for Examon DNA; inherited Security Attack +1.",
+    "BT20-025.ts exclusively registers IR and maps both deletion timings, field-only Slayerdramon name and Examon level treatment, inherited Security Attack +1, and Coredramon alternate requirement.",
+    "BT20-025.test.ts proves exact 6000 boundary, natural public Coredramon\u2192Wingdramon evolution, field/breeding identity boundary, inherited keyword, and Examon Blast DNA treatment.",
+    "Added public two-check Security Attack comparison and ordinary Examon DNA route using Breakdramon + Slayerdramon.",
+    "014-040-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-025.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "7 tests passed for this card; 160 total passed; 014-040-results.json"
+    }
+  ],
+  "gaps": [
+    "Delivery gates pending coordinator collection, mechanism, typecheck, lint."
+  ],
+  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+}
