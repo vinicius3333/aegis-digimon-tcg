@@ -55,7 +55,7 @@ describe("BT24-007 Tsunomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
           hand: [{ card: "BT24-045", as: "triggeringTarget" }],
           trash: [{ card: "BT24-045", as: "unrelatedTarget" }],
         },
@@ -84,7 +84,7 @@ describe("BT24-007 Tsunomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
           hand: [{ card: "BT24-042", as: "levelThreeDemon" }],
           trash: [{ card: "BT24-045", as: "unrelatedTarget" }],
         },
@@ -98,5 +98,98 @@ describe("BT24-007 Tsunomon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("unrelatedTarget").instanceId);
     expect(s.state.memory).toBe(10);
+  });
+
+  it("enforces the inherited once-per-turn limit across production trash events", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
+          hand: [
+            { card: "BT24-045", as: "first" },
+            { card: "BT24-045", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("first").instanceId], 0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("first").instanceId),
+    );
+    await advance(s.engine).verb.trash([s.inst("second").instanceId], 0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId));
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT24-045")).toHaveLength(1);
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("reacts to a hand trash produced by a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT24-045", as: "trashedTitan" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("trashedTitan").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("trashedTitan").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("trashedTitan").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("leaves the triggering card in trash when its optional play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
+          trash: [{ card: "BT24-045", as: "candidate" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", {
+      trashedFromHandInstanceIds: [s.inst("candidate").instanceId],
+    });
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("reaches Shamanmon through a legal public breeding evolution", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT24-007", as: "egg" }, hand: [{ card: "BT24-009", as: "shaman" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const eggId = s.perm("egg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("shaman").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-009");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-007"]);
   });
 });
