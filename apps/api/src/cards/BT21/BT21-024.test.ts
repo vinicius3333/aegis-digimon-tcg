@@ -106,6 +106,45 @@ describe("BT21-024 Cyberdramon", () => {
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("kept").instanceId);
   });
 
+  it("at exactly five security places a hand card at the bottom, then trashes the prior top", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-024", as: "cyberdramon" }] },
+        1: {
+          hand: [{ card: "BT1-009", as: "placed" }],
+          security: [{ card: "BT1-001", as: "exactTop" }, "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyberdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(5);
+    expect(s.state.players[1]!.security.at(-1)?.instanceId).toBe(s.inst("placed").instanceId);
+    expect(s.state.players[1]!.trash[0]?.instanceId).toBe(s.inst("exactTop").instanceId);
+  });
+
+  it("with an empty opponent hand still trashes the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-024", as: "cyberdramon" }] },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyberdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host", async () => {
     const s = setupEngine({
       0: {
@@ -127,9 +166,9 @@ describe("BT21-024 Cyberdramon", () => {
     expect(s.perm("level4").stack.map((card) => card.cardId)).toContain("BT21-019");
 
     const inherited = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", as: "host", dp: 6000, under: ["BT21-024"] }] },
+      0: { battleArea: [{ card: "BT21-028", as: "host", under: ["BT21-019", "BT21-024"] }] },
     });
     await inherited.ready();
-    expect(inherited.perm("host").currentDP).toBe(10000);
+    expect(inherited.perm("host").currentDP).toBe(18000);
   });
 });
