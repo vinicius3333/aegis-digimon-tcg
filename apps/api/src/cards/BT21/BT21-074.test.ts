@@ -135,6 +135,43 @@ describe("BT21-074 Satellamon", () => {
     expect(s.perm("target").topCard.cardId).toBe("BT21-072");
   });
 
+  it("uses the public attack intent to De-Digivolve an opposing stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-074", as: "satellamon", under: [{ card: "BT21-070", as: "cost" }] }],
+        },
+        1: {
+          battleArea: [{ card: "BT21-072", as: "target", under: ["BT21-066"], suspended: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const targetId = s.perm("target").permanentId;
+    const lowerId = s.perm("target").stack[0]!.instanceId;
+    preferred.push(s.inst("cost").instanceId, s.perm("target").topCard.instanceId);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("satellamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId) ||
+        s.perm("target").topCard.cardId === "BT21-066",
+    );
+    expect(s.perm("satellamon").stack.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
+    const target = s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId);
+    expect(
+      target?.topCard.instanceId === lowerId || s.state.players[1]!.trash.some((c) => c.instanceId === lowerId),
+    ).toBe(true);
+  });
+
   it("links for 3 and deletes only the level-4 boundary target", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
