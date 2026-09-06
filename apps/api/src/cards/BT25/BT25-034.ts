@@ -1,11 +1,6 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q6298: "when effects trash this card from the security stack" — only triggers when
-// directly trashed from security (not revealed, not searched). EffectTiming.OnDiscardSecurity
-// fires only from that effect-driven trash-from-security seam (GameEngine.fireDiscardedFromSecurity),
-// so it is effect-only and self-scoped by construction — no SubTrigger wrapper needed.
 export const compiled: CompiledCard = {
   effects: [
     {
