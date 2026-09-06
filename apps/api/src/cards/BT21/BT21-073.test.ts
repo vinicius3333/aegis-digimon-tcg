@@ -157,10 +157,12 @@ describe("BT21-073 Charismon", () => {
         0: {
           battleArea: [{ card: "BT21-073", as: "charismon" }],
           hand: [{ card: "BT21-070", as: "gossipmon" }],
+          security: [{ card: "BT1-009", as: "security" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 6000 }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").topCard.instanceId);
     s.state.memory = 3;
@@ -175,6 +177,23 @@ describe("BT21-073 Charismon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+
+    // The grant's [Start of Your Main Phase] trigger is consumed through the public turn
+    // lifecycle on the opponent's next turn, rather than by firing a synthetic timing hook.
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    // Charismon is itself a Blocker; explicitly decline that optional block so the granted
+    // attack reaches the player's security and remains distinct from a blocked attack.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("does not react when another Digimon gets linked", async () => {
@@ -206,16 +225,20 @@ describe("BT21-073 Charismon", () => {
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
   });
 
-  it("Q5000 trashes itself as a link card to prevent leaving only once per turn", async () => {
+  it("Q5000 trashes one link card to prevent leaving only once per turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             {
-              card: "BT21-041",
+              // BT21-101's printed Link +1 makes this two-link fixture legal.
+              card: "BT21-101",
               as: "host",
-              linked: [{ card: "BT21-073", as: "charismon" }],
+              linked: [
+                { card: "BT21-070", as: "gossipmon" },
+                { card: "BT21-073", as: "charismon" },
+              ],
             },
           ],
         },
@@ -223,21 +246,65 @@ describe("BT21-073 Charismon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    preferred.push(s.inst("charismon").instanceId);
+    // Keep Charismon itself linked so its inherited replacement remains installed for the
+    // second leave attempt; pay the first prevention with the other Link card.
+    preferred.push(s.inst("gossipmon").instanceId);
 
     expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("charismon").instanceId);
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("charismon").instanceId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gossipmon").instanceId));
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("charismon").instanceId)).toBe(true);
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("Q5000 may trash Charismon itself when it is the only Link card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-041", as: "host", linked: [{ card: "BT21-073", as: "charismon" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("charismon").instanceId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("charismon").instanceId));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   it("has executable Blocker", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT21-073", as: "charismon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("charismon"), "Blocker")).toBe(true);
+  });
+
+  it("supports the printed zero-cost Sociamon plus Gossipmon App Fusion route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-043", as: "sociamon", linked: [{ card: "BT21-070", as: "gossipmon" }] }],
+          hand: [{ card: "BT21-073", as: "charismon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+
+    const fused = await advance(s.engine).verb.appFuseInto(
+      s.perm("sociamon").permanentId,
+      s.inst("charismon").instanceId,
+    );
+    expect(fused?.topCard.cardId).toBe("BT21-073");
+    expect(fused?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-043"]));
+    expect(fused?.linked.map((card) => card.cardId)).toContain("BT21-070");
+    expect(s.state.memory).toBe(0);
   });
 });
