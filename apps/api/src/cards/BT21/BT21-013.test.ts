@@ -366,6 +366,36 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     expect(s.perm("burning").stack[0]!.cardId).toBe("BT12-013");
   });
 
+  it("publicly declines an eligible Hybrid/Hero placement after BurningGreymon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-013", as: "burning" }],
+          hand: [
+            { card: "BT21-013", as: "agunimon" },
+            { card: "BT21-016", as: "eligible" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard.cardId === "BT21-013");
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
+    expect(s.perm("burning").stack).toHaveLength(1);
+  });
+
   it("when attacking, pays the matching red Hero evolution cost reduced by 1", async () => {
     const s = setupEngine(
       {
