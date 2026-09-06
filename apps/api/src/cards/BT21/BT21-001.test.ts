@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-001.js";
 import "../index.js";
+import "../AD1/AD1-017.js";
 
 describe("BT21-001 Gigimon", () => {
   it("registers an optional, paid hand digivolution only for opponent security removal", () => {
@@ -90,6 +91,32 @@ describe("BT21-001 Gigimon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("digivolves into a printed Reptile destination after public opponent security removal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-007", as: "host", under: ["BT21-001"] }],
+          hand: [{ card: "BT21-017", as: "reptile" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("reptile").instanceId);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("builds the inherited source through public level-3 and level-4 evolution", async () => {
     const s = setupEngine({
       0: {
@@ -144,6 +171,62 @@ describe("BT21-001 Gigimon", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it("does not trigger on the opponent's turn when their own security is removed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-007", as: "host", under: ["BT21-001"] }],
+          hand: [{ card: "BT21-017", as: "evolution" }],
+          security: ["BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          hand: [{ card: "AD1-017", as: "dynasmon" }],
+          security: ["BT1-002", "BT1-003"],
+          trash: ["AD1-018", "BT13-087", "BT13-090", "BT18-034"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolution").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-007");
+  });
+
+  it("does not trigger when a public effect removes this player's own security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-007", as: "host", under: ["BT21-001"] }],
+          hand: [
+            { card: "AD1-017", as: "remover" },
+            { card: "BT21-017", as: "evolution" },
+          ],
+          trash: ["AD1-018", "BT13-087", "BT13-090", "BT18-034"],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-007");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
+  });
+
   it("may decline and can resolve only once per turn", async () => {
     const declined = setupEngine(
       {
@@ -179,7 +262,7 @@ describe("BT21-001 Gigimon", () => {
             { card: "BT21-024", as: "secondEvolution" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -192,10 +275,16 @@ describe("BT21-001 Gigimon", () => {
         attackerPermanentId: once.perm(as).permanentId,
         target: { kind: "player" },
       });
+    const securityBeforeFirst = once.state.players[1]!.security.length;
     expect(attack("first")).toEqual({ ok: true });
     await settle(() => !observe(once.engine).isAttacking());
+    expect(once.state.players[1]!.security.length).toBeLessThan(securityBeforeFirst);
+    expect(observe(once.engine).isAttacking()).toBe(false);
+    const securityAfterFirst = once.state.players[1]!.security.length;
     expect(attack("second")).toEqual({ ok: true });
     await settle(() => !observe(once.engine).isAttacking());
+    expect(once.state.players[1]!.security.length).toBeLessThan(securityAfterFirst);
+    expect(observe(once.engine).isAttacking()).toBe(false);
 
     expect(once.state.players[0]!.hand.filter((card) => card.cardId === "BT21-024")).toHaveLength(1);
     expect(once.state.memory).toBe(8);
