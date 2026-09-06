@@ -60,6 +60,38 @@ describe("BT20-036 BanchoLeomon", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it("publicly evolves from a level-5 ACCEL Digimon and refuses the non-ACCEL play reduction", async () => {
+    const evolved = setupEngine({
+      0: { battleArea: [{ card: "BT20-033", as: "loader" }], hand: [{ card: "BT20-036", as: "bancho" }] },
+    });
+    evolved.state.memory = 3;
+    expect(
+      evolved.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolved.perm("loader").permanentId,
+        instanceId: evolved.inst("bancho").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => evolved.perm("loader").topCard.cardId === "BT20-036" && evolved.state.pendingDecision === undefined,
+    );
+    expect(evolved.perm("loader").stack.map((card) => card.cardId)).toEqual(["BT20-033"]);
+
+    const refused = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "ordinary" }], hand: [{ card: "BT20-036", as: "bancho" }] },
+    });
+    refused.state.memory = 7;
+    expect(refused.engine.applyIntent(0, { type: "playCard", instanceId: refused.inst("bancho").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        refused.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-036") &&
+        refused.state.pendingDecision === undefined,
+    );
+    expect(refused.state.memory).toBe(-5);
+  });
+
   it("redirects an opposing attack to the inherited host once on the opponent's turn", async () => {
     const s = setupEngine(
       {
@@ -90,9 +122,9 @@ describe("BT20-036 BanchoLeomon", () => {
         0: {
           battleArea: [
             { card: "BT20-036", as: "bancho" },
-            { card: "BT20-035", as: "kazuchimon" },
+            { card: "BT13-087", as: "purpleMega" },
           ],
-          hand: [{ card: "BT16-036", as: "chaosmon" }],
+          hand: [{ card: "P-221", as: "chaosmon" }],
         },
         1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }] },
       },
@@ -102,9 +134,38 @@ describe("BT20-036 BanchoLeomon", () => {
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("bancho"));
     await settle(
       () =>
-        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-036") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-221") &&
         s.state.players[1]!.battleArea.length === 0,
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("does not declare a second End of Your Turn attack while the first copy's attack is resolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-036", as: "first" },
+            { card: "BT20-036", as: "second" },
+            { card: "BT13-087", as: "firstPartner" },
+            { card: "BT13-087", as: "secondPartner" },
+          ],
+          hand: [
+            { card: "P-221", as: "firstChaosmon" },
+            { card: "P-221", as: "secondChaosmon" },
+            { card: "BT20-001", as: "playable" },
+          ],
+          deck: ["BT20-001", "BT20-001", "BT20-001", "BT20-001"],
+        },
+        1: { security: ["BT20-001", "BT20-001", "BT20-001"], deck: ["BT20-001", "BT20-001", "BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
   });
 });
