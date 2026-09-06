@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-044",
-  "status": "ready-for-focused-run",
+  "status": "pending-coordinator-verification",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -11,6 +11,8 @@
   "evidence": [
     "apps/api/src/cards/BT20/BT20-044.ts",
     "apps/api/src/cards/BT20/BT20-044.test.ts",
+    "BT20-044.test.ts: public Digimon/Tamer suspension boundary and exact play/evolution costs",
+    "BT20-044.test.ts: accepted optional attack, opponent-controller negative, and resident/inherited Once Per Turn reset",
     "internal-docs/audits/BT20/revalidation/BT20-044.md",
     "current-collection-green-results.json"
   ],
@@ -30,6 +32,10 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 8 cases for BT20-044;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
