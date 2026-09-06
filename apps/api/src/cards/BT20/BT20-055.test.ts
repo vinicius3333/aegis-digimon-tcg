@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-055.js";
 import "./index.js";
+import "../BT24/BT24-062.js";
 
 describe("BT20-055 Invisimon", () => {
   it("plays from security at the end of the opponent's turn", () => {
@@ -138,13 +139,12 @@ describe("BT20-055 Invisimon", () => {
     expect(s.perm("ineligible").topCard.cardId).toBe("BT20-050");
   });
 
-  it("Q4388 may move Invisimon itself and lets the promoted HoverEspimon draw", async () => {
+  it("Q4388 may move Invisimon itself and lets a promoted Lv5 host resolve its End of Attack effect", async () => {
     for (const accept of [true, false]) {
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: "BT20-055", under: ["BT20-050"], as: "invisimon" }],
-            deck: [{ card: "BT20-047", as: "drawn" }],
+            battleArea: [{ card: "BT20-055", under: ["BT20-050", "BT24-062"], as: "invisimon" }],
           },
           1: { security: [{ card: "BT20-047", faceUp: true }] },
         },
@@ -166,11 +166,15 @@ describe("BT20-055 Invisimon", () => {
       const placed = s.state.players[0]!.security.at(-1);
       expect(placed?.cardId).toBe(accept ? "BT20-055" : undefined);
       expect(placed?.faceUp).toBe(accept ? true : undefined);
-      expect(s.state.players[0]!.security).toHaveLength(accept ? 1 : 0);
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain(
-        accept ? "BT20-050" : "BT20-055",
+        accept ? "BT24-062" : "BT20-055",
       );
-      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(accept);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-050")).toBe(accept);
+      expect(
+        s.state.players[0]!.battleArea.find(
+          (permanent) => permanent.topCard.cardId === (accept ? "BT24-062" : "BT20-055"),
+        )!.stack.map((card) => card.cardId),
+      ).toEqual(accept ? [] : ["BT20-050", "BT24-062"]);
     }
   });
 
@@ -178,10 +182,10 @@ describe("BT20-055 Invisimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-055", under: ["BT20-050"], as: "invisimon" }],
-          security: [{ card: "BT1-001", faceUp: true }],
+          battleArea: [{ card: "BT20-055", under: ["BT20-050", "BT24-062"], as: "invisimon" }],
+          security: [{ card: "BT1-010", faceUp: true }],
         },
-        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
