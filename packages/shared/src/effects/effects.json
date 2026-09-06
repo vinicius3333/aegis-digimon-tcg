@@ -104954,6 +104954,7 @@
       },
       {
         "trigger": "WhenDigivolving",
+        "optional": true,
         "actions": [
           {
             "kind": "Return",
@@ -104990,6 +104991,7 @@
       },
       {
         "trigger": "WhenAttacking",
+        "optional": true,
         "actions": [
           {
             "kind": "Return",
@@ -105053,7 +105055,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 5, "names": ["MachGaogamon"], "cost": 3, "isAlternate": true },
+      { "level": 5, "names": ["Gaogamon"], "cost": 3, "isAlternate": true },
       { "traits": ["DATA SQUAD"], "cost": 3, "isAlternate": true, "level": 5 }
     ]
   },
@@ -105068,7 +105070,7 @@
             "cost": {
               "kind": "securityToHand",
               "controller": "mine",
-              "amount": 1,
+              "count": 1,
               "raw": "By adding your top security card to the hand"
             },
             "optional": true,
