@@ -3,6 +3,8 @@ import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-089.js";
+import "./BT20-029.js";
+import "./BT20-080.js";
 import "./index.js";
 
 // A3 for BT20-089 (Code Cracker Fang & Hacker Judge — Purple/Black Tamer).
