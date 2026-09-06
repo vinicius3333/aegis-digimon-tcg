@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-028",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,17 +9,16 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "internal-docs/audits/BT20/revalidation/BT20-028.md",
-    "BT20-028.test.ts now adds optional refusal, level-6 exclusion with a valid level-4 source played, negative X Antibody-trait-only handling, positive exact X Antibody/Rule Name sources, shared When Digivolving/When Attacking once-per-turn proof, and a public BT11-098 source-play case for KB Q4321.",
-    "apps/api/src/cards/BT20/BT20-028.test.ts",
-    "014-040-results.json",
-    "named-x-clause-red.log",
-    "named-x-019-102-red.log",
-    "named-x-026-028-red.log",
-    "named-x-green-results.json",
-    "named-x-mechanism-results.json"
+    "Legal MetalSeadramon alternate evolution pays2; MegaSeadramon X normal evolution pays5. Exact MetalSeadramon/X Antibody sources qualify, a trait-only source does not, and the Proto Form Rule Name qualifies.",
+    "Optional source play accepts/refuses, selects only this stack and level5-or-lower Digimon, leaves the level6/Option sources, and costs no additional memory. A real evolution followed by an attack proves the shared once-per-turn limit; real turns reset it.",
+    "Actual own source play triggers De-Digivolve2; ordinary own hand play and opponent source play do not. Two source plays in one turn use the watcher once; next-turn source play resets it. Q4321 plays GigaSeadramon itself from sources; the On Play-related watcher resolves after Maelstrom Main, leaving the opponent at BT20-013 with no stack.",
+    "Public combat proves Security Attack+1 checks twice, Reboot unsuspends at the opponent turn, and Blocker redirects an actual attack while preserving security.",
+    "Colocated public behavioral test and committed card-specific KB query.",
+    "028-032-final-focused-results.json; runtime-disabled artifacts must be renewed after final changes.",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
   ],
-  "commands": [
+  "gaps": [],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-028.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "pending lead execution"
@@ -47,11 +46,50 @@
     {
       "command": "pnpm exec oxlint <six changed card modules/tests and nameExactMatch.test.ts>; pnpm exec oxfmt --check <same paths>; git diff --check",
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-028.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "Current final checkpoint execution pending; earlier focused passes are historical after later changes."
     }
   ],
-  "gaps": [
-    "Added cases require coordinator focused/mechanism/collection/typecheck/lint execution; no production or engine gap identified.",
-    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "12/12 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-028",
+      "result": "5 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
   ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "executedCases": [
+    "BT20-028 GigaSeadramon once per turn plays a level 5 or lower stack card only with the required exact name",
+    "BT20-028 GigaSeadramon plays a level-5 card only from its own qualifying stack and de-digivolves by 2",
+    "BT20-028 GigaSeadramon blocks an actual opposing player attack without losing security",
+    "BT20-028 GigaSeadramon does not De-Digivolve for a Digimon played from ownHand",
+    "BT20-028 GigaSeadramon does not De-Digivolve for a Digimon played from opponentSource",
+    "BT20-028 GigaSeadramon does not play a stack card with only an X Antibody-trait source through public evolution",
+    "BT20-028 GigaSeadramon reaches GigaSeadramon from a legal MegaSeadramon/X Antibody stack through public evolution",
+    "BT20-028 GigaSeadramon offers a feasible source play, accepts true, and leaves the level-6 source",
+    "BT20-028 GigaSeadramon offers a feasible source play, accepts false, and leaves the level-6 source",
+    "BT20-028 GigaSeadramon shares the source-play use across evolution and attack, limits its watcher, and resets both next turn",
+    "BT20-028 GigaSeadramon accepts X Antibody Proto Form's Rule Name through public evolution",
+    "BT20-028 GigaSeadramon triggers De-Digivolve when GigaSeadramon itself is played from a source stack"
+  ]
 }
