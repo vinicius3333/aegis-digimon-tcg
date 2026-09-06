@@ -159,3 +159,9 @@ See [strict review round 3](strict-review-round3.md). Current names and 093 timi
 ## Current reactive Delay checkpoint
 
 083 refusal and 093–095 immediate Delay fixes are integrated. The two shared gaps have fail-when-reverted mechanism proof: replacement registry recompute coordination and targeted breeding movement costs. The affected 552-test suite passes. Final catalog sync/check and full BT20 rerun are underway; 014–026 evidence is being finalized with additional public costs, target boundaries, duration, inherited and OPT assertions. Accepted ledger remains 13/102 until hashes and delivery gates are renewed. No collection completion is claimed.
+
+## Pushed checkpoint: first26 cards independently accepted
+
+All code and validation evidence through2a2a2b113 is pushed. Final collection plus the two new mechanism files pass836/836 tests; affected mechanism suites pass552/552. Workspace typecheck, set-scoped catalog sync/check, changed-file lint/format and clean diff pass. Runtime-disabled proof for014–026 fails intended observable assertions and is restored.
+
+The hash-bound acceptance ledger now verifies001–026 at10/10: 26/102 cards,260/1020 points, mean2.549. The remaining76 cards remain unaccepted and collection completion is not claimed. Next work starts with027–032 and the recorded tail gaps, including084 lock/source-stack review and094–095 remaining comparison paths.

@@ -3,235 +3,495 @@
     "BT20-001": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Legal-stack evidence rerun with memory capped at 10. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-001.ts": "92eb228af715dc506d78decbd4c7fadea3e273839c2096e099575b8ea40284cf",
         "apps/api/src/cards/BT20/BT20-001.test.ts": "24ea811e3f35e8163e7aa25fdc06ab3fdc06f9265738e9812b5b59ce9684db27",
         "internal-docs/audits/BT20/revalidation/BT20-001.json": "36b10d0577490a3f311a5d6cbe3500694307924edec72f2c79e1edc84cdb5922",
         "internal-docs/audits/BT20/revalidation/BT20-001.md": "97e106dcb16f00fe787d31394bfeecef31d1b9d1aac65253f01b3efd2d071cf7"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-002": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Both independent printed-text branches now have public legal egg evolutions and a real breeding-area move; the legal no-text route remains negative. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-002.ts": "4c58f95b6a06bd6b0a5733534dc66d842e40a8509250d1f5acd0c53d194f37ff",
         "apps/api/src/cards/BT20/BT20-002.test.ts": "ae2dd9a1617399e56786c80085b5321748d454c4070fcacd526935f71d581524",
         "internal-docs/audits/BT20/revalidation/BT20-002.json": "e2caca6de07c9c844d8e279c998fa687b734fe744f1e7cb67212327606a405fa",
         "internal-docs/audits/BT20/revalidation/BT20-002.md": "32b9865be37db1ffe857bb75f8c82077ef2e36f2e5fc7ba2d4442bb2283430b4"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-003": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Root public Eiji/Ouryuken Main-reopening scenario proves eligible same-turn refusal and next-own-turn reset; removal of OPT fails the intended final-source assertion. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-003.ts": "2102cd77e81dbda8f15cef3e95afd777fe5b2386b38952725ebcfad73705dfbd",
         "apps/api/src/cards/BT20/BT20-003.test.ts": "582fc6492f591e9140543123aa727f55c248580888461b2a57162bbeb7ef65f8",
         "internal-docs/audits/BT20/revalidation/BT20-003.json": "86de990586b8ed849a268bb2decb3958ebac162402c372ff679e438f933e6759",
         "internal-docs/audits/BT20/revalidation/BT20-003.md": "5b42d845ca36741671c515f98cfe93885d736832a07eda855d03ccdd19288107"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-004": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Real-turn reset passed after the shared Overflow origin correction (9cf46a768); exact final memory is 6. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-004.ts": "539360ff401bcc03d1512588293b89ceb48f0be22461ec0bc3472452f01c393a",
         "apps/api/src/cards/BT20/BT20-004.test.ts": "078adfa93761ec1d3ad1aaa0f5dcfac45710806be923a1b547e80d1168c82211",
         "internal-docs/audits/BT20/revalidation/BT20-004.json": "73bdba4e46cabc4fb56a1832df2f54be6ffd48294fb9a98533cec8f0abd03c02",
         "internal-docs/audits/BT20/revalidation/BT20-004.md": "f4dbaa1c97dea2b226c5f1b59c3590eebab1cc43c00c422361462f238b540d2c"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-005": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Q4284 cross-family ordering and checked-card area gap resolved in 69730d6a0, with 313 passing mechanism tests. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-005.ts": "a5e7428e2552cffe8f22a4728df0929f0f20550e06a5a9e06397f700545cae23",
         "apps/api/src/cards/BT20/BT20-005.test.ts": "c538baded2f82b68a70fe8d794e952c11c0ed6fa5af0332e4d7c1cab8c8cc58f",
         "internal-docs/audits/BT20/revalidation/BT20-005.json": "6891d53022444abcf543907feca8f0b80f2c6c4722ff79252c9c10dfc34f107e",
         "internal-docs/audits/BT20/revalidation/BT20-005.md": "08e1960c487e049c196841e8b6551897f96692a94d2a9878c33abedca50788d2"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-006": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-006.ts": "55904d67dcdf482e2ab47b2f7148ee69028c2b39fee7d24d6d590e736e237cf6",
         "apps/api/src/cards/BT20/BT20-006.test.ts": "334bc393666fd48bd6aa8faa188ea1c90be6d5960a12ce2df5babdde32f852fd",
         "internal-docs/audits/BT20/revalidation/BT20-006.json": "46fab113a711a59226028b52bc4a79c5a64e078ec774af5c972f791e497fbf1f",
         "internal-docs/audits/BT20/revalidation/BT20-006.md": "8cb924e163d550cab5c4564f73ea983020c19704cc95a96558d31d2554176d5d"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-007": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Natural Start Main acceptance, feasible refusal and no-match paths pass; legal breeding evolutions and the inherited host prove +2000 only in battle on the owner turn. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-007.ts": "89af2c817d55bd57048aa9c11bfadc3516c505a43ce91530fd1b109ce772c0d5",
         "apps/api/src/cards/BT20/BT20-007.test.ts": "5e079b7cda04195bd0d9c973316a80117998c7a72817ebc3e2f365acd20aef04",
         "internal-docs/audits/BT20/revalidation/BT20-007.json": "e2ec8b11a5339e9c4d4368fee2fd6878bf2f8bf9272b779aa9764f58a9952d90",
         "internal-docs/audits/BT20/revalidation/BT20-007.md": "51b14f18f411f25be9c8f5724118c7d10f0f235f6617678347223615bf5f2875"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-008": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-008.ts": "8ae98721bf2ec492b72d411d144bc22a2ad440406da623cb77733ebe540ae596",
         "apps/api/src/cards/BT20/BT20-008.test.ts": "35c01c11561995f4d4a07cedb2068d07be283544229318e658839bf731727a7f",
         "internal-docs/audits/BT20/revalidation/BT20-008.json": "513c936ee7332449427399899f8e4b264ed5cfc4f452be26717f509a3924b46d",
         "internal-docs/audits/BT20/revalidation/BT20-008.md": "2cb26e45da28a697756f99f09794a060e6f2b9128c8cbae7f55d92e7895bd69b"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-009": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-009.ts": "45cb750ccdf56c767c8aaa19c132c24c8030fb801dc058683838f521a76e9d7c",
         "apps/api/src/cards/BT20/BT20-009.test.ts": "1131c7d9f4c238292c96d52b400a1e185267f907f5ff164495df4935f2ad4091",
         "internal-docs/audits/BT20/revalidation/BT20-009.json": "f29a2aa3db2ee9bb88a2e740e44d5f7cd452073fb2f7dad10da65a80d0771d66",
         "internal-docs/audits/BT20/revalidation/BT20-009.md": "d7788869c85032b6038e47f1eb2ca7876632b35c698d2558187475b3551923b9"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-010": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Chronicle-only Raptordramon evolution proves cost reduction and inherited transition; the explicit alternate black X Antibody egg route proves zero cost. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-010.ts": "9d3cfc4fa737fa7a69b4f0abb3413b417791de069c7e2c3e958394475df22e2c",
         "apps/api/src/cards/BT20/BT20-010.test.ts": "c3075791f1758f43a01379fb50a1450e13dae5cd228d305cfda1472572bc970c",
         "internal-docs/audits/BT20/revalidation/BT20-010.json": "d6433b09dc840deefaa03df02685341ef5ce64dabbf6ef4f227f306129ca77ea",
         "internal-docs/audits/BT20/revalidation/BT20-010.md": "b320f14e13cf7195db5d02175fe2418c023d757f714a0527c3d12c73a6b2d8e3"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-011": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-011.ts": "315614e4933ee8e4a67495c31e43d87fb5f6f0b9cb4f577c225872efa9efe5c4",
         "apps/api/src/cards/BT20/BT20-011.test.ts": "ce409c679bdeeaccc89db37c31c5181732926bbb53992dc5744d89cc90965c33",
         "internal-docs/audits/BT20/revalidation/BT20-011.json": "c0fa64c3a93c63d1858b24d760563b4ab9cc48ebcd886731d5cbb37b1dd27b24",
         "internal-docs/audits/BT20/revalidation/BT20-011.md": "5b6cd4a756df0739914fe68f250abc7fb3305586d5a7208e96cb02fbc91dd444"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-012": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-012.ts": "8cac8a43dcbdb323cf878d36a46b6c8533357e1c6d169a6d99def94cdd19a1c5",
         "apps/api/src/cards/BT20/BT20-012.test.ts": "b6d4bff87e426e37ab3948cd8e5120caa380f7a83e911af70a36c83456fe6bc9",
         "internal-docs/audits/BT20/revalidation/BT20-012.json": "0839356fef266fb1db10f7aa02825e79a71b9a8d189ddd31bcdced3bd4fb784f",
         "internal-docs/audits/BT20/revalidation/BT20-012.md": "178fea2a3d56accca4cd87c88ab74a98a704e9a02d8cc6419b1347de8dae700b"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     },
     "BT20-013": {
       "reviewed": true,
       "gatesPassed": true,
-      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
+      "review": "Current accepted artifact hashes are unchanged. Renewed 836-test collection and 552-test affected regression gates pass; prior meaningful runtime sensitivity remains recorded. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-013.ts": "08021af9aba845850414ab71453619365849b2f617507eb7e1f94cd06ff8ab9d",
         "apps/api/src/cards/BT20/BT20-013.test.ts": "75e7fb9c0d25b3e009c0b86d3b1b6204868f4e549a3fcd2b8c8a588da8738be5",
         "internal-docs/audits/BT20/revalidation/BT20-013.json": "0ad7a3ab8aea96494acdfee32333540fe09337ef1bb277a1263e35e8bb0eabd5",
         "internal-docs/audits/BT20/revalidation/BT20-013.md": "76071ec3e550b7a8d0c83fe0998b2d0ddce524c5beedfe326d5b3339946b40d0"
       },
-      "commit": "826045f62",
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
       "commands": [
-        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
         "pnpm typecheck",
         "pnpm effects:check:set -- --set BT20",
-        "Early-card runtime sensitivity and style/diff logs"
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-014": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-014.ts": "14c13363407f3d02216d4e3e544b1e8dde4ff00e664787588772cb55d7528447",
+        "apps/api/src/cards/BT20/BT20-014.test.ts": "a6efa1ec79b0c9b75fe614c88f5989d0e6a5ed5a258b931a3d915cae95d8801a",
+        "internal-docs/audits/BT20/revalidation/BT20-014.json": "93b42ae6529f601886bae5e924d4a45d850459403d39c6a115b1b7f5d2f11a73",
+        "internal-docs/audits/BT20/revalidation/BT20-014.md": "6dba753cb7daeabde269e6893f0148e8bf92400898de3e1a233095135c97283e"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-015": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-015.ts": "e19b5d0893a30ca39ab87447eed5b611d8505f1ac9beb3617e8f55246a3539aa",
+        "apps/api/src/cards/BT20/BT20-015.test.ts": "00ab8613106a1cf7da2865c88d3b7091240c1acb00c2c9a17009199476ee87db",
+        "internal-docs/audits/BT20/revalidation/BT20-015.json": "fd4da96e0d0761b6b324016a1cfd9209ec9909d68c3c13ba7511e82d01adf78b",
+        "internal-docs/audits/BT20/revalidation/BT20-015.md": "58156fc0c09584720f659114033e6f82182cad00298640f2e2ed809100d38358"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-016": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-016.ts": "8a03f8ab77eb2b7bde890d0f446dccd105e5712026fa9119fca2b449f829023c",
+        "apps/api/src/cards/BT20/BT20-016.test.ts": "afcb94dbee84752deb3cc41cd1fb770684ab15c4d1c86c768fa2bf239f31ad60",
+        "internal-docs/audits/BT20/revalidation/BT20-016.json": "8182fc496269fdb4fddfb78a7d241758fa02b7da5c8a4bc0d63bf235abba7559",
+        "internal-docs/audits/BT20/revalidation/BT20-016.md": "5610a7acc56736ac41e9e9528b75fb10cbc9ed2dbb540ec2210aaca30409106c"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-017": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-017.ts": "529f8afaf51edfbf1f163c4bac9f8c9ef926fbb45841f3ed612c38704e62aa16",
+        "apps/api/src/cards/BT20/BT20-017.test.ts": "2be3b6dbcf16b50e0a106adadb6ed4ee90fdd20a5d15f7cb934ef652495c7df9",
+        "internal-docs/audits/BT20/revalidation/BT20-017.json": "f1077821203a56684534fddd45337aa939293535ae9d88c1bc2450be9014f368",
+        "internal-docs/audits/BT20/revalidation/BT20-017.md": "a64db52fe29a49072346d7cf072a44d1c4a868130ae965922660d8e133054ac0"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-018": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-018.ts": "2c025dd70a47a6d605fe9990943a0eca88c0a87722f32e3ebe20883294cba7c9",
+        "apps/api/src/cards/BT20/BT20-018.test.ts": "d872349522208e0e36f276d185c55bc21da19b71068ad642053d78011948b1b9",
+        "internal-docs/audits/BT20/revalidation/BT20-018.json": "354e73f3490816202cdd24723bb238d3f7156c817d042a76fb51e04b144ada12",
+        "internal-docs/audits/BT20/revalidation/BT20-018.md": "842a00c30963ccec048f2ff8bcfc5d1dde1e71422274ade64c4109119ea9588c"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-019": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-019.ts": "6cca33d59414b578787029786c9299af0683021ac3c70cae4efaa232ceca2302",
+        "apps/api/src/cards/BT20/BT20-019.test.ts": "781515d3a0ec26edb67a50b524b29558135bca7484684016d3fb09ab8c304a1a",
+        "internal-docs/audits/BT20/revalidation/BT20-019.json": "f8ea4cb969fdebddb7c9e82c12f1c3f1f1cd0fb9f51061f631d9c8c1af43b2b1",
+        "internal-docs/audits/BT20/revalidation/BT20-019.md": "b3e1ebe48bb175c569289dfea5157b8a99c09c139abb1403d9af0b472374b0b5"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-020": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-020.ts": "e3386e7b62fa644c932bb2720c28dc8b200ff6cdbb187be36bdb532ef6a4e145",
+        "apps/api/src/cards/BT20/BT20-020.test.ts": "59ba853834fbb49831b74c5f483397092fb03d02d53d9dd64efe8a1055c76418",
+        "internal-docs/audits/BT20/revalidation/BT20-020.json": "e25d664405a9e624bdafc3ef490e9fb7ab2a739edc8bb21e0541e50cc38a402c",
+        "internal-docs/audits/BT20/revalidation/BT20-020.md": "3b60d31a7c73a08ec487ee43bd576c19d49a56b93d623c3a598ad06f9a4bc337"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-021": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-021.ts": "fbb7082e64418fb4b59db0500a96cff06640b298bfd1b5ffdafbfa6165631fbe",
+        "apps/api/src/cards/BT20/BT20-021.test.ts": "20f32aeacbb04a38f231b5a68aa37132896440a47f27de472b317fb8abc5c2cb",
+        "internal-docs/audits/BT20/revalidation/BT20-021.json": "f299727797e855a15b0337752eb03acb80c3686dfd5fab6dbf728ad6b916bb6f",
+        "internal-docs/audits/BT20/revalidation/BT20-021.md": "a2cde308d84c41d7d0f55c716095d581cac3e04b9aa221409825e9cfcce26690"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-022": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-022.ts": "0d6470a8b35c6944735127b7bb211bacacc740eff7cfe1d612c258a8b691b7a6",
+        "apps/api/src/cards/BT20/BT20-022.test.ts": "48019d334b0ce51fda6c2d08a51459badae970578d50cf5d1102aa7a47519811",
+        "internal-docs/audits/BT20/revalidation/BT20-022.json": "0ad7f2255eb8a7bfb6365ec18b6f499c87dee2626115dade244e57918c6e8234",
+        "internal-docs/audits/BT20/revalidation/BT20-022.md": "dfd3018766bd4cb9309d4bc23cda57de27bf29efe7b99615c788a7dc7a75cda9"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-023": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-023.ts": "9a1fd3673ff9bd7f8f9a1bd79d3e773ba315b8bbc93f4b6e2a9cde19c7f13af1",
+        "apps/api/src/cards/BT20/BT20-023.test.ts": "c3ed84062f20a38a1856864e7dd5e831a253ec703f778dfeb9f9939678c08fae",
+        "internal-docs/audits/BT20/revalidation/BT20-023.json": "5ae411a3c7abc144df8cba8941e67a9297d5de17df26bbb395726d768c1669e6",
+        "internal-docs/audits/BT20/revalidation/BT20-023.md": "de013cfab71e9c45620e835fa7a9085bf874dd79d498074780e897752694638a"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-024": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-024.ts": "05e93b1c893f4b5112d43da4203980a29bbbea238f2080e99048871285547db5",
+        "apps/api/src/cards/BT20/BT20-024.test.ts": "af67b940392f012511837b56f076b8629139efa5cdbb257e1afe0049e0557da0",
+        "internal-docs/audits/BT20/revalidation/BT20-024.json": "ea71b1ad17d75c47d820c0e72f5004fda2004f94c66855e2d45327a3a775289d",
+        "internal-docs/audits/BT20/revalidation/BT20-024.md": "dbebc14ef4afe7bdbd66fa45668fef74cc2c1a71cfb2e4ab9f418a2694919a67"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-025": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-025.ts": "4bd11486fddc44863ea20f50bb6b4cf4c1b2bd447da26a7a366957bb65168227",
+        "apps/api/src/cards/BT20/BT20-025.test.ts": "23cbe8e04764487f85d70b5254d62343f5916060640a3bd45095abc5c70fb778",
+        "internal-docs/audits/BT20/revalidation/BT20-025.json": "4f4b4facce26d5a8aa05cb2cf48f37d59c7d9a30672269a06a9d03c781edf6df",
+        "internal-docs/audits/BT20/revalidation/BT20-025.md": "c219bc4791ce5349d31b79451c2ca89a8c72cc8efb111d7816a71a8dd2978b6a"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
+      ]
+    },
+    "BT20-026": {
+      "reviewed": true,
+      "gatesPassed": true,
+      "review": "Lead reviewed and corrected the public clause map; runtime-disabled assertions fail meaningfully, final gates pass and code delivery is pushed. Collection completion remains separate.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-026.ts": "d02c9f12a6bf9161736c4e23cd667b8c9e3806b7cabfd63bde4fd83b85b03b32",
+        "apps/api/src/cards/BT20/BT20-026.test.ts": "9bdbfaad6344ffb1713d418b56f8d4f23cd0b62e7ba026fc14dacd157a8a1549",
+        "internal-docs/audits/BT20/revalidation/BT20-026.json": "47c00b5a73a93a8f33a1e5cafa9a146d988f401b2999f56149a62fd24053cf5a",
+        "internal-docs/audits/BT20/revalidation/BT20-026.md": "5dd5bc7ae9ae04add93b6ba07300517dfdcfa888c95dfd697e2e83f7a9e97163"
+      },
+      "commit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+        "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Changed-file lint/format and git diff --check; reactive-movement-gates.json"
       ]
     }
   }

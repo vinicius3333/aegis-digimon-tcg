@@ -1,12 +1,12 @@
 {
   "cardId": "BT20-019",
-  "status": "awaiting-delivery-gates",
+  "status": "verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
     "peerStackProof": 2,
-    "deliveryGates": 0
+    "deliveryGates": 2
   },
   "evidence": [
     "Public Jesmon -> Jesmon X -> GX evolution proves legal source transitions and costs. Exact Jesmon/X Antibody and Rule Name positives differ from X-Antibody-trait-only sources.",
@@ -15,12 +15,11 @@
     "BT20-019.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
     "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
     "collection-after-reactive-delay-results.json",
-    "reactive-movement-gates.json"
+    "reactive-movement-gates.json",
+    "BT20-019-runtime-disabled.json"
   ],
-  "gaps": [
-    "Atomic commit/push and final hash-bound acceptance pending."
-  ],
-  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "gaps": [],
+  "reviewStatus": "Lead accepted all printed clauses, legal public stack and negative-path evidence, meaningful runtime sensitivity, green final gates and pushed code delivery. Collection completion remains separate.",
   "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-019.test.ts --maxWorkers=1 --no-file-parallelism",
@@ -71,6 +70,11 @@
     {
       "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-019",
       "result": "8 intended state/assertion failures with registered effects disabled; production restored. See BT20-019-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    },
+    {
+      "command": "git diff --check; git push origin HEAD",
+      "result": "Clean diff and successful branch push through 2a2a2b113d370435d513bfdb0b569a05a1c46e12."
     }
-  ]
+  ],
+  "deliveryCommit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12"
 }

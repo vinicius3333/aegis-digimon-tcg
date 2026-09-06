@@ -2,7 +2,7 @@
 
 Reproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.
 
-Verified: 13/102; total 130/1020; mean 1.275/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
+Verified: 26/102; total 260/1020; mean 2.549/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
 
 | Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
@@ -19,19 +19,19 @@ Verified: 13/102; total 130/1020; mean 1.275/10. Collection remains in progress 
 | BT20-011 | ExVeemon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-011.md) |
 | BT20-012 | Ginryumon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-012.md) |
 | BT20-013 | BaoHuckmon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-013.md) |
-| BT20-014 | SaviorHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-014.md) |
-| BT20-015 | Hisyaryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-015.md) |
-| BT20-016 | Paildramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-016.md) |
-| BT20-017 | Jesmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-017.md) |
-| BT20-018 | Ouryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-018.md) |
-| BT20-019 | Jesmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-019.md) |
-| BT20-020 | Imperialdramon: Fighter Mode | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-020.md) |
-| BT20-021 | Jesmon GX | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-021.md) |
-| BT20-022 | Crabmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-022.md) |
-| BT20-023 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-023.md) |
-| BT20-024 | Seadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-024.md) |
-| BT20-025 | Wingdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-025.md) |
-| BT20-026 | MegaSeadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-026.md) |
+| BT20-014 | SaviorHuckmon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-014.md) |
+| BT20-015 | Hisyaryumon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-015.md) |
+| BT20-016 | Paildramon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-016.md) |
+| BT20-017 | Jesmon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-017.md) |
+| BT20-018 | Ouryumon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-018.md) |
+| BT20-019 | Jesmon (X Antibody) | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-019.md) |
+| BT20-020 | Imperialdramon: Fighter Mode | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-020.md) |
+| BT20-021 | Jesmon GX | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-021.md) |
+| BT20-022 | Crabmon (X Antibody) | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-022.md) |
+| BT20-023 | Coredramon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-023.md) |
+| BT20-024 | Seadramon (X Antibody) | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-024.md) |
+| BT20-025 | Wingdramon | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-025.md) |
+| BT20-026 | MegaSeadramon (X Antibody) | 2/2 | 2/2 | 2/2 | 2/2 | 2/2 | 10/10 | [report](BT20-026.md) |
 | BT20-027 | Slayerdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-027.md) |
 | BT20-028 | GigaSeadramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-028.md) |
 | BT20-029 | Pulsemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-029.md) |
