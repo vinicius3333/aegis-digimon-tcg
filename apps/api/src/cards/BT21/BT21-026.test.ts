@@ -76,6 +76,92 @@ describe("BT21-026 WarGreymon", () => {
     expect(s.state.memory).toBe(10 - expectedCost);
   });
 
+  it("attacks immediately after a public reduced-cost play because of Rush", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-026", as: "wargreymon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-026"));
+    const playedId = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "BT21-026",
+    )!.permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: playedId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("uses Raid to attack the highest-DP unsuspended opponent instead of checking security", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-026", as: "wargreymon" }] },
+        1: {
+          battleArea: [
+            { card: "BT21-019", as: "highest" },
+            { card: "BT1-010", as: "lower" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("highest").permanentId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wargreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("lower").permanentId);
+  });
+
+  it("uses Blocker to redirect an opponent's public player attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-026", as: "wargreymon" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("wargreymon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("retains Rush, Raid, and Blocker after evolving from a legal red level 5", async () => {
     const s = setupEngine({
       0: {
