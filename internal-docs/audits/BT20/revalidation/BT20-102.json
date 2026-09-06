@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-102",
-  "status": "awaiting-lead-acceptance",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,16 +9,54 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "Public BT5-086 Omnimon -> Omnimon X alternate evolution pays 2, lets the opponent choose a survivor, deletes the other opponent, then bottom-decks the exact surviving instance.",
-    "Prior exact-name source correction and its public comparisons remain in the focused/full collection suite.",
-    "collection-after-reactive-delay-results.json",
-    "reactive-movement-gates.json"
+    "apps/api/src/cards/BT20/BT20-102.ts",
+    "apps/api/src/cards/BT20/BT20-102.test.ts",
+    "node tools/kb/query.mjs card BT20-102",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-102-runtime-disabled.json",
+    "round5-gates.json"
   ],
-  "gaps": [
-    "Final independent clause acceptance and runtime sensitivity remain pending.",
-    "Atomic pushed delivery and final independent acceptance pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "11/11 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-102",
+      "result": "7 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
   ],
-  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "gaps": [],
+  "executedCases": [
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) grants Rush and then offers the same Digimon an unsuspending attack",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) checks exact Omnimon or X Antibody trait in both entry timings and the alternate route",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) keeps the chosen survivor (itself) while deleting every other Digimon",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) returns the chosen opposing survivor to the bottom of deck after the public entry deletion",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) does not fire the entry mass-delete from an X Antibody trait-only Digimon in the stack",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) uses exact bracket-name semantics for trait-only X Antibody Digimon in the stack",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) uses exact bracket-name semantics for exact X Antibody Option in the stack",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) uses exact bracket-name semantics for Proto Form Rule Name in the stack",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) does not mass-delete when neither Omnimon nor X Antibody is in the stack",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) grants Rush and attacks without suspending at the end of your turn",
+    "BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) accepts the printed Rush choice and completes its attack on a real end-of-turn"
+  ],
   "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-102",
@@ -55,9 +93,7 @@
     {
       "command": "pnpm exec oxlint <six changed card modules/tests and nameExactMatch.test.ts>; pnpm exec oxfmt --check <same paths>; git diff --check",
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
-    }
-  ],
-  "commands": [
+    },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
       "result": "10 cases passed for BT20-102; 836 total passed, zero failed."
@@ -74,5 +110,6 @@
       "command": "Commands in reactive-movement-gates.json",
       "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
     }
-  ]
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }

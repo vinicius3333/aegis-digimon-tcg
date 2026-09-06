@@ -251,4 +251,21 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.perm("omnimon").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+
+  it("accepts the printed Rush choice and completes its attack on a real end-of-turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OMNIMON_XA, as: "omnimon" }], deck: ["BT20-010", "BT20-010"] },
+        1: { security: ["BT1-010"], deck: ["BT20-010", "BT20-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("omnimon"))).toBe(true);
+    expect(s.perm("omnimon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
 });
