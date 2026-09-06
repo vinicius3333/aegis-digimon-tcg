@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -76,19 +75,27 @@ describe("BT21-064 Guilmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-064", as: "guilmon" }],
-          hand: [{ card: "BT12-007", as: "cost" }],
+          hand: [
+            { card: "BT21-064", as: "guilmon" },
+            { card: "BT12-007", as: "cost" },
+          ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("guilmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("guilmon").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
   });
 
   it("gains 1 memory when a realistic host carrying Guilmon is deleted", async () => {
