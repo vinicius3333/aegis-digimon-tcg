@@ -238,6 +238,39 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     expect(s.perm("burningGreymon").stack[0]?.instanceId).toBe(s.inst("placedHero").instanceId);
   });
 
+  it("publicly digivolves from a red Tamer through the printed cost-2 alternate route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-082", as: "redTamer" }],
+          hand: [
+            { card: "BT21-013", as: "agunimon" },
+            { card: "BT21-016", as: "heroMaterial" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redTamer").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redTamer").topCard.cardId === "BT21-013");
+
+    // The alternate red-Tamer route costs 2; the When Digivolving effect then places
+    // the eligible Hero card under the new Agunimon permanent.
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("redTamer").stack.map((card) => card.cardId)).toContain("BT21-016");
+  });
+
   it("publicly places a Hero under a qualifying red inherited-effect Tamer", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -268,6 +301,46 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("burning").topCard.cardId === "BT21-013");
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
+  });
+
+  it("publicly places an eligible Hero from trash under the qualifying red Tamer only", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-013", as: "burning" },
+            { card: "BT21-082", as: "qualifyingTamer" },
+            { card: "BT1-085", as: "redWithoutInherited" },
+            { card: "BT17-083", as: "nonRedInherited" },
+          ],
+          hand: [{ card: "BT21-013", as: "agunimon" }],
+          trash: [{ card: "BT21-016", as: "trashHero" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("qualifyingTamer").topCard.instanceId);
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard.cardId === "BT21-013");
+
+    expect(s.perm("qualifyingTamer").stack.map((card) => card.instanceId)).toContain(s.inst("trashHero").instanceId);
+    expect(s.perm("redWithoutInherited").stack.map((card) => card.instanceId)).not.toContain(
+      s.inst("trashHero").instanceId,
+    );
+    expect(s.perm("nonRedInherited").stack.map((card) => card.instanceId)).not.toContain(
+      s.inst("trashHero").instanceId,
+    );
+    expect(s.perm("burning").stack.map((card) => card.instanceId)).not.toContain(s.inst("trashHero").instanceId);
   });
 
   it("when attacking, pays the matching red Hero evolution cost reduced by 1", async () => {
