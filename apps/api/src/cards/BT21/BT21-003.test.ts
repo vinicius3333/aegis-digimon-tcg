@@ -50,6 +50,38 @@ describe("BT21-003 Yokomon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT21-034");
   });
 
+  it("builds the WG stack through public evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-003", as: "host" }],
+        hand: [
+          { card: "BT21-033", as: "lv3" },
+          { card: "BT21-034", as: "lv4" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("lv3").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-033");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("lv4").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-034");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-003", "BT21-033"]);
+    expect(s.state.memory).toBe(8);
+  });
+
   it("draws when a WG Digimon is played through the public play action", async () => {
     const s = setupEngine(
       {
@@ -100,27 +132,33 @@ describe("BT21-003 Yokomon", () => {
   });
 
   it("draws only once when multiple WG Digimon are played in the same turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT21-034", as: "host", under: ["BT21-003"] },
-          { card: "BT21-048", as: "firstWG" },
-          { card: "BT21-033", as: "secondWG" },
-        ],
-        deck: [
-          { card: "BT1-001", as: "firstDraw" },
-          { card: "BT1-002", as: "secondDraw" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-034", as: "host", under: ["BT21-003", "BT21-033"] }],
+          hand: [
+            { card: "BT21-048", as: "firstWG" },
+            { card: "BT21-048", as: "secondWG" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "firstDraw" },
+            { card: "BT1-002", as: "secondDraw" },
+          ],
+        },
       },
-    });
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("firstWG").permanentId,
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstWG").instanceId })).toEqual({
+      ok: true,
     });
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("secondWG").permanentId,
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWG").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT21-048").length === 2);
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
