@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-082.js";
 import "../index.js";
 
@@ -146,13 +147,23 @@ describe("BT21-082 Takuya Kanbara", () => {
         0: {
           battleArea: [
             { card: "BT1-009", as: "attacker", dp: 6000 },
+            { card: "BT1-009", as: "secondAttacker", dp: 6000 },
             { card: "BT21-013", as: "host", under: [{ card: "BT21-082", as: "source" }] },
           ],
-          hand: [{ card: "BT1-085", as: "tamer" }],
+          hand: [
+            { card: "BT1-085", as: "tamer" },
+            { card: "BT10-087", as: "secondTamer" },
+          ],
           security: [{ card: "BT1-009", as: "own-security" }],
           deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: [{ card: "BT1-090", as: "opponent-security" }], deck: ["BT1-009", "BT1-009"] },
+        1: {
+          security: [
+            { card: "BT1-090", as: "opponent-security" },
+            { card: "BT1-090", as: "second-opponent-security" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
@@ -167,11 +178,49 @@ describe("BT21-082 Takuya Kanbara", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[1]!.security.length === 0 &&
+        s.state.players[1]!.security.length === 1 &&
+        !observe(s.engine).isAttacking() &&
         s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT1-085"),
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tamer").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondTamer").instanceId)).toBe(true);
+  });
+
+  it("does not play the inherited Tamer when the opponent removes your security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "host", under: [{ card: "BT21-082", as: "source" }] }],
+          hand: [{ card: "BT1-085", as: "tamer" }],
+          security: [{ card: "BT1-009", as: "own-security" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentAttacker", dp: 6000, suspended: false }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
   });
 
   it("plays itself from security without paying cost", async () => {
