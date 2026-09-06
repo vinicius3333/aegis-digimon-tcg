@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-072.js";
 import "./BT20-068.js";
 import "./BT20-073.js";
+import "./BT20-078.js";
 import "./index.js";
 
 describe("BT20-072 Phantomon", () => {
@@ -79,7 +80,7 @@ describe("BT20-072 Phantomon", () => {
           0: {
             battleArea: [
               inherited
-                ? { card: "BT20-073", under: ["BT20-072"], as: "subject", suspended: true }
+                ? { card: "BT20-078", under: ["BT20-072"], as: "subject", suspended: true }
                 : { card: "BT20-072", as: "subject", suspended: true },
             ],
             trash: [
@@ -88,7 +89,7 @@ describe("BT20-072 Phantomon", () => {
               { card: "BT20-047", as: "nonGhost" },
             ],
           },
-          1: { battleArea: [{ card: "BT20-069", dp: 10000, as: "attacker" }] },
+          1: { battleArea: [{ card: "BT20-069", dp: 15000, as: "attacker" }] },
         },
         { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
       );
@@ -116,7 +117,7 @@ describe("BT20-072 Phantomon", () => {
           battleArea: [{ card: "BT20-072", as: "phantomon", suspended: true }],
           trash: [{ card: "BT20-068", as: "eligible" }],
         },
-        1: { battleArea: [{ card: "BT20-069", dp: 10000, as: "attacker" }] },
+        1: { battleArea: [{ card: "BT20-069", dp: 15000, as: "attacker" }] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
