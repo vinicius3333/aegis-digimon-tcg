@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-055.js";
+import "../BT3/BT3-026.js";
 import "../index.js";
 
 describe("BT21-055 Sunarizamon", () => {
   it("uses the printed normal evolution from a black level-2 base for zero memory", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-005", as: "egg" }],
+        breeding: { card: "BT2-005", as: "egg" },
         hand: [{ card: "BT21-055", as: "sunari" }],
       },
     });
@@ -80,6 +82,57 @@ describe("BT21-055 Sunarizamon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("tooExpensive").permanentId)).toBe(true);
+  });
+
+  it("publicly triggers the inherited deletion when BT3-026 trashes a legal Mineral stack source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-055", as: "sunari" }],
+          hand: [{ card: "BT10-062", as: "golemon" }],
+          deck: ["BT1-003"],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-029", as: "magna", under: ["BT3-026"] },
+            { card: "BT1-009", as: "eligible" },
+            { card: "BT1-084", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sunari").permanentId,
+        instanceId: s.inst("golemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunari").topCard.cardId === "BT10-062");
+    const sourceId = s.perm("sunari").stack[0]!.instanceId;
+    expect(s.perm("sunari").topCard.cardId).toBe("BT10-062");
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === sourceId));
+    await settle(
+      () => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009") && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-084")).toBe(true);
   });
 
   it("does not trigger when the inherited source is trashed as a non-effect cost", async () => {
