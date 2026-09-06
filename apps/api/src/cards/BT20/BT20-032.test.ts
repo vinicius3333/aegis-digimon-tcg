@@ -202,4 +202,58 @@ describe("BT20-032 Bulkmon", () => {
     ).toBe(false);
     expect(invalid.perm("unrelated").topCard.cardId).toBe("BT20-010");
   });
+
+  it("resolves the security clauses when Bulkmon enters by digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-029", as: "pulsemon" }],
+          hand: [{ card: "BT20-032", as: "bulkmon" }],
+          security: [{ card: "BT20-010", as: "returnedSecurity" }, "BT20-011", "BT20-012"],
+          deck: [
+            { card: "BT20-014", as: "drawn" },
+            { card: "BT20-013", as: "recovery" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pulsemon").permanentId,
+        instanceId: s.inst("bulkmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("drawn").instanceId,
+      s.inst("returnedSecurity").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not recover when removing one of four security cards leaves three", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-032", as: "bulkmon" }],
+          security: ["BT20-010", "BT20-011", "BT20-012", "BT20-013"],
+          deck: [{ card: "BT20-014", as: "untouched" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bulkmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("untouched").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
 });
