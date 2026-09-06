@@ -116,3 +116,17 @@ The stable snapshot through `11ee506ef` passes `pnpm --filter @aegis/api exec vi
 - App Fusion link movement is fixed; its normal public-intent entry is still missing. Q6313 needs an actual zero-DP intermediate/Arts ordering proof, and 053's inherited controller filter needs a negative test and correction. These remain explicit gaps below 10/10.
 
 Commit `1ad9482f9` contains BT25-054 GreatGrizzlymon proofs; its subject mistakenly names a different card. The file paths, catalog identity and evidence identify GreatGrizzlymon correctly. The commit is retained without rewriting branch history.
+
+## Eighth integration checkpoint: public App Fusion and 33 approvals
+
+The stable snapshot with public App Fusion passes `pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism`: **1,087 tests / 113 files**, `/tmp/bt25-audit-logs/eighth-wave-collection.log`. Workers explicitly held all edits and tests for this collection run.
+
+- Public App Fusion/evolution/link/primitives: **242 tests / 8 files**, `app-fusion-public-final-mechanisms.log`; standalone public regression **13 tests**. Independent Luna implementation review found no concrete CR 8-4 regression.
+- Full `pnpm typecheck`: shared/API/web PASS, `eighth-wave-typecheck-final.log`. Earlier runs exposed the widened BT25-058 IR map/filter types, an unchecked target index and a readonly fixture array. All were fixed without suppression.
+- Scoped effects sync/check: **104 records synchronized, 29 semantic deltas versus a924de971, zero changes outside BT25**, `eighth-wave-effects-final.log`.
+- Oxfmt check: **292 matching files PASS**, `eighth-wave-format.log`. Oxlint exits zero. Unapproved card files retain existing unsafe optional-chain warnings and conditional assertions; 059's manual prompt branches add conditional-assertion warnings that remain an explicit cleanup item before card approval. Newly introduced public-engine assertion warnings and unused 058/059 imports were fixed; their follow-up focused run passes **34 tests / 3 files**, `eighth-wave-style-recheck.log`. `git diff --check` passes.
+- Catalog text restoration retains five App Fusion stacking sentences and nine Rule trait sentences; the latter traits already existed in runtime types. Source comparison remains in OFFICIAL-SOURCE-CHECK.md.
+- Newly approved: **036 Craftmon**, after public App Fusion closes its outstanding engine entry gap. Current total **33/104**. Whole collection recalculation: **63 scored, 540 assigned points, 41 unscored**. Other cards remain below 10/10 with explicit gaps even where their focused tests are green.
+- 059's initial immunity assertion was vacuous because it chose the non-TS target. The repaired public probe now chooses the protected TS Digimon by exact ID, proves it is unaffected, proves a separate non-TS control is affected, and repeats the effect after protection expires. The final card result is **6/6**; remaining clauses and cleanup are still under review.
+
+This is an integration checkpoint, not collection completion. Next work closes outstanding refusal/timing/stack gaps on 029–064 and audits the remaining 060/065–104 cards in small disjoint Luna batches.

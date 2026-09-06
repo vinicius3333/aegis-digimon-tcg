@@ -65,10 +65,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -138,10 +138,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -211,10 +211,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -284,10 +284,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -357,10 +357,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -430,10 +430,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -512,10 +512,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -597,10 +597,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -682,10 +682,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "luna_c",
@@ -767,10 +767,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -852,10 +852,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -937,10 +937,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "luna_c",
@@ -1022,10 +1022,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1102,10 +1102,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1187,10 +1187,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1272,10 +1272,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1357,10 +1357,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1442,10 +1442,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1479,7 +1479,7 @@
         "forms": ["Mega"],
         "attributes": ["Data"],
         "types": ["Cyborg", "X Antibody", "Titan", "TS", "Dinosaur"],
-        "effectText": "[Digivolve] Lv.5 w/[Dinosaur]/[TS] trait: Cost 4 \n\n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's highest DP Digimon.\n[End of Your Turn] [Once Per Turn] If your opponent has 5 or more memory, their Digimon effects don't affect this Digimon until their turn ends. Then, if they have 5 or less, their Option effects don't affect this Digimon until their turn ends.",
+        "effectText": "[Digivolve] Lv.5 w/[Dinosaur]/[TS] trait: Cost 4 \n\n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's highest DP Digimon.\n[End of Your Turn] [Once Per Turn] If your opponent has 5 or more memory, their Digimon effects don't affect this Digimon until their turn ends. Then, if they have 5 or less, their Option effects don't affect this Digimon until their turn ends.\n(Rule) Trait: Has [Dinosaur] Type.",
         "rarity": "R",
         "maxCountInDeck": 4,
         "imageId": "BT25-019",
@@ -1525,10 +1525,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1608,10 +1608,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1688,10 +1688,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1773,10 +1773,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1852,10 +1852,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1936,10 +1936,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -1973,7 +1973,7 @@
         "forms": ["Ultimate"],
         "attributes": ["Vaccine"],
         "types": ["Shaman", "Iliad", "TS", "Cyborg"],
-        "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Blocker＞ \n＜Decode ([Aegiomon])＞ \n[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of your Digimon unsuspends.",
+        "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Blocker＞ \n＜Decode ([Aegiomon])＞ \n[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of your Digimon unsuspends.\n(Rule) Trait: Has [Cyborg] Type.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your [Shaman] trait Digimon may unsuspend.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -2020,10 +2020,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -2104,10 +2104,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -2183,10 +2183,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "astra_review",
@@ -2267,10 +2267,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "owner": "luna_c",
@@ -2334,6 +2334,12 @@
           "result": "PASS",
           "tests": 85,
           "log": "/tmp/bt25-audit-logs/review-027-032.log"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-029.md"
@@ -2407,10 +2413,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-030.md",
@@ -2485,10 +2491,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-031.md",
@@ -2563,10 +2569,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-032.md",
@@ -2641,10 +2647,10 @@
           "result": "PASS"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism",
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 1050,
-          "log": "/tmp/bt25-audit-logs/seventh-wave-collection.log"
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-033.md",
@@ -2699,6 +2705,12 @@
           "result": "PASS",
           "tests": 11,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-034.md"
@@ -2752,6 +2764,12 @@
           "result": "PASS",
           "tests": 17,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-035.md"
@@ -2790,26 +2808,38 @@
       "module": "apps/api/src/cards/BT25/BT25-036.ts",
       "test": "apps/api/src/cards/BT25/BT25-036.test.ts",
       "kb": "BT25-036 Craftmon\n  Q&A (2):\n    Q6302 (2026-05-08): Can I also activate this card's [On Play] [When Digivolving] effect when I have 0 cards in my security stack?\n      A: Yes, you can. In such cases, you can't add a card from your security stack to your hand because you don't have any security cards, therefore you just perform <Recovery +1>.\n    Q6303 (2026-05-08): This card has 4 different cards in its App Fusion requirements. What combinations are possible for App Fusion?\n      A: App Fusion is possible with the following combinations. ●[Kabemon] with [Gomimon] link card ●[Kabemon] with [Ecomon] link card ●[Kabemon] with [Puzzlemon] link card ●[Gomimon] with [Kabemon] link card ●[Gomimon] with [Ecomon] link card ●[Gomimon] with [Puzzlemon] link card ●[Ecomon] with [Kabemon] link card ●[Ecomon] with [Gomimon] link card ●[Ecomon] with [Puzzlemon] link card ●[Puzzlemon] with [Kabemon] link card ●[Puzzlemon] with [Gomimon] link card ●[Puzzlemon] with [Ecomon] link card\n",
-      "status": "in-progress",
+      "status": "verified",
       "scores": {
         "catalogKb": 2,
         "irTrace": 2,
-        "behavior": 1,
-        "peersStacks": 1,
-        "validation": 1
+        "behavior": 2,
+        "peersStacks": 2,
+        "validation": 2
       },
-      "gaps": [
-        "Link placement fixed and all12 name pairs checked; normal App Fusion still lacks a public intent entry path."
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-036.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
           "tests": 12,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/engine/appFusionIntent.test.ts src/engine/appFusionLinkPlacement.test.ts src/cards/BT25/BT25-036.test.ts src/engine/conformance/ch08-digivolution.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/conformance/ch10-link.test.ts src/engine/linkState.test.ts src/engine/effects/primitives.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 242,
+          "log": "/tmp/bt25-audit-logs/app-fusion-public-final-mechanisms.log"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
-      "evidence": "docs/audits/BT25/evidence/BT25-036.md"
+      "evidence": "docs/audits/BT25/evidence/BT25-036.md",
+      "reviewedBy": "Astra independent printed clause/IR/test review, public App Fusion and eighth integration gate",
+      "owner": "astra_review"
     },
     {
       "cardId": "BT25-037",
@@ -2862,6 +2892,12 @@
           "result": "PASS",
           "tests": 17,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-037.md"
@@ -2920,6 +2956,12 @@
           "result": "PASS",
           "tests": 18,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-038.md"
@@ -2976,6 +3018,12 @@
           "result": "PASS",
           "tests": 19,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-039.md"
@@ -3021,14 +3069,20 @@
         "validation": 1
       },
       "gaps": [
-        "Main until-opponent-turn-end duration, Ascension, and security-play trait/level/check boundaries remain under review; latest inherited stacks corrected."
+        "Ascension accept/refuse and exact opponent-turn-end duration added; security-check exclusion and Q6310 ordering remain under root review."
       ],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-040.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 13,
-          "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+          "tests": 16,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-040.md"
@@ -3082,6 +3136,12 @@
           "result": "PASS",
           "tests": 11,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-041.md"
@@ -3113,7 +3173,7 @@
         "forms": ["Mega"],
         "attributes": ["Vaccine"],
         "types": ["Virtue", "Iliad", "TS", "Angel"],
-        "effectText": "[Digivolve] Lv.5 w/[Angel]/[Archangel]/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing your top or bottom security card, your opponent's Digimon effects don't affect this Digimon until their turn ends.\n[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost. Then, 2 of your Digimon gain ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
+        "effectText": "[Digivolve] Lv.5 w/[Angel]/[Archangel]/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing your top or bottom security card, your opponent's Digimon effects don't affect this Digimon until their turn ends.\n[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost. Then, 2 of your Digimon gain ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.\n(Rule) Trait: Has [Angel] Type.",
         "rarity": "R",
         "maxCountInDeck": 4,
         "imageId": "BT25-042",
@@ -3139,6 +3199,12 @@
           "result": "PASS",
           "tests": 12,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-042.md"
@@ -3186,14 +3252,20 @@
         "validation": 1
       },
       "gaps": [
-        "Root tie-choice correction and reset pass; Q6313 zero-DP state before full effect completion remains to be independently assessed; replacement refusal and full clause review pending."
+        "Zero-DP Option and Arts intermediate states now asserted; review final rule deletion/When Digivolving ordering and all refusal boundaries."
       ],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-043.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 14,
-          "reportedBy": "Luna focused and Astra full collection integration"
+          "tests": 15,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-043.md"
@@ -3251,6 +3323,12 @@
           "result": "PASS",
           "tests": 10,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-044.md"
@@ -3304,6 +3382,12 @@
           "result": "PASS",
           "tests": 10,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-045.md"
@@ -3357,6 +3441,12 @@
           "result": "PASS",
           "tests": 5,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-046.md"
@@ -3410,6 +3500,12 @@
           "result": "PASS",
           "tests": 5,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-047.md"
@@ -3468,6 +3564,12 @@
           "result": "PASS",
           "tests": 5,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-048.md"
@@ -3521,6 +3623,12 @@
           "result": "PASS",
           "tests": 7,
           "reportedBy": "Luna focused run; Astra independently reviews assertions and integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-049.md"
@@ -3547,7 +3655,7 @@
         "forms": ["Champion"],
         "attributes": ["Data"],
         "types": ["Ancient Bird", "Iliad", "TS", "Vegetation"],
-        "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your opponent's Digimon can't unsuspend until their turn ends.",
+        "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your opponent's Digimon can't unsuspend until their turn ends.\n(Rule) Trait: Has [Vegetation] Type.",
         "inheritedEffectText": "[Your Turn] All of your Digimon get +1000 DP.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -3572,6 +3680,12 @@
           "result": "PASS",
           "tests": 6,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-050.md"
@@ -3628,6 +3742,12 @@
           "result": "PASS",
           "tests": 6,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-051.md"
@@ -3659,7 +3779,7 @@
         "forms": ["Sup.", "Appmon"],
         "attributes": ["Social"],
         "types": ["Login"],
-        "effectText": "[App Fusion] [Onmon] & [Gatchmon]: Cost 0\n\n[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Kazuki & Itsuki] from your hand without paying the cost.",
+        "effectText": "[App Fusion] [Onmon] & [Gatchmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Kazuki & Itsuki] from your hand without paying the cost.",
         "rarity": "U",
         "maxCountInDeck": 4,
         "imageId": "BT25-052",
@@ -3680,7 +3800,7 @@
         "validation": 1
       },
       "gaps": [
-        "App Fusion link placement fixed but normal public intent entry remains unavailable; root review all Main/Link clauses."
+        "Public App Fusion mechanism is available; card-specific fusion and all Main/Link clauses remain under review."
       ],
       "commands": [
         {
@@ -3688,6 +3808,12 @@
           "result": "PASS",
           "tests": 8,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-052.md"
@@ -3719,7 +3845,7 @@
         "forms": ["Ultimate"],
         "attributes": ["Vaccine"],
         "types": ["Shaman", "Iliad", "TS", "Vegetation"],
-        "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Vortex＞ \n＜Decode ([Aegiomon])＞ \n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends. Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.",
+        "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Vortex＞ \n＜Decode ([Aegiomon])＞ \n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends. Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, you may suspend 1 of your opponent's Digimon or Tamers.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -3738,14 +3864,20 @@
         "validation": 1
       },
       "gaps": [
-        "Explicit Decode now passes; inherited whenSecurityRemoved IR lacks own-controller filter and needs opposite-security negative proof; root review all clauses."
+        "Own-security controller filter corrected with public opposite-security negative; root review optional inherited use/reset and all clauses remains."
       ],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-053.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 11,
-          "reportedBy": "Luna focused and Astra full collection integration"
+          "tests": 12,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-053.md"
@@ -3804,6 +3936,12 @@
           "result": "PASS",
           "tests": 8,
           "reportedBy": "Luna focused and Astra full collection integration"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-054.md"
@@ -3830,7 +3968,7 @@
         "forms": ["Ultimate"],
         "attributes": ["Data"],
         "types": ["Avian", "Iliad", "TS", "Vegetation"],
-        "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon suspends, you may play 1 4000 DP or lower Digimon card with [Vegetation], [Plant], [Avian] or [Bird] in any of its traits or the [TS] trait from your hand without paying the cost.",
+        "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon suspends, you may play 1 4000 DP or lower Digimon card with [Vegetation], [Plant], [Avian] or [Bird] in any of its traits or the [TS] trait from your hand without paying the cost.\n(Rule) Trait: Has [Vegetation] Type.",
         "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to 1 of your suspended Digimon.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -3848,13 +3986,21 @@
         "peersStacks": 1,
         "validation": 1
       },
-      "gaps": ["Public attack redirect and explicit When Digivolving threshold decisions remain unproven."],
+      "gaps": [
+        "Public When Digivolving and attack redirect added; full printed trait/DP and threshold boundaries remain under review."
+      ],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-055.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 3,
-          "reportedBy": "Luna focused and Astra full collection integration"
+          "tests": 5,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
         }
       ],
       "evidence": "docs/audits/BT25/evidence/BT25-055.md"
@@ -3886,7 +4032,7 @@
         "forms": ["Ult.", "Appmon"],
         "attributes": ["Tool"],
         "types": ["Super Boot"],
-        "effectText": "[App Fusion] [Logimon] & [Craftmon]: Cost 0\n\n＜Barrier＞ \n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] When this Digimon gets linked, suspend 1 of your opponent's Digimon or Tamers.",
+        "effectText": "[App Fusion] [Logimon] & [Craftmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n＜Barrier＞ \n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] When this Digimon gets linked, suspend 1 of your opponent's Digimon or Tamers.",
         "rarity": "R",
         "maxCountInDeck": 4,
         "imageId": "BT25-056",
@@ -3898,10 +4044,32 @@
       "module": "apps/api/src/cards/BT25/BT25-056.ts",
       "test": "apps/api/src/cards/BT25/BT25-056.test.ts",
       "kb": "BT25-056 Bootmon\n  Q&A (1):\n    Q6340 (2026-05-08): Can I use this card's [On Play] [When Digivolving] [When Attacking] effect to link a card that doesn't have <Link>?\n      A: No, you can't.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Public App Fusion mechanism available; card-specific fusion, separate When Attacking link completion and actual Barrier combat decisions remain unproven."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-056.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 6,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-056.md"
     },
     {
       "cardId": "BT25-057",
@@ -3942,10 +4110,32 @@
       "module": "apps/api/src/cards/BT25/BT25-057.ts",
       "test": "apps/api/src/cards/BT25/BT25-057.test.ts",
       "kb": "BT25-057 Monarchlizamon\n  Errata (2026-05-15):\n    before: Final Judgment [Main] 1 of your Digimon gains <Rush>, <Security A. +1> and +5000 DP until your opponent's turn ends. Then, it may attack.\n    after:  Final Judgment [Main] 1 of your Digimon gains <Rush>, <Security A. +1> and +5000 DP for the turn. Then, it may attack.\n  Q&A (4):\n    Q6341 (2026-05-08): Multiple effects trigger when this card digivolves. In what order can they be activated?\n      A: The effects trigger simultaneously, so the player can choose the activation order.\n    Q6342 (2026-05-08): What does \"may battle\" mean, exactly?\n      A: This effect directly performs a battle. If this effect is activated, the chosen Digimon battle, as with the standard rules.\n    Q6343 (2026-05-08): If 2 Digimon including a Digimon that has an \"effects don't affect\" effect are chosen for a \"may battle\" effect, can those Digimon battle?\n      A: Yes, they can battle. A card that has an \"effects don't affect\" effect can still be chosen for an effect. In addition, a battle itself is a rule that compares DP, not an effect. Therefore, a Digimon that isn't affected by effects can be chosen, and then it can battle. If it loses the battle, it will be deleted as normal according to the rules.\n    Q6344 (2026-06-19): I used [Final Judgment], I activated its [Main] effect to have my Digimon attack, and I used Arts Digivolve to digivolve that Digimon into this card. Can I then activate the [When Attacking] effect on the Digimon that attacked?\n      A: No, you can't activate it.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "When Attacking payment/shared OTP and Final Judgment duration added; full refusal, target and reset review pending."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-057.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 7,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-057.md"
     },
     {
       "cardId": "BT25-058",
@@ -3983,10 +4173,32 @@
       "module": "apps/api/src/cards/BT25/BT25-058.ts",
       "test": "apps/api/src/cards/BT25/BT25-058.test.ts",
       "kb": "BT25-058 Callismon\n  Q&A (5):\n    Q6345 (2026-05-08): Can this card's [On Play] [When Digivolving] [When Attacking] effect suspend a different card from the one that's given \"can't unsuspend until their turn ends?\n      A: Yes, it can.\n    Q6346 (2026-05-08): Does this card's [All Turns] effect also trigger when this card itself is played by an effect or when one of my Digimon in the battle area would digivolve into this card by an effect?\n      A: Yes, it triggers.\n    Q6347 (2026-05-08): If this card's [All Turns] effect triggers, do I have to process \"<De-Digivolve 1> 1 of your opponent's Digimon\"?\n      A: Yes, you have to process it. However, \"then, this Digimon and 1 of your opponent's Digimon may battle\" is optional and you may choose whether or not to process it.\n    Q6348 (2026-05-08): What does \"may battle\" mean, exactly?\n      A: This effect directly performs a battle. If this effect is activated, the chosen Digimon battle, as with the standard rules.\n    Q6349 (2026-05-08): If 2 Digimon including a Digimon that has an \"effects don't affect\" effect are chosen for a \"may battle\" effect, can those Digimon battle?\n      A: Yes, they can battle. A card that has an \"effects don't affect\" effect can still be chosen for an effect. In addition, a battle itself is a rule that compares DP, not an effect. Therefore, a Digimon that isn't affected by effects can be chosen, and then it can battle. If it loses the battle, it will be deleted as normal according to the rules.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Actual Reboot/Blocker/Fortitude, legal effect-evolution and normal-evolution negative added; verify both shared OTP resets and complete duration/target boundaries."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-058.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 15,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-058.md"
     },
     {
       "cardId": "BT25-059",
@@ -4015,7 +4227,7 @@
         "forms": ["Mega"],
         "attributes": ["Data"],
         "types": ["Shaman", "Olympos XII", "Iliad", "TS", "Vegetation"],
-        "effectText": "[Digivolve] Lv.5 w/[Vegetation]/[TS] trait: Cost 3 \n\nWhen this card would be played, if there are 2 or more suspended Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] You may suspend up to 2 Digimon. Then, none of your suspended [Vegetation] or [TS] trait Digimon are affected by your opponent's Digimon effects until their turn ends.\n[All Turns] [Once Per Turn] When any Digimon suspend, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each suspended Digimon.",
+        "effectText": "[Digivolve] Lv.5 w/[Vegetation]/[TS] trait: Cost 3 \n\nWhen this card would be played, if there are 2 or more suspended Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] You may suspend up to 2 Digimon. Then, none of your suspended [Vegetation] or [TS] trait Digimon are affected by your opponent's Digimon effects until their turn ends.\n[All Turns] [Once Per Turn] When any Digimon suspend, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each suspended Digimon.\n(Rule) Trait: Has [Vegetation] Type.",
         "rarity": "SR",
         "maxCountInDeck": 4,
         "imageId": "BT25-059",
@@ -4024,10 +4236,32 @@
       "module": "apps/api/src/cards/BT25/BT25-059.ts",
       "test": "apps/api/src/cards/BT25/BT25-059.test.ts",
       "kb": "BT25-059 Ceresmon\n  Q&A (8):\n    Q6306 (2026-05-08): When using this card's {Security} [End of Your Turn] effect to play BT25-059 [Ceresmon], if I activate BT25-059 [Ceresmon]'s 1st effect, is the play cost reduced by a total of 12?\n      A: Yes, the play cost will be reduced by a total of 12.\n    Q6350 (2026-05-08): Can I use this card's [On Play] [When Digivolving] effect to suspend either my Digimon or my opponent's Digimon?\n      A: Yes, they can suspend.\n    Q6351 (2026-05-08): What does \"effects don't affect\" mean, exactly?\n      A: This effect prevents a card from being affected by effects. For example, your Digimon won't suspend if it's chosen for a \"suspend 1 of your opponent's Digimon\" effect, and its DP won't be reduced by 3000 if it's chosen for a \"1 of your opponent's Digimon gets -3000 DP\" effect.\n    Q6352 (2026-05-08): Can a card that has an \"effects don't affect\" effect be chosen for an effect?\n      A: Yes, it can be chosen. For example, a Digimon that isn't affected by effects can be chosen for a \"suspend 1 of your opponent's Digimon\" effect.\n    Q6353 (2026-05-08): Can a card that has an \"effects don't affect\" effect be given an effect?\n      A: Yes, it can. It won't be affected by it, but it can be given an effect. However, if an effect such as <Security A.> is given to a Digimon that isn't affected by effects, the Digimon won't be considered to have that effect.\n    Q6354 (2026-05-08): If a card is affected by an effect, then it later gains an \"effects don't affect\" effect, what happens to the effect that was affecting it?\n      A: As soon as it gains the \"effects don't affect\" effect, it will no longer be affected.\n    Q6355 (2026-05-08): If a card has an \"effects don't affect\" effect, it gains an effect, then it later loses the \"effects don't affect\" effect, what happens to the effect that it gained?\n      A: It will be affected by the effect as soon as it can be affected by effects.\n    Q6356 (2026-05-08): A card that has an \"effects don't affect\" effect was given an effect that triggers at a timing such as [When Attacking]. Will the effect trigger if that card later meets the trigger conditions?\n      A: If the Digimon isn't affected by effects upon the trigger timing, the effect won't trigger.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Actual public Digimon-effect immunity and post-expiry affected target now pass; review protection recipient snapshots, Option/Tamer effect boundaries and OTP reset before approval."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-059.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 6,
+          "reportedBy": "Luna focused run; exact target and post-expiry control inspected by Astra"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-059.md"
     },
     {
       "cardId": "BT25-060",
@@ -4051,7 +4285,7 @@
         "forms": ["God", "Appmon"],
         "attributes": ["God"],
         "types": ["Reboot"],
-        "effectText": "[App Fusion] [Bootmon] & [Shutmon]: Cost 0\n\n＜Security A. +1＞ \n＜Reboot＞ \n＜Link +1＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By linking 1 [Appmon] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon gets linked or unsuspends, until your turn ends, this Digimon gains ＜Piercing＞ and ＜Blocker＞ , and your opponent's Digimon effects don't affect it.",
+        "effectText": "[App Fusion] [Bootmon] & [Shutmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n＜Security A. +1＞ \n＜Reboot＞ \n＜Link +1＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By linking 1 [Appmon] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon gets linked or unsuspends, until your turn ends, this Digimon gains ＜Piercing＞ and ＜Blocker＞ , and your opponent's Digimon effects don't affect it.",
         "rarity": "SR",
         "maxCountInDeck": 4,
         "imageId": "BT25-060",
@@ -4099,10 +4333,32 @@
       "module": "apps/api/src/cards/BT25/BT25-061.ts",
       "test": "apps/api/src/cards/BT25/BT25-061.test.ts",
       "kb": "BT25-061 Offmon\n  (no knowledge-base entries)\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Root review actual Main-phase memory delta, legal hand Appmon costs and distinct trait/zone negatives; final-turn -3 memory is insufficient proof of +1 gain."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-061.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 7,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-061.md"
     },
     {
       "cardId": "BT25-062",
@@ -4136,10 +4392,32 @@
       "module": "apps/api/src/cards/BT25/BT25-062.ts",
       "test": "apps/api/src/cards/BT25/BT25-062.test.ts",
       "kb": "BT25-062 Kokuwamon\n  Q&A (1):\n    Q6364 (2026-05-08): What position on the memory gauge does \"while you have 4 or less memory\" refer to?\n      A: It refers to when the memory gauge is at 4 or further to the right on your side.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Root review new Machine/Cyborg/TS branches, actual Main-phase memory boundary, and breeding exclusion."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-062.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 7,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-062.md"
     },
     {
       "cardId": "BT25-063",
@@ -4178,10 +4456,32 @@
       "module": "apps/api/src/cards/BT25/BT25-063.ts",
       "test": "apps/api/src/cards/BT25/BT25-063.test.ts",
       "kb": "BT25-063 Commandramon\n  (no knowledge-base entries)\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Inherited host stack is illegal (red BT1-013 over black Commandramon); reveal hand destinations and no-match completion need explicit assertions."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-063.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 5,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-063.md"
     },
     {
       "cardId": "BT25-064",
@@ -4215,10 +4515,32 @@
       "module": "apps/api/src/cards/BT25/BT25-064.ts",
       "test": "apps/api/src/cards/BT25/BT25-064.test.ts",
       "kb": "BT25-064 ToyAgumon\n  (no knowledge-base entries)\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in-progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Inherited host stack is illegal (red BT1-013 over black ToyAgumon); use legal face-up evolution stack and standalone Reboot negative during opponent unsuspend."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-064.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 5,
+          "reportedBy": "Luna focused run; root integration pending"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 1087,
+          "log": "/tmp/bt25-audit-logs/eighth-wave-collection.log"
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-064.md"
     },
     {
       "cardId": "BT25-065",
@@ -4395,7 +4717,7 @@
         "forms": ["Champion"],
         "attributes": ["Virus"],
         "types": ["Undead", "Titan", "TS", "Cyborg"],
-        "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Jamming＞ \n[On Play] [When Digivolving] You may link 1 [TS] trait card from your trash to 1 of your Digimon without paying the cost.",
+        "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Jamming＞ \n[On Play] [When Digivolving] You may link 1 [TS] trait card from your trash to 1 of your Digimon without paying the cost.\n(Rule) Trait: Has [Cyborg] Type.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -4437,7 +4759,7 @@
         "forms": ["Sup.", "Appmon"],
         "attributes": ["Social"],
         "types": ["Logoff"],
-        "effectText": "[App Fusion] [Offmon] & [Hackmon]: Cost 0\n\n[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
+        "effectText": "[App Fusion] [Offmon] & [Hackmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
         "rarity": "U",
         "maxCountInDeck": 4,
         "imageId": "BT25-070",
@@ -4518,7 +4840,7 @@
         "forms": ["Ult.", "Appmon"],
         "attributes": ["Tool"],
         "types": ["Forced Termination"],
-        "effectText": "[App Fusion] [Logamon] & [Timemon]: Cost 0\n\n＜Jamming＞ \n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] [Once Per Turn] When this Digimon gets linked, 1 of your opponent's Digimon or Tamers can't digivolve until their turn ends.",
+        "effectText": "[App Fusion] [Logamon] & [Timemon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n＜Jamming＞ \n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] [Once Per Turn] When this Digimon gets linked, 1 of your opponent's Digimon or Tamers can't digivolve until their turn ends.",
         "rarity": "R",
         "maxCountInDeck": 4,
         "imageId": "BT25-072",
@@ -5592,7 +5914,7 @@
         "forms": ["Mega"],
         "attributes": ["Vaccine"],
         "types": ["Galaxy", "Iliad", "TS", "Olympos XII"],
-        "effectText": "＜Security A. +1＞ \n＜Iceclad＞ \n＜Partition ([Apollomon] & [Dianamon])＞ \n[When Digivolving] [When Attacking] Return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon. Then, you may end this attack.",
+        "effectText": "＜Security A. +1＞ \n＜Iceclad＞ \n＜Partition ([Apollomon] & [Dianamon])＞ \n[When Digivolving] [When Attacking] Return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon. Then, you may end this attack.\n(Rule) Trait: Has [Olympos XII].",
         "rarity": "SEC",
         "maxCountInDeck": 4,
         "imageId": "BT25-103",
