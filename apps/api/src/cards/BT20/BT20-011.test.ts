@@ -66,7 +66,8 @@ describe("BT20-011 ExVeemon", () => {
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT20-011", "ST6-06"]),
     );
-    expect(s.state.memory).toBe(-4); // play cost 4, then the selected Free card's cost 4
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-016");
+    expect(s.state.memory).toBe(0); // play cost 4, then the printed DNA cost 0
   });
 
   it("observably grants its inherited host +2000 DP only during its controller's turn", async () => {

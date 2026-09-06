@@ -761,7 +761,9 @@ describe("SwissProgram sweep", () => {
 
 describe("SwissProgram resolution seam", () => {
   it("closes the round from the series-resolution notification alone", async () => {
-    await start(false, 4);
+    // This listener is in-memory state: restoring database rows cannot remove it.
+    // Give this scenario its own stores so it cannot close later tests' rounds.
+    await start(false, 4, createMemoryPool());
     const notified: string[] = [];
     fixture.series.addResolutionListener(async ({ matchId }) => {
       notified.push(matchId);

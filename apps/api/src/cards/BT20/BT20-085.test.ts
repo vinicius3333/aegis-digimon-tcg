@@ -111,7 +111,8 @@ describe("BT20-085 Shoto Kazama", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    // Isolate this Tamer's end-turn clause from the partner's separate Vortex attack.
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("shoto"));
 
     expect(s.perm("shoto").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(true);
