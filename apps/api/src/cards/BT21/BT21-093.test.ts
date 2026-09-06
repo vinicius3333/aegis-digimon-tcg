@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-093.js";
 import "../index.js";
 
@@ -68,13 +67,11 @@ describe("BT21-093 Raging Serpentine", () => {
       sourceFilter: { controller: "opponent" },
       fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
     });
-    const delay = compiled.effects.find(
-      (entry) => entry.trigger === "Main" && entry.keywords?.some((keyword) => keyword.keyword === "Delay"),
-    );
-    expect(delay?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
-    expect(delay?.actions[0]).toMatchObject({
+    expect(watcher?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+    const watcherAction = watcher?.actions[0];
+    if (watcherAction?.kind !== "SubTrigger") throw new Error("expected reactive Delay watcher");
+    expect(watcherAction.actions[0]).toMatchObject({
       kind: "Digivolve",
-      requiresDelayArmed: true,
       target: {
         filter: {
           controller: "mine",
@@ -98,19 +95,29 @@ describe("BT21-093 Raging Serpentine", () => {
       {
         0: {
           battleArea: [
+            { card: "BT1-009", as: "color" },
             { card: "BT21-014", as: "ineligible" },
             { card: "BT21-017", as: "eligible" },
-            { card: "BT21-093", as: "option" },
           ],
-          hand: [{ card: "BT21-025", as: "destination" }],
+          hand: [
+            { card: "BT21-093", as: "option" },
+            { card: "BT21-025", as: "destination" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
         },
-        1: { security: [{ card: "BT1-009", as: "security" }] },
+        1: { security: [{ card: "BT1-009", as: "security" }], deck: ["BT1-003", "BT1-004"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.perm("option").placedByEffect = true;
     s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    const optionPermanent = s.perm("option");
+    optionPermanent.enterFieldTurnCount = -1;
 
     expect(
       s.engine.applyIntent(0, {
@@ -119,27 +126,12 @@ describe("BT21-093 Raging Serpentine", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
-    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
-
-    const activatable = observe(s.engine).activatableEffects(s.perm("option")) as Array<{
-      effectKey: string;
-      description?: string;
-    }>;
-    const delay = activatable.find((effect) => String(effect.description).includes("Delay"));
-    expect(delay).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
-        effectKey: delay!.effectKey,
-      }),
-    ).toEqual({ ok: true });
+    await settle(() => s.perm("eligible").topCard.instanceId === s.inst("destination").instanceId);
     await settle(() => s.perm("eligible").topCard.instanceId === s.inst("destination").instanceId);
 
     expect(s.perm("eligible").topCard.instanceId).toBe(s.inst("destination").instanceId);
     expect(s.perm("ineligible").topCard.cardId).toBe("BT21-014");
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
   it.each([

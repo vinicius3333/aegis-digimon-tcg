@@ -76447,6 +76447,7 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
@@ -76454,30 +76455,18 @@
             "sourceFilter": { "hasInheritedEffects": true, "controller": "mine", "kind": ["Tamer"] },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Digivolve",
+                "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }]
+                },
+                "payCost": false,
+                "from": ["hand"],
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "AllTurns",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }]
-            },
-            "payCost": false,
-            "from": ["hand"],
-            "optional": true
           }
         ]
       },
@@ -76621,6 +76610,7 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
@@ -76629,38 +76619,25 @@
             "fireCondition": { "kind": "triggerRemovedSecuritySeat", "seat": "opponent" },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Digivolve",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
+                },
+                "payCost": false,
+                "from": ["hand"],
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "requiresDelayArmed": true,
-            "kind": "Digivolve",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
-            },
-            "payCost": false,
-            "from": ["hand"],
-            "optional": true
           }
         ]
       },
@@ -77109,44 +77086,33 @@
       },
       {
         "trigger": "YourTurn",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "sourceFilter": { "kind": ["Digimon"], "deleteCause": "byEffect" },
+            "sourceFilter": { "controller": "any", "kind": ["Digimon"], "deleteCause": "byEffect" },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Digivolve",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Guilmon", "Growlmon"], "match": "name" }]
+                  },
+                  "count": 1
+                },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Growlmon", "Gallantmon", "Megidramon"], "match": "name" }]
+                },
+                "payCost": false,
+                "from": ["trash"],
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "YourTurn",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Guilmon", "Growlmon"], "match": "name" }]
-              },
-              "count": 1
-            },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Growlmon", "Gallantmon", "Megidramon"], "match": "name" }]
-            },
-            "payCost": false,
-            "from": ["trash"],
-            "optional": true
           }
         ]
       },

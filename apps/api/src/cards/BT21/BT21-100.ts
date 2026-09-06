@@ -32,44 +32,33 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { kind: ["Digimon"], deleteCause: "byEffect" },
+          sourceFilter: { controller: "any", kind: ["Digimon"], deleteCause: "byEffect" },
           actions: [
             {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Guilmon", "Growlmon"], match: "name" }],
+                },
+                count: 1,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Growlmon", "Gallantmon", "Megidramon"], match: "name" }],
+              },
+              payCost: false,
+              from: ["trash"],
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "YourTurn",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Guilmon", "Growlmon"], match: "name" }],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Growlmon", "Gallantmon", "Megidramon"], match: "name" }],
-          },
-          payCost: false,
-          from: ["trash"],
-          optional: true,
         },
       ],
     },

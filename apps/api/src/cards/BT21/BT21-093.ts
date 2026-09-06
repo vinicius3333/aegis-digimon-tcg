@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
@@ -55,38 +56,25 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+                },
+                count: 1,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+              },
+              payCost: false,
+              from: ["hand"],
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
-          },
-          payCost: false,
-          from: ["hand"],
-          optional: true,
         },
       ],
     },
