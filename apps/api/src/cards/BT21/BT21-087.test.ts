@@ -50,6 +50,29 @@ describe("BT21-087 Zenith", () => {
     expect(setup.state.players[0]?.deck).toHaveLength(0);
   });
 
+  it("resolves the reveal through a public play intent", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-087", as: "zenith" }],
+          deck: [{ card: "BT11-065", as: "vemmonText" }, "BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    setup.state.memory = 4;
+    await setup.ready();
+
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("zenith").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => setup.state.players[0]!.deck.length === 0);
+    expect(setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("vemmonText").instanceId)).toBe(
+      true,
+    );
+    expect(setup.state.players[0]!.trash).toHaveLength(2);
+  });
+
   // The revealed cards are still in the deck, which no client's state carries: the prompt is
   // the only channel that can name them, and a card it leaves unnamed is drawn as a card back.
   it("names every revealed card in the prompt that offers them", async () => {
@@ -87,6 +110,26 @@ describe("BT21-087 Zenith", () => {
     setup.state.memory = 4;
     await advance(setup.engine).fire(EffectTiming.OnStartTurn, setup.perm("zenith"));
     expect(setup.state.memory).toBe(4);
+  });
+
+  it("sets memory to 3 through the public start-of-turn lifecycle", async () => {
+    const setup = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-087", as: "zenith" }],
+        hand: [{ card: "BT1-009", as: "playable" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-009", "BT1-010"] },
+    });
+    setup.state.memory = 2;
+    await setup.ready();
+
+    const turn = setup.engine.runOneTurn();
+    await advance(setup.engine).waitForMainPhase(0);
+    await settle(() => setup.state.memory === 3);
+    expect(setup.state.memory).toBe(3);
+    advance(setup.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("trashes all three revealed cards when none contain Vemmon in their text", async () => {
