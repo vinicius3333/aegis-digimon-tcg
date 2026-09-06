@@ -5,6 +5,27 @@ import { compiled } from "./BT21-055.js";
 import "../index.js";
 
 describe("BT21-055 Sunarizamon", () => {
+  it("uses the printed normal evolution from a black level-2 base for zero memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-005", as: "egg" }],
+        hand: [{ card: "BT21-055", as: "sunari" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("sunari").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-055");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT2-005"]);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("reduces eligible digivolution costs and deletes after its stack card is trashed", () => {
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     const inherited = compiled.effects.find((entry) => entry.isInherited);
@@ -43,7 +64,7 @@ describe("BT21-055 Sunarizamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-055", as: "host", under: [{ card: "BT21-055", as: "stacked" }] }],
+          battleArea: [{ card: "BT10-062", as: "host", under: [{ card: "BT21-055", as: "stacked" }] }],
         },
         1: {
           battleArea: [
@@ -64,7 +85,7 @@ describe("BT21-055 Sunarizamon", () => {
   it("does not trigger when the inherited source is trashed as a non-effect cost", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-055", as: "host", under: [{ card: "BT21-055", as: "stacked" }] }] },
+        0: { battleArea: [{ card: "BT10-062", as: "host", under: [{ card: "BT21-055", as: "stacked" }] }] },
         1: { battleArea: [{ card: "BT1-009", as: "eligible" }] },
       },
       { autoSelectCards: true },
