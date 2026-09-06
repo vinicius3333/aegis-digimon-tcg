@@ -1,0 +1,2054 @@
+{
+  "set": "BT24",
+  "status": "in_progress",
+  "baseCommit": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
+  "scoreComponents": [
+    "catalogRules",
+    "irTrace",
+    "behavior",
+    "peerStack",
+    "delivery"
+  ],
+  "cards": [
+    {
+      "cardId": "BT24-001",
+      "name": "Gigimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-001.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-002",
+      "name": "Bukamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-002.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-003",
+      "name": "Tsunomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-003.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-004",
+      "name": "Wanyamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-004.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-005",
+      "name": "Kyokyomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-005.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-006",
+      "name": "Tapmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-006.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-007",
+      "name": "Tsunomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-007.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-008",
+      "name": "Elizamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-008.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-009",
+      "name": "Shamanmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-009.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-010",
+      "name": "Greymon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-010.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-011",
+      "name": "Cyclonemon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-011.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-012",
+      "name": "Dimetromon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-012.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-013",
+      "name": "Fugamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-013.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-014",
+      "name": "Aegiochusmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-014.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-015",
+      "name": "MetalGreymon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-015.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-016",
+      "name": "Lamiamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-016.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-017",
+      "name": "Medusamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-017.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-018",
+      "name": "Styracomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-018.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-019",
+      "name": "Kamemon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-019.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-020",
+      "name": "Gomamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-020.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-021",
+      "name": "SnowGoblimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-021.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-022",
+      "name": "Ikkakumon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-022.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-023",
+      "name": "Calmaramon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-023.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-024",
+      "name": "Submarimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-024.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-025",
+      "name": "Shellmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-025.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-026",
+      "name": "Hyogamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-026.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-027",
+      "name": "Lanamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-027.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-028",
+      "name": "Divermon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-028.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-029",
+      "name": "Whamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-029.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-030",
+      "name": "Neptunemon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-030.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-031",
+      "name": "Elecmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-031.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-032",
+      "name": "Pipomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-032.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-033",
+      "name": "Salamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-033.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-034",
+      "name": "Aegiomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-034.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-035",
+      "name": "Gatomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-035.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-036",
+      "name": "Medicmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-036.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-037",
+      "name": "Silphymon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-037.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-038",
+      "name": "Biomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-038.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-039",
+      "name": "Piximon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-039.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-040",
+      "name": "Venusmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-040.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-041",
+      "name": "Minervamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-041.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-042",
+      "name": "Goblimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-042.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-043",
+      "name": "Tapirmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-043.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-044",
+      "name": "Muchomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-044.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-045",
+      "name": "Ogremon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-045.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-046",
+      "name": "Garurumon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-046.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-047",
+      "name": "Kokatorimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-047.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-048",
+      "name": "Deramon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-048.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-049",
+      "name": "Parrotmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-049.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-050",
+      "name": "WereGarurumon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-050.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-051",
+      "name": "Merukimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-051.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-052",
+      "name": "Keramon (X Antibody)",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-052.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-053",
+      "name": "Protecmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-053.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-054",
+      "name": "Ryudamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-054.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-055",
+      "name": "Ginryumon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-055.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-056",
+      "name": "Dezipmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-056.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-057",
+      "name": "Docmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-057.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-058",
+      "name": "Blimpmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-058.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-059",
+      "name": "Sharkmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-059.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-060",
+      "name": "Hisyaryumon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-060.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-061",
+      "name": "Vademon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-061.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-062",
+      "name": "MasterBlimpmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-062.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-063",
+      "name": "Locomon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-063.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-064",
+      "name": "Ouryumon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-064.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-065",
+      "name": "Diaboromon (X Antibody)",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-065.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-066",
+      "name": "Guilmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-066.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-067",
+      "name": "Hackmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-067.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-068",
+      "name": "DemiDevimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-068.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-069",
+      "name": "Vilemon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-069.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-070",
+      "name": "Growlmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-070.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-071",
+      "name": "Raidramon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-071.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-072",
+      "name": "SkullGreymon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-072.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-073",
+      "name": "SkullSatamon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-073.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-074",
+      "name": "SkullSeadramon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-074.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-075",
+      "name": "SkullBaluchimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-075.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-076",
+      "name": "WarGrowlmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-076.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-077",
+      "name": "Revivemon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-077.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-078",
+      "name": "Creepymon (X Antibody)",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-078.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-079",
+      "name": "Hadesmon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-079.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-080",
+      "name": "Megidramon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-080.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-081",
+      "name": "Titamon + SkullBaluchimon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-081.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-082",
+      "name": "Owen Dreadnought",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-082.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-083",
+      "name": "Hiroko Sagisaka",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-083.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-084",
+      "name": "Inori Misono",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-084.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-085",
+      "name": "Dan Yuki & Kanan Yuki",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-085.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-086",
+      "name": "The Crossroad Witch",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-086.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-087",
+      "name": "Rei Katsura",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-087.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-088",
+      "name": "Asuna Shiroki",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-088.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-089",
+      "name": "Unique Emblem: Blazing Conductor",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-089.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-090",
+      "name": "Abyss Sanctuary: Throne Room",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-090.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-091",
+      "name": "Tidal Stream",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-091.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-092",
+      "name": "Shock Plasma",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-092.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-093",
+      "name": "Temple of Beginnings",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-093.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-094",
+      "name": "Central Town: Throne Room",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-094.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-095",
+      "name": "Sonic Shot",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-095.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-096",
+      "name": "Seventh Graviton",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-096.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-097",
+      "name": "Soul Fear",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-097.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-098",
+      "name": "Invasion of the Titans",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-098.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-099",
+      "name": "Super Hacking",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-099.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-100",
+      "name": "In-Between Theater",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-100.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-101",
+      "name": "Jupitermon",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-101.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    },
+    {
+      "cardId": "BT24-102",
+      "name": "Homeros",
+      "modulePresent": true,
+      "testPresent": true,
+      "legacyRegistration": false,
+      "status": "pending",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "BT24-reaudit/BT24-102.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime and execution validation pending."
+      ]
+    }
+  ]
+}
