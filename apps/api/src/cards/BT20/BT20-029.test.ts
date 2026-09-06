@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-029.js";
 import "./index.js";
+import "../BT24/BT24-005.js";
 
 describe("BT20-029 Pulsemon", () => {
   it("covers the printed alternate evolution requirements and both clauses", () => {
@@ -138,5 +139,46 @@ describe("BT20-029 Pulsemon", () => {
     await settle(() => s.perm("bibimon").topCard.cardId === "BT20-029");
     expect(s.perm("bibimon").topCard.cardId).toBe("BT20-029");
     expect(s.perm("bibimon").stack.map((card) => card.cardId)).toEqual(["BT20-003"]);
+  });
+  it.each([
+    ["BT24-005", true],
+    ["BT20-005", false],
+  ] as const)("checks the independent SEEKERS egg route from %s", async (egg, qualifies) => {
+    const s = setupEngine({ 0: { breeding: { card: egg, as: "egg" }, hand: [{ card: "BT20-029", as: "pulsemon" }] } });
+    s.state.memory = 3;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("egg").permanentId,
+      instanceId: s.inst("pulsemon").instanceId,
+      useAlternateCost: true,
+    });
+    expect(result.ok).toBe(qualifies);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("egg").topCard.cardId).toBe(qualifies ? "BT20-029" : egg);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(qualifies ? [egg] : []);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not gain inherited memory when host and opponent are deleted simultaneously in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-032", dp: 1000, as: "host", under: ["BT20-029"] }] },
+      1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-029", "BT20-032"]),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT20-010");
+    expect(s.state.memory).toBe(3);
   });
 });
