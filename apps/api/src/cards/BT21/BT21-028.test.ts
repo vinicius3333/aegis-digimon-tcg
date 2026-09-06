@@ -79,6 +79,33 @@ describe("BT21-028 compiled implementation", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
   });
 
+  it("still pays the optional hand placement when a public attack has no deletion target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-028", as: "siriusmon", enteredThisTurn: false }],
+          hand: [{ card: "BT21-010", as: "material" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-001"], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("siriusmon").stack.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("deletes exactly one lowest-DP tie through the effect window", async () => {
     const s = setupEngine(
       {

@@ -72198,7 +72198,8 @@
               "host": "self"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -72231,7 +72232,8 @@
               "host": "self"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       }
