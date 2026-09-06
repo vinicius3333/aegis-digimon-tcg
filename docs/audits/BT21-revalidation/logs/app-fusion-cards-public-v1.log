@@ -1,0 +1,53 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 26ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses the paid link requirement for a non-Appmon card without spending memory 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 3ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 4ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses the two available distinct recipe names through the production verb 4ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 1
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a level 4 or lower Digimon from the default hand/stack zones and deletes an equal-or-lower DP opponent once per turn 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play 6ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card 11ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon 3ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > rejects linkless and level-5 cards and permits declining a legal link 5ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > deletes only an equal-or-lower DP target once when its own stack is linked 7ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly links twice, deleting one eligible victim first and none on the second link 4ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > fires Globemon's public When Linking deletion when linked onto another Appmon host 4ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > uses Globemon's printed 10000 DP ceiling on a public link while leaving a 12000 DP target 4ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > performs two real security checks with printed Security Attack +1 5ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly evolves into Charismon and resolves its When Digivolving Link 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants a selected opponent the forced start-of-main attack effect when linked 12ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 7ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > public Gaia Force leaves a legal Link+1 host once, then deletes it on the second opportunity 7ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly links Charismon to an Appmon for exactly 3 memory 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 2ms
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  20:24:03
+   Duration  7.63s (transform 83%, import 15%, tests 2%)

@@ -1,7 +1,7 @@
 # BT21 independent revalidation ledger
 
 Status: **incomplete**. 0/102 cards at 10/10 (0.00%).
-Current independently accepted points: 601/1020; average 5.89/10.
+Current independently accepted points: 613/1020; average 6.01/10.
 
 Baseline: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Historical scores are not current proof. Zero means unverified in this campaign, not necessarily defective.
 
@@ -28,15 +28,15 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-015](cards/BT21-015.md) | Cyclonemon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-016](cards/BT21-016.md) | Shoutmon (King Version) | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-017](cards/BT21-017.md) | Dimetromon | 2 / 2 / 1 / 2 / 0 | 7/10 | proof-gaps | Public own-security/turn and repeated removal boundaries pending; Final collection delivery gates pending |
-| [BT21-018](cards/BT21-018.md) | DoGatchmon | 2 / 2 / 1 / 2 / 0 | 7/10 | proof-gaps | App Fusion production verb only; public Rush/Raid and alternate pairs/nested attack boundaries pending; Final collection delivery gates pending |
+| [BT21-018](cards/BT21-018.md) | DoGatchmon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-019](cards/BT21-019.md) | BetelGammamon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-020](cards/BT21-020.md) | Aldamon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
-| [BT21-021](cards/BT21-021.md) | OmniShoutmon | 2 / 2 / 1 / 2 / 0 | 7/10 | proof-gaps | Final clause review and collection delivery gates pending |
-| [BT21-022](cards/BT21-022.md) | Canoweissmon | 2 / 1 / 1 / 1 / 0 | 5/10 | proof-gaps | Public alternate evolution, placement without a deletion target, and independent once-per-turn regression pending execution; Inherited refusal, own-effect/battle and source-count boundaries under review; Final collection delivery gates pending |
+| [BT21-021](cards/BT21-021.md) | OmniShoutmon | 2 / 2 / 1 / 2 / 0 | 7/10 | integration-review | Q4727: public End of Attack play using attacking OmniShoutmon as DigiXros material remains unproved.; Final collection delivery gates pending |
+| [BT21-022](cards/BT21-022.md) | Canoweissmon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-023](cards/BT21-023.md) | Globemon | 2 / 1 / 1 / 1 / 0 | 5/10 | proof-gaps | Public linked-origin deletion, independent once-per-turn, actual security checks and legal stack proof pending; Final collection delivery gates pending |
-| [BT21-024](cards/BT21-024.md) | Cyberdramon | 2 / 1 / 1 / 1 / 0 | 5/10 | proof-gaps | Opponent hand-card choice and zero-security boundary pending; Inherited +4000 DP own-turn activation and opponent-turn removal pending public lifecycle proof; Final collection delivery gates pending |
-| [BT21-025](cards/BT21-025.md) | Lamiamon | 2 / 1 / 1 / 1 / 0 | 5/10 | proof-gaps | Existing Raid proof is confounded: Lamiamon is an inherited source rather than the active top card; Existing inherited fixture has a level-5 card over a level-5 source; legal stack correction pending; Independent once-per-turn and Progress combat proof pending; Final collection delivery gates pending |
-| [BT21-026](cards/BT21-026.md) | WarGreymon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
+| [BT21-024](cards/BT21-024.md) | Cyberdramon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
+| [BT21-025](cards/BT21-025.md) | Lamiamon | 2 / 2 / 1 / 2 / 0 | 7/10 | integration-review | Independent repeated public opportunities for the main and inherited once-per-turn effects remain under review.; Final collection delivery gates pending |
+| [BT21-026](cards/BT21-026.md) | WarGreymon | 2 / 2 / 1 / 2 / 0 | 7/10 | integration-review | Independent repeated public opponent deletion opportunities with WarGreymon retained remain under review.; Final collection delivery gates pending |
 | [BT21-027](cards/BT21-027.md) | Shoutmon DX | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause review and collection delivery gates pending |
 | [BT21-028](cards/BT21-028.md) | Siriusmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause review and collection delivery gates pending |
 | [BT21-029](cards/BT21-029.md) | Medusamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
@@ -54,7 +54,7 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-041](cards/BT21-041.md) | Calendamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-042](cards/BT21-042.md) | GeoGreymon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-043](cards/BT21-043.md) | Sociamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
-| [BT21-044](cards/BT21-044.md) | RizeGreymon | 2 / 2 / 2 / 1 / 0 | 7/10 | integration-review | Public expiry of all temporary Marcus properties and actual granted Alliance use remain under review.; Final collection delivery gates pending |
+| [BT21-044](cards/BT21-044.md) | RizeGreymon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-045](cards/BT21-045.md) | ShineGreymon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-046](cards/BT21-046.md) | Dracomon (X Antibody) | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-047](cards/BT21-047.md) | Navimon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
@@ -83,7 +83,7 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-070](cards/BT21-070.md) | Gossipmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-071](cards/BT21-071.md) | Scopemon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-072](cards/BT21-072.md) | Arresterdramon: Superior Mode | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-073](cards/BT21-073.md) | Charismon | 2 / 2 / 2 / 1 / 0 | 7/10 | integration-review | Public App Fusion and eligible link-cap/When Digivolving refusal remain missing.; Final collection delivery gates pending |
+| [BT21-073](cards/BT21-073.md) | Charismon | 2 / 2 / 2 / 1 / 0 | 7/10 | integration-review | Eligible Link-cap replacement/refusal boundary and final clause review remain pending; normal public App Fusion is now proved.; Final collection delivery gates pending |
 | [BT21-074](cards/BT21-074.md) | Satellamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-075](cards/BT21-075.md) | SkullGreymon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-076](cards/BT21-076.md) | WarGrowlmon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |

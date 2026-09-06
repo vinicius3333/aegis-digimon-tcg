@@ -1,0 +1,132 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ × src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > uses an explicit linked partner to App Fuse Gatchmon into DoGatchmon at cost 0 23ms
+   → expected [ 'BT21-009' ] to deeply equal [ 'BT21-009', 'BT21-047' ]
+ × src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion intent when the linked partner is the wrong name 2ms
+   → expected { ok: true } to match object { ok: false }
+ × src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects duplicate-name App Fusion materials instead of treating them as distinct names 2ms
+   → expected { ok: true } to match object { ok: false }
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on an opponent-controlled host 1ms
+ × src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on a breeding-area host 2ms
+   → expected { ok: true } to match object { ok: false }
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion result that is not in hand 2ms
+ × src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > does not fall back to an ordinary digivolution when the host cannot meet its printed route 2ms
+   → expected { ok: true } to match object { ok: false }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > uses an explicit linked partner to App Fuse Gatchmon into DoGatchmon at cost 0
+AssertionError: expected [ 'BT21-009' ] to deeply equal [ 'BT21-009', 'BT21-047' ]
+
+- Expected
++ Received
+
+  [
+    "BT21-009",
+-   "BT21-047",
+  ]
+
+ ❯ src/engine/actions/appFusion.test.ts:34:61
+     32|
+     33|     expect(s.perm("host").topCard.cardId).toBe("BT21-018");
+     34|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+       |                                                             ^
+     35|     expect(s.perm("host").linked).toHaveLength(0);
+     36|     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqua…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion intent when the linked partner is the wrong name
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/engine/actions/appFusion.test.ts:59:7
+     57|         appFusionLinkedInstanceId: partnerId,
+     58|       }),
+     59|     ).toMatchObject({ ok: false });
+       |       ^
+     60|     expect(s.perm("host").topCard.cardId).toBe("BT21-009");
+     61|     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects duplicate-name App Fusion materials instead of treating them as distinct names
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/engine/actions/appFusion.test.ts:81:7
+     79|         appFusionLinkedInstanceId: s.inst("duplicate").instanceId,
+     80|       }),
+     81|     ).toMatchObject({ ok: false });
+       |       ^
+     82|     expect(s.perm("host").topCard.cardId).toBe("BT21-009");
+     83|     expect(s.perm("host").linked).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on a breeding-area host
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/engine/actions/appFusion.test.ts:123:7
+    121|         appFusionLinkedInstanceId: s.inst("partner").instanceId,
+    122|       }),
+    123|     ).toMatchObject({ ok: false });
+       |       ^
+    124|     expect(s.perm("host").topCard.cardId).toBe("BT21-009");
+    125|     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > does not fall back to an ordinary digivolution when the host cannot meet its printed route
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/engine/actions/appFusion.test.ts:165:7
+    163|         instanceId: s.inst("result").instanceId,
+    164|       }),
+    165|     ).toMatchObject({ ok: false });
+       |       ^
+    166|     expect(s.perm("wrongBase").topCard.cardId).toBe("BT21-047");
+    167|     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 2 passed (7)
+   Start at  20:14:19
+   Duration  8.28s (transform 85%, import 14%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/actions/appFusion.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

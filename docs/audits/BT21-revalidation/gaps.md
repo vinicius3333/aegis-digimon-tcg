@@ -82,3 +82,9 @@ Public regressions exposed two card-local IR gaps: optional placement was unavai
 ## BT21-081 optional suspend cost
 
 A public End of Your Turn regression shows the leading SelectBind incorrectly suppressed suspension when no eligible Reptile/Dragonkin exists. CR15-7-5 allows paying that cost independently. Root moves the cost into an existing CostGatedBlock before binding the grant/attack target. The old same-turn direct timing proof also observed Piercing before cleanup; real turn completion correctly clears it. Final set synchronization and collection gates remain required.
+
+## Current App Fusion correction and strict review
+
+The previous primitive-only App Fusion limitation is replaced by an explicit public digivolve declaration. Independent rule comparison also exposed incorrect partner placement and a skipped opponent cost increase; see [mechanism evidence](app-fusion.md). Current reports for018/023/059/073/101 supersede any assertion that fusion leaves the selected partner linked. BT22-039 Q4892 remains a prohibition on relinking source cards without Link, not a missing Link engine capability.
+
+Fresh public refusal and lifecycle tests close the recorded022,024and044gaps, subject to final synchronized gates. 021 still requires Q4727's material-consumption boundary. 025 and 026 have fresh public positive/refusal/negative cases; independent repeated public trigger opportunities remain to be reviewed. The ledger remains authoritative for all 102 cards and no final 10/10 is awarded by this checkpoint.

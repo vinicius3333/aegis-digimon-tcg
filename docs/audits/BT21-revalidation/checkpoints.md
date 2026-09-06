@@ -90,4 +90,12 @@ Commit `47791d062` fixes external Digimon-evolution watchers for Tamer-only sour
 
 All **2010/2010** assertions pass across **126 files** in `logs/collection-mechanisms-second-pass-v8.log`. Shared/API/web typecheck passes in `logs/typecheck-strict-cards-v3.log`; all147 changed code/data paths pass Oxfmt/Oxlint in `logs/style-strict-cards-v2.log`. Six atomic card test/evidence commits through `dfda62a67` prove natural deletion choices, repeated Tamer recovery, genuine optional refusal, normal evolution and Link costs, actual Retaliation and temporary-grant expiry. Production and generated catalog are unchanged from the last BT21-only synchronization.
 
-The recalculated collection is **601/1020**, **0/102 final10/10**. Remaining card gaps include public App Fusion and earlier strict timing/choice proofs. New worker changes to021/022/024/044 are outside this gate snapshot and require new focused execution. Collection remains incomplete.
+The recalculated collection is **601/1020**, **0/102 final 10/10**. Remaining card gaps include public App Fusion and earlier strict timing/choice proofs. New worker changes to021/022/024/044 are outside this gate snapshot and require new focused execution. Collection remains incomplete.
+
+## Stable App Fusion and strict-proof checkpoint v10
+
+All **2316/2316** assertions pass across **136 files** in `logs/collection-app-fusion-v10.log`. Shared/API/web typecheck passes; all 155 changed code/data paths pass Oxfmt/Oxlint. BT21-scoped check confirms 102 synchronized records, 18 semantic changes against baseline, zero changes outside the set. `git diff --check` passes.
+
+`ce6dced21` adds explicit App Fusion declaration, correct linked-partner placement, shared evolution-cost processing and restriction checks. It protects stale partner references across awaited pre-payment effects. Public regressions independently reproduce the missing stack material and skipped SnowAgumon surcharge before correction. Cross-set expected zones are corrected; official Q4892 rejects relinking cards without Link and required no Link engine change.
+
+Six atomic strict-proof commits through `1eaf741ee` strengthen 021/022/024/025/026/044. The collection recalculates to **613/1020**, **0/102 final 10/10**. DoGatchmon, Canoweissmon, Cyberdramon and RizeGreymon close their recorded fidelity gaps and remain 8/10 pending delivery. Remaining work includes 021 Q4727,025/026 independent repeated public triggers,073 Link-cap choices and the remaining card ledger. This checkpoint is incomplete.

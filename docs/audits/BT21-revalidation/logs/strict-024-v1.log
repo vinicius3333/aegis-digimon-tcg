@@ -1,0 +1,19 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > places an opponent hand card as bottom security only at five or fewer, then trashes the top card 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > on play makes the opponent bottom-deck a hand card into security, then trashes the prior top card 18ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > publicly resolves the same security processing after a legal red level-4 evolution 12ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > lets the opponent choose one of two hand cards and retains the other 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with zero opponent security, trashes the card it first places from hand 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at six security skips the hand placement but still trashes the top security card 1ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at exactly five security places a hand card at the bottom, then trashes the prior top 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with an empty opponent hand still trashes the top security card 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host 19ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  20:03:37
+   Duration  9.40s (transform 85%, import 14%, tests 1%)
