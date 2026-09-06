@@ -50,6 +50,37 @@ describe("BT20-054 Bulbmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("bulbmon"), "Blocker")).toBe(true);
   });
 
+  it("publicly evolves from a black level-4 source and rejects a non-black level-4 source", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT20-049", as: "blimpmon" }], hand: [{ card: "BT20-054", as: "bulbmon" }] },
+    });
+    legal.state.memory = 3;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("blimpmon").permanentId,
+        instanceId: legal.inst("bulbmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => legal.perm("blimpmon").topCard.cardId === "BT20-054" && legal.state.pendingDecision === undefined,
+    );
+    expect(legal.perm("blimpmon").stack.map((card) => card.cardId)).toEqual(["BT20-049"]);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT20-040", as: "greenRed" }], hand: [{ card: "BT20-054", as: "bulbmon" }] },
+    });
+    invalid.state.memory = 3;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("greenRed").permanentId,
+        instanceId: invalid.inst("bulbmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.perm("greenRed").topCard.cardId).toBe("BT20-040");
+  });
+
   it("may play only a cost-4-or-lower source when leaving on the opponent's turn", async () => {
     for (const [turnSeat, accept, shouldPlay] of [
       [1, true, true],
