@@ -114,4 +114,31 @@ describe("BT25-063 Commandramon", () => {
     expect(s.perm("host").currentDP).toBe(5000);
     expect(s.perm("standalone").currentDP).toBe(2000);
   });
+
+  it("returns all three nonmatching reveals without adding a card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "command" }],
+          deck: [
+            { card: "BT25-064", as: "one" },
+            { card: "BT25-062", as: "two" },
+            { card: "BT25-061", as: "three" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("command").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("one").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("one").instanceId,
+      s.inst("two").instanceId,
+      s.inst("three").instanceId,
+    ]);
+  });
 });
