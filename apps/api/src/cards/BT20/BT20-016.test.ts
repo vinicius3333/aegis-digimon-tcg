@@ -110,6 +110,29 @@ describe("BT20-016 Paildramon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
 
+  it("proves inherited Security Attack +1 with an actual extra security check", async () => {
+    for (const under of [true, false] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT20-020", as: "host", ...(under ? { under: ["BT20-016"] } : {}) }],
+          security: ["BT1-001"],
+        },
+        1: { security: ["BT1-002", "BT1-003", "BT1-004"] },
+      });
+      s.state.turnSeat = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= (under ? 2 : 1));
+      expect(s.state.players[1]!.security).toHaveLength(under ? 1 : 2);
+    }
+  });
+
   it("replaces Paildramon's deletion by DNA digivolving it and Dinobeemon into Dragon Mode", async () => {
     const s = setupEngine(
       {
@@ -135,5 +158,97 @@ describe("BT20-016 Paildramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === paildramonId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === dinobeemonId)).toBe(false);
     expect(dragonMode.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-016", "BT20-074"]));
+  });
+
+  it("publicly replaces a battle deletion with DNA and consumes exactly the two field materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-016", dp: 8000, suspended: true, as: "paildramon", under: ["BT20-010", "BT20-011"] },
+            { card: "BT20-074", as: "dinobeemon", under: ["BT20-072"] },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+          deck: ["BT20-001"],
+        },
+        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    const paildramonId = s.perm("paildramon").permanentId;
+    const dinobeemonId = s.perm("dinobeemon").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: paildramonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-076"));
+    const dragonMode = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076")!;
+    expect(dragonMode.permanentId).not.toBe(paildramonId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === paildramonId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === dinobeemonId)).toBe(false);
+    expect(dragonMode.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-016", "BT20-074"]));
+    expect(s.state.memory).toBe(8); // Opponent turn: defender pays 4, moving gauge from +4 to +8.
+  });
+
+  it("lets the owner refuse the replacement when legal materials exist, so the battled Paildramon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-016", dp: 8000, suspended: true, as: "paildramon" },
+            { card: "BT20-074", as: "dinobeemon" },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+        },
+        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT20-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("paildramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-016"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dragonMode").instanceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-074")).toBe(true);
+  });
+
+  it("does not replace the battle deletion when the hand result is a wrong name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-016", dp: 8000, suspended: true, as: "paildramon" },
+            { card: "BT20-074", as: "dinobeemon" },
+          ],
+          hand: [{ card: "BT20-045", as: "wrongResult" }],
+        },
+        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT20-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("paildramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-016"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongResult").instanceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-074")).toBe(true);
   });
 });
