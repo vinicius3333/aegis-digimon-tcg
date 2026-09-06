@@ -94,7 +94,7 @@ describe("BT21-100 The Digimon I Designed", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
-  it("arms and activates Delay after a public effect deletes a Digimon", async () => {
+  it.each([false, true])("public effect deletion resolves Delay only after aging: %s", async (aged) => {
     const preferred: string[] = [];
     const s = setup(
       {
@@ -123,7 +123,60 @@ describe("BT21-100 The Digimon I Designed", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
-    // CR 16-17-3: Delay gained this turn cannot be activated until a later turn.
+    let ownTurn: Promise<void> | undefined;
+    if (aged) {
+      await advance(s.engine).runTurn(0);
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      await advance(s.engine).runTurn(1);
+      s.state.turnSeat = 0;
+      s.state.memory = 10;
+      ownTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+    }
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclonemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    if (aged) await settle(() => s.perm("growlmon").topCard.instanceId === s.inst("megidramon").instanceId);
+    expect(s.perm("growlmon").topCard.cardId).toBe(aged ? "BT21-079" : "BT21-076");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(aged);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(!aged);
+    if (ownTurn) {
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await ownTurn;
+    }
+  });
+
+  it("publicly declines an eligible aged Delay evolution without paying or changing the host", async () => {
+    const preferred: string[] = [];
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "takato" },
+            { card: "BT21-076", as: "growlmon" },
+          ],
+          hand: [
+            { card: "BT21-100", as: "option" },
+            { card: "BT21-015", as: "cyclonemon" },
+            { card: "BT1-009", as: "filler" },
+          ],
+          deck: ["BT1-010", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          trash: [{ card: "BT21-079", as: "megidramon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 4000 }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("filler").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 0;
@@ -136,11 +189,12 @@ describe("BT21-100 The Digimon I Designed", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-
-    await settle(() => s.perm("growlmon").topCard.instanceId === s.inst("megidramon").instanceId);
-    expect(s.perm("growlmon").topCard.instanceId).toBe(s.inst("megidramon").instanceId);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
+
+    expect(s.perm("growlmon").topCard.instanceId).toBe(s.inst("growlmon").instanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("megidramon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("megidramon").instanceId)).toBe(false);
   });
 });
