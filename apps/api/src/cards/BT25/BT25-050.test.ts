@@ -87,6 +87,78 @@ describe("BT25-050 Kiwimon", () => {
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
 
+  it("resolves the same suspension and threshold sequence after a legal TS digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-047", as: "source", suspended: true }],
+          hand: [{ card: "BT25-050", as: "evolver" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-028", as: "opponent" },
+            { card: "BT1-028", as: "otherOpponent" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("source").topCard?.cardId === "BT25-050" && s.state.pendingDecision?.kind === "chooseTargets",
+    );
+    const first = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: first.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponent").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").isSuspended);
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== first.decisionId,
+    );
+    const second = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: second.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponent").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent").permanentId, "unsuspend"));
+    expect(observe(s.engine).isRestricted(s.perm("opponent").permanentId, "unsuspend")).toBe(true);
+  });
+
+  it("supports the public TS alternate evolution from a non-green level 3", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-009", as: "source" }], hand: [{ card: "BT25-050", as: "evolver" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-050");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("does not restrict when the optional suspension is declined and the threshold is unmet", async () => {
     const s = setupEngine(
       {

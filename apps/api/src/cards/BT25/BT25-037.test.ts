@@ -41,11 +41,7 @@ describe("BT25-037 Pegasusmon", () => {
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }],
             orFilters: [
-              {
-                controllerDefault: "mine",
-                kind: ["Tamer"],
-                nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
-              },
+              { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
             ],
           },
           optional: true,
@@ -92,6 +88,38 @@ describe("BT25-037 Pegasusmon", () => {
       ]);
     },
   );
+
+  it("resolves On Play publicly with the exact play cost and top-security payment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-037", as: "pegasus" },
+            { card: "BT24-084", as: "tamer" },
+          ],
+          security: [
+            { card: "BT1-001", as: "topSecurity" },
+            { card: "BT1-002", as: "bottomSecurity" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pegasus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("tamer").instanceId));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("topSecurity").instanceId }),
+    );
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("tamer").instanceId,
+      s.inst("bottomSecurity").instanceId,
+    ]);
+  });
 
   it("accepts a TS Tamer as the alternative hand source and can place it at the bottom", async () => {
     const s = setupEngine(
@@ -147,6 +175,7 @@ describe("BT25-037 Pegasusmon", () => {
         0: {
           battleArea: [{ card: "BT25-037", as: "pegasus" }],
           security: [{ card: "BT1-001", as: "topSecurity" }],
+          deck: ["BT1-010"],
           hand: [{ card: "BT24-084", as: "tamer" }],
         },
       },
@@ -177,6 +206,51 @@ describe("BT25-037 Pegasusmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-037");
   });
 
+  it("publicly deletes when Armor Purge has no payable digivolution card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-037", as: "pegasus", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("pegasus").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-037");
+  });
+
+  it.each([
+    ["Angel", "BT1-053"],
+    ["Archangel", "BT1-060"],
+    ["Three Great Angels", "BT1-063"],
+    ["Iliad", "BT25-037"],
+  ])("accepts the %s Digimon source branch", async (_trait, card) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-037", as: "pegasus" }], hand: [{ card }], security: ["BT1-009", "BT1-010"] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("pegasus"));
+    expect(s.state.players[0]!.security.map((entry) => entry.cardId)).toEqual([card, "BT1-010"]);
+  });
+
+  it("rejects Fallen Angel, TS Option, and TS Tamer boundary errors", async () => {
+    for (const card of ["BT11-080", "BT24-090"]) {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "BT25-037", as: "pegasus" }], hand: [{ card }], security: ["BT1-009"] } },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("pegasus"));
+      expect(s.state.players[0]!.hand.map((entry) => entry.cardId)).toContain(card);
+      expect(s.state.players[0]!.security).toHaveLength(0);
+    }
+  });
+
   it("resolves the When Digivolving effect through the TS level-3 alternate route", async () => {
     const s = setupEngine(
       {
@@ -187,6 +261,7 @@ describe("BT25-037 Pegasusmon", () => {
             { card: "BT24-084", as: "tamer" },
           ],
           security: [{ card: "BT1-001", as: "topSecurity" }],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -207,7 +282,10 @@ describe("BT25-037 Pegasusmon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT24-033"]);
     expect(s.perm("base").topCard.cardId).toBe("BT25-037");
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("tamer").instanceId]);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("topSecurity").instanceId }),
+    );
+    expect(s.state.memory).toBe(0);
   });
 
   it("resolves the When Digivolving effect through the Patamon alternate route", async () => {
@@ -220,6 +298,7 @@ describe("BT25-037 Pegasusmon", () => {
             { card: "BT24-084", as: "tamer" },
           ],
           security: [{ card: "BT1-001", as: "topSecurity" }],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -239,6 +318,28 @@ describe("BT25-037 Pegasusmon", () => {
 
     expect(s.perm("patamon").topCard.cardId).toBe("BT25-037");
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("tamer").instanceId]);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("topSecurity").instanceId }),
+    );
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects the TS alternate route over a level 3 without TS", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "invalidBase" }], hand: [{ card: "BT25-037", as: "pegasus" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("pegasus").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("pegasus").instanceId }),
+    );
   });
 });

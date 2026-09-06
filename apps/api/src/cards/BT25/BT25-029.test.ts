@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled as BT25_029 } from "./BT25-029.js";
 import "../index.js";
@@ -25,6 +27,181 @@ describe("BT25-029 MirageGaogamon", () => {
         cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
       });
     }
+  });
+
+  it("grants all three printed keywords on a public legal evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-027", as: "base" }],
+        hand: [{ card: "BT25-029", as: "mirage" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-029");
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Evade")).toBe(true);
+  });
+
+  it("reboots on the opponent turn and blocks a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-029", as: "mirage", suspended: true }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-002", "BT1-003"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("mirage").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("mirage").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("accepts and declines Evade through real effect deletion", async () => {
+    const accepted = setupEngine({ 0: { battleArea: [{ card: "BT25-029", as: "mirage" }] } });
+    const deletion = advance(accepted.engine).verb.deletePermanent([accepted.perm("mirage").permanentId], "byEffect");
+    await settle(() => accepted.events.some((event) => event.kind === "evadePrompt"));
+    expect(
+      accepted.engine.applyIntent(0, {
+        type: "respondEvade",
+        permanentId: accepted.perm("mirage").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    expect(await deletion).toBe(0);
+    expect(accepted.perm("mirage").isSuspended).toBe(true);
+
+    const declined = setupEngine({ 0: { battleArea: [{ card: "BT25-029", as: "mirage" }] } });
+    const rejected = advance(declined.engine).verb.deletePermanent([declined.perm("mirage").permanentId], "byEffect");
+    await settle(() => declined.events.some((event) => event.kind === "evadePrompt"));
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "respondEvade",
+        permanentId: declined.perm("mirage").permanentId,
+        accept: false,
+      }),
+    ).toEqual({ ok: true });
+    expect(await rejected).toBe(1);
+  });
+
+  it("accepts the official broader Gaogamon-name alternate and rejects a near-match", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT5-068", as: "blackMach" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await legal.ready();
+    legal.state.memory = 5;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("blackMach").permanentId,
+        instanceId: legal.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("blackMach").topCard.cardId === "BT25-029");
+    expect(legal.perm("blackMach").stack.map((card) => card.cardId)).toContain("BT5-068");
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT25-026", as: "nearMatch" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await invalid.ready();
+    invalid.state.memory = 5;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nearMatch").permanentId,
+        instanceId: invalid.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("returns level 5 but excludes level 6 from the first return boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-027", as: "base", suspended: true },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-029", as: "mirage" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "level5" },
+            { card: "BT1-025", as: "level6" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const activation = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activation.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstReturn = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstReturn.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const paidReturn = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: paidReturn.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("level5").instanceId }),
+    );
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(s.inst("level6").instanceId);
+    expect(s.state.players[0]!.trash).not.toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
   });
 
   it("naturally pays the mandatory follow-up cost after a digivolution return sequence", async () => {
@@ -69,6 +246,7 @@ describe("BT25-029 MirageGaogamon", () => {
       expect.arrayContaining([s.inst("firstTarget").instanceId, s.inst("secondTarget").instanceId]),
     );
     expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("base").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
     );
@@ -125,6 +303,19 @@ describe("BT25-029 MirageGaogamon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: secondDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== secondDecision.decisionId,
+    );
+    const thirdDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: thirdDecision.decisionId,
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
@@ -146,6 +337,122 @@ describe("BT25-029 MirageGaogamon", () => {
     );
   });
 
+  it("unsuspends from the Tamer-trash watcher when the return cost is accepted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-027", as: "base", suspended: true },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-029", as: "mirage" }],
+        },
+        1: { battleArea: [{ card: "BT1-025", as: "highTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("tamer").stack.length === 0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
+  });
+
+  it("allows the shared effect to activate on an attack after both evolution prompts were declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-027", as: "base", suspended: true },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-029", as: "mirage" }],
+        },
+        1: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "BT1-010", as: "firstTarget" },
+            { card: "BT1-009", as: "secondTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstDecline = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecline.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard.cardId === "BT25-029");
+    await advance(s.engine).verb.unsuspend([s.perm("base").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.pendingDecision?.kind).toBe("optional");
+    const attackActivation = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackActivation.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const attackReturn = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackReturn.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const attackCost = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackCost.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("firstTarget").instanceId }),
+    );
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
+  });
+
   it("keeps both All Turns unsuspend watchers once per turn", () => {
     const effect = BT25_029.effects?.find((entry) => entry.trigger === "AllTurns");
     expect(effect?.frequency).toBe("OncePerTurn");
@@ -160,5 +467,101 @@ describe("BT25-029 MirageGaogamon", () => {
         }),
       ]),
     );
+  });
+
+  it("unsuspends from opponent-hand addition once, suppresses a second event, and rejects the wrong controller", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-029", as: "mirage", suspended: true }] }, 1: {} },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    expect(s.perm("mirage").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("mirage").permanentId]);
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    expect(s.perm("mirage").isSuspended).toBe(true);
+
+    const wrong = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-029", as: "mirage", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-085", as: "opponentTamer", under: [{ card: "BT1-001", as: "source" }] }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await wrong.ready();
+    await advance(wrong.engine).verb.trashDigivolutionCards(
+      wrong.perm("opponentTamer").permanentId,
+      [wrong.inst("source").instanceId],
+      0,
+    );
+    expect(wrong.state.players[1]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: wrong.inst("source").instanceId }),
+    );
+    expect(wrong.perm("mirage").isSuspended).toBe(true);
+  });
+
+  it("does not treat an ordinary draw as an opponent-hand effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-029", as: "mirage", suspended: true }] },
+      1: { deck: ["BT1-001", "BT1-002"] },
+    });
+    await s.ready();
+    await advance(s.engine).verb.draw(1, 1);
+    expect(s.perm("mirage").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand).toHaveLength(1);
+  });
+
+  it("shares one watcher use across the two event types and preserves a later use after refusal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-029", as: "mirage", suspended: true },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "source", faceUp: false }] },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    expect(s.perm("mirage").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("mirage").permanentId]);
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("tamer").permanentId, [s.inst("source").instanceId], 0);
+    expect(s.perm("mirage").isSuspended).toBe(true);
+
+    const refused = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-029", as: "mirage", suspended: true }] }, 1: {} },
+      { autoAcceptOptional: false },
+    );
+    await refused.ready();
+    const firing = advance(refused.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    await settle(() => refused.state.pendingDecision?.kind === "optional");
+    const decline = refused.state.pendingDecision!;
+    expect(
+      refused.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decline.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    expect(refused.perm("mirage").isSuspended).toBe(true);
+    const secondFiring = advance(refused.engine).fireSubTrigger("whenEffectAddsToOpponentHand", {
+      effectAddedToHandSeat: 1,
+    });
+    await settle(() => refused.state.pendingDecision?.kind === "optional");
+    const accept = refused.state.pendingDecision!;
+    expect(
+      refused.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: accept.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await secondFiring;
+    expect(refused.perm("mirage").isSuspended).toBe(false);
+    await settle(() => !refused.perm("mirage").isSuspended && refused.state.pendingDecision === undefined);
   });
 });

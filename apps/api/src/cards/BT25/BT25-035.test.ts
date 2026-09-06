@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compiled as BT25_035 } from "./BT25-035.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT25-035 Cougarmon", () => {
@@ -46,7 +48,7 @@ describe("BT25-035 Cougarmon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
@@ -79,9 +81,9 @@ describe("BT25-035 Cougarmon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
@@ -93,4 +95,313 @@ describe("BT25-035 Cougarmon", () => {
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT1-001"]);
     expect(s.perm("opponent").currentDP).toBe(4000);
   });
+
+  it("keeps the -3000 DP result when the optional free digivolution is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-035", as: "cougarmon" },
+            { card: "BT25-041", as: "candidate" },
+          ],
+          battleArea: [
+            {
+              card: "BT25-090",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", faceUp: false },
+                { card: "BT1-002", faceUp: false },
+              ],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-035"));
+    expect(s.perm("cougarmon").topCard?.cardId).toBe("BT25-035");
+    expect(s.perm("opponent").currentDP).toBe(4000);
+    expect(s.perm("tamer").stack).toHaveLength(2);
+  });
+
+  it("deletes a Digimon reduced below zero only after the On Play effect finishes", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-035", as: "cougarmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 2000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+  });
+
+  it("applies the -3000 DP reduction on When Digivolving while the free branch remains declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-032", as: "base" },
+            {
+              card: "BT25-090",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", faceUp: false },
+                { card: "BT1-002", faceUp: false },
+              ],
+            },
+          ],
+          hand: [
+            { card: "BT25-035", as: "cougarmon" },
+            { card: "BT25-041", as: "candidate" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cougarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").currentDP === 4000);
+    expect(s.perm("base").topCard?.cardId).toBe("BT25-035");
+    expect(s.perm("opponent").currentDP).toBe(4000);
+    expect(s.perm("tamer").stack).toHaveLength(2);
+  });
+
+  it("carries inherited Barrier through the public evolution stack", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-058", as: "host", under: ["BT25-035"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+  });
+
+  it("accepts inherited Barrier, pays one security, and completes public battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-058", as: "host", under: ["BT25-035"], dp: 7000, suspended: true }],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 8000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("host").permanentId, accept: true }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("refuses inherited Barrier and deletes the legal Lv.5 host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-058", as: "host", under: ["BT25-035"], dp: 7000, suspended: true }],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 8000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("host").permanentId, accept: false }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("cannot pay inherited Barrier when the security stack is empty", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-058", as: "host", under: ["BT25-035"], dp: 7000, suspended: true }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 8000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "barrierPrompt")).toBe(false);
+  });
+
+  it("defers zero-DP deletion until the optional free-evolution decision resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-035", as: "cougarmon" },
+            { card: "BT25-041", as: "candidate" },
+          ],
+          battleArea: [
+            {
+              card: "BT25-090",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", as: "paidOne", faceUp: false },
+                { card: "BT1-002", as: "paidTwo", faceUp: false },
+              ],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 2000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.perm("opponent").currentDP).toBe(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+  });
+
+  it("expires the -3000 DP effect when the real turn closes", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-035", as: "cougarmon" },
+            { card: "AD1-001", as: "holdMain" },
+          ],
+          deck: Array(5).fill("BT1-001"),
+          security: ["BT1-002"],
+        },
+        1: {
+          deck: Array(5).fill("BT1-003"),
+          security: ["BT1-004"],
+          battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    let observedReduction = 0;
+    await settle(() => {
+      observedReduction = s.state.players[1]!.battleArea[0]?.currentDP ?? observedReduction;
+      return observedReduction === 4000;
+    });
+    expect(observedReduction).toBe(4000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("opponent").currentDP).toBe(7000);
+  });
+
+  it.each([
+    ["On Play", "one Tamer", true],
+    ["On Play", "two Tamers", false],
+    ["When Digivolving", "one Tamer", true],
+    ["When Digivolving", "two Tamers", false],
+  ] as const)(
+    "trashes exactly two bottom face-down cards for %s free digivolution with %s",
+    async (trigger, layout, sameTamer) => {
+      const tamers = sameTamer
+        ? [
+            {
+              card: "BT25-090",
+              as: "firstTamer",
+              under: [
+                { card: "BT1-001", as: "paidOne", faceUp: false },
+                { card: "BT1-002", as: "paidTwo", faceUp: false },
+              ],
+            },
+          ]
+        : [
+            { card: "BT25-090", as: "firstTamer", under: [{ card: "BT1-001", as: "paidOne", faceUp: false }] },
+            { card: "BT25-090", as: "secondTamer", under: [{ card: "BT1-002", as: "paidTwo", faceUp: false }] },
+          ];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: trigger === "When Digivolving" ? [{ card: "BT25-032", as: "base" }, ...tamers] : tamers,
+            hand: [
+              { card: "BT25-035", as: "cougarmon" },
+              { card: "BT25-041", as: "candidate" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+        },
+        { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const result =
+        trigger === "On Play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("cougarmon").instanceId,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-041"));
+      const evolved = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT25-041");
+      expect(evolved?.topCard?.cardId).toBe("BT25-041");
+      expect(s.perm("opponent").currentDP).toBe(4000);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+        expect.arrayContaining([s.inst("paidOne").instanceId, s.inst("paidTwo").instanceId]),
+      );
+      for (const tamer of sameTamer ? ["firstTamer"] : ["firstTamer", "secondTamer"]) {
+        expect(s.perm(tamer).stack).toHaveLength(0);
+      }
+    },
+  );
 });

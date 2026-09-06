@@ -53,6 +53,21 @@ describe("BT25-048 Bearmon", () => {
     ).toEqual({ ok: true });
     await settle(() => breeding.state.players[0]!.breeding?.topCard?.cardId === "BT25-050");
     expect(breeding.state.memory).toBe(0);
+
+    const nonGreenTs = setupEngine({
+      0: { battleArea: [{ card: "BT25-048", as: "source" }], hand: [{ card: "BT25-013", as: "target" }] },
+    });
+    nonGreenTs.state.memory = 3;
+    await nonGreenTs.ready();
+    expect(
+      nonGreenTs.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: nonGreenTs.perm("source").permanentId,
+        instanceId: nonGreenTs.inst("target").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => nonGreenTs.perm("source").topCard?.cardId === "BT25-013");
+    expect(nonGreenTs.state.memory).toBe(1);
   });
 
   it("draws once when the inherited Bearmon wins a battle", async () => {

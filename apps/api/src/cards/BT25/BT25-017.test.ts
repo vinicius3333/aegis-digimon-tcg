@@ -87,6 +87,92 @@ describe("BT25-017 Flaremon", () => {
     expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toContain(aboveBoundaryId);
   });
 
+  it("can refuse the optional attack and still accept the independent paid deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-017", as: "source" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(attackDecision.seat, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const deleteDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(deleteDecision.seat, {
+        type: "respondDecision",
+        decisionId: deleteDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard.cardId === "BT1-010"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("can accept the optional attack and refuse the independent paid deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-017", as: "source" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(attackDecision.seat, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const deleteDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(deleteDecision.seat, {
+        type: "respondDecision",
+        decisionId: deleteDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("allows the by-condition cost even with no eligible deletion target", async () => {
     const s = setupEngine(
       {
@@ -126,7 +212,6 @@ describe("BT25-017 Flaremon", () => {
     await settle(() => s.perm("source").topCard.cardId === "BT25-018");
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("apollomon").instanceId);
   });
 
   it("does not activate the Apollomon option for a non-blue own-Digimon event", async () => {
@@ -148,6 +233,50 @@ describe("BT25-017 Flaremon", () => {
 
     expect(s.perm("source").topCard.cardId).toBe("BT25-017");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("apollomon").instanceId);
+  });
+
+  it.each([
+    ["blue", "BT25-008", "BT25-024"],
+    ["red", "BT25-022", "BT24-011"],
+  ] as const)("evaluates the %s Digimon after its public evolution", async (_color, baseCard, evolvedCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-017", as: "source" },
+            { card: baseCard, as: "subject" },
+          ],
+          hand: [
+            { card: evolvedCard, as: "evolvedSubject" },
+            { card: "BT25-018", as: "apollomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("evolvedSubject").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("subject").topCard.cardId).toBe(evolvedCard);
+    const shouldEvolve = _color === "blue";
+    expect(s.perm("source").topCard.cardId).toBe(shouldEvolve ? "BT25-018" : "BT25-017");
+    expect(s.state.memory).toBe(shouldEvolve ? 6 : 8);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(shouldEvolve ? ["BT25-017"] : []);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("apollomon").instanceId)).toBe(
+      !shouldEvolve,
+    );
   });
 
   it("uses the TS alternate route from an off-color Lv.4 and rejects a non-TS base", async () => {
@@ -206,8 +335,19 @@ describe("BT25-017 Flaremon", () => {
   });
 
   it("grants inherited Security Attack +1 from a realistic evolution stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", under: ["BT25-017"], as: "host" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-018", under: ["BT25-017"], as: "host" }] },
+      1: { security: ["BT1-001", "BT1-002"] },
+    });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
   });
 });

@@ -1630,9 +1630,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   /**
    * App Fusion: play the fusion-target card `resultInstanceId` (a loose card in trash/hand)
-   * ON TOP of the battle-area Digimon `sourcePermanentId`, the source's prior top card sliding
-   * under it as a digivolution card — the same placement as `digivolveFromInstance`, NOT
-   * DnaDigivolve (no permanent is consumed off the field).
+   * ON TOP of the battle-area Digimon `sourcePermanentId`. The selected matching link card
+   * moves above the prior top card before the result is placed (CR 8-4-1). Unselected link
+   * cards stay linked; no permanent is consumed off the field.
    *
    * `appFusionCondition` produced by `AddAppfuseMethodByName`): the fusing permanent's top
    * card plus its linked cards must collectively cover >= 2 distinct required names (with the
@@ -1649,11 +1649,34 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (!definition.kinds.includes(CardKind.Digimon)) return undefined;
     // Enforce the fusion-target's app-fusion legality + read its cost (server-authoritative).
     const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
-    const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
+    const links = Array.from(permanent.linked);
+    const linkedNames = links.map((card) => requireCardDefinition(card.cardId).nameEn);
     const cost = appFusionCostFor(peek.cardId, { topName, linkedNames });
     if (cost === undefined) return undefined;
     const seat = permanent.controllerSeat;
     if (engine.memory.maxCostFor(seat) < cost) return undefined;
+    const eligible = links.filter(
+      (card) =>
+        appFusionCostFor(peek.cardId, {
+          topName,
+          linkedNames: [requireCardDefinition(card.cardId).nameEn],
+        }) === cost,
+    );
+    const selectedIds =
+      eligible.length === 1
+        ? [eligible[0]!.instanceId]
+        : await engine.ask.selectInstances(
+            seat,
+            eligible.map((card) => card.instanceId),
+            1,
+            1,
+            "Choose the link card to stack for App Fusion.",
+          );
+    if (selectedIds.length !== 1) return undefined;
+    const selectedLink = eligible.find((card) => card.instanceId === selectedIds[0]);
+    if (selectedLink === undefined) return undefined;
+    const linkIndex = permanent.linked.findIndex((card) => card.instanceId === selectedLink.instanceId);
+    if (linkIndex < 0) return undefined;
     if (cost > 0) engine.memory.pay(seat, cost, "appFusion");
     const instance = removeLooseInstance(state, resultInstanceId);
     if (instance === undefined) return undefined;
@@ -1661,6 +1684,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
     pushOnStack(permanent, priorTop);
+    permanent.linked.splice(linkIndex, 1);
+    selectedLink.faceUp = true;
+    pushOnStack(permanent, selectedLink);
     setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;

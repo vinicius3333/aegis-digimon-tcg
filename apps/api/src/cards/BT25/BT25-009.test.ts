@@ -32,7 +32,13 @@ describe("BT25-009 Bearmon", () => {
       into: {
         controllerDefault: "mine",
         kind: ["Digimon"],
-        excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+        or: [
+          {
+            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
+            nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }],
+          },
+          { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+        ],
       },
     });
   });
@@ -109,6 +115,134 @@ describe("BT25-009 Bearmon", () => {
 
     expect(s.perm("bearmon").topCard.cardId).toBe("BT25-009");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT11-010"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("does not attempt the level-5 Sea Animal+TS near-match because ordinary evolution is level-guarded", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-009", as: "bearmon" }],
+          hand: [{ card: "BT24-029", as: "seaAnimalTs" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("bearmon").topCard.cardId).toBe("BT25-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-029"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("supports a public optional refusal without changing hand, memory, or stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-009", as: "bearmon" }],
+          hand: [{ card: "BT11-010", as: "grizzlymon" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT11-010"]);
+    expect(s.perm("bearmon").stack.map((card) => card.cardId)).toEqual([]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("accepts the TS-only public alternate destination Deltamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-009", as: "bearmon" }],
+          hand: [{ card: "BT25-068", as: "deltamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("bearmon").permanentId,
+        instanceId: s.inst("deltamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("bearmon").topCard.cardId === "BT25-068");
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("bearmon").stack.map((card) => card.cardId)).toEqual(["BT25-009"]);
+  });
+
+  it("matches a legal non-TS Beastkin destination through the printed family substring", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-009", as: "bearmon" }],
+          hand: [{ card: "EX12-012", as: "apemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("bearmon").topCard.cardId === "EX12-012");
+
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("bearmon").stack.map((card) => card.cardId)).toEqual(["BT25-009"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("rejects a legal nonfamily, non-TS destination", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-009", as: "bearmon" }],
+          hand: [{ card: "BT1-015", as: "nonMatching" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("bearmon").topCard.cardId).toBe("BT25-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-015"]);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });

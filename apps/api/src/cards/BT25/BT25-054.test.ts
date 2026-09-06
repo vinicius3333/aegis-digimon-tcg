@@ -53,6 +53,25 @@ describe("BT25-054 GreatGrizzlymon", () => {
     expect(s.state.players[0]!.hand).toContainEqual(s.inst("evolver"));
   });
 
+  it("supports the public TS alternate evolution from a level 4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-051", as: "source" }], hand: [{ card: "BT25-054", as: "evolver" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-054");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("makes the chosen opponent Digimon attack at their next main-phase start", async () => {
     const s = setupEngine(
       {
@@ -143,6 +162,27 @@ describe("BT25-054 GreatGrizzlymon", () => {
       attackerPermanentId: s.perm("host").permanentId,
     });
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("trashes security from the inherited clause after a public battle deletion", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-053", as: "host", under: ["BT25-054"], dp: 12000 }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+        security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
   });
 
   it("keeps the forced-attack grant through the controller's turn and expires at their turn end", async () => {

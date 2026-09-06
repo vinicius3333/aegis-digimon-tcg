@@ -82,6 +82,55 @@ describe("BT25-051 Grizzlymon", () => {
     expect(s.perm("nearMatch").currentDP).toBe(2000);
   });
 
+  it("applies the same target filter after a public When Digivolving", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-047", as: "source" },
+            { card: "BT25-047", as: "eligible" },
+            { card: "BT25-046", as: "nearMatch" },
+          ],
+          hand: [{ card: "BT25-051", as: "grizzly" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("eligible").permanentId);
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("grizzly").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("eligible").currentDP === 6000);
+    expect(s.perm("eligible").currentDP).toBe(6000);
+    expect(s.perm("nearMatch").currentDP).toBe(3000);
+  });
+
+  it("supports the public TS alternate evolution from a level 3 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-009", as: "source" }], hand: [{ card: "BT25-051", as: "grizzly" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("grizzly").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-051");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("naturally draws when the Digimon carrying Grizzlymon wins a battle", async () => {
     const s = setupEngine(
       {
@@ -112,5 +161,25 @@ describe("BT25-051 Grizzlymon", () => {
 
     expect(s.state.players[0]!.hand).toContainEqual(s.inst("drawn"));
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("draws when the inherited Grizzlymon wins a Security battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-055", as: "attacker", under: [{ card: "BT25-051", as: "inherited" }], dp: 12000 }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+      1: { security: [{ card: "BT1-009", as: "security" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 });

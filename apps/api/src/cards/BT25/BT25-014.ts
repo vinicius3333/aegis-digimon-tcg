@@ -1,15 +1,5 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-// Hand-fixed IR for BT25-014 (Meramon).
-// Fixes:
-// 1. Draw 2 condition: was raw → structured ifThisEffectDidNotDelete
-//    (KB Q6259: must choose a target if one exists; Q6260: immune-to-delete counts
-//    as "didn't delete").
-// 2. Delete action: optional:true/abortOnDecline removed — player may activate
-//    even with no valid targets (Q6258) but must choose a target when one exists
-//    (Q6259); the whole [Main] effect remains activatable without targets.
 export const compiled: CompiledCard = {
   effects: [
     {

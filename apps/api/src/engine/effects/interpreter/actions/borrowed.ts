@@ -10,6 +10,7 @@ import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
+import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
@@ -460,16 +461,9 @@ function optionUseCandidates(
     (action.cost?.kind === "trashBottomFaceDownUnderTamer" || action.cost?.kind === "trashBottomFaceDownUnderDigimon")
   ) {
     const required = action.cost.count ?? 1;
-    const requiredHostKind = action.cost.kind === "trashBottomFaceDownUnderTamer" ? CardKind.Tamer : CardKind.Digimon;
-    const bottomCards = ctx.game
-      .player(seat)
-      .battleArea.filter(
-        (permanent) =>
-          permanent.topCard !== undefined &&
-          ctx.game.definitionOf(permanent.topCard).kinds.includes(requiredHostKind) &&
-          permanent.stack[0]?.faceUp === false,
-      )
-      .map((permanent) => permanent.stack[0]!);
+    // Paying N cards can expose any of the first N face-down cards of a host,
+    // including an Option behind another face-down cost card (Q6301/Q7092).
+    const bottomCards = bottomFaceDownCostStacks(ctx, action.cost).flatMap(({ cards }) => cards.slice(0, required));
     if (bottomCards.length >= required) bottomCards.forEach(addIfEligible);
   }
   // A normal digivolution-card trash cost can likewise create the requested
