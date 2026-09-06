@@ -67,6 +67,7 @@ describe("BT20-030 Liollmon", () => {
         s.state.players[0]!.deck.length === 1,
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("grants Barrier only when Liollmon is an inherited source", async () => {
@@ -85,7 +86,7 @@ describe("BT20-030 Liollmon", () => {
 
   it("reaches Liollmon from a legal ACCEL Pinamon stack through public evolution", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-004", as: "pinamon" }], hand: [{ card: "BT20-030", as: "liollmon" }] },
+      0: { breeding: { card: "BT20-004", as: "pinamon" }, hand: [{ card: "BT20-030", as: "liollmon" }] },
     });
     await s.ready();
     expect(
@@ -98,6 +99,29 @@ describe("BT20-030 Liollmon", () => {
     await settle(() => s.perm("pinamon").topCard.cardId === "BT20-030");
     expect(s.perm("pinamon").topCard.cardId).toBe("BT20-030");
     expect(s.perm("pinamon").stack.map((card) => card.cardId)).toEqual(["BT20-004"]);
+  });
+
+  it.each([
+    ["BT18-006", true],
+    ["BT20-001", false],
+  ] as const)("checks the named Frimon alternative against %s", async (egg, legal) => {
+    const s = setupEngine({
+      0: { breeding: { card: egg, as: "egg" }, hand: [{ card: "BT20-030", as: "liollmon" }], deck: ["BT1-010"] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("liollmon").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(legal);
+    await settle();
+    expect(s.perm("egg").topCard.cardId).toBe(legal ? "BT20-030" : egg);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(legal ? [egg] : []);
+    expect(s.state.memory).toBe(3);
   });
 
   it("leaves all three revealed cards on the bottom when neither required category matches", async () => {
@@ -129,7 +153,7 @@ describe("BT20-030 Liollmon", () => {
           0: {
             hand: [{ card: "BT20-030", as: "liollmon" }],
             deck: [
-              { card: qualifying === "digimonOnly" ? "BT20-031" : "BT20-099", as: qualifying },
+              { card: qualifying === "digimonOnly" ? "BT4-091" : "BT20-099", as: qualifying },
               { card: "BT20-010", as: absent },
               { card: "BT20-011", as: "other" },
             ],
