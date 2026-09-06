@@ -279,12 +279,10 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 
-      if (orderChoice === "ascension-first") {
-        expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("BT26-075");
-        expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(defenderId);
-      } else {
-        expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(defenderId);
-      }
+      expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("BT26-075");
+      expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === defenderId)).toBe(
+        orderChoice === "ascension-first",
+      );
     },
   );
 
