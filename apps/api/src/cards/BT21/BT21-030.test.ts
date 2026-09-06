@@ -220,4 +220,32 @@ describe("BT21-030 compiled implementation", () => {
       expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe(accept ? "BT1-009" : "BT1-001");
     }
   });
+
+  it("returns a source-less Digimon after a real public attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-030", as: "superior", enteredThisTurn: false }] },
+        1: {
+          deck: [{ card: "BT1-001", as: "old-bottom" }],
+          battleArea: [
+            { card: "BT1-009", as: "sourceLess" },
+            { card: "BT1-010", as: "stacked", under: ["BT1-002"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sourceLessId = s.perm("sourceLess").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("superior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === sourceLessId));
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
+  });
 });
