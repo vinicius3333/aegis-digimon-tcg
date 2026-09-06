@@ -83,6 +83,44 @@ describe("BT21-016 Shoutmon (King Version)", () => {
     expect(observe(s.engine).hasKeyword(king, "Raid")).toBe(true);
   });
 
+  it("publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base", async () => {
+    const legal = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-011", as: "base" }], hand: [{ card: "BT21-016", as: "king" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    legal.state.memory = 2;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("king").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === "BT21-016");
+    expect(legal.perm("base").topCard.cardId).toBe("BT21-016");
+    // Shoutmon reduces this Xros Heart/Hero evolution by a further 1.
+    expect(legal.state.memory).toBe(1);
+
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT21-016", as: "king" }] },
+    });
+    illegal.state.memory = 2;
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("king").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(illegal.state.memory).toBe(2);
+  });
+
   it("rejects a second DigiXros material and preserves hand, board, and memory", async () => {
     const s = setupEngine({
       0: {
@@ -127,6 +165,38 @@ describe("BT21-016 Shoutmon (King Version)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("public Raid redirects to the highest-DP unsuspended target, then Piercing checks security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-016", as: "king" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 3000 },
+            { card: "BT1-010", as: "high", dp: 4000 },
+            { card: "BT1-009", as: "suspendedHigher", dp: 6000, suspended: true },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const highId = s.perm("high").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("king").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === highId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("low").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009" && p.isSuspended)).toBe(true);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("on deletion places an eligible card and then itself under a Tamer", async () => {
