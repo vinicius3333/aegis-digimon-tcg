@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-037.js";
 import "./index.js";
+import "../ST1/ST1-15.js";
+import "./BT20-041.js";
 
 describe("BT20-037 Chaosmon: Valdur Arm", () => {
   it("scales suspension and memory by level 6 stack cards, then disables opponent On Play and unsuspend", () => {
@@ -66,6 +68,80 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Partition")).toBe(true);
   });
 
+  it("suspends exactly one opposing Digimon or Tamer per level-6 source and leaves allied cards untouched", async () => {
+    const s = setupEngine(
+      {
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "opponentDigimon" },
+            { card: "BT20-011", as: "opponentDigimonTwo" },
+            { card: "BT20-085", as: "opponentTamer" },
+          ],
+        },
+        0: {
+          battleArea: [
+            { card: "BT20-035", as: "base", under: ["BT20-036"] },
+            { card: "BT20-010", as: "ally" },
+          ],
+          hand: [{ card: "BT20-037", as: "valdur" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("valdur").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 8 &&
+        [s.perm("opponentDigimon"), s.perm("opponentDigimonTwo"), s.perm("opponentTamer")].filter((p) => p.isSuspended)
+          .length === 2,
+    );
+    expect(
+      [s.perm("opponentDigimon"), s.perm("opponentDigimonTwo"), s.perm("opponentTamer")].filter((p) => p.isSuspended),
+    ).toHaveLength(2);
+    expect(s.perm("ally").isSuspended).toBe(false);
+  });
+
+  it("reaches Valdur Arm through a public level-6 evolution and rejects a lower-level base", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT20-035", as: "levelSix" }], hand: [{ card: "BT20-037", as: "valdur" }] },
+      1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+    });
+    legal.state.memory = 10;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("levelSix").permanentId,
+        instanceId: legal.inst("valdur").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("levelSix").topCard.cardId === "BT20-037");
+    expect(legal.perm("levelSix").stack.map((card) => card.cardId)).toEqual(["BT20-035"]);
+    expect(legal.state.memory).toBe(6);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT20-034", as: "levelFive" }], hand: [{ card: "BT20-037", as: "valdur" }] },
+    });
+    invalid.state.memory = 10;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("levelFive").permanentId,
+        instanceId: invalid.inst("valdur").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(invalid.perm("levelFive").topCard.cardId).toBe("BT20-034");
+  });
+
   it("Partitions its specified yellow and green/black level-6 sources after opponent-effect deletion", async () => {
     const s = setupEngine(
       {
@@ -82,5 +158,138 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-036"),
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("naturally partitions both legal level-6 sources after an opponent Option deletes Valdur Arm", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT20-037",
+              dp: 4000,
+              under: [
+                { card: "BT20-035", as: "yellowSource" },
+                { card: "BT20-036", as: "greenBlackSource" },
+              ],
+              as: "valdur",
+            },
+          ],
+        },
+        1: {
+          hand: [{ card: "ST1-15", as: "deletionOption" }],
+          battleArea: [{ card: "BT20-010", dp: 5000, as: "redSource" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletionOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT20-035",
+      "BT20-036",
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-037");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("ST1-15");
+  });
+
+  it("may refuse Partition after a public opponent deletion, sending the full Valdur stack to trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT20-037",
+              dp: 4000,
+              under: [
+                { card: "BT20-035", as: "yellowSource" },
+                { card: "BT20-036", as: "greenBlackSource" },
+              ],
+              as: "valdur",
+            },
+          ],
+        },
+        1: {
+          hand: [{ card: "ST1-15", as: "deletionOption" }],
+          battleArea: [{ card: "BT20-010", dp: 5000, as: "redSource" }],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletionOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetDecision = s.state.pendingDecision!;
+    const targetRequest = s.decisions.find(({ req }) => req.decisionId === targetDecision.decisionId)!.req;
+    if (targetRequest.kind !== "chooseTargets") throw new Error("Expected ST1-15 target decision");
+    expect(targetRequest.options?.candidateInstanceIds).toContain(s.perm("valdur").permanentId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("valdur").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const partitionDecision = s.state.pendingDecision!;
+    const partitionRequest = s.decisions.find(({ req }) => req.decisionId === partitionDecision.decisionId)!.req;
+    if (partitionRequest.kind !== "selectCards") throw new Error("Expected Partition selection decision");
+    expect(partitionRequest.options?.candidateInstanceIds).toEqual([s.inst("yellowSource").instanceId]);
+    expect(partitionRequest.options?.min).toBe(0);
+    expect(partitionRequest.options?.max).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: partitionDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 0 &&
+        ["BT20-037", "BT20-035", "BT20-036"].every((cardId) =>
+          s.state.players[0]!.trash.some((card) => card.cardId === cardId),
+        ) &&
+        s.state.players[1]!.trash.some((card) => card.cardId === "ST1-15"),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-037", "BT20-035", "BT20-036"]),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("ST1-15");
+  });
+
+  it("partitions after an inherited public DP reduction deletes Valdur at 0 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-037", dp: 4000, suspended: true, under: ["BT20-035", "BT20-036"], as: "valdur" }],
+        },
+        1: { battleArea: [{ card: "BT20-042", as: "attacker", under: ["BT20-041"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("valdur").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT20-035",
+      "BT20-036",
+    ]);
   });
 });
