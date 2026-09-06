@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-024.js";
 import "./index.js";
 
@@ -79,5 +79,46 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
     expect(s.state.players[0]!.hand).toHaveLength(8);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.hand).toHaveLength(8);
+  });
+
+  it("reaches Seadramon (X Antibody) from a legal Seadramon stack through public evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT15-025", as: "seadramon" }], hand: [{ card: "BT20-024", as: "seadramonX" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("seadramon").permanentId,
+        instanceId: s.inst("seadramonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("seadramon").topCard.cardId === "BT20-024");
+    expect(s.perm("seadramon").topCard.cardId).toBe("BT20-024");
+    expect(s.perm("seadramon").stack.map((card) => card.cardId)).toEqual(["BT15-025"]);
+  });
+
+  it("naturally returns only an opposing level-3 Digimon on play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-024", as: "seadramonX" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-022", as: "level3" },
+            { card: "BT20-023", as: "level4" },
+          ],
+          deck: ["BT20-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seadramonX").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-022"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-023")).toBe(true);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT20-022");
   });
 });
