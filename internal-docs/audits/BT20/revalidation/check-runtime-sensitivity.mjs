@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,8 @@ const cards = process.argv.slice(2);
 if (!cards.length || cards.some((card) => !/^BT20-\d{3}$/.test(card))) {
   throw new Error("Pass explicit BT20 card IDs. Run only while the lead owns these production files.");
 }
-const outcomes = [];
+const summaryPath = resolve(directory, "runtime-sensitivity-results.json");
+const outcomes = existsSync(summaryPath) ? JSON.parse(readFileSync(summaryPath, "utf8")) : [];
 for (const card of cards) {
   const modulePath = resolve(repository, `apps/api/src/cards/BT20/${card}.ts`);
   const original = readFileSync(modulePath, "utf8");
@@ -52,6 +53,8 @@ for (const card of cards) {
     .filter((test) => test.status === "failed")
     .map((test) => ({ name: test.fullName, failures: test.failureMessages }));
   const assertions = failures.filter((test) => test.failures.some((message) => /AssertionError/.test(message)));
+  const priorIndex = outcomes.findIndex((outcome) => outcome.cardId === card);
+  if (priorIndex !== -1) outcomes.splice(priorIndex, 1);
   outcomes.push({
     cardId: card,
     command: ["pnpm", ...args].join(" "),
@@ -60,7 +63,7 @@ for (const card of cards) {
     failed: report.numFailedTests,
     assertions,
   });
-  writeFileSync(resolve(directory, "runtime-sensitivity-results.json"), JSON.stringify(outcomes, null, 2) + "\n");
+  writeFileSync(summaryPath, JSON.stringify(outcomes, null, 2) + "\n");
   console.log(
     `${card}: ${assertions.length} state/assertion failures; ${report.numFailedTests} failures total; restored`,
   );
