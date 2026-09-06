@@ -79,6 +79,109 @@ describe("BT21-028 compiled implementation", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
   });
 
+  it("deletes exactly one lowest-DP tie through the effect window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-028", as: "siriusmon", enteredThisTurn: false }],
+          hand: [{ card: "BT21-010", as: "material" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA", dp: 3000 },
+            { card: "BT1-010", as: "lowB", dp: 3000 },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("siriusmon"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.perm("siriusmon").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+    const survivorId = s.state.players[1]!.battleArea[0]!.permanentId;
+    expect(survivorId).toBe(s.perm("lowB").permanentId);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("pays the hand cost during a natural attack after Raid resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-028", as: "siriusmon", enteredThisTurn: false }],
+          hand: [{ card: "BT21-010", as: "material" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 3000 },
+            { card: "BT1-010", as: "high", dp: 6000 },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId || p.permanentId === highId),
+    );
+    expect(s.perm("siriusmon").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+  });
+
+  it("uses Raid to redirect a public attack to the opponent's highest-DP unsuspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-028", as: "siriusmon", dp: 13000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 3000 },
+            { card: "BT1-010", as: "high", dp: 6000 },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const highId = s.perm("high").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === highId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("performs two security checks from Security Attack +1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-028", as: "siriusmon", enteredThisTurn: false }] },
+      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it.each([
     { base: "BT21-077", material: "BT21-010" },
     { base: "BT21-021", material: "BT21-021" },
