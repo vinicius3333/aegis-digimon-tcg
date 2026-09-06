@@ -86,6 +86,31 @@ describe("BT21-076 WarGrowlmon", () => {
     expect(s.state.memory).toBe(6 - expectedCost);
   });
 
+  it("uses the public attack intent for the once-per-turn Megidramon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-076", as: "wargrowlmon" }],
+          hand: [{ card: "BT21-079", as: "megidramon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wargrowlmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("wargrowlmon").topCard.instanceId === s.inst("megidramon").instanceId);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("uses the attack evolution only once per turn", async () => {
     const s = setupEngine(
       {
