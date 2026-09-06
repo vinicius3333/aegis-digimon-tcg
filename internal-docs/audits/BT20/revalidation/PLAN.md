@@ -165,3 +165,12 @@ See [strict review round 3](strict-review-round3.md). Current names and 093 timi
 All code and validation evidence through2a2a2b113 is pushed. Final collection plus the two new mechanism files pass836/836 tests; affected mechanism suites pass552/552. Workspace typecheck, set-scoped catalog sync/check, changed-file lint/format and clean diff pass. Runtime-disabled proof for014–026 fails intended observable assertions and is restored.
 
 The hash-bound acceptance ledger now verifies001–026 at10/10: 26/102 cards,260/1020 points, mean2.549. The remaining76 cards remain unaccepted and collection completion is not claimed. Next work starts with027–032 and the recorded tail gaps, including084 lock/source-stack review and094–095 remaining comparison paths.
+
+
+## Current round 4 integration
+
+Accepted evidence remains001–026 (26/102); all027+ reports remain provisional. The906-test collection/mechanism snapshot passes899 and fails7: five new027 fixtures and stale generated records035/037. Exact failures are preserved in round4-collection-results.json. Workers own isolated test/report batches; the lead owns shared engine and catalog changes and serial one-worker execution.
+
+Three confirmed corrections are in integration:029 official full-Pulsemon-text matching replaces a community catalog name-only transcription;035's Tamer-triggered optional attack targets opponent Digimon only;037's overall On Play and unsuspend prohibition follows later entrants until the opponent turn ends (CR15-11-2-2, Q4348/Q4718/Q4841). Snapshot-only engine mutation produces a concrete wrong deck state in037-overall-engine-disabled-results.json and is restored. Security-removal ownership on035 already defaults to mine in the shared subtrigger; no owner-gate production fix is justified.
+
+Next gates: finish027/034/036/040/042 negative/timing proofs, synchronize onlyBT20, renew focused/mechanism/fullcollection/typecheck/style/diff results and runtime sensitivity, independently accept eligible cards, deliver atomic commits, push, and update the PR.044–049 strict clause work proceeds in nonoverlapping Luna batches. Collection completion remains explicitly pending.

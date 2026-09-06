@@ -1,0 +1,42 @@
+{
+  "collection": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+    "passed": 894,
+    "failed": 0
+  },
+  "mechanisms": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+    "passed": 543,
+    "failed": 0
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0,
+    "log": "round4-final-typecheck.log"
+  },
+  "sync": {
+    "command": "pnpm effects:sync:set -- --set BT20",
+    "exitCode": 0,
+    "log": "round4-scoped-sync.log"
+  },
+  "syncCheck": {
+    "command": "pnpm effects:check:set -- --set BT20",
+    "exitCode": 0,
+    "log": "round4-scoped-check.log"
+  },
+  "lint": {
+    "command": "pnpm exec oxlint <round4-style-paths.json>",
+    "exitCode": 0,
+    "log": "round4-lint.log"
+  },
+  "format": {
+    "command": "pnpm exec oxfmt <round4-style-paths.json>",
+    "exitCode": 0,
+    "log": "round4-format.log"
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "acceptanceScope": "BT20-027 through BT20-043; whole collection remains incomplete"
+}
