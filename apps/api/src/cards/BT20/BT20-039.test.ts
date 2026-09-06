@@ -62,6 +62,24 @@ describe("BT20-039 Diatrymon", () => {
     await settle(() => evolved.perm("target").isSuspended);
     expect(evolved.state.memory).toBe(2);
     expect(evolved.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-038"]);
+
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT20-038", as: "base" }], hand: [{ card: "BT20-039", as: "diatrymon" }] },
+    });
+    ordinary.state.memory = 3;
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("base").permanentId,
+        instanceId: ordinary.inst("diatrymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => ordinary.perm("base").topCard.cardId === "BT20-039" && ordinary.state.pendingDecision === undefined,
+    );
+    expect(ordinary.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-038"]);
+    expect(ordinary.state.memory).toBe(1); // Printed 3 minus Falcomon's 1.
   });
 
   it("does not suspend an allied Digimon or invent a target when the opponent has none", async () => {
@@ -83,7 +101,7 @@ describe("BT20-039 Diatrymon", () => {
       0: { battleArea: [{ card: "BT20-041", dp: 6000, under: ["BT20-039"], as: "host" }] },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }],
-        security: ["BT20-001"],
+        security: ["BT1-010"],
       },
     });
     await s.ready();
