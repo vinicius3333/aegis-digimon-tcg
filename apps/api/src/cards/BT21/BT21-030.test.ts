@@ -147,6 +147,96 @@ describe("BT21-030 compiled implementation", () => {
     );
   });
 
+  it("publicly accepts variable distinct-number Xros Heart materials and rejects duplicate or near-invalid cards", async () => {
+    const valid = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }],
+          hand: [
+            { card: "BT21-030", as: "superior" },
+            { card: "BT21-021", as: "omni" },
+            { card: "BT10-008", as: "x4" },
+            { card: "BT10-009", as: "x4b" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    valid.state.memory = 14;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: valid.inst("superior").instanceId,
+        digiXros: {
+          materialInstanceIds: [
+            valid.inst("omni").instanceId,
+            valid.inst("x4").instanceId,
+            valid.inst("x4b").instanceId,
+          ],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-030"));
+    const validHost = valid.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT21-030")!;
+    expect(validHost.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT21-011", "BT21-021", "BT10-008", "BT10-009"]),
+    );
+    expect(valid.state.memory).toBe(3);
+
+    const duplicate = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }],
+          hand: [
+            { card: "BT21-030", as: "superior" },
+            { card: "BT10-008", as: "first" },
+            { card: "BT10-008", as: "duplicate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    duplicate.state.memory = 14;
+    await duplicate.ready();
+    expect(
+      duplicate.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: duplicate.inst("superior").instanceId,
+        digiXros: { materialInstanceIds: [duplicate.inst("first").instanceId, duplicate.inst("duplicate").instanceId] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(duplicate.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        duplicate.inst("superior").instanceId,
+        duplicate.inst("first").instanceId,
+        duplicate.inst("duplicate").instanceId,
+      ]),
+    );
+
+    const nearInvalid = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }],
+          hand: [
+            { card: "BT21-030", as: "superior" },
+            { card: "BT1-009", as: "nonXros" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    nearInvalid.state.memory = 14;
+    await nearInvalid.ready();
+    expect(
+      nearInvalid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: nearInvalid.inst("superior").instanceId,
+        digiXros: { materialInstanceIds: [nearInvalid.inst("nonXros").instanceId] },
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("trashes only stacked cards from the top and leaves the opponent's top card", async () => {
     const stack = Array.from({ length: 11 }, (_, index) => ({ card: "BT1-001", as: `source-${index}` }));
     const s = setupEngine(
