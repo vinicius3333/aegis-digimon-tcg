@@ -10,6 +10,7 @@
   },
   "evidence": [
     "BT20-047.test.ts: public black Lv.2 evolution at cost 0 and Blocker decision",
+    "BT20-047.test.ts: public hard play at catalog cost 3 and Blocker entry state",
     "BT20-047.test.ts: inherited Reboot host versus standalone boundary and real Active phase unsuspend",
     "current-collection-green-results.json"
   ],
@@ -25,11 +26,15 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 4 cases for BT20-047;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Natural public hard-play proof pending"
+    "New public hard-play proof is pending coordinator execution"
   ],
   "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
 }
