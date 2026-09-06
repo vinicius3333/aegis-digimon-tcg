@@ -104,31 +104,88 @@ describe("BT21-003 Yokomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
-  it.each([
-    ["a non-WG Digimon", { seat: 0, card: "BT1-009" }],
-    ["an opponent WG Digimon", { seat: 1, card: "BT21-048" }],
-    ["a WG Option", { seat: 0, card: "BT21-095" }],
-  ])("does not draw for %s", async (_label, subject) => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT21-034", as: "host", under: ["BT21-003"] },
-          ...(subject.seat === 0 ? [{ card: subject.card, as: "subject" }] : []),
-        ],
-        deck: [{ card: "BT1-001", as: "top" }],
+  it("does not draw when a non-WG Digimon is publicly played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-034", as: "host", under: ["BT21-003", "BT21-033"] }],
+          hand: [{ card: "BT1-009", as: "nonWG" }],
+          deck: [{ card: "BT1-001", as: "top" }],
+        },
       },
-      1: {
-        battleArea: subject.seat === 1 ? [{ card: subject.card, as: "subject" }] : [],
-      },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("subject").permanentId,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonWG").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("nonWG").instanceId));
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("does not draw when an opponent WG Digimon is publicly played during your turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-034", as: "host", under: ["BT21-003", "BT21-033"] },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          deck: [{ card: "BT1-001", as: "top" }],
+        },
+        1: {
+          hand: [{ card: "BT21-034", as: "opponentWG" }],
+          security: [{ card: "BT21-095", as: "securityOption" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("opponentWG").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("does not draw when a WG Option is publicly played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-034", as: "host", under: ["BT21-003", "BT21-033"] }],
+          hand: [{ card: "BT21-095", as: "option" }],
+          deck: [{ card: "BT1-001", as: "top" }],
+          security: [{ card: "BT1-002", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
   });
 
   it("draws only once when multiple WG Digimon are played in the same turn", async () => {
