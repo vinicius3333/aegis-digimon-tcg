@@ -4085,6 +4085,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const moved: CardInstance[] = [];
     const movedToHand: CardInstance[] = [];
     const trashedAttachments: CardInstance[] = [];
+    const overflowOrigins = overflowOriginInstanceIds(state);
     for (const instanceId of instanceIds) {
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
       if (collected === undefined) continue;
@@ -4114,9 +4115,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
-    // <Overflow> (CR §4-18): a bounced permanent's top/stack/linked cards just left the
+    // <Overflow> (CR 4-19-1): a bounced permanent's top/stack/linked cards just left the
     // field (or left from under it) for hand — a genuine leave, same as deletion.
-    applyOverflow(engine.memory, [...moved, ...trashedAttachments], state.turnSeat);
+    applyOverflow(
+      engine.memory,
+      [...moved, ...trashedAttachments].filter((card) => overflowOrigins.has(card.instanceId)),
+      state.turnSeat,
+    );
     if (trashedAttachments.length > 0) {
       engine.emit({
         kind: "cardsMoved",
@@ -4255,6 +4260,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // already in the destination deck (RevealAdd keeps revealed cards face-up in place); a
     // collect-and-insert loop mutates that deck between removals and can invert the requested
     // order. Batch collection makes the move atomic and exposes no transient zone.
+    const overflowOrigins = overflowOriginInstanceIds(state);
     const collectedBatches: { instanceId: string; cards: CardInstance[] }[] = [];
     for (const instanceId of instanceIds) {
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
@@ -4278,8 +4284,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
-    // <Overflow> (CR §4-18): same genuine leave as returnToHand, landing in the deck instead.
-    applyOverflow(engine.memory, [...moved, ...trashedAttachments], state.turnSeat);
+    // <Overflow> (CR 4-19-1): same genuine leave as returnToHand, landing in the deck instead.
+    applyOverflow(
+      engine.memory,
+      [...moved, ...trashedAttachments].filter((card) => overflowOrigins.has(card.instanceId)),
+      state.turnSeat,
+    );
     if (trashedAttachments.length > 0) {
       engine.emit({
         kind: "cardsMoved",
@@ -6135,6 +6145,21 @@ function dnaMaterialSpecMatches(
     if (!spec.traits.some((trait) => (material.types ?? []).includes(trait))) return false;
   }
   return true;
+}
+
+function overflowOriginInstanceIds(state: GameState): Set<string> {
+  // CR 4-19-1 and 3-4-6: only cards leaving the field (including breeding) or from
+  // under a card incur Overflow. Loose hand/deck/trash/security moves do not.
+  return new Set(
+    [...state.players].flatMap((owner) => {
+      const permanents = [...owner.battleArea, ...(owner.breeding === undefined ? [] : [owner.breeding])];
+      return permanents.flatMap((permanent) =>
+        [...permanent.stack, ...(permanent.topCard === undefined ? [] : [permanent.topCard]), ...permanent.linked].map(
+          (card) => card.instanceId,
+        ),
+      );
+    }),
+  );
 }
 
 /**
