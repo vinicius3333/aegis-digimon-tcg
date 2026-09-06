@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -76,20 +77,51 @@ describe("BT20-010 Ryudamon", () => {
     expect(s.perm("host").currentDP).toBe(4000);
   });
 
+  it("reduces a legal Chronicle-only non-Ginryumon evolution and keeps the inherited source through the transition", async () => {
+    const chronicle = getCardDefinition("BT20-051")!;
+    expect(chronicle.nameEn).not.toBe("Ginryumon");
+    expect(chronicle.types).toContain("Chronicle");
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-010", as: "ryudamon" }],
+        hand: [{ card: "BT20-051", as: "raptordramon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ryudamon").permanentId,
+        instanceId: s.inst("raptordramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ryudamon").topCard.cardId === "BT20-051");
+    expect(s.perm("ryudamon").stack.map((card) => card.cardId)).toEqual(["BT20-010"]);
+    expect(s.state.memory).toBe(3); // printed cost 3, reduced by 1 from the battle-area Ryudamon
+    expect(s.perm("ryudamon").currentDP).toBe(chronicle.dp + 2000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("ryudamon").currentDP).toBe(chronicle.dp);
+  });
+
   it("uses the public black X Antibody alternate route and excludes non-Chronicle destinations", async () => {
     const alternate = setupEngine({
       0: { breeding: { card: "BT13-005", as: "egg" }, hand: [{ card: "BT20-010", as: "ryudamon" }] },
     });
+    alternate.state.memory = 4;
     await alternate.ready();
     expect(
       alternate.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: alternate.perm("egg").permanentId,
         instanceId: alternate.inst("ryudamon").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => alternate.perm("egg").topCard.cardId === "BT20-010");
     expect(alternate.perm("egg").topCard.cardId).toBe("BT20-010");
+    expect(alternate.state.memory).toBe(4);
 
     const excluded = setupEngine({
       0: { battleArea: [{ card: "BT20-010", as: "ryudamon" }], hand: [{ card: "BT20-011", as: "nonChronicle" }] },

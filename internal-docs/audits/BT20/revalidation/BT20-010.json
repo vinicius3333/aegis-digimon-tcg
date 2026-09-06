@@ -4,14 +4,16 @@
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
-    "behavioralProof": 1,
-    "peerStackProof": 1,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
     "internal-docs/audits/BT20/revalidation/BT20-010.md",
     "apps/api/src/cards/BT20/BT20-010.test.ts",
-    "001-013-results.json"
+    "001-013-results.json",
+    "pending Chronicle-only BT20-051 transition assertion in BT20-010.test.ts",
+    "accepted-followups-results.json"
   ],
   "commands": [
     {
@@ -21,9 +23,11 @@
     {
       "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
       "result": "4 assertions/tests in focused file: passed; 001-013-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-010.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/accepted-followups-results.json",
+      "result": "5 tests passed in this card; 28 total passed; accepted-followups-results.json"
     }
   ],
-  "gaps": [
-    "Prove Chronicle-only destination and alternate evolution exact paid cost, plus inherited source transition."
-  ]
+  "gaps": []
 }
