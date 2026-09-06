@@ -52,13 +52,20 @@ describe("BT21-004 Koromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-009", as: "host", under: ["BT21-004"] },
-            { card: "BT21-084", as: "haru" },
+            { card: "BT21-004", as: "host" },
+            { card: "BT21-084", as: "haru1" },
+            { card: "BT21-084", as: "haru2" },
           ],
-          hand: [{ card: "BT21-009", as: "link" }],
+          hand: [
+            { card: "BT21-009", as: "evolved" },
+            { card: "BT21-009", as: "link" },
+          ],
           deck: [
+            { card: "BT1-004", as: "evolutionBonus" },
             { card: "BT1-001", as: "haruDrawn" },
-            { card: "BT1-002", as: "koromonDrawn" },
+            { card: "BT1-002", as: "haru2Drawn" },
+            { card: "BT1-003", as: "koromonDrawn" },
+            { card: "BT1-005", as: "sentinel" },
           ],
         },
       },
@@ -69,18 +76,55 @@ describe("BT21-004 Koromon", () => {
 
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolved").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionBonus").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+
+    expect(
+      s.engine.applyIntent(0, {
         type: "linkCard",
         instanceId: s.inst("link").instanceId,
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.length === 2);
+    await settle(() => s.state.players[0]!.hand.length === 4);
 
-    expect(s.perm("haru").isSuspended).toBe(true);
+    expect(s.perm("haru1").isSuspended).toBe(true);
+    expect(s.perm("haru2").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("haruDrawn").instanceId, s.inst("koromonDrawn").instanceId]),
+      expect.arrayContaining([
+        s.inst("haruDrawn").instanceId,
+        s.inst("haru2Drawn").instanceId,
+        s.inst("koromonDrawn").instanceId,
+      ]),
     );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("draws when public Marcus play suspends a yellow/red Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "host", under: ["BT21-004"] }],
+          hand: [{ card: "BT21-086", as: "marcus" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.perm("marcus").isSuspended).toBe(true);
   });
 
   it.each([
