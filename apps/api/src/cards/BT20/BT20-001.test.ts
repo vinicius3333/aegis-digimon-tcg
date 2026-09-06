@@ -38,7 +38,7 @@ describe("BT20-001 DemiVeemon", () => {
       },
       1: { battleArea: [{ card: "BT20-010", as: "opponent" }] },
     });
-    s.state.memory = 20;
+    s.state.memory = 10;
     for (const alias of ["at3", "at4", "at5", "at6"]) {
       expect(
         s.engine.applyIntent(0, {
@@ -80,7 +80,7 @@ describe("BT20-001 DemiVeemon", () => {
         ],
       },
     });
-    below.state.memory = 20;
+    below.state.memory = 10;
     for (const alias of ["below3", "below4", "below5"]) {
       expect(
         below.engine.applyIntent(0, {

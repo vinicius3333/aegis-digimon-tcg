@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-001",
-  "status": "reviewed-pending-delivery",
+  "status": "in-progress",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -12,7 +12,8 @@
     "BT20-001.md",
     "apps/api/src/cards/BT20/BT20-001.test.ts",
     "BT20-001-focused.log",
-    "BT20-001-sensitivity.log"
+    "BT20-001-sensitivity.log",
+    "accepted-followups-results.json"
   ],
   "commands": [
     {
@@ -21,7 +22,11 @@
     },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 -t 'observably grants'",
-      "result": "Intentional mutation amount2000→0 failed: actual13000 versus15000; production restored; full focused rerun passed."
+      "result": "Intentional mutation amount2000\u21920 failed: actual13000 versus15000; production restored; full focused rerun passed."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-010.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/accepted-followups-results.json",
+      "result": "2 tests passed in this card; 28 total passed; accepted-followups-results.json"
     }
   ],
   "gaps": []
