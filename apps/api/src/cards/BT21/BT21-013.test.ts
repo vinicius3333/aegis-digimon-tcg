@@ -238,6 +238,38 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     expect(s.perm("burningGreymon").stack[0]?.instanceId).toBe(s.inst("placedHero").instanceId);
   });
 
+  it("publicly places a Hero under a qualifying red inherited-effect Tamer", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-013", as: "burning" },
+            { card: "BT21-082", as: "tamer" },
+          ],
+          hand: [
+            { card: "BT21-013", as: "agunimon" },
+            { card: "BT21-016", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("tamer").topCard.instanceId);
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard.cardId === "BT21-013");
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
+  });
+
   it("when attacking, pays the matching red Hero evolution cost reduced by 1", async () => {
     const s = setupEngine(
       {
