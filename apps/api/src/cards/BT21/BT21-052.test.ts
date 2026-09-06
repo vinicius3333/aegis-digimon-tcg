@@ -132,12 +132,21 @@ describe("BT21-052 Examon (X Antibody)", () => {
   });
 
   it("alternate-digivolves from Examon for 2 and exposes all three live keywords", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-045", as: "examon" }],
-        hand: [{ card: "BT21-052", as: "examonX" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-045", as: "examon" }],
+          hand: [{ card: "BT21-052", as: "examonX" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "opponent" },
+            { card: "BT1-085", as: "opponentTamer" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
     await s.ready();
 
@@ -151,6 +160,8 @@ describe("BT21-052 Examon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("examon").topCard.instanceId === s.inst("examonX").instanceId);
     expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.isSuspended)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
     const keywords = setupEngine({ 0: { battleArea: [{ card: "BT21-052", as: "examonX" }] } });
     await keywords.ready();
