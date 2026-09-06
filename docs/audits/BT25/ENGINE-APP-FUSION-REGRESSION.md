@@ -1,0 +1,11 @@
+# App Fusion linked-card placement regression
+
+The BT25-036 App Fusion contract requires the selected qualifying link card to be placed above the old top card before the App Fusion result enters the stack. The original public BT25-036 assertions reproduced the gap: both Kabemon→Gomimon and Gomimon→Kabemon left the selected link in `permanent.linked` and produced a stack containing only the old host top. The original focused card run was **10 passed, 2 failed** at those exact assertions.
+
+The new mechanism file `apps/api/src/engine/appFusionLinkPlacement.test.ts` drives `advance(s.engine).verb.appFuseInto` with real BT25-036 fixtures. It proves selected-link movement and linked-list removal, link-DP removal after placement, retention of one unselected duplicate link when two qualifying instances are present, and wrong-name refusal with unchanged hand, linked state, and memory.
+
+Focused command: `pnpm --filter @aegis/api exec vitest run src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism` — **3 passed** after root's shared primitive integration. No engine implementation was edited by this audit worker.
+
+Astra strengthened the multiple-link case with a sanctioned `Link +1` setup grant, inspected the actual public selection pool, explicitly chose the second linked instance, and asserted exact stack and retained-link instance IDs. This avoids an over-limit fixture and proves the player's choice rather than an automatic first selection. The shared implementation preserves the prior top below the chosen link, then installs the fusion result, removes only the chosen linked instance, recomputes DP, and retains the ordinary fusion draw and When Digivolving processing.
+
+Affected command: `pnpm --filter @aegis/api exec vitest run src/engine/appFusionLinkPlacement.test.ts src/cards/BT25/BT25-036.test.ts src/engine/conformance/ch08-digivolution.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/conformance/ch10-link.test.ts src/engine/linkState.test.ts src/engine/effects/primitives.test.ts --maxWorkers=1 --no-file-parallelism` — **229 passed / 7 files** (`/tmp/bt25-audit-logs/app-fusion-mechanisms.log`). API typecheck and targeted Oxlint pass. Independent Luna review found no concrete selection/order/payment/remaining-link regression. Full collection validation remains tracked separately.
