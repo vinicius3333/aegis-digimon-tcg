@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-080",
-  "status": "ready-for-focused-run",
+  "status": "awaiting-lead-review",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -12,7 +12,10 @@
     "apps/api/src/cards/BT20/BT20-080.ts",
     "apps/api/src/cards/BT20/BT20-080.test.ts",
     "internal-docs/audits/BT20/revalidation/BT20-080.md",
-    "current-collection-green-results.json"
+    "current-collection-green-results.json",
+    "BT20-080.test.ts: public BT14-087 Eiji Mind Link reactivates the Fenriloogamon effect and declines the optional attack (added; unexecuted)",
+    "collection-after-return-fix-results.json",
+    "immediate-return-typecheck.log"
   ],
   "commands": [
     {
@@ -29,11 +32,14 @@
     },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
-      "result": "PASS: 6 cases for BT20-080;734 total tests. See current-collection-green-results.json."
+      "result": "PASS: 6 cases for BT20-080;734 total tests. The newly added public Tamer-placement case is not included and remains unexecuted. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "7 cases for this card; 800/800 total passed. Workspace typecheck/style/diff also passed."
     }
   ],
   "gaps": [
-    "Public Tamer-under reactivation/declined attack proof pending.",
     "Lead validation gates pending."
   ],
   "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
