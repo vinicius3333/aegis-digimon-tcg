@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -56,8 +55,9 @@ describe("BT21-057 Greymon", () => {
           battleArea: [{ card: "BT1-085", as: "tai" }],
           hand: [{ card: "BT21-057", as: "greymon" }],
           security: [{ card: "BT1-009", as: "security" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 6000 }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 6000 }], deck: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -70,23 +70,33 @@ describe("BT21-057 Greymon", () => {
     });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
 
+    await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("target"));
-    await settle(() => s.perm("target").isSuspended);
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.perm("target").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-057", as: "greymon" }] },
+        0: { hand: [{ card: "BT21-057", as: "greymon" }] },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
       { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("greymon"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("greymon").topCard.cardId === "BT21-057");
 
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
   });
@@ -113,12 +123,46 @@ describe("BT21-057 Greymon", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("grants Reboot to a realistic evolution host", async () => {
+  it("alternate-digivolves from a non-Agumon ADVENTURE rookie for the same printed cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-051", as: "host", under: [{ card: "BT21-057", as: "source" }] }] },
+      0: {
+        battleArea: [{ card: "ST20-10", as: "adventureRookie" }],
+        hand: [{ card: "BT21-057", as: "greymon" }],
+      },
     });
+    s.state.memory = 3;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("adventureRookie").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("adventureRookie").topCard.cardId === "BT21-057");
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("grants Reboot to a realistic evolution host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-057", as: "source" }],
+        hand: [{ card: "BT21-061", as: "host" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-061");
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Reboot")).toBe(true);
   });
 });

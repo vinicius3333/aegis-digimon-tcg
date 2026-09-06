@@ -159,7 +159,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           if (top === undefined) continue;
           for (const token of action.tokens ?? []) {
             if (token === "get -5000DP") continue;
-            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, token, grantDuration);
+            ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, token, grantDuration);
           }
         }
         // Q1907: BT9-102's "all ... gain [On Play]" grant also covers qualifying Digimon
