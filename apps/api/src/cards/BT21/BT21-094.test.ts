@@ -42,6 +42,8 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     p0.deck.push(davisNamed, freeTraited, filler);
 
     playCard(s);
+    // The Main play cost is paid before the reveal choices resolve.
+    expect(s.state.memory).toBe(-3);
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT21-094"));
     await settle(() => false, 60);
 
@@ -55,6 +57,48 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     // The option itself is placed in the battle area (not trashed).
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT21-094")).toBe(true);
     expect(p0.trash.some((c) => c.cardId === "BT21-094")).toBe(false);
+  });
+
+  it("does not treat a non-Armor hand card as a valid Delay destination", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT21-035", as: "armor", under: ["BT21-032"] }],
+          hand: [
+            { card: "BT21-094", as: "option" },
+            { card: "BT1-009", as: "nonArmor" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT10-055", as: "stronger", suspended: true }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094"));
+
+    // A public Armor Purge battle trashes the Armor Form top card and arms Delay.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("armor").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("stronger").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035"));
+
+    // BT1-009 is not Armor Form, so Delay cannot use it; the option and base remain.
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonArmor").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-032")).toBe(true);
   });
 });
 
