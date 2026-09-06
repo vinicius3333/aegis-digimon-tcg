@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-023",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,14 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "internal-docs/audits/BT20/revalidation/BT20-023.md",
-    "apps/api/src/cards/BT20/BT20-023.test.ts",
-    "Added unexecuted public-intent proof for the independent Examon text branch using BT20-045.",
-    "014-040-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "Public green Digimon plays separately satisfy Dracomon-text and Examon-text branches, while controller/color/nonmatching comparisons are excluded. Accepted Wingdramon evolution pays the reduced cost; refusal retains Wingdramon and pays only the triggering play.",
+    "Actual security battle against a stronger Digimon proves Jamming survival. A Digi-Egg fixture was replaced because it could not prove Jamming.",
+    "Legal Dracomon -> Coredramon evolution and an evolved Wingdramon host prove inherited +2000 DP only on the owner turn. Memory stays within the legal gauge.",
+    "BT20-023.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-023.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "pending lead execution"
@@ -38,8 +43,26 @@
       "result": "Passed changed-file style and diff gates."
     }
   ],
-  "gaps": [
-    "lead focused/mechanism/collection/typecheck/lint gates pending"
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "7 cases passed for BT20-023; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-023",
+      "result": "3 intended state/assertion failures with registered effects disabled; production restored. See BT20-023-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }

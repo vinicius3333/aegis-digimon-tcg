@@ -96,12 +96,34 @@ describe("BT20-023 Coredramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
-    s.state.memory = 14;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("examonMatch").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("coredramon").topCard.cardId === "BT20-025");
     expect(s.perm("coredramon").topCard.cardId).toBe("BT20-025");
+  });
+
+  it("can decline the optional reduced Wingdramon evolution without paying its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "coredramon" }],
+          hand: [
+            { card: "BT20-040", as: "greenTextMatch" },
+            { card: "BT20-025", as: "wingdramon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greenTextMatch").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("coredramon").topCard.cardId === "BT20-023" && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wingdramon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
   });
 
   it("has Jamming and grants inherited +2000 DP only on its controller's turn", async () => {
@@ -123,7 +145,7 @@ describe("BT20-023 Coredramon", () => {
   it("survives a public security battle through Jamming", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-023", as: "coredramon" }] },
-      1: { security: [{ card: "BT20-001", as: "securityEgg" }] },
+      1: { security: [{ card: "BT1-027", as: "strongSecurity" }] },
     });
     await s.ready();
     expect(
