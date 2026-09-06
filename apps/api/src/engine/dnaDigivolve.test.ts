@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 // Importing the cards root barrel self-registers every compiled-IR card module so the
-// engine can resolve BT20-011's OnPlay DnaDigivolve and the BT12-030 result definition.
+// engine can resolve BT20-011's OnPlay DnaDigivolve and the EX3-063 result definition.
 import "../cards/index.js";
 import { setupEngine, settle, assertNoLoudGap } from "./testkit/harness.js";
 
@@ -10,7 +10,7 @@ import { setupEngine, settle, assertNoLoudGap } from "./testkit/harness.js";
  *
  * Drives a REAL DnaDigivolve card (BT20-011 ExVeemon) through the real GameEngine and
  * asserts the actual MERGE: two material Digimon are consumed and a single new permanent
- * whose top card is the named `into` result (BT12-030 Imperialdramon: Dragon Mode) appears.
+ * whose top card is the named `into` result (EX3-063 Imperialdramon: Dragon Mode) appears.
  * "No error thrown" is not proof — this asserts the observable state transition.
  *
  * IR-faithfulness (RESEARCH Pitfall 5 / Assumption A2): BT20-011's OnPlay IR is
@@ -27,32 +27,32 @@ import { setupEngine, settle, assertNoLoudGap } from "./testkit/harness.js";
  */
 
 describe("A3 DnaDigivolve (Jogress) — two materials merge into the named result", () => {
-  it("BT20-011 [On Play] DNA-digivolves 2 of your Digimon into BT12-030 (Imperialdramon)", async () => {
-    // Two material Digimon (Paildramon, Lv.5 Blue/Green) on my battle area. They are laid
-    // BEFORE BT20-011 is played, so they are the first two `mine Digimon` candidates the
-    // material pick sees. Their Lv.5 Blue/Green top cards satisfy BT12-030's printed
-    // digivolve cost (Blue/Green Lv.5 -> cost 4), so `payCost: true` resolves.
+  it("BT20-011 [On Play] DNA-digivolves 2 of your Digimon into EX3-063 (Imperialdramon)", async () => {
+    // Two material Digimon on my battle area, laid BEFORE BT20-011 is played so they are the
+    // first two `mine Digimon` candidates the material pick sees. A DNA digivolve is legal only
+    // against a matching printed DNA requirement, so the pair is chosen to satisfy the result's
+    // recipe: EX3-063 prints [DNA Digivolve] Purple Lv.5 + Red Lv.5 for cost 0.
     //
     // The DNA result in hand: Imperialdramon: Dragon Mode — carries BOTH [Imperialdramon] in
     // its name AND the [Free] trait, so it satisfies BT20-011's `into` filter either way.
-    // BT20-011 ExVeemon itself is the OnPlay source. Cost 4 to play; DNA cost 4 to merge.
+    // BT20-011 ExVeemon itself is the OnPlay source, cost 4 to play.
     // Both hand cards are laid face-down, matching how a card sits in hand pre-reveal.
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT12-028", dp: 8000, as: "materialA" },
-            { card: "BT12-028", dp: 8000, as: "materialB" },
+            { card: "BT10-081", dp: 8000, as: "materialA" },
+            { card: "BT1-021", dp: 8000, as: "materialB" },
           ],
           hand: [
-            { card: "BT12-030", faceUp: false, as: "result" },
+            { card: "EX3-063", faceUp: false, as: "result" },
             { card: "BT20-011", faceUp: false, as: "source" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 8; // play (4) + DNA digivolve (4)
+    s.state.memory = 8; // play (4) + DNA digivolve (0)
     const p0 = s.state.players[0] as PlayerState;
     const materialAId = s.perm("materialA").permanentId;
     const materialATopId = s.perm("materialA").topCard?.instanceId;
@@ -64,10 +64,10 @@ describe("A3 DnaDigivolve (Jogress) — two materials merge into the named resul
     });
 
     // The merge produces a single new permanent whose top card is the named result.
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT12-030"));
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "EX3-063"));
 
-    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-030");
-    expect(merged, "the named DNA result BT12-030 must be on my battle area").toBeDefined();
+    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "EX3-063");
+    expect(merged, "the named DNA result EX3-063 must be on my battle area").toBeDefined();
 
     // Both material permanents are consumed by the merge (their ids are gone).
     expect(p0.battleArea.some((p) => p.permanentId === materialAId)).toBe(false);

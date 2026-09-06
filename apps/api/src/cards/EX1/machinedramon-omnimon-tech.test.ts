@@ -3,6 +3,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "./EX1-073.js";
 import "../BT3/BT3-112.js";
 import "../BT5/BT5-111.js";
+import "../BT1/BT1-020.js";
 
 describe("EX1 Machinedramon with Omnimon techs", () => {
   it("climbs through Alter-S into Omnimon X and spends two retained sources to stop an attack", async () => {
@@ -23,7 +24,7 @@ describe("EX1 Machinedramon with Omnimon techs", () => {
           security: [{ card: "BT1-009", as: "security" }],
         },
         1: {
-          battleArea: [{ card: "BT5-082", as: "attacker" }],
+          battleArea: [{ card: "BT1-020", as: "attacker" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

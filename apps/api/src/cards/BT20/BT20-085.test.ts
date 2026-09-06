@@ -6,6 +6,7 @@ import { compiled } from "./BT20-085.js";
 import "./index.js";
 import "../BT1/BT1-013.js";
 import "./BT20-047.js";
+import "../ST18/ST18-10.js";
 
 describe("BT20-085 Shoto Kazama", () => {
   it("models the Start of Main Phase bottom-deck cost and gated follow-up", () => {
@@ -105,7 +106,7 @@ describe("BT20-085 Shoto Kazama", () => {
         0: {
           battleArea: [
             { card: "BT20-085", as: "shoto" },
-            { card: "EX7-034", dp: 7000, as: "vortex" },
+            { card: "ST18-10", dp: 7000, as: "vortex" },
           ],
           deck: ["BT20-010", "BT20-010"],
         },
@@ -114,7 +115,12 @@ describe("BT20-085 Shoto Kazama", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    // Drive the real turn loop. The partner has the Vortex Warriors trait but no Vortex
+    // keyword, so its presence cannot open an unrelated end-of-turn attack decision.
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
 
     expect(s.perm("shoto").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(true);

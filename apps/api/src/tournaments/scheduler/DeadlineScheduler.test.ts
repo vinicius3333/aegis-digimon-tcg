@@ -3,6 +3,8 @@ import type { TournamentRules, TournamentStructure } from "@aegis/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
 import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { inProcessTournamentLock } from "../participants/index.js";
 import { AEGIS_LIGHTNING_PRESET, BANDAI_GENERAL_PRESET, rulesSnapshot } from "../rules/index.js";
 import { SeriesStore } from "../series/index.js";
@@ -70,12 +72,22 @@ type Fixture = {
 
 let fixture: Fixture;
 
+/** One cache for this file: an arrangement is built once and restored for every test that reuses it. */
+const fixtureFor = snapshotFixtures<Fixture>();
+
 async function build(options?: {
   structure?: TournamentStructure;
   rules?: TournamentRules;
   seats?: "both" | "bot_opponent" | "empty";
 }): Promise<Fixture> {
-  const accounts = new AccountStore(createMemoryPool());
+  return fixtureFor(JSON.stringify(options ?? {}), (pool) => buildOn(pool, options));
+}
+
+async function buildOn(
+  pool: Pool,
+  options?: { structure?: TournamentStructure; rules?: TournamentRules; seats?: "both" | "bot_opponent" | "empty" },
+): Promise<Fixture> {
+  const accounts = new AccountStore(pool);
   const series = new SeriesStore(accounts, inProcessTournamentLock());
   const queue = new DeadlineQueue(accounts);
   const scheduler = new DeadlineScheduler(accounts, series, queue);

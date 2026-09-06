@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./P-121.js";
+import "../BT8/BT8-042.js";
 
 describe("P-121 Armadillomon", () => {
   it("adds a black/yellow multicolor card and Cody Hida, then bottoms the rest", async () => {
@@ -39,10 +40,10 @@ describe("P-121 Armadillomon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT2-052", as: "host", under: ["P-121"] },
-            { card: "BT1-045", as: "partner" },
+            { card: "BT1-051", as: "host", under: ["P-121"] },
+            { card: "BT1-032", as: "partner" },
           ],
-          hand: [{ card: "BT13-039", as: "dna" }],
+          hand: [{ card: "BT8-042", as: "dna" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

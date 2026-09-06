@@ -13,6 +13,11 @@ export interface DnaDigivolveRequirement {
     names?: string[];
     /** Exact required material card names for bracketed named DNA sources. */
     namesExact?: string[];
+    /**
+     * Names the material must carry in its printed text rather than in its name
+     * (BT20-081: "Yellow Lv.6 w/[Pulsemon] in text").
+     */
+    namesInText?: string[];
     traits?: string[];
   }[];
 }

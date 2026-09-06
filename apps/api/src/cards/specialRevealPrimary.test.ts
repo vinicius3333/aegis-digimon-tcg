@@ -30,7 +30,7 @@ const YELLOW = "BT1-045"; // yellow Digimon
 const GREEN = "BT1-064"; // green Digimon (Goblimon), no ADVENTURE trait
 const BLUE = "BT1-027"; // blue Digimon
 const ADVENTURE_DIGIMON = "AD1-001"; // Greymon — has the [ADVENTURE] trait
-const TAMER = "AD1-019"; // a Tamer
+const TAMER = "BT1-089"; // green Tamer, matching ST17-11's second bucket
 const BLUE_FLARE_1 = "BT19-016"; // Gaossmon — Blue, [Blue Flare]
 const BLUE_FLARE_2 = "BT11-030"; // MetalGreymon + Cyber Launcher — Blue, [Blue Flare]
 const KIRIHA = "BT10-088"; // Kiriha Aonuma (Tamer)
@@ -99,7 +99,7 @@ describe("heterogeneous reveal-add primaries", () => {
     expect(inZone(p0.deck, ADVENTURE_DIGIMON)).toBe(0);
   });
 
-  it("ST17-11: adds 1 green Digimon AND 1 Tamer to hand, returns the third to the deck", async () => {
+  it("ST17-11: adds 1 green Digimon AND 1 green Tamer to hand, returns the third to the deck", async () => {
     const s = setupEngine(
       {
         0: {

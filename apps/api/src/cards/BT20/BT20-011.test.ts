@@ -67,7 +67,8 @@ describe("BT20-011 ExVeemon", () => {
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT20-011", "ST6-06"]),
     );
-    expect(s.state.memory).toBe(-4); // play cost 4, then the selected Free card's cost 4
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-016");
+    expect(s.state.memory).toBe(0); // play cost 4, then the printed DNA cost 0
   });
 
   it("publicly triggers deletion and paid DNA on When Digivolving during its owner's turn", async () => {
@@ -106,7 +107,7 @@ describe("BT20-011 ExVeemon", () => {
       expect.arrayContaining(["BT20-007", "BT20-011", "ST6-06"]),
     );
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("dnaCandidate").instanceId);
-    expect(s.state.memory).toBe(4); // evolution costs 2, then the selected DNA target costs 4
+    expect(s.state.memory).toBe(8); // evolution costs 2, then the selected DNA target costs 0
   });
 
   it("excludes its DNA branch on the opponent's turn through a public battle-deletion trigger", async () => {

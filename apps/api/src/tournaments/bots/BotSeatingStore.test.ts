@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
 import { metaDecksForBlock } from "../../bot/metaDecks/index.js";
 import { validateDecklist } from "../../engine/deckValidation.js";
-import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { inProcessTournamentLock } from "../participants/index.js";
 import { BotSeatingStore } from "./BotSeatingStore.js";
 
@@ -59,11 +60,25 @@ async function humanRows() {
   ).rows;
 }
 
-beforeEach(async () => {
-  accounts = new AccountStore(createMemoryPool());
+type Fixture = { accounts: AccountStore; seating: BotSeatingStore; organizer: string; tournamentId: string };
+
+/** One arrangement, built once and restored before each test. */
+const fixtureFor = snapshotFixtures<Fixture>();
+
+/**
+ * Assigns the file's module-level bindings rather than shadowing them: the helpers below
+ * (`createTournament`, `addHuman`, ...) read those bindings directly.
+ */
+async function buildFixture(pool: Pool): Promise<Fixture> {
+  accounts = new AccountStore(pool);
   seating = new BotSeatingStore(accounts, inProcessTournamentLock());
   organizer = (await accounts.accountForIdentity("discord", "organizer", "Organizer")).id;
   await createTournament();
+  return { accounts, seating, organizer, tournamentId };
+}
+
+beforeEach(async () => {
+  ({ accounts, seating, organizer, tournamentId } = await fixtureFor("default", buildFixture));
 });
 
 describe("filling a short field", () => {

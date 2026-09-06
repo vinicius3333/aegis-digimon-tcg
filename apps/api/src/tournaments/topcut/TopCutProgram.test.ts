@@ -3,7 +3,7 @@ import type { PhaseView } from "@aegis/shared";
 import type { Pool } from "pg";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
-import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { readTournamentEvents } from "../audit/index.js";
 import { RED_DECK } from "../../engine/testDecks.js";
 import { EliminationStore } from "../elimination/index.js";
@@ -32,6 +32,9 @@ type Fixture = {
 
 let fixture: Fixture;
 
+/** One cache for this file: an arrangement is built once and restored for every test that reuses it. */
+const fixtureFor = snapshotFixtures<Fixture>();
+
 function stores(pool: Pool): Omit<Fixture, "tournamentId" | "participantIds"> {
   const accounts = new AccountStore(pool);
   const series = new SeriesStore(accounts);
@@ -53,7 +56,11 @@ function stores(pool: Pool): Omit<Fixture, "tournamentId" | "participantIds"> {
  * on standings the tournament actually played for.
  */
 async function playedField(playerCount: number, topCut: boolean): Promise<Fixture> {
-  const base = stores(createMemoryPool());
+  return fixtureFor(`played:${playerCount}:${topCut}`, (pool) => buildPlayedField(pool, playerCount, topCut));
+}
+
+async function buildPlayedField(pool: Pool, playerCount: number, topCut: boolean): Promise<Fixture> {
+  const base = stores(pool);
   const organizer = await base.accounts.accountForIdentity("discord", "organizer", "Organizer");
   const tournament = await base.accounts.createTournament(organizer.id, {
     name: "Swiss Cup",
@@ -109,7 +116,14 @@ async function frozenField(input: {
   wins: readonly number[];
   rounds?: number;
 }): Promise<Fixture> {
-  const base = stores(createMemoryPool());
+  return fixtureFor(`frozen:${JSON.stringify(input)}`, (pool) => buildFrozenField(pool, input));
+}
+
+async function buildFrozenField(
+  pool: Pool,
+  input: { playerCount: number; topCutSize: number; wins: readonly number[]; rounds?: number },
+): Promise<Fixture> {
+  const base = stores(pool);
   const organizer = await base.accounts.accountForIdentity("discord", "organizer", "Organizer");
   const tournament = await base.accounts.createTournament(organizer.id, {
     name: "Swiss Cup",
@@ -122,7 +136,6 @@ async function frozenField(input: {
     rulesetPreset: BANDAI_GENERAL_PRESET.id,
     rules: RULES,
   });
-  const pool = base.accounts.pool;
   await base.accounts.ensureReady();
   await pool.query("UPDATE tournaments SET top_cut_size=$1, status='in_progress' WHERE id=$2", [
     input.topCutSize,

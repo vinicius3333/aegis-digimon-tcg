@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
-import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import type { AuthoritativeGameResult } from "../TournamentManager.js";
 import { inProcessTournamentLock } from "../participants/index.js";
 import { ConflictingGameResultError, SeriesStore, type SeriesRecord } from "./SeriesStore.js";
@@ -21,8 +22,15 @@ type Fixture = {
 
 let fixture: Fixture;
 
+/** One arrangement, built once and restored before each test. */
+const fixtureFor = snapshotFixtures<Fixture>();
+
 async function build(): Promise<Fixture> {
-  const accounts = new AccountStore(createMemoryPool());
+  return fixtureFor("default", buildOn);
+}
+
+async function buildOn(pool: Pool): Promise<Fixture> {
+  const accounts = new AccountStore(pool);
   const store = new SeriesStore(accounts, inProcessTournamentLock());
   const alice = (await accounts.accountForIdentity("discord", "alice", "Alice")).id;
   const bob = (await accounts.accountForIdentity("discord", "bob", "Bob")).id;

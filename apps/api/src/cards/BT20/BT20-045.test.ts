@@ -77,7 +77,7 @@ describe("BT20-045 Examon ACE", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-045");
   });
 
-  it("rejects ordinary DNA routing because Examon only has the Blast DNA route", async () => {
+  it("publicly accepts the printed ordinary DNA route and returns all tied highest-DP opponents", async () => {
     const s = setupEngine(
       {
         0: {
@@ -93,10 +93,18 @@ describe("BT20-045 Examon ACE", () => {
             { card: "BT20-011", dp: 8000, as: "highB" },
             { card: "BT20-012", dp: 7000, as: "low" },
           ],
+          deck: ["BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
+    const breakdramonId = s.perm("breakdramon").permanentId;
+    const slayerdramonId = s.perm("slayerdramon").permanentId;
+    const breakdramonInstanceId = s.inst("breakdramon").instanceId;
+    const slayerdramonInstanceId = s.inst("slayerdramon").instanceId;
+    const highAId = s.perm("highA").permanentId;
+    const highBId = s.perm("highB").permanentId;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -104,9 +112,53 @@ describe("BT20-045 Examon ACE", () => {
         materialPermanentIds: [s.perm("breakdramon").permanentId, s.perm("slayerdramon").permanentId],
         instanceId: s.inst("examon").instanceId,
       }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-045") &&
+        !s.state.players[1]!.battleArea.some((permanent) => [highAId, highBId].includes(permanent.permanentId)),
+    );
+    const examon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-045")!;
+    expect(examon.stack).toHaveLength(2);
+    expect(examon.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([breakdramonInstanceId, slayerdramonInstanceId]),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === breakdramonId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === slayerdramonId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-012"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT20-010", "BT20-011"]);
+    expect(s.state.memory).toBe(4); // Printed Green Lv.6 + Blue Lv.6 DNA cost 0.
+  });
+
+  it("rejects ordinary DNA when a material misses the printed level/color boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-044", as: "breakdramon" },
+            { card: "BT20-036", as: "wrongMaterial" },
+          ],
+          hand: [{ card: "BT20-045", as: "examon" }],
+        },
+        1: { battleArea: [{ card: "BT20-010", dp: 8000, as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("breakdramon").permanentId, s.perm("wrongMaterial").permanentId],
+        instanceId: s.inst("examon").instanceId,
+      }),
     ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT20-044",
+      "BT20-036",
+    ]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-045");
-    expect(s.state.players[1]!.battleArea).toHaveLength(3);
+    expect(s.state.memory).toBe(4);
   });
 
   it("public Counter Blast DNA uses one field Breakdramon and one named hand Slayerdramon", async () => {

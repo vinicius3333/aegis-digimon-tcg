@@ -1,19 +1,24 @@
 import { enableCompileCache } from "node:module";
+import { totalmem } from "node:os";
 
 // V8 bytecode cache for every module the workers load; the parent enables it here so the
 // forked workers inherit NODE_COMPILE_CACHE. Measured at ~25% off a warm card-set run.
 enableCompileCache();
 
 /**
- * Worker count for the card suites. With `isolate: false` each worker keeps the module
- * graph of every file it ran, so worst-case memory is workers x heap ceiling; the default
- * leaves headroom on a 16 GB machine and TEST_MAX_WORKERS (or the legacy TEST_MAX_FORKS)
- * raises it per run.
+ * Worker count for the card suites. After bounding the engine's async context stores,
+ * six workers beat four on the full suite; eight added startup cost without a gain.
+ * Leave a quarter of the CPUs available, reserve 4 GiB for the OS/Vite, and budget
+ * 2 GiB per worker for its retained module graph. This is a concurrency budget, not
+ * a hard memory limit (the independent heap ceiling below still applies).
+ * TEST_MAX_WORKERS (or the legacy TEST_MAX_FORKS) remains an explicit override.
  */
-export function testMaxWorkers(parallelism: number): number {
+export function testMaxWorkers(parallelism: number, memoryBytes = totalmem()): number {
   const requested = Number(process.env.TEST_MAX_WORKERS ?? process.env.TEST_MAX_FORKS);
   if (Number.isInteger(requested) && requested > 0) return requested;
-  return Math.max(1, Math.min(4, Math.floor(parallelism / 2)));
+  const cpuWorkers = Math.floor(parallelism * 0.75);
+  const memoryWorkers = Math.floor((memoryBytes / 1024 ** 3 - 4) / 2);
+  return Math.max(1, Math.min(6, cpuWorkers, memoryWorkers));
 }
 
 /**

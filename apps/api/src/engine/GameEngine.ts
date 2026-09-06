@@ -1,5 +1,5 @@
 import { peekCheckedCard } from "./security/checkedCard.js";
-import { AsyncLocalStorage } from "node:async_hooks";
+import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
 import type { Client } from "colyseus";
 import {
   CardKind,
@@ -656,7 +656,7 @@ export class GameEngine {
    * `undefined` (no enclosing scope) falls back to the field, so paths that never enter
    * either scope behave exactly as before.
    */
-  private readonly continuousScope = new AsyncLocalStorage<boolean>();
+  private readonly continuousScope = new ContinuousEffectScope();
 
   /**
    * Run a TRIGGERED effect body outside the continuous tier.

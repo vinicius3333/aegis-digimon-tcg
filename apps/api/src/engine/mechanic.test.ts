@@ -2874,28 +2874,18 @@ describe("A3 digivolve verb — WhenDigivolving fires through a real digivolutio
     assertNoLoudGap(s);
   });
 
-  // CONVERTED (06-01): the canonical DnaDigivolve A3 is dnaDigivolve.test.ts:137 (SYS-01,
-  // BT20-011 [On Play] DNA-digivolves 2 of your Digimon into BT12-030 Imperialdramon). This
-  // re-asserts the DnaDigivolve verb's observable MERGE delta from this file through the same
-  // OnPlay vehicle: two material Digimon are consumed and a single new permanent whose top
-  // card is the named `into` result appears. FAILS-WHEN-REVERTED (recorded in SYS-01,
-  // interpreter.ts runDnaDigivolve): forcing the materials.length<2 abort makes the merged
-  // Digimon absent -> the BT12-030 assertion goes RED.
-  it("DnaDigivolve: BT20-011 [On Play] merges 2 of my Digimon into the named BT12-030", async () => {
+  it("DnaDigivolve: BT20-011 [On Play] merges 2 of my Digimon into the named BT12-028", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
 
-    // Two Lv.5 Blue/Green material Digimon (BT12-028 Paildramon) — the first two `mine
-    // Digimon` candidates the DNA material pick sees; their level/color satisfy BT12-030's
-    // printed digivolve cost so payCost resolves.
-    const materialA = digimon(0, 8000, "BT12-028");
-    const materialB = digimon(0, 8000, "BT12-028");
+    // Paildramon's printed DNA recipe requires a blue and a green level 4.
+    const materialA = digimon(0, 4000, "BT1-032");
+    const materialB = digimon(0, 4000, "BT1-069");
     p0.battleArea.push(materialA, materialB);
 
-    // The DNA result in hand: Imperialdramon: Dragon Mode (carries [Imperialdramon] in name
-    // AND the [Free] trait, satisfying BT20-011's `into` filter).
-    p0.hand.push(instance("BT12-030", 0, false));
-    const source = instance("BT20-011", 0, false); // OnPlay source; play 4 + DNA cost 4
+    // Paildramon has the Free trait required by ExVeemon's effect.
+    p0.hand.push(instance("BT12-028", 0, false));
+    const source = instance("BT20-011", 0, false); // OnPlay source; play 4 + DNA cost 0
     p0.hand.push(source);
     s.state.memory = 8;
 
@@ -2904,9 +2894,9 @@ describe("A3 digivolve verb — WhenDigivolving fires through a real digivolutio
     });
 
     // A single new permanent whose top card is the named DNA result appears...
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT12-030"));
-    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-030");
-    expect(merged, "the named DNA result BT12-030 must be on my battle area").toBeDefined();
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT12-028"));
+    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-028");
+    expect(merged, "the named DNA result BT12-028 must be on my battle area").toBeDefined();
 
     // ...and both material permanents are consumed by the merge (their ids are gone, their
     // top cards now ride under the merged result's stack).
@@ -2921,23 +2911,23 @@ describe("A3 digivolve verb — WhenDigivolving fires through a real digivolutio
   it("BT16-092 grants Blocker and battle deletion protection only to its DNA result", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
-    const materialA = digimon(0, 8000, "BT12-028");
-    const materialB = digimon(0, 8000, "BT12-028");
+    const materialA = digimon(0, 4000, "BT1-032");
+    const materialB = digimon(0, 4000, "BT1-069");
     p0.battleArea.push(materialA, materialB);
-    p0.hand.push(instance("BT12-030", 0, false));
+    p0.hand.push(instance("BT12-028", 0, false));
     const source = instance("BT16-092", 0, false);
     p0.hand.push(source);
-    s.state.memory = 7; // option cost 3 plus BT12-030's DNA cost 4
+    s.state.memory = 7; // option cost 3; printed DNA cost 0
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({
       ok: true,
     });
     await settle(() => {
-      const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-030");
+      const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-028");
       return merged !== undefined && ledger(s).hasKeyword(merged.permanentId, "Blocker");
     });
 
-    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-030");
+    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-028");
     expect(merged, "the DNA result must be on my battle area").toBeDefined();
     expect(ledger(s).hasKeyword(merged!.permanentId, "Blocker")).toBe(true);
     expect(ledger(s).hasRestriction(merged!.permanentId, "beDeletedInBattle")).toBe(true);

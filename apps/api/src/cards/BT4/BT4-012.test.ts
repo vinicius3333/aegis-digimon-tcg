@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-012.js";
 
@@ -14,7 +15,7 @@ describe("BT4-012 GeoGreymon", () => {
       { autoSelectCards: true },
     );
     const geo = s.perm("geo");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(geo.topCard!)).find((e) =>
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(geo.topCard!)).find((e) =>
       e.effectKey.startsWith("BT4-012/"),
     )?.effectKey;
     expect(effectKey).toBeDefined();
@@ -44,7 +45,7 @@ describe("BT4-012 GeoGreymon", () => {
     );
     const geo = s.perm("geo");
     const targetId = s.perm("target").permanentId;
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(geo.topCard!)).find((e) =>
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(geo.topCard!)).find((e) =>
       e.effectKey.startsWith("BT4-012/"),
     )?.effectKey;
 
@@ -54,8 +55,8 @@ describe("BT4-012 GeoGreymon", () => {
         sourceInstanceId: geo.topCard!.instanceId,
         effectKey: effectKey!,
       }),
-    ).toEqual({ ok: true });
-    await settle(() => geo.stack.length === 2, 5000);
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.decisions).toHaveLength(0);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
     expect(geo.stack).toHaveLength(2);

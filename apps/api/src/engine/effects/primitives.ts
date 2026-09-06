@@ -1497,22 +1497,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }),
         ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
       ];
-      const dnaRequirements = dnaDigivolutionRequirementsFor(definition.cardId);
-      let printedCost = matchingDnaDigivolveCost(definition, materialDefinitions);
-      let chosenMaterial: Permanent | undefined;
-      if (printedCost !== undefined) {
-        chosenMaterial = materials[0]!;
-      } else if (dnaRequirements.length === 0) {
-        // DNA-digivolve cost is the printed digivolve cost matched against any field material.
-        for (const mat of materials) {
-          const c = matchingDigivolveCost(definition, requireCardDefinition(mat.topCard!.cardId));
-          if (c !== undefined && (printedCost === undefined || c < printedCost)) {
-            printedCost = c;
-            chosenMaterial = mat;
-          }
-        }
-      }
-      if (printedCost === undefined || chosenMaterial === undefined) return undefined;
+      // Only a matching printed DNA requirement authorizes the merge. Apply used to fall back to
+      // the best single-base digivolve cost when the card carried no structured requirement; that
+      // mirrored the same hole in `dnaDigivolveCostFor` and is gone for the same reason.
+      const printedCost = matchingDnaDigivolveCost(definition, materialDefinitions);
+      if (printedCost === undefined) return undefined;
+      const chosenMaterial = materials[0]!;
       // Route the chosen material's printed cost through the continuous evo-cost ledger so
       // cost-reductions apply to the DNA path too (KB BT1-109 Q980). The chosen material is the
       // ledger target so a base-keyed or "into this card" reduction is evaluated against the
@@ -6102,21 +6092,18 @@ function matchingDigivolveCost(evolving: CardDefinition, base: CardDefinition): 
 
 /**
  * The DNA-digivolve memory cost for `evolving` given a candidate `materials` set: the printed
- * DNA-digivolve requirement when the card prints one. The best (lowest) printed single-base
- * digivolve cost is only a legacy fallback for cards lacking structured DNA requirements
- * (mirrors `dnaDigivolveInto`'s own cost-choice at apply time — factored out so
- * `actions/dnaDigivolve.ts`'s synchronous affordability check cannot drift from apply).
- * Undefined when no legal path matches.
+ * DNA-digivolve requirement, or undefined when the card prints none or none of them matches.
+ *
+ * This fails closed on purpose. It used to fall back to the best printed single-base digivolve
+ * cost for cards carrying no structured DNA requirement, which made any card an `into` filter
+ * admitted a legal DNA result as soon as one material happened to satisfy its ordinary evo cost
+ * (EX12-003 offering EX12-059 Machinedramon). That fallback existed only because the pre-EX9
+ * card imports dropped the printed DNA header; `dnaDigivolutionCoverage.test.ts` now holds all 72
+ * DNA destinations to a structured requirement, so a missing recipe means the card genuinely has
+ * none. See docs/audits/DNA-DIGIVOLVE-INTO-FILTER-AUDIT.md.
  */
 export function dnaDigivolveCostFor(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
-  const requirements = dnaDigivolutionRequirementsFor(evolving.cardId);
-  if (requirements.length > 0) return matchingDnaDigivolveCost(evolving, materials);
-  let best: number | undefined;
-  for (const material of materials) {
-    const c = matchingDigivolveCost(evolving, material);
-    if (c !== undefined && (best === undefined || c < best)) best = c;
-  }
-  return best;
+  return matchingDnaDigivolveCost(evolving, materials);
 }
 
 export function matchingDnaDigivolveCost(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
@@ -6155,7 +6142,14 @@ function dnaRequirementMatches(
 }
 
 function dnaMaterialSpecMatches(
-  spec: { color?: string; level?: number; names?: string[]; namesExact?: string[]; traits?: string[] },
+  spec: {
+    color?: string;
+    level?: number;
+    names?: string[];
+    namesExact?: string[];
+    namesInText?: string[];
+    traits?: string[];
+  },
   material: CardDefinition,
 ): boolean {
   if (spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
@@ -6167,6 +6161,10 @@ function dnaMaterialSpecMatches(
   if (spec.namesExact && spec.namesExact.length > 0) {
     const name = (material.nameEn ?? material.cardId).toLowerCase();
     if (!spec.namesExact.some((token) => name === token.toLowerCase())) return false;
+  }
+  if (spec.namesInText && spec.namesInText.length > 0) {
+    const text = `${material.effectText ?? ""}\n${material.inheritedEffectText ?? ""}`.toLowerCase();
+    if (!spec.namesInText.some((token) => text.includes(token.toLowerCase()))) return false;
   }
   if (spec.traits && spec.traits.length > 0) {
     if (!spec.traits.some((trait) => (material.types ?? []).includes(trait))) return false;
