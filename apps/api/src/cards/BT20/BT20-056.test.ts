@@ -142,6 +142,36 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
     expect(oppDigimon.currentDP).toBe(initialDP - 8000);
   });
 
+  it("public security check from either controller activates the opponent-Digimon penalty", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ALPHAMON, as: "alphamon" }],
+          security: [AGUMON],
+        },
+        1: {
+          battleArea: [
+            { card: AGUMON, dp: 10000, as: "target" },
+            { card: AGUMON, dp: 5000, as: "attacker" },
+          ],
+          security: [AGUMON],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.perm("target").currentDP).toBe(2000);
+  });
+
   it("publishes Barrier at runtime", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: ALPHAMON, as: "alphamon" }] } });
     await s.ready();
