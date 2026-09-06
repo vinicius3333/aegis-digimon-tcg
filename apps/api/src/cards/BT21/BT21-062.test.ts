@@ -198,6 +198,89 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
     expect(s.state.players[0]?.deck.slice(-4).every((card) => card.cardId === "BT21-056")).toBe(true);
   });
 
+  it("publicly builds the legal Snatchmon stack, then protects against an opponent Option deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-058", as: "snatchmon" }],
+          hand: [{ card: GALACTICMON, as: "galacticmon" }],
+          trash: ["BT21-056", "BT21-056", "BT21-056", "BT21-056"],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT2-055", as: "blackSource" }],
+          hand: [{ card: "BT21-098", as: "cannon" }],
+          deck: ["BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("snatchmon").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("snatchmon").topCard.cardId === GALACTICMON && s.perm("snatchmon").stack.length === 5);
+    expect(s.perm("snatchmon").stack).toHaveLength(5);
+    expect(s.state.memory).toBe(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("snatchmon").stack.length === 1 &&
+        s.state.players[0]!.deck.slice(-4).every((card) => card.cardId === "BT21-056"),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("snatchmon").permanentId),
+    ).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+    expect(s.perm("snatchmon").stack).toHaveLength(1);
+    expect(s.state.players[0]!.deck.slice(-4).every((card) => card.cardId === "BT21-056")).toBe(true);
+  });
+
+  it("does not treat Snatchmon text as exact Vemmon names for leave prevention", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-058", as: "snatchmon" }],
+          hand: [{ card: GALACTICMON, as: "galacticmon" }],
+          trash: ["BT11-065", "BT11-065", "BT11-065", "BT11-065"],
+        },
+        1: { battleArea: [{ card: "BT2-055", as: "blackSource" }], hand: [{ card: "BT21-098", as: "cannon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("snatchmon").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("snatchmon").topCard.cardId === GALACTICMON && s.perm("snatchmon").stack.length === 5);
+    expect(s.perm("snatchmon").stack).toHaveLength(5);
+    expect(s.state.memory).toBe(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === GALACTICMON)).toBe(true);
+  });
+
   it("Q4570 cannot partially place only three Vemmon-text cards to use Ragnarok Cannon", async () => {
     const s = setupEngine(
       {
