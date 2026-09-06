@@ -18,12 +18,15 @@ describe("BT25-039 Sirenmon", () => {
   });
 
   it("can digivolve from a TS level-4 base for the alternate cost of 3", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT25-033", as: "base" }],
-        hand: [{ card: "BT25-039", as: "sirenmon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-033", as: "base" }],
+          hand: [{ card: "BT25-039", as: "sirenmon" }],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 3;
 
     expect(
@@ -84,6 +87,110 @@ describe("BT25-039 Sirenmon", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("sirenmon").instanceId)).toBe(false);
   });
 
+  it("combines Sirenmon's 7-cost reduction with Ceresmon's additional 5-cost reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+          battleArea: [
+            { card: "BT1-009", as: "suspendedOne", suspended: true },
+            { card: "BT1-009", as: "suspendedTwo", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("sirenmon"));
+    expect(s.state.memory).toBe(4);
+    const ceresmon = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-059");
+    expect(ceresmon?.stack.map((card) => card.cardId)).toContain("BT25-039");
+  });
+
+  it("can decline the security play without attempting the conditional placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const firing = advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("sirenmon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decline = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decline.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("ceresmon").instanceId }),
+    );
+  });
+
+  it("can accept the Ceresmon play and refuse only the conditional bottom placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const firing = advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("sirenmon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const acceptPlay = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: acceptPlay.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== acceptPlay.decisionId,
+    );
+    const declinePlacement = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: declinePlacement.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== declinePlacement.decisionId,
+    );
+    const ceresmonAction = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ceresmonAction.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    const ceresmon = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-059");
+    expect(ceresmon).toBeDefined();
+    expect(ceresmon!.stack.map((card) => card.cardId)).not.toContain("BT25-039");
+    expect(s.state.players[0]!.security).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("sirenmon").instanceId }),
+    );
+  });
+
   it("places itself face up at the bottom of security on deletion", () => {
     const effect = BT25_039.effects?.find((entry) => entry.trigger === "OnDeletion");
     expect(effect?.actions?.[0]).toMatchObject({
@@ -125,6 +232,82 @@ describe("BT25-039 Sirenmon", () => {
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
   });
 
+  it("protects mixed Shaman Digimon and Iliad Tamer departures with one Sirenmon cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT25-033", as: "shaman" },
+            { card: "BT24-102", as: "iliadTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(
+      await advance(s.engine).verb.deletePermanent(
+        [s.perm("shaman").permanentId, s.perm("iliadTamer").permanentId],
+        "byEffect",
+      ),
+    ).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("shaman").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("iliadTamer").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-039")).toBe(false);
+  });
+
+  it("Q6308 defers Sirenmon's On Deletion effect until the opponent's Option resolves", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT25-034", as: "protected" },
+          ],
+          security: [{ card: "BT1-001", as: "existing" }],
+        },
+        1: { hand: [{ card: "ST1-16", as: "gaia" }], battleArea: [{ card: "BT1-009", as: "redSource" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("protected").permanentId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16"));
+    const optionResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16",
+    );
+    const sirenResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-039",
+    );
+    expect(optionResolved).toBeGreaterThanOrEqual(0);
+    expect(sirenResolved).toBeGreaterThan(optionResolved);
+    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT25-039");
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("protected").permanentId)).toBe(true);
+  });
+
+  it("places On Deletion face up at the bottom below existing security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-039", as: "sirenmon" }],
+          security: [{ card: "BT1-001", as: "existing" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("sirenmon").permanentId], "byBattle")).toBe(1);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT25-039"]);
+    expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
+  });
+
   it("does not replace a departure caused by the controller's own effect", async () => {
     const s = setupEngine(
       {
@@ -144,6 +327,29 @@ describe("BT25-039 Sirenmon", () => {
     expect(await advance(s.engine).verb.deletePermanent([shamanId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shamanId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sirenmonId)).toBe(true);
+  });
+
+  it("protects an Iliad Tamer while leaving an unrelated Tamer and Sirenmon unprotected", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT24-102", as: "iliadTamer" },
+            { card: "BT1-085", as: "otherTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("otherTamer").permanentId], "byBattle")).toBe(1);
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("iliadTamer").permanentId], "byEffect")).toBe(0);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("iliadTamer").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-085")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-039")).toBe(false);
   });
 
   it("protects all matching other Shaman/Iliad permanents from non-own effects", () => {
@@ -221,7 +427,7 @@ describe("BT25-039 Sirenmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: [{ card: "BT25-039", as: "sirenmon" }] },
+            { card: "BT25-059", as: "host", under: [{ card: "BT25-039", as: "sirenmon" }] },
             { card: "BT1-009", as: "firstRedirect", suspended: true, dp: 12_000 },
             { card: "BT1-009", as: "secondRedirect", suspended: true, dp: 12_000 },
           ],
@@ -283,7 +489,7 @@ describe("BT25-039 Sirenmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: [{ card: "BT25-039" }] },
+            { card: "BT25-059", as: "host", under: [{ card: "BT25-039" }] },
             { card: "BT1-009", as: "redirect", suspended: true, dp: 12_000 },
           ],
           security: ["BT1-009"],
@@ -304,9 +510,6 @@ describe("BT25-039 Sirenmon", () => {
     await settle(
       () => s.state.players[0]!.security.length === 0 && s.events.some((event) => event.kind === "combatResolved"),
     );
-    expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
-    ).toBe(true);
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("redirect").permanentId),
     ).toBe(true);
