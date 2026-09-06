@@ -146,8 +146,8 @@ describe("BT21-082 Takuya Kanbara", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "attacker", dp: 6000 },
-            { card: "BT1-009", as: "secondAttacker", dp: 6000 },
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-009", as: "secondAttacker" },
             { card: "BT21-013", as: "host", under: [{ card: "BT21-082", as: "source" }] },
           ],
           hand: [
@@ -155,14 +155,14 @@ describe("BT21-082 Takuya Kanbara", () => {
             { card: "BT10-087", as: "secondTamer" },
           ],
           security: [{ card: "BT1-009", as: "own-security" }],
-          deck: ["BT1-009", "BT1-009"],
+          deck: ["BT1-001", "BT1-002"],
         },
         1: {
           security: [
             { card: "BT1-090", as: "opponent-security" },
             { card: "BT1-090", as: "second-opponent-security" },
           ],
-          deck: ["BT1-009", "BT1-009"],
+          deck: ["BT1-001", "BT1-002"],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
@@ -204,7 +204,7 @@ describe("BT21-082 Takuya Kanbara", () => {
           hand: [{ card: "BT1-085", as: "tamer" }],
           security: [{ card: "BT1-009", as: "own-security" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponentAttacker", dp: 6000, suspended: false }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentAttacker", suspended: false }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -223,13 +223,112 @@ describe("BT21-082 Takuya Kanbara", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
   });
 
+  it("declines a legal Hybrid evolution at the real start of Main", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-082", as: "takuya" }],
+          hand: [{ card: "BT21-013", as: "agunimon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("takuya").topCard.cardId).toBe("BT21-082");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-013")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("does not offer a normally legal non-Hybrid non-Hero evolution at Start of Main", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-082", as: "takuya" },
+            { card: "BT1-009", as: "base" },
+          ],
+          hand: [{ card: "BT1-015", as: "greymon" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-015")).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    // The same destination is legal for an ordinary public evolution; only Takuya's trait gate excludes it.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-015");
+    expect(s.perm("base").topCard.cardId).toBe("BT1-015");
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("declines an eligible inherited red Tamer play after a complete public security check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "host", under: ["BT21-082"] }],
+          hand: [{ card: "BT4-092", as: "marcus" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT4-092")).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-082", as: "takuya" }] } });
+    const s = setupEngine({
+      0: { security: [{ card: "BT21-082", as: "takuya" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("takuya"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082")).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 });
