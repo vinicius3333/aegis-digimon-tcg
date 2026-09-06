@@ -27,10 +27,12 @@
       "module": "apps/api/src/cards/BT25/BT25-001.ts",
       "test": "apps/api/src/cards/BT25/BT25-001.test.ts",
       "kb": "BT25-001 Tokomon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_a",
+      "evidence": "docs/audits/BT25/evidence/BT25-001.md"
     },
     {
       "cardId": "BT25-002",
@@ -57,10 +59,12 @@
       "module": "apps/api/src/cards/BT25/BT25-002.ts",
       "test": "apps/api/src/cards/BT25/BT25-002.test.ts",
       "kb": "BT25-002 Wanyamon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_a",
+      "evidence": "docs/audits/BT25/evidence/BT25-002.md"
     },
     {
       "cardId": "BT25-003",
@@ -87,10 +91,12 @@
       "module": "apps/api/src/cards/BT25/BT25-003.ts",
       "test": "apps/api/src/cards/BT25/BT25-003.test.ts",
       "kb": "BT25-003 Frimon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_a",
+      "evidence": "docs/audits/BT25/evidence/BT25-003.md"
     },
     {
       "cardId": "BT25-004",
@@ -117,10 +123,12 @@
       "module": "apps/api/src/cards/BT25/BT25-004.ts",
       "test": "apps/api/src/cards/BT25/BT25-004.test.ts",
       "kb": "BT25-004 Tapmon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_a",
+      "evidence": "docs/audits/BT25/evidence/BT25-004.md"
     },
     {
       "cardId": "BT25-005",
@@ -147,10 +155,12 @@
       "module": "apps/api/src/cards/BT25/BT25-005.ts",
       "test": "apps/api/src/cards/BT25/BT25-005.test.ts",
       "kb": "BT25-005 Pagumon\n  Q&A (1):\n    Q6252 (2026-05-08): What does a card with \"X in its text\" refer to?\n      A: It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolution requirements, DNA digivolution, DigiXros requirements, burst digivolve, App Fusion, Link, or Assembly requirements. For example, a card with [Knightmon] in its text would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects.\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_b",
+      "evidence": "docs/audits/BT25/evidence/BT25-005.md"
     },
     {
       "cardId": "BT25-006",
@@ -177,10 +187,12 @@
       "module": "apps/api/src/cards/BT25/BT25-006.ts",
       "test": "apps/api/src/cards/BT25/BT25-006.test.ts",
       "kb": "BT25-006 Dorimon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_b",
+      "evidence": "docs/audits/BT25/evidence/BT25-006.md"
     },
     {
       "cardId": "BT25-007",
@@ -216,10 +228,12 @@
       "module": "apps/api/src/cards/BT25/BT25-007.ts",
       "test": "apps/api/src/cards/BT25/BT25-007.test.ts",
       "kb": "BT25-007 Gatchmon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_b",
+      "evidence": "docs/audits/BT25/evidence/BT25-007.md"
     },
     {
       "cardId": "BT25-008",
@@ -258,10 +272,12 @@
       "module": "apps/api/src/cards/BT25/BT25-008.ts",
       "test": "apps/api/src/cards/BT25/BT25-008.test.ts",
       "kb": "BT25-008 Coronamon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_b",
+      "evidence": "docs/audits/BT25/evidence/BT25-008.md"
     },
     {
       "cardId": "BT25-009",
@@ -300,10 +316,15 @@
       "module": "apps/api/src/cards/BT25/BT25-009.ts",
       "test": "apps/api/src/cards/BT25/BT25-009.test.ts",
       "kb": "BT25-009 Bearmon\n  Q&A (1):\n    Q6253 (2026-05-08): What position on the memory gauge does \"while you have 4 or less memory\" refer to?\n      A: It refers to when the memory gauge is at 4 or further to the right on your side.\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "gaps": [
+        "Independent clause review and reproducible focused behavioral validation pending",
+        "Astra identified printed substring trait family versus exact match: verify traitContains and branch-local Sea Animal exclusion where applicable. KB P-207 Q5398/Q5399 confirms separate trait-family and TS alternatives."
+      ],
+      "commands": [],
+      "owner": "luna_c",
+      "evidence": "docs/audits/BT25/evidence/BT25-009.md"
     },
     {
       "cardId": "BT25-010",
@@ -342,10 +363,15 @@
       "module": "apps/api/src/cards/BT25/BT25-010.ts",
       "test": "apps/api/src/cards/BT25/BT25-010.test.ts",
       "kb": "BT25-010 Hawkmon\n  Q&A (1):\n    Q6254 (2026-05-08): Does this card's [Your Turn] effect trigger when this card is in the breeding area and would digivolve into a card with [Avian], [Bird], [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits?\n      A: No, it doesn't trigger.\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "gaps": [
+        "Independent clause review and reproducible focused behavioral validation pending",
+        "Astra identified printed substring trait family versus exact match: verify traitContains and branch-local Sea Animal exclusion where applicable. KB P-207 Q5398/Q5399 confirms separate trait-family and TS alternatives."
+      ],
+      "commands": [],
+      "owner": "luna_c",
+      "evidence": "docs/audits/BT25/evidence/BT25-010.md"
     },
     {
       "cardId": "BT25-011",
@@ -384,10 +410,12 @@
       "module": "apps/api/src/cards/BT25/BT25-011.ts",
       "test": "apps/api/src/cards/BT25/BT25-011.test.ts",
       "kb": "BT25-011 Aquilamon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
       "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "commands": [],
+      "owner": "luna_c",
+      "evidence": "docs/audits/BT25/evidence/BT25-011.md"
     },
     {
       "cardId": "BT25-012",
@@ -426,10 +454,15 @@
       "module": "apps/api/src/cards/BT25/BT25-012.ts",
       "test": "apps/api/src/cards/BT25/BT25-012.test.ts",
       "kb": "BT25-012 Grizzlymon\n  (no knowledge-base entries)\n",
-      "status": "pending",
+      "status": "in-progress",
       "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "gaps": [
+        "Independent clause review and reproducible focused behavioral validation pending",
+        "Astra identified printed substring trait family versus exact match: verify traitContains and branch-local Sea Animal exclusion where applicable. KB P-207 Q5398/Q5399 confirms separate trait-family and TS alternatives."
+      ],
+      "commands": [],
+      "owner": "luna_c",
+      "evidence": "docs/audits/BT25/evidence/BT25-012.md"
     },
     {
       "cardId": "BT25-013",
@@ -1971,7 +2004,10 @@
       "kb": "BT25-051 Grizzlymon\n  Q&A (5):\n    Q6323 (2026-05-08): When does \"when this Digimon wins a battle\" trigger?\n      A: It triggers when the battle is won. When the Digimon with this effect wins a battle, the opponent's Digimon that lost the battle is deleted, then the \"when this Digimon wins a battle\" effect can be activated.\n    Q6324 (2026-05-08): Does a \"when this Digimon wins a battle\" effect also trigger when a battle against a Security Digimon is won?\n      A: Yes, it triggers.\n    Q6325 (2026-05-08): A Digimon with a \"when this Digimon wins a battle\" effect won a battle, and the opponent's Digimon that lost the battle is deleted. At such times, in what order can players activate the \"when this Digimon wins a battle\" effect and the effects that trigger upon the losing Digimon being deleted?\n      A: They trigger simultaneously, so the turn player can activate their effects first.\n    Q6326 (2026-05-08): A Digimon with a \"when this Digimon wins a battle\" effect won a battle, and the opponent's Digimon lost the battle. At such times, in what order can players activate the \"when this Digimon wins a battle\" effect and the loser Digimon's effects such as \"when this Digimon would be deleted\" and \"when this Digimon would leave the battle area\" effects?\n      A: The \"when this Digimon would be deleted\" and \"when this Digimon would leave the battle area\" effects can be activated first.\n    Q6327 (2026-05-08): A Digimon with a \"when this Digimon wins a battle\" effect won a battle, and the opponent's Digimon lost the battle. At such times, can the \"when this Digimon wins a battle\" effect be activated even if an effect prevents the opponent's Digimon from being deleted?\n      A: Yes, it can be activated.\n",
       "status": "pending",
       "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
+      "gaps": [
+        "Independent clause review and reproducible focused behavioral validation pending",
+        "Astra identified printed substring trait family versus exact match: verify traitContains and branch-local Sea Animal exclusion where applicable. KB P-207 Q5398/Q5399 confirms separate trait-family and TS alternatives."
+      ],
       "commands": []
     },
     {
@@ -2136,7 +2172,10 @@
       "kb": "BT25-055 Deramon\n  Q&A (2):\n    Q6338 (2026-05-08): Can I use this card's [On Play] [When Digivolving] effect to suspend either my Digimon or my opponent's Digimon?\n      A: Yes, you can suspend either player's Digimon.\n    Q6339 (2026-05-08): What cards can be played by this card's [All Turns] effect?\n      A: 1 Digimon card with 4000 DP or less and [Vegetation], [Plant], [Avian], or [Bird] in any of its traits or 1 Digimon card with 4000 DP or less and the [TS] trait.\n",
       "status": "pending",
       "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
+      "gaps": [
+        "Independent clause review and reproducible focused behavioral validation pending",
+        "Astra identified printed substring trait family versus exact match: verify traitContains and branch-local Sea Animal exclusion where applicable. KB P-207 Q5398/Q5399 confirms separate trait-family and TS alternatives."
+      ],
       "commands": []
     },
     {
