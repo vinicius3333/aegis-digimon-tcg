@@ -114,6 +114,32 @@ describe("BT21-045 compiled implementation", () => {
     expect(observe(s.engine).hasKeyword(s.perm("shinegreymon"), "SecurityAttack")).toBe(true);
   });
 
+  it("naturally pays the Tamer suspension cost during a public security attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-045", as: "shine" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && s.state.players[1]!.security.length === 0);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("shine").currentDP).toBe(15000);
+  });
+
   it("deletes at the 9000 DP boundary and shares the budget with When Attacking", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -142,6 +168,41 @@ describe("BT21-045 compiled implementation", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
       s.perm("tooLarge").permanentId,
     );
+  });
+
+  it("deletes the lowest-DP opponent naturally on a public RizeGreymon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-044", as: "rizegreymon" }],
+          hand: [{ card: "BT21-045", as: "shine" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest" },
+            { card: "BT1-010", as: "higher" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowestId = s.perm("lowest").permanentId;
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rizegreymon").permanentId,
+        instanceId: s.inst("shine").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rizegreymon").topCard.cardId === "BT21-045");
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId)).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("higher").permanentId),
+    ).toBe(true);
   });
 
   it("does not pay the attack cost or grant bonuses without an eligible Tamer", async () => {
