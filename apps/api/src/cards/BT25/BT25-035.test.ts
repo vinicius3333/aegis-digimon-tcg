@@ -383,19 +383,15 @@ describe("BT25-035 Cougarmon", () => {
       );
       s.state.memory = 5;
       await s.ready();
-      if (trigger === "On Play") {
-        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
-          ok: true,
-        });
-      } else {
-        expect(
-          s.engine.applyIntent(0, {
-            type: "digivolve",
-            permanentId: s.perm("base").permanentId,
-            instanceId: s.inst("cougarmon").instanceId,
-          }),
-        ).toEqual({ ok: true });
-      }
+      const result =
+        trigger === "On Play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("cougarmon").instanceId,
+            });
+      expect(result).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-041"));
       const evolved = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT25-041");
       expect(evolved?.topCard?.cardId).toBe("BT25-041");

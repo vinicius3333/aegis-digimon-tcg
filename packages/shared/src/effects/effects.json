@@ -104657,6 +104657,7 @@
     "effects": [
       {
         "trigger": "WhenDigivolving",
+        "optional": true,
         "actions": [
           {
             "kind": "Return",
@@ -104688,6 +104689,7 @@
       },
       {
         "trigger": "WhenAttacking",
+        "optional": true,
         "actions": [
           {
             "kind": "Return",
@@ -105208,7 +105210,7 @@
             "cost": {
               "kind": "securityToHand",
               "controller": "mine",
-              "amount": 1,
+              "count": 1,
               "raw": "By adding your top security card to the hand"
             },
             "optional": true,
@@ -105227,7 +105229,7 @@
             "cost": {
               "kind": "securityToHand",
               "controller": "mine",
-              "amount": 1,
+              "count": 1,
               "raw": "By adding your top security card to the hand"
             },
             "optional": true,
@@ -105483,6 +105485,22 @@
     ]
   },
   "BT25-038": {
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 4 },
+          { "color": "Blue", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 4 },
+          { "color": "Black", "level": 4 }
+        ]
+      }
+    ],
     "effects": [
       {
         "trigger": "OnPlay",
@@ -105497,8 +105515,10 @@
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
                 "trait": ["Angel", "Archangel", "Three Great Angels", "Iliad"],
-                "zone": ["hand", "digivolutionCards"]
-              }
+                "zone": ["hand", "digivolutionCards"],
+                "hostFilter": { "kind": ["Digimon"] }
+              },
+              "count": 1
             },
             "optional": true
           },
@@ -105525,8 +105545,10 @@
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
                 "trait": ["Angel", "Archangel", "Three Great Angels", "Iliad"],
-                "zone": ["hand", "digivolutionCards"]
-              }
+                "zone": ["hand", "digivolutionCards"],
+                "hostFilter": { "kind": ["Digimon"] }
+              },
+              "count": 1
             },
             "optional": true
           },
@@ -105583,10 +105605,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [
-      { "names": ["Patamon"], "cost": 2, "isAlternate": true },
-      { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
-    ]
+    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
   },
   "BT25-039": {
     "effects": [
@@ -105613,8 +105632,7 @@
             "condition": { "kind": "ifThisEffectActed" },
             "optional": true
           }
-        ],
-        "raw": "[Security][End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7. If this effect played, you may place this card as the played Digimon's bottom digivolution card."
+        ]
       },
       {
         "trigger": "AllTurns",
@@ -106445,6 +106463,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
+              "colors": ["Green"],
               "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
             },
             "actions": [
@@ -106740,6 +106759,37 @@
   "BT25-053": {
     "effects": [
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Vortex", "raw": "＜Vortex＞" }] },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "otherThanBattle",
+            "raw": "＜Decode ([Aegiomon])＞: when this Digimon would leave other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.",
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "digivolutionCards",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "name" }]
+                  },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Decode", "raw": "＜Decode ([Aegiomon])＞" }] },
       {
         "trigger": "OnPlay",
