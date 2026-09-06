@@ -35,3 +35,13 @@ All 102 catalog cards have a current draft report. Draft scores are provisional;
 Card fixes now cover012,015,016,021,062,069,070. `logs/effects-sync-checkpoint-070-retry.log` confirms102 synchronized records and zero semantic/byte changes outside BT21. The shared custom-grant duration fix is commit61077ebf2; security069/070 fixes commitfb93271bb.
 
 Disk pressure caused shared-build ENOSPC; removing only this worktree API dist freed reproducible output. After disk recovered, TypeScript still replayed the cached ENOSPC in `packages/shared/dist/.tsbuildinfo`. Removing that generated cache restored shared/web builds; API test typing corrections remain pending (`logs/typecheck-checkpoint-102-clean-incremental.log`).
+
+
+## Second-pass review checkpoint — pushed through 3bcb22911
+
+- Pushed dynamic play-cost controller scope (`bd9d34e5d`), typed deck fixtures, accepted 065/085/087/090/099/102 evidence commits, and BT21-082 opponent-security watcher fix (`3bcb22911`).
+- Working collection recalculated: 507/1020; 0/102 final 10/10; incomplete. PR #4722 remains a draft and its description now names remaining gates.
+- New top-card-trash event passes 3/3 mechanism assertions; latest typecheck passes shared/API/web. Set sync reported 102 records, 9 semantic changes, zero outside BT21 before further Delay edits.
+- Lead review found the split Delay encoding does not implement reactive activation timing for 091/093/094/100. Luna C is correcting the card IR using the existing intrinsic reactive Delay gate. Earlier manual-activation passes are not accepted as printed-clause evidence.
+- Negative-path review is correcting independent once-per-turn opportunities, legal evolution/Link capacity, and false-positive battle assertions. Detailed unresolved findings are in `gaps.md` and the per-card ledger.
+- Root retains engine, generated catalog, integration and delivery ownership. Luna C temporarily holds the sole focused-test lease; all runs use one worker with no file parallelism or filesystem module cache.

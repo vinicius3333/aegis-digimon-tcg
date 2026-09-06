@@ -580,7 +580,7 @@
     {
       "cardId": "BT21-022",
       "name": "Canoweissmon",
-      "status": "integration-review",
+      "status": "proof-gaps",
       "scores": [
         2,
         1,
@@ -590,7 +590,8 @@
       ],
       "evidence": "cards/BT21-022.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Public alternate evolution, placement without a deletion target, and independent once-per-turn regression pending execution",
+        "Inherited refusal, own-effect/battle and source-count boundaries under review",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -607,7 +608,7 @@
     {
       "cardId": "BT21-023",
       "name": "Globemon",
-      "status": "integration-review",
+      "status": "proof-gaps",
       "scores": [
         2,
         1,
@@ -617,7 +618,7 @@
       ],
       "evidence": "cards/BT21-023.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Public linked-origin deletion, independent once-per-turn, actual security checks and legal stack proof pending",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -634,7 +635,7 @@
     {
       "cardId": "BT21-024",
       "name": "Cyberdramon",
-      "status": "integration-review",
+      "status": "proof-gaps",
       "scores": [
         2,
         1,
@@ -644,7 +645,8 @@
       ],
       "evidence": "cards/BT21-024.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Opponent hand-card choice and zero-security boundary pending",
+        "Inherited +4000 DP own-turn activation and opponent-turn removal pending public lifecycle proof",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -661,7 +663,7 @@
     {
       "cardId": "BT21-025",
       "name": "Lamiamon",
-      "status": "integration-review",
+      "status": "proof-gaps",
       "scores": [
         2,
         1,
@@ -671,7 +673,9 @@
       ],
       "evidence": "cards/BT21-025.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Existing Raid proof is confounded: Lamiamon is an inherited source rather than the active top card",
+        "Existing inherited fixture has a level-5 card over a level-5 source; legal stack correction pending",
+        "Independent once-per-turn and Progress combat proof pending",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -1730,17 +1734,28 @@
     {
       "cardId": "BT21-065",
       "name": "Ghostmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-065.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "ea28b12ca"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/focused-065-098-v5.log"
+        }
       ]
     },
     {
@@ -2075,17 +2090,28 @@
     {
       "cardId": "BT21-079",
       "name": "Megidramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-079.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "bd9d34e5d"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-079.test.ts src/engine/effects/playCostCeilingControllers.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 card; 6/6 mechanism",
+          "log": "logs/focused-gap-closure-102-v3.log"
+        }
       ]
     },
     {
@@ -2215,17 +2241,28 @@
     {
       "cardId": "BT21-085",
       "name": "Davis Motomiya",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-085.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "aafa5e016"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/focused-gap-closure-102-v3.log"
+        }
       ]
     },
     {
@@ -2258,17 +2295,28 @@
     {
       "cardId": "BT21-087",
       "name": "Zenith",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-087.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "342ecda36"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/focused-gap-closure-102-v3.log"
+        }
       ]
     },
     {
@@ -2328,23 +2376,34 @@
     {
       "cardId": "BT21-090",
       "name": "The Strongest of Brothers",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-090.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "90d5bd6f0"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/focused-gap-closure-102-v3.log"
+        }
       ]
     },
     {
       "cardId": "BT21-091",
       "name": "Spirit Evolution!",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
         0,
         0,
@@ -2354,7 +2413,8 @@
       ],
       "evidence": "cards/BT21-091.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Reactive Delay is split into an arming watcher and unreachable AllTurns payload; card IR correction pending",
+        "Final collection delivery gates pending"
       ]
     },
     {
@@ -2387,7 +2447,7 @@
     {
       "cardId": "BT21-093",
       "name": "Raging Serpentine",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
         0,
         0,
@@ -2397,13 +2457,14 @@
       ],
       "evidence": "cards/BT21-093.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Printed reactive Delay timing requires review; future manual activation is not accepted as proof",
+        "Final collection delivery gates pending"
       ]
     },
     {
       "cardId": "BT21-094",
       "name": "Armor Digivolution",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
         0,
         0,
@@ -2413,7 +2474,8 @@
       ],
       "evidence": "cards/BT21-094.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Generic top-card-trash event passes 3/3 mechanism assertions; reactive Delay card IR correction pending",
+        "Final collection delivery gates pending"
       ]
     },
     {
@@ -2516,23 +2578,34 @@
     {
       "cardId": "BT21-099",
       "name": "Xros Up",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-099.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "07b70678f"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-099.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/focused-gap-closure-102-v3.log"
+        }
       ]
     },
     {
       "cardId": "BT21-100",
       "name": "The Digimon I Designed",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
         0,
         0,
@@ -2542,7 +2615,8 @@
       ],
       "evidence": "cards/BT21-100.md",
       "gaps": [
-        "Independent revalidation pending"
+        "4/4 focused assertions pass but printed reactive Delay timing still requires correction/revalidation",
+        "Final collection delivery gates pending"
       ]
     },
     {
@@ -2564,17 +2638,28 @@
     {
       "cardId": "BT21-102",
       "name": "Tai Kamiya",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-102.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "7632dd026"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-102.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/focused-gap-closure-102-v3.log"
+        }
       ]
     }
   ],
@@ -2582,8 +2667,8 @@
   "deliveryGates": {
     "status": "pending",
     "collection": "1095 passing / 16 failing assertions at integration checkpoint; corrective focused run 110 passing / 14 failing. Final collection rerun pending.",
-    "typecheck": "Shared/web pass after clearing cached ENOSPC diagnostic; card-test API type errors being corrected.",
-    "sync": "102 BT21 records synchronized; 7 semantic changes against baseline, zero changes outside set.",
-    "review": "Final clause review and review PR delivery pending."
+    "typecheck": "Passed shared, API and web in logs/typecheck-top-trash-v2.log; final rerun pending further changes.",
+    "sync": "102 BT21 records synchronized in logs/effects-sync-checkpoint-094.log; 9 semantic changes against baseline, zero outside set. Further reactive Delay corrections pending.",
+    "review": "Draft review PR https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; final clause review pending."
   }
 }
