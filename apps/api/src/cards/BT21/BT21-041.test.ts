@@ -75,6 +75,14 @@ describe("BT21-041 compiled implementation", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const checkedIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT21-041",
+    );
+    const playedIndex = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-041");
+    const checked = s.events[checkedIndex] as { battle?: unknown } | undefined;
+    expect(checkedIndex).toBeGreaterThanOrEqual(0);
+    expect(checked?.battle).toBeDefined();
+    expect(playedIndex).toBeGreaterThan(checkedIndex);
   });
 
   it("links to an Appmon for 1, grants 2000 DP, and reduces only opposing Security Digimon", async () => {
