@@ -42,8 +42,11 @@ describe("BT21-010 Gammamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-010", as: "gammamon", under: ["BT21-002"] }],
-          hand: [{ card: "BT21-028", as: "siriusmon" }],
+          battleArea: [{ card: "BT21-002", as: "heroEgg" }],
+          hand: [
+            { card: "BT21-010", as: "gammamon" },
+            { card: "BT21-028", as: "siriusmon" },
+          ],
           security: ["BT1-001", "BT1-002"],
         },
       },
@@ -53,14 +56,41 @@ describe("BT21-010 Gammamon", () => {
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("heroEgg").permanentId,
+        instanceId: s.inst("gammamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("heroEgg").topCard.cardId === "BT21-010");
+    expect(
+      s.engine.applyIntent(0, {
         type: "activateEffect",
-        sourceInstanceId: s.perm("gammamon").topCard.instanceId,
+        sourceInstanceId: s.perm("heroEgg").topCard.instanceId,
         effectKey: `BT21-010/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("gammamon").topCard.cardId === "BT21-028");
-    expect(s.perm("gammamon").topCard.instanceId).toBe(s.inst("siriusmon").instanceId);
+    await settle(() => s.perm("heroEgg").topCard.cardId === "BT21-028");
+    expect(s.perm("heroEgg").topCard.instanceId).toBe(s.inst("siriusmon").instanceId);
     expect(s.state.memory).toBe(2);
+  });
+
+  it.each(["BT21-002", "BT21-004"])("uses the zero-cost Hero alternate route from %s", async (egg) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: egg, as: "heroEgg" }], hand: [{ card: "BT21-010", as: "gammamon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("heroEgg").permanentId,
+        instanceId: s.inst("gammamon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("heroEgg").topCard.cardId === "BT21-010");
+    expect(s.state.memory).toBe(1);
   });
 
   it("also qualifies with three differently named Hero Tamers at three security", async () => {
