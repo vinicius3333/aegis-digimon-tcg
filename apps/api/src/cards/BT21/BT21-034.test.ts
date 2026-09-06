@@ -120,4 +120,37 @@ describe("BT21-034 compiled implementation", () => {
     expect(observe(inherited.engine).hasKeyword(inherited.perm("host"), "Jamming")).toBe(true);
     expect(observe(isolated.engine).hasKeyword(isolated.perm("kiwimon"), "Jamming")).toBe(false);
   });
+  it("publicly proves inherited Jamming survives a losing security battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-035", as: "host", under: ["BT21-034"] }] },
+      1: { security: ["BT1-069"], deck: ["BT1-009"] },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(observe(s.engine).hasKeyword(hostId, "Jamming")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked" || event.kind === "combatResolved"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+  });
+
+  it("refuses the alternate evolution from a level-3 without the WG trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "nonWG" }], hand: [{ card: "BT21-034", as: "kiwimon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const handId = s.inst("kiwimon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonWG").permanentId,
+        instanceId: handId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
 });
