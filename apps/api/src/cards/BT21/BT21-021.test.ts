@@ -293,6 +293,167 @@ describe("BT21-021 OmniShoutmon", () => {
     expect(s.perm("tamer").stack.some((card) => card.instanceId === s.inst("omni").instanceId)).toBe(true);
   });
 
+  it("publicly places a qualifying Digimon under the played Tamer before Save", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT21-083", as: "tamer" }],
+          trash: [{ card: "BT10-007", as: "savedDigimon" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const omniId = s.inst("omni").instanceId;
+    const savedDigimonId = s.inst("savedDigimon").instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId,
+        ) &&
+        s.perm("tamer").stack.some((card) => card.instanceId === omniId) &&
+        s.perm("tamer").stack.some((card) => card.instanceId === savedDigimonId),
+    );
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([omniId, savedDigimonId]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === savedDigimonId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omniId)).toBe(false);
+  });
+
+  it("publicly declines an eligible End of Attack play without deleting itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT11-012", as: "candidate" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+  });
+
+  it("publicly completes End of Attack with an ineligible card and no self-deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT1-009", as: "ineligible" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ineligible").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not declare a nested attack for the Digimon played while End of Attack is resolving (Q4728)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-021", as: "omni" },
+            { card: "BT21-083", as: "taiki" },
+          ],
+          hand: [{ card: "BT10-007", as: "candidate" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("candidate").instanceId,
+        ) &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("candidate").instanceId,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    ).toBe(false);
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+  });
+
   it("publicly pays the reduced cost above five before deleting itself after a successful play", async () => {
     const s = setupEngine(
       {
