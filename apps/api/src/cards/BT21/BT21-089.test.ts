@@ -59,7 +59,6 @@ describe("BT21-089 Takato Matsuki", () => {
   it.each(["whenPlayed", "whenOneOfYoursDigivolves"] as const)(
     "%s suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash",
     async (event) => {
-      const trash = Array.from({ length: 10 }, () => "BT1-001");
       const s = setupEngine(
         {
           0: {
@@ -67,8 +66,9 @@ describe("BT21-089 Takato Matsuki", () => {
               { card: "BT21-089", as: "takato" },
               { card: "BT21-064", as: "hero", dp: 3000 },
             ],
-            trash,
+            trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
           },
+          1: { trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"] },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
@@ -103,6 +103,80 @@ describe("BT21-089 Takato Matsuki", () => {
     expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
   });
 
+  it("naturally triggers the digivolve watcher from a legal qualifying evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "takato" },
+            { card: "BT21-032", as: "base" },
+          ],
+          hand: [{ card: "BT21-036", as: "hero" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hero").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("takato").isSuspended && observe(s.engine).hasKeyword(s.perm("base"), "Blocker"));
+
+    expect(s.perm("takato").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    // Veemon reduces the printed alternate cost 3 by 1.
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").currentDP).toBe(9000);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-032"]);
+  });
+
+  it("expires the public Blocker and DP grant after the opponent's turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-089", as: "takato" }],
+          hand: [{ card: "BT21-064", as: "hero" }],
+          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: [{ card: "BT1-009" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hero").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("takato").isSuspended && observe(s.engine).hasKeyword(s.perm("hero"), "Blocker"));
+    expect(s.perm("hero").currentDP).toBe(3000);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
+    expect(s.perm("hero").currentDP).toBe(3000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(false);
+    expect(s.perm("hero").currentDP).toBe(1000);
+  });
+
   it("at 9 total trash grants Blocker but not the conditional +2000 DP", async () => {
     const s = setupEngine(
       {
@@ -111,7 +185,7 @@ describe("BT21-089 Takato Matsuki", () => {
             { card: "BT21-089", as: "takato" },
             { card: "BT21-064", as: "hero", dp: 3000 },
           ],
-          trash: Array.from({ length: 5 }, () => "BT1-001"),
+          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
         },
         1: { trash: Array.from({ length: 4 }, () => "BT1-001") },
       },
@@ -168,6 +242,7 @@ describe("BT21-089 Takato Matsuki", () => {
     await settle(() =>
       s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("takato").instanceId),
     );
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.memory).toBe(0);
     expect(
       s.events.some(
