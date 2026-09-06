@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-006.js";
 
@@ -183,6 +184,59 @@ describe("BT23-006 Huckmon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("evolves Huckmon through a public level-4 transition and resets the inherited trigger next turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+        battleArea: [{ card: "BT23-006", as: "huckmon" }],
+        hand: [
+          { card: "BT23-008", as: "greymon" },
+          { card: "BT16-082", as: "firstWhite" },
+          { card: "BT16-082", as: "secondWhite" },
+          { card: "BT16-082", as: "thirdWhite" },
+        ],
+      },
+      1: { deck: ["BT1-009", "BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const evolutionResult = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("huckmon").permanentId,
+      instanceId: s.inst("greymon").instanceId,
+    });
+    expect(evolutionResult).toEqual({ ok: true });
+    await settle(() => s.perm("huckmon").topCard.instanceId === s.inst("greymon").instanceId);
+    expect(s.perm("huckmon").stack.map(({ cardId }) => cardId)).toEqual(["BT23-006"]);
+    expect(s.perm("huckmon").topCard.cardId).toBe("BT23-008");
+    expect(s.state.memory).toBe(8);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstWhite").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(6);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWhite").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.state.memory).toBe(3);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdWhite").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 4);
+    expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("tracks the inherited once-per-turn use independently for two Huckmon sources", async () => {
