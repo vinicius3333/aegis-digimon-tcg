@@ -1,9 +1,10 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_059 } from "./BT25-059.js";
+import "../index.js";
 
 describe("BT25-059 Ceresmon", () => {
   it("matches every catalog surface and maps all printed clauses", () => {
@@ -177,6 +178,176 @@ describe("BT25-059 Ceresmon", () => {
     expect(s.perm("vegetationBase").topCard.cardId).toBe("BT25-059");
     expect(s.perm("ownTs").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("proves immunity against a real opponent Digimon effect while leaving a non-TS control affected", async () => {
+    const run = async (targetAlias: "ownTs" | "ownOther") => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT25-059", as: "ceresmon" }],
+            battleArea: [
+              { card: "BT25-062", as: "ownTs", suspended: true },
+              { card: "BT1-013", as: "ownOther", suspended: true },
+            ],
+            deck: ["BT1-001", "BT1-002"],
+          },
+          1: {
+            hand: [
+              { card: "BT25-011", as: "opponentEffect" },
+              { card: "BT25-011", as: "opponentEffect2" },
+            ],
+            deck: ["BT1-003", "BT1-004"],
+          },
+        },
+        { autoAcceptOptional: false, autoSelectCards: false },
+      );
+      s.state.memory = 12;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ceresmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const suspendDecision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: suspendDecision.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      if (targetAlias === "ownTs") {
+        expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(true);
+      }
+      await advance(s.engine).verb.unsuspend([s.perm("ownTs").permanentId, s.perm("ownOther").permanentId]);
+
+      s.state.turnSeat = 1;
+      s.state.memory = 20;
+      const opponentTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const effectChoice = s.state.pendingDecision!;
+      const effectPayload = JSON.parse(effectChoice.payloadJson) as {
+        candidateIds?: string[];
+        candidateInstanceIds?: string[];
+      };
+      const effectCandidates = effectPayload.candidateIds ?? effectPayload.candidateInstanceIds ?? [];
+      expect(effectCandidates).toContain(s.perm(targetAlias).permanentId);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: effectChoice.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(targetAlias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision !== undefined);
+      while (s.state.pendingDecision !== undefined) {
+        const followup = s.state.pendingDecision;
+        if (followup.kind === "optional") {
+          expect(
+            s.engine.applyIntent(followup.seat, {
+              type: "respondDecision",
+              decisionId: followup.decisionId,
+              response: { kind: "optional", accept: false },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.state.pendingDecision !== undefined);
+          continue;
+        }
+        if (followup.kind !== "chooseTargets") break;
+        const payload = JSON.parse(followup.payloadJson) as {
+          candidateIds?: string[];
+          candidateInstanceIds?: string[];
+        };
+        const candidates = payload.candidateIds ?? payload.candidateInstanceIds ?? [];
+        expect(candidates.length).toBeGreaterThan(0);
+        expect(
+          s.engine.applyIntent(followup.seat, {
+            type: "respondDecision",
+            decisionId: followup.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [candidates[0]!] },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.pendingDecision !== undefined);
+      }
+      if (targetAlias === "ownTs") expect(s.perm("ownTs").isSuspended).toBe(false);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await opponentTurn;
+      if (targetAlias === "ownTs") {
+        s.state.turnSeat = 0;
+        s.state.memory = 10;
+        const ownTurn = s.engine.runOneTurn();
+        await advance(s.engine).waitForMainPhase(0);
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await ownTurn;
+
+        s.state.turnSeat = 1;
+        s.state.memory = 20;
+        const secondOpponentTurn = s.engine.runOneTurn();
+        await advance(s.engine).waitForMainPhase(1);
+        expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect2").instanceId })).toEqual(
+          { ok: true },
+        );
+        await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+        const secondChoice = s.state.pendingDecision!;
+        const secondPayload = JSON.parse(secondChoice.payloadJson) as {
+          candidateIds?: string[];
+          candidateInstanceIds?: string[];
+        };
+        const secondCandidates = secondPayload.candidateIds ?? secondPayload.candidateInstanceIds ?? [];
+        expect(secondCandidates).toContain(s.perm("ownTs").permanentId);
+        expect(
+          s.engine.applyIntent(1, {
+            type: "respondDecision",
+            decisionId: secondChoice.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm("ownTs").permanentId] },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.pendingDecision !== undefined);
+        while (s.state.pendingDecision !== undefined) {
+          const followup = s.state.pendingDecision;
+          if (followup.kind === "optional") {
+            expect(
+              s.engine.applyIntent(followup.seat, {
+                type: "respondDecision",
+                decisionId: followup.decisionId,
+                response: { kind: "optional", accept: false },
+              }),
+            ).toEqual({ ok: true });
+            await settle(() => s.state.pendingDecision !== undefined);
+            continue;
+          }
+          if (followup.kind !== "chooseTargets") break;
+          const payload = JSON.parse(followup.payloadJson) as {
+            candidateIds?: string[];
+            candidateInstanceIds?: string[];
+          };
+          const candidates = payload.candidateIds ?? payload.candidateInstanceIds ?? [];
+          expect(candidates.length).toBeGreaterThan(0);
+          expect(
+            s.engine.applyIntent(followup.seat, {
+              type: "respondDecision",
+              decisionId: followup.decisionId,
+              response: { kind: "chooseTargets", instanceIds: [candidates[0]!] },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.state.pendingDecision !== undefined);
+        }
+        expect(s.perm("ownTs").isSuspended).toBe(true);
+        advance(s.engine).endMainPhaseIfOpen(1);
+        await secondOpponentTurn;
+      }
+      return s;
+    };
+
+    const immune = await run("ownTs");
+    expect(immune.perm("ownTs").isSuspended).toBe(true);
+    const control = await run("ownOther");
+    expect(control.perm("ownOther").isSuspended).toBe(true);
   });
 
   it("counts all suspended Digimon for one once-per-turn DP reduction and keeps the turn-end duration", async () => {
