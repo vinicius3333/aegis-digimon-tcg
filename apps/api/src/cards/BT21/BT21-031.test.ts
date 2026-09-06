@@ -1,7 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-031.js";
 import "../index.js";
 
@@ -127,13 +127,29 @@ describe("BT21-031 compiled implementation", () => {
 
   it("gains 1 memory at end of attack only once per turn from a realistic evolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-026", as: "host", under: ["BT21-001", "BT21-031"] }] },
+      0: { battleArea: [{ card: "BT1-033", as: "host", under: ["BT1-003", "BT21-031"] }] },
+      1: { security: ["BT1-001"] },
     });
     s.state.memory = 0;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.state.pendingDecision === undefined);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
   });
