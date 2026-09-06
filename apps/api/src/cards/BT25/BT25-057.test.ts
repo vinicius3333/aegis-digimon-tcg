@@ -1,5 +1,6 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -143,6 +144,92 @@ describe("BT25-057 Monarchlizamon / Final Judgment", () => {
         useAs: "option",
       } as never),
     ).toEqual(expect.objectContaining({ ok: false, reason: "color-requirement-unmet" }));
+  });
+
+  it("fires When Attacking once, pays its bottom face-down Tamer cost, then shares the budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "monarch" },
+            { card: "BT25-088", as: "tamer", under: [{ card: "BT1-009", faceUp: false, as: "cost" }] },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-017", as: "first", under: ["BT1-020"], suspended: true },
+            { card: "BT24-017", as: "second", under: ["BT1-020"], suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("monarch").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length < 2, 1200);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("monarch").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("monarch").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 120);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("second").permanentId),
+    ).toBe(true);
+  });
+
+  it("expires Final Judgment's grants at the end of the turn and refuses without an eligible target", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-049", as: "requirement" },
+            { card: "BT1-010", as: "target" },
+          ],
+          hand: [{ card: CARD_ID, as: "option" }],
+        },
+        1: { deck: ["BT1-001"], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 9000);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Rush")).toBe(true);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("target").currentDP).toBe(2000);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Rush")).toBe(false);
+
+    const denied = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-010", as: "plain" }], hand: [{ card: CARD_ID, as: "option" }] } },
+      { autoAcceptOptional: true },
+    );
+    denied.state.memory = 4;
+    expect(
+      denied.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: denied.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 
   it("keeps Final Judgment's buffs and optional attack on the same target for the turn", () => {
