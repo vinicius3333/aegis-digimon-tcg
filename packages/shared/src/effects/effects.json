@@ -69137,7 +69137,6 @@
         "trigger": "OpponentsTurn",
         "isInherited": true,
         "isBreeding": true,
-        "optional": true,
         "actions": [
           {
             "kind": "SubTrigger",
@@ -69147,13 +69146,10 @@
             "actions": [
               {
                 "kind": "PlayWithoutCost",
-                "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Omekamon"], "match": "name" }] },
-                  "count": 1,
-                  "upTo": true
-                },
+                "target": { "filter": { "nameOrTrait": [{ "tokens": ["Omekamon"], "match": "name" }] }, "count": 1 },
                 "fromOwnDigivolutionStack": true,
                 "payCost": false,
+                "optional": true,
                 "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
               }
             ]

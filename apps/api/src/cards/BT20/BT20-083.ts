@@ -87,7 +87,6 @@ export const compiled: CompiledCard = {
       trigger: "OpponentsTurn",
       isInherited: true,
       isBreeding: true,
-      optional: true,
       actions: [
         {
           kind: "SubTrigger",
@@ -110,10 +109,10 @@ export const compiled: CompiledCard = {
                   ],
                 },
                 count: 1,
-                upTo: true,
               },
               fromOwnDigivolutionStack: true,
               payCost: false,
+              optional: true,
               cost: {
                 kind: "suspend",
                 target: {

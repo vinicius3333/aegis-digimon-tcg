@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-083.js";
@@ -168,41 +169,60 @@ describe("BT20-083 Omekamon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === omekamonInstanceId)).toBe(!accept);
   });
 
-  it("plays an Omekamon from its own breeding stack after the owner's security is removed", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "stackOmekamon" }] },
-          battleArea: [{ card: "BT23-072", under: [{ card: "BT20-083", as: "unrelatedOmekamon" }] }],
-          security: [{ card: "BT20-010", as: "security" }],
+  it.each([true, false])(
+    "plays an Omekamon from its own breeding stack after the owner's security is removed (accept=%s)",
+    async (accept) => {
+      const s = setupEngine(
+        {
+          0: {
+            breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "stackOmekamon" }] },
+            battleArea: [{ card: "BT23-072", under: [{ card: "BT20-083", as: "unrelatedOmekamon" }] }],
+            security: [{ card: "BT20-010", as: "security" }],
+          },
+          1: { battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }] },
         },
-        1: { battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-083"));
+        { autoAcceptOptional: false, autoDeclineOptional: false, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(s.state.pendingDecision?.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => !observe(s.engine).isAttacking() && s.events.some((event) => event.kind === "securityChecked"),
+      );
+      expect(observe(s.engine).isAttacking()).toBe(false);
+      expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
 
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-083");
-    expect(s.state.players[0]!.breeding?.isSuspended).toBe(true);
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.stack.some((card) => card.instanceId === s.inst("unrelatedOmekamon").instanceId),
-      ),
-    ).toBe(true);
-    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-083");
-    expect(played).toBeDefined();
-    expect(observe(s.engine).hasKeyword(played!, "Blocker")).toBe(true);
-  });
+      expect(s.state.players[0]!.security).toHaveLength(0);
+      expect(s.state.players[0]!.breeding?.isSuspended).toBe(accept);
+      expect(
+        s.state.players[0]!.battleArea.some((permanent) =>
+          permanent.stack.some((card) => card.instanceId === s.inst("unrelatedOmekamon").instanceId),
+        ),
+      ).toBe(true);
+      const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-083");
+      expect(played !== undefined).toBe(accept);
+      if (accept) expect(observe(s.engine).hasKeyword(played!, "Blocker")).toBe(true);
+      expect(
+        s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("stackOmekamon").instanceId),
+      ).toBe(!accept);
+    },
+  );
 
   it("does not fire the breeding inherited effect from a battle-area stack", async () => {
     const s = setupEngine(
@@ -236,5 +256,36 @@ describe("BT20-083 Omekamon", () => {
         (card) => card.instanceId === s.inst("fieldStackOmekamon").instanceId,
       ),
     ).toBe(true);
+  });
+
+  it("does not offer the inherited play when the breeding source is already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "stackOmekamon" }], as: "kingDrasil" },
+          security: [{ card: "BT20-010", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("kingDrasil").permanentId], 0);
+    expect(s.perm("kingDrasil").isSuspended).toBe(true);
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("kingDrasil").isSuspended).toBe(true);
+    expect(
+      s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("stackOmekamon").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
