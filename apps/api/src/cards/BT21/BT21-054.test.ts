@@ -96,6 +96,44 @@ describe("BT21-054 Shotmon", () => {
     expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
   });
 
+  it("publicly declines the On Play cost when no qualifying stack card exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-054", as: "shotmon" }],
+          battleArea: [{ card: "BT1-009", as: "ownHost", under: ["BT1-001"] }],
+        },
+        1: { battleArea: [{ card: "BT21-049", as: "opponent", under: ["BT21-048"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-054"));
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
+    expect(s.perm("ownHost").stack.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
+
+  it("refuses linking onto a non-Appmon host without spending memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host" }], hand: [{ card: "BT21-054", as: "shotmon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("shotmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shotmon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("links for 1 and deletes only the play-cost-3 boundary target", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
