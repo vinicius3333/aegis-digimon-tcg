@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-095.js";
 import "../index.js";
 
@@ -95,5 +96,25 @@ describe("BT21-095 Wind Guardians", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("wg").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("Security grants Vortex to own WG Digimon and declines an absent play target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-038", as: "wg" }],
+          security: [{ card: "BT21-095", as: "option" }],
+          hand: [{ card: "BT21-039", as: "tooLarge" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(observe(s.engine).hasKeyword(s.perm("wg"), "Vortex")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 });
