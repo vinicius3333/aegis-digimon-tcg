@@ -106,4 +106,58 @@ describe("BT25-055 Deramon", () => {
     await settle(() => s.perm("source").topCard?.cardId === "BT25-055");
     expect(s.state.memory).toBe(0);
   });
+
+  it("resolves the public When Digivolving threshold and unsuspends an own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-050", as: "source", suspended: true },
+            { card: "BT1-009", as: "other", suspended: true },
+          ],
+          hand: [{ card: "BT25-055", as: "evolver" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-055" && !s.perm("source").isSuspended);
+    expect(s.perm("source").isSuspended).toBe(false);
+  });
+
+  it("redirects an opponent's public player attack to the suspended inherited host", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-053", as: "host", under: ["BT25-055"], suspended: true }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("host").permanentId);
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-053");
+  });
 });
