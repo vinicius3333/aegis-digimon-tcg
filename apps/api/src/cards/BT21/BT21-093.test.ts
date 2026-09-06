@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-093.js";
 import "../index.js";
 
@@ -90,14 +91,14 @@ describe("BT21-093 Raging Serpentine", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  it("arms and publicly activates Delay for a Reptile or Dragonkin host only", async () => {
+  it("arms reactive Delay from two public security attacks and free-evolves a legal host", async () => {
     const s = setup(
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "color" },
-            { card: "BT21-014", as: "ineligible" },
-            { card: "BT21-017", as: "eligible" },
+            { card: "BT21-017", as: "eligible2", under: ["BT1-009"] },
+            { card: "BT21-017", as: "eligible1", under: ["BT1-009"] },
+            { card: "BT21-014", as: "ineligible", under: ["BT1-009"] },
           ],
           hand: [
             { card: "BT21-093", as: "option" },
@@ -105,7 +106,13 @@ describe("BT21-093 Raging Serpentine", () => {
           ],
           deck: ["BT1-001", "BT1-002"],
         },
-        1: { security: [{ card: "BT1-009", as: "security" }], deck: ["BT1-003", "BT1-004"] },
+        1: {
+          security: [
+            { card: "BT1-009", as: "security1" },
+            { card: "BT1-010", as: "security2" },
+          ],
+          deck: ["BT1-003", "BT1-004"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -116,22 +123,47 @@ describe("BT21-093 Raging Serpentine", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
-    const optionPermanent = s.perm("option");
-    optionPermanent.enterFieldTurnCount = -1;
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("eligible").permanentId,
+        attackerPermanentId: s.perm("eligible1").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("eligible").topCard.instanceId === s.inst("destination").instanceId);
-    await settle(() => s.perm("eligible").topCard.instanceId === s.inst("destination").instanceId);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
 
-    expect(s.perm("eligible").topCard.instanceId).toBe(s.inst("destination").instanceId);
+    // Delay cannot activate in the same turn the Option entered the battle area.
+    expect(s.perm("eligible1").topCard.instanceId).toBe(s.inst("eligible1").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("destination").instanceId)).toBe(true);
+
+    // Cross complete production turns, then make a second public security attack.
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("eligible2").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+    await settle(() => s.perm("eligible2").topCard.instanceId === s.inst("destination").instanceId);
+
+    expect(s.perm("eligible2").topCard.instanceId).toBe(s.inst("destination").instanceId);
     expect(s.perm("ineligible").topCard.cardId).toBe("BT21-014");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("eligible2").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT21-017"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it.each([
