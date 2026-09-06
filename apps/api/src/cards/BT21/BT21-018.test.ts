@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-018.js";
 import "../index.js";
 
@@ -148,7 +149,9 @@ describe("BT21-018 DoGatchmon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-018", as: "dogatchmon" }] },
+        0: {
+          battleArea: [{ card: "BT21-018", as: "dogatchmon" }],
+        },
         1: {
           battleArea: [
             { card: "BT21-019", as: "highest" },
@@ -205,11 +208,14 @@ describe("BT21-018 DoGatchmon", () => {
     expect(s.perm("host").linked.map((card) => card.cardId)).toContain("BT21-009");
   });
 
-  it("fuses the printed Gatchmon plus Navimon pair through the production App Fusion verb", async () => {
+  it("publicly links Gatchmon plus Navimon and fuses through Haru's watcher", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
+          battleArea: [
+            { card: "BT21-084", as: "haru" },
+            { card: "BT21-009", as: "host" },
+          ],
           hand: [
             { card: "BT21-047", as: "navimon" },
             { card: "BT21-018", as: "dogatchmon" },
@@ -229,10 +235,13 @@ describe("BT21-018 DoGatchmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("navimon").instanceId));
-    const fused = await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("dogatchmon").instanceId);
-    expect(fused?.topCard.cardId).toBe("BT21-018");
-    expect(fused?.stack.map((card) => card.cardId)).toEqual(["BT21-009"]);
+    await settle(() => s.perm("host").topCard.cardId === "BT21-018");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-009"]);
+    expect(s.perm("host").linked.map((card) => card.cardId)).toContain("BT21-047");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fusionDraw").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("dogatchmon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.perm("haru").isSuspended).toBe(true);
     expect(s.state.memory).toBe(4);
   });
 
@@ -247,11 +256,15 @@ describe("BT21-018 DoGatchmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: hostCard, as: "host" }],
+          battleArea: [
+            { card: "BT21-084", as: "haru" },
+            { card: hostCard, as: "host" },
+          ],
           hand: [
             { card: linkCard, as: "link" },
             { card: "BT21-018", as: "fusion" },
           ],
+          deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -265,19 +278,26 @@ describe("BT21-018 DoGatchmon", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").linked.length === 1);
-    const fused = await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("fusion").instanceId);
-    expect(fused?.topCard.cardId).toBe("BT21-018");
+    await settle(() => s.perm("host").topCard.cardId === "BT21-018");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([hostCard]);
+    expect(s.perm("host").linked.map((card) => card.cardId)).toContain(linkCard);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("fusion").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.perm("haru").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(9);
   });
 
   it.each([
     ["same-name", "BT21-009", "BT21-009"],
     ["non-recipe", "BT21-009", "BT21-059"],
-  ])("rejects the %s App Fusion pair", async (_label, hostCard, linkCard) => {
+  ])("rejects the %s App Fusion pair after a public link", async (_label, hostCard, linkCard) => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: hostCard, as: "host" }],
+          battleArea: [
+            { card: "BT21-084", as: "haru" },
+            { card: hostCard, as: "host" },
+          ],
           hand: [
             { card: linkCard, as: "link" },
             { card: "BT21-018", as: "fusion" },
@@ -296,12 +316,13 @@ describe("BT21-018 DoGatchmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.length === 1);
-    const fused = await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("fusion").instanceId);
-    expect(fused).toBeUndefined();
+    expect(s.perm("host").topCard.cardId).toBe(hostCard);
+    expect(s.perm("host").linked.map((card) => card.cardId)).toContain(linkCard);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fusion").instanceId);
+    expect(s.state.memory).toBe(linkCard === "BT21-059" ? 8 : 9);
   });
 
-  it("attacks once when its own stack gets linked and ignores another stack", async () => {
+  it("attacks once when its own stack gets publicly linked and ignores another stack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -309,32 +330,114 @@ describe("BT21-018 DoGatchmon", () => {
             { card: "BT21-018", as: "dogatchmon" },
             { card: "BT21-009", as: "other" },
           ],
+          hand: [
+            { card: "BT21-009", as: "otherLink" },
+            { card: "BT21-009", as: "ownLink" },
+          ],
         },
         1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("other").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("otherLink").instanceId,
+        targetPermanentId: s.perm("other").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("other").linked.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(3);
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("dogatchmon").permanentId });
+    const ownLink = s.state.players[0]!.hand.find((card) => card.cardId === "BT21-009");
+    expect(ownLink).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: ownLink!.instanceId,
+        targetPermanentId: s.perm("dogatchmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 2);
-    await advance(s.engine).verb.unsuspend([s.perm("dogatchmon").permanentId]);
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("dogatchmon").permanentId });
-    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("dogatchmon").isSuspended).toBe(true);
+  });
+
+  it("does not attack a second time in the same turn after a public unsuspend", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-018", as: "dogatchmon" },
+            { card: "BT1-089", as: "greenTamer" },
+          ],
+          hand: [
+            { card: "BT21-009", as: "firstLink" },
+            { card: "BT21-009", as: "secondLink" },
+            { card: "BT4-108", as: "unsuspendOption" },
+          ],
+        },
+        1: {
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("firstLink").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("firstLink").instanceId,
+        targetPermanentId: s.perm("dogatchmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspendOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("dogatchmon").isSuspended);
+    expect(s.perm("dogatchmon").topCard.cardId).toBe("BT21-018");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("secondLink").instanceId,
+        targetPermanentId: s.perm("dogatchmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dogatchmon").linked.some((card) => card.instanceId === s.inst("secondLink").instanceId));
+    expect(s.perm("dogatchmon").linked.some((card) => card.instanceId === s.inst("secondLink").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("dogatchmon").isSuspended).toBe(false);
   });
 
   it("may decline both link-granted attack paths", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-018", as: "dogatchmon" }] },
+        0: {
+          battleArea: [{ card: "BT21-018", as: "dogatchmon" }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
         1: { security: ["BT1-001"] },
       },
       { autoDeclineOptional: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("dogatchmon").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("dogatchmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dogatchmon").linked.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
