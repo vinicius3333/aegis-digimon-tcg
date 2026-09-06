@@ -138,3 +138,11 @@ The first current whole-BT20 run plus that mechanism passed716 of730 tests, with
 The corrected full BT20 plus DNA-mechanism run passes734/734 tests (`current-collection-green-results.json`). Subsequent targeted public proofs for003/015/016/020 pass27 tests; six style-strengthened card files pass42 tests.003 now has a completely public same-turn OPT and next-own-turn reset with a state-failing mutation, replacing the earlier seam-only limitation. The hash-bound ledger renews001–013 at8/10 each (104/1020 total), pending final delivery credit.
 
 Independent review continues across the remaining cards. Recent findings include missing isolated trait branches, actual restriction/Barrier interactions, natural expiry and OPT resets. These are being filled before any final10/10 claim. Green draft tests and saved commits remain checkpoints, not collection completion.
+
+## Checkpoint: named-source correction and 790-test collection
+
+Commit `144ead257` is pushed. Six cards (019/024/026/028/059/102) incorrectly accepted X Antibody-trait Digimon for a bracketed named-card condition. CR 2-3-1-2/P-139 Q4246 and preserved red behavioral logs establish the defect; existing exact-name matching includes EX5-070's Rule alias. The fix changes only those six generated BT20 effects and passes 66 focused, 570 expanded mechanism/card tests, workspace typecheck and scoped sync/style.
+
+The subsequent collection snapshot passes790/790 tests in `collection-after-name-fix-results.json`. Additional public proof covers realistic source stacks, restriction/Barrier behavior, source-play refusal, Espimon Machine/nonmatching costs, Dorumon Chronicle Option search, HoverEspimon public attack OPT/reset, Grademon attack-time immunity against an actual LoaderLeomon play, and natural face-up Security end-turn plays. HoverEspimon OPT and Invisimon source-count mutations fail intended observable assertions and are restored. These remain independent-review checkpoints, with zero final 10/10.
+
+Outstanding integration: continue strict card review beyond060 (061–075 read-only review delegated), resolve genuine remaining printed-clause gaps, run per-card sensitivity where needed, renew hash-bound acceptance, and recalculate the entire collection before final delivery. Earlier full-green drafts and per-card provisional scores do not waive any completion gate.
