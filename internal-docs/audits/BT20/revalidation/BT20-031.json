@@ -12,7 +12,9 @@
     "apps/api/src/cards/BT20/BT20-031.ts",
     "apps/api/src/cards/BT20/BT20-031.test.ts",
     "internal-docs/audits/BT20/revalidation/BT20-031.md",
-    "014-040-results.json"
+    "014-040-results.json",
+    "collection-after-name-fix-results.json",
+    "public-followups-typecheck.log"
   ],
   "commands": [
     {
@@ -30,10 +32,23 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
       "result": "6 tests passed for this card; 160 total passed; 014-040-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "9 cases pass for BT20-031; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
     }
   ],
   "gaps": [
-    "lead focused/mechanism/collection Vitest, typecheck, lint, and diff gates pending"
+    "lead focused/mechanism/collection Vitest, typecheck, lint, and diff gates pending",
+    "new end-of-turn expiry and public Barrier tests are unexecuted pending lead validation"
   ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
 }

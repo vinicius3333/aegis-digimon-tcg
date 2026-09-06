@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-031.js";
@@ -158,5 +160,54 @@ describe("BT20-031 Liamon", () => {
       }),
     ).toMatchObject({ ok: false });
     expect(invalid.perm("blueBase").topCard.cardId).toBe("BT1-027");
+  });
+
+  it("expires the -3000 DP modifier at the end of the turn", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-031", as: "liamon" }] },
+        1: { battleArea: [{ card: "BT20-010", dp: 6000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 3000);
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    await settle(() => s.perm("target").currentDP === 6000);
+    expect(s.perm("target").currentDP).toBe(6000);
+  });
+
+  it.each([true, false])("uses or refuses inherited Barrier during a losing battle (accept %s)", async (accept) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-033", dp: 6000, suspended: true, as: "host", under: ["BT20-031"] }],
+        security: ["BT20-010"],
+      },
+      1: { battleArea: [{ card: "BT20-010", dp: 9000, as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt" && event.permanentId === hostId));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(accept);
+    expect(s.state.players[0]!.security).toHaveLength(accept ? 0 : 1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-033")).toBe(!accept);
   });
 });
