@@ -1,0 +1,36 @@
+{
+  "cardId": "BT20-070",
+  "status": "ready-for-coordinator-verification",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-070.test.ts: imported production Loogamon/SEEKERS peers and public cost-2 alternate evolutions with exact stacks",
+    "BT20-070.test.ts: On Play and When Digivolving costed recovery, exact own target, opponent-zone exclusion, and nonmatch retention",
+    "BT20-070.test.ts: optional refusal preserves hand/trash cards",
+    "BT20-070.test.ts: inherited +2000 controller-turn boundary and standalone host behavior",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-070.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed after test/report additions"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-070;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending"
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}
