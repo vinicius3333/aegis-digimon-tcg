@@ -1,28 +1,27 @@
 {
   "cardId": "BT20-019",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
-    "peerStackProof": 1,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
-    "Catalog: Jesmon (X Antibody) level 6 red Royal Knight/X Antibody; alternate Jesmon cost1; Alliance; When Digivolving if Jesmon/X Antibody is in stack, one own Digimon is unaffected by opponent effects for turn then one own Digimon may attack; Your Turn grants Sistermon-name/Royal Knight allies Piercing and unsuspended attacks; inherited Jesmon GX grants both to all allies.",
-    "BT20-019.ts exclusively registers IR and maps temporary immunity condition, independent optional post-then attack, Your Turn filtered grants, GX inherited grants, and Jesmon alternate requirement.",
-    "BT20-019.test.ts proves legal Jesmon\u2192Jesmon X evolution, condition-positive immunity, condition-negative post-then attack, optional attack refusal, Sistermon/Royal Knight versus non-match filters, GX inherited scope, and turn removal.",
-    "Added public Jesmon \u2192 Jesmon X \u2192 GX legal stack and inherited all-ally observable proof.",
-    "Added natural ST22-08 Security Option control: Jesmon X protected target survives the lowest-DP deletion while unprotected Jesmon is removed.",
-    "Unexecuted public ordinary-evolution matrix uses a legal red Lv.3/Lv.4/Lv.5 stack and covers trait-only BT9-008 rejection, exact BT9-109 acceptance, and EX5-070 Rule Name acceptance.",
-    "014-040-results.json",
-    "named-x-clause-red.log",
-    "named-x-019-102-red.log",
-    "named-x-026-028-red.log",
-    "named-x-green-results.json",
-    "named-x-mechanism-results.json"
+    "Public Jesmon -> Jesmon X -> GX evolution proves legal source transitions and costs. Exact Jesmon/X Antibody and Rule Name positives differ from X-Antibody-trait-only sources.",
+    "The qualifying stack grants opponent-effect immunity through the turn, survives actual Security deletion, then loses protection after the real turn. The post-then attack still works without that condition and may be refused.",
+    "Sistermon/Royal Knight peers gain Piercing and unsuspended-target attacks on the owner turn; nonmatching peers do not. Under exact Jesmon GX, the inherited grant extends to all own Digimon and clears off-turn.",
+    "BT20-019.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-019.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -52,10 +51,26 @@
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
     }
   ],
-  "gaps": [
-    "Coordinator must execute the new exact bracket-name evolution matrix and full legal public-stack review.",
-    "Delivery gates pending coordinator collection, mechanism, typecheck, lint.",
-    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
-  ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "11 cases passed for BT20-019; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-019",
+      "result": "8 intended state/assertion failures with registered effects disabled; production restored. See BT20-019-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }

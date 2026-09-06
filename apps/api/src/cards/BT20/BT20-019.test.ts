@@ -114,7 +114,7 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
           battleArea: [{ card: "BT20-014", as: "savior" }],
           hand: [{ card: "BT20-019", as: "xAntibody" }],
         },
-        1: { security: ["BT20-001", "BT20-001"] },
+        1: { security: ["BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -179,7 +179,7 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-017", as: "jesmon" }], hand: [{ card: "BT20-019", as: "xAntibody" }] },
-        1: { security: ["BT20-001"] },
+        1: { security: ["BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
