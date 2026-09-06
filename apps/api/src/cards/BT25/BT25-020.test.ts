@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { CardColor, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -14,7 +15,7 @@ describe("BT25-020 Marsmon", () => {
 
   it("installs a once-per-turn battle-won watcher for own TS Digimon", () => {
     const module = getEffectModule("BT25-020");
-    const subscribeSubTrigger = vi.fn<(...args: any[]) => any>();
+    const subscribeSubTrigger = vi.fn<EffectContext["fx"]["subscribeSubTrigger"]>();
     const source = {
       cardId: "BT25-020",
       instanceId: "marsmon-1",
@@ -86,6 +87,21 @@ describe("BT25-020 Marsmon", () => {
     expect(belowThreshold.state.memory).toBe(0);
   });
 
+  it("does not count a 13000-DP Tamer or breeding Digimon for the play discount", async () => {
+    for (const board of [
+      { battleArea: [{ card: "BT1-086", as: "tamer", dp: 13000 }] },
+      { breeding: { card: "BT1-013", as: "breeding", dp: 13000 } },
+    ]) {
+      const s = setupEngine({ 0: { hand: [{ card: "BT25-020", as: "marsmon" }], ...board } });
+      s.state.memory = 12;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marsmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-020"));
+      expect(s.state.memory).toBe(0);
+    }
+  });
+
   it("gives one own Digimon +3000 DP, then may conduct a direct battle", async () => {
     const s = setupEngine(
       {
@@ -122,6 +138,73 @@ describe("BT25-020 Marsmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-020"));
     expect(s.perm("marsmon").currentDP).toBe(15000);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("applies the entry boost and direct battle after a public TS evolution", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-073", as: "base" }], hand: [{ card: "BT25-020", as: "marsmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("marsmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("base").topCard?.cardId).toBe("BT25-020");
+    expect(s.perm("base").currentDP).toBe(15000);
+  });
+
+  it("boosts one own Digimon and battles a different own-selected attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-020", as: "marsmon" }],
+          battleArea: [
+            { card: "BT1-009", as: "boost", dp: 2000 },
+            { card: "BT1-009", as: "attacker", dp: 6000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marsmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const boostDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: boostDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("boost").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("attacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("boost").currentDP).toBe(5000);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("attacker").currentDP).toBe(6000);
+    expect(s.perm("marsmon").currentDP).toBe(12000);
   });
 
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving, EffectTiming.OnUseAttack])(
@@ -179,6 +262,76 @@ describe("BT25-020 Marsmon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("can battle an effect-immune Digimon because battle is a rule interaction", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-020", as: "marsmon" }] },
+        1: { battleArea: [{ card: "BT19-101", as: "immune", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marsmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT19-101");
+  });
+
+  it("triggers the TS battle-won security trash after winning a security battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
+        1: { security: ["BT1-009", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-001"]),
+    );
+  });
+
+  it("triggers battle-won security trash even when Barrier prevents the loser's deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
+        1: {
+          battleArea: [{ card: "BT13-041", as: "barrier", dp: 3000, suspended: true }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(1, { type: "respondBarrier", permanentId: s.perm("barrier").permanentId, accept: true }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT13-041")).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002"]),
+    );
   });
 
   it("uses the exact TS level-5 evolution requirement and rejects a near-match", async () => {
