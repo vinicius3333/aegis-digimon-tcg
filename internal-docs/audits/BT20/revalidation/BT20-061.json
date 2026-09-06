@@ -11,11 +11,12 @@
   "evidence": [
     "Exact Yuuki reveal selection no longer accepts LM-018 Gyuukimon merely because its name contains that substring. The before-fix test adds Gyuukimon incorrectly; the corrected test retains it in the ordered bottom-deck remainder.",
     "Public Punkmon-trait reveal selection, exact hand/deck destinations and the nonmatching name comparison are integrated.",
+    "Unexecuted independent additions cover trait-only BT20-069 and exact Yuuki-only BT20-090 reveal categories.",
     "collection-after-reactive-delay-results.json",
     "reactive-movement-gates.json"
   ],
   "gaps": [
-    "Final independent clause acceptance and runtime sensitivity remain pending.",
+    "Final independent clause acceptance and runtime sensitivity remain pending; the new single-category cases require lead execution.",
     "Atomic pushed delivery and final independent acceptance pending."
   ],
   "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
@@ -53,6 +54,10 @@
     {
       "command": "Commands in reactive-movement-gates.json",
       "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ]
 }

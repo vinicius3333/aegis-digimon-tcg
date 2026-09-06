@@ -107,6 +107,31 @@ describe("BT20-061 Impmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT20-047");
   });
 
+  it.each([
+    ["trait only", { card: "BT20-069", as: "trait" }, ["BT20-047", "BT20-048"], ["BT20-069"]],
+    ["Yuuki only", { card: "BT20-090", as: "yuuki" }, ["BT20-047", "BT20-048"], ["BT20-090"]],
+  ] as const)(
+    "on play accepts the %s category when the other category is absent",
+    async (_label, hit, fillers, expectedHand) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT20-061", as: "impmon" }],
+            deck: [{ ...hit }, ...fillers.map((card, index) => ({ card, as: `filler${index}` }))],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("impmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expectedHand);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(fillers);
+    },
+  );
+
   it("does not treat Gyuukimon's near-match name as the separate Yuuki card", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
