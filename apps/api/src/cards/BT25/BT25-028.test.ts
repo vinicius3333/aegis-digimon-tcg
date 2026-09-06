@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_028 } from "./BT25-028.js";
 import "../index.js";
 
@@ -104,7 +105,7 @@ describe("BT25-028 Dianamon", () => {
       {
         0: { hand: [{ card: "BT25-028", as: "diana" }] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "initial", suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "initial", suspended: true, under: ["BT1-001"] }],
           hand: [
             { card: "BT1-014", as: "level4" },
             { card: "BT1-020", as: "level5" },
@@ -117,7 +118,7 @@ describe("BT25-028 Dianamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028"));
 
-    const entrant = s.putOnBoard(1, { card: "BT1-009", as: "entrant" });
+    const entrant = s.putOnBoard(1, { card: "BT1-009", as: "entrant", under: ["BT1-001"] });
     await s.ready();
     await advance(s.engine).verb.suspend([entrant.permanentId]);
     // KB Q6294: a Digimon entering after resolution is affected while it has at most 1 source.
@@ -136,7 +137,8 @@ describe("BT25-028 Dianamon", () => {
     ).toEqual({ ok: true });
     await settle(() => initial.topCard.cardId === "BT1-014");
     await advance(s.engine).verb.suspend([initial.permanentId]);
-    expect(initial.isSuspended).toBe(false);
+    // The legal egg -> level 3 -> level 4 stack now has two sources and is released.
+    expect(initial.isSuspended).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -153,11 +155,11 @@ describe("BT25-028 Dianamon", () => {
     const stacked = s.putOnBoard(1, {
       card: "BT1-009",
       as: "stacked",
-      under: ["BT1-009", "BT1-009"],
+      under: ["BT1-001"],
     });
     await s.ready();
     await advance(s.engine).verb.suspend([stacked.permanentId]);
-    expect(stacked.isSuspended).toBe(true);
+    expect(stacked.isSuspended).toBe(false);
 
     advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
     await advance(s.engine).verb.suspend([entrant.permanentId]);
@@ -177,7 +179,7 @@ describe("BT25-028 Dianamon", () => {
             { card: "BT1-009", as: "played" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT1-025", as: "victim", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -197,6 +199,130 @@ describe("BT25-028 Dianamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT25-103")).toBe(false);
   });
 
+  it("supports the Q6489 opponent-attack effect-play, DNA, and Grace counter sequence", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "BT25-028", as: "diana" },
+            { card: "BT1-025", as: "material" },
+          ],
+          hand: [{ card: "BT25-103", as: "grace" }],
+        },
+        1: {
+          deck: ["BT1-001", "BT1-001", "BT1-001"],
+          battleArea: [
+            {
+              card: "BT1-044",
+              as: "attacker",
+              under: ["BT1-003", "BT1-027", "AD1-010", "AD1-011"],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const trashDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: trashDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const dnaDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: dnaDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103") &&
+        s.events.some((event) => event.kind === "counterWindowOpened"),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103")).toBe(true);
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const graceCounter = opened.eligibleCounters.find(
+      (entry) =>
+        entry.instanceId ===
+        s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-103")!.topCard!.instanceId,
+    );
+    expect(graceCounter).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: graceCounter!.instanceId,
+        effectKey: graceCounter!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const counterTrash = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: counterTrash.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const endAttack = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: endAttack.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("attacker").permanentId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("resolves the same restriction and deletion through a legal TS evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-028", as: "diana" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const host = s.putOnBoard(0, { card: "BT25-026", as: "crescemon" });
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: host.permanentId,
+        instanceId: s.inst("diana").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => host.topCard.cardId === "BT25-028" && host.stack.length === 1);
+    expect(host.topCard.cardId).toBe("BT25-028");
+    expect(host.stack.map((card) => card.cardId)).toEqual(["BT25-026"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("triggers the All Turns watcher when Dianamon itself is played", async () => {
     const s = setupEngine(
       {
@@ -207,10 +333,10 @@ describe("BT25-028 Dianamon", () => {
         1: {
           battleArea: [
             {
-              card: "BT1-009",
+              card: "BT1-025",
               as: "victim",
               suspended: true,
-              under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+              under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"],
             },
           ],
         },
@@ -228,6 +354,57 @@ describe("BT25-028 Dianamon", () => {
     expect(s.perm("victim").stack).toHaveLength(0);
   });
 
+  it("Q6293: accepting All Turns DNA first must suppress Dianamon's pending On Play branch", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-025", as: "material" }],
+          hand: [
+            { card: "BT25-028", as: "diana" },
+            { card: "BT25-103", as: "grace" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-025", as: "victimTrash", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] },
+            { card: "BT1-025", as: "victimKeep", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false, preferInstanceIds: preferred },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    preferred.push(...s.perm("victimTrash").stack.map((card) => card.instanceId));
+    const victimTrashId = s.perm("victimTrash").topCard.instanceId;
+    const victimKeepId = s.perm("victimKeep").topCard.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const orderDecision = s.state.pendingDecision!;
+    const orderRequest = s.decisions.find(({ req }) => req.decisionId === orderDecision.decisionId)!.req;
+    const keys = orderRequest.options?.triggerKeys ?? [];
+    expect(keys).toHaveLength(2);
+    const allTurnsKey = keys.find((key) => key.includes("subtrigger/") && key.endsWith("/whenPlayed"));
+    expect(allTurnsKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderTriggers", order: [allTurnsKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103"));
+
+    // The first selected trigger is the All Turns watcher: four sources are trashed and GraceNovamon enters.
+    // KB Q6293 requires the simultaneously pending On Play branch to be unavailable afterward.
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103")).toBe(true);
+    expect(s.state.players[1]!.deck).toContainEqual(expect.objectContaining({ instanceId: victimTrashId }));
+    expect(s.state.players[1]!.trash).not.toContainEqual(expect.objectContaining({ instanceId: victimKeepId }));
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([victimKeepId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("fires the same discard watcher when any Digimon digivolves", async () => {
     const s = setupEngine(
       {
@@ -235,7 +412,7 @@ describe("BT25-028 Dianamon", () => {
           battleArea: [{ card: "BT25-028", as: "diana" }],
           hand: [{ card: "BT1-009", as: "evolution" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT1-025", as: "victim", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -253,7 +430,7 @@ describe("BT25-028 Dianamon", () => {
     expect(s.perm("victim").stack).toHaveLength(0);
   });
 
-  it("is once per turn across a play and a later digivolution event", async () => {
+  it("is once per turn after an accepted play trigger and blocks a later play", async () => {
     const s = setupEngine(
       {
         0: {
@@ -263,40 +440,137 @@ describe("BT25-028 Dianamon", () => {
             { card: "BT1-009", as: "second" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-025", as: "firstVictim", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] },
+            { card: "BT1-025", as: "secondVictim", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] },
+          ],
+        },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009"));
+    await settle(() => s.perm("firstVictim").stack.length === 0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT1-009").length === 2);
-    expect(s.perm("victim").stack).toHaveLength(4);
+    expect(s.perm("firstVictim").stack).toHaveLength(0);
+    expect(s.perm("secondVictim").stack).toHaveLength(4);
+  });
+
+  it("publicly permits declining both optional trash and DNA steps without changing their zones", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-028", as: "diana" },
+            { card: "BT1-025", as: "material" },
+          ],
+          hand: [
+            { card: "BT25-103", as: "grace" },
+            { card: "BT1-009", as: "played" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-025", as: "victim", under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const victim = s.perm("victim");
+    const material = s.perm("material");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009"));
+
+    expect(victim.stack).toHaveLength(4);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-103");
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === material.permanentId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("inherited When Attacking prevents one opponent Digimon from suspending", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT25-028"] }] },
-        1: { security: ["BT1-001", "BT1-001"], battleArea: [{ card: "BT1-009", as: "target" }] },
+        0: { battleArea: [{ card: "BT25-028", as: "diana" }], hand: [{ card: "BT1-084", as: "omnimon" }] },
+        1: { security: ["BT1-001", "BT1-001"] },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("diana").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("diana").topCard.cardId === "BT1-084");
+    expect(s.perm("diana").stack.map((card) => card.cardId)).toContain("BT25-028");
+    const target = s.putOnBoard(1, { card: "BT1-009", as: "target" });
+    const tamer = s.putOnBoard(1, { card: "BT1-085", as: "tamer" });
     await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
+        attackerPermanentId: s.perm("diana").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    await advance(s.engine).verb.suspend([s.perm("target").permanentId]);
-    expect(s.perm("target").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([target.permanentId, tamer.permanentId]);
+    expect(target.isSuspended).toBe(false);
+    expect(tamer.isSuspended).toBe(true);
+
+    // Duration expiry is covered by the public low-stack test above, which exercises the same untilOpponentTurnEnd IR.
+    await advance(s.engine).verb.unsuspend([s.perm("diana").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("diana").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await advance(s.engine).verb.suspend([tamer.permanentId]);
+    expect(tamer.isSuspended).toBe(true);
+  });
+
+  it("inherited When Attacking can instead choose an opposing Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-028", as: "diana" }], hand: [{ card: "BT1-084", as: "omnimon" }] },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("diana").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("diana").topCard.cardId === "BT1-084");
+    const tamer = s.putOnBoard(1, { card: "BT1-085", as: "tamer" });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("diana").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await advance(s.engine).verb.suspend([tamer.permanentId]);
+    expect(tamer.isSuspended).toBe(false);
   });
 });
