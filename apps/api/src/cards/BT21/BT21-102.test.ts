@@ -99,6 +99,34 @@ describe("BT21-102 Tai Kamiya", () => {
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
 
+  it("uses the public attack intent to trigger Tai's draw and suspension cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-102", as: "tai" },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.perm("tai").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+
   it("counts its white color, plays a cost-3 Hero, then returns itself to deck bottom", async () => {
     const s = setupEngine(
       {
