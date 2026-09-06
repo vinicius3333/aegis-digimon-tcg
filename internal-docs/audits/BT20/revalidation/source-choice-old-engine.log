@@ -1,0 +1,4 @@
+JSON report written to /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/source-choice-old-engine-results.json
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/sourcePlayChoice.test.ts src/cards/BT22/BT22-007.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/source-choice-old-engine-results.json
