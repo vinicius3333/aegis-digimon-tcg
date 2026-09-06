@@ -98,7 +98,7 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-085](cards/BT21-085.md) | Davis Motomiya | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-086](cards/BT21-086.md) | Marcus Damon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-087](cards/BT21-087.md) | Zenith | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-088](cards/BT21-088.md) | Tagiru Akashi | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-088](cards/BT21-088.md) | Tagiru Akashi | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Opponent under-Tamer material exclusion and opponent-turn evolution scope need final comparative review.; Final collection delivery gates pending |
 | [BT21-089](cards/BT21-089.md) | Takato Matsuki | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-090](cards/BT21-090.md) | The Strongest of Brothers | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-091](cards/BT21-091.md) | Spirit Evolution! | 0 / 0 / 0 / 0 / 0 | 0/10 | proof-gaps | Reactive Delay is split into an arming watcher and unreachable AllTurns payload; card IR correction pending; Final collection delivery gates pending |

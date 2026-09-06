@@ -3444,7 +3444,8 @@
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "aafa5e016"
+        "aafa5e016",
+        "92cfd2381"
       ],
       "commands": [
         {
@@ -3461,6 +3462,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v5.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/second-pass-085-088-v4.log"
         }
       ]
     },
@@ -3481,7 +3487,8 @@
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "a750d11c4"
+        "a750d11c4",
+        "d857dcbc0"
       ],
       "commands": [
         {
@@ -3498,6 +3505,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v5.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/second-pass-085-088-v4.log"
         }
       ]
     },
@@ -3518,7 +3530,8 @@
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "342ecda36"
+        "342ecda36",
+        "e7cba3cbf"
       ],
       "commands": [
         {
@@ -3535,6 +3548,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v5.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/second-pass-085-088-v4.log"
         }
       ]
     },
@@ -3551,11 +3569,12 @@
       ],
       "evidence": "cards/BT21-088.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
+        "Opponent under-Tamer material exclusion and opponent-turn evolution scope need final comparative review.",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "e6537145b"
+        "e6537145b",
+        "af82bf5a8"
       ],
       "commands": [
         {
@@ -3572,6 +3591,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-mechanisms-second-pass-v5.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/second-pass-085-088-v4.log"
         }
       ]
     },
