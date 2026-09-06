@@ -147,4 +147,36 @@ describe("BT25-056 Bootmon", () => {
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("other").instanceId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("declining the optional link keeps the legal card in hand and does not spend memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "boot" },
+            { card: "BT26-010", as: "link" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent", suspended: false }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("boot").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
+    const boot = findPermanent(s, 0, CARD_ID);
+    expect(boot.linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+  });
 });
