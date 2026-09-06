@@ -87,6 +87,26 @@ describe("BT20-061 Impmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT20-047"]);
   });
 
+  it("on play with no qualifying reveal leaves all three cards on the deck bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-061", as: "impmon" }],
+          deck: ["BT20-047", "BT20-048", "BT20-049"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("impmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 3 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT20-047", "BT20-048", "BT20-049"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT20-047");
+  });
+
   it("applies inherited DP only on its controller's turn and only while underneath a host", async () => {
     const s = setupEngine({
       0: {
