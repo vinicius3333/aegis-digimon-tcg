@@ -36,7 +36,14 @@ describe("BT21-070 Gossipmon", () => {
       expect.objectContaining({
         trigger: "Security",
         timing: "endOfBattle",
-        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenSecurityBattleEnded",
+            once: true,
+            actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+          }),
+        ],
       }),
     );
     expect(compiled.effects.filter((e) => e.trigger === "OnPlay" || e.trigger === "WhenDigivolving")).toHaveLength(2);
@@ -153,12 +160,29 @@ describe("BT21-070 Gossipmon", () => {
   });
 
   it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-070", as: "gossipmon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-070", as: "gossipmon" }] },
+    });
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("gossipmon"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gossipmon").instanceId),
+    );
     expect(s.state.memory).toBe(0);
+    const checked = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT21-070",
+    );
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-070");
+    expect(checked).toBeGreaterThanOrEqual(0);
+    expect(played).toBeGreaterThan(checked);
   });
 });

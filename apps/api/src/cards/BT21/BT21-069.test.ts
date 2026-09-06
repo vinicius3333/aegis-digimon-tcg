@@ -33,7 +33,15 @@ describe("BT21-069 GulusGammamon", () => {
       expect.objectContaining({
         trigger: "Security",
         timing: "endOfBattle",
-        actions: [expect.objectContaining({ payCost: false })],
+        isSecurity: true,
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenSecurityBattleEnded",
+            once: true,
+            actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false, from: ["trash"] })],
+          }),
+        ],
       }),
     );
     expect(compiled.effects).toContainEqual(
@@ -67,6 +75,38 @@ describe("BT21-069 GulusGammamon", () => {
     const gulus = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-069");
     expect(gulus?.stack.some((card) => card.cardId === "BT21-010")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+  });
+
+  it("uses the printed alternate Gammamon evolution through a legal public stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-010", as: "rookie" }],
+          hand: [
+            { card: "BT21-069", as: "gulus" },
+            { card: "BT21-010", as: "bottom-gammamon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rookie").permanentId,
+        instanceId: s.inst("gulus").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rookie").topCard.cardId === "BT21-069");
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("rookie").stack[0]?.instanceId).toBe(s.inst("bottom-gammamon").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("also pays from trash during evolution and places the card at the true bottom", async () => {
@@ -137,5 +177,31 @@ describe("BT21-069 GulusGammamon", () => {
     });
     await inherited.ready();
     expect(observe(inherited.engine).hasKeyword(inherited.perm("host"), "Retaliation")).toBe(true);
+  });
+
+  it("plays from Security only after the public security battle closes", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-069", as: "gulus" }] },
+    });
+    await s.ready();
+
+    const attack = s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    });
+    expect(attack).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT21-069"));
+
+    const checkedIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT21-069",
+    );
+    const playedIndex = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-069");
+    const checked = s.events[checkedIndex] as { battle?: unknown } | undefined;
+    expect(checkedIndex).toBeGreaterThanOrEqual(0);
+    expect(checked?.battle).toBeDefined();
+    expect(playedIndex).toBeGreaterThan(checkedIndex);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
