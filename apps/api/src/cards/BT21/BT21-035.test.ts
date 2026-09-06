@@ -56,6 +56,25 @@ describe("BT21-035 compiled implementation", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 2, isAlternate: true }]);
   });
 
+  it("refuses the alternate evolution from a level-3 that is not named Veemon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-033", as: "floramon" }], hand: [{ card: "BT21-035", as: "flamedramon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const handId = s.inst("flamedramon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("floramon").permanentId,
+        instanceId: handId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("stacks Veemon's reduction and inherited DP with its own evolution bonus", async () => {
     const s = setupEngine({
       0: {
