@@ -1,0 +1,29 @@
+{
+  "cardId": "BT20-004",
+  "status": "in-progress",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 1,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-004.ts exclusively registers IR; inherited YourTurn/OncePerTurn ACCEL whenPlayed watcher, optional self digivolve from hand, reduction 2.",
+    "BT20-004.test.ts proves natural ACCEL play, non-ACCEL negative, optional refusal, and second ACCEL play blocked by once-per-turn.",
+    "001-013-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-006.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "3 files passed; 9 tests passed"
+    },
+    {
+      "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+      "result": "6 assertions/tests in focused file: passed; 001-013-results.json"
+    }
+  ],
+  "gaps": [
+    "Prove once-per-turn reset after a real turn boundary."
+  ]
+}
