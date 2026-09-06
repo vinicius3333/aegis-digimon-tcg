@@ -174,3 +174,10 @@ Accepted evidence remains001–026 (26/102); all027+ reports remain provisional.
 Three confirmed corrections are in integration:029 official full-Pulsemon-text matching replaces a community catalog name-only transcription;035's Tamer-triggered optional attack targets opponent Digimon only;037's overall On Play and unsuspend prohibition follows later entrants until the opponent turn ends (CR15-11-2-2, Q4348/Q4718/Q4841). Snapshot-only engine mutation produces a concrete wrong deck state in037-overall-engine-disabled-results.json and is restored. Security-removal ownership on035 already defaults to mine in the shared subtrigger; no owner-gate production fix is justified.
 
 Next gates: finish027/034/036/040/042 negative/timing proofs, synchronize onlyBT20, renew focused/mechanism/fullcollection/typecheck/style/diff results and runtime sensitivity, independently accept eligible cards, deliver atomic commits, push, and update the PR.044–049 strict clause work proceeds in nonoverlapping Luna batches. Collection completion remains explicitly pending.
+
+
+## Pushed round4 checkpoint: first43 cards accepted
+
+All code and validation artifacts through `ffaed8f212bbc50e88af3c0af87e87d1e00dfdef` are pushed. Latest full BT20 plus new overall timing mechanism passes894/894; affected mechanism suites pass543/543. Shared/API/web typecheck, set-scoped102-record synchronization/check, changed-file lint/format and clean diff pass. Runtime-disabled proof for027–043 produces intended state failures and restores every module.
+
+Hash-bound acceptance now covers001–043:43/102 verified,430/1020 points, mean4.216. Cards044–061 have strengthened, green provisional fixtures but retain independent final acceptance work;062–102 follow the strict remaining gap plans. The collection remains incomplete. Next checkpoint prioritizes044–061 final clause review and tail public timing/cost/refusal gaps, including096 Trash/Main,101 public suspension/OPT and102 natural End of Turn.
