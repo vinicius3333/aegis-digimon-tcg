@@ -59,6 +59,29 @@ describe("EX12-003 Kapurimon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-016")).toBe(true);
   });
 
+  it("does not DNA digivolve into an ME card whose only requirement is a normal digivolve cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-016", as: "leaving", under: ["EX12-003"] },
+            { card: "EX12-055", as: "partner" },
+          ],
+          hand: [{ card: "EX12-059", as: "noDnaRecipe" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const leavingId = s.perm("leaving").permanentId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([leavingId], "byRule")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === leavingId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-059")).toBe(true);
+  });
+
   it("does not prevent the leave when the other material fails the destination recipe (Q6725)", async () => {
     const s = setupEngine(
       {
