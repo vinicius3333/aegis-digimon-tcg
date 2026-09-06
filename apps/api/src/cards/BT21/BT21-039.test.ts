@@ -165,4 +165,31 @@ describe("BT21-039 compiled implementation", () => {
     expect(s.perm("secondBase").topCard.cardId).toBe("BT21-033");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEvolution").instanceId);
   });
+
+  it("uses the public attack origin to free-digivolve another WG Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-033", as: "base" },
+          ],
+          hand: [{ card: "BT21-034", as: "evolution" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gryphonmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-034");
+    expect(s.state.memory).toBe(3);
+  });
 });
