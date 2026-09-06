@@ -84,7 +84,7 @@ describe("BT21-026 WarGreymon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargreymon").instanceId })).toEqual({
       ok: true,
@@ -260,5 +260,57 @@ describe("BT21-026 WarGreymon", () => {
 
       expect(s.perm("wargreymon").isSuspended).toBe(true);
     }
+  });
+
+  it("does not unsuspend when its controller deletes their own Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "wargreymon", suspended: true },
+            { card: "BT2-067", as: "purpleSource" },
+            { card: "BT1-009", as: "sacrifice" },
+          ],
+          hand: [{ card: "BT2-109", as: "heatViper" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("sacrifice").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId));
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+  });
+
+  it("declines the unsuspend after a public Gaia Force deletes an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-026", as: "wargreymon", suspended: true }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+    await settle(
+      () =>
+        s.decisions.filter(({ req }) => req.kind === "optional").length === 1 && s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
   });
 });
