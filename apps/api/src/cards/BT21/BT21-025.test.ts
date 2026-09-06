@@ -101,6 +101,60 @@ describe("BT21-025 Lamiamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("trashes the opponent's top security from a public Raid target switch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-024", as: "host", under: ["BT21-025"] },
+            { card: "RB1-008", as: "raider" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "raidTarget", suspended: true }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raider").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+  });
+
+  it("plays a qualifying inherited Digimon from a public security attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-024", as: "host", under: ["BT21-025"] },
+            { card: "BT21-011", as: "attacker" },
+          ],
+          hand: [{ card: "BT21-017", as: "free" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-017"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
   it("inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free", async () => {
     const s = setupEngine(
       {
