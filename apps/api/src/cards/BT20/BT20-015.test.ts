@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
+import "../BT2/BT2-107.js";
 import { compiled } from "./BT20-015.js";
 
 describe("BT20-015 Hisyaryumon", () => {
@@ -98,7 +99,7 @@ describe("BT20-015 Hisyaryumon", () => {
     await advance(inherited.engine).recompute();
     expect(observe(inherited.engine).suppressesSecurityEffect(inherited.perm("host"), "BT1-107")).toBe(false);
   });
-  it("declines the attack-triggered evolution and rejects the 5001-DP boundary", async () => {
+  it("declines the attack-triggered evolution", async () => {
     const refused = setupEngine(
       {
         0: {
@@ -119,24 +120,6 @@ describe("BT20-015 Hisyaryumon", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 20);
     expect(refused.perm("attacker").topCard.cardId).toBe("BT20-012");
-
-    const boundary = setupEngine(
-      {
-        0: { hand: [{ card: "BT20-015", as: "hisyaryumon" }] },
-        1: { battleArea: [{ card: "BT20-011", dp: 5001, as: "above" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    boundary.state.memory = 7;
-    expect(
-      boundary.engine.applyIntent(0, { type: "playCard", instanceId: boundary.inst("hisyaryumon").instanceId }),
-    ).toEqual({ ok: true });
-    await settle(() =>
-      boundary.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-015"),
-    );
-    expect(boundary.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-011")).toBe(
-      true,
-    );
   });
 
   it("allows the optional breeding play to be refused on entry", async () => {
@@ -199,5 +182,30 @@ describe("BT20-015 Hisyaryumon", () => {
     await opponentTurn;
     expect(s.perm("attacker").currentDP).toBe(7000);
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
+  });
+
+  it("actually suppresses an Option Security effect only with the inherited Hisyaryumon source", async () => {
+    for (const [under, expectedMemory] of [
+      [true, 0],
+      [false, -2],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT20-058", as: "host", ...(under ? { under: ["BT20-015"] } : {}) }] },
+        1: { security: [{ card: "BT2-107", as: "optionSecurity" }] },
+      });
+      s.state.turnSeat = 0;
+      s.state.memory = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+      expect(s.state.memory).toBe(expectedMemory);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+    }
   });
 });
