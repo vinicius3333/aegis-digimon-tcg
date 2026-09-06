@@ -148,12 +148,63 @@ describe("BT20-040 Coredramon", () => {
     expect(declined.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-042");
   });
 
+  it("does not react to a qualifying-text Digimon controlled by the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: "BT20-042", as: "groundramon" },
+            { card: "BT20-042", as: "destination" },
+          ],
+        },
+        1: { hand: [{ card: "BT20-023", as: "opponentBlueText" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentBlueText").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT20-023"));
+    expect(s.perm("coredramon").topCard.cardId).toBe("BT20-040");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-042");
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("does not react to a non-blue Digimon even when Dracomon or Examon appears in its text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: "BT20-042", as: "groundramon" },
+            { card: "BT20-042", as: "destination" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("groundramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-042"));
+    expect(s.perm("coredramon").topCard.cardId).toBe("BT20-040");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("destination").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3); // Groundramon's printed play cost is 7.
+  });
+
   it("uses Raid and grants its inherited host +2000 DP only on its controller's turn", async () => {
     const raid = setupEngine({
       0: { battleArea: [{ card: "BT20-040", dp: 5000, as: "coredramon" }] },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, as: "raidTarget" }],
-        security: ["BT20-001"],
+        security: ["BT1-010"],
       },
     });
     expect(
