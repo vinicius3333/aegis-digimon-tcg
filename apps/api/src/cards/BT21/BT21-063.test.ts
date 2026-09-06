@@ -114,6 +114,50 @@ describe("BT21-063 Gumdramon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("publicly uses the zero-cost Save-text alternate evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT12-005", as: "saveEgg" },
+        hand: [{ card: "BT21-063", as: "gumdramon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("saveEgg").permanentId,
+        instanceId: s.inst("gumdramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("saveEgg").topCard.cardId === "BT21-063");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("saveEgg").stack.map((card) => card.cardId)).toEqual(["BT12-005"]);
+  });
+
+  it("refuses both zero-cost alternates from a neutral level-2 without Save text or Hero trait", async () => {
+    for (const alternateRequirementIndex of [0, 1] as const) {
+      const s = setupEngine({
+        0: { breeding: { card: "BT1-001", as: "unqualifiedEgg" }, hand: [{ card: "BT21-063", as: "gumdramon" }] },
+      });
+      s.state.memory = 1;
+      await s.ready();
+      const handId = s.inst("gumdramon").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("unqualifiedEgg").permanentId,
+          instanceId: handId,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+      expect(s.perm("unqualifiedEgg").topCard.cardId).toBe("BT1-001");
+      expect(s.state.memory).toBe(1);
+    }
+  });
+
   it("publicly uses the zero-cost Hero alternate evolution route", async () => {
     const s = setupEngine({
       0: {
