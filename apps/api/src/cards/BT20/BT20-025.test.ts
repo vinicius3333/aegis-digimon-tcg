@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-025.js";
 import "./index.js";
+import "../EX3/EX3-074.js";
 
 describe("BT20-025 Wingdramon", () => {
   it("deletes up to 6000 DP and is treated as Slayerdramon only while in play", () => {
@@ -72,37 +73,50 @@ describe("BT20-025 Wingdramon", () => {
     expect(observe(inherited.engine).keywordAmount(inherited.perm("host"), "SecurityAttack")).toBe(1);
   });
 
-  it("uses the field-only Slayerdramon and level-6 treatment for Examon Blast DNA", async () => {
+  it("uses the field-only Slayerdramon treatment for Examon Blast DNA", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT20-042", as: "groundramon" },
-            { card: "BT20-025", as: "wingdramon" },
+          battleArea: [{ card: "BT20-025", as: "wingdramon", under: ["BT20-023"] }],
+          hand: [
+            { card: "BT20-044", as: "breakdramon" },
+            { card: "BT20-045", as: "examon" },
           ],
-          hand: [{ card: "BT20-045", as: "examon" }],
+          security: ["BT20-001", "BT20-002"],
+          deck: ["BT20-001", "BT20-002"],
         },
+        1: { battleArea: [{ card: "BT20-009", as: "attacker" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoDeclineOptional: true },
     );
-    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
-
     expect(
-      s.engine.applyIntent(0, {
-        type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("groundramon").permanentId, s.perm("wingdramon").permanentId],
-        instanceId: s.inst("examon").instanceId,
-        useBlastDigivolve: true,
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-045"));
-
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    expect(opened).toBeDefined();
+    const choice = opened!.eligibleCounters.find((entry) => entry.instanceId === s.inst("examon").instanceId);
+    expect(choice).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: choice!.instanceId,
+        effectKey: choice!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-045");
     expect(result).toBeDefined();
-    expect(result!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-042", "BT20-025"]));
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("examon").instanceId);
-    expect(s.state.memory).toBe(0);
+    expect(result!.stack.map((card) => card.cardId)).toEqual(["BT20-023", "BT20-025", "BT20-044"]);
+    expect(s.state.players[0]!.hand.some((card) => ["BT20-044", "BT20-045"].includes(card.cardId))).toBe(false);
+    expect(s.state.memory).toBe(3);
   });
   it("publicly evolves Coredramon into Wingdramon and applies the printed deletion", async () => {
     const s = setupEngine({
@@ -171,9 +185,9 @@ describe("BT20-025 Wingdramon", () => {
       0: {
         battleArea: [
           { card: "BT20-044", as: "breakdramon" },
-          { card: "BT20-027", as: "slayerdramon" },
+          { card: "BT20-027", as: "slayerdramon", under: ["BT20-025"] },
         ],
-        hand: [{ card: "BT20-045", as: "examon" }],
+        hand: [{ card: "EX3-074", as: "examon" }],
       },
       1: { battleArea: [{ card: "BT20-014", dp: 7000, as: "opponent" }] },
     });
@@ -185,7 +199,7 @@ describe("BT20-025 Wingdramon", () => {
         instanceId: s.inst("examon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-045"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX3-074"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("examon").instanceId)).toBe(false);
   });
 });
