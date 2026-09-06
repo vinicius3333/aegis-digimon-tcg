@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./index.js";
 import { compiled } from "./BT23-001.js";
 
 describe("BT23-001 Flickmon", () => {
@@ -125,5 +126,65 @@ describe("BT23-001 Flickmon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("publicly evolves an Appmon egg from breeding into off-color Musclemon", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT23-001", as: "appmonEgg" }, hand: [{ card: "BT23-007", as: "muscle" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const eggId = s.inst("appmonEgg").instanceId;
+    const muscleId = s.inst("muscle").instanceId;
+    const eggPermanentId = s.perm("appmonEgg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggPermanentId,
+        instanceId: muscleId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === muscleId);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.breeding?.permanentId).toBe(eggPermanentId);
+    expect(s.state.players[0]!.breeding?.stack[0]!.instanceId).toBe(eggId);
+    expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(muscleId);
+  });
+
+  it("resets the inherited draw on the next own turn through the public turn flow", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-007", under: ["BT23-001"], as: "attacker" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+      },
+      1: {
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        security: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+    });
+    const attackPlayer = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      });
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstHand = s.state.players[0]!.hand.length;
+    expect(attackPlayer()).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand).toHaveLength(firstHand + 1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    const secondHand = s.state.players[0]!.hand.length;
+    expect(attackPlayer()).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand).toHaveLength(secondHand + 1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
