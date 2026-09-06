@@ -1,0 +1,65 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 22ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > publicly pays the On Play source from trash before deleting an eligible target 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the alternate evolution from a level-3 without Gammamon in its name 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 3ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 1ms
+ × src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public play with only a level-5 target 7ms
+   → expected undefined to be 'inst-35' // Object.is equality
+ × src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public digivolve with only a level-5 target 31ms
+   → expected 'inst-43' to be 'inst-40' // Object.is equality
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public play with only a level-5 target
+AssertionError: expected undefined to be 'inst-35' // Object.is equality
+
+- Expected:
+"inst-35"
+
++ Received:
+undefined
+
+ ❯ src/cards/BT21/BT21-069.test.ts:208:41
+    206|     await settle(() => s.state.players[0]!.battleArea.some(permanent =…
+    207|     const gulus = s.state.players[0]!.battleArea.find(permanent => per…
+    208|     expect(gulus?.stack[0]?.instanceId).toBe(s.inst("cost").instanceId…
+       |                                         ^
+    209|     expect(s.state.players[0]!.hand.some(card => card.instanceId === s…
+    210|     expect(s.perm("target").topCard.cardId).toBe("BT2-075");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public digivolve with only a level-5 target
+AssertionError: expected 'inst-43' to be 'inst-40' // Object.is equality
+
+Expected: "inst-40"
+Received: "inst-43"
+
+ ❯ src/cards/BT21/BT21-069.test.ts:208:41
+    206|     await settle(() => s.state.players[0]!.battleArea.some(permanent =…
+    207|     const gulus = s.state.players[0]!.battleArea.find(permanent => per…
+    208|     expect(gulus?.stack[0]?.instanceId).toBe(s.inst("cost").instanceId…
+       |                                         ^
+    209|     expect(s.state.players[0]!.hand.some(card => card.instanceId === s…
+    210|     expect(s.perm("target").topCard.cardId).toBe("BT2-075");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  18:10:03
+   Duration  7.20s (transform 83%, import 16%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

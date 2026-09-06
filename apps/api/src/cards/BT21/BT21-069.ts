@@ -68,6 +68,7 @@ export const compiled: CompiledCard = {
             host: "self",
           },
           optional: true,
+          allowCostWithoutTarget: true,
           abortOnDecline: true,
         },
       ],
@@ -110,6 +111,7 @@ export const compiled: CompiledCard = {
             host: "self",
           },
           optional: true,
+          allowCostWithoutTarget: true,
           abortOnDecline: true,
         },
       ],
@@ -130,7 +132,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Gammamon"],
+      namesExact: ["Gammamon"],
       cost: 2,
       isAlternate: true,
     },

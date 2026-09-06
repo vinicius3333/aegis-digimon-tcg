@@ -74588,6 +74588,7 @@
               "host": "self"
             },
             "optional": true,
+            "allowCostWithoutTarget": true,
             "abortOnDecline": true
           }
         ]
@@ -74622,6 +74623,7 @@
               "host": "self"
             },
             "optional": true,
+            "allowCostWithoutTarget": true,
             "abortOnDecline": true
           }
         ]
@@ -74635,7 +74637,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "BT21-070": {
     "effects": [
