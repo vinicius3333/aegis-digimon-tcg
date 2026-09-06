@@ -64,4 +64,24 @@ describe("BT20-098 Apparition Legion", () => {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
     }
   });
+
+  it("public Security check plays one qualifying Ghost from trash without cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+        1: { security: [{ card: "BT20-098", faceUp: true }], trash: [{ card: "BT20-063", as: "ghost" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT20-063"));
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toContain("BT20-063");
+  });
 });
