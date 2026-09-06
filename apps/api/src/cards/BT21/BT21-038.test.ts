@@ -107,6 +107,26 @@ describe("BT21-038 compiled implementation", () => {
     expect(s.perm("wg").isSuspended).toBe(true);
   });
 
+  it("unsuspends a WG Digimon from the public play action", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-034", as: "wg", suspended: true }],
+          hand: [{ card: "BT21-038", as: "deramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-038"));
+    expect(s.perm("wg").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(4);
+  });
+
   it("evolves from a level-3 WG Digimon for 2 and can unsuspend itself", async () => {
     const s = setupEngine(
       {
