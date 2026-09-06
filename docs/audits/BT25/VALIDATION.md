@@ -32,3 +32,16 @@ Disk space returned to about 11 GiB. TypeScript had cached the ENOSPC emit diagn
 Focused lane released to three Luna workers, each restricted to one process and one worker. Astra owns shared type correction, subsequent builds/catalog sync, and integration review.
 
 Raw executable results: `/tmp/bt25-audit-logs/initial-collection.log` and `/tmp/bt25-audit-logs/recovered-typecheck.log`.
+
+## First-wave integration checkpoint
+
+- `pnpm typecheck`: **PASS** for shared, API, and web after the shared optional-decline property type and Coronamon paid-count scaling unit corrections. Log: `/tmp/bt25-audit-logs/first-wave-typecheck.log`.
+- `pnpm effects:sync:set -- --set BT25 --base a924de971`: **PASS**, all 104 BT25 records synchronized. Compared with the base, 23 records changed semantically, including pre-existing stale snapshots; zero semantic or byte changes outside BT25. Log: `/tmp/bt25-audit-logs/first-wave-effects-sync.log`. The separate check command and final suite remain pending.
+- Astra reviewed the green first-wave fixtures independently. Empty-deck draw checks, illegal second evolution candidates, an eligible unsuspended target mislabeled absent, and union branches never actually selected were sent back for stronger causal proof. Focused success is recorded per card and does not override these gaps.
+- Seven cards have provisional dimension scores; none is verified 10/10. The generated ledger reports the exact current inventory, rather than retaining historical collection completion claims.
+
+- Affected mechanism command: `pnpm --filter @aegis/api exec vitest run src/engine/effects/subtriggers.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/interpreter/targeting/colorMatching.test.ts src/engine/effects/interpreter/scaling.test.ts --maxWorkers=1 --no-file-parallelism` — **4 files, 246 tests passed**. Log: `/tmp/bt25-audit-logs/first-wave-mechanisms.log`.
+
+- `pnpm effects:check:set -- --set BT25 --base a924de971` — **PASS**, 104 records already synchronized, zero semantic or byte changes outside BT25. Log: `/tmp/bt25-audit-logs/first-wave-effects-check.log`.
+- Astra focused integration reruns: 002/004 **16/16**, 001/003/006/007/008 **36/36**, 009–012 **41/41**. Logs: `/tmp/bt25-audit-logs/integration-002-004.log`, `integration-eggs-rookies.log`, `integration-trait-unions.log`. Targeted Oxlint and Oxfmt passed.
+- Testkit caution: `settle(predicate)` drains microtasks and silently returns when its tick budget is exhausted; it does not assert the predicate. Each claimed outcome must have an explicit state assertion afterward. The 017 color fixtures failed this review despite a green focused count and remain incomplete pending repair.

@@ -46,3 +46,26 @@ These are review findings and queued work, not scores or passing evidence.
 - 016: retain existing Q6262–Q6264 attack-DP timing tests. Replace the inherited
   level-3-over-level-5 fixture with legal evolution and security checks. Cover both
   named destination alternatives, refusal, and entry-buff duration.
+
+## Queued batch: BT25-017–020
+
+- 017: Q6265/Q6266 evaluate the played/evolved subject after evolution. Test both
+  color transitions with otherwise legal Apollomon in hand; separate attack
+  refusal from paid deletion refusal, no-target payment, and 7000 DP boundary.
+  Prove inherited extra security check on a legal level-6 host.
+- 018: Q6267 defers zero-DP rule deletion until the whole entry effect finishes.
+  Include the played Digimon in own-Digimon scaling, exclude Tamers/breeding,
+  and prove the subsequent comparison uses changed DP. Q6268/Q6269 require an
+  attack after either accepted DNA evolution or declined DNA evolution. Test
+  12000 DP opponent-only play discount threshold and inherited live battle.
+- 019: both protection branches apply at exactly five opponent memory; one
+  applies on each side. Q6272–Q6277 require targetability, source-kind immunity,
+  previously applied effects becoming ineffective, later reactivation when
+  protection expires, and granted triggers not firing while suppressed. Any
+  shared engine gap belongs to Astra with mechanism regression. Remove
+  `@ts-nocheck` and preserve literal trigger types in the mapped entry effects.
+- 020: 13000 DP discount is either player's battle-area Digimon. Q6279 allows
+  direct battle against an immune target. Q6280/Q6281 constrain Piercing during
+  multiple battles in one attack; Q6283 covers security battles; Q6284–Q6286
+  require correct ordering and a win even when deletion is prevented. Keep TS
+  winner gating and once-per-turn suppression causal with a second legal win.
