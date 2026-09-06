@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-025.js";
 import "../index.js";
 
@@ -101,32 +102,82 @@ describe("BT21-025 Lamiamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("trashes the opponent's top security from a public Raid target switch", async () => {
-    const s = setupEngine(
+  it("Progress protects the attacking card from an opponent effect, but not outside its attack", async () => {
+    const attacking = setupEngine(
       {
-        0: {
-          battleArea: [
-            { card: "BT21-024", as: "host", under: ["BT21-025"] },
-            { card: "RB1-008", as: "raider" },
-          ],
-        },
+        0: { battleArea: [{ card: "BT21-025", as: "lamiamon", dp: 4000 }], deck: ["BT1-009", "BT1-009"] },
+        1: { security: [{ card: "ST1-16", as: "securityEffect" }], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await attacking.ready();
+    expect(
+      attacking.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacking.perm("lamiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => attacking.state.players[1]!.security.length === 0);
+    expect(attacking.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-025")).toBe(true);
+
+    const outside = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-025", as: "lamiamon", dp: 7000 }], deck: ["BT1-009", "BT1-009"] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "raidTarget", suspended: true }],
-          security: ["BT1-001", "BT1-002"],
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "removal" }],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    outside.state.turnSeat = 1;
+    outside.state.memory = 10;
+    await outside.ready();
+    expect(outside.engine.applyIntent(1, { type: "playCard", instanceId: outside.inst("removal").instanceId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => outside.state.players[0]!.battleArea.length === 0);
+    expect(outside.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("trashes the opponent's top security from a public Raid target switch", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-025", as: "lamiamon" }],
+          hand: [{ card: "BT21-075", as: "raidGrant" }],
+          security: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "raidTarget" }],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("lamiamon").permanentId);
+    s.state.memory = 10;
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("raidGrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("lamiamon"), "Raid"));
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("raider").permanentId,
+        attackerPermanentId: s.perm("lamiamon").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
   });
 
   it("plays a qualifying inherited Digimon from a public security attack", async () => {
@@ -134,12 +185,17 @@ describe("BT21-025 Lamiamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-024", as: "host", under: ["BT21-025"] },
+            { card: "BT21-026", as: "host", under: ["BT21-025"] },
             { card: "BT21-011", as: "attacker" },
           ],
-          hand: [{ card: "BT21-017", as: "free" }],
+          hand: [
+            { card: "BT21-017", as: "free" },
+            { card: "BT21-015", as: "secondEligible" },
+          ],
+          security: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-001"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -152,16 +208,17 @@ describe("BT21-025 Lamiamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-017"));
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
   });
 
   it("inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-024", as: "host", under: ["BT21-025"] }],
+          battleArea: [{ card: "BT21-026", as: "host", under: ["BT21-025"] }],
           hand: [
             { card: "BT21-017", as: "eligible" },
+            { card: "BT21-015", as: "secondEligible" },
             { card: "BT1-009", as: "wrongTrait" },
           ],
         },
@@ -179,6 +236,7 @@ describe("BT21-025 Lamiamon", () => {
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT21-017")).toHaveLength(
       1,
     );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
   });
 
   it("does not play for the controller's security removal and permits declining the optional play", async () => {
@@ -189,7 +247,7 @@ describe("BT21-025 Lamiamon", () => {
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: "BT21-024", as: "host", under: ["BT21-025"] }],
+            battleArea: [{ card: "BT21-026", as: "host", under: ["BT21-025"] }],
             hand: [{ card: "BT21-017", as: "eligible" }],
           },
         },

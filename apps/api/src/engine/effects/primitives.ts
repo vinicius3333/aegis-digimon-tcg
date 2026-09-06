@@ -3068,7 +3068,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // covers byEffect + byRule.
     // A rule deletion has no controlling effect, so an opponent-scoped entry cannot apply to it.
     permanentIds = permanentIds.filter((permanentId) =>
-      cause === "byRule"
+      cause === "byRule" || cause === "byBattle"
         ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false })
         : !isRestricted(permanentId, "beDeleted"),
     );
@@ -4775,6 +4775,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const byOpponentEffect = isOpponentEffectAgainst(permanentId);
     if (continuous.hasRestriction(permanentId, restriction, undefined, { byOpponentEffect })) return true;
     if (byOpponentEffect !== true) return false;
+    // Target selection may preserve an immune target so downstream clauses can observe
+    // a failed mutation. Progress must therefore also protect the mutation itself.
+    if (continuous.hasKeyword(permanentId, "Progress") && engine.combat?.currentAttackerId === permanentId) return true;
     const sourceKinds = effectSourceKindsStack.at(-1) ?? [];
     if (sourceKinds.length === 0) {
       return continuous.hasRestriction(permanentId, "beAffected", undefined, { byOpponentEffect });
