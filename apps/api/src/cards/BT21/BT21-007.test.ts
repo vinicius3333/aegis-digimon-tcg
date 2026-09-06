@@ -97,6 +97,59 @@ describe("BT21-007 Agumon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponent").instanceId);
   });
 
+  it("does not offer the optional return when only the opponent has an eligible trash card", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-007", as: "agumon" }], trash: [{ card: "BT1-009", as: "mine" }] },
+        1: { trash: [{ card: "BT1-025", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-007"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("mine").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponent").instanceId);
+  });
+
+  it("gains inherited DP after a public legal evolution into level 4", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-001", as: "egg" }],
+        hand: [
+          { card: "BT21-007", as: "agumon" },
+          { card: "BT21-015", as: "cyclonemon" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-007");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("cyclonemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-015");
+    expect(s.perm("egg").currentDP).toBe(7000);
+    expect(s.state.memory).toBe(1);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("egg").currentDP).toBe(5000);
+  });
+
   it("grants the inherited +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
       0: {
