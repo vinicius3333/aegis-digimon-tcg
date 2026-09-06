@@ -136,6 +136,75 @@ describe("BT21-005 Swipemon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("ignores a public link onto another legal Appmon host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-018", as: "host", under: ["BT21-005", "BT21-009"] },
+            { card: "BT21-018", as: "otherHost", under: ["BT21-009"] },
+          ],
+          hand: [
+            { card: "BT21-018", as: "otherLink" },
+            { card: "BT21-018", as: "ownLink" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "drawn" },
+            { card: "BT1-002", as: "sentinel" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("otherLink").instanceId,
+        targetPermanentId: s.perm("otherHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("otherHost").linked.some((card) => card.instanceId === s.inst("otherLink").instanceId));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("drawn").instanceId,
+      s.inst("sentinel").instanceId,
+    ]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("ownLink").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
+  });
+
+  it("rejects a public link attempt for this card during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-018", as: "host", under: ["BT21-005", "BT21-009"] }],
+        hand: [{ card: "BT21-018", as: "link" }],
+        deck: [{ card: "BT1-001", as: "sentinel" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("link").instanceId,
+      targetPermanentId: s.perm("host").permanentId,
+    });
+    expect(result.ok).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
+  });
+
   it("ignores another Digimon getting linked and draws only once for its own stack", async () => {
     const s = setupEngine(
       {
