@@ -1,0 +1,36 @@
+{
+  "cardId": "BT20-059",
+  "status": "ready-for-coordinator-verification",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-059.test.ts: public De-Digivolve 2 and conditional all-ally immunity matrix",
+    "BT20-059.test.ts: opponent-turn Sistermon/Huckmon/Royal Knight keyword boundaries",
+    "BT20-059.test.ts: inherited Jesmon GX all-own keyword scope and alternate costs",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-059.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-059;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
+    "Live immunity effect survival/trigger suppression remains cross-rule follow-up"
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}
