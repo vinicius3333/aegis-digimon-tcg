@@ -155,6 +155,49 @@ describe("BT21-038 compiled implementation", () => {
     expect(observe(s.engine).hasKeyword(s.perm("floramon"), "Evade")).toBe(true);
   });
 
+  it("rejects the alternate evolution from a non-WG level-3 base without paying", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "base" }],
+        hand: [{ card: "BT21-038", as: "deramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("deramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-009");
+  });
+
+  it("does not unsuspend an opponent WG or a non-WG own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "ownNonWg", suspended: true }],
+          hand: [{ card: "BT21-038", as: "deramon" }],
+        },
+        1: { battleArea: [{ card: "BT21-034", as: "opponentWg", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("deramon").instanceId),
+    );
+    expect(s.perm("ownNonWg").isSuspended).toBe(true);
+    expect(s.perm("opponentWg").isSuspended).toBe(true);
+  });
+
   it("applies the inherited attack-target lock only on its controller's turn", async () => {
     for (const turnSeat of [0, 1] as const) {
       const s = setupEngine({
