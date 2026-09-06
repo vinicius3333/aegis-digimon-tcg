@@ -159,6 +159,32 @@ describe("BT25-053 Aegiochusmon: Green", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
+  it("does not react when the opponent's security is removed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-059", as: "host", under: ["BT25-053"] },
+            { card: "BT1-009", as: "attacker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT25-075", as: "target" }], security: ["BT1-010"], deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+
   it("executes Decode from its own legal Aegiomon stack on an effect-caused leave", async () => {
     const s = setupEngine(
       {

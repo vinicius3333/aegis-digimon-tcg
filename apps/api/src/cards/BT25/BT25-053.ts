@@ -213,6 +213,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "mine" },
           actions: [
             {
               kind: "Suspend",
