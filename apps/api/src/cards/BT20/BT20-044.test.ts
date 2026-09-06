@@ -92,6 +92,7 @@ describe("BT20-044 Breakdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("attacker"));
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT20-085");
   });
 
   it("provides the same deletion watcher from an inherited source", async () => {
@@ -121,5 +122,74 @@ describe("BT20-044 Breakdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+  });
+
+  it("does not react when a non-Dracomon/Examon Digimon wins a battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-044", as: "breakdramon" },
+          { card: "BT20-010", dp: 5000, as: "unqualified" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT20-010", dp: 1000, suspended: true, as: "battleTarget" },
+          { card: "BT20-085", dp: 1000, suspended: true, as: "effectTarget" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("unqualified").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toContain(s.perm("effectTarget"));
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("unqualified"));
+  });
+
+  it("does not trigger the inherited deletion when its host and the battled Digimon die together", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-040", dp: 1000, as: "host", under: ["BT20-044"] }] },
+      1: {
+        battleArea: [
+          { card: "BT20-010", dp: 1000, suspended: true, as: "battleTarget" },
+          { card: "BT20-085", dp: 1000, suspended: true, as: "effectTarget" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toContain(s.perm("effectTarget"));
+  });
+
+  it("reaches Breakdramon from a legal Groundramon stack through a public alternate evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-042", as: "groundramon" }], hand: [{ card: "BT20-044", as: "breakdramon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("groundramon").permanentId,
+        instanceId: s.inst("breakdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("groundramon").topCard.cardId === "BT20-044");
+    expect(s.perm("groundramon").stack.map((card) => card.cardId)).toEqual(["BT20-042"]);
+    expect(s.state.memory).toBe(2);
   });
 });
