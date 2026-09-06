@@ -246,4 +246,67 @@ describe("BT26-053 Wolvermon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("wolvermon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
+
+  it("uses a real opponent attack redirect to publish the target-switched trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-236", as: "option" }],
+          battleArea: [
+            { card: "BT26-053", as: "source" },
+            { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
+            { card: "BT26-090", as: "tamer2", under: [{ card: "BT1-010", faceUp: false }] },
+            { card: "BT26-052", as: "redirector", under: ["BT26-003"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-009");
+    expect(s.perm("tamer2").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("P-236");
+  });
+
+  it("does not reuse the redirect cost when only one Tamer-stack card is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-236", as: "option" }],
+          battleArea: [
+            { card: "BT26-053", as: "source" },
+            { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
+            { card: "BT26-052", as: "redirector", under: ["BT26-003"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-009");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("P-236");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("P-236");
+  });
 });

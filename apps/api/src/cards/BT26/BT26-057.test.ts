@@ -232,4 +232,38 @@ describe("BT26-057 Bearcatmon", () => {
     await settle(() => s.perm("immuneTarget").isSuspended);
     expect(s.perm("immuneTarget").isSuspended).toBe(true);
   });
+
+  it("unsuspends from a target switch produced by a real opponent attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-057", as: "bearcatmon", suspended: true },
+            { card: "BT26-017", as: "blocker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    expect(s.perm("bearcatmon").isSuspended).toBe(false);
+  });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-052.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -50,6 +51,29 @@ describe("BT26-052 Pristimon", () => {
     await settle(() => s.state.players[0]!.deck.length === 1);
     expect(s.state.players[0]!.hand.map((c) => c.cardId).sort()).toEqual(["BT25-035", "BT26-093"]);
     expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("does not accept a non-black BEATBREAK card for the second reveal slot", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-052", as: "pristimon" }],
+          deck: [
+            { card: "BT26-093", as: "blackDawnBeatbreak" },
+            { card: "BT25-035", as: "yellowDawnBeatbreak" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pristimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT26-093"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT25-035", "BT1-009"]);
   });
 
   it("never adds the same revealed card twice when it qualifies for both slots", async () => {
@@ -111,5 +135,21 @@ describe("BT26-052 Pristimon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+  });
+
+  it("actually unsuspends an inherited host during the opponent's Active phase", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-053", as: "host", under: ["BT26-052"], suspended: true }],
+        deck: ["BT1-001"],
+      },
+      1: { deck: ["BT1-002", "BT1-003"] },
+    });
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 });

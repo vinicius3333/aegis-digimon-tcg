@@ -385,7 +385,7 @@ describe("BT26-074 Cerberusmon", () => {
   it("executes the inherited lowest-level deletion from a real deleted stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-075", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT26-046", as: "host", under: [CARD_ID] }] },
         1: {
           battleArea: [
             { card: "BT26-062", as: "low" },
@@ -400,5 +400,25 @@ describe("BT26-074 Cerberusmon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
 
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-060"]);
+  });
+
+  it("honors Q7100 when an Ascension host resolves first (mechanism fixture)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-075", as: "host", under: [CARD_ID] }] },
+        1: {
+          battleArea: [
+            { card: "BT26-062", as: "low" },
+            { card: "BT26-060", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("BT26-075");
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-062", "BT26-060"]);
   });
 });

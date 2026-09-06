@@ -1,10 +1,10 @@
 # BT26 Executed Card Implementation Audit
 
-Status: complete for all 104 catalog cards (`BT26-001` through `BT26-104`).
+Historical closeout. The current independent re-audit, corrections, scores, and executed results are in `BT26-REAUDIT-20260905.md`.
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
-This is the authoritative BT26 closeout ledger. It supersedes the provisional
+This preserves the previous BT26 closeout ledger. It supersedes the provisional
 static-only campaign and its 765/1040 subtotal. Each card was rechecked against
 the committed catalog, its local rules/knowledge-base entry, the direct
 TypeScript module, the relevant shared engine semantics, and observable
