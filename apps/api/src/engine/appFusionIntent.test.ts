@@ -186,9 +186,9 @@ describe("public App Fusion digivolve intent", () => {
         0,
         appFusionIntent(s.perm("host").permanentId, s.inst("result").instanceId, selected),
       );
-      expect(response, fixture.label).toMatchObject({ ok: false });
-      expect(s.state.memory, fixture.label).toBe(2);
-      expect(s.perm("host").topCard?.cardId, fixture.label).toBe("BT26-051");
+      expect(response).toMatchObject({ ok: false });
+      expect(s.state.memory).toBe(2);
+      expect(s.perm("host").topCard?.cardId).toBe("BT26-051");
     }
   });
 
