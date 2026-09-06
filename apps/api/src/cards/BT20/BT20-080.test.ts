@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-080.js";
 import "../BT14/BT14-087.js";
+import "../ST1/ST1-16.js";
+import "../BT1/BT1-085.js";
 import "./index.js";
 
 describe("BT20-080 Fenriloogamon", () => {
@@ -231,5 +234,75 @@ describe("BT20-080 Fenriloogamon", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT20-047")).toBe(true);
+  });
+
+  it("limits inherited security trash to once per opponent turn and resets on the next real turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST1-16", as: "gaia" }, { card: "ST1-16", as: "gaia2" }, "BT1-010"],
+          security: ["BT1-009"],
+          deck: ["BT20-010", "BT20-010", "BT20-010"],
+          battleArea: [
+            { card: "BT20-081", under: ["BT20-080", "BT20-035"], as: "host" },
+            { card: "BT20-071", dp: 9000, as: "attackerOne" },
+            { card: "BT20-071", dp: 9000, as: "attackerTwo" },
+            { card: "BT1-085", as: "redTamer" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-071", dp: 1000, suspended: true, as: "targetOne" },
+            { card: "BT20-047", dp: 1000, suspended: true, as: "targetTwo" },
+            { card: "BT20-010", dp: 1000, suspended: true, as: "targetThree" },
+          ],
+          deck: ["BT20-010", "BT20-010", "BT20-010"],
+          hand: ["BT1-010"],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const targetOneId = s.perm("targetOne").permanentId;
+    const targetTwoId = s.perm("targetTwo").permanentId;
+    const targetThreeId = s.perm("targetThree").permanentId;
+    const gaiaId = s.inst("gaia").instanceId;
+    const gaia2Id = s.inst("gaia2").instanceId;
+    const securityIds = s.state.players[1]!.security.map((card) => card.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: gaiaId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetOneId));
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(1));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerOne").permanentId,
+        target: { kind: "permanent", permanentId: targetTwoId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetTwoId));
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(1));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(targetThreeId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: gaia2Id })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetThreeId));
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(2));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 });
