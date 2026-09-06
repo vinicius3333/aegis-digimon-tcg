@@ -64,6 +64,7 @@ describe("BT20-048 Dorumon", () => {
       expect.arrayContaining([s.inst("xAntibody").instanceId, s.inst("chronicleTamer").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("adds a Chronicle Option from a mixed reveal pool", async () => {
@@ -91,6 +92,7 @@ describe("BT20-048 Dorumon", () => {
       expect.arrayContaining([s.inst("xAntibody").instanceId, s.inst("chronicleOption").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("returns all revealed cards to the bottom when either requested category is absent", async () => {
@@ -128,7 +130,7 @@ describe("BT20-048 Dorumon", () => {
     ] as const) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: base, as: "base" }],
+          breeding: { card: base, as: "base" },
           hand: [{ card: "BT20-048", as: "dorumon" }],
         },
       });
@@ -148,7 +150,7 @@ describe("BT20-048 Dorumon", () => {
 
   it("grants its inherited host +2000 DP only during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-051", dp: 6000, under: ["BT20-048"], as: "host" }] },
+      0: { battleArea: [{ card: "BT20-050", dp: 6000, under: ["BT20-048"], as: "host" }] },
     });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(6000);

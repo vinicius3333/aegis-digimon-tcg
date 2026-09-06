@@ -41,11 +41,15 @@
     {
       "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
       "result": "Passed changed-file style and diff gates."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "new Chronicle Option positive is unexecuted pending coordinator validation"
+    "New exact-payment assertions remain pending coordinator execution"
   ],
   "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
 }
