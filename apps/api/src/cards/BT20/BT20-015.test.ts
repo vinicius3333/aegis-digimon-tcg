@@ -98,4 +98,106 @@ describe("BT20-015 Hisyaryumon", () => {
     await advance(inherited.engine).recompute();
     expect(observe(inherited.engine).suppressesSecurityEffect(inherited.perm("host"), "BT1-107")).toBe(false);
   });
+  it("declines the attack-triggered evolution and rejects the 5001-DP boundary", async () => {
+    const refused = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "attacker", under: ["BT20-010"] }],
+          hand: [{ card: "BT20-015", as: "hisyaryumon" }],
+        },
+        1: { battleArea: [{ card: "BT20-011", dp: 10000, as: "defender" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    refused.state.memory = 3;
+    expect(
+      refused.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: refused.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+    expect(refused.perm("attacker").topCard.cardId).toBe("BT20-012");
+
+    const boundary = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-015", as: "hisyaryumon" }] },
+        1: { battleArea: [{ card: "BT20-011", dp: 5001, as: "above" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    boundary.state.memory = 7;
+    expect(
+      boundary.engine.applyIntent(0, { type: "playCard", instanceId: boundary.inst("hisyaryumon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      boundary.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-015"),
+    );
+    expect(boundary.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-011")).toBe(
+      true,
+    );
+  });
+
+  it("allows the optional breeding play to be refused on entry", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT20-010", as: "candidate" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hisyaryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-015"));
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+  });
+
+  it("keeps the attack boost through the opponent turn and expires at its end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "attacker", under: ["BT20-010"] }],
+          hand: [{ card: "BT20-015", as: "hisyaryumon" }, { card: "BT20-010", as: "ryudamon" }, "BT20-007"],
+          deck: ["BT20-007", "BT20-007"],
+        },
+        1: { security: ["BT20-001", "BT20-001", "BT20-001"], deck: ["BT20-010"], hand: ["BT20-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.perm("attacker").topCard.cardId).toBe("BT20-015");
+    expect(s.perm("attacker").currentDP).toBe(16000); // 7000 + 5000 + two own-turn inherited 2000 bonuses.
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("attacker").currentDP).toBe(12000);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("attacker").currentDP).toBe(7000);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
+  });
 });
