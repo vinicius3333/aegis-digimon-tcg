@@ -82,6 +82,7 @@ describe("BT21-032 compiled implementation", () => {
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("veemon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: base === "BT12-002" ? 0 : 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT21-032");
@@ -113,6 +114,28 @@ describe("BT21-032 compiled implementation", () => {
     await settle(() => s.perm("veemon").topCard.cardId === target);
 
     expect(s.state.memory).toBe(4 - (printedCost - 1));
+  });
+
+  it("rejects both zero-cost alternate routes from a non-DemiVeemon, non-Hero base", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-003", as: "base" },
+        hand: [{ card: "BT21-032", as: "veemon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("veemon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-003");
   });
 
   it("does not reduce a near-matching evolution or apply the reduction in breeding", async () => {
