@@ -106,13 +106,37 @@ describe("BT21-047 compiled implementation", () => {
   });
 
   it("publicly leaves all revealed cards in deck when neither search bucket matches", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT21-047", as: "navimon" }], deck: ["BT1-009", "BT1-018", "BT1-026"] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT21-047", as: "navimon" }], deck: ["BT1-009", "BT1-018", "BT1-026"] },
+    });
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("navimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("navimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-047"));
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("refuses linking onto a non-Appmon host and preserves the paid card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonAppmon" }],
+        hand: [{ card: "BT21-047", as: "navimon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("navimon").instanceId,
+        targetPermanentId: s.perm("nonAppmon").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("navimon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
   });
 
   it("links for 1, grants 2000 DP, and gives its Appmon host observable Piercing", async () => {
