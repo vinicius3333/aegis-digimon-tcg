@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, Phase } from "@aegis/shared";
+import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -42,15 +42,12 @@ describe("BT20-014 SaviorHuckmon", () => {
     });
   });
 
-  it("deletes at the 5000-DP boundary, then suspends another Digimon to evolve into Jesmon for free", async () => {
+  it.each(["play", "digivolve"] as const)("deletes an opposing Digimon at 5000 DP or less on %s", async (route) => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-010", as: "other" }],
-          hand: [
-            { card: "BT20-014", as: "savior" },
-            { card: "BT20-017", as: "jesmon" },
-          ],
+          ...(route === "digivolve" ? { battleArea: [{ card: "BT20-013", as: "base" }] } : {}),
+          hand: [{ card: "BT20-014", as: "savior" }],
         },
         1: {
           battleArea: [
@@ -64,16 +61,49 @@ describe("BT20-014 SaviorHuckmon", () => {
     s.state.memory = 7;
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
+    const result =
+      route === "play"
+        ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("savior").instanceId })
+        : s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("savior").instanceId,
+          });
+    expect(result).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
+  });
+
+  it("suspends another Digimon and free-evolves into Jesmon through the real End of Your Turn flow", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-018", as: "other" }],
+          hand: [
+            { card: "BT20-014", as: "savior" },
+            { card: "BT20-017", as: "jesmon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("savior").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
-    const savior = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-014")!;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, savior);
-    await settle(() => savior.topCard.cardId === "BT20-017");
-    expect(s.perm("other").isSuspended).toBe(true);
+    await settle(() => s.perm("savior").topCard.cardId === "BT20-014");
     expect(s.state.memory).toBe(0);
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.perm("savior").topCard.cardId).toBe("BT20-017");
+    expect(s.perm("savior").stack.map((card) => card.cardId)).toContain("BT20-014");
+    expect(s.state.memory).toBe(-3);
   });
 
   it("grants inherited Alliance only to a Royal Knight host on its controller's turn", async () => {
@@ -81,7 +111,7 @@ describe("BT20-014 SaviorHuckmon", () => {
       0: {
         battleArea: [
           { card: "BT20-017", as: "royalKnight", under: ["BT20-014"] },
-          { card: "BT20-015", as: "chronicle", under: ["BT20-014"] },
+          { card: "BT20-018", as: "chronicle", under: ["BT20-014"] },
         ],
       },
     });

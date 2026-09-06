@@ -1,23 +1,27 @@
 {
   "cardId": "BT20-014",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
-    "peerStackProof": 1,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
-    "Catalog: SaviorHuckmon level 5 red Dragonkin, On Play/When Digivolving deletes one opposing Digimon at 5000 DP or less; End of Your Turn may suspend one other Digimon to free-digivolve self into Jesmon-name from hand; inherited Your Turn Royal Knight self gains Alliance.",
-    "BT20-014.ts exclusively registers IR with exact OnPlay/WhenDigivolving deletion filters, EndOfYourTurn optional self Jesmon hand digivolution and exclude-self suspend cost, and inherited Royal Knight Alliance condition.",
-    "BT20-014.test.ts asserts IR clauses; public play proves exact 5000 deletion and 6000 retention, then optional free Jesmon evolution with another unsuspended Digimon available for the suspension cost and memory unchanged; inherited Royal Knight/self/opponent turn scope is also covered.",
-    "Added public other-Digimon attack suspension refusal proof and legal BaoHuckmon \u2192 SaviorHuckmon \u2192 Jesmon runOneTurn lifecycle proof for Alliance expiry.",
-    "014-040-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "Public play and legal BaoHuckmon evolution delete exactly the 5000-DP target; 5001/6000 controls survive.",
+    "Real End of Your Turn pays by suspending another Digimon and evolves SaviorHuckmon into Jesmon free; feasible refusal leaves both unchanged. Main passing sets memory to -3; this evolution adds no charge.",
+    "Legal BaoHuckmon -> SaviorHuckmon -> Jesmon breeding evolution and public movement expose inherited Alliance. Non-Royal-Knight host and opponent-turn controls exclude the grant.",
+    "BT20-014.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -28,7 +32,7 @@
     },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
-      "result": "6 cases pass for BT20-014; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+      "result": "Prior snapshot: 6 cases pass for BT20-014; all 790/790 pass. Corrected additions are not included and remain unexecuted. Final independent clause acceptance/delivery still pending."
     },
     {
       "command": "pnpm --filter @aegis/api typecheck",
@@ -39,9 +43,26 @@
       "result": "Passed changed-file style and diff gates."
     }
   ],
-  "gaps": [
-    "Delivery gates pending coordinator collection, mechanism, typecheck, lint.",
-    "Coordinator rerun required for the corrected feasible End-of-Turn refusal fixture and collection gates."
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "8 cases passed for BT20-014; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-014",
+      "result": "5 intended state/assertion failures with registered effects disabled; production restored. See BT20-014-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }
