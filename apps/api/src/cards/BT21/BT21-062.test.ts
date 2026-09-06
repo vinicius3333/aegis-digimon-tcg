@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./BT21-062.js";
@@ -47,6 +47,7 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
       },
       from: ["hand", "trash"],
       payCost: false,
+      allowCostWithoutTarget: true,
     });
     expect(compiled.coverage).toBe("full");
   });
@@ -117,6 +118,57 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
     expect(s.state.players[0]?.hand.some((card) => card.instanceId === s.inst("cannon").instanceId)).toBe(false);
     expect(s.state.players[1]?.battleArea.length).toBeLessThanOrEqual(1);
   });
+
+  it("pays the four-card Vemmon-text placement cost even with no legal Ragnarok target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GALACTICMON, as: "galacticmon" }],
+          hand: [{ card: "BT21-098", as: "cannon" }],
+          trash: ["BT21-056", "BT21-056", "BT11-065", "BT11-065"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("galacticmon"));
+    await settle(() => s.perm("galacticmon").stack.length === 4);
+    expect(s.perm("galacticmon").stack).toHaveLength(4);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cannon").instanceId)).toBe(false);
+  });
+
+  it.each([true, false])(
+    "publicly evolves without any Ragnarok Cannon and may pay the four-card cost: %s",
+    async (accept) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-058", as: "host", under: ["BT21-006", "BT21-056"] }],
+            hand: [{ card: GALACTICMON, as: "evolution" }],
+            deck: ["BT1-001"],
+            trash: ["BT21-056", "BT21-056", "BT11-065", "BT11-065"],
+          },
+        },
+        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(GALACTICMON);
+      expect(s.state.memory).toBe(2);
+      expect(s.perm("host").stack).toHaveLength(accept ? 7 : 3);
+      expect(s.state.players[0]!.trash).toHaveLength(accept ? 0 : 4);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    },
+  );
 
   it("returns exactly 4 stacked Vemmon to deck bottom to prevent leaving", async () => {
     const s = setupEngine(
