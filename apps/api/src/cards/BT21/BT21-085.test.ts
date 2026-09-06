@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-085.js";
 import "../index.js";
 
@@ -46,7 +47,7 @@ describe("BT21-085 Davis Motomiya", () => {
   it.each([
     ["without an opposing Digimon", false, 0],
     ["with an opposing Digimon", true, 1],
-  ])("start of main %s gains %i memory", async (_label, hasOpponent, expectedGain) => {
+  ])("start of main %s (opponent present: %s) gains %i memory", async (_label, hasOpponent, expectedGain) => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-085", as: "davis" }] },
       1: hasOpponent ? { battleArea: [{ card: "BT1-009", as: "opponent" }] } : {},
@@ -88,10 +89,11 @@ describe("BT21-085 Davis Motomiya", () => {
               card: "BT21-036",
               as: "armor",
               under: [
-                { card: "BT1-009", as: "bottom" },
-                { card: "BT1-010", as: "top" },
+                { card: "BT1-003", as: "bottom" },
+                { card: "BT3-021", as: "top" },
               ],
             },
+            { card: "BT1-019", as: "nonArmor", under: [{ card: "BT1-010" }] },
           ],
           deck: [{ card: "BT1-011", as: "drawn" }],
         },
@@ -112,6 +114,7 @@ describe("BT21-085 Davis Motomiya", () => {
 
     expect(s.perm("davis").isSuspended).toBe(true);
     expect(s.perm("armor").stack.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+    expect(s.perm("nonArmor").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
     expect(s.state.memory).toBe(1);
   });
@@ -122,7 +125,7 @@ describe("BT21-085 Davis Motomiya", () => {
         0: {
           battleArea: [
             { card: "BT21-085", as: "davis" },
-            { card: "BT21-036", as: "armor", under: [{ card: "BT1-009", as: "source" }] },
+            { card: "BT21-036", as: "armor", under: [{ card: "BT3-021", as: "source" }] },
           ],
           deck: ["BT1-010"],
         },
@@ -153,7 +156,7 @@ describe("BT21-085 Davis Motomiya", () => {
         0: {
           battleArea: [
             { card: "BT21-085", as: "davis" },
-            { card: "BT1-009", as: "nonArmor", under: ["BT1-010"] },
+            { card: "BT1-019", as: "nonArmor", under: ["BT1-010"] },
           ],
           deck: ["BT1-011"],
         },
@@ -183,6 +186,32 @@ describe("BT21-085 Davis Motomiya", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("davis"));
     await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("plays itself from a public Security attack without paying cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: { security: [{ card: "BT21-085", as: "davis" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("davis").instanceId),
+    );
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(0);
   });
 });
