@@ -124,4 +124,58 @@ describe("BT20-027 Slayerdramon", () => {
     expect(s.perm("secondMatch")).toBeDefined();
     expect(s.perm("host").isSuspended).toBe(true);
   });
+  it("publicly evolves from Wingdramon and resolves the printed stack trash/delete sequence", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-025", as: "wingdramon" }], hand: [{ card: "BT20-027", as: "slayerdramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-017", as: "stacked", under: ["BT20-014", "BT20-013", "BT20-008"] },
+            { card: "BT20-017", as: "untouched", under: ["BT20-008"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wingdramon").permanentId,
+        instanceId: s.inst("slayerdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("wingdramon").topCard.cardId === "BT20-027" &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.trash.filter((card) => ["BT20-014", "BT20-013", "BT20-008"].includes(card.cardId))
+          .length === 3,
+    );
+    expect(s.perm("wingdramon").stack.map((card) => card.cardId)).toContain("BT20-025");
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT20-017" && permanent.stack.length === 0,
+      ),
+    ).toBe(false);
+    expect(s.perm("untouched").stack.map((card) => card.cardId)).toEqual(["BT20-008"]);
+  });
+
+  it("allows inherited leave prevention to be refused", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-028", as: "host", under: ["BT20-027"] },
+            { card: "BT20-023", as: "match" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("match").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-023")).toBe(false);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
 });
