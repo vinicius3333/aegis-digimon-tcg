@@ -87,6 +87,48 @@ describe("BT26-032 compiled fidelity", () => {
     expect(s.perm("penaltyTarget").currentDP).toBe(7000);
   });
 
+  it("uses the alternate cost only over a Ceresmon with printed play cost 12", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-059", as: "baseCeresmon" }],
+        hand: [{ card: "BT26-032", as: "ceresmon" }],
+      },
+    });
+    legal.state.memory = 2;
+    await legal.ready();
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("baseCeresmon").permanentId,
+        instanceId: legal.inst("ceresmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("baseCeresmon").topCard.cardId === "BT26-032");
+    expect(legal.state.memory).toBe(0);
+    expect(
+      [...legal.perm("baseCeresmon").stack, legal.perm("baseCeresmon").topCard].map(({ cardId }) => cardId),
+    ).toEqual(["BT25-059", "BT26-032"]);
+
+    const wrongCost = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-032", as: "wrongCostCeresmon" }],
+        hand: [{ card: "BT26-032", as: "ceresmon" }],
+      },
+    });
+    wrongCost.state.memory = 2;
+    await wrongCost.ready();
+    expect(
+      wrongCost.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongCost.perm("wrongCostCeresmon").permanentId,
+        instanceId: wrongCost.inst("ceresmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("confers only the topmost matching Ceresmon and keeps its own printed keywords", async () => {
     const s = setupEngine({
       0: {
@@ -169,6 +211,38 @@ describe("BT26-032 compiled fidelity", () => {
 
     expect(s.perm("mine").isSuspended).toBe(false);
     expect(s.perm("theirs").isSuspended).toBe(true);
+  });
+
+  it("may decline the suspend continuation and does not play a card afterward", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }], hand: [{ card: "BT26-015", as: "candidate" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: false }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
+
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-015");
+  });
+
+  it("accepts only Digimon as the suspend payment and leaves unrelated hand cards unplayed", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }], hand: [{ card: "BT1-001", as: "unrelated" }] },
+        1: { battleArea: [{ card: "BT1-085", as: "opponentTamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
+
+    expect(s.perm("opponentTamer").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
   });
 
   it("waits until the full effect resolves before deleting 0-DP Digimon and stacks both play reducers (Q7000/Q7002)", async () => {

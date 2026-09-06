@@ -168,6 +168,28 @@ describe("BT26-058 HiAndromon", () => {
     expect(s.decisions).toHaveLength(0);
   });
 
+  it("does not replace departure for an own non-CS Digimon or an opponent CS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-058", as: "hiAndromon", under: [{ card: "BT26-054", as: "rotation" }] },
+            { card: "BT1-009", as: "ownNonCs" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT26-054", as: "opponentCs" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("ownNonCs").permanentId], "byEffect")).toBe(1);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("opponentCs").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT26-058"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("hiAndromon").stack.map(({ cardId }) => cardId)).toEqual(["BT26-054"]);
+  });
+
   it("publishes Reboot and Blocker and uses the level 5 CS evolution route", async () => {
     const s = setupEngine({
       0: {
