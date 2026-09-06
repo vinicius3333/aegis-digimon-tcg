@@ -41,7 +41,8 @@ describe("BT20-083 Omekamon", () => {
 
   it("only plays Omekamon from this stack when the owner's security is removed", () => {
     const effect = compiled.effects.find((entry) => entry.isInherited);
-    const watcher = effect?.actions[0] as any;
+    const watcher = effect?.actions[0];
+    if (watcher?.kind !== "SubTrigger") throw new Error("Inherited security-removal watcher missing");
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
@@ -135,5 +136,39 @@ describe("BT20-083 Omekamon", () => {
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-083");
     expect(played).toBeDefined();
     expect(observe(s.engine).hasKeyword(played!, "Blocker")).toBe(true);
+  });
+
+  it("does not fire the breeding inherited effect from a battle-area stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-072", under: [{ card: "BT20-083", as: "fieldStackOmekamon" }], as: "host" }],
+          security: [{ card: "BT1-001", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 0 &&
+        !s.events.some((event) => event.kind === "attackDeclared" && event.attackerCardId === "BT20-083"),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT23-072");
+    expect(
+      s.state.players[0]!.battleArea[0]!.stack.some(
+        (card) => card.instanceId === s.inst("fieldStackOmekamon").instanceId,
+      ),
+    ).toBe(true);
   });
 });
