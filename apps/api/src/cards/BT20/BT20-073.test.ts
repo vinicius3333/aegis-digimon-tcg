@@ -126,4 +126,35 @@ describe("BT20-073 MetalPhantomon", () => {
     expect(s.perm("target").topCard.cardId).toBe("BT20-070");
     expect(s.perm("target").stack).toHaveLength(0);
   });
+
+  it("publicly builds a purple level-4 to MetalPhantomon stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-068", as: "base" }],
+        hand: [
+          { card: "BT20-073", as: "metal" },
+          { card: "BT20-078", as: "next" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metal").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-073");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("next").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-078");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-068", "BT20-073"]));
+  });
 });
