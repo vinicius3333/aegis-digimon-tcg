@@ -63,14 +63,30 @@ describe("BT25-062 Kokuwamon", () => {
     );
     preferred.push(s.inst("machineTarget").instanceId);
     s.state.memory = 4;
-    await advance(s.engine).runTurn(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("koku"));
     await settle(() => s.perm("koku").topCard.instanceId === s.inst("machineTarget").instanceId);
 
-    expect(s.state.memory).toBe(-3); // runTurn completes the phase transition after free digivolution.
+    expect(s.state.memory).toBe(4);
     expect(s.perm("koku").stack.map((card) => card.cardId)).toEqual(["BT25-062"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-061"]);
     expect(observe(s.engine).hasKeyword(s.perm("koku"), "Blocker")).toBe(true);
     expect(s.perm("koku").currentDP).toBe(6000); // Guardromon 5000 + inherited Kokuwamon +1000
+  });
+
+  it.each([
+    ["Machine", "BT25-066"],
+    ["Cyborg", "BT14-060"],
+    ["TS", "BT25-068"],
+  ] as const)("free-digivolves into a distinct %s trait candidate at memory 4", async (_trait, targetCard) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-062", as: "koku" }], hand: [{ card: targetCard, as: "target" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("koku"));
+    await settle(() => s.perm("koku").topCard?.instanceId === s.inst("target").instanceId);
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("koku").topCard.cardId).toBe(targetCard);
   });
 
   it("does not activate at memory 5, and declining the may effect leaves the stack and hand unchanged", async () => {
