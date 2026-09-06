@@ -61,6 +61,34 @@ describe("BT20-046 Espimon", () => {
     }
   });
 
+  it.each([
+    ["Machine", "BT20-049", 2, 2, 5000],
+    ["non-Cyborg/non-Machine", "BT20-031", 3, 1, 6000],
+  ] as const)(
+    "publicly evolves into a black Lv.4 %s with the exact cost boundary",
+    async (_label, target, printedCost, expectedMemory, expectedDP) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT20-046", as: "espimon" }],
+          hand: [{ card: target, as: "target" }],
+        },
+      });
+      s.state.memory = printedCost + 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("espimon").permanentId,
+          instanceId: s.inst("target").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("espimon").topCard.cardId === target);
+      expect(s.state.memory).toBe(expectedMemory);
+      expect(s.perm("espimon").stack.map((card) => card.cardId)).toEqual(["BT20-046"]);
+      expect(s.perm("espimon").currentDP).toBe(expectedDP);
+    },
+  );
+
   it("grants +1000 DP to its inherited host on both players' turns", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-050", dp: 4000, under: ["BT20-046"], as: "host" }] },

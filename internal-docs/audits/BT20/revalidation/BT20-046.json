@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-046",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-review",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -12,7 +12,10 @@
     "BT20-046.test.ts: battle-area versus breeding public evolution cost comparison for Q4369",
     "BT20-046.test.ts: inherited +1000 DP on both turn seats",
     "BT20-046.ts: battle-area source and Cyborg/Machine destination IR boundaries",
-    "current-collection-green-results.json"
+    "BT20-046.test.ts: unexecuted public black Lv.4 Machine versus non-Cyborg/non-Machine evolution cost comparison, stack transition, and inherited DP",
+    "current-collection-green-results.json",
+    "collection-after-name-fix-results.json",
+    "public-followups-typecheck.log"
   ],
   "commands": [
     {
@@ -26,11 +29,23 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 4 cases for BT20-046;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "6 cases pass for BT20-046; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Dedicated negative Cyborg/Machine near-match destination test pending"
+    "Coordinator must execute the new Machine/nonmatching destination comparison and collection gates"
   ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
 }
