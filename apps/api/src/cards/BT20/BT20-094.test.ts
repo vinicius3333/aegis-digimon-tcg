@@ -6,6 +6,7 @@ import { compiled } from "./BT20-094.js";
 import "./index.js";
 import "./BT20-011.js";
 import "./BT20-074.js";
+import "../BT17/BT17-077.js";
 
 describe("BT20-094 Emperor Dragon of Calamity", () => {
   it("reduces the optional Free Digimon trash play by 5 and then places itself", () => {
@@ -188,4 +189,24 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
       expect(s.state.memory).toBe(3);
     },
   );
+});
+
+it("pays the remaining reduced cost when the Free Digimon costs more than 5", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT20-074" }],
+        hand: [{ card: "BT20-094", as: "option" }],
+        trash: [{ card: "BT17-077", as: "paladin" }],
+        deck: ["BT1-010"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 7;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-077"));
+  expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-094")).toBe(true);
+  expect(s.state.memory).toBe(0);
 });
