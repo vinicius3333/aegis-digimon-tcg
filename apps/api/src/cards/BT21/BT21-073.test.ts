@@ -103,6 +103,35 @@ describe("BT21-073 Charismon", () => {
     expect(s.perm("charismon").stack).toHaveLength(0);
   });
 
+  it("publicly evolves into Charismon and resolves its When Digivolving Link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-070", as: "base", under: ["BT21-069"] }],
+          hand: [{ card: "BT21-073", as: "charismon" }],
+          trash: [{ card: "BT21-070", as: "linkSource" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("charismon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("charismon").instanceId);
+    await settle(() => s.perm("base").linked.some((card) => card.instanceId === s.inst("linkSource").instanceId));
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toEqual([s.inst("linkSource").instanceId]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-069", "BT21-070"]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("linkSource").instanceId)).toBe(false);
+  });
+
   it("does not link a card from another Digimon's stack", async () => {
     const s = setupEngine(
       {
@@ -177,6 +206,7 @@ describe("BT21-073 Charismon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+    expect(s.state.memory).toBe(1);
 
     // The grant's [Start of Your Main Phase] trigger is consumed through the public turn
     // lifecycle on the opponent's next turn, rather than by firing a synthetic timing hook.
@@ -277,6 +307,82 @@ describe("BT21-073 Charismon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("charismon").instanceId));
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("public Gaia Force leaves a legal Link+1 host once, then deletes it on the second opportunity", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-101",
+              as: "host",
+              linked: [
+                { card: "BT21-073", as: "charismon" },
+                { card: "BT21-070", as: "gossipmon" },
+              ],
+            },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [
+            { card: "ST1-16", as: "gaia1" },
+            { card: "ST1-16", as: "gaia2" },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    const hostInstanceId = s.inst("host").instanceId;
+    // Pay the first replacement with Gossipmon and retain Charismon as source.
+    preferred.push(s.inst("gossipmon").instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia1").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gossipmon").instanceId));
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("charismon").instanceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === hostInstanceId)).toBe(
+      true,
+    );
+
+    // A second public Option in the same turn is a fresh leave attempt, but the
+    // once-per-turn replacement is exhausted despite Charismon remaining as an eligible Link cost.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia2").instanceId })).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === hostInstanceId),
+    );
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("charismon").instanceId)).toBe(true);
+  });
+
+  it("publicly links Charismon to an Appmon for exactly 3 memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-101", as: "host" }],
+          hand: [{ card: "BT21-073", as: "charismon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const id = s.inst("charismon").instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "linkCard", instanceId: id, targetPermanentId: s.perm("host").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === id));
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([id]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
   });
 
   it("has executable Blocker", async () => {
