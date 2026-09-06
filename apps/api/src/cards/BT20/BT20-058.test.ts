@@ -125,6 +125,19 @@ describe("BT20-058 Raidenmon", () => {
     );
   });
 
+  it("does not replay a Machine source whose play cost exceeds 11", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT20-058", under: ["BT20-036"], as: "raidenmon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("raidenmon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-058", "BT20-036"]),
+    );
+  });
+
   it("plays for 6 with all three exact DigiXros materials and stacks them", async () => {
     const s = setupEngine({
       0: {
