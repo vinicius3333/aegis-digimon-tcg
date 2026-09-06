@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-102",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,18 +9,17 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-102.test.ts public Omnimon alternate evolution and survivor carve-out",
-    "BT20-102.test.ts X Antibody stack gate and Q4725 continuation",
-    "BT20-102.test.ts End of Your Turn Rush/mandatory unsuspending attack",
-    "Unexecuted public ordinary-evolution matrix uses a legal red Lv.3/Lv.4/Lv.5/Lv.6 stack and covers trait-only BT9-008 rejection, exact BT9-109 acceptance, and EX5-070 Rule Name acceptance.",
-    "current-collection-green-results.json",
-    "named-x-clause-red.log",
-    "named-x-019-102-red.log",
-    "named-x-026-028-red.log",
-    "named-x-green-results.json",
-    "named-x-mechanism-results.json"
+    "Public BT5-086 Omnimon -> Omnimon X alternate evolution pays 2, lets the opponent choose a survivor, deletes the other opponent, then bottom-decks the exact surviving instance.",
+    "Prior exact-name source correction and its public comparisons remain in the focused/full collection suite.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Final independent clause acceptance and runtime sensitivity remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-102",
       "result": "Q4417-Q4419,Q4725-Q4726,Q5907,Q6018 retrieved"
@@ -58,9 +57,22 @@
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
     }
   ],
-  "gaps": [
-    "Lead focused/collection/typecheck/lint/delivery gates pending",
-    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-102; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }

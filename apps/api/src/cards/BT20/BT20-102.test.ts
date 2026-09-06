@@ -113,6 +113,41 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === oppOther.permanentId)).toBe(false);
   });
 
+  it("returns the chosen opposing survivor to the bottom of deck after the public entry deletion", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: OMNIMON_BASE, as: "base" }],
+          hand: [{ card: OMNIMON_XA, as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-004", as: "survivor", dp: 12000 },
+            { card: "AD1-011", as: "deleted", dp: 8000 },
+          ],
+          deck: ["BT20-047"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 2;
+    const survivorInstanceId = s.perm("survivor").topCard.instanceId;
+    preferInstanceIds.push(survivorInstanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(survivorInstanceId);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("AD1-004");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("does not fire the entry mass-delete from an X Antibody trait-only Digimon in the stack", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
