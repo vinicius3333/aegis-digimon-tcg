@@ -26,3 +26,9 @@ Public intents and settled observable game state are primary proof; manually inj
 6. Only after all criteria pass, update Orca with `COLLECTION COMPLETE: BT21; 100% 10/10; branch pushed` and complete the persistent goal. Meaningful intermediate checkpoints retain incomplete status.
 
 Alternatives considered: rerunning old tests alone would not resolve historical proof gaps; a new collection-wide generic fixture suite would obscure card-specific failures. Colocated public-intent regressions preserve direct traceability while reusing the existing harness and engine seams.
+
+## Second-pass checkpoint through BT21-055
+
+Every catalog card has a first-pass evidence file. The independently reviewed second pass has integrated new public and stack proofs through 055, plus targeted corrections for 057/062/073/075/079/082 and reactive Options 091/093/094/100. The stable combined regression passes 1819 assertions across 121 files. These green counts do not settle all fidelity gaps; scores and pending clause reviews remain in the per-card ledger.
+
+Next bounded work starts with Snatchmon/Vemmon 056–062 and resolves the remaining trait, placement/refusal, inherited return, and protection producers. Subsequent batches cover 063–082, then Tamers 083–090, then Options 091–102 with real Delay aging, trigger/controller boundaries, refusal, and cost proof. Earlier recorded gaps (notably 042 once-per-turn restoration, 038 target lock, 044 recovery timing, 051 Blast Digivolve, and public App Fusion access) remain explicit work items. Shared changes and all test/build execution stay serialized under Astra ownership.
