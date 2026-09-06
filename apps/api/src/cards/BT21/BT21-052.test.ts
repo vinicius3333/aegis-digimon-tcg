@@ -170,4 +170,65 @@ describe("BT21-052 Examon (X Antibody)", () => {
       expect(observe(keywords.engine).hasKeyword(keywords.perm("examonX"), keyword)).toBe(true);
     }
   });
+
+  it("rejects the exact Examon alternate route from a non-Examon level-6 base", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-044", as: "wrongBase" }],
+        hand: [{ card: "BT21-052", as: "examonX" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongBase").permanentId,
+        instanceId: s.inst("examonX").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("wrongBase").topCard.cardId).toBe("BT20-044");
+  });
+
+  it("publicly unsuspends and trashes security once, then leaves the source suspended on the second attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-052", as: "examonX", under: ["BT20-045"] }] },
+        1: { security: [{ card: "BT1-009", as: "securityTop" }, "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstTop = s.inst("securityTop");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examonX").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === firstTop.instanceId));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("examonX").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examonX").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length >= 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("examonX").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.filter((card) => card.instanceId === firstTop.instanceId)).toHaveLength(1);
+  });
 });
