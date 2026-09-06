@@ -85,3 +85,9 @@ Next bounded proof work: genuine public refusals009/013, actualRetaliation+expir
 All **1992/1992** assertions pass across **126 files** in `logs/collection-mechanisms-second-pass-v7.log`. Typecheck passes in `logs/typecheck-strict-evolution-v2.log`; 147 changed code/data paths pass Oxfmt/Oxlint. `git diff --check` is clean. Card modules and generated effects are unchanged from the verified 102-record, 18-change BT21 synchronization snapshot.
 
 Commit `47791d062` fixes external Digimon-evolution watchers for Tamer-only sources while retaining destination effects and runtime Digimon-kind grants. Five atomic card commits through `fc759fee1` strengthen public refusal, source-trash, Retaliation and duration evidence. Independent reviews replace stale zero scores with precise remaining gaps for062/073/075/082. The recalculated collection is **590/1020**, **0/102 final 10/10**; all delivery points remain withheld. Next work addresses those explicit gaps and remaining earlier mechanism questions.
+
+## Stable strict-choice checkpoint v8
+
+All **2010/2010** assertions pass across **126 files** in `logs/collection-mechanisms-second-pass-v8.log`. Shared/API/web typecheck passes in `logs/typecheck-strict-cards-v3.log`; all147 changed code/data paths pass Oxfmt/Oxlint in `logs/style-strict-cards-v2.log`. Six atomic card test/evidence commits through `dfda62a67` prove natural deletion choices, repeated Tamer recovery, genuine optional refusal, normal evolution and Link costs, actual Retaliation and temporary-grant expiry. Production and generated catalog are unchanged from the last BT21-only synchronization.
+
+The recalculated collection is **601/1020**, **0/102 final10/10**. Remaining card gaps include public App Fusion and earlier strict timing/choice proofs. New worker changes to021/022/024/044 are outside this gate snapshot and require new focused execution. Collection remains incomplete.

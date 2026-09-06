@@ -1,0 +1,66 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the GeoGreymon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > grants one Marcus Damon the temporary Digimon, DP, restriction, and keyword effects 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > shares one once-per-turn budget between the main and inherited deletion watchers 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > enters through the public play intent with Marcus and attack hooks registered 14ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly lets the selected Marcus Damon attack after On Play 22ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not treat a combined Marcus Damon card name as exact 3ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > observably turns exactly one Marcus into a 3000 DP Digimon with both keywords and no digivolution 3ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > alternate-digivolves from GeoGreymon for 3 and resolves the optional attack 11ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > places Marcus from trash on top of security after a yellow Tamer is deleted 7ms
+ × src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly recovers Marcus after the first red/yellow Tamer deletion and shares the once-per-turn limit 6ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not trigger the security recovery for a non-red, non-yellow Tamer deletion 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > reduces the hand digivolution cost only when the source stack contains Agunimon or BurningGreymon 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays a red Tamer with inherited effects when deleted 6ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with Agunimon in its evolution cards 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with BurningGreymon in its evolution cards 2ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with no matching source in its evolution cards 2ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > may decline the deletion play and rejects ineligible Tamers 6ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > applies the same deletion effect when Aldamon is inherited 4ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > performs two security checks with Security Attack +1 4ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > resolves the public deletion Tamer choice from hand with accept=true 8ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > resolves the public deletion Tamer choice from trash with accept=true 7ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > resolves the public deletion Tamer choice from hand with accept=false 5ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > resolves the public deletion Tamer choice from trash with accept=false 7ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > fires inherited deletion from a legal level-6 host after battle deletion 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly recovers Marcus after the first red/yellow Tamer deletion and shares the once-per-turn limit
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "color-requirement-unmet",
+  }
+
+ ❯ src/cards/BT21/BT21-044.test.ts:279:101
+    277|     await s.ready();
+    278|
+    279|     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.i…
+       |                                                                                                     ^
+    280|     await settle(() => s.state.players[0]!.security[0]?.instanceId ===…
+    281|     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId ==…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 27 passed (28)
+   Start at  19:51:13
+   Duration  8.90s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-020.test.ts src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose
