@@ -153,4 +153,32 @@ describe("BT20-057 Gankoomon", () => {
     expect(observe(s.engine).hasKeyword(gankoomon, "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(gankoomon, "Blocker")).toBe(true);
   });
+
+  it("uses the public Blocker window and Reboot lifecycle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-057", as: "gankoomon" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    const window = s.events.findLast((event) => event.kind === "blockWindowOpened");
+    if (window?.kind !== "blockWindowOpened") throw new Error("block window did not open");
+    expect(window.eligibleBlockerIds).toContain(s.perm("gankoomon").permanentId);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("gankoomon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
 });
