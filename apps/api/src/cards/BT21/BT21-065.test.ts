@@ -95,6 +95,48 @@ describe("BT21-065 Ghostmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("rejects a Ghost evolution during the opponent's turn before card-specific processing", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-065", as: "ghostmon" }],
+        hand: [{ card: "BT20-068", as: "bakemon" }],
+      },
+    });
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ghostmon").permanentId,
+        instanceId: s.inst("bakemon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("ghostmon").topCard.cardId).toBe("BT21-065");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bakemon").instanceId)).toBe(true);
+  });
+
+  it("pays the reduced Ghost evolution from zero memory through the shared negative gauge", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-065", as: "ghostmon" }],
+        hand: [{ card: "BT20-068", as: "bakemon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ghostmon").permanentId,
+        instanceId: s.inst("bakemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ghostmon").topCard.instanceId === s.inst("bakemon").instanceId);
+    expect(s.state.memory).toBe(-1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bakemon").instanceId)).toBe(false);
+  });
+
   it("gains 1 memory when a realistic host carrying Ghostmon is deleted", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-068", as: "bakemon", under: [{ card: "BT21-065", as: "source" }] }] },
