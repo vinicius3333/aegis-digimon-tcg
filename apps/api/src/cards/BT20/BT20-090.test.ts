@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
-import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-090.js";
 import "../BT11/BT11-079.js";
 import "./index.js";
@@ -165,4 +165,26 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     expect(h.s.perm("evilDragon2").isSuspended).toBe(true);
     expect(h.s.state.players[1]!.security).toHaveLength(3);
   });
+});
+
+it("plays the exact BT20-090 security instance for free after a public check", async () => {
+  const s = setupEngine(
+    { 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "BT20-090", as: "tamer" }] } },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  const tamerId = s.inst("tamer").instanceId;
+  s.state.memory = 3;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some((e) => e.kind === "securityChecked"));
+  expect(s.events.some((e) => e.kind === "securityChecked")).toBe(true);
+  expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toContain(tamerId);
+  expect(s.state.players[1]!.security).toHaveLength(0);
+  expect(s.state.memory).toBe(3);
 });
