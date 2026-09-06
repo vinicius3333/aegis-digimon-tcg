@@ -50,7 +50,9 @@ describe("BT25-030 Elecmon", () => {
     await settle(() => s.state.memory === 1 && s.state.players[0]!.security.length === 0);
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.hand).toContainEqual(expect.objectContaining({ instanceId: s.inst("security").instanceId }));
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("security").instanceId }),
+    );
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
@@ -75,7 +77,9 @@ describe("BT25-030 Elecmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () => s.state.players[0]!.security.length === 1 && s.state.players[0]!.security[0]!.instanceId === s.inst("recovered").instanceId,
+      () =>
+        s.state.players[0]!.security.length === 1 &&
+        s.state.players[0]!.security[0]!.instanceId === s.inst("recovered").instanceId,
     );
 
     expect(s.state.players[0]!.security).toContainEqual(

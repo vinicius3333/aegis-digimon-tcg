@@ -235,7 +235,10 @@ describe("BT25-036 Craftmon", () => {
             { card: "BT25-036", as: "craftmon" },
             { card: "BT21-041", as: "appmonCost" },
           ],
-          deck: [{ card: "BT1-009", as: "drawA" }, { card: "BT1-010", as: "drawB" }],
+          deck: [
+            { card: "BT1-009", as: "drawA" },
+            { card: "BT1-010", as: "drawB" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -268,7 +271,10 @@ describe("BT25-036 Craftmon", () => {
             { card: "BT25-036", as: "craftmon" },
             { card: "BT21-041", as: "appmonCost" },
           ],
-          deck: [{ card: "BT1-009", as: "drawA" }, { card: "BT1-010", as: "drawB" }],
+          deck: [
+            { card: "BT1-009", as: "drawA" },
+            { card: "BT1-010", as: "drawB" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -318,7 +324,10 @@ describe("BT25-036 Craftmon", () => {
             { card: "BT25-036", as: "craftmon" },
             { card: "BT1-009", as: "nonAppmonCost" },
           ],
-          deck: [{ card: "BT1-010", as: "drawA" }, { card: "BT1-011", as: "drawB" }],
+          deck: [
+            { card: "BT1-010", as: "drawA" },
+            { card: "BT1-011", as: "drawB" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -331,7 +340,11 @@ describe("BT25-036 Craftmon", () => {
         targetPermanentId: nonMatchingCost.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => nonMatchingCost.perm("host").linked.some((card) => card.instanceId === nonMatchingCost.inst("craftmon").instanceId));
+    await settle(() =>
+      nonMatchingCost
+        .perm("host")
+        .linked.some((card) => card.instanceId === nonMatchingCost.inst("craftmon").instanceId),
+    );
 
     expect(nonMatchingCost.state.players[0]!.trash).toHaveLength(0);
     expect(nonMatchingCost.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
