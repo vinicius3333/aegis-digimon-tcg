@@ -106,6 +106,39 @@ describe("BT21-044 compiled implementation", () => {
     );
   });
 
+  it("publicly lets the selected Marcus Damon attack after On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-044", as: "rize" }],
+          battleArea: [{ card: "BT13-095", as: "marcus" }],
+        },
+        1: { security: ["BT1-009", "BT1-001", "BT1-002"], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-044"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("marcus").permanentId && permanent.isSuspended,
+      ),
+    );
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("rize").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("rize").isSuspended).toBe(true);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("does not treat a combined Marcus Damon card name as exact", async () => {
     const s = setupEngine(
       {
