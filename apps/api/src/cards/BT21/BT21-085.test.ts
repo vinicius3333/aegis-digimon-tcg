@@ -58,6 +58,26 @@ describe("BT21-085 Davis Motomiya", () => {
     expect(s.state.memory).toBe(expectedGain);
   });
 
+  it("gains the conditional memory through the public start-of-main lifecycle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-085", as: "davis" }],
+        hand: [{ card: "BT1-009", as: "playable" }],
+        deck: ["BT1-009", "BT1-009"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 1);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("suspends, trashes only the top Armor Form source, draws, and gains memory", async () => {
     const s = setupEngine(
       {
