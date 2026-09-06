@@ -59,4 +59,16 @@ describe("ST15-10 Andromon", () => {
     await advance(s.engine).fire(EffectTiming.None, s.perm("vanilla"));
     expect(observe(s.engine).hasKeyword(s.perm("vanilla"), "Reboot")).toBe(false);
   });
+
+  it("unsuspends its inherited Reboot host during the opponent's Active phase", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST15-13", under: ["ST15-10"], as: "host", suspended: true }] },
+      1: { deck: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
 });
