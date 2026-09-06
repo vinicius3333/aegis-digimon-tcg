@@ -96,6 +96,27 @@ describe("BT20-052 Oblivimon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-050");
   });
 
+  it("does not place its top card when the security check is face-down", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-052", under: ["BT20-050"], as: "oblivimon" }] },
+        1: { security: [{ card: "BT20-047", as: "faceDown" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("oblivimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-052")).toBe(true);
+  });
+
   it("grants the inherited target-change lock only on its controller's turn", async () => {
     const s = setupEngine({
       0: {
