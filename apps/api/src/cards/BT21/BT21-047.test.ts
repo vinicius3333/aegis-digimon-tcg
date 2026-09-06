@@ -105,6 +105,16 @@ describe("BT21-047 compiled implementation", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("publicly leaves all revealed cards in deck when neither search bucket matches", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT21-047", as: "navimon" }], deck: ["BT1-009", "BT1-018", "BT1-026"] } });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("navimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-047"));
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
   it("links for 1, grants 2000 DP, and gives its Appmon host observable Piercing", async () => {
     const s = setupEngine(
       {
