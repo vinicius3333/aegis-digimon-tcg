@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/engine/security/simultaneousCheckTriggers.test.ts (1 test | 1 failed) 22ms
+   ❯ simultaneous Security-check trigger families (1)
+     × orders reveal, OnSecurityCheck, and OnLoseSecurity together after [Security] 21ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/security/simultaneousCheckTriggers.test.ts > simultaneous Security-check trigger families > orders reveal, OnSecurityCheck, and OnLoseSecurity together after [Security]
+AssertionError: expected [ 'BT20-046', 'BT20-046' ] to have a length of 4 but got 2
+
+- Expected
++ Received
+
+- 4
++ 2
+
+ ❯ src/engine/security/simultaneousCheckTriggers.test.ts:130:26
+    128|     // prompt contains only the two reveal watchers. The expected shar…
+    129|     // entries plus own OnSecurityCheck and own OnLoseSecurity; oppone…
+    130|     expect(firstCardIds).toHaveLength(4);
+       |                          ^
+    131|     expect(firstCardIds.filter((cardId) => cardId === ATTACKER_ID)).to…
+    132|     expect(firstCardIds).not.toContain(OPPONENT_ID);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  09:06:18
+   Duration  1.29s (transform 76%, import 22%, tests 2%, worker 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/security/simultaneousCheckTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

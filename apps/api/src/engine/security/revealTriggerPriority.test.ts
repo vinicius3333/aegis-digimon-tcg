@@ -107,7 +107,8 @@ describe("security reveal watcher priority", () => {
     ).toEqual({ ok: true });
     await settle(() => s.decisions.length > 0);
     const pending = s.decisions[0]!;
-    expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "securityRevealed", revealedCardId: "BT18-086" }));
     expect(fired).toBe(0);
     expect(
       s.engine.applyIntent(1, {

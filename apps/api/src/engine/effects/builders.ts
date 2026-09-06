@@ -1,3 +1,4 @@
+import { peekCheckedCard } from "../security/checkedCard.js";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
 import type { EffectContext } from "./EffectContext.js";
@@ -66,7 +67,8 @@ const onField = (ctx: EffectContext): boolean => ctx.source.isOnBattleArea();
 const inBreedingArea = (ctx: EffectContext): boolean => ctx.source.isOnBreedingArea?.() ?? false;
 const inTrashZone = (ctx: EffectContext): boolean => ctx.source.isInTrash?.() ?? false;
 const inHandZone = (ctx: EffectContext): boolean => ctx.source.isInHand?.() ?? false;
-const inFaceUpSecurity = (ctx: EffectContext): boolean => ctx.source.isInSecurity?.() ?? false;
+const isSecuritySource = (ctx: EffectContext): boolean =>
+  peekCheckedCard(ctx.game.state, ctx.source.instanceId) !== undefined || ctx.source.isInSecurity?.() === true;
 
 /**
  * Comprehensive Rules §3-4-5-6: "Trigger conditions can't be met by cards in breeding areas,
@@ -494,7 +496,7 @@ export const securityStatic = (opts: BuilderOptions): Effect =>
           },
         }),
     },
-    { isSecurity: true, baseGuard: inFaceUpSecurity },
+    { isSecurity: true, baseGuard: isSecuritySource },
   );
 
 /**

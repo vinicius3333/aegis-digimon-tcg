@@ -1,3 +1,4 @@
+import { peekCheckedCard } from "./security/checkedCard.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
@@ -101,7 +102,13 @@ import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
 import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisorptionDigivolve.js";
 import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
-import { runTiming, type EffectEnvironment, type ResolutionDeps } from "./effects/index.js";
+import {
+  buildResolutionEnv,
+  resolveTiming,
+  runTiming,
+  type EffectEnvironment,
+  type ResolutionDeps,
+} from "./effects/index.js";
 import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
 import {
   applyWouldBePlayedSelfReducer,
@@ -4342,7 +4349,7 @@ export class GameEngine {
           sourceCardId: collected.source.cardId,
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
-          timing: EffectTiming[timing],
+          timing: EffectTiming[collected.timing ?? timing],
           ...(collected.effect.isInherited ? { isInherited: true } : {}),
           // `securityChecked` closes the check AFTER these effects have resolved, so the
           // client needs this to hold the announcement until the reveal has been shown.
@@ -4356,7 +4363,7 @@ export class GameEngine {
           sourceCardId: collected.source.cardId,
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
-          timing: EffectTiming[timing],
+          timing: EffectTiming[collected.timing ?? timing],
           ...(collected.effect.isInherited ? { isInherited: true } : {}),
         });
       },
@@ -5019,8 +5026,8 @@ export class GameEngine {
    *     continuous.grantedKeywords (the securityAttack IR producer's consuming read).
    *   - fireTiming: the effect stack (OnSecurityCheck / OnLoseSecurity triggers).
    *   - resolveSecurityEffect: runs the flipped card's [Security] effect through the
-   *     stack (Comprehensive Rules §15-14-5: a {Security} effect activates while its
-   *     card is face-up in the security stack), returning true when one existed.
+   *     stack while the checked card has no area (CR 13-1-6), returning true when
+   *     an effect activates.
    *   - dpOf / securityCardDp / isDigimon / deletePermanents: backed by the shared
    *     GameStateAccess + card data, identical to combat's own reads.
    */
@@ -5074,17 +5081,51 @@ export class GameEngine {
           addedToSecuritySeat: info.seat,
           addedToSecurityInstanceIds: [info.instanceId],
         }),
-      prepareRevealTriggers: (info) => {
+      prepareCheckTriggers: (info) => {
         const event = info.wasAlreadyFaceUp ? "whenCheckedFaceUpSecurity" : "whenFaceUpCardsAddedToOpponentSecurity";
-        const payload: TriggerInfo = info.wasAlreadyFaceUp
-          ? { attackerPermanentId: info.attackerPermanentId, securityInstanceId: info.securityInstanceId }
-          : { addedToSecuritySeat: info.defenderSeat, addedToSecurityInstanceIds: [info.securityInstanceId] };
-        // Arm before the immediate Security effect, retaining live source checks for
-        // activation: a source removed by Security no longer has a pending effect.
-        const armed = this.armedSubTriggers([...this.subTriggers.subscriptionsFor(event)], payload);
+        const payload: TriggerInfo = {
+          attackerPermanentId: info.attackerPermanentId,
+          securityInstanceId: info.securityInstanceId,
+          removedFromSecuritySeat: info.defenderSeat,
+          addedToSecuritySeat: info.defenderSeat,
+          addedToSecurityInstanceIds: [info.securityInstanceId],
+        };
+        const armed = [event, "whenSecurityRemoved"].flatMap((name) =>
+          this.armedSubTriggers([...this.subTriggers.subscriptionsFor(name as SubTriggerEventName)], payload),
+        );
+        const framework = this.effectEnvironment(payload);
+        const initialEnv = buildResolutionEnv(framework, this.resolutionDeps());
+        const initial = [
+          ...initialEnv.collect(EffectTiming.OnSecurityCheck),
+          ...initialEnv.collect(EffectTiming.OnLoseSecurity),
+        ];
         return async () => {
-          await this.withTriggeredMutations(async () => this.runSubTriggersInChosenOrder(armed));
-          await this.recomputeContinuousEffects();
+          const outermost = this.beginResolvingWindow();
+          const enclosing = this.pendingWindowSubTriggers;
+          this.pendingWindowSubTriggers = [...enclosing, ...armed];
+          this.subTriggerWindowDepth += 1;
+          try {
+            await this.withTriggeredMutations(async () => {
+              const env = buildResolutionEnv(
+                framework,
+                this.resolutionDeps(() => [], { outermost }),
+              );
+              await resolveTiming(EffectTiming.OnSecurityCheck, {
+                ...env,
+                collect: () => [...initial, ...this.pendingWindowCollected()],
+              });
+              if (outermost) {
+                await this.flushDeferredTimingWindows();
+                await this.flushDeferredSecurityRemovalTriggers();
+              }
+            });
+            await this.recomputeContinuousEffects();
+          } finally {
+            this.pendingWindowSubTriggers = enclosing;
+            this.subTriggerWindowDepth -= 1;
+            if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
+            this.endResolvingWindow(outermost);
+          }
         };
       },
       resolveSecurityEffect: async (card, resolvingAttackerId, wasFaceUp) =>
@@ -5148,9 +5189,8 @@ export class GameEngine {
    * activate, or an optional the owner declined, leaves the card to be trashed as if it
    * had no security effect (KB Q886).
    *
-   * The card is still IN the security stack (face-up) when this runs — the loop
-   * removes it after resolution — so a [Security] "play this card" effect
-   * (playFromSecurity) can locate it there (§15-14-5).
+   * The checked card has already left security (CR 13-1-6). Exact source lookup and
+   * [Security] self-relocation use its temporary checked-card context.
    *
    * Resolved as a single ordered pass over the card's own security effects rather
    * than through the re-collecting `runTiming` fixpoint: a [Security] effect
@@ -5190,10 +5230,8 @@ export class GameEngine {
     let activated = false;
     for (const effect of securityEffects) {
       const ctx = {
-        // Security conditions observe the checked card as already removed from the printed
-        // security count while it remains physically present for source lookup (CR 15-14-5,
-        // e.g. EX1-027 Q3211). Preserve the timing provenance here so securityCount predicates
-        // apply the same exclusion in the real attack path as in the SecuritySkill seam.
+        // Preserve Security provenance for both the real no-area check and direct timing
+        // probes, which may still stage their source in a security fixture.
         ...this.buildEffectContext(source, { securityWasFaceUp }),
         activeTiming: "SecuritySkill",
         effectSourceKinds: securityEffectSourceKinds,
@@ -6304,7 +6342,10 @@ export class GameEngine {
    * (`SubTriggerInstall.sourceInstanceId`) installed by a hand/trash-resident card.
    */
   private findLooseInstance(instanceId: string): CardInstance | undefined {
-    return this.listCandidateInstances().find((c) => c.instanceId === instanceId);
+    return (
+      peekCheckedCard(this.state, instanceId)?.card ??
+      this.listCandidateInstances().find((c) => c.instanceId === instanceId)
+    );
   }
 
   private instanceOnPermanent(permanent: Permanent, instanceId: string): CardInstance | undefined {

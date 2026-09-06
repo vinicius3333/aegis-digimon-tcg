@@ -1,4 +1,5 @@
 import { ArraySchema } from "@colyseus/schema";
+import { peekCheckedCard, takeCheckedCard } from "../security/checkedCard.js";
 import {
   CardKind,
   DECK_BOTTOM,
@@ -926,9 +927,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const playFromSecurity = async (instanceId: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined> => {
     const located = locateInSecurity(state, instanceId);
-    if (located === undefined) return undefined;
-    const { owner, index } = located;
-    const definition = requireCardDefinition(owner.security[index]!.cardId);
+    const checked = peekCheckedCard(state, instanceId);
+    const owner = located?.owner ?? (checked === undefined ? undefined : state.players[checked.seat]);
+    const card = located === undefined ? checked?.card : located.owner.security[located.index];
+    if (owner === undefined || card === undefined) return undefined;
+    const definition = requireCardDefinition(card.cardId);
     if (!isPermanentKind(definition)) return undefined;
     const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
     if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "security")) return undefined;
@@ -941,9 +944,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.finalizeEffectPlayCost?.(instanceId, 0, false, "security");
     }
     // Payment windows may reorder security; remove the selected instance, not a stale index.
-    const currentIndex = owner.security.findIndex((card) => card.instanceId === instanceId);
-    if (currentIndex < 0) return undefined;
-    const instance = extractCardAt(owner, Zone.Security, currentIndex)!;
+    const currentIndex = owner.security.findIndex((candidate) => candidate.instanceId === instanceId);
+    const instance =
+      currentIndex < 0 ? takeCheckedCard(state, instanceId) : extractCardAt(owner, Zone.Security, currentIndex);
+    if (instance === undefined) return undefined;
     instance.faceUp = true;
     const permanent = placePermanent(engine, owner, instance, definition, false);
     engine.emit({
@@ -968,11 +972,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Playing a card from security is still an effect-driven removal from that stack. Publish
     // both security-removal buses after the entering card's effects have installed its live
     // watchers, so cards such as BT15-037 observe the same-time removal (KB Q2519).
-    await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: owner.seat });
-    await engine.fireSubTrigger?.("whenSecurityRemoved", {
-      removedFromSecuritySeat: owner.seat,
-      securityRemovedByEffect: true,
-    });
+    // The check already removed a staged card. Moving it into play creates no second removal.
+    if (checked === undefined) {
+      await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: owner.seat });
+      await engine.fireSubTrigger?.("whenSecurityRemoved", {
+        removedFromSecuritySeat: owner.seat,
+        securityRemovedByEffect: true,
+      });
+    }
     await engine.fireSubTrigger?.("whenPlayed", {
       subjectPermanentId: permanent.permanentId,
       playedByEffect: true,
@@ -5846,6 +5853,8 @@ function removeLooseInstance(
   includeTrash = true,
   hostPermanentId?: string,
 ): CardInstance | undefined {
+  const checked = takeCheckedCard(state, instanceId);
+  if (checked !== undefined) return checked;
   if (hostPermanentId !== undefined) {
     const host = findPermanentInState(state, hostPermanentId);
     if (host !== undefined) {
@@ -5897,6 +5906,8 @@ function removeLooseInstance(
  * Used to inspect a card's definition (kind/cost) before deciding to play it.
  */
 function peekLooseInstance(state: GameState, instanceId: string): CardInstance | undefined {
+  const checked = peekCheckedCard(state, instanceId);
+  if (checked !== undefined) return checked.card;
   for (const owner of state.players) {
     // §9-1-4/9-1-5: an Option resolving its own [Main] effect is held on `resolvingOption`
     // (no zone array) rather than pre-trashed. Its own effect can still relocate it into a

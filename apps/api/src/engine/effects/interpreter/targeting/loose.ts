@@ -1,6 +1,7 @@
 // Resolving a Target into loose cards in hand, deck, trash, security, and stacks.
 
 import type { EffectContext, SeatScopedDecisionApi } from "../../EffectContext.js";
+import { peekCheckedCard } from "../../../security/checkedCard.js";
 import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
@@ -227,13 +228,21 @@ function candidateLooseInstancesIncludingReserved(
   // hosted-card zone, though, "this Digimon's digivolution cards" means every stack card
   // whose HOST is the source permanent (EX6-073), not the source's top-card instance.
   const hostedZone = zones.length > 0 && zones.every((zone) => zone === "digivolutionCards" || zone === "linked");
+  if (target.filter.isRevealedSecurityCard === true) {
+    const id = ctx.trigger.securityInstanceId;
+    if (id === undefined || !zones.includes("security")) return [];
+    const checked = peekCheckedCard(ctx.game.state, id);
+    if (checked === undefined || !seatsForController(ctx, target.filter).includes(checked.seat)) return [];
+    return definitionMatches(target.filter, ctx.game.definitionOf(checked.card)) ? [checked.card] : [];
+  }
   if (target.filter.isSelfRef === true && !hostedZone) {
     const self = findLooseCandidateByInstance(ctx, ctx.source.instanceId);
     if (
       self === undefined ||
-      !zones.some((zone) =>
-        looseCardsInZone(ctx, self.ownerSeat, zone).some((card) => card.instanceId === ctx.source.instanceId),
-      )
+      (!(zones.includes("security") && peekCheckedCard(ctx.game.state, ctx.source.instanceId) !== undefined) &&
+        !zones.some((zone) =>
+          looseCardsInZone(ctx, self.ownerSeat, zone).some((card) => card.instanceId === ctx.source.instanceId),
+        ))
     ) {
       return [];
     }
@@ -442,6 +451,8 @@ function candidateLooseInstancesIncludingReserved(
 }
 
 export function findLooseCandidateByInstance(ctx: EffectContext, instanceId: string): LooseCandidate | undefined {
+  const checked = peekCheckedCard(ctx.game.state, instanceId);
+  if (checked !== undefined) return checked.card;
   const zones: ZoneRef[] = ["hand", "trash", "deck", "security", "breeding", "digivolutionCards", "linked"];
   for (const seat of [ctx.source.ownerSeat, ctx.game.opponentOf(ctx.source.ownerSeat)]) {
     for (const zone of zones) {
