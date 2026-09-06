@@ -181,3 +181,7 @@ Next gates: finish027/034/036/040/042 negative/timing proofs, synchronize onlyBT
 All code and validation artifacts through `ffaed8f212bbc50e88af3c0af87e87d1e00dfdef` are pushed. Latest full BT20 plus new overall timing mechanism passes894/894; affected mechanism suites pass543/543. Shared/API/web typecheck, set-scoped102-record synchronization/check, changed-file lint/format and clean diff pass. Runtime-disabled proof for027–043 produces intended state failures and restores every module.
 
 Hash-bound acceptance now covers001–043:43/102 verified,430/1020 points, mean4.216. Cards044–061 have strengthened, green provisional fixtures but retain independent final acceptance work;062–102 follow the strict remaining gap plans. The collection remains incomplete. Next checkpoint prioritizes044–061 final clause review and tail public timing/cost/refusal gaps, including096 Trash/Main,101 public suspension/OPT and102 natural End of Turn.
+
+## Final acceptance
+
+All 102 cards are independently accepted at 10/10 in [LEDGER.md](LEDGER.md), recalculated from four immutable artifacts per card and pushed validation commit `6cc6c17b0`. [DELIVERY.md](DELIVERY.md) records the final gates and review PR. The inventory above preserves the initial state; the ledger is the current score source.

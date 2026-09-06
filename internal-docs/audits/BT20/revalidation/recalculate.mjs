@@ -42,13 +42,19 @@ const cards = inventory.cards.map(({ cardId, nameEn }) => {
 });
 const verified = cards.filter((card) => card.total === 10).length;
 const totalPoints = cards.reduce((sum, card) => sum + card.total, 0);
-const ledger = { set: "BT20", baseline: inventory.baseline, status: "in-progress", dimensions,
+const delivered = verified === cards.length && acceptance.delivery?.pushed === true
+  && Boolean(acceptance.delivery?.commit && acceptance.delivery?.branch && acceptance.delivery?.reviewPr);
+const ledger = { set: "BT20", baseline: inventory.baseline, status: delivered ? "complete" : "in-progress", dimensions,
+  ...(delivered ? { delivery: acceptance.delivery } : {}),
   summary: { cards: cards.length, verified, totalPoints, maximumPoints: cards.length * 10,
     meanScore: Number((totalPoints / cards.length).toFixed(3)), percentVerified: Number((100 * verified / cards.length).toFixed(2)) },
   cards };
 writeFileSync(join(directory, "ledger.json"), `${JSON.stringify(ledger, null, 2)}\n`);
 const header = "# BT20 current evidence ledger\n\nReproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.\n\n";
-const summary = `Verified: ${verified}/${cards.length}; total ${totalPoints}/${cards.length * 10}; mean ${ledger.summary.meanScore}/10. Collection remains in progress until all delivery gates, push, and PR are recorded.\n\n`;
+const deliverySummary = delivered
+  ? `Collection complete: all card evidence and validation gates are accepted at pushed commit ${acceptance.delivery.commit}; [review PR](${acceptance.delivery.reviewPr}).`
+  : "Collection remains in progress until all delivery gates, push, and PR are recorded.";
+const summary = `Verified: ${verified}/${cards.length}; total ${totalPoints}/${cards.length * 10}; mean ${ledger.summary.meanScore}/10. ${deliverySummary}\n\n`;
 const table = "| Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |\n| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n";
 const rows = cards.map((card) => `| ${card.cardId} | ${card.name} | ${dimensions.map((dimension) => `${card.scores[dimension]}/2`).join(" | ")} | ${card.total}/10 | ${card.evidence.length ? `[report](${card.cardId}.md)` : card.draftEvidence ? `[unaccepted draft](${card.cardId}.md)` : "pending"} |`).join("\n");
 writeFileSync(join(directory, "LEDGER.md"), `${header}${summary}${table}${rows}\n`);
