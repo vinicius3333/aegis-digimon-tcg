@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { type Seat } from "@aegis/shared";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-086.js";
+import "./BT20-046.js";
+import "./BT20-047.js";
 import "./index.js";
 
 async function driveTurn(s: ReturnType<typeof setupEngine>, seat: Seat): Promise<void> {
