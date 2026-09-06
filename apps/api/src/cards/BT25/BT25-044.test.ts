@@ -110,6 +110,75 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("plays through the legal TS level-5 alternate evolution and resolves both security removals", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "base" },
+            { card: "BT1-009", as: "other" },
+          ],
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001"],
+        },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("junomon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-044");
+    expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ cardId: "BT1-009" }));
+    expect(s.state.players[1]!.trash).toContainEqual(expect.objectContaining({ cardId: "BT1-002" }));
+  });
+
+  it("applies the Q7004 five-cost reduction at six total security and not at seven", async () => {
+    const reduced = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+          battleArea: [{ card: "BT1-009", as: "other" }],
+        },
+        1: { security: ["BT1-002", "BT1-002", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    reduced.state.memory = 7;
+    await reduced.ready();
+    expect(reduced.engine.applyIntent(0, { type: "playCard", instanceId: reduced.inst("junomon").instanceId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => reduced.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-044"));
+    expect(reduced.state.memory).toBe(0);
+
+    const unreduced = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          battleArea: [{ card: "BT1-009", as: "other" }],
+        },
+        1: { security: ["BT1-002", "BT1-002", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    unreduced.state.memory = 12;
+    await unreduced.ready();
+    expect(
+      unreduced.engine.applyIntent(0, { type: "playCard", instanceId: unreduced.inst("junomon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => unreduced.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-044"));
+    expect(unreduced.state.memory).toBe(0);
+  });
+
   it("reacts once per turn only to removal from its own security and filters the free play", async () => {
     const s = setupEngine(
       {
