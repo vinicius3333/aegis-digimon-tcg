@@ -1260,7 +1260,6 @@ export function DecisionOverlay({
   // Past this many the grid would wrap into rows taller than the sheet, so it
   // becomes one scrolling row with a visible track instead (reference #110).
   const scrollCandidates = candidates.length > 6;
-  const sourceKey = colorKey(getCardDefinition(sourceCardId ?? "")?.colors[0]);
   const abstractTargetLabel = (instanceId: string): string | undefined => {
     if (instanceId === "mine") return t("overlay.yourSecurity");
     if (instanceId === "player" || instanceId === "opponent") return t("overlay.opponentSecurity");
@@ -1345,11 +1344,17 @@ export function DecisionOverlay({
      own label ("Open …") in place of the card's name. */
   const dialogLabel = sourceCardId ? t("overlay.cardEffect", { name: name(sourceCardId) }) : t("overlay.effect");
 
+  const genericPrompt = t(
+    isOptional ? "overlay.useEffectPrompt" : isChoose ? "overlay.chooseEffectPrompt" : "overlay.resolveEffect",
+  );
+  // The eyebrow above already names the source card; repeating it as the title says nothing twice.
+  const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
   const promptText =
     request.options?.promptKey === "activateBlitz"
       ? t("overlay.activateBlitzPrompt")
-      : playerFacingPromptText(request.promptText, request.kind) ||
-        t(isOptional ? "overlay.useEffectPrompt" : isChoose ? "overlay.chooseEffectPrompt" : "overlay.resolveEffect");
+      : !specificPrompt || (sourceCardId && specificPrompt === name(sourceCardId))
+        ? genericPrompt
+        : specificPrompt;
 
   if (isViewingBoard) {
     const returnControl = (
@@ -1411,19 +1416,6 @@ export function DecisionOverlay({
         className="decision-overlay__header"
         style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: sourceEffectText ? 10 : 14 }}
       >
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            display: "grid",
-            placeItems: "center",
-            flexShrink: 0,
-            background: COLORS[sourceKey].soft,
-          }}
-        >
-          <Sigil cardId={sourceCardId} color={sourceKey} size={28} />
-        </div>
         <div className="decision-overlay__heading">
           <div
             style={{
