@@ -104,4 +104,21 @@ describe("BT20-082 DeathXmon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-082"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("reaches DeathXmon through its legal purple level-6 evolution route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-073", as: "purpleMega" }], hand: [{ card: "BT20-082", as: "deathx" }] },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleMega").permanentId,
+        instanceId: s.inst("deathx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("purpleMega").topCard.cardId === "BT20-082" && s.state.pendingDecision === undefined);
+    expect(s.perm("purpleMega").stack.map((card) => card.cardId)).toEqual(["BT17-073"]);
+    expect(s.state.memory).toBe(0);
+  });
 });
