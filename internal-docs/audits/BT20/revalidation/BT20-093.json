@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-093",
-  "status": "awaiting-lead-acceptance",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,18 +9,51 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "All Turns Delay now performs immediate DNA evolution before a qualifying non-battle departure; it no longer grants a keyword for a later Main activation.",
-    "Public prior-turn Option placement, ST2-16 return, accepted/refused DNA, Option trash cost, exact field materials and memory are verified. The threatened Slayerdramon is consumed as DNA material rather than returned.",
-    "Public Security play from hand/trash and battle exclusion are integrated. In the battle control both Slayerdramon and Breakdramon are publicly suspended beforehand, so Blocker cannot redirect the intended battle.",
-    "Shared replacement registry recompute barrier has a passing public mechanism test and an intended missing-Examon assertion when the await is removed.",
-    "collection-after-reactive-delay-results.json",
-    "reactive-movement-gates.json"
+    "apps/api/src/cards/BT20/BT20-093.ts",
+    "apps/api/src/cards/BT20/BT20-093.test.ts",
+    "node tools/kb/query.mjs card BT20-093",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-093-runtime-disabled.json",
+    "round5-gates.json"
   ],
-  "gaps": [
-    "Final entry-age, source/controller/trait comparisons and independent full-clause acceptance remain pending.",
-    "Atomic pushed delivery and final independent acceptance pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "8/8 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-093",
+      "result": "5 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
   ],
-  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "gaps": [],
+  "executedCases": [
+    "BT20-093 Unleash the Dragon Gene keeps the optional reduced play and mandatory placement sequence",
+    "BT20-093 Unleash the Dragon Gene resolves reactive Delay DNA before the qualifying Digimon leaves",
+    "BT20-093 Unleash the Dragon Gene naturally plays a Dracomon-text Digimon at the reduced cost and places itself",
+    "BT20-093 Unleash the Dragon Gene public Security plays a Dracomon-name card from hand or trash for free",
+    "BT20-093 Unleash the Dragon Gene resolves printed reactive Delay on accept through a public departure",
+    "BT20-093 Unleash the Dragon Gene resolves printed reactive Delay on decline through a public departure",
+    "BT20-093 Unleash the Dragon Gene does not arm Delay when a qualifying suspended Digimon leaves through battle",
+    "BT20-093 Unleash the Dragon Gene declines the optional Main play for a nonmatching Digimon and still places the Option"
+  ],
   "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-093",
@@ -37,9 +70,7 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 4 cases for BT20-093;734 total tests. See current-collection-green-results.json."
-    }
-  ],
-  "commands": [
+    },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
       "result": "8 cases passed for BT20-093; 836 total passed, zero failed."
@@ -56,5 +87,6 @@
       "command": "Commands in reactive-movement-gates.json",
       "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
     }
-  ]
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
