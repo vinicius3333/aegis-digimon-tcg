@@ -57,7 +57,13 @@ describe("BT21-057 Greymon", () => {
           security: [{ card: "BT1-009", as: "security" }],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 6000 }], deck: ["BT1-009", "BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 6000 },
+            { card: "BT1-019", as: "unselected" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -69,6 +75,7 @@ describe("BT21-057 Greymon", () => {
       ok: true,
     });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    expect(observe(s.engine).customEffectGrants(s.perm("unselected"))).toHaveLength(0);
 
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
@@ -77,6 +84,7 @@ describe("BT21-057 Greymon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("unselected").isSuspended).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
@@ -144,10 +152,10 @@ describe("BT21-057 Greymon", () => {
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
   });
 
-  it("alternate-digivolves from Agumon for 2", async () => {
+  it.each(["BT21-040", "BT2-055"])("alternate-digivolves from %s with Agumon in its name for 2", async (base) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-040", as: "agumon" }],
+        battleArea: [{ card: base, as: "agumon" }],
         hand: [{ card: "BT21-057", as: "greymon" }],
       },
     });
@@ -188,24 +196,115 @@ describe("BT21-057 Greymon", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("grants Reboot to a realistic evolution host", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT21-057", as: "source" }],
-        hand: [{ card: "BT21-061", as: "host" }],
+  it("inherits Reboot through public evolution and unsuspends only that host on the opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-040", as: "source" },
+            { card: "BT1-019", as: "control" },
+          ],
+          hand: [
+            { card: "BT21-057", as: "greymon" },
+            { card: "BT21-061", as: "metal" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003"], deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
-    });
-    s.state.memory = 5;
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
     await s.ready();
-
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("source").permanentId,
-        instanceId: s.inst("host").instanceId,
+        instanceId: s.inst("greymon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-057");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("metal").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard.cardId === "BT21-061");
-    expect(observe(s.engine).hasKeyword(s.perm("source"), "Reboot")).toBe(true);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT21-040", "BT21-057"]);
+    expect(s.state.memory).toBe(5);
+    for (const [index, alias] of ["source", "control"].entries()) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(alias).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 - index && !observe(s.engine).isAttacking());
+      expect(s.perm(alias).isSuspended).toBe(true);
+    }
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.perm("control").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
+
+  it.each([
+    ["own non-Tai ADVENTURE Tamer", "ST20-12", 0, true],
+    ["opponent ADVENTURE Tamer", "ST20-12", 1, false],
+    ["own unrelated Hero Tamer", "BT21-083", 0, false],
+  ] as const)(
+    "When Digivolving checks %s before granting the forced attack",
+    async (_label, tamer, tamerSeat, grants) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-040", as: "base" }, ...(tamerSeat === 0 ? [{ card: tamer, as: "tamer" }] : [])],
+            hand: [{ card: "BT21-057", as: "greymon" }],
+            security: ["BT1-001"],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+          1: {
+            battleArea: [{ card: "BT1-019", as: "target" }, ...(tamerSeat === 1 ? [{ card: tamer, as: "tamer" }] : [])],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("greymon").instanceId,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "BT21-057");
+      expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(grants ? 1 : 0);
+      await advance(s.engine).runTurn(0);
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      const opponentTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.state.players[0]!.security).toHaveLength(grants ? 0 : 1);
+      expect(s.perm("target").isSuspended).toBe(grants);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await opponentTurn;
+      expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
+    },
+  );
 });
