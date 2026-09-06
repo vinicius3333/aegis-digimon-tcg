@@ -1,0 +1,32 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > uses the printed normal evolution from a black level-2 base for zero memory 27ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces eligible digivolution costs and deletes after its stack card is trashed 1ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > deletes an opposing low-play-cost Digimon when the inherited card is trashed 19ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > does not trigger when the inherited source is trashed as a non-effect cost 2ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces a Mineral evolution by 1 in the battle area 6ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > Q4559 does not reduce the same evolution in the breeding area 5ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > preserves both alternate Digivolution requirements and the Appmon link requirement 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > requires trashing an Appmon or Three Musketeers card from a digivolution stack 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > deletes one opposing play-cost-3-or-less Digimon when linked 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes a qualifying own stack card to de-digivolve an opponent 15ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > does not pay the stack-trash cost or de-digivolve when the effect is declined 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines the On Play cost when no qualifying stack card exists 5ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > refuses linking onto a non-Appmon host without spending memory 3ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > links for 1 and deletes only the play-cost-3 boundary target 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes its link card at rule check after Tankmon makes the host ineligible 7ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > zero-cost evolves through both the Three Musketeers-text and Appmon routes 6ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > preserves the Appmon evolution and link requirements 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts one opponent Digimon from attacking players until opponent turn end 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > applies the same restriction when linked 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts the selected opponent Digimon through the public On Play effect 5ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > blocks only player attacks while still allowing the affected Digimon to attack a Digimon 4ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > links for 1, grants 2000 DP, and applies the same attack restriction 10ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > expires the public On Play restriction when the opponent's turn ends 10ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > zero-cost digivolves from a level-2 Appmon 3ms
+
+ Test Files  3 passed (3)
+      Tests  24 passed (24)
+   Start at  11:43:47
+   Duration  23.18s (transform 84%, import 15%, tests 1%)
