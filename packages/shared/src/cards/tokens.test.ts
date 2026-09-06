@@ -87,3 +87,34 @@ describe("EX7-058 Volée & Zerdrücken Token", () => {
     });
   });
 });
+
+describe("token printed reminder text", () => {
+  it("carries the effect text printed in the creating card's reminder", () => {
+    const expected: Record<string, string> = {
+      "TOKEN-Petrification-Token":
+        "[Your Turn] This Digimon can't suspend.\n[On Deletion] Trash your top security card.",
+      "TOKEN-Familiar-Token": "[On Deletion] 1 of your opponent's Digimon gets -3000 DP for the turn.",
+      "TOKEN-Fujitsumon-Token": "[All Turns] This Digimon doesn't unsuspend.\n[On Deletion] Trash 1 card in your hand.",
+      "TOKEN-Hinukamuy-Token": "＜Alliance＞ ＜Reboot＞ ＜Blocker＞",
+      "TOKEN-AthoRenePor-Token": "＜Reboot＞ ＜Blocker＞ ＜Decoy (Red/Black)＞",
+      "TOKEN-Paishu": "＜Blocker＞ ＜Guard＞",
+    };
+    for (const [cardId, effectText] of Object.entries(expected)) {
+      expect(tokenDefinitions.find((definition) => definition.cardId === cardId)?.effectText).toBe(effectText);
+    }
+  });
+
+  it("leaves tokens whose reminder prints only stats without effect text", () => {
+    for (const cardId of ["TOKEN-WarGrowlmon-Token", "TOKEN-Gyuukimon-Token", "TOKEN-Diaboromon-Token"]) {
+      expect(tokenDefinitions.find((definition) => definition.cardId === cardId)?.effectText).toBeUndefined();
+    }
+  });
+});
+
+describe("BT20-017 Atho, René & Por Token", () => {
+  it("has no level or play cost, matching the printed reminder", () => {
+    const token = tokenDefinitions.find(({ cardId }) => cardId === "TOKEN-AthoRenePor-Token");
+    expect(token).toMatchObject({ colors: ["White"], dp: 6000, playCost: -1, isToken: true });
+    expect(token).not.toHaveProperty("level");
+  });
+});

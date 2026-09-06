@@ -44,6 +44,7 @@ const PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = [
   ["UseReq", /[<＜]\s*Use\s+Req\./i],
   ["Engage", /[<＜]\s*Engage/i],
   ["Detach", /[<＜]\s*Detach/i],
+  ["Guard", /[<＜]\s*Guard/i],
 ];
 
 /**

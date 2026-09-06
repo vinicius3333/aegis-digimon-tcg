@@ -93,7 +93,7 @@ describe("resolved keyword contract", () => {
     expect(resolveKeywords(permanent(cardId), { grantedKeywords: () => [] })).not.toContain(keyword);
   });
 
-  it.each(["Blocker", "Rush", "Vortex", "Collision"] as const)(
+  it.each(["Blocker", "Rush", "Vortex", "Collision", "Guard"] as const)(
     "does not treat a prose grant of %s as an intrinsic keyword",
     (keyword) => {
       expect(printedKeywordsOf(`[All Turns] All of your Digimon gain ＜${keyword}＞.`)).not.toContain(keyword);
