@@ -32451,7 +32451,7 @@
     "forms": ["Rookie"],
     "attributes": ["Vaccine"],
     "types": ["Beastkin", "Abadin Electronics", "SEEKERS"],
-    "effectText": "[Digivolve] [Bibimon]/Lv.2 w/[SEEKERS] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with [Pulsemon] in its name or [SEEKERS] trait, reduce the digivolution cost by 1.",
+    "effectText": "[Digivolve] [Bibimon]/Lv.2 w/[SEEKERS] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with [Pulsemon] in its text or [SEEKERS] trait, reduce the digivolution cost by 1.",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle. gain 1 memory.",
     "rarity": "C",
     "maxCountInDeck": 4,

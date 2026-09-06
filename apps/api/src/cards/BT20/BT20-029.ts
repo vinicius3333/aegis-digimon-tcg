@@ -1,6 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// Q4322/Q4323 and the official card list include Pulsemon anywhere in card text.
+// The older community catalog transcription incorrectly limited this to names.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -14,7 +16,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
-              { tokens: ["Pulsemon"], match: "name" },
+              { tokens: ["Pulsemon"], match: "text" },
               { tokens: ["SEEKERS"], match: "trait" },
             ],
           },

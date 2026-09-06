@@ -65867,7 +65867,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
-                { "tokens": ["Pulsemon"], "match": "name" },
+                { "tokens": ["Pulsemon"], "match": "text" },
                 { "tokens": ["SEEKERS"], "match": "trait" }
               ]
             },

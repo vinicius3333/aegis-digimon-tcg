@@ -1,0 +1,20 @@
+{
+  "cardId": "BT20-029",
+  "verifiedAt": "2026-09-06",
+  "officialSource": "https://world.digimoncard.com/cards/?card_no=BT20-029&search=true",
+  "supportingJapaneseSource": "https://digimoncard.com/rule/?card_no=BT20-029",
+  "committedRulings": [
+    "Q4322",
+    "Q4323"
+  ],
+  "catalogCorrection": {
+    "field": "effectText",
+    "incorrectFragment": "in its name",
+    "correctFragment": "in its text"
+  },
+  "implementationCorrection": "Pulsemon nameOrTrait match changes from name to text; existing shared full-text matcher handles evolution requirements.",
+  "behavioralProof": "BT17-034 Bulkmon has Pulsemon in its evolution requirement but not its name/SEEKERS trait: ordinary evolution costs 2 after the reduction, not 3. BT20-031 has neither matching text nor trait and pays 3.",
+  "redEvidence": "029-text-ruling-red-results.json: intended memory assertion 0 versus 1 fails with old IR; structural filter assertion also fails.",
+  "greenEvidence": "029-text-ruling-green-results.json: focused cases pass after IR correction.",
+  "status": "delivery and final gates pending"
+}
