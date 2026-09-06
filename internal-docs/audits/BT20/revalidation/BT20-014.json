@@ -1,0 +1,33 @@
+{
+  "cardId": "BT20-014",
+  "status": "awaiting-lead-review",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 1,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "Catalog: SaviorHuckmon level 5 red Dragonkin, On Play/When Digivolving deletes one opposing Digimon at 5000 DP or less; End of Your Turn may suspend one other Digimon to free-digivolve self into Jesmon-name from hand; inherited Your Turn Royal Knight self gains Alliance.",
+    "BT20-014.ts exclusively registers IR with exact OnPlay/WhenDigivolving deletion filters, EndOfYourTurn optional self Jesmon hand digivolution and exclude-self suspend cost, and inherited Royal Knight Alliance condition.",
+    "BT20-014.test.ts asserts IR clauses; public play proves exact 5000 deletion and 6000 retention, then optional free Jesmon evolution with other Digimon suspended and memory unchanged; added 5001 boundary and inherited Royal Knight/self/opponent turn proof.",
+    "Added public other-Digimon attack suspension refusal proof and legal BaoHuckmon \u2192 SaviorHuckmon \u2192 Jesmon runOneTurn lifecycle proof for Alliance expiry.",
+    "014-040-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "6 tests passed for this card; 160 total passed; 014-040-results.json"
+    }
+  ],
+  "gaps": [
+    "Delivery gates pending coordinator collection, mechanism, typecheck, lint.",
+    "Lead review: End of Turn refusal must use another unsuspended Digimon so the optional suspension cost is feasible."
+  ],
+  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+}

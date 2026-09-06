@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -91,5 +91,96 @@ describe("BT20-014 SaviorHuckmon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).hasKeyword(s.perm("royalKnight"), "Alliance")).toBe(false);
+  });
+  it("keeps a 5001-DP opposing Digimon when SaviorHuckmon enters", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-014", as: "savior" }] },
+        1: { battleArea: [{ card: "BT20-010", dp: 5001, as: "aboveBoundary" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("savior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-014"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010")).toBe(true);
+  });
+
+  it("allows the end-turn Jesmon evolution to be refused after publicly suspending another Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-014", as: "savior" },
+            { card: "BT20-010", as: "other" },
+          ],
+          hand: [{ card: "BT20-017", as: "jesmon" }],
+        },
+        1: { battleArea: [{ card: "BT20-011", as: "defender", dp: 10000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("other").isSuspended);
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("savior"));
+    await settle(() => false, 20);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("jesmon").instanceId)).toBe(true);
+    expect(s.perm("savior").topCard.cardId).toBe("BT20-014");
+    expect(s.perm("other").isSuspended).toBe(true);
+  });
+
+  it("applies inherited Alliance on a legal public stack and clears it after the real turn", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT20-013", as: "base" },
+        hand: [
+          { card: "BT20-014", as: "savior" },
+          { card: "BT20-017", as: "jesmon" },
+        ],
+      },
+      1: { deck: ["BT20-010"], hand: ["BT20-010"] },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("savior").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-014");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-017");
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("base").permanentId })).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 });
