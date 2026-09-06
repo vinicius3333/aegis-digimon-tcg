@@ -165,7 +165,7 @@ describe("BT21-029 compiled implementation", () => {
       s.perm("second").permanentId,
     );
     expect(
-      s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token"),
+      s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId.startsWith("TOKEN-Petrification")),
     ).toHaveLength(1);
   });
 
@@ -221,4 +221,96 @@ describe("BT21-029 compiled implementation", () => {
       );
     },
   );
+
+  it("publicly performs its Security Attack +1 check and creates one opponent token from security removal", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-029", as: "attacker", dp: 12000 }] },
+        1: {
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId.startsWith("TOKEN-Petrification")),
+    );
+    const tokenDuringAttack = s.state.players[1]!.battleArea.find((permanent) =>
+      permanent.topCard.cardId.startsWith("TOKEN-Petrification"),
+    );
+    expect(tokenDuringAttack).toBeDefined();
+    expect(tokenDuringAttack!.controllerSeat).toBe(1);
+    expect(tokenDuringAttack!.currentDP).toBe(3000);
+
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("public player attack resolves End of Attack lowest-DP deletion with printed boundaries", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-029", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "lowest" },
+            { card: "BT1-009", as: "higher" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const lowestId = s.perm("lowest").permanentId;
+    const higherId = s.perm("higher").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId.startsWith("TOKEN-Petrification")),
+    ).toHaveLength(1);
+  });
+
+  it("publicly refuses the optional lowest-DP deletion and preserves targets", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-024", as: "base" }], hand: [{ card: "BT21-029", as: "medusamon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medusamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-029");
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
 });
