@@ -60,4 +60,27 @@ describe("ST23-12 Chiropmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(false);
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).not.toContain(costId);
   });
+  it("uses inherited Retaliation when its host loses a real battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST6-07", as: "host", under: ["ST23-12"] }] },
+      1: { battleArea: [{ card: "ST6-09", as: "target", suspended: true }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({
+      kind: "combatResolved",
+      deletedPermanentIds: [hostId],
+    });
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+  });
 });
