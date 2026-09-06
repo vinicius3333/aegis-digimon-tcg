@@ -70,6 +70,40 @@ describe("BT21-077 Regulusmon", () => {
     expect(observe(s.engine).customEffectGrants(s.perm("other"))).toHaveLength(0);
   });
 
+  it("resolves the printed grant through a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-077", as: "regulusmon" },
+            { card: "BT21-010", as: "gammamon-cost" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("gammamon-cost").instanceId, s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gammamon-cost").instanceId)).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
+    expect(observe(s.engine).customEffectGrants(s.perm("other"))).toHaveLength(0);
+  });
+
   it.each([
     ["declined", "BT21-010", true],
     ["nonmatching", "BT1-009", false],
