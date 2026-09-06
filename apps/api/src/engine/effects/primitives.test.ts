@@ -1296,7 +1296,7 @@ describe("primitives: digivolveFromInstance (effect-driven digivolve)", () => {
 });
 
 describe("primitives: deDigivolve", () => {
-  it("moves the top card to the trash and promotes the card beneath", () => {
+  it("moves the top card to the trash and promotes the card beneath", async () => {
     // the under card becomes the new top after de-digivolve
     const h = harness({
       board: {
@@ -1307,22 +1307,22 @@ describe("primitives: deDigivolve", () => {
     const oldTopId = p.topCard.instanceId;
     const underId = h.s.inst("under").instanceId;
 
-    const moved = h.fx.deDigivolve(p.permanentId, 1);
+    const moved = await h.fx.deDigivolve(p.permanentId, 1);
     expect(moved.map((c) => c.instanceId)).toEqual([oldTopId]);
     expect(p.topCard.instanceId).toBe(underId);
     expect(p.stack).toHaveLength(0);
     expect(h.state.players[0]!.trash.at(-1)!.instanceId).toBe(oldTopId);
   });
 
-  it("is a no-op when the Digimon has no digivolution cards", () => {
+  it("is a no-op when the Digimon has no digivolution cards", async () => {
     const h = harness({ board: { 0: { battleArea: [battleDigimon("p1", 5000)] } } });
     const p = h.s.perm("p1");
-    const moved = h.fx.deDigivolve(p.permanentId, 3);
+    const moved = await h.fx.deDigivolve(p.permanentId, 3);
     expect(moved).toHaveLength(0);
     expect(p.stack).toHaveLength(0);
   });
 
-  it("stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921)", () => {
+  it("stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921)", async () => {
     const h = harness({
       board: {
         0: {
@@ -1342,7 +1342,7 @@ describe("primitives: deDigivolve", () => {
     const p = h.s.perm("host");
     const oldTopId = p.topCard.instanceId;
 
-    const moved = h.fx.deDigivolve(p.permanentId, 3);
+    const moved = await h.fx.deDigivolve(p.permanentId, 3);
 
     expect(moved.map(({ instanceId }) => instanceId)).toEqual([oldTopId]);
     expect(p.topCard.instanceId).toBe(h.s.inst("xAntibody").instanceId);
@@ -2430,18 +2430,18 @@ describe("primitives: deDigivolve stopAtLevel (can't trash past level N)", () =>
     };
   }
 
-  it("promotes to the floor, then stops before trashing past it (stopAtLevel:3)", () => {
+  it("promotes to the floor, then stops before trashing past it (stopAtLevel:3)", async () => {
     const h = harness({ turnSeat: 0, board: { 1: { battleArea: [stacked("P1")] } } });
     const p = h.s.perm("P1");
     const l3Id = h.s.inst("P1-l3").instanceId;
     // De-Digivolve reaches the L3, then the floor prevents any further peel.
-    const moved = h.fx.deDigivolve(p.permanentId, 4, { byEffectSeat: 0, stopAtLevel: 3 });
+    const moved = await h.fx.deDigivolve(p.permanentId, 4, { byEffectSeat: 0, stopAtLevel: 3 });
     expect(moved).toHaveLength(4); // L7, L6, L5, L4 trashed; L3 promoted to top
     expect(p.topCard?.instanceId).toBe(l3Id);
     expect(p.stack).toHaveLength(0);
   });
 
-  it("applies the standard level-3 floor even when no explicit stopAtLevel is encoded", () => {
+  it("applies the standard level-3 floor even when no explicit stopAtLevel is encoded", async () => {
     const h = harness({
       turnSeat: 0,
       board: {
@@ -2465,7 +2465,7 @@ describe("primitives: deDigivolve stopAtLevel (can't trash past level N)", () =>
     const p = h.s.perm("P2");
     const l3Id = h.s.inst("P2-l3").instanceId;
     const eggId = h.s.inst("P2-egg").instanceId;
-    const moved = h.fx.deDigivolve(p.permanentId, 8, { byEffectSeat: 0 });
+    const moved = await h.fx.deDigivolve(p.permanentId, 8, { byEffectSeat: 0 });
     expect(moved).toHaveLength(4);
     expect(p.topCard?.instanceId).toBe(l3Id);
     expect(p.stack.map((card) => card.instanceId)).toEqual([eggId]);

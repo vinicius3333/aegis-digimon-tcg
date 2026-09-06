@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import {
   makeInstance as instance,
@@ -61,15 +61,16 @@ describe("BT21-094 [Main] reveal-and-add", () => {
 describe("BT21-094 Delay watcher", () => {
   it("keeps the Armor Form trash watcher separate from its Delay payload", () => {
     const allTurns = compiled.effects.filter((entry) => entry.trigger === "AllTurns");
-    expect(allTurns).toHaveLength(2);
+    expect(allTurns).toHaveLength(1);
     expect(allTurns[0]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
-      event: "whenDigivolutionTrashed",
+      event: "whenDigimonTopTrashed",
       sourceFilter: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
-      requireTrashedDigivolutionCardWasTop: true,
     });
-    expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
-    expect(allTurns[1]?.actions[0]).toMatchObject({
+    expect(allTurns[0]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+    const watcher = allTurns[0]?.actions[0];
+    if (watcher?.kind !== "SubTrigger") throw new Error("expected reactive Delay watcher");
+    expect(watcher.actions[0]).toMatchObject({
       kind: "Digivolve",
       payCost: false,
       from: ["hand"],
@@ -86,7 +87,8 @@ describe("BT21-094 Delay watcher", () => {
   it("Security activates the full Main reveal and places the option", async () => {
     const s = setup(
       {
-        0: {
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: {
           security: [{ card: "BT21-094", as: "option" }],
           deck: [
             { card: "BT3-093", as: "davis" },
@@ -100,12 +102,103 @@ describe("BT21-094 Delay watcher", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094"));
 
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("davis").instanceId, s.inst("free").instanceId]),
     );
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("rest").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("rest").instanceId)).toBe(true);
+  });
+
+  it("proves public Armor Purge trashes the Armor Form top card", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-035", as: "armor", under: ["BT21-032"] },
+            { card: "BT21-035", as: "armor2", under: ["BT21-032"] },
+            { card: "BT21-032", as: "base" },
+          ],
+          hand: [
+            { card: "BT21-094", as: "option" },
+            { card: "BT21-036", as: "freeArmor" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT10-055", as: "stronger", suspended: true },
+            { card: "BT10-055", as: "stronger2", suspended: true },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094"));
+    const optionId = s.inst("option").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("armor").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("stronger").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035")).toBe(true);
+    // Same-turn placement refusal: the reactive Delay event does not pay its source cost.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-036")).toBe(false);
+
+    // Age the placed option through real production turns, then trigger a second public
+    // Armor Purge. This exercises the later-turn optional source trash and free evolution.
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("stronger2").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.perm("stronger2").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("armor2").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("stronger2").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-036"));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-036")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

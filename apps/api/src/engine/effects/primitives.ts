@@ -1670,11 +1670,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * trash and promote the digivolution card directly beneath it
    * to the new top (the Digimon reverts a stage). Stops when the stack is empty.
    */
-  const deDigivolve = (
+  const deDigivolve = async (
     permanentId: string,
     n: number,
     opts?: { byEffectSeat?: Seat; stopAtLevel?: number },
-  ): CardInstance[] => {
+  ): Promise<CardInstance[]> => {
     const permanent = access.permanentById(permanentId);
     if (permanent === undefined) return [];
     // EX10-029 whenLinked grant (rule implementation): a Digimon with this restriction
@@ -1686,6 +1686,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (opts?.byEffectSeat !== undefined && continuous.stackTrashLocked(permanentId)) {
       if (opts.byEffectSeat !== permanent.controllerSeat) return [];
     }
+    const controllerSeat = permanent.controllerSeat;
     const moved: CardInstance[] = [];
     const levelFloor = opts?.stopAtLevel ?? 3;
     for (let i = 0; i < n; i++) {
@@ -1734,6 +1735,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         to: Zone.Trash,
       });
     }
+    for (const card of moved) {
+      if (!requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon)) continue;
+      await engine.fireSubTrigger?.("whenDigimonTopTrashed", {
+        subjectPermanentId: permanentId,
+        trashedDigimonTop: { permanentId, controllerSeat, cardId: card.cardId },
+        ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
+      });
+    }
     return moved;
   };
 
@@ -1752,6 +1761,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const newTop = popFromStack(permanent);
     if (newTop === undefined) return undefined;
     const oldTop = permanent.topCard;
+    const controllerSeat = permanent.controllerSeat;
     setTopCard(permanent, newTop);
     newTop.faceUp = true;
     oldTop.faceUp = true;
@@ -1767,6 +1777,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
     engine.emit({ kind: "cardsMoved", instanceIds: [oldTop.instanceId], from: Zone.BattleArea, to: Zone.Trash });
+    if (requireCardDefinition(oldTop.cardId).kinds.includes(CardKind.Digimon)) {
+      await engine.fireSubTrigger?.("whenDigimonTopTrashed", {
+        subjectPermanentId: permanentId,
+        trashedDigimonTop: { permanentId, controllerSeat, cardId: oldTop.cardId },
+      });
+    }
     return oldTop;
   };
 

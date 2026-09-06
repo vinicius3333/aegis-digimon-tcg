@@ -105,6 +105,7 @@ export type SubTriggerEventName =
   | "whenLinked"
   | "whenLinkTrashed"
   | "whenDigivolutionTrashed"
+  | "whenDigimonTopTrashed"
   | "onDigivolutionCardDiscarded"
   | "onDigivolutionCardsDiscardedBatch"
   | "onDigiBurstCardDiscarded"
@@ -364,6 +365,8 @@ export interface TriggerInfo {
   byEffectSeat?: Seat;
   /** Printed card ID of the effect that produced the event, when known. */
   byEffectCardId?: string;
+  /** Printed identity before a Digimon top is trashed and its next source promoted. */
+  trashedDigimonTop?: { permanentId: string; controllerSeat: Seat; cardId: string };
   /** Whether the trashed digivolution card was the top card of its stack. */
   trashedDigivolutionCardWasTop?: boolean;
   /** True only when a digivolution card was trashed to pay a ＜Digi-Burst＞ cost. */
@@ -795,7 +798,11 @@ export interface Primitives {
    * digivolution stack is empty (a Digimon with no sources is unaffected). Recomputes
    * DP from the new top each step. Returns the instances moved to deck.
    */
-  deDigivolve(permanentId: string, n: number, opts?: { byEffectSeat?: Seat; stopAtLevel?: number }): CardInstance[];
+  deDigivolve(
+    permanentId: string,
+    n: number,
+    opts?: { byEffectSeat?: Seat; stopAtLevel?: number },
+  ): CardInstance[] | Promise<CardInstance[]>;
   /**
    * Place loose card instances under `targetPermanentId` as digivolution cards
    * (beneath its current top — i.e. at the bottom of the stack by default, or just
