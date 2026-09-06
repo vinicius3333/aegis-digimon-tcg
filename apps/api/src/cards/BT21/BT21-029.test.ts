@@ -169,6 +169,23 @@ describe("BT21-029 compiled implementation", () => {
     ).toHaveLength(1);
   });
 
+  it("plays a token from a real opponent Digimon deletion", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-029", as: "medusamon", dp: 12000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 1000, suspended: true }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("medusamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId.startsWith("TOKEN-Petrification")));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Petrification-Token")).toBe(true);
+  });
+
   it.each([
     { event: "onDeletionOf" as const, payload: { subjectPermanentId: "replace-me" } },
     { event: "whenSecurityRemoved" as const, payload: { removedFromSecuritySeat: 1 as const } },
