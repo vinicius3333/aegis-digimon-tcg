@@ -150,3 +150,12 @@ Outstanding integration: continue strict card review beyond060 (061–075 read-o
 ## Checkpoint: first thirteen cards accepted at 10/10
 
 The full current collection plus focused DNA, exact-name and immediate-return mechanisms passes800/800. Immediate-return mechanisms pass152 cases; workspace typecheck and style/diff checks pass. The runtime-disabled runner proves meaningful behavioral sensitivity for001/002/004–013;003 retains its targeted public OPT mutation. With these gates,001–013 are independently accepted at10/10 using hash-bound artifacts and pushed evidence through826045f62. The recalculated ledger is13/102 verified,130/1020 points. Remaining cards still require lead clause acceptance and final collection revalidation. No worktree completion is claimed.
+
+
+## Exact targets and reactive Delay integration
+
+See [strict review round 3](strict-review-round3.md). Current names and 093 timing corrections remain under lead collection gates. Next priority is correcting 094/095 to activate their printed Delay payload at the All Turns trigger, then continuing the tail Security/Trash Main proofs. 014–016 have independent clause acceptance candidates and runtime sensitivity; final hash-bound scores await this checkpoint's green gates and commits.
+
+## Current reactive Delay checkpoint
+
+083 refusal and 093–095 immediate Delay fixes are integrated. The two shared gaps have fail-when-reverted mechanism proof: replacement registry recompute coordination and targeted breeding movement costs. The affected 552-test suite passes. Final catalog sync/check and full BT20 rerun are underway; 014–026 evidence is being finalized with additional public costs, target boundaries, duration, inherited and OPT assertions. Accepted ledger remains 13/102 until hashes and delivery gates are renewed. No collection completion is claimed.
