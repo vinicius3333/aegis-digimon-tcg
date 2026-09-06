@@ -71,6 +71,39 @@ describe("BT20-016 Paildramon", () => {
     expect(paildramon.isSuspended).toBe(false);
   });
 
+  it("resolves the same buff and deletion boundary on public digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-011", as: "base" }],
+          hand: [
+            { card: "BT20-016", as: "paildramon" },
+            { card: "BT20-010", as: "ally" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", dp: 3000, as: "low" },
+            { card: "BT20-012", dp: 3001, as: "high" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-012")).toBe(true);
+    expect(s.perm("base").topCard.cardId).toBe("BT20-016");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("provides inherited Security Attack +1 from a realistic evolution stack", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-020", as: "host", under: ["BT20-016"] }] } });
     await s.ready();
