@@ -95,6 +95,87 @@ describe("BT21-018 DoGatchmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
+  it("publicly links DoGatchmon and resolves its When Linking attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT21-018", as: "link" }],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("host").linked.map((card) => card.cardId)).toContain("BT21-018");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("publicly links onto DoGatchmon and resolves only one self-linked attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host" }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("host").linked.map((card) => card.cardId)).toContain("BT21-009");
+  });
+
+  it("fuses the printed Gatchmon plus Navimon pair through the production App Fusion verb", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [
+            { card: "BT21-047", as: "navimon" },
+            { card: "BT21-018", as: "dogatchmon" },
+          ],
+          deck: [{ card: "BT1-001", as: "fusionDraw" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("navimon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("navimon").instanceId));
+    const fused = await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("dogatchmon").instanceId);
+    expect(fused?.topCard.cardId).toBe("BT21-018");
+    expect(fused?.stack.map((card) => card.cardId)).toEqual(["BT21-009"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fusionDraw").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
+
   it("attacks once when its own stack gets linked and ignores another stack", async () => {
     const s = setupEngine(
       {
