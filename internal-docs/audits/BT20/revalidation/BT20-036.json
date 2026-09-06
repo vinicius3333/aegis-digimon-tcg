@@ -1,22 +1,51 @@
 {
   "cardId": "BT20-036",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
-    "behavioralProof": 1,
+    "behavioralProof": 2,
     "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
     "BT20-036.test.ts: public BT20-033 ACCEL evolution and ordinary-control full-cost play at memory 7",
-    "BT20-036.test.ts: public ACCEL play cost reduction, De-Digivolve 2/source-zone result, and -5000 DP",
-    "BT20-036.test.ts: natural inherited attack redirection and end-turn Chaosmon DNA/attack resolution",
+    "BT20-036.test.ts: public ACCEL play cost reduction at memory 10, public When Digivolving De-Digivolve 2 and -5000 DP with real duration expiry, and source-zone result",
+    "BT20-036.test.ts: natural inherited attack redirection/Once Per Turn suppression, including a real later-opponent-turn reset, end-turn Chaosmon DNA/attack resolution, and public refusal",
     "BT20-036.test.ts Q4346: live preference IDs force two distinct Bancho/partner DNA merges; both P-221 results exist while only one attack is declared",
     "014-040-results.json",
-    "pending-dna-resolution.md and pending-dna-final-focus.log"
+    "pending-dna-resolution.md and pending-dna-final-focus.log",
+    "Real later-opponent-turn inherited redirect reset preserves security and does not suspend the host; both opposing attackers are deleted in public combat.",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "9/9 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-036",
+      "result": "7 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "gaps": [],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-036.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -34,8 +63,15 @@
       "result": "PASS: 3 files / 17 tests; pending-dna-final-focus.log"
     }
   ],
-  "gaps": [
-    "Full printed-clause lead acceptance, inherited once-per-turn reset/negative-path review, duration coverage, mutation sensitivity, full collection gates and delivery remain pending."
-  ],
-  "reviewStatus": "Focused DNA timing and affected mechanisms passed. Whole-card acceptance remains pending; provisional score is not accepted ledger credit."
+  "executedCases": [
+    "BT20-036 BanchoLeomon de-digivolves and lowers DP on entry, then DNA-digivolves this Digimon with another before the attack",
+    "BT20-036 BanchoLeomon reduces its play cost by 5 with ACCEL, then applies De-Digivolve 2 and -5000 DP",
+    "BT20-036 BanchoLeomon publicly evolves from a level-5 ACCEL Digimon and refuses the non-ACCEL play reduction",
+    "BT20-036 BanchoLeomon redirects an opposing attack to the inherited host once on the opponent's turn",
+    "BT20-036 BanchoLeomon resets inherited attack redirection on a later opponent turn",
+    "BT20-036 BanchoLeomon DNA digivolves itself with another Digimon at turn end, then attacks",
+    "BT20-036 BanchoLeomon may decline the End of Your Turn DNA digivolution and attack",
+    "BT20-036 BanchoLeomon does not declare a second End of Your Turn attack while the first copy's attack is resolving",
+    "BT20-036 BanchoLeomon exposes the DNA result's When Digivolving and When Attacking effects as one player-ordered pool"
+  ]
 }

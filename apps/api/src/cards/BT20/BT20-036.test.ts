@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-036.js";
@@ -48,24 +49,42 @@ describe("BT20-036 BanchoLeomon", () => {
         0: {
           battleArea: [{ card: "BT20-030", as: "accel" }],
           hand: [{ card: "BT20-036", as: "bancho" }],
+          deck: Array(5).fill("BT1-010"),
         },
         1: {
+          deck: Array(5).fill("BT1-010"),
           battleArea: [{ card: "BT20-035", dp: 10000, under: ["BT20-032", "BT20-034"], as: "target" }],
         },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 12;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").stack.length === 0 && s.perm("target").currentDP === 5000);
-    expect(s.state.memory).toBe(5);
+    await settle(() => s.perm("target").stack.length === 0 && s.perm("target").currentDP === 1000);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("target").topCard.cardId).toBe("BT20-032");
+    expect(s.perm("target").currentDP).toBe(1000);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("target").currentDP).toBe(1000);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("target").currentDP).toBe(1000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("target").currentDP).toBe(6000);
   });
 
   it("publicly evolves from a level-5 ACCEL Digimon and refuses the non-ACCEL play reduction", async () => {
     const evolved = setupEngine({
       0: { battleArea: [{ card: "BT20-033", as: "loader" }], hand: [{ card: "BT20-036", as: "bancho" }] },
+      1: { battleArea: [{ card: "BT20-035", dp: 10000, under: ["BT20-032", "BT20-034"], as: "target" }] },
     });
     evolved.state.memory = 3;
     expect(
@@ -79,6 +98,9 @@ describe("BT20-036 BanchoLeomon", () => {
       () => evolved.perm("loader").topCard.cardId === "BT20-036" && evolved.state.pendingDecision === undefined,
     );
     expect(evolved.perm("loader").stack.map((card) => card.cardId)).toEqual(["BT20-033"]);
+    expect(evolved.perm("target").stack).toHaveLength(0);
+    expect(evolved.perm("target").topCard.cardId).toBe("BT20-032");
+    expect(evolved.perm("target").currentDP).toBe(1000);
 
     const refused = setupEngine({
       0: { battleArea: [{ card: "BT20-010", as: "ordinary" }], hand: [{ card: "BT20-036", as: "bancho" }] },
@@ -99,10 +121,15 @@ describe("BT20-036 BanchoLeomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-036", dp: 15000, as: "host", under: ["BT20-036"] }],
-          security: ["BT20-001"],
+          battleArea: [{ card: "BT4-091", dp: 15000, as: "host", under: ["BT20-036"] }],
+          security: ["BT1-010", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-010", dp: 1000, as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-010", dp: 1000, as: "attacker" },
+            { card: "BT20-010", dp: 3000, as: "secondAttacker" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -114,9 +141,83 @@ describe("BT20-036 BanchoLeomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.perm("secondAttacker")).toBeDefined();
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("secondAttacker")).toBeDefined();
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("resets inherited attack redirection on a later opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT4-091", dp: 15000, as: "host", under: ["BT20-036"] }],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", dp: 1000, as: "firstAttacker" },
+            { card: "BT20-010", dp: 1000, as: "secondAttacker" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
   });
 
   it("DNA digivolves itself with another Digimon at turn end, then attacks", async () => {
@@ -143,6 +244,30 @@ describe("BT20-036 BanchoLeomon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
+  it("may decline the End of Your Turn DNA digivolution and attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-036", as: "bancho" },
+            { card: "BT13-087", as: "partner" },
+          ],
+          hand: [{ card: "P-221", as: "chaosmon" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }], deck: ["BT1-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("bancho").topCard.cardId).toBe("BT20-036");
+    expect(s.perm("partner").topCard.cardId).toBe("BT13-087");
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+  });
+
   it("does not declare a second End of Your Turn attack while the first copy's attack is resolving", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -157,11 +282,11 @@ describe("BT20-036 BanchoLeomon", () => {
           hand: [
             { card: "P-221", as: "firstChaosmon" },
             { card: "BT16-036", as: "secondChaosmon" },
-            { card: "BT20-001", as: "playable" },
+            { card: "BT1-010", as: "playable" },
           ],
-          deck: ["BT20-001", "BT20-001", "BT20-001", "BT20-001"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
-        1: { security: ["BT20-001", "BT20-001", "BT20-001"], deck: ["BT20-001", "BT20-001", "BT20-001"] },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-010", "BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
@@ -209,12 +334,12 @@ describe("BT20-036 BanchoLeomon", () => {
             { card: "BT13-087", as: "partner" },
           ],
           hand: [{ card: "P-221", as: "chaosmon" }],
-          deck: ["BT20-001", "BT20-002"],
+          deck: ["BT1-010", "BT1-011"],
         },
         1: {
           battleArea: [{ card: "BT20-010", dp: 25000, as: "target" }],
-          security: ["BT20-001", "BT20-002"],
-          deck: ["BT20-003", "BT20-004"],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT20-004"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
