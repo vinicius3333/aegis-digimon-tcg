@@ -86,6 +86,70 @@ describe("BT20-034 Boutmon", () => {
     ).toBe(false);
   });
 
+  it("publicly evolves from a level-4 Digimon with Pulsemon in its text and rejects a level-3 source", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT20-032", as: "bulkmon" }], hand: [{ card: "BT20-034", as: "boutmon" }] },
+    });
+    legal.state.memory = 3;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("bulkmon").permanentId,
+        instanceId: legal.inst("boutmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => legal.perm("bulkmon").topCard.cardId === "BT20-034" && legal.state.pendingDecision === undefined,
+    );
+    expect(legal.perm("bulkmon").stack.map((card) => card.cardId)).toEqual(["BT20-032"]);
+
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT20-029", as: "pulsemon" }], hand: [{ card: "BT20-034", as: "boutmon" }] },
+    });
+    illegal.state.memory = 3;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("pulsemon").permanentId,
+        instanceId: illegal.inst("boutmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(illegal.perm("pulsemon").topCard.cardId).toBe("BT20-029");
+    expect(illegal.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-034");
+  });
+
+  it("restricts exactly one selected opposing Digimon and expires at the real opponent turn end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-034", as: "boutmon" }], hand: [{ card: "BT20-085", as: "tamer" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "selected" },
+            { card: "BT20-010", as: "other" },
+          ],
+          hand: [{ card: "BT1-070", as: "playable" }],
+          deck: ["BT20-001", "BT20-001", "BT20-001", "BT20-001"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("selected").permanentId);
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("boutmon").permanentId, [s.inst("tamer").instanceId]);
+    await settle(() => observe(s.engine).isRestricted(s.perm("selected"), "cannotActivateWhenDigivolving"));
+    expect(observe(s.engine).isRestricted(s.perm("other"), "cannotActivateWhenDigivolving")).toBe(false);
+
+    s.state.memory = -4;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm("selected"), "cannotActivateWhenDigivolving")).toBe(false);
+  });
+
   it("inherits one opposing top-security trash after its host deletes in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-035", as: "host", under: ["BT20-034"] }] },
