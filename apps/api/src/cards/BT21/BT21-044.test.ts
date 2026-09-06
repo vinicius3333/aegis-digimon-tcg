@@ -93,7 +93,7 @@ describe("BT21-044 compiled implementation", () => {
 
   it("enters through the public play intent with Marcus and attack hooks registered", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT21-044", as: "rizegreymon" }] } });
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rizegreymon").instanceId })).toEqual({
       ok: true,
@@ -117,7 +117,7 @@ describe("BT21-044 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-044"));
@@ -139,6 +139,62 @@ describe("BT21-044 compiled implementation", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("expires the public Marcus treatment at the end of its own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-095", as: "marcus" }],
+          hand: [{ card: "BT21-044", as: "rize" }, "BT1-009"],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: { hand: ["BT1-009"], security: ["BT1-001", "BT1-002"], deck: ["BT1-005", "BT1-006", "BT1-007"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance"));
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    // The printed "For the turn" duration ends at the end of the turn that played RizeGreymon,
+    // before the opponent reaches Main. The card remains a Tamer with its printed zero DP.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("marcus").topCard.cardId).toBe("BT13-095");
+    expect(s.perm("marcus").currentDP).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
   it("does not treat a combined Marcus Damon card name as exact", async () => {
     const s = setupEngine(
       {
@@ -149,7 +205,7 @@ describe("BT21-044 compiled implementation", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
