@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT21-043.js";
 import "../index.js";
 
@@ -147,6 +148,33 @@ describe("BT21-043 compiled implementation", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("attacker").currentDP).toBe(3000);
+    const checked = s.events.findIndex((event) => event.kind === "securityChecked");
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-043");
+    expect(checked).toBeGreaterThanOrEqual(0);
+    expect(played).toBeGreaterThan(checked);
+  });
+
+  it("expires the play and digivolution debuff at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-041", as: "base" }], hand: [{ card: "BT21-043", as: "sociamon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sociamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("target").currentDP).toBe(3000);
+    s.give(1, "deck", "BT1-001");
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(5000);
   });
 
   it("digivolves normally and applies the same -2000 DP boundary", async () => {
