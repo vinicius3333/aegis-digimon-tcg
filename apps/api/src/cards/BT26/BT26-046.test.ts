@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-046.js";
@@ -88,6 +89,7 @@ describe("BT26-046 Gryphonmon", () => {
     const continuous = (
       s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
     ).continuous;
+    expect(continuous.hasRestriction(s.perm("suspendTarget").permanentId, "unsuspend")).toBe(true);
     expect(continuous.hasRestriction(s.perm("protected").permanentId, "unsuspend")).toBe(false);
     expect(continuous.hasRestriction(s.perm("protected").permanentId, "beDeletedInBattle")).toBe(true);
 
@@ -104,6 +106,38 @@ describe("BT26-046 Gryphonmon", () => {
     expect(
       s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("protected").permanentId),
     ).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("gryphonmon"))).toBe(true);
+    expect([...s.perm("gryphonmon").keywords]).toContain("Vortex");
+
+    await advance(s.engine).runTurn(1);
+    expect(continuous.hasRestriction(s.perm("suspendTarget").permanentId, "unsuspend")).toBe(false);
+    expect(continuous.hasRestriction(s.perm("protected").permanentId, "beDeletedInBattle")).toBe(false);
+  });
+
+  it("uses Vortex and Piercing in a real battle against an unsuspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+          battleArea: [{ card: "BT26-046", as: "gryphonmon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "unsuspendedTarget", suspended: false, dp: 3000 }],
+          security: [{ card: "BT1-001", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
   });
 
   it("publicly evolves from a legal Green level-5 TS Digimon and resolves When Digivolving", async () => {
