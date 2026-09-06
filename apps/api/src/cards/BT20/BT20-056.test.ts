@@ -219,6 +219,73 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
     expect(s.perm("target").currentDP).toBe(12000);
   });
 
+  it("resets the security-removal penalty after a real opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ALPHAMON, as: "alphamon" }],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          hand: ["BT1-010"],
+          battleArea: [
+            { card: "BT20-057", dp: 20000, as: "firstAttacker" },
+            { card: "BT20-057", dp: 20000, as: "secondAttacker" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    for (const attacker of ["firstAttacker", "secondAttacker"] as const) {
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((event) => event.kind === "securityChecked") &&
+          !observe(s.engine).isAttacking() &&
+          s.state.pendingDecision === undefined,
+      );
+    }
+    expect(s.perm("firstAttacker").currentDP).toBe(12000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("firstAttacker").currentDP).toBe(12000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextTurn;
+  });
+
   it("inherits paid leave prevention only for Alphamon: Ouryuken and not from your effects", async () => {
     for (const [host, securityCount, effectSeat, survives] of [
       ["BT20-060", 1, 1, true],

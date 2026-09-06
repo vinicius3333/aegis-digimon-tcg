@@ -11,6 +11,7 @@
   "evidence": [
     "apps/api/src/cards/BT20/BT20-056.ts",
     "apps/api/src/cards/BT20/BT20-056.test.ts",
+    "BT20-056.test.ts: added a real opponent turn, own turn, and later opponent turn to prove the security-removal Once Per Turn penalty resets without a manual usage reset",
     "internal-docs/audits/BT20/revalidation/BT20-056.md",
     "current-collection-green-results.json"
   ],
@@ -30,11 +31,15 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 9 cases for BT20-056;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
     "Public breeding-area digivolution during an attack remains unproven.",
-    "Public inherited Ouryuken leave-prevention battle proof and completed Once Per Turn reset remain pending.",
+    "Public inherited Ouryuken leave-prevention battle proof remains pending.",
     "Lead focused/mechanism/collection execution and delivery gates pending."
   ],
   "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
