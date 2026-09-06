@@ -62,6 +62,49 @@ describe("BT20-032 Bulkmon", () => {
     );
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("can decline the optional security-to-hand action, preserving three security and skipping recovery", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-032", as: "bulkmon" }],
+          security: ["BT20-010", "BT20-011", "BT20-012"],
+          deck: [{ card: "BT20-013", as: "untouched" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bulkmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-032"));
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("untouched").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("untouched").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("recovers at two security when the optional threshold is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-032", as: "bulkmon" }],
+          security: ["BT20-010", "BT20-011"],
+          deck: [{ card: "BT20-013", as: "recovery" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bulkmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.memory).toBe(4);
   });
 
   it("inherits one memory gain when its surviving host deletes in battle", async () => {
@@ -106,5 +149,57 @@ describe("BT20-032 Bulkmon", () => {
 
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+  });
+
+  it("does not gain memory when the inherited host and opponent are deleted in the same battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", dp: 1000, as: "host", under: ["BT20-032"] }] },
+      1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("reaches Bulkmon from a legal Pulsemon stack and rejects an unrelated level-3 base", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT20-029", as: "pulsemon" }], hand: [{ card: "BT20-032", as: "bulkmon" }] },
+    });
+    legal.state.memory = 5;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("pulsemon").permanentId,
+        instanceId: legal.inst("bulkmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("pulsemon").topCard.cardId === "BT20-032");
+    expect(legal.perm("pulsemon").stack.map((card) => card.cardId)).toEqual(["BT20-029"]);
+    expect(legal.state.memory).toBe(4);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "unrelated" }], hand: [{ card: "BT20-032", as: "bulkmon" }] },
+    });
+    invalid.state.memory = 5;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("unrelated").permanentId,
+        instanceId: invalid.inst("bulkmon").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    expect(invalid.perm("unrelated").topCard.cardId).toBe("BT20-010");
   });
 });
