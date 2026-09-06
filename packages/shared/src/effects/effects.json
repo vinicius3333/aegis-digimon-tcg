@@ -99373,21 +99373,6 @@
             "restriction": "beReturned",
             "duration": "untilOpponentTurnEnd",
             "byOpponentEffectsOnly": true
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "trash",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["trash"],
-            "payCost": false,
-            "optional": true
           }
         ]
       },
@@ -99411,21 +99396,6 @@
             "restriction": "beReturned",
             "duration": "untilOpponentTurnEnd",
             "byOpponentEffectsOnly": true
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "trash",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["trash"],
-            "payCost": false,
-            "optional": true
           }
         ]
       },
@@ -99442,8 +99412,8 @@
     ],
     "coverage": "full",
     "residual": [],
-    "appFusionRequirement": [{ "names": ["Hackmon", "Protecmon", "Pipomon"], "cost": 0 }],
-    "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }]
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }],
+    "digivolutionRequirement": [{ "traits": ["Stnd."], "cost": 2, "isAlternate": false }]
   },
   "BT24-057": {
     "effects": [

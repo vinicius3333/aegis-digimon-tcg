@@ -43331,7 +43331,7 @@
     "forms": ["Sup.", "Appmon"],
     "attributes": ["System"],
     "types": ["Zip", "Unzip"],
-    "effectText": "[App Fusion] [Hackmon] & [Protecmon] & [Pipomon]: Cost 0\n\n＜Blocker＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, their effects can't return 1 of your Digimon with the [System], [Life] or [Transmutation (App Name)] trait to hands or decks. with the [Appmon] trait from your trash without paying the cost.",
+    "effectText": "＜Blocker＞\n[On Play] [When Digivolving] Until your opponent's turn ends, their effects can't return 1 of your Digimon with the [System], [Life] or [Transmutation] trait to hands or decks.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "BT24-056",

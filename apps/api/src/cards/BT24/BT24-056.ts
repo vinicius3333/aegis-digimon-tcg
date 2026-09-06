@@ -15,22 +15,6 @@ const protectedTarget = {
   },
   count: 1,
 };
-const playAppmon = {
-  kind: "PlayWithoutCost",
-  target: {
-    filter: {
-      controller: "mine",
-      zone: "trash",
-      kind: ["Digimon"],
-      nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
-    },
-    count: 1,
-  },
-  from: ["trash"],
-  payCost: false,
-  optional: true,
-};
-
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
@@ -44,7 +28,6 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
           byOpponentEffectsOnly: true,
         },
-        playAppmon,
       ],
     },
     {
@@ -57,7 +40,6 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
           byOpponentEffectsOnly: true,
         },
-        playAppmon,
       ],
     },
     {
@@ -70,8 +52,10 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  appFusionRequirement: [{ names: ["Hackmon", "Protecmon", "Pipomon"], cost: 0 }],
   linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
+  // The printed second evolution circle is any-color Standard grade, cost 2.
+  // The shared trait matcher includes forms, so Stnd. also matches the grade.
+  digivolutionRequirement: [{ traits: ["Stnd."], cost: 2, isAlternate: false }],
 };
 
 registerIrCard("BT24-056", compiled);
