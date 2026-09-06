@@ -4,6 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-019.js";
 import "./index.js";
+import "../ST22/ST22-08.js";
 
 describe("BT20-019 Jesmon (X Antibody)", () => {
   it("keeps the post-condition attack independent and gates only the temporary immunity", () => {
@@ -138,5 +139,101 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
     await advance(s.engine).recompute();
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
     expect(observe(s.engine).canAttackUnsuspended(s.perm("ally"))).toBe(false);
+  });
+  it("allows the optional post-then attack to be refused", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-017", as: "jesmon" }], hand: [{ card: "BT20-019", as: "xAntibody" }] },
+        1: { security: ["BT20-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jesmon").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jesmon").topCard.cardId === "BT20-019");
+    expect(s.perm("jesmon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("publicly evolves the legal Jesmon to Jesmon X to GX stack and exposes inherited abilities", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-019", as: "xAntibody", under: ["BT20-017"] },
+          { card: "BT20-084", as: "sister" },
+        ],
+        hand: [{ card: "BT20-021", as: "gx" }],
+      },
+    });
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("xAntibody").permanentId,
+        instanceId: s.inst("gx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("xAntibody").topCard.cardId === "BT20-021");
+    expect(s.perm("xAntibody").stack.map((card) => card.cardId)).toEqual(["BT20-017", "BT20-019"]);
+    expect(observe(s.engine).hasPierce(s.perm("sister"))).toBe(true);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("sister"))).toBe(true);
+  });
+
+  it("protects against Security deletion for the turn, then loses that protection", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-017", as: "jesmon" }],
+          hand: [{ card: "BT20-019", as: "xAntibody" }, "BT20-010"],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { security: ["ST22-08", "ST22-08"], deck: ["BT20-010"], hand: ["BT20-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    const attackerId = s.perm("jesmon").permanentId;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: attackerId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestrictedByEffect(s.perm("jesmon"), "beAffected", "Option"));
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.hand.filter((card) => card.cardId === "ST22-08")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("jesmon"), "beAffected", "Option")).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-019")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

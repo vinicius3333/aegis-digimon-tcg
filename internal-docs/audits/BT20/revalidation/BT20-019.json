@@ -1,0 +1,34 @@
+{
+  "cardId": "BT20-019",
+  "status": "awaiting-lead-review",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 1,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "Catalog: Jesmon (X Antibody) level 6 red Royal Knight/X Antibody; alternate Jesmon cost1; Alliance; When Digivolving if Jesmon/X Antibody is in stack, one own Digimon is unaffected by opponent effects for turn then one own Digimon may attack; Your Turn grants Sistermon-name/Royal Knight allies Piercing and unsuspended attacks; inherited Jesmon GX grants both to all allies.",
+    "BT20-019.ts exclusively registers IR and maps temporary immunity condition, independent optional post-then attack, Your Turn filtered grants, GX inherited grants, and Jesmon alternate requirement.",
+    "BT20-019.test.ts proves legal Jesmon\u2192Jesmon X evolution, condition-positive immunity, condition-negative post-then attack, optional attack refusal, Sistermon/Royal Knight versus non-match filters, GX inherited scope, and turn removal.",
+    "Added public Jesmon \u2192 Jesmon X \u2192 GX legal stack and inherited all-ally observable proof.",
+    "Added natural ST22-08 Security Option control: Jesmon X protected target survives the lowest-DP deletion while unprotected Jesmon is removed.",
+    "014-040-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-019.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "8 tests passed for this card; 160 total passed; 014-040-results.json"
+    }
+  ],
+  "gaps": [
+    "Direct natural opponent-effect immunity attempt and full legal public stack are pending coordinator review.",
+    "Delivery gates pending coordinator collection, mechanism, typecheck, lint."
+  ],
+  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+}
