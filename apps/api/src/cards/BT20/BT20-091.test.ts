@@ -110,6 +110,34 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(s.state.memory).toBe(memBefore + 1);
   });
 
+  it("publicly plays a [Royal Knight] and pays Cool Boy's suspension cost for draw and memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: COOL_BOY, dp: 0, as: "coolBoy" }],
+          hand: [{ card: ROYAL_KNIGHT_CARD, as: "royalKnight" }, "BT1-010"],
+          deck: [{ card: "BT1-010", faceUp: false }, "BT1-010"],
+        },
+        1: { deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("royalKnight").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("royalKnight").instanceId),
+    );
+    expect(s.perm("coolBoy").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.length).toBe(handBefore);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.memory).toBe(-1); // 10 - printed play cost 12 + Cool Boy's 1.
+  });
+
   it("does NOT draw when the Digimon has no [Royal Knight] trait (negative control)", async () => {
     const s = setupEngine({
       0: {
