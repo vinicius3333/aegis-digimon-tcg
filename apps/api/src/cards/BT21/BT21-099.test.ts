@@ -82,4 +82,61 @@ describe("BT21-099 Xros Up", () => {
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("save").instanceId);
     expect(s.state.memory).toBe(0);
   });
+
+  it("publicly performs the optional placement and free Save digivolution in sequence", async () => {
+    const preferred: string[] = [];
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "tamer" },
+            { card: "BT21-063", as: "host" },
+          ],
+          hand: [
+            { card: "BT21-099", as: "option" },
+            { card: "BT14-057", as: "placed" },
+          ],
+          trash: [{ card: "BT21-066", as: "evolved" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("placed").instanceId, s.inst("evolved").instanceId, s.perm("host").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolved").instanceId);
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === s.inst("placed").instanceId)).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-066");
+  });
+
+  it("leaves both optional Main actions inert when no Save cards are available", async () => {
+    const s = setup({
+      0: {
+        battleArea: [
+          { card: "BT21-089", as: "tamer" },
+          { card: "BT21-063", as: "host" },
+        ],
+        hand: [
+          { card: "BT21-099", as: "option" },
+          { card: "BT1-009", as: "unrelated" },
+        ],
+        trash: ["BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("unrelated").instanceId)).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-063");
+  });
 });
