@@ -86,4 +86,25 @@ describe("BT20-028 GigaSeadramon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("giga").stack.map((card) => card.cardId)).toEqual(["BT20-023", "BT20-025"]);
   });
+
+  it("reaches GigaSeadramon from a legal MegaSeadramon/X Antibody stack through public evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-026", as: "mega", under: ["BT20-024"] }],
+        hand: [{ card: "BT20-028", as: "giga" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mega").permanentId,
+        instanceId: s.inst("giga").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mega").topCard.cardId === "BT20-028");
+    expect(s.perm("mega").topCard.cardId).toBe("BT20-028");
+    expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT20-024", "BT20-026"]);
+  });
 });
