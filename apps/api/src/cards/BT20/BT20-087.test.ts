@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./BT20-087.js";
+import "./BT20-012.js";
+import "./BT20-048.js";
 
 describe("BT20-087 Kota Domoto & Yuji Musya", () => {
   it("sets memory to 3 at the start of turn when memory is 2 or less", () => {
