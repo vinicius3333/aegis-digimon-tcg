@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,20 @@ import { compiled as BT24_091 } from "./BT24-091.js";
 import "../index.js";
 
 describe("BT24-091 Tidal Stream", () => {
+  it("matches the immutable catalog identity and link route", () => {
+    expect(getCardDefinition("BT24-091")).toMatchObject({
+      cardId: "BT24-091",
+      nameEn: "Tidal Stream",
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 5,
+      types: ["TS"],
+      linkDp: 2000,
+      linkEffect: "[When Attacking] [Once Per Turn] Return 1 of your opponent's lowest level Digimon to the hand.",
+      linkRequirement: "[Link] [TS]\u00a0trait: Cost 3",
+    });
+  });
+
   it("returns all tied lowest-level Digimon, unsuspends TS despite a higher survivor, and links itself", async () => {
     const s = setupEngine(
       {
