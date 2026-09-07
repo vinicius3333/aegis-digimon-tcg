@@ -73528,7 +73528,7 @@
                   "filter": {
                     "nameOrTrait": [
                       { "tokens": ["Examon"], "match": "nameExact" },
-                      { "tokens": ["X Antibody"], "match": "trait" }
+                      { "tokens": ["X Antibody"], "match": "nameExact" }
                     ]
                   },
                   "raw": "[Examon]/[X Antibody] is in this Digimon's digivolution cards"
