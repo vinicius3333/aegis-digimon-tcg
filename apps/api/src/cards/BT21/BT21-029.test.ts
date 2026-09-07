@@ -90,7 +90,7 @@ describe("BT21-029 compiled implementation", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "low", dp: 3000 },
-            { card: "BT1-010", as: "high", dp: 4000 },
+            { card: "BT11-075", as: "high" },
           ],
         },
       },
@@ -141,8 +141,8 @@ describe("BT21-029 compiled implementation", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "first", dp: 2000 },
-            { card: "BT1-010", as: "second", dp: 3000 },
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-009", as: "second" },
           ],
         },
       },
@@ -169,10 +169,59 @@ describe("BT21-029 compiled implementation", () => {
     ).toHaveLength(1);
   });
 
+  it("shares the deletion budget from a public evolution with its later public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-024", as: "base" }],
+          hand: [{ card: "BT21-029", as: "medusamon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstLowest" },
+            { card: "BT1-009", as: "secondLowest" },
+          ],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const firstId = s.perm("firstLowest").permanentId;
+    const secondId = s.perm("secondLowest").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medusamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-029");
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
+  });
+
   it("plays a token from a real opponent Digimon deletion", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-029", as: "medusamon", dp: 12000 }] },
-      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 1000, suspended: true }] },
+      0: { battleArea: [{ card: "BT21-029", as: "medusamon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true }] },
     });
     await s.ready();
     expect(
@@ -184,6 +233,61 @@ describe("BT21-029 compiled implementation", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId.startsWith("TOKEN-Petrification")));
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Petrification-Token")).toBe(true);
+  });
+
+  it("plays only one token across two public opponent Digimon deletions in one turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-029", as: "medusamon" },
+            { card: "BT21-062", as: "secondAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstVictim", suspended: true },
+            { card: "BT1-010", as: "secondVictim", suspended: true },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstVictimId = s.perm("firstVictim").permanentId;
+    const secondVictimId = s.perm("secondVictim").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("medusamon").permanentId,
+        target: { kind: "permanent", permanentId: firstVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token"),
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: secondVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondVictimId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstVictimId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondVictimId)).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token"),
+    ).toHaveLength(1);
   });
 
   it.each([
@@ -225,7 +329,7 @@ describe("BT21-029 compiled implementation", () => {
   it("publicly performs its Security Attack +1 check and creates one opponent token from security removal", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-029", as: "attacker", dp: 12000 }] },
+        0: { battleArea: [{ card: "BT21-029", as: "attacker" }] },
         1: {
           security: ["BT1-009", "BT1-009", "BT1-009"],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
@@ -260,7 +364,7 @@ describe("BT21-029 compiled implementation", () => {
   it("public player attack resolves End of Attack lowest-DP deletion with printed boundaries", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-029", as: "attacker", dp: 12000 }] },
+        0: { battleArea: [{ card: "BT21-029", as: "attacker" }] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "lowest" },
