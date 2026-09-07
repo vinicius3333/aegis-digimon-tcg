@@ -203,6 +203,34 @@ describe("BT21-063 Gumdramon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId)).toBe(false);
   });
 
+  it("executes Save after a public losing battle and preserves the card under its Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-063", as: "gumdramon", suspended: true },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-068", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const gumdramonId = s.perm("gumdramon").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("gumdramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === gumdramonId));
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === gumdramonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId)).toBe(false);
+  });
+
   it("gives its evolution host +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-066", as: "host", under: [{ card: "BT21-063", as: "source" }] }] },
