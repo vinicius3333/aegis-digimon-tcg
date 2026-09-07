@@ -278,6 +278,43 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     expect(s.state.memory).toBe(1);
   });
 
+  it("publicly resolves When Digivolving with no Vemmon-text hit by trashing all three reveals", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-056", as: "base" }],
+          hand: [{ card: SNATCHMON, as: "snatchmon" }],
+          deck: [
+            { card: "BT1-012", as: "bonusDraw" },
+            { card: PLAIN_CARD, as: "plain1" },
+            { card: "BT1-010", as: "plain2" },
+            { card: "BT1-011", as: "plain3" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === SNATCHMON && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("plain1").instanceId, s.inst("plain2").instanceId, s.inst("plain3").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("plain1").instanceId)).toBe(false);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([VEMMON_CARD]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("publicly builds four Vemmon and resolves two paid Zenith returns with one inherited deletion", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
