@@ -188,4 +188,23 @@ describe("BT24-075 SkullBaluchimon", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
+
+  it("uses inherited Security Attack +1 during a public player attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-075"] }], deck: ["BT1-009", "BT1-009"] },
+      1: { security: ["BT1-012", "BT1-012"], deck: ["BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+  });
 });
