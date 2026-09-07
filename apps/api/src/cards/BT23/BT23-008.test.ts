@@ -350,8 +350,8 @@ describe("BT23-008 Greymon", () => {
       const s = setupEngine(
         {
           0: {
+            battleArea: [{ card: "BT23-008", as: "greymon" }],
             hand: [
-              { card: "BT23-008", as: "greymon" },
               { card: "BT23-018", as: "garurumon" },
               { card: "BT8-084", as: "kimeramon" },
             ],
@@ -367,13 +367,11 @@ describe("BT23-008 Greymon", () => {
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
-      s.state.memory = 20;
+      s.state.memory = 10;
       const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       const greymonId = s.inst("greymon").instanceId;
       const garurumonId = s.inst("garurumon").instanceId;
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: greymonId })).toEqual({ ok: true });
-      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === greymonId));
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: garurumonId })).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === garurumonId));
       const greymonPerm = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === greymonId)!;
