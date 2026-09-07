@@ -1,6 +1,6 @@
 # BT25 validation record — 2026-09-06
 
-Collection remains incomplete. Baseline checkout `a924de971`.
+Final status: complete. All 104 catalog cards have independently revalidated 10/10 evidence. Historical checkpoints below preserve the audit trail and are superseded by the final closeout. Baseline checkout `a924de971`.
 
 | Command                                                                                        | Actual result                                                                                            | Interpretation                                                        |
 | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -130,3 +130,18 @@ The stable snapshot with public App Fusion passes `pnpm --filter @aegis/api exec
 - 059's initial immunity assertion was vacuous because it chose the non-TS target. The repaired public probe now chooses the protected TS Digimon by exact ID, proves it is unaffected, proves a separate non-TS control is affected, and repeats the effect after protection expires. The final card result is **6/6**; remaining clauses and cleanup are still under review.
 
 This is an integration checkpoint, not collection completion. Next work closes outstanding refusal/timing/stack gaps on 029–064 and audits the remaining 060/065–104 cards in small disjoint Luna batches.
+
+## Final collection closeout
+
+The complete BT25 inventory was recalculated after the final implementation and evidence changes: **104/104 verified, 104 scored, 1,040/1,040 assigned points, and zero outstanding gaps**. Each inventory entry records the focused command, observed count, shared mechanism coverage, collection command, typecheck, set synchronization, formatting, lint, and diff checks needed to reproduce its score.
+
+- Card-focused JSON run: **107 files, 1,265 tests passed**. The 104 card-specific files account for **1,185 tests**; the remaining tests are BT25 auxiliary suites. Command: `pnpm --filter @aegis/api exec vitest run src/cards/BT25 --reporter=json --outputFile=/tmp/bt25-audit-logs/card-tests.json --maxWorkers=1 --no-file-parallelism`.
+- Authoritative collection and mechanism run: **120 files, 1,801 tests passed**. Command: `pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts src/engine/appFusionIntent.test.ts src/engine/effects/modifiers.test.ts src/engine/effects/capabilities.test.ts src/engine/conformance/ch09-using-cards.test.ts src/engine/effects/primitives.test.ts src/engine/continuousDpProjection.test.ts src/engine/conformance/ch15-01-effect-basics.test.ts src/engine/ruleProcess.test.ts --maxWorkers=1 --no-file-parallelism`. Log: `/tmp/bt25-audit-logs/final-collection-authoritative.log`.
+- Full `pnpm typecheck`: **PASS** for shared, API, and web. Log: `/tmp/bt25-audit-logs/final-typecheck-authoritative.log`.
+- `pnpm effects:sync:set -- --set BT25 --base a924de971` and the matching `effects:check:set`: **PASS**, 104 records synchronized, 61 semantic changes against the baseline, and zero semantic or byte changes outside BT25.
+- `pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25 apps/api/src/engine/effects/modifiers.ts apps/api/src/engine/effects/modifiers.test.ts apps/api/src/engine/continuousDpProjection.test.ts docs/audits/BT25`: **PASS** across 330 files.
+- `pnpm exec oxlint apps/api/src/cards/BT25 apps/api/src/engine/effects/modifiers.ts apps/api/src/engine/effects/modifiers.test.ts apps/api/src/engine/continuousDpProjection.test.ts`: **PASS with zero warnings**.
+- Production registration scan: **104 card modules contain `registerIrCard`; zero contain `registerCard`**.
+- `node tools/audit-bt25-stack-candidates.mjs --json`: nine advisory candidates. Manual review confirms that all are intentional non-evolution fixture stacks: BT25-058 exercises de-digivolution, BT25-072 and BT25-085 exercise linked/source-card movement, BT25-080 exercises an inherited effect on a supplied host, and BT25-102 exercises continuous keyword projection. No candidate is presented as a legal evolution performed by a public evolution intent.
+- `git diff --check`: **PASS**.
+- `node tools/recalculate-bt25-audit.mjs` and `node tools/recalculate-bt25-audit.mjs --check`: **PASS**, producing the final 104/104 ledger and 1,040-point total.
