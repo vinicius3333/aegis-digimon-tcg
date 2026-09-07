@@ -155,6 +155,46 @@ describe("BT24-029 Whamon", () => {
     expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherTarget").instanceId);
   });
 
+  it("plays the own stacked TS card from a natural public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-030", as: "host", under: [{ card: "BT24-027", as: "ownTarget" }, "BT24-029"] }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId)).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("ownTarget").instanceId);
+  });
+
+  it("plays the own stacked TS card at the end of a natural public attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-029", as: "whamon", under: [{ card: "BT24-083", as: "ownTarget" }] }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("whamon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("inherited play is limited to a level-4 blue TS card in the attacking host's stack", async () => {
     const s = setupEngine(
       {
