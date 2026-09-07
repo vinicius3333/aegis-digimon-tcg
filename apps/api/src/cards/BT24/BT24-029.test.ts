@@ -111,6 +111,26 @@ describe("BT24-029 Whamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
   });
 
+  it("keeps the restriction scoped to effect play on a public play", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-029", as: "whamon" }] },
+      1: {
+        battleArea: [{ card: "BT24-083", as: "candidate" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029")).toBe(true);
+    // The printed restriction is an effect-play clause; a normal public play
+    // enters without creating a suspend restriction.
+    expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
+  });
+
   it("plays a cost-5 TS card only from Whamon's own stack at end of attack", async () => {
     const s = setupEngine(
       {
@@ -181,5 +201,37 @@ describe("BT24-029 Whamon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("whamon").instanceId);
 
     expect(s.state.memory).toBe(2);
+  });
+
+  it("runs the qualifying placement and restriction on a public digivolution", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-010", as: "base" }],
+          hand: [{ card: "BT24-029", as: "whamon" }, { card: "BT24-102", as: "placed" }],
+        },
+        1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("whamon").instanceId, s.inst("placed").instanceId, s.perm("restricted").permanentId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("whamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("whamon").instanceId);
+
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("whamon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("placed").instanceId);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
   });
 });
