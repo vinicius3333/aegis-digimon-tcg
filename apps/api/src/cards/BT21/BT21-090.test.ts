@@ -164,6 +164,112 @@ describe("BT21-090 The Strongest of Brothers", () => {
     await ownTurn;
   });
 
+  it("does not react to an ordinary public Gammamon evolution that places its source by rule", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-010", as: "gammamon" }],
+          hand: [
+            { card: "BT21-090", as: "option" },
+            { card: "BT21-019", as: "betel" },
+            { card: "BT21-022", as: "candidate" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013", "BT1-014", "BT1-015"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.state.memory).toBe(7);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gammamon").permanentId,
+        instanceId: s.inst("betel").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gammamon").topCard.instanceId === s.inst("betel").instanceId);
+
+    expect(s.perm("gammamon").stack.map((card) => card.cardId)).toEqual(["BT21-010"]);
+    expect(s.perm("gammamon").topCard.cardId).toBe("BT21-019");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
+  it("does not react to an opponent's public Canoweissmon source placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-084", as: "host" },
+            { card: "BT1-009", as: "color" },
+          ],
+          hand: [
+            { card: "BT21-090", as: "option" },
+            { card: "BT21-019", as: "candidate" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          hand: [
+            { card: "BT21-022", as: "cano" },
+            { card: "BT21-010", as: "source" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.state.memory).toBe(7);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cano").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("cano").stack.some((card) => card.instanceId === s.inst("source").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("host").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
   it("lets the aged public Delay opportunity be declined without trashing the Option", async () => {
     const opts = { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true };
     const s = setupEngine(
