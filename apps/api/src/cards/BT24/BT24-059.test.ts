@@ -91,6 +91,41 @@ describe("BT24-059 Sharkmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sharkmonId)).toBe(false);
   });
 
+  it("resolves On Deletion from an opponent's public When Digivolving deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-059", as: "sharkmon" }],
+          deck: [
+            { card: "BT24-046", as: "ts" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: "ST15-13", as: "hiandromon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hiandromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ts").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("ts").instanceId)?.isSuspended).toBe(true);
+  });
+
   it.each([
     ["normal blue level-4 requirement", "BT1-032", false, undefined, 4],
     ["Aquatic trait-substring requirement", "BT12-025", true, 0, 3],
