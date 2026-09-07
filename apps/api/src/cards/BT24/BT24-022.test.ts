@@ -130,6 +130,35 @@ describe("BT24-022 Ikkakumon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it("draws from a real owner-turn Active phase when the stacked host unsuspends", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-022", as: "host", suspended: true, under: ["BT24-022"] }],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: [{ card: "BT1-010", as: "drawn" }, "BT1-011", "BT1-012"],
+      },
+      1: { deck: ["BT1-013", "BT1-014", "BT1-015"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === "Active");
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+    // The owner also takes the ordinary draw for this non-first turn; the inherited trigger
+    // contributes the second card during the same Active phase.
+    expect(s.state.players[0]!.hand).toHaveLength(9);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+  });
+
   it("digivolves from a level 3 TS Digimon for cost 2", async () => {
     const s = setupEngine({
       0: {
