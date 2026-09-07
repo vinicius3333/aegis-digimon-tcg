@@ -171,7 +171,7 @@ describe("BT24-016 Lamiamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-016"] }],
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-016"] }],
           hand: [
             { card: "BT24-012", as: "eligible" },
             { card: "BT24-016", as: "tooLarge" },
@@ -193,5 +193,35 @@ describe("BT24-016 Lamiamon", () => {
       s.inst("eligible").instanceId,
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooLarge").instanceId);
+  });
+
+  it("plays the inherited Reptile from a public attack removing opponent security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-016"] }],
+          hand: [{ card: "BT24-012", as: "eligible" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const securityId = s.inst("security").instanceId;
+    const playedId = s.inst("eligible").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT24-016");
   });
 });
