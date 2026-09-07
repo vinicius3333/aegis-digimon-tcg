@@ -185,6 +185,32 @@ describe("BT24-071 Raidramon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("appmon").instanceId);
   });
 
+  it("may refuse standalone revival after a public opponent attack deletes it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-071", as: "raidramon", suspended: true }],
+          trash: [{ card: "BT21-009", as: "appmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 10000 }], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const raidramonId = s.perm("raidramon").permanentId;
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: raidramonId },
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === raidramonId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === raidramonId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("appmon").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("appmon").instanceId)).toBe(false);
+  });
+
   it("links for cost 2, adds 3000 DP, and revives a level 3 Appmon when the host is deleted", async () => {
     const s = setupEngine(
       {
