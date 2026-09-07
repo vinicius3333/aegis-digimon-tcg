@@ -4935,25 +4935,37 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const delayedDeletePlayed = (
     playedPermanentId: string,
-    timing: "endOfOwnerTurn" | "endOfOpponentTurn" = "endOfOwnerTurn",
+    timing: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn" = "endOfOwnerTurn",
   ): void => {
     // A one-shot `endOfTurn` watcher anchored on the affected permanent. Most cards delete at
     // their owner's turn end; BT23-048 explicitly schedules the opponent's turn end (Q5567/Q5568).
     const ownerSeat = access.permanentById(playedPermanentId)?.controllerSeat;
+    const currentTurnSeat = state.turnSeat;
     const expiresOnTurnEndOf =
-      ownerSeat === undefined ? undefined : timing === "endOfOpponentTurn" ? access.opponentOf(ownerSeat) : ownerSeat;
+      timing === "endOfCurrentTurn"
+        ? currentTurnSeat
+        : ownerSeat === undefined
+          ? undefined
+          : timing === "endOfOpponentTurn"
+            ? access.opponentOf(ownerSeat)
+            : ownerSeat;
     subTriggers.subscribe({
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
       once: true,
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       matches: (subCtx) =>
-        (timing === "endOfOpponentTurn" ? !subCtx.source.isOwnersTurn() : subCtx.source.isOwnersTurn()) &&
-        subCtx.source.isOnBattleArea(),
+        (timing === "endOfCurrentTurn"
+          ? state.turnSeat === currentTurnSeat
+          : timing === "endOfOpponentTurn"
+            ? !subCtx.source.isOwnersTurn()
+            : subCtx.source.isOwnersTurn()) && subCtx.source.isOnBattleArea(),
       description:
-        timing === "endOfOpponentTurn"
-          ? "[End of Your Opponent's Turn] Delete this Digimon."
-          : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
+        timing === "endOfCurrentTurn"
+          ? "[End of Current Turn] Delete this Digimon (delayed-delete-played)."
+          : timing === "endOfOpponentTurn"
+            ? "[End of Your Opponent's Turn] Delete this Digimon."
+            : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
       run: async () => {
         await deletePermanent([playedPermanentId], "byEffect");
       },

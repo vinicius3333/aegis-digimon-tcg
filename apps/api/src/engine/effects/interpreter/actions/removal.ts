@@ -922,14 +922,22 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         for (const permanentId of playedIds)
           ctx.fx.delayedDeletePlayed?.(
             permanentId,
-            action.timing === "endOfOpponentTurn" ? "endOfOpponentTurn" : "endOfOwnerTurn",
+            action.timing === "endOfCurrentTurn"
+              ? "endOfCurrentTurn"
+              : action.timing === "endOfOpponentTurn"
+                ? "endOfOpponentTurn"
+                : "endOfOwnerTurn",
           );
       } else {
         const self = ctx.source.permanent();
         if (self !== undefined)
           ctx.fx.delayedDeletePlayed?.(
             self.permanentId,
-            action.timing === "endOfOpponentTurn" ? "endOfOpponentTurn" : "endOfOwnerTurn",
+            action.timing === "endOfCurrentTurn"
+              ? "endOfCurrentTurn"
+              : action.timing === "endOfOpponentTurn"
+                ? "endOfOpponentTurn"
+                : "endOfOwnerTurn",
           );
       }
       return false;

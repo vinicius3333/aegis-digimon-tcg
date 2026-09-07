@@ -1204,8 +1204,11 @@ export interface Primitives {
    */
   stackCardTrashLock?(instanceId: string, ownerSeat: Seat, duration: EffectDuration): void;
   securityAttackInvert?(permanentId: string, duration: EffectDuration): void;
-  /** Install an owner- or opponent-turn-end delete on one played permanent. */
-  delayedDeletePlayed?(playedPermanentId: string, timing?: "endOfOwnerTurn" | "endOfOpponentTurn"): void;
+  /** Install a deletion at the owner, opponent, or current turn end on one played permanent. */
+  delayedDeletePlayed?(
+    playedPermanentId: string,
+    timing?: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn",
+  ): void;
   /**
    * Install a one-shot end-of-turn memory change for `seat` ("Gain 3 memory. At the end of
    * your turn, lose 3 memory" — BT1-021). Anchor-less: the delayed change fires at the
