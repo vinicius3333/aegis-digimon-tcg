@@ -94,23 +94,38 @@ describe("BT24-061 Vademon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not return an opponent Digimon above the printed play-cost-3 boundary", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-061", as: "vademon" }] },
+      1: { battleArea: [{ card: "BT24-046", as: "target" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    const targetId = s.perm("target").topCard.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vademon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.deck.some((c) => c.instanceId === targetId)).toBe(false);
+  });
+
   it("public attack activates inherited De-Digivolve 1 on one opponent", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-061"] }] },
+        0: { battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-061"] }] },
         1: {
           battleArea: [
             { card: "BT24-051", as: "first", under: ["BT24-050"] },
             { card: "BT24-051", as: "second", under: ["BT24-050"] },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-013", "BT1-015"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId);
     await s.ready();
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-061"]);
 
     expect(
       s.engine.applyIntent(0, {
