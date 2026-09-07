@@ -157,6 +157,63 @@ describe("BT24-040 Venusmon", () => {
     }
   });
 
+  it("resolves both entry clauses from a public When Digivolving intent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-039", as: "base" }], hand: [{ card: "BT24-040", as: "venusmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-030", as: "stacked", under: ["BT24-029", "BT24-027"] },
+            { card: "BT24-083", as: "tamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("venusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("venusmon").instanceId);
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    for (const permanent of [s.perm("stacked"), s.perm("tamer")]) {
+      expect(observe(s.engine).isRestricted(permanent, "suspend")).toBe(true);
+      expect(observe(s.engine).isRestricted(permanent, "cannotActivateWhenDigivolving")).toBe(true);
+    }
+  });
+
+  it("expires entry restrictions at the end of the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-040", as: "venusmon" }] },
+      1: {
+        battleArea: [
+          { card: "BT24-030", as: "stacked", under: ["BT24-029"] },
+          { card: "BT24-083", as: "tamer" },
+        ],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-040"));
+    expect(observe(s.engine).isRestricted(s.perm("stacked"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "cannotActivateWhenDigivolving")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("stacked"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "cannotActivateWhenDigivolving")).toBe(false);
+  });
+
   it("does not suppress the restricted card's When Attacking timing (Q5622-Q5626)", async () => {
     const s = setupEngine({
       0: {
