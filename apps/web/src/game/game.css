@@ -4309,7 +4309,9 @@ button.side-panel__name:focus-visible {
      faces, and scrolls the strip by one card when it is tapped. */
   .game-hand-scroll-cue {
     position: absolute;
-    z-index: 3;
+    /* Above every hand card: the row stacks them at 10 + index, the hovered one
+       at 40 and the selected one at 50, and all of them paint over the strip. */
+    z-index: 60;
     top: 50%;
     display: grid;
     place-items: center;
