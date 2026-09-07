@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -154,6 +154,41 @@ describe("BT24-082 Owen Dreadnought", () => {
     expect(s.perm("owen").isSuspended).toBe(true);
     expect(s.perm("reptile").currentDP).toBe(baseDp + 3000);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("reptile"))).toBe(true);
+  });
+
+  it("triggers from a public Reptile evolution and expires the DP boost after the turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-082", as: "owen" }, { card: "BT1-010", as: "reptile" }],
+          hand: [{ card: "BT24-012", as: "evolved" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-012"], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+    const evolvedBaseDp = getCardDefinition("BT24-012").dp;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("reptile").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("reptile").topCard.instanceId === s.inst("evolved").instanceId);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("reptile")));
+    expect(s.perm("owen").isSuspended).toBe(true);
+    expect(s.perm("reptile").currentDP).toBe(evolvedBaseDp + 3000);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("reptile"))).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("reptile").currentDP).toBe(evolvedBaseDp);
   });
 
   it("grants no DP and no attack when Owen cannot pay the suspension cost (Q5665)", async () => {
