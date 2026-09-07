@@ -84540,20 +84540,20 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Gabumon", "Nokia Shiramine"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Gabumon", "Nokia Shiramine"], "match": "nameExact" }]
               },
-              "count": 1
+              "count": 1,
+              "upTo": true
             },
             "from": ["hand"],
             "payCost": true,
             "reduceCostBy": 2,
             "cost": {
               "kind": "place",
-              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By placing this Digimon's top stacked card as its bottom digivolution card"
             },
-            "optional": true,
+            "optional": false,
             "abortOnDecline": true
           }
         ],
@@ -85143,7 +85143,10 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Eri Karan"], "match": "name" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "nameOrTrait": [{ "tokens": ["Eri Karan"], "match": "nameExact" }]
+                  },
                   "count": 1
                 },
                 "from": ["hand"],
@@ -85243,20 +85246,20 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Agumon", "Nokia Shiramine"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Agumon", "Nokia Shiramine"], "match": "nameExact" }]
               },
-              "count": 1
+              "count": 1,
+              "upTo": true
             },
             "from": ["hand"],
             "payCost": true,
             "reduceCostBy": 2,
             "cost": {
               "kind": "place",
-              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By placing this Digimon's top stacked card as its bottom digivolution card"
             },
-            "optional": true,
+            "optional": false,
             "abortOnDecline": true
           }
         ],
