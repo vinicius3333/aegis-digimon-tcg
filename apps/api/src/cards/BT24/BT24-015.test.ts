@@ -210,6 +210,40 @@ describe("BT24-015 MetalGreymon", () => {
     ]);
   });
 
+  it("proceeds to security when the defender publicly declines a Blocker declaration", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-015", as: "blocker" }],
+        security: [{ card: "BT1-013", as: "checkedSecurity" }],
+      },
+      1: { battleArea: [{ card: "ST1-10", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const securityId = s.inst("checkedSecurity").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === securityId));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(securityId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("blocker").permanentId,
+    ]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("attacker").permanentId,
+    ]);
+  });
+
   it("exposes Blocker and digivolves from a level 4 TS Digimon for cost 3", async () => {
     const s = setupEngine({
       0: {
