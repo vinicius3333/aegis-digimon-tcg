@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-006.js";
 import "../index.js";
 
@@ -57,14 +57,15 @@ describe("BT24-006 Tapmon", () => {
       subjectPermanentId: s.perm("host").permanentId,
     });
     expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("startingHand").instanceId]);
 
     await advance(s.engine).fireSubTrigger("whenLinked", {
       subjectPermanentId: s.perm("host").permanentId,
     });
     expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("startingHand").instanceId]);
   });
 
   it("fires from the public link intent when another Appmon is linked to this host", async () => {
@@ -72,7 +73,10 @@ describe("BT24-006 Tapmon", () => {
       {
         0: {
           battleArea: [{ card: "BT21-009", as: "host", under: ["BT24-006"] }],
-          hand: [{ card: "BT24-053", as: "link" }, { card: "BT4-022", as: "startingHand" }],
+          hand: [
+            { card: "BT24-053", as: "link" },
+            { card: "BT4-022", as: "startingHand" },
+          ],
           deck: [{ card: "BT4-022", as: "drawn" }, "BT4-022"],
         },
       },
@@ -92,5 +96,32 @@ describe("BT24-006 Tapmon", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
+  });
+
+  it("reaches Tapmon through a legal purple egg-to-Appmon evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT24-006", as: "egg" },
+        hand: [
+          { card: "BT24-067", as: "hackmon" },
+          { card: "BT24-053", as: "link" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    const eggId = s.perm("egg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("hackmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-067");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-006"]);
   });
 });
