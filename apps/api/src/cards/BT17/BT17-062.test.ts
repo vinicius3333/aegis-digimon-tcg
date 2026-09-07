@@ -70,7 +70,7 @@ describe("BT17-062 Dorumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-062", under: ["BT16-087"], as: "dorumon" }],
+          battleArea: [{ card: "BT17-062", under: ["BT16-087"], as: "dorumon", dp: 20_000 }],
           hand: [{ card: "BT17-073", as: "dorugoramon" }],
         },
         1: { battleArea: [{ card: "BT17-025", as: "levelFive" }], security: 1 },
@@ -97,7 +97,7 @@ describe("BT17-062 Dorumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-062", as: "dorumon" }],
+          battleArea: [{ card: "BT17-062", as: "dorumon", dp: 20_000 }],
           hand: [{ card: "BT17-073", as: "dorugoramon" }],
         },
         1: { battleArea: [{ card: "BT17-070", as: "levelSix" }], security: 1 },
