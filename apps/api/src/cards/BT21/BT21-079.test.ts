@@ -105,6 +105,33 @@ describe("BT21-079 Megidramon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponent").instanceId)).toBe(true);
   });
 
+  it("checks two security cards from Security Attack +1 before the End of Attack wipe", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-079", as: "megidramon" }] },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const megidramonId = s.inst("megidramon").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("megidramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === megidramonId)).toBe(true);
+  });
+
   it("publicly revives a qualifying Guilmon after Megidramon loses its attack", async () => {
     const s = setupEngine(
       {
