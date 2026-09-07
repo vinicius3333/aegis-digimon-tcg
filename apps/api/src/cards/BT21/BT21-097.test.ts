@@ -138,11 +138,66 @@ describe("BT21-097 App Link", () => {
     expect(s.perm("opponent").linked).toHaveLength(0);
   });
 
+  it("declines an eligible aged Delay link after a public turn boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-084", as: "appmon" },
+            { card: "BT22-016", as: "recipient" },
+          ],
+          hand: [
+            { card: "BT21-097", as: "option" },
+            { card: "ST22-08", as: "eligible" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision;
+    expect(decision?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await laterTurn;
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.perm("recipient").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
+  });
+
   it("publicly places itself from Security without changing memory", async () => {
     const s = setupEngine(
       {
         0: { security: [{ card: "BT21-097", as: "option" }] },
-        1: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: { battleArea: [{ card: "BT21-032", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
