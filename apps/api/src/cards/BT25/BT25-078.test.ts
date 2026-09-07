@@ -1,4 +1,4 @@
-import { Phase, getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition, type Action } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -41,7 +41,10 @@ describe("BT25-078 Gazimon", () => {
     );
 
     for (const trigger of ["WhenMoving", "OnPlay"] as const) {
-      const reveal = compiled?.effects?.find((effect) => effect.trigger === trigger)?.actions?.[0] as any;
+      const reveal = compiled?.effects?.find((effect) => effect.trigger === trigger)?.actions?.[0] as Extract<
+        Action,
+        { kind: "RevealAdd" }
+      >;
       expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
       expect(reveal.add).toHaveLength(1);
       expect(reveal.add[0]).toMatchObject({

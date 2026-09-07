@@ -232,11 +232,13 @@ describe("BT25-092 Asuna Shiroki", () => {
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith(`${CARD_ID}/`),
     )!.effectKey;
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.inst("asuna").instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("asuna").instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("ownHost").topCard?.cardId === "BT24-010");
     expect(s.perm("ownHost").topCard?.cardId).toBe("BT24-010");
     expect(s.perm("opponentHost").topCard?.cardId).toBe("BT24-009");

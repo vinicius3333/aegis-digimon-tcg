@@ -242,11 +242,17 @@ describe("BT25-094 Cosmic Area", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
-    expect(s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "BT25-094")).toBe(true);
+    expect(s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "BT25-094")).toBe(
+      true,
+    );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(areaId);
     expect(s.state.players[0]!.trash.find((card) => card.instanceId === areaId)).toMatchObject({ faceUp: true });
   });

@@ -29,25 +29,34 @@ describe("BT25-085 BeelStarmon", () => {
   });
 
   it("supports ordinary Purple and Black Lv.5 routes at cost 4 and rejects a wrong color", async () => {
-    for (const [source, as] of [["BT10-064", "blackBase"], ["BT10-012", "purpleBase"]] as const) {
+    for (const [source, as] of [
+      ["BT10-064", "blackBase"],
+      ["BT10-012", "purpleBase"],
+    ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: source, as }], hand: [{ card: CARD_ID, as: "beel" }] } });
       s.state.memory = 5;
-      expect(s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm(as).permanentId,
-        instanceId: s.inst("beel").instanceId,
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(as).permanentId,
+          instanceId: s.inst("beel").instanceId,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm(as).topCard?.cardId === CARD_ID);
       expect(s.perm(as).topCard?.cardId).toBe(CARD_ID);
       expect(s.state.memory).toBe(1);
     }
-    const wrong = setupEngine({ 0: { battleArea: [{ card: "BT10-056", as: "greenBase" }], hand: [{ card: CARD_ID, as: "beel" }] } });
+    const wrong = setupEngine({
+      0: { battleArea: [{ card: "BT10-056", as: "greenBase" }], hand: [{ card: CARD_ID, as: "beel" }] },
+    });
     wrong.state.memory = 5;
-    expect(wrong.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: wrong.perm("greenBase").permanentId,
-      instanceId: wrong.inst("beel").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      wrong.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrong.perm("greenBase").permanentId,
+        instanceId: wrong.inst("beel").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("uses exactly one eligible Option from hand for free and resolves the DUAL Option face", async () => {

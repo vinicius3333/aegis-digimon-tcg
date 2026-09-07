@@ -111,7 +111,12 @@ describe("BT25-081 Fangmon", () => {
 
   it("gains 1 memory for an opponent Tamer suspension, only once per turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "fangmon" }, { card: "BT8-093", as: "ownTamer" }] },
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "fangmon" },
+          { card: "BT8-093", as: "ownTamer" },
+        ],
+      },
       1: {
         battleArea: [
           { card: "BT1-086", as: "firstTamer" },

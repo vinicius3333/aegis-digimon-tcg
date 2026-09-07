@@ -112,23 +112,31 @@ describe("BT25-071 Orochimon", () => {
   });
 
   it("supports the ordinary black Lv.4 route at cost 3 and rejects a wrong-color source", async () => {
-    const ordinary = setupEngine({ 0: { battleArea: [{ card: "BT10-061", as: "blackBase" }], hand: [{ card: "BT25-071", as: "orochimon" }] } });
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT10-061", as: "blackBase" }], hand: [{ card: "BT25-071", as: "orochimon" }] },
+    });
     ordinary.state.memory = 4;
-    expect(ordinary.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: ordinary.perm("blackBase").permanentId,
-      instanceId: ordinary.inst("orochimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("orochimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => ordinary.perm("blackBase").topCard?.cardId === "BT25-071");
     expect(ordinary.state.memory).toBe(1);
 
-    const wrongColor = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: "BT25-071", as: "orochimon" }] } });
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: "BT25-071", as: "orochimon" }] },
+    });
     wrongColor.state.memory = 4;
-    expect(wrongColor.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: wrongColor.perm("redBase").permanentId,
-      instanceId: wrongColor.inst("orochimon").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("orochimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("reacts only when Orochimon itself suspends, plays one eligible TS card, and bottoms the rest in order", async () => {

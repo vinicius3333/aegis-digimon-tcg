@@ -51,12 +51,13 @@ describe("BT25-070 Logamon", () => {
     });
     const yourTurn = BT25_070.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(yourTurn).toMatchObject({ frequency: "OncePerTurn" });
-    expect(yourTurn?.actions?.[0]).toMatchObject({
+    const linkedTrigger = yourTurn!.actions[0]!;
+    expect(linkedTrigger).toMatchObject({
       kind: "SubTrigger",
       event: "whenLinked",
       on: { filter: { isSelfRef: true } },
     });
-    expect((yourTurn?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    expect((linkedTrigger as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "Delete",
       target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 }, count: 1 },
     });

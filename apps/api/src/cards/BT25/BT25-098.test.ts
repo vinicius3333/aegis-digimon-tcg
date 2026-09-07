@@ -68,7 +68,9 @@ describe("BT25-098 Cyber Engage", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-098"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
@@ -161,25 +163,33 @@ describe("BT25-098 Cyber Engage", () => {
     await s.ready();
     const first = JSON.parse(s.perm("first").activatableEffectsJson)[0] as { effectKey: string };
     const second = JSON.parse(s.perm("second").activatableEffectsJson)[0] as { effectKey: string };
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("first").topCard.instanceId,
-      effectKey: first.effectKey,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards" || s.state.pendingDecision?.kind === "chooseTargets");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("first").topCard.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "selectCards" || s.state.pendingDecision?.kind === "chooseTargets",
+    );
     expect(s.state.pendingDecision).toBeDefined();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("second").topCard.instanceId,
-      effectKey: second.effectKey,
-    })).toEqual({ ok: false, reason: "decision-pending" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("second").topCard.instanceId,
+        effectKey: second.effectKey,
+      }),
+    ).toEqual({ ok: false, reason: "decision-pending" });
     const pending = s.state.pendingDecision!;
     const payload = JSON.parse(pending.payloadJson) as { candidateInstanceIds?: string[] };
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: pending.decisionId,
-      response: { kind: pending.kind, instanceIds: payload.candidateInstanceIds?.slice(0, 1) ?? [] },
-    } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: pending.kind, instanceIds: payload.candidateInstanceIds?.slice(0, 1) ?? [] },
+      } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-089"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-089")).toBe(true);
   });

@@ -119,7 +119,12 @@ describe("BT25-091 Monica Simmons", () => {
   it("keeps the attack restriction through the opponent turn and expires at its end", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT25-094", as: "tsOption" }], battleArea: [{ card: "BT25-091", as: "monica" }], security: ["BT1-001"], deck: ["BT1-001", "BT1-002", "BT1-003"] },
+        0: {
+          hand: [{ card: "BT25-094", as: "tsOption" }],
+          battleArea: [{ card: "BT25-091", as: "monica" }],
+          security: ["BT1-001"],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
         1: { battleArea: [{ card: "AD1-001", as: "target" }], deck: ["BT1-001", "BT1-002", "BT1-003"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -64,24 +64,33 @@ describe("BT25-057 Monarchlizamon / Final Judgment", () => {
   });
 
   it("supports both ordinary color routes at cost 4 and rejects the wrong color", async () => {
-    for (const [source, as] of [["BT1-069", "greenBase"], ["BT10-061", "blackBase"]] as const) {
+    for (const [source, as] of [
+      ["BT1-069", "greenBase"],
+      ["BT10-061", "blackBase"],
+    ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: source, as }], hand: [{ card: CARD_ID, as: "monarch" }] } });
       s.state.memory = 5;
-      expect(s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm(as).permanentId,
-        instanceId: s.inst("monarch").instanceId,
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(as).permanentId,
+          instanceId: s.inst("monarch").instanceId,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm(as).topCard?.cardId === CARD_ID);
       expect(s.state.memory).toBe(1);
     }
-    const wrong = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: CARD_ID, as: "monarch" }] } });
+    const wrong = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: CARD_ID, as: "monarch" }] },
+    });
     wrong.state.memory = 5;
-    expect(wrong.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: wrong.perm("redBase").permanentId,
-      instanceId: wrong.inst("monarch").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      wrong.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrong.perm("redBase").permanentId,
+        instanceId: wrong.inst("monarch").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("pays the true bottom face-down Tamer source, De-Digivolves, then performs a rules battle", async () => {

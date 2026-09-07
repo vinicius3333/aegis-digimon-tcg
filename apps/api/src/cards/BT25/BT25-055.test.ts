@@ -38,12 +38,13 @@ describe("BT25-055 Deramon", () => {
       });
     }
     const allTurns = BT25_055.effects?.find((entry) => entry.trigger === "AllTurns");
-    expect(allTurns?.actions?.[0]).toMatchObject({
+    const suspendTrigger = allTurns!.actions[0]!;
+    expect(suspendTrigger).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
       sourceFilter: { isSelfRef: true },
     });
-    expect((allTurns?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    expect((suspendTrigger as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand"],
       payCost: false,
@@ -51,7 +52,7 @@ describe("BT25-055 Deramon", () => {
     });
     const inherited = BT25_055.effects?.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({ trigger: "OpponentsTurn", frequency: "OncePerTurn" });
-    expect((inherited?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    expect((inherited!.actions[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "RedirectAttack",
       target: { filter: { controller: "mine", suspended: true, kind: ["Digimon"] } },
     });

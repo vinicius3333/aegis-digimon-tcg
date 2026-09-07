@@ -43,7 +43,8 @@ describe("BT25-067 Sealsdramon", () => {
 
     const effect = BT25_067.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(effect).toMatchObject({ trigger: "YourTurn" });
-    expect(effect?.actions?.[0]).toMatchObject({
+    const subTrigger = effect!.actions[0]!;
+    expect(subTrigger).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
       sourceFilter: {
@@ -52,7 +53,7 @@ describe("BT25-067 Sealsdramon", () => {
         nameOrTrait: [{ tokens: ["D-Brigade", "ACCEL"], match: "trait" }],
       },
     });
-    expect((effect?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    expect((subTrigger as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "Digivolve",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       from: ["hand"],

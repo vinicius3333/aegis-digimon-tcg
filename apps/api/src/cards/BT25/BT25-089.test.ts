@@ -14,9 +14,7 @@ function activatableEffects(
   permanent: { activatableEffectsJson?: string },
 ): ActivatableEntry[] {
   (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
-  return permanent.activatableEffectsJson
-    ? (JSON.parse(permanent.activatableEffectsJson) as ActivatableEntry[])
-    : [];
+  return permanent.activatableEffectsJson ? (JSON.parse(permanent.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 
 describe("BT25-089 Kazuki & Itsuki", () => {

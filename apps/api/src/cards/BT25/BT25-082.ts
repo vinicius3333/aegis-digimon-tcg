@@ -1,32 +1,34 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const playTamerEffects: CompiledCard["effects"] = (["OnPlay", "WhenDigivolving"] as const).map((trigger) => ({
+  trigger,
+  actions: [
+    {
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Tamer"],
+          nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }],
+        },
+        count: 1,
+      },
+      from: ["hand"],
+      payCost: false,
+      condition: {
+        kind: "youHave",
+        filter: { controllerDefault: "mine", kind: ["Tamer"], countMax: 1 },
+        countMax: 1,
+      },
+      optional: true,
+    },
+  ],
+}));
+
 export const compiled: CompiledCard = {
   effects: [
-    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
-      trigger,
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          condition: {
-            kind: "youHave",
-            filter: { controllerDefault: "mine", kind: ["Tamer"], countMax: 1 },
-            countMax: 1,
-          },
-          optional: true,
-        },
-      ],
-    })),
+    ...playTamerEffects,
     {
       trigger: "AllTurns",
       actions: [

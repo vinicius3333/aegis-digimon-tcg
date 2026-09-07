@@ -46,6 +46,15 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 99,
+            nameOrTrait: [
+              { tokens: ["Three Musketeers"], match: "trait" },
+              { tokens: ["TS"], match: "trait" },
+            ],
+          },
           target: {
             filter: {
               controller: "mine",
@@ -79,6 +88,15 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 99,
+            nameOrTrait: [
+              { tokens: ["Three Musketeers"], match: "trait" },
+              { tokens: ["TS"], match: "trait" },
+            ],
+          },
           target: {
             filter: {
               controller: "mine",

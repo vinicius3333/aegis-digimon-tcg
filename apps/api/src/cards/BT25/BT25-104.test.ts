@@ -6,6 +6,19 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT25-104.js";
 import "../index.js";
 
+interface ActivatableEntry {
+  instanceId: string;
+  effectKey: string;
+}
+
+function activatableEffects(
+  s: ReturnType<typeof setupEngine>,
+  permanent: { activatableEffectsJson?: string },
+): ActivatableEntry[] {
+  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+  return permanent.activatableEffectsJson ? (JSON.parse(permanent.activatableEffectsJson) as ActivatableEntry[]) : [];
+}
+
 describe("BT25-104 ShineGreymon: Burst Mode", () => {
   it("exposes both the DATA SQUAD and Marcus-return Burst Digivolve routes", async () => {
     expect(compiled.digivolutionRequirement).toEqual([
@@ -129,6 +142,28 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     expect(s.perm("chosen").currentDP).toBe(15000);
     expect(s.perm("other").currentDP).toBe(30000);
     expect(s.perm("tamer").currentDP).toBe(0);
+  });
+
+  it("applies the -15000 effect before the rule check deletes a zero-DP opposing Digimon (Q6495)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-021", as: "dataSquad" }],
+          hand: [{ card: "BT25-104", as: "option" }],
+        },
+        1: { battleArea: [{ card: "AD1-001", dp: 10000, as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "AD1-001")).toBe(true);
   });
 
   it("does not waive the red/yellow Option requirement without a DATA SQUAD card", async () => {
@@ -260,5 +295,55 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
+  });
+
+  it("Q6506 restores an earlier Marcus treatment and removes this card's Rush after public removal", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-104", as: "shine" },
+            { card: "BT13-095", as: "marcus" },
+            { card: "BT13-008", as: "priorTreatment" },
+          ],
+          hand: [{ card: "BT4-031", as: "remover" }],
+        },
+        1: { battleArea: [{ card: "BT4-025", as: "opponentTarget" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    const prior = activatableEffects(s, s.perm("priorTreatment"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: prior.instanceId,
+        effectKey: prior.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("marcus").currentDP === 12000);
+    expect(s.perm("marcus").currentDP).toBe(12000);
+
+    preferred.push(s.perm("shine").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const removalDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: removalDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shine").instanceId);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(false);
   });
 });

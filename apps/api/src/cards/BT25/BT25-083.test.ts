@@ -130,7 +130,10 @@ describe("BT25-083 LadyDevimon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "BT25-081", as: "base" }] }],
-          hand: [{ card: "BT25-085", as: "sourceOption" }, { card: "BT25-085", as: "placementCard" }],
+          hand: [
+            { card: "BT25-085", as: "sourceOption" },
+            { card: "BT25-085", as: "placementCard" },
+          ],
           deck: ["AD1-001"],
         },
       },
@@ -167,19 +170,23 @@ describe("BT25-083 LadyDevimon", () => {
             {
               card: CARD_ID,
               as: "lady",
-              under: [
-                { card: "BT25-081", as: "base" },
-              ],
+              under: [{ card: "BT25-081", as: "base" }],
             },
           ],
-          hand: [{ card: "BT25-085", as: "first" }, { card: "BT25-085", as: "second" }],
+          hand: [
+            { card: "BT25-085", as: "first" },
+            { card: "BT25-085", as: "second" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).verb.placeUnder(s.perm("lady").permanentId, [s.inst("first").instanceId, s.inst("second").instanceId]);
+    await advance(s.engine).verb.placeUnder(s.perm("lady").permanentId, [
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lady"));
     const sourcesAfterFirst = s.perm("lady").stack.map((card) => card.instanceId);
     const memoryAfterFirst = s.state.memory;

@@ -1,11 +1,11 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Cost, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const host = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Gaomon"], match: "name" }],
-};
+} satisfies Filter;
 const first = {
   kind: "place",
   target: {
@@ -17,7 +17,7 @@ const first = {
   position: "bottom",
   host: { filter: host, count: 1 },
   bindHostAs: "gaomonHost",
-};
+} satisfies Cost;
 const second = {
   kind: "place",
   target: {
@@ -28,14 +28,11 @@ const second = {
   destination: "digivolutionStack",
   position: "bottom",
   host: { filter: { boundRef: "gaomonHost" }, count: 1 },
-};
-const _playGaomon = {
-  kind: "PlayWithoutCost",
-  target: { filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gaomon"], match: "name" }] }, count: 1, upTo: true },
-  from: ["hand", "trash"],
-  payCost: false,
-};
-const playThomasFilter = { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "name" }] };
+} satisfies Cost;
+const playThomasFilter = {
+  kind: ["Tamer"],
+  nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "name" }],
+} satisfies Filter;
 export const compiled: CompiledCard = {
   effects: [
     {

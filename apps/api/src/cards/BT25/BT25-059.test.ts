@@ -1,4 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
+import { deepStrictEqual, ok } from "node:assert/strict";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -281,7 +282,7 @@ describe("BT25-059 Ceresmon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision === undefined);
       if (targetAlias === "ownTs") {
-        expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(true);
+        ok(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon"));
       }
       await advance(s.engine).verb.unsuspend([s.perm("ownTs").permanentId, s.perm("ownOther").permanentId]);
 
@@ -311,13 +312,14 @@ describe("BT25-059 Ceresmon", () => {
       while (s.state.pendingDecision !== undefined) {
         const followup = s.state.pendingDecision;
         if (followup.kind === "optional") {
-          expect(
+          deepStrictEqual(
             s.engine.applyIntent(followup.seat, {
               type: "respondDecision",
               decisionId: followup.decisionId,
               response: { kind: "optional", accept: false },
             }),
-          ).toEqual({ ok: true });
+            { ok: true },
+          );
           await settle(() => s.state.pendingDecision !== undefined);
           continue;
         }
@@ -337,7 +339,7 @@ describe("BT25-059 Ceresmon", () => {
         ).toEqual({ ok: true });
         await settle(() => s.state.pendingDecision !== undefined);
       }
-      if (targetAlias === "ownTs") expect(s.perm("ownTs").isSuspended).toBe(false);
+      if (targetAlias === "ownTs") ok(!s.perm("ownTs").isSuspended);
       advance(s.engine).endMainPhaseIfOpen(1);
       await opponentTurn;
       if (targetAlias === "ownTs") {
@@ -352,7 +354,8 @@ describe("BT25-059 Ceresmon", () => {
         s.state.memory = 20;
         const secondOpponentTurn = s.engine.runOneTurn();
         await advance(s.engine).waitForMainPhase(1);
-        expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect2").instanceId })).toEqual(
+        deepStrictEqual(
+          s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect2").instanceId }),
           { ok: true },
         );
         await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
@@ -362,25 +365,27 @@ describe("BT25-059 Ceresmon", () => {
           candidateInstanceIds?: string[];
         };
         const secondCandidates = secondPayload.candidateIds ?? secondPayload.candidateInstanceIds ?? [];
-        expect(secondCandidates).toContain(s.perm("ownTs").permanentId);
-        expect(
+        ok(secondCandidates.includes(s.perm("ownTs").permanentId));
+        deepStrictEqual(
           s.engine.applyIntent(1, {
             type: "respondDecision",
             decisionId: secondChoice.decisionId,
             response: { kind: "chooseTargets", instanceIds: [s.perm("ownTs").permanentId] },
           }),
-        ).toEqual({ ok: true });
+          { ok: true },
+        );
         await settle(() => s.state.pendingDecision !== undefined);
         while (s.state.pendingDecision !== undefined) {
           const followup = s.state.pendingDecision;
           if (followup.kind === "optional") {
-            expect(
+            deepStrictEqual(
               s.engine.applyIntent(followup.seat, {
                 type: "respondDecision",
                 decisionId: followup.decisionId,
                 response: { kind: "optional", accept: false },
               }),
-            ).toEqual({ ok: true });
+              { ok: true },
+            );
             await settle(() => s.state.pendingDecision !== undefined);
             continue;
           }
@@ -390,17 +395,18 @@ describe("BT25-059 Ceresmon", () => {
             candidateInstanceIds?: string[];
           };
           const candidates = payload.candidateIds ?? payload.candidateInstanceIds ?? [];
-          expect(candidates.length).toBeGreaterThan(0);
-          expect(
+          ok(candidates.length > 0);
+          deepStrictEqual(
             s.engine.applyIntent(followup.seat, {
               type: "respondDecision",
               decisionId: followup.decisionId,
               response: { kind: "chooseTargets", instanceIds: [candidates[0]!] },
             }),
-          ).toEqual({ ok: true });
+            { ok: true },
+          );
           await settle(() => s.state.pendingDecision !== undefined);
         }
-        expect(s.perm("ownTs").isSuspended).toBe(true);
+        ok(s.perm("ownTs").isSuspended);
         advance(s.engine).endMainPhaseIfOpen(1);
         await secondOpponentTurn;
       }

@@ -65,7 +65,10 @@ describe("BT25-099 Gear Forest Village", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT25-099", as: "village" }, { card: "BT25-050", as: "candidate" }],
+          hand: [
+            { card: "BT25-099", as: "village" },
+            { card: "BT25-050", as: "candidate" },
+          ],
           security: [{ card: "BT25-001" }, { card: "BT25-002", as: "bottom" }],
         },
       },
@@ -73,15 +76,26 @@ describe("BT25-099 Gear Forest Village", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("village").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("village").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
-    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: s.inst("village").instanceId, faceUp: true });
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("village").instanceId,
+      faceUp: true,
+    });
   });
 
   it("does not waive its green/black use requirement while any security card is face up", async () => {

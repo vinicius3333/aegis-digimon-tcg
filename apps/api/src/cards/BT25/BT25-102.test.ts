@@ -37,6 +37,37 @@ describe("BT25-102 Factorial Area", () => {
     expect(s.state.memory).toBe(7); // Option cost 3; Coronamon's cost 3 is reduced to 0.
   });
 
+  it("does not play a blue TS or a red non-TS card from hand for the Main play branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-102", as: "area" },
+            { card: "BT24-019", as: "wrongColor" },
+            { card: "BT25-007", as: "wrongTrait" },
+          ],
+          battleArea: [{ card: "BT25-089", as: "appmon" }],
+          security: [{ card: "BT1-001" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const areaId = s.inst("area").instanceId;
+    const wrongColorId = s.inst("wrongColor").instanceId;
+    const wrongTraitId = s.inst("wrongTrait").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: areaId, useAs: "option" } as never)).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([wrongColorId, wrongTraitId]),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === wrongColorId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === wrongTraitId)).toBe(false);
+  });
+
   it("face-up Security grants only black/red TS Digimon Blocker and conditional Link +1", async () => {
     const s = setupEngine({
       0: {
@@ -79,6 +110,29 @@ describe("BT25-102 Factorial Area", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("tooHigh").instanceId);
   });
 
+  it("does not play an ineligible card when Security has no level-4 black/red TS candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-102", faceUp: true, as: "area" }],
+          hand: [
+            { card: "BT24-019", as: "wrongColor" },
+            { card: "BT25-007", as: "wrongTrait" },
+          ],
+          trash: [{ card: "BT25-075", as: "tooHigh" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("area"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongColor").instanceId, s.inst("wrongTrait").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("tooHigh").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
   it("fires the Security play from a real security check", async () => {
     const s = setupEngine(
       {
@@ -106,6 +160,49 @@ describe("BT25-102 Factorial Area", () => {
       ),
     );
 
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
+    ).toBe(true);
+  });
+
+  it("Q6485-Q6486 checks a previously face-up copy revealed and activates its Security effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-102", as: "area" }],
+          trash: [{ card: "BT25-011", as: "eligible" }],
+        },
+        1: { battleArea: [{ card: "AD1-003", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("area").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("area").instanceId));
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("area").instanceId, faceUp: true });
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
+    );
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityRevealed", revealedCardId: "BT25-102", hasSecurityEffect: true }),
+    );
     expect(
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,

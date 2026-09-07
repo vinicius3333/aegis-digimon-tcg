@@ -193,7 +193,7 @@ describe("BT25-009 Bearmon", () => {
         permanentId: s.perm("bearmon").permanentId,
         instanceId: s.inst("deltamon").instanceId,
         useAlternateCost: true,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("bearmon").topCard.cardId === "BT25-068");

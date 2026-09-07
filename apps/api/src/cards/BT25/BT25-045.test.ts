@@ -313,7 +313,7 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     ).toMatchObject({ ok: false });
     expect(s.state.memory).toBe(3);
     expect(s.perm("onmon").linked).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[0]!.hand.map((handCard) => handCard.instanceId)).toContain(s.inst("link").instanceId);
   });
 
   it("suspends exactly one opponent Digimon when Onmon is linked", async () => {

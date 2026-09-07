@@ -44,7 +44,6 @@ function fireTiming(
 
 const BT25_076 = "BT25-076"; // Ghoulmon, Digimon, playCost 12
 const NEGAMON_TEXT_11 = "EX9-055"; // Abbadomon — cost-11 [Negamon]-text Digimon (the sacrifice)
-const NEGAMON_EGG = "EX9-005"; // Negamon — the [Negamon]-NAMED card placed in the sacrifice's stack
 
 describe("A3 BT25-076 — BeforePayCost sacrifice cost reduction (dynamic delta = deleted cost)", () => {
   it("sacrificing a cost-11 [Negamon] Digimon reduces the play cost by exactly 11 (pays 1 vs 12)", async () => {
@@ -57,7 +56,9 @@ describe("A3 BT25-076 — BeforePayCost sacrifice cost reduction (dynamic delta 
         0: {
           // A cost-11 [Negamon]-text Digimon WITH a [Negamon]-named card in its digivolution
           // stack (both gates the documented behavior CanSelectPermanentCondition requires).
-          battleArea: [{ card: NEGAMON_TEXT_11, dp: 12000, as: "sacA", under: ["EX9-005", "EX9-046", "EX9-047", "EX9-054"] }],
+          battleArea: [
+            { card: NEGAMON_TEXT_11, dp: 12000, as: "sacA", under: ["EX9-005", "EX9-046", "EX9-047", "EX9-054"] },
+          ],
           hand: [{ card: BT25_076, as: "ghoulA" }],
         },
       },
@@ -77,7 +78,9 @@ describe("A3 BT25-076 — BeforePayCost sacrifice cost reduction (dynamic delta 
     const b = setupEngine(
       {
         0: {
-          battleArea: [{ card: NEGAMON_TEXT_11, dp: 12000, as: "sacB", under: ["EX9-005", "EX9-046", "EX9-047", "EX9-054"] }],
+          battleArea: [
+            { card: NEGAMON_TEXT_11, dp: 12000, as: "sacB", under: ["EX9-005", "EX9-046", "EX9-047", "EX9-054"] },
+          ],
           hand: [{ card: BT25_076, as: "ghoulB" }],
         },
       },
@@ -185,23 +188,31 @@ describe("A3 BT25-076 — BeforePayCost sacrifice cost reduction (dynamic delta 
   });
 
   it("ordinary-digivolves from a black Lv.5 source at cost 3 and rejects a wrong color", async () => {
-    const ordinary = setupEngine({ 0: { battleArea: [{ card: "BT10-064", as: "blackBase" }], hand: [{ card: BT25_076, as: "ghoul" }] } });
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT10-064", as: "blackBase" }], hand: [{ card: BT25_076, as: "ghoul" }] },
+    });
     ordinary.state.memory = 4;
-    expect(ordinary.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: ordinary.perm("blackBase").permanentId,
-      instanceId: ordinary.inst("ghoul").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("ghoul").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => ordinary.perm("blackBase").topCard?.cardId === BT25_076);
     expect(ordinary.state.memory).toBe(1);
 
-    const wrong = setupEngine({ 0: { battleArea: [{ card: "AD1-002", as: "redBase" }], hand: [{ card: BT25_076, as: "ghoul" }] } });
+    const wrong = setupEngine({
+      0: { battleArea: [{ card: "AD1-002", as: "redBase" }], hand: [{ card: BT25_076, as: "ghoul" }] },
+    });
     wrong.state.memory = 4;
-    expect(wrong.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: wrong.perm("redBase").permanentId,
-      instanceId: wrong.inst("ghoul").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      wrong.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrong.perm("redBase").permanentId,
+        instanceId: wrong.inst("ghoul").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("requires the exact [Negamon] card name in the stack and enforces the play-cost 11 boundary", async () => {
