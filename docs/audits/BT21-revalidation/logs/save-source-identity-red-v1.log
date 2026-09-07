@@ -1,0 +1,39 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ × src/engine/effects/saveSourceIdentity.test.ts > Save source identity > places the deleted instance under a Tamer without relocating an identical surviving Digimon 23ms
+   → expected [ 'inst-4', 'inst-5' ] to deeply equal [ 'inst-2' ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/saveSourceIdentity.test.ts > Save source identity > places the deleted instance under a Tamer without relocating an identical surviving Digimon
+AssertionError: expected [ 'inst-4', 'inst-5' ] to deeply equal [ 'inst-2' ]
+
+- Expected
++ Received
+
+  [
+-   "inst-2",
++   "inst-4",
++   "inst-5",
+  ]
+
+ ❯ src/engine/effects/saveSourceIdentity.test.ts:35:66
+     33|     await settle(() => s.events.some((event) => event.kind === "combat…
+     34|     expect(s.state.pendingDecision).toBeUndefined();
+     35|     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqu…
+       |                                                                  ^
+     36|     expect(s.state.players[0]!.battleArea.some((permanent) => permanen…
+     37|     expect(s.perm("survivor").topCard.instanceId).toBe(s.inst("survivo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  21:46:56
+   Duration  8.12s (transform 85%, import 15%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/saveSourceIdentity.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

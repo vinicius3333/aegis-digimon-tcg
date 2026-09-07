@@ -1,5 +1,19 @@
 # Open findings
 
+## Save identity, exact-name and strict-proof checkpoint v12
+
+All **2534/2534** assertions pass across **150 files** in `logs/collection-save-v12.log`; exact suite paths are in `collection-suite-v12.json`. The run uses one worker and a 2048 MB worker heap. Shared/API/web typecheck passes in `logs/typecheck-save-v6.log`. Oxfmt and Oxlint exit successfully for 184 changed code/data paths in `logs/style-save-v2.log`; the log retains nonblocking lint warnings. BT21-scoped check confirms 102 synchronized records, 22 semantic changes against baseline, and zero semantic or byte changes outside BT21. `git diff --check` is clean.
+
+`dc1df3e60` fixes two public Save identity regressions: the deleted card cannot capture an identical live Digimon, and a source already placed under Tamer A cannot make Save relocate Tamer A under Tamer B. `logs/save-source-identity-red-v1.log` and `logs/save-source-continuation-red-v2.log` reproduce each defect independently. `b93f4b92d` and `253c02dc1` make Save independently optional for BT21-016/066 (CR 16-20-3). `a9f6a2049` changes Examon X's source condition from X Antibody trait to exact card name, with public Option-positive and differently named trait-negative proofs.
+
+Nineteen atomic proof commits through `b29ab04e8` strengthen legal breeding/evolution stacks, complete combat outcomes, actual Counter/Blast/Blocker/Reboot/Overflow/Evade, independent trait alternatives, and eligible refusal. First drafts that used incorrect levels, wrong trait fields, unavailable decisions or incomplete assertions were corrected before acceptance. `strict-051-064-v3.log` exited 137 before assertions; it is not a test result. The initial `strict-051-counter-v1.log` was interrupted without results. The successful later focused and collection runs supersede both.
+
+The ledger recalculates to **695/1020**, **0/102 final 10/10**; 59 cards have accepted fidelity evidence and remain delivery-pending. Remaining work includes BT21-005/016 and strict review of the 43 cards still below 8. This checkpoint remains incomplete and does not authorize Orca completion.
+
+## Historical findings below
+
+The latest ledger and checkpoint above supersede earlier status summaries.
+
 ## Current status after the v7 collection gate
 
 The full collection and mechanism run passes 1992/1992 across 126 files, including all 102 cards. Typecheck and style for 147 changed code/data paths pass. The ledger totals 590/1020 with no final 10/10 cards. Green execution does not establish full printed-clause acceptance.

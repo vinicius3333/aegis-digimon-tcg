@@ -1,0 +1,48 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > models Blast Digivolve, Reboot, Blocker, and the shared On Play/When Digivolving sequence 2ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > keeps the alternate WG level-5 evolution requirement at cost 3 0ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > de-digivolves one target by 2, then bottom-decks a different suspended Digimon 25ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > resolves the de-digivolve and bottom-deck sequence from a public play 6ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > refuses the alternate evolution from a level-5 without the WG trait 2ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > publicly keeps the de-digivolve result when no suspended target exists 4ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > alternate-digivolves from a level-5 WG Digimon for 3 4ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > exposes Reboot and Blocker through the live keyword surface 1ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > Blast Digivolves through a real Counter window, resolves WD, then blocks the attack 19ms
+ × src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > Reboot unsuspends Puppetmon during the opponent's public turn and Overflow charges on battle removal 14ms
+   → expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > Reboot unsuspends Puppetmon during the opponent's public turn and Overflow charges on battle removal
+AssertionError: expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "wrong-phase",
+  }
+
+ ❯ src/cards/BT21/BT21-051.test.ts:249:108
+    247|     await settle(() => overflow.events.some((event) => event.kind === …
+    248|     const overflowPuppetId = overflow.perm("puppetmon").permanentId;
+    249|     expect(overflow.engine.applyIntent(1, { type: "declareBlock", bloc…
+       |                                                                                                            ^
+    250|       ok: true,
+    251|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 passed (10)
+   Start at  21:58:48
+   Duration  13.32s (transform 85%, import 14%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

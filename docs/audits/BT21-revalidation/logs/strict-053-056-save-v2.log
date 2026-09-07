@@ -1,0 +1,28 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 20ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > refuses the optional recovery through a public play while preserving both zones 5ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 3ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 11ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through public evolutions of a legal Vemmon stack 7ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces a second qualifying evolution after the next own turn resets Once Per Turn 20ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > preserves the Appmon evolution and link requirements 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts one opponent Digimon from attacking players until opponent turn end 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > applies the same restriction when linked 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts the selected opponent Digimon through the public On Play effect 4ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > blocks only player attacks while still allowing the affected Digimon to attack a Digimon 8ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > links for 1, grants 2000 DP, and applies the same attack restriction 4ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > expires the public linked restriction after the opponent's turn ends 6ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > expires the public On Play restriction when the opponent's turn ends 5ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > zero-cost digivolves from a level-2 Appmon 2ms
+ ✓ src/engine/effects/saveSourceIdentity.test.ts > Save source identity > places the deleted instance under a Tamer without relocating an identical surviving Digimon 6ms
+
+ Test Files  3 passed (3)
+      Tests  20 passed (20)
+   Start at  21:46:11
+   Duration  10.40s (transform 84%, import 15%, tests 1%)

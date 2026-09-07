@@ -1,0 +1,92 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 19ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > refuses the optional recovery through a public play while preserving both zones 3ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 12ms
+ × src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack 8ms
+   → expected 4 to be 5 // Object.is equality
+ × src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces a second qualifying evolution after the next own turn resets Once Per Turn 8ms
+   → Seat 0's Main phase did not become ready
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > uses the printed normal evolution from a black level-2 base for zero memory 1ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces eligible digivolution costs and deletes after its stack card is trashed 0ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > deletes an opposing low-play-cost Digimon when the inherited card is trashed 5ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly triggers the inherited deletion when BT3-026 trashes a legal Mineral stack source 9ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > does not trigger when the inherited source is trashed as a non-effect cost 1ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces a Mineral evolution by 1 in the battle area 1ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > Q4559 does not reduce the same evolution in the breeding area 2ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow a top source card into a different host 2ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > keeps a self target on the same host when its top card evolves 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow an inherited source into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow an linked source into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > uses the captured host when the source leaves it but the original host remains 1ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > preserves the Appmon evolution and link requirements 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts one opponent Digimon from attacking players until opponent turn end 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > applies the same restriction when linked 0ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts the selected opponent Digimon through the public On Play effect 3ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > blocks only player attacks while still allowing the affected Digimon to attack a Digimon 7ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > links for 1, grants 2000 DP, and applies the same attack restriction 4ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > expires the public linked restriction after the opponent's turn ends 7ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > expires the public On Play restriction when the opponent's turn ends 5ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > zero-cost digivolves from a level-2 Appmon 2ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > preserves both alternate Digivolution requirements and the Appmon link requirement 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > requires trashing an Appmon or Three Musketeers card from a digivolution stack 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > deletes one opposing play-cost-3-or-less Digimon when linked 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes a qualifying own stack card to de-digivolve an opponent 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > does not pay the stack-trash cost or de-digivolve when the effect is declined 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines the On Play cost when no qualifying stack card exists 2ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > refuses linking onto a non-Appmon host without spending memory 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > links for 1 and deletes only the play-cost-3 boundary target 3ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines an offered eligible On Play cost and preserves both source and target 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes its link card at rule check after Tankmon makes the host ineligible 2ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > zero-cost evolves through both the Three Musketeers-text and Appmon routes 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack
+AssertionError: expected 4 to be 5 // Object.is equality
+
+- Expected
++ Received
+
+- 5
++ 4
+
+ ❯ src/cards/BT21/BT21-056.test.ts:227:28
+    225|     expect(s.perm("egg").stack.filter((card) => card.cardId === "BT21-…
+    226|     expect(s.perm("egg").stack.some((card) => card.cardId === "BT21-05…
+    227|     expect(s.state.memory).toBe(5);
+       |                            ^
+    228|   });
+    229|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces a second qualifying evolution after the next own turn resets Once Per Turn
+Error: Seat 0's Main phase did not become ready
+ ❯ Object.waitForMainPhase src/engine/testkit/advance.ts:31:15
+     29|       }
+     30|       if (internals.mainPhase.seat !== seat || internals.state.phase !…
+     31|         throw new Error(`Seat ${seat}'s Main phase did not become read…
+       |               ^
+     32|       }
+     33|       // TurnStateMachine deliberately opens Main before its asynchron…
+ ❯ Object.runTurn src/engine/testkit/advance.ts:58:7
+ ❯ src/cards/BT21/BT21-056.test.ts:278:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  2 failed | 40 passed (42)
+   Start at  21:44:35
+   Duration  8.05s (transform 84%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-053.test.ts src/cards/BT21/BT21-054.test.ts src/cards/BT21/BT21-055.test.ts src/cards/BT21/BT21-056.test.ts src/engine/effects/selfTargetIdentity.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose
