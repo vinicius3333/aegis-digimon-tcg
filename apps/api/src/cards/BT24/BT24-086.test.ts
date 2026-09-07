@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,20 @@ import { compiled as BT24_086 } from "./BT24-086.js";
 import "../index.js";
 
 describe("BT24-086 The Crossroad Witch", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-086")).toMatchObject({
+      cardId: "BT24-086",
+      nameEn: "The Crossroad Witch",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["SEEKERS", "DigiPolice"],
+    });
+  });
+
   it("mind-links to the correct traits and scopes the inherited play to this stack", () => {
     const allTurns = BT24_086.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited);
     for (const action of allTurns?.actions ?? []) {
