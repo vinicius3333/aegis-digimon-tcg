@@ -38,7 +38,7 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
         {
           0: {
             battleArea: [{ card: "BT24-081", as: "titamon" }],
-            hand: [{ card: "BT1-001", as: "cost" }],
+            hand: [{ card: "BT1-009", as: "cost" }],
           },
           1: {
             battleArea: [
@@ -85,7 +85,7 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
         0: {
           hand: [
             { card: "BT24-081", as: "titamon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
         1: {
