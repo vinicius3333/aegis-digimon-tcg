@@ -102,10 +102,15 @@ describe("BT24-005 Kyokyomon", () => {
             { card: "BT24-086", as: "mindLinker" },
           ],
           hand: [{ card: "BT24-054", as: "playedDigimon" }],
-          deck: [{ card: "BT1-001", as: "first" }, "BT1-002", "BT1-003", "BT1-004"],
+          deck: [
+            { card: "BT1-013", as: "first" },
+            { card: "BT1-015", as: "second" },
+            { card: "BT1-045", as: "third" },
+            { card: "BT1-009", as: "unrevealed" },
+          ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: false, preferOptionIndex: 1 },
     );
     s.state.memory = 10;
     await s.ready();
@@ -113,9 +118,40 @@ describe("BT24-005 Kyokyomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedDigimon").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.decisions.at(-1)!.req;
+    expect(orderDecision.kind).toBe("orderCards");
+    expect(orderDecision.options?.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("first").instanceId, cardId: "BT1-013" },
+        { instanceId: s.inst("second").instanceId, cardId: "BT1-015" },
+        { instanceId: s.inst("third").instanceId, cardId: "BT1-045" },
+      ]),
+    );
+    expect(orderDecision.options?.orderDestination).toBe("deckBottom");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: {
+          kind: "orderCards",
+          order: [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("mindLinker").instanceId));
     expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("mindLinker").instanceId);
-    expect(s.state.players[0]!.deck).toHaveLength(4);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-045", "BT1-013", "BT1-015"]);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-013" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-015" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-045" },
+    ]);
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("mindLinker").instanceId],
+    });
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
   });
 
   it.each([
