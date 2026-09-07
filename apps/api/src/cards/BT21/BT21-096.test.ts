@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-096.js";
@@ -107,6 +108,47 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
     expect(observe(s.engine).canAttackUnsuspended(s.perm("marcus"))).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
+  it("expires every temporary Marcus property after the activating turn ends", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "color" },
+            { card: "BT2-033", as: "yellow" },
+            { card: "BT4-092", as: "marcus" },
+          ],
+          hand: [{ card: "BT21-096", as: "option" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-004"],
+        },
+        1: { deck: ["BT1-005", "BT1-006", "BT1-007"], security: ["BT1-008"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("marcus").currentDP === 12000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("marcus"))).toBe(true);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("marcus").currentDP).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(false);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("marcus"))).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("Security plays Marcus from trash for free, then adds itself to hand", async () => {
