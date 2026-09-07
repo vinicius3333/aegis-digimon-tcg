@@ -1,0 +1,51 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 22ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > publicly pays the On Play source from trash before deleting an eligible target 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT1-009 1ms
+ × src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT21-069 5ms
+   → expected { ok: true } to match object { ok: false }
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public play with only a level-5 target 3ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public digivolve with only a level-5 target 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 6ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT21-069
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/cards/BT21/BT21-069.test.ts:113:7
+    111|         alternateRequirementIndex: 0,
+    112|       }),
+    113|     ).toMatchObject({ ok: false });
+       |       ^
+    114|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+    115|     expect(s.perm("nonGammamon").topCard.cardId).toBe(base);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 passed (14)
+   Start at  18:11:12
+   Duration  6.74s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

@@ -1,0 +1,55 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > encodes the inherited once-per-turn trigger only for this Digimon getting linked 2ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the realistic Swipemon evolution stack gets linked 43ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the stack gets linked through the public link action 8ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > ignores another Digimon getting linked and draws only once for its own stack 5ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > does not draw when its stack gets linked during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > grants +3000 DP only with at least four Vemmon digivolution cards 0ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > applies the inherited DP bonus at exactly four named Vemmon sources 4ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > counts card names rather than near matches that merely contain Vemmon in their text 1ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > keeps the +3000 DP bonus during the opponent's turn 1ms
+ × src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > proves the four-Vemmon state through a legal public evolution chain 87ms
+   → expected [ CardInstance{ …(17) }, …(5) ] to have a length of 4 but got 6
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > encodes the inherited once-per-turn trigger for one of your red or yellow Tamers 0ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your red Tamer suspends 3ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your yellow Tamer suspends 1ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your red/yellow Tamer suspends 2ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws through the natural Haru suspension caused by a public link 12ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when public Marcus play suspends a yellow/red Tamer 4ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for your blue Tamer 1ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for your red Digimon 1ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for an opponent red Tamer 4ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws only once when multiple matching Tamers suspend in the same turn 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > proves the four-Vemmon state through a legal public evolution chain
+AssertionError: expected [ CardInstance{ …(17) }, …(5) ] to have a length of 4 but got 6
+
+- Expected
++ Received
+
+- 4
++ 6
+
+ ❯ src/cards/BT21/BT21-006.test.ts:154:103
+    152|         s.perm("tsumemon").stack.filter((card) => ["BT21-056", "BT11-0…
+    153|     );
+    154|     expect(s.perm("tsumemon").stack.filter((card) => ["BT21-056", "BT1…
+       |                                                                                                       ^
+    155|     expect(s.perm("tsumemon").currentDP).toBe(17000);
+    156|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 19 passed (20)
+   Start at  01:00:15
+   Duration  13.54s (transform 84%, import 14%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-004.test.ts src/cards/BT21/BT21-005.test.ts src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

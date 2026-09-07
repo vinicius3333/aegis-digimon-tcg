@@ -1,0 +1,207 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > binds one qualifying Digimon so Blocker and conditional DP share the target 1ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main without an opposing Digimon gains NaN memory 16ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main with an opposing Digimon gains NaN memory 6ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenPlayed suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 8ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenOneOfYoursDigivolves suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the when-played watcher from a qualifying Digimon play 6ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > publicly declines the eligible Hero watcher without paying or granting Blocker 2ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the digivolve watcher from a legal qualifying evolution 10ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > does not treat a red Tamer-source evolution as an own Digimon evolution 8ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > does treat an ordinary Digimon-source evolution into Agunimon as an own Digimon evolution 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > expires the public Blocker and DP grant after the opponent's turn ends 19ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > at 9 total trash grants Blocker but not the conditional +2000 DP 3ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > accepts any own Digimon as the event subject, while declining pays no cost 2ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > plays itself from Security without paying cost 7ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > costs a Gammamon card to grant Collision and recurs on deletion 0ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > trashes a Gammamon-text card and grants both effects to the same opponent 29ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > resolves the printed grant through a public play intent 27ms
+ × src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly triggers the selected opponent's gained attack at their next main phase 3ms
+   → permanent for "regulusmon" (inst-129) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is declined 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays Canoweissmon from trash 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays level-4 Gammamon-text from trash 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly deletes Regulusmon in battle and plays Canoweissmon from trash 6ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly deletes a host and resolves the inherited Gammamon-text recovery 9ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > inherited deletion plays level-4 Gammamon text but not Canoweissmon 2ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > uses the level-4 Gammamon-text alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > pays the optional trash cost through public play without an opponent Digimon 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > pays the optional trash cost through public digivolve without an opponent Digimon 2ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack plus one, wipes opposing Digimon, and recurs Guilmon family 0ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack +1 and deletes every Digimon on both sides at end of attack 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > wipes both battle areas after a real public attack resolves 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > checks two security cards from Security Attack +1 before the End of Attack wipe 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > publicly revives a qualifying Guilmon after Megidramon loses its attack 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > publicly declines the optional On Deletion revival and preserves the trash card 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it 7ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > base cost 3 2ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 9 total trash keeps cap 3 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 10 total trash raises cap to 5 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 20 total trash raises cap to 7 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > counts both players' trashes for the cost-5 ceiling 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not play a non-Guilmon-family card even below the cost ceiling 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > uses the level-5 Growlmon-name alternate evolution route for 4 1ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > nests the free evolution inside the intrinsic reactive Delay watcher 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > preserves the same-turn Option after a public Mind Link source placement 5ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reacts only to a later public Canoweissmon placement and free-evolves a legal host 44ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not react to an ordinary public Gammamon evolution that places its source by rule 18ms
+ × src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not react to an opponent's public Canoweissmon source placement 3ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > lets the aged public Delay opportunity be declined without trashing the Option 20ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reveals three cards, adds a Gammamon-text card, and places itself 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Q4733 waives the color requirement for a Gammamon-text card in breeding 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not waive the color requirement without a Gammamon-text card on the field 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not use an opponent's Gammamon-text card for the color waiver 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself 7ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may choose the hand source for its cost-4-or-less Gammamon-text play 7ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may decline an eligible Gammamon-text play and still places the Option 6ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security does not offer a Gammamon-text card above the printed cost-4 limit 6ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > places Xros Heart Digimon under Tamer, draws 1, gains 1 memory 2ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > does NOT draw when no qualifying Digimon is in hand (canActivate gate) 1ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > runs the Start of Your Main Phase placement through the public turn lifecycle 5ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > registers the played/digivolved attack watcher and security skill 0ms
+ × src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly played Xros Heart Digimon attack 7ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not suspend for a newly played nonmatching Digimon 2ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not react when the opponent plays a qualifying Xros Heart Digimon 1ms
+ × src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly digivolved Hero attack 6ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > declining the watcher leaves Taiki and the arrived Digimon unsuspended 4ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > plays itself from security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory at the start of turn, draws on linking, and fuses from hand 0ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > app fuses only from the linked-trigger window 6ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 2 to 3 at start of turn 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 3 to 3 at start of turn 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 4 to 4 at start of turn 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > runs the conditional Start of Your Turn memory setting through the public lifecycle 2ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > public linking suspends Haru, draws, and app fuses the linked Digimon 8ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > declining the watcher leaves Haru unsuspended and does not draw or fuse 2ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > does not trigger for an opponent's linked Digimon 2ms
+ × src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > plays itself from security through a public attack without paying cost 4ms
+   → observe is not a function
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > registers the three printed timing windows and a real On Play suspension effect 0ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main without an opposing Digimon (opponent present: false) gains 0 memory 1ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main with an opposing Digimon (opponent present: true) gains 1 memory 1ms
+ × src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > gains conditional memory through the public Start-of-Main lifecycle 2ms
+   → expected +0 to be 1 // Object.is equality
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > suspends a Marcus Damon on the field when played 3ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > does not suspend an opponent's Marcus Damon 2ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > grants Piercing and +3000 DP to the same Digimon, then gives an opponent -3000 DP 6ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > applies Piercing in a public battle and expires the modifiers at turn end 20ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > declining the On Play suspension leaves every Marcus unsuspended and grants no modifiers 3ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > triggers only for this Marcus and only once per turn 4ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > does not repeat one Marcus watcher across public same-turn suspensions 29ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > plays itself from Security without paying cost 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly triggers the selected opponent's gained attack at their next main phase
+AssertionError: permanent for "regulusmon" (inst-129) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-077.test.ts:134:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly played Xros Heart Digimon attack
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-083.test.ts:161:33
+    159|       ok: true,
+    160|     });
+    161|     await settle(() => s.events.some((event) => event.kind === "securi…
+       |                                 ^
+    162|
+    163|     expect(s.perm("taiki").isSuspended).toBe(true);
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-083.test.ts:161:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly digivolved Hero attack
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-083.test.ts:226:33
+    224|       }),
+    225|     ).toEqual({ ok: true });
+    226|     await settle(() => s.events.some((event) => event.kind === "securi…
+       |                                 ^
+    227|
+    228|     expect(s.perm("taiki").isSuspended).toBe(true);
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-083.test.ts:226:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > plays itself from security through a public attack without paying cost
+TypeError: observe is not a function
+ ❯ src/cards/BT21/BT21-084.test.ts:217:10
+    215|       () =>
+    216|         s.events.some((event) => event.kind === "securityChecked") &&
+    217|         !observe(s.engine).isAttacking() &&
+       |          ^
+    218|         s.state.players[0]!.battleArea.some((permanent) => permanent.t…
+    219|     );
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-084.test.ts:214:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > gains conditional memory through the public Start-of-Main lifecycle
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-086.test.ts:48:32
+     46|     const turn = setup.engine.runOneTurn();
+     47|     await advance(setup.engine).waitForMainPhase(0);
+     48|     expect(setup.state.memory).toBe(1);
+       |                                ^
+     49|     advance(setup.engine).endMainPhaseIfOpen(0);
+     50|     await turn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not react to an opponent's public Canoweissmon source placement
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "color-requirement-unmet",
+  }
+
+ ❯ src/cards/BT21/BT21-090.test.ts:245:81
+    243|     const optionId = s.inst("option").instanceId;
+    244|
+    245|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: opt…
+       |                                                                                 ^
+    246|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+    247|     expect(s.state.memory).toBe(7);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  5 failed | 2 passed (7)
+      Tests  6 failed | 84 passed (90)
+   Start at  22:57:54
+   Duration  7.56s (transform 79%, import 14%, tests 7%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-077.test.ts src/cards/BT21/BT21-079.test.ts src/cards/BT21/BT21-083.test.ts src/cards/BT21/BT21-084.test.ts src/cards/BT21/BT21-086.test.ts src/cards/BT21/BT21-089.test.ts src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

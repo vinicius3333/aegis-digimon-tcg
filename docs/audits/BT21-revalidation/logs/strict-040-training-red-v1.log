@@ -1,0 +1,23 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > uses an exact Digimon name matcher for the standalone [ShineGreymon] reference 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > preserves the two zero-cost alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > preserves the inherited +2000 DP effect for your turn 0ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > opens the ShineGreymon path when the opponent has a level 6 Digimon 26ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > opens it on three distinct [Hero] Tamers alone, with no level 6 opposite 7ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > keeps the optional ShineGreymon evolution closed during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > keeps it shut when neither alternative holds 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > does not treat a near-name ShineGreymon card as the standalone target 0ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > requires three distinct Hero Tamer names rather than three copies 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > may decline the qualified ShineGreymon evolution without paying memory 3ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > Q5211: a qualified BT21-040 can evolve from Agumon through an aged P-105 Delay for 4-2 9ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > evolves from Koromon for 0 2ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > evolves from level-2 Hero for 0 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > grants inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > does not treat a used dual ShineGreymon Option as an available hand evolution 5ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  21:08:30
+   Duration  7.60s (transform 84%, import 15%, tests 1%)

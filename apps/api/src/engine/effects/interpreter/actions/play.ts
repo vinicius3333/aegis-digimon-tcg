@@ -123,7 +123,11 @@ export function applyPlayCostCeiling(
   const zone = (filter as { zone?: string }).zone;
   const controller = (filter as { controller?: string }).controller;
   const seats: Seat[] =
-    controller === "both" || controller === undefined ? [mine, opp] : controller === "opponent" ? [opp] : [mine];
+    controller === "any" || controller === "both" || controller === undefined
+      ? [mine, opp]
+      : controller === "opponent"
+        ? [opp]
+        : [mine];
   let totalCards = 0;
   if (ceiling.unit === "digivolutionCards") {
     for (const seat of seats) {

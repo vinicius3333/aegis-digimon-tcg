@@ -45,7 +45,7 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         const ids = await resolvePermanentTargets(ctx, target);
         // The trashing effect's seat gates EX11-070's stacked-trash-lock (KB Q5943).
         for (const id of ids)
-          ctx.fx.deDigivolve(id, amount, { byEffectSeat: ctx.source.ownerSeat, stopAtLevel: action.stopAtLevel });
+          await ctx.fx.deDigivolve(id, amount, { byEffectSeat: ctx.source.ownerSeat, stopAtLevel: action.stopAtLevel });
       }
       if (action.trackOpponentDigimonCountAs !== undefined) {
         const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);

@@ -35102,7 +35102,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Composite", "Xros Heart", "Blue Flare", "Hero"],
-    "effectText": "[Digivolve] Lv.6 w/[Hero] trait: Cost 3 \n\nWhen this card would be played, by placing 1 of your [Shoutmon] under it, reduce the play cost by 1 and cards in your trash can also be placed for DigiXros.\n[On Play] [When Digivolving] Trash the top 10 stacked cards of 1 of your opponent's Digimon.\n[When Attacking] [Once Per Turn] You may return 1 of your opponent's Digimon with no digivolution cards to the bottom of the deck.\n\n[DigiXros -1] ∞ Digimon cards w/[Xros Heart]/[Blue Flare] trait & different card numbers",
+    "effectText": "[Digivolve] Lv.6 w/[Hero] trait: Cost 5 \n\nWhen this card would be played, by placing 1 of your [Shoutmon] under it, reduce the play cost by 1 and cards in your trash can also be placed for DigiXros.\n[On Play] [When Digivolving] Trash the top 10 stacked cards of 1 of your opponent's Digimon.\n[When Attacking] [Once Per Turn] You may return 1 of your opponent's Digimon with no digivolution cards to the bottom of the deck.\n\n[DigiXros -1] ∞ Digimon cards w/[Xros Heart]/[Blue Flare] trait & different card numbers",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "BT21-030"

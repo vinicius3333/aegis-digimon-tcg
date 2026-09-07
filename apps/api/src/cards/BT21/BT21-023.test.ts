@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-023.js";
 import "../index.js";
 
@@ -109,11 +110,89 @@ describe("BT21-023 Globemon", () => {
     });
     await settle(() => {
       const globemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-023");
-      return globemon?.linked.some((card) => card.instanceId === s.inst("link").instanceId) ?? false;
+      return (
+        (globemon?.linked.some((card) => card.instanceId === s.inst("link").instanceId) ?? false) &&
+        s.state.pendingDecision === undefined
+      );
     });
     expect(s.state.memory).toBe(1);
     const globemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-023")!;
     expect(globemon.currentDP).toBe(13000);
+  });
+
+  it("evolves publicly through a legal level-3/4/5 stack and links a free level-4 card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT21-010", as: "host", under: ["BT21-002"] },
+          hand: [
+            { card: "BT21-019", as: "lv4" },
+            { card: "BT21-023", as: "globemon" },
+            { card: "BT21-018", as: "link" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("host").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").inBreeding);
+    s.state.phase = Phase.Main;
+    const hostId = s.perm("host").permanentId;
+    for (const alias of ["lv4"] as const) {
+      expect(
+        s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst(alias).instanceId }),
+      ).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("host").topCard.instanceId === s.inst(alias).instanceId);
+    }
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst("globemon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("host").topCard.instanceId === s.inst("globemon").instanceId &&
+        s.perm("host").linked.length === 1 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-002", "BT21-010", "BT21-019"]);
+    expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("publicly App Fuses DoGatchmon and Timemon into Globemon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] }],
+          hand: [{ card: "BT21-023", as: "globemon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("globemon").instanceId,
+        appFusionLinkedInstanceId: s.inst("timemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-023");
+    expect(s.perm("host").topCard.cardId).toBe("BT21-023");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-018", "BT21-059"]);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
   });
 
   it("rejects linkless and level-5 cards and permits declining a legal link", async () => {
@@ -148,11 +227,11 @@ describe("BT21-023 Globemon", () => {
   it("deletes only an equal-or-lower DP target once when its own stack is linked", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-023", as: "globemon", dp: 10000 }] },
+        0: { battleArea: [{ card: "BT21-023", as: "globemon" }] },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "equal", dp: 10000 },
-            { card: "BT1-010", as: "higher", dp: 11000 },
+            { card: "BT1-024", as: "equal" },
+            { card: "AD1-013", as: "higher" },
           ],
         },
       },
@@ -162,9 +241,155 @@ describe("BT21-023 Globemon", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("globemon").permanentId });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("higher").permanentId);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-024");
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("globemon").permanentId });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("publicly links twice, deleting one eligible victim first and none on the second link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-023", as: "globemon" }],
+          hand: [
+            { card: "BT21-018", as: "firstLink" },
+            { card: "BT21-018", as: "secondLink" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-019", as: "victim1" },
+            { card: "BT1-010", as: "victim2" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const victim1Id = s.perm("victim1").permanentId;
+    const victim2Id = s.perm("victim2").permanentId;
+    const hostId = s.perm("globemon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("firstLink").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victim2Id)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victim1Id)).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("secondLink").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victim2Id)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victim1Id)).toBe(false);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("fires Globemon's public When Linking deletion when linked onto another Appmon host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "otherHost" }],
+          hand: [{ card: "BT21-023", as: "globemon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim" },
+            { card: "BT1-010", as: "upper" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+    const upperId = s.perm("upper").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("globemon").instanceId,
+        targetPermanentId: s.perm("otherHost").permanentId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === upperId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+    expect(s.perm("otherHost").linked.some((card) => card.instanceId === s.inst("globemon").instanceId)).toBe(true);
+  });
+
+  it("uses Globemon's printed 10000 DP ceiling on a public link while leaving a 12000 DP target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-023", as: "globemon" }],
+          hand: [{ card: "BT21-018", as: "link" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-019", as: "eligible" },
+            { card: "BT21-028", as: "above" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("globemon").permanentId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT21-028");
+    expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(12000);
+  });
+
+  it("performs two real security checks with printed Security Attack +1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-023", as: "globemon", linked: [{ card: "BT21-018", as: "link" }] }] },
+      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("globemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
   });
 
   it("links only this Globemon's qualifying stack card, not another Digimon's stack card", async () => {
@@ -173,7 +398,7 @@ describe("BT21-023 Globemon", () => {
         0: {
           battleArea: [
             { card: "BT21-023", as: "globemon", under: [{ card: "BT21-018", as: "ownLink" }] },
-            { card: "BT1-009", as: "otherHost", under: [{ card: "BT21-018", as: "otherLink" }] },
+            { card: "BT21-023", as: "otherHost", under: [{ card: "BT21-018", as: "otherLink" }] },
           ],
         },
       },

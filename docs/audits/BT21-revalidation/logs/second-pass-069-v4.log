@@ -1,0 +1,23 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 23ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > publicly pays the On Play source from trash before deleting an eligible target 7ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT1-009 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT21-069 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 3ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public play with only a level-5 target 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public digivolve with only a level-5 target 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 7ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 6ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > inherits Retaliation through public evolution and deletes the winning battle opponent 7ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  18:14:47
+   Duration  7.43s (transform 84%, import 15%, tests 1%)

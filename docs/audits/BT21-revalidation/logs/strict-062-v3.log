@@ -1,0 +1,45 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > registers all three printed timings and the Snatchmon evolution route 5ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > deletes one of the opponent's Digimon on start of main phase 21ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly deletes an opposing Digimon at the real start of its Main phase 12ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does NOT delete when it is the opponent's turn ([Your Turn] gate) 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > places exactly 4 Vemmon-text cards and uses Ragnarok Cannon for free 20ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > pays the four-card Vemmon-text placement cost even with no legal Ragnarok target 5ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: true 19ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: false 9ms
+ × src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly pays all four Vemmon sources before declining an eligible Ragnarok Cannon 15ms
+   → expected +0 to be 4 // Object.is equality
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > returns exactly 4 stacked Vemmon to deck bottom to prevent leaving 7ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly builds the legal Snatchmon stack, then protects against an opponent Option deletion 15ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does not treat Snatchmon text as exact Vemmon names for leave prevention 15ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4570 cannot partially place only three Vemmon-text cards to use Ragnarok Cannon 3ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4571 cannot prevent leaving with only three stacked Vemmon 4ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > alternate-digivolves from Snatchmon for 9 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly pays all four Vemmon sources before declining an eligible Ragnarok Cannon
+AssertionError: expected +0 to be 4 // Object.is equality
+
+- Expected
++ Received
+
+- 4
++ 0
+
+ ❯ src/cards/BT21/BT21-062.test.ts:230:34
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 passed (15)
+   Start at  19:46:39
+   Duration  28.42s (transform 86%, import 14%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

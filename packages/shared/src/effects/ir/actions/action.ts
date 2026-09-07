@@ -75,6 +75,7 @@ import type {
   ReturnAction,
   ReturnToEggDeckAction,
   ReturnTopDigivolutionCardsAction,
+  TrashTopStackedCardsAction,
   RevealChooseDeleteBudgetAction,
   TrashAction,
 } from "./removal.js";
@@ -159,6 +160,7 @@ export type Action =
   | ReturnAction
   | ReturnToEggDeckAction
   | ReturnTopDigivolutionCardsAction
+  | TrashTopStackedCardsAction
   | SuspendAction
   | RepeatPerCountAction
   | UnsuspendAction

@@ -1,0 +1,52 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host
+TOP_TRASH_DIAG BT21-042 [ 'BT1-085', 'BT1-086', 'BT1-087', 'BT1-088', 'BT1-009', 'BT21-061' ] [
+  {
+    decisionId: 'dec-1',
+    seat: 0,
+    kind: 'orderTriggers',
+    promptText: 'Choose the next pending effect to resolve.',
+    options: { triggerKeys: [Array], triggerCardIds: [Array], timing: 'OnPlay' },
+    sourceCardId: 'BT1-009'
+  }
+]
+
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits the pre-purge Armor Form identity and preserves the promoted host 21ms
+ × src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host 17ms
+   → expected [ 'BT21-045' ] to deeply equal [ 'BT21-045', 'BT21-044' ]
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > does not confuse ordinary source-card trash or another controller's top identity 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host
+AssertionError: expected [ 'BT21-045' ] to deeply equal [ 'BT21-045', 'BT21-044' ]
+
+- Expected
++ Received
+
+  [
+    "BT21-045",
+-   "BT21-044",
+  ]
+
+ ❯ src/engine/effects/digimonTopTrashEvents.test.ts:77:69
+     75|     await settle(() => entries.length === 2);
+     76|     console.log("TOP_TRASH_DIAG", s.perm("host").topCard.cardId, s.sta…
+     77|     expect(entries.map((entry) => entry.trashedDigimonTop?.cardId)).to…
+       |                                                                     ^
+     78|     expect(entries.every((entry) => entry.trashedDigimonTop?.permanent…
+     79|     expect(s.perm("host").topCard.cardId).toBe("BT21-042");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  10:27:54
+   Duration  6.75s (transform 84%, import 16%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/digimonTopTrashEvents.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

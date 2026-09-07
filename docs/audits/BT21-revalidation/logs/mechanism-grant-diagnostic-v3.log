@@ -1,0 +1,39 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end
+{"seat":1,"memory":3,"phase":"Main","events":[{"kind":"phaseChanged","phase":"Active","turnSeat":0,"turnCount":0},{"kind":"phaseChanged","phase":"Draw","turnSeat":0,"turnCount":1},{"kind":"phaseChanged","phase":"Breeding","turnSeat":0,"turnCount":1},{"kind":"phaseChanged","phase":"Main","turnSeat":0,"turnCount":1},{"kind":"memoryChanged","from":10,"to":6,"reason":"payCost"},{"kind":"memoryChanged","from":10,"to":6,"reason":"playCard"},{"kind":"cardPlayed","seat":0,"cardId":"BT21-057","permanentId":"perm-1"},{"kind":"cardsMoved","instanceIds":["inst-1"],"from":"hand","to":"battleArea"},{"kind":"effectTriggered","seat":0,"sourceCardId":"BT21-057","effectKey":"BT21-057/ir-6-0","description":"[OnPlay] Grant static","timing":"OnPlay"},{"kind":"effectResolved","seat":0,"sourceCardId":"BT21-057","effectKey":"BT21-057/ir-6-0","description":"[OnPlay] Grant static","timing":"OnPlay"},{"kind":"memoryChanged","from":6,"to":-3,"reason":"passTurn"},{"kind":"phaseChanged","phase":"End","turnSeat":0,"turnCount":1},{"kind":"turnEnded","endingSeat":0,"nextSeat":1,"turnCount":1},{"kind":"phaseChanged","phase":"Active","turnSeat":1,"turnCount":1},{"kind":"phaseChanged","phase":"Draw","turnSeat":1,"turnCount":2},{"kind":"phaseChanged","phase":"Breeding","turnSeat":1,"turnCount":2},{"kind":"phaseChanged","phase":"Main","turnSeat":1,"turnCount":2}],"decisions":[]}
+
+ × src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end 64ms
+   → expected [] to have a length of 1 but got +0
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/engine/effects/grantStaticDurationOwnership.test.ts:21:68
+     19|     await settle(() => observe(s.engine).customEffectGrants(s.perm("vi…
+     20|     console.log(JSON.stringify({ seat: s.state.turnSeat, memory: s.sta…
+     21|     expect(observe(s.engine).customEffectGrants(s.perm("victim"))).toH…
+       |                                                                    ^
+     22|     advance(s.engine).endMainPhaseIfOpen(0);
+     23|     await advance(s.engine).waitForMainPhase(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  09:18:10
+   Duration  30.76s (transform 86%, import 13%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/grantStaticDurationOwnership.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

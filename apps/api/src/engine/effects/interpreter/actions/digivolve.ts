@@ -79,7 +79,7 @@ function legalIntoCandidates(
           })
         : undefined;
     const baseGranted =
-      virtualBase === undefined && base
+      virtualBase === undefined && base && sourceZone === "hand"
         ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
         : undefined;
     // Tamers and other level-less bases cannot satisfy an ordinary level-gated EvoCost. They

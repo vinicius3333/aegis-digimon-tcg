@@ -1,0 +1,163 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > records the exact catalog, App Fusion, Fortitude, Link, and scoped watchers 2ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > uses the normal green level-4 route for exactly 4 14ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > uses the normal purple level-4 route for exactly 4 3ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > performs the exact zero-cost App Fusion pair with a realistic stack 6ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > Q5053 links only a level-4-or-lower card with Link from trash to itself for free 6ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > When Digivolving links only from this Digimon's own sources 3ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > Q5054-Q5056 restricts an unsuspendable chosen target and spends the OPT 6ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > Q5055 may refuse without suspending or applying the restriction 3ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > links only to Appmon for exactly 3 and contributes +4000 DP 3ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > Q5051 trashes itself as the linked cost and exactly 1 opposing security 5ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > Q5052 can trash another same-host link, and refusal preserves security 4ms
+ ✓ src/cards/EX10/EX10-019.test.ts > EX10-019 Warudamon > replays through Fortitude only when deleted with a digivolution card 6ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > records the exact catalog, App Fusion, keywords, self-linked watcher, and linked payoff 0ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > digivolves from both printed level-3 colors for exactly 3 4ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > Q5394 accepts all 6 distinct App Fusion pairs and performs a zero-cost fusion with a real stack 2ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > links only to Appmon for 2 and contributes +3000 DP 2ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > plays only a Leviathan Tamer when this Digimon gets linked with 1 or fewer Tamers 8ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > does not play the Tamer with 2 Tamers in play and may refuse at the 1-Tamer boundary 5ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > Q5048 trashes itself after an opposing Digimon suspends, then draws 1 and gains 1 memory 2ms
+ ✓ src/cards/EX10/EX10-017.test.ts > EX10-017 Mienumon > Q5049 trashes another card on the same legal Link +1 host and may refuse without payoff 3ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > matches the catalog and defers its Security play until the battle ends 0ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > adds the top security card, then performs Recovery +1 0ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > uses the four-name App Fusion pool as a two-distinct-name requirement 0ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > plays from security only after its battle, then runs On Play 5ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > performs Recovery +1 when activated with zero security cards 2ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > runs the same security exchange when digivolving 3ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > app fuses from each distinct named pair and rejects a duplicate-name pair 2ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > links for 2, trashes one Appmon from hand, and draws two 3ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > may decline the linked processing cost without trashing or drawing 1ms
+ ✓ src/cards/BT25/BT25-036.test.ts > BT25-036 Craftmon > requires an Appmon host and never trashes a non-Appmon processing card 2ms
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > keeps Alliance/Link +1, shared once-per-turn play effects, and links an Appmon from this stack to an owned Digimon 0ms
+ × src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > implements Q4892 by playing an Appmon on attack and linking an eligible stack card 28ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > does not link an eligible Appmon from another Digimon's evolution stack 11ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves Rush, Raid, and the once-per-turn attack after linking 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > links to an Appmon for 2, grants 3000 DP, and lets the host attack 3ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links DoGatchmon and resolves its When Linking attack 5ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks immediately after a public play because of Rush 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > uses Raid to redirect an attack to the opponent's highest-DP unsuspended Digimon 5ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links onto DoGatchmon and resolves only one self-linked attack 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links Gatchmon plus Navimon and fuses through Haru's watcher 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Navimon App Fusion pair 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Tweetmon App Fusion pair 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Gatchmon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Tweetmon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Gatchmon App Fusion pair 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Navimon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the same-name App Fusion pair after a public link 3ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the non-recipe App Fusion pair after a public link 3ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks once when its own stack gets publicly linked and ignores another stack 17ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > does not attack a second time in the same turn after a public unsuspend 15ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > may decline both link-granted attack paths 2ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > gets a second public linked attack after the next real turn unsuspends it 34ms
+stdout | src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > verifies Blocker/Link +1, Appmon link windows, and the once-per-turn linked security cost 0ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > fires from a natural own-Digimon Link and ignores an opponent Digimon Link 7ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > exposes Blocker and Link +1 through the live keyword surface 0ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > once per turn unsuspends after linking and trashes exactly one top security 4ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost 7ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > publicly declines the optional attack-time link and rejects a non-Link candidate 9ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > publicly links the second Globemon host recipe material through Haru into zero-cost Gaiamon App Fusion 11ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > publicly links the second Charismon host recipe material through Haru into zero-cost Gaiamon App Fusion 11ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public Haru linking rejects an ineligible Appmon recipe and preserves its cards 5ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > records the exact catalog, App Fusion, keyword, and two-zone Link contracts 0ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > Q5396 links one legal card from hand and one legal source only to Deusmon 4ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > [App Fusion] [Warudamon] & [Cometmon]: Cost 0 fuses from hand onto the linked pair 6ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > [App Fusion] refuses when only one of the two required names is present 1ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > [End of Opponent's Turn] runs the same two-zone link clause as [When Digivolving] 5ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > grants itself ＜Security A. +1＞ as a live continuous grant carrying the printed +1 1ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > takes the second link ONLY from its own digivolution stack, never another Digimon's 2ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > [Once Per Turn]: a second link-card trash in the same turn deletes nothing more 8ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > trashing THIS Digimon's link card deletes ONLY the opponent's lowest-cost Digimon (cost-3 over cost-5) 5ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > trashing ANOTHER Digimon's link card does NOT fire (this-Digimon-only self-gate) 2ms
+ ✓ src/cards/EX10/EX10-073.test.ts > A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-play-cost Digimon > Q5188 does not trigger when link-limit replacement trashes one of Deusmon's links 2ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > uses an explicit linked partner to App Fuse Gatchmon into DoGatchmon at cost 0 3ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion intent when the linked partner is the wrong name 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects duplicate-name App Fusion materials instead of treating them as distinct names 0ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on an opponent-controlled host 0ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on a breeding-area host 0ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion result that is not in hand 0ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps the ordinary printed cost and linked card when App Fusion is not declared 4ms
+ ✓ src/cards/BT24/BT24-087.test.ts > A3 App Fusion (BT24-087) — fuse into a trash Digimon, carrying the stack > plays the fusion-target on top of the fusing Digimon, the source sliding under it 0ms
+ ✓ src/cards/BT24/BT24-087.test.ts > A3 App Fusion (BT24-087) — fuse into a trash Digimon, carrying the stack > DENIES the fusion when the fusing Digimon does not satisfy the target's app-fusion names 0ms
+ ✓ src/cards/BT24/BT24-087.test.ts > BT24-087 Rei Katsura public behavior > suspends, draws, trashes, then App Fuses after one of its Digimon gets linked 8ms
+ ✓ src/cards/BT24/BT24-087.test.ts > BT24-087 Rei Katsura public behavior > does not trigger when an opponent's Digimon gets linked 1ms
+ ✓ src/cards/BT24/BT24-087.test.ts > BT24-087 Rei Katsura public behavior > naturally triggers when a friendly Digimon gets linked 4ms
+ ✓ src/cards/BT24/BT24-087.test.ts > BT24-087 Rei Katsura public behavior > does not draw, trash, or App Fuse when Rei cannot pay the suspension cost (Q5675) 1ms
+ ✓ src/cards/BT24/BT24-087.test.ts > BT24-087 Rei Katsura public behavior > gains memory at the start of the main phase only while the opponent has a Digimon 2ms
+ ✓ src/cards/BT24/BT24-087.test.ts > BT24-087 Rei Katsura public behavior > plays itself from security without paying the cost 2ms
+ ✓ src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Navimon above Gatchmon into the DoGatchmon stack through Haru 10ms
+ ✓ src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Gatchmon above Navimon into the same App Fusion stack 9ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > allows AD1-002 to digivolve from AD1-020 when the Tamer has 2+ Hybrid cards under it 1ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects AD1-002 from AD1-020 with fewer than 2 Hybrid cards under the Tamer 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > accepts a legal evolution and reports the EvoCost memory 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects a wrong-color base (invalid-evolution) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects a base above the required level (invalid-evolution) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects digivolving onto a base under a can't-digivolve restriction (invalid-evolution) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects a non-Digimon evolving card (not-a-digimon) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects when the evolving card is not in hand (card-not-in-zone) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects an unknown / wrong-controller permanent 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > enforces turn / phase / decision / game-over gates 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects when the cost exceeds payable memory (insufficient-memory) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > accepts an alternate digivolution requirement (trait match) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > matches a '[Name]/Lv.N w/[trait]' alternate via the trait path on a non-named base 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > fires wouldDigivolve after declaration and before paying memory or replacing the base top 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > stacks the prior top under the new top, recomputes DP, pays cost, draws 1, fires When Digivolving 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > flips the evolving card face-up so the permanent stays a recognised Digimon 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > reapplies an existing duration-scoped DP modifier after changing the printed base DP 1ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > carries a SUSPENDED base onto the new top 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > carries an UNSUSPENDED base onto the new top (stays unsuspended) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > pays Digisorption before stacking and carries a base suspended by that payment 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > does not mutate state when validation fails 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > a second digivolve grows the stack to two (the chain is preserved bottom..below-top) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > uses the canonical WhenDigivolving timing 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > validates a legal digivolve onto a breeding-area permanent and reports the correct cost 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > rejects a breeding-area digivolve when memory is insufficient 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > pays the digivolve cost when applying onto a breeding-area permanent 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > emits cardsMoved with Zone.Breeding (not BattleArea) for the evolving card 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > names the mechanic on the digivolved event, so the client never guesses a tier 1ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > names the alternate path when the digivolution rode an alternate requirement 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a plain printed EvoCost path as normal 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a gateless alternate requirement as alternate 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a base-granted digivolve ahead of the generic alternate 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a Blast cost waiver as blast 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads Burst ahead of an accompanying Blast waiver 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > implements Q4892 by playing an Appmon on attack and linking an eligible stack card
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT22/BT22-039.test.ts:91:7
+     89|     expect(
+     90|       s.state.players[0]!.battleArea.some((permanent) => permanent.lin…
+     91|     ).toBe(true);
+       |       ^
+     92|   });
+     93|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 10 passed (11)
+      Tests  1 failed | 124 passed (125)
+   Start at  20:15:55
+   Duration  7.87s (transform 80%, import 14%, tests 6%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/actions/appFusion.test.ts src/engine/actions/digivolve.test.ts src/engine/effects/appFusionStack.test.ts src/cards/BT21/BT21-018.test.ts src/cards/BT21/BT21-101.test.ts src/cards/BT22/BT22-039.test.ts src/cards/BT24/BT24-087.test.ts src/cards/EX10/EX10-073.test.ts src/cards/EX10/EX10-017.test.ts src/cards/EX10/EX10-019.test.ts src/cards/BT25/BT25-036.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

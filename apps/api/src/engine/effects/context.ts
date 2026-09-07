@@ -243,6 +243,7 @@ export function createEffectContext(parts: {
 }): EffectContext {
   return {
     source: parts.source,
+    sourcePermanentIdAtCreation: parts.source.permanent?.()?.permanentId,
     trigger: parts.trigger,
     game: parts.game,
     fx: parts.fx,
@@ -327,6 +328,7 @@ export function unimplementedPrimitives(): Primitives {
     returnToHand: () => refuse("effect-primitives", "returnToHand"),
     returnToDeck: () => refuse("effect-primitives", "returnToDeck"),
     returnStackTopsToDeck: () => refuse("effect-primitives", "returnStackTopsToDeck"),
+    trashStackTops: () => refuse("effect-primitives", "trashStackTops"),
     reveal: () => refuse("effect-primitives", "reveal"),
     searchDeck: () => refuse("effect-primitives", "searchDeck"),
     addSecurity: () => refuse("effect-primitives", "addSecurity"),

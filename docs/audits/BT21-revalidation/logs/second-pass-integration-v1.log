@@ -1,0 +1,476 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/subTriggerSeams.test.ts > whenLinkTrashed SubTrigger event — a genuine link-card trash fires it once > trashing a card that sits as a link card fires whenLinkTrashed exactly once 10ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenLinkTrashed SubTrigger event — a genuine link-card trash fires it once > trashing a NON-link card (a hand card) does NOT fire whenLinkTrashed (replace/non-trash control) 2ms
+ ✓ src/engine/subTriggerSeams.test.ts > OnEnterFieldAnyone broad battle-entry seam > fires once with the entered subject, controller, and cause for normal and effect plays 9ms
+ ✓ src/engine/subTriggerSeams.test.ts > OnEnterFieldAnyone broad battle-entry seam > fires once for manual and effect-driven digivolution 5ms
+ ✓ src/engine/subTriggerSeams.test.ts > OnEnterFieldAnyone broad battle-entry seam > covers breeding movement, leaves existing breeding watchers ordered, and excludes non-entry movement 5ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenDigivolutionTrashed SubTrigger event — a genuine effect-trash fires it > trashing a digivolution card via trashDigivolutionCards fires whenDigivolutionTrashed once 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenDigivolutionTrashed SubTrigger event — a genuine effect-trash fires it > a return-to-hand bounce that clears digivolution cards does NOT fire whenDigivolutionTrashed (Q4113) 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenOptionUsed SubTrigger event — the fire-hook seam (consumed in 08-06) > the fireOptionUsed seam fires an armed whenOptionUsed watcher (consume-site read, no dead store) 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenPlayed oncePerTiming windowToken — dedupes 2 plays from ONE resolving effect (KB Q2814 / BT2-053) > two tokens played by ONE resolving effect fire an oncePerTiming whenPlayed watcher exactly once 2ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenPlayed oncePerTiming windowToken — dedupes 2 plays from ONE resolving effect (KB Q2814 / BT2-053) > control: two SEPARATE resolving-effect windows each fire the oncePerTiming watcher (2 total) 3ms
+ ✓ src/engine/subTriggerSeams.test.ts > production grouped once-per-turn trigger occurrences (Q3456) > allows distinct action paths in one event occurrence, then blocks a later same-name event 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > production grouped once-per-turn trigger occurrences (Q3456) > shares the live once-per-turn budget across distinct event captures 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and returnToHand > fx.draw fires whenEffectAddsToHand for the drawing seat's own watcher 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and returnToHand > returnToHand fires whenEffectAddsToHand for the recipient's own watcher, and whenCardReturnsFromTrashToHand when the origin was trash 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and returnToHand > returnToHand does NOT fire whenCardReturnsFromTrashToHand when the origin was NOT trash (control) 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and returnToHand > Q4400 returnToHand loses the old target when a wouldBeReturned watcher DNA digivolves it 13ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and returnToHand > Q2402/Q2404 count replacement-local Digi-Egg/token returns as moved without hand-return events 2ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenEffectAddsToDeck — the whenEffectAddsToHand sibling for deck-bound returns > returnToDeck fires whenEffectAddsToDeck for the recipient's own watcher 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > whenFaceUpCardsAddedToOpponentSecurity — the effect-driven addSecurity seam > addSecurity with faceUp:true fires whenFaceUpCardsAddedToOpponentSecurity for the opponent's watcher 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > under-Tamer trash reaction (ST23-14) — cards placed UNDER a Tamer share the stack/trash seam > placeUnder a card under a Tamer then trash it fires whenDigivolutionTrashed gated by isSelfRef on the Tamer 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > EX7-072 shape: a watcher armed from the trash does NOT fire after an earlier trigger returns its card to hand 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > blocks revival: a card that left its recorded zone stays dead after an earlier trigger returns it 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > security: a watcher armed from face-up security dies when its card is flipped face down 0ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > security: a watcher armed from face-up security dies when its card leaves the stack 1ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > regression: a trash-resident watcher whose card never moves still fires 0ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > regression: a hand-resident watcher whose card never moves still fires 0ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > BT6-111 shape: an ALREADY-ACTIVATED [Security] effect's one-shot still fires from the trash 0ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > regression: a permanent-anchored watcher is untouched by the loose-zone check 0ms
+ ✓ src/engine/subTriggerSeams.test.ts > loose-anchored SubTrigger location check (CR §15-4-4-3) > regression: an activationContext-frozen watcher is untouched by the loose-zone check 0ms
+stdout | src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > verifies Blocker/Link +1, Appmon link windows, and the once-per-turn linked security cost 1ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > fires from a natural own-Digimon Link and ignores an opponent Digimon Link 8ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > exposes Blocker and Link +1 through the live keyword surface 0ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > once per turn unsuspends after linking and trashes exactly one top security 4ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost 7ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > declines the optional attack-time link and rejects a non-Link candidate 1ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > legally App Fuses Globemon and Charismon into Gaiamon at zero cost 4ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement 4ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload 0ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > gains 1 memory and enters the battle area from a real security check 4ms
+ × src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon 33ms
+   → permanent for "option" (inst-75) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > registers an optional, paid hand digivolution only for opponent security removal 0ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves a realistic Dragonkin stack from hand and pays the cost reduced by one 7ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves from a public attack that removes the opponent's security 14ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves into a printed Reptile destination after public opponent security removal 11ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > builds the inherited source through public level-3 and level-4 evolution 6ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger when the controller's own security is removed 1ms
+stdout | src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 8
+
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger during the opponent's turn when they remove this player's security 3ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger when a public effect removes this player's own security 18ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn 23ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 5ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 0ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 6ms
+ × src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 30ms
+   → permanent for "stronger" (seed-perm-182) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > encodes the inherited once-per-turn trigger for one of your played WG Digimon 0ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played beside a realistic Yokomon evolution stack 3ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > builds the WG stack through public evolution 4ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played through the public play action 3ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw when a non-WG Digimon is publicly played 2ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw when an opponent WG Digimon is publicly played during your turn 11ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw when a WG Option is publicly played 3ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws only once when multiple WG Digimon are played in the same turn 4ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security card when an eligible attack target changes 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only for a controller's Reptile or Dragonkin target change and only once per turn 4ms
+ × src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack 8ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security from a public Raid target switch 9ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays a qualifying inherited Digimon from a public security attack 18ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free 7ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > does not play for the controller's security removal and permits declining the optional play 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > places an opponent hand card as bottom security only at five or fewer, then trashes the top card 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > on play makes the opponent bottom-deck a hand card into security, then trashes the prior top card 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > lets the opponent choose one of two hand cards and retains the other 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with zero opponent security, trashes the card it first places from hand 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at six security skips the hand placement but still trashes the top security card 1ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at exactly five security places a hand card at the bottom, then trashes the prior top 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with an empty opponent hand still trashes the top security card 3ms
+ × src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host 5ms
+   → expected 18000 to be 16000 // Object.is equality
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 0ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 2ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives color while a Tamer with an inherited-effect source is on the field 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 3ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > triggers Delay from a public inherited-effect Tamer play and evolves it into a Hybrid 19ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation and recurs ADVENTURE 0ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays a qualifying ADVENTURE Digimon from trash when deleted 4ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation to the same selected Digimon 1ms
+ × src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack 74ms
+   → expected true to be false // Object.is equality
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays an ADVENTURE Tamer at the play-cost-4 boundary 5ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an ADVENTURE card above play cost 4 2ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > executes the inherited deletion play from a realistic stack 9ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the Greymon-name alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the ADVENTURE alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > encodes the inherited once-per-turn trigger only for this Digimon getting linked 0ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the realistic Swipemon evolution stack gets linked 13ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the stack gets linked through the public link action 6ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > ignores a public link onto another legal Appmon host 8ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > rejects a public link attempt for this card during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > ignores another Digimon getting linked and draws only once for its own stack 5ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > does not draw when its stack gets linked during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 [Main] on-play body fires on a real playCard (not dead) > deletes the opponent's highest-DP Digimon and lands in the battle area 8ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > models the conditional use reduction, highest-DP deletion, and Delay digivolution 0ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms and publicly activates Delay for a Reptile or Dragonkin host only 25ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 3 opposing security pays a use cost of 4 2ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 4 opposing security pays a use cost of 8 1ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > Security deletes only one opposing highest-DP Digimon 1ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > preserves both alternate Digivolution requirements and complete coverage 0ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants the opponent's Digimon the printed conditional start-of-main attack 0ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack 12ms
+ × src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > keeps the grant on an attack-capable unaffected opponent Digimon but does not trigger it 53ms
+   → expected [] to have a length of 1 but got +0
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer 1ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from Agumon for 2 3ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from a non-Agumon ADVENTURE rookie for the same printed cost 2ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants Reboot to a realistic evolution host 3ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > encodes the inherited once-per-turn trigger for one of your red or yellow Tamers 0ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your red Tamer suspends 2ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your yellow Tamer suspends 2ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your red/yellow Tamer suspends 2ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws through the natural Haru suspension caused by a public link 18ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when public Marcus play suspends a yellow/red Tamer 4ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw from a public opponent suspension of a blue Tamer or red Digimon 8ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > refuses the public suspension cost when the only target is a blue Tamer 12ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > refuses the public suspension cost when the only target is a red Digimon 11ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for your blue Tamer 1ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for your red Digimon 2ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for an opponent red Tamer 1ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws only once when multiple matching Tamers suspend in the same turn 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 2ms
+ × src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants a selected opponent the forced start-of-main attack effect when linked 44ms
+   → expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of +0 but got 1
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 3ms
+ × src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 4ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 3ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: draw > moves top deck cards to hand, marks them face-up, emits cardsMoved 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: draw > stops at an empty deck and returns fewer cards (deck-out is handled elsewhere) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: draw > publishes the resolving effect's owner and Digimon kind with hand additions 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: memory (delegates to MemoryGauge) > gainMemory moves the shared gauge in the turn player's favour 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: memory (delegates to MemoryGauge) > setMemory sets the turn player's memory absolutely 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBreeding moves the whole permanent into the empty slot, preserving stack + suspension 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBreeding is a no-op when the breeding slot is already occupied 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBattle moves the breeding permanent to the battle area, preserving stack + suspension 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBattle is a no-op for an id not in the breeding slot 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBreeding drops the moved source's subTrigger replacements + watchers (WR-02) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > buffs a permanent's currentDP for a duration and the sweep restores it 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > is a no-op for an unknown permanent id 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > frames opponent-targeted durations from the resolving effect controller 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > enforces can't unsuspend against effect-driven unsuspension 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > plays a Digimon from hand as a new permanent with DP from its definition 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > does not play an Option as a permanent (not a permanent kind) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > pays the play cost when payCost is set and there is enough memory 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > stacks an effect-provided reduction with active play-cost modifiers 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > skips an unaffordable payCost play (no partial pay, card stays in hand) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > plays a card from security for free (playFromSecurity) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeOptionAsPermanent (EX3-036 option-permanent placement) > places an Option from hand as a 0-DP battle-area permanent 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeOptionAsPermanent (EX3-036 option-permanent placement) > fires whenOptionPlayed after placing the Option permanent (BT13-007 seam) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeOptionAsPermanent (EX3-036 option-permanent placement) > REVERT-CONFIRM-RED: refuses a non-Option (Digimon) card -> no placement, card stays in hand 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playToken (PlayToken IR kind) > creates a named token as a new battle-area permanent for the seat 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playToken (PlayToken IR kind) > preserves descriptor keyword metadata on Atho, René & Por 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playToken (PlayToken IR kind) > REVERT-CONFIRM-RED: an unknown token name creates nothing 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forceBattle (Battle may-battle, §14 DP comparison) > deletes the lower-DP Digimon in a direct battle (KB Q6278 standard-rules battle) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forceBattle (Battle may-battle, §14 DP comparison) > REVERT-CONFIRM-RED: the lower-DP attacker is the one deleted (outcome follows DP, not role) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashes loose cards from hand to their owner's trash 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > attributes hand-trash triggers to the effect controller 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashFromSecurity removes from the bottom by default and the top with fromTop 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashFromSecurity names the trashed cards and their seat on the movement event 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashFromSecurity removes an explicitly selected card from anywhere in security 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > securityToHand publishes the generic security-removal event after the move 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > deletePermanent sends the whole permanent to trash and drops its modifiers 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > deletePermanent narrates the move to trash exactly once for the whole batch 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > deletePermanent narrates a breeding deletion from the breeding area 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > applies source-kind-qualified beAffected restrictions to hand-written mutations 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > suspend / unsuspend flips the permanent flag 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToHand returns the top card and trashes its digivolution cards 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToDeck places a loose card on top or bottom, face-down 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToDeck atomically reorders cards already in that deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToDeck routes a Digi-Egg card back to the Digi-Egg deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnStackTopsToDeck returns the current top first, promotes the remaining source, and fires one deck-add event 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > trashPermanentByRule moves the whole invalid position without deletion or trash-by-effect reactions 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > reveal flips the top N deck cards face-up in place 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > reveal publishes one cardRevealed per card, because a face-up deck card is still private state 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > reveal publishes nothing for an empty deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > searchDeck adds the controller's chosen matching card to hand and re-hides the deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > searchDeck returns nothing when no card matches the filter 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity places loose cards onto the security stack face-down 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity moves only a permanent's top card to security and trashes its attachments 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity can shed only a permanent's top card and promote its digivolution card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity with faceUp:true places the card FACE UP at the bottom (BT25-102) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity respects an active leave-prevention reaction for a field permanent (finding 14) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity does NOT gate loose hand/deck/trash cards on leave-prevention 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: flipSecurityFaceUp (EX11-064) > flips the top FACE-DOWN security card face up, leaving it in security 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: flipSecurityFaceUp (EX11-064) > flips the FIRST face-down card, skipping an already-face-up top card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: flipSecurityFaceUp (EX11-064) > is a no-op (returns false) when there is no face-down security card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > preflights a paid effect play with the same explicit reduction used by the play 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > honors play-cost reduction restrictions during affordability preflight 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > plays a chosen loose card from trash as a new permanent (free) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > plays a loose card from under another permanent (a Tamer's digivolution stack) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > skips an Option (not a permanent kind) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > publishes every permanent created by one simultaneous whenPlayed event 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > stacks a loose hand card onto a target permanent, prior top sliding under 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > prices a paid digivolve off the alternate digivolution requirement when no printed EvoCost matches 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > uses a selected alternate cost and enforces its digivolution-stack name gate 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > rejects a selected alternate cost when its required named source is absent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve > moves the top card to the trash and promotes the card beneath 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve > is a no-op when the Digimon has no digivolution cards 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve > stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > placeUnder puts loose cards into a permanent's digivolution stack 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > trashDigivolutionCards reveals a face-down stacked card in trash (BT26-094 Q7159) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > atomically trashes an exact cross-host digivolution-card cost before publishing watchers 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > moves nothing and publishes nothing when one member of an exact atomic cost is protected 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > link moves loose cards into a permanent's linked list 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > relocatePermanent tears down the moved source's subTrigger replacements + watchers (WR-02) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > relocatePermanent keeps the moved cards face-up 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > relocatePermanentByEffect awaits the destination's add-digivolution window 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > preflights every multi-source move before touching the destination 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > keeps a multi-source move atomic when one source cannot leave except by deletion 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > returnToHand tears down the bounced source's subTrigger replacements + watchers (WR-01) 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > consumes two materials and plays the result carrying their cards beneath 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > returns undefined with fewer than two materials 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > trashes each material's linked cards instead of dropping them (CR 8-2-2-1-2) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > enters unsuspended even when both materials were suspended (CR 8-2-2-1-1) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: effect-driven digivolve cost honors the continuous evo-cost ledger (ENG-03 / WR-03) > effect-driven digivolveFromInstance pays the REDUCED cost off the memory gauge 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: effect-driven digivolve cost honors the continuous evo-cost ledger (ENG-03 / WR-03) > pays the printed cost when effect-driven digivolution reductions are blocked 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: effect-driven digivolve cost honors the continuous evo-cost ledger (ENG-03 / WR-03) > DNA dnaDigivolveInto pays the REDUCED cost off the memory gauge 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: recoverToSecurity > moves the top N deck cards onto the top of the security stack, face-down 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: recoverToSecurity > can raise security above 5 when the card effect has no printed ceiling 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: recoverToSecurity > still recovers at 5 security when the printed effect permits it 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: shuffleSecurity re-hides face-up cards > publishes one chosen card identity without revealing any surrounding private cards 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: shuffleSecurity re-hides face-up cards > resets faceUp to false on every security card (EX11-064 Q5929-5931) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: changeEvoCost / grantPierce record into the ledger > changeEvoCost records an adjustment readable for matching permanents 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: changeEvoCost / grantPierce record into the ledger > grantPierce records a pierce grant on the permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > Q3400 does not nest a second forced attack while the first attack is resolving 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > prompts the OPPONENT (defending) seat and redirects to the chosen Digimon 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > when the (optional) chooser declines, the attack proceeds unchanged (no redirect) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > accepts the reserved player candidate and redirects the attack to the opponent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > defaults to the controller seat and is mandatory when no opts are given 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > fires whenAttackTargetSwitched with the attacker as subject after a successful redirect 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > does NOT fire whenAttackTargetSwitched when the (optional) redirect is declined 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > places a Digimon in the empty breeding slot when breeding:true 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > returns [] when the breeding slot is already occupied (single-occupancy) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > skips a non-Digimon/non-DigiEgg card when breeding:true (§6-4) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > FAILS-WHEN-REVERTED: without breeding, the card lands in battleArea (wrong destination) 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > records per-seat zone expansion and returns it via digiXrosExpandedZones 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > different seats have independent expansions 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > FAILS-WHEN-REVERTED: without expansion call, zones return empty (no extra sources) 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > scopes per-play expansions and cleanup to the pending play instance 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > grantKind delegates to ContinuousEffectLedger.addKindGrant and is queryable via grantedKinds 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > effectiveKinds returns static kinds ∪ granted kinds via GameAccess 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost suspends an unsuspended battle-area permanent and returns true 1ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for an already-suspended permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a non-existent permanentId 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a breeding-area permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a permanent with beAffected restriction 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a permanent that can't be suspended 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > keeps the destination's printed cost when requirements are ignored, then applies costDelta 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > ignoreRequirements lets an off-level base digivolve, paying exactly the costOverride 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > rejects that same ignoreRequirements request while a cannot-ignore rule is live 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > costOverride WITHOUT ignoreRequirements still enforces the printed requirement 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > costOverride pays the fixed cost when the requirement IS met (BT7-051 shape) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > fires whenEffectSuspends with the suspended permanent + acting seat 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > does NOT fire whenEffectSuspends when the permanent is already suspended (no transition) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > reports only permanents that actually transitioned to suspended 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > omits effectSuspendSeat when no acting seat is supplied (engine-internal suspend) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve stopAtLevel (can't trash past level N) > promotes to the floor, then stops before trashing past it (stopAtLevel:3) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve stopAtLevel (can't trash past level N) > applies the standard level-3 floor even when no explicit stopAtLevel is encoded 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forced-attack target legality > excludes the player, protected Digimon, and unsuspended Digimon when the effect requires a Digimon target 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forced-attack target legality > ends without opening a target decision when a Digimon-only forced attack has no legal target 0ms
+ ✓ src/engine/effects/primitives.test.ts > Primitives completeness guard (no declared-but-unassigned methods) > createPrimitives assigns every declared method except the documented pending follow-ups 0ms
+ ✓ src/engine/effects/primitives.test.ts > Primitives completeness guard (no declared-but-unassigned methods) > the pending-follow-up allowlist is exactly today's known gap (fails loudly if it grows) 0ms
+ ✓ src/engine/effects/primitives.test.ts > Primitives completeness guard (no declared-but-unassigned methods) > grantCustom is assigned and callable (regression guard: was declared but never wired, so every ctx.fx.grantCustom?.() call site silently did nothing) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > resolveCardEffect runs a registered module's effect for the given timing 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > resolveCardEffect returns false and does nothing for an unregistered cardId 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > useOptionFromHand resolves the used card's OnUseOption effect before trashing it (regression: it used to only trash the card and fire whenOptionUsed, silently skipping the Option's own effect body for BT26-012/-090, EX4-030, BT10-041, ST22-07 and every other hand-written 'use 1 Option from hand' card) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > does not trash an Option that placed itself in the battle area while resolving 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > uses and trashes the exact Option linked to a breeding-area Digimon 0ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits the pre-purge Armor Form identity and preserves the promoted host 7ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host 6ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > does not confuse ordinary source-card trash or another controller's top identity 1ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 0ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 44ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 27ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 9ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is deleted in combat 6ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is returned to hand by an effect 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is deleted by an effect (trashed) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > does NOT process Overflow when the ACE is played onto the field (entering, §4-18-3) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > does NOT process Overflow when the ACE is placed under another card (§4-18-4) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's OWNER even when the deletion happens on the opponent's turn 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > does nothing when a non-ACE Digimon leaves the field 2ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is bounced from the field to security 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is returned to the deck by an effect 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the controller when <De-Digivolve> demotes the ACE off the top 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the controller when the trash() verb itself moves the ACE out from under a card 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it leaves a breeding-area permanent's digivolution stack 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > resolves simultaneous Overflow instances turn-player-first, changing the clamped result (§4-18-5) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > resolves simultaneous Overflow turn-player-first through a single multi-permanent deletePermanent call (§4-18-5) 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host
+AssertionError: expected 18000 to be 16000 // Object.is equality
+
+- Expected
++ Received
+
+- 16000
++ 18000
+
+ ❯ src/cards/BT21/BT21-024.test.ts:211:40
+    209|     expect(s.engine.applyIntent(0, { type: "digivolve", instanceId: s.…
+    210|     await settle(() => s.perm("level4").topCard.cardId === "BT21-028");
+    211|     expect(s.perm("level4").currentDP).toBe(16000);
+       |                                        ^
+    212|
+    213|     await advance(s.engine).runTurn(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-025.test.ts:116:97
+    114|     expect(attacking.engine.applyIntent(0, { type: "attack", attackerP…
+    115|     await settle(() => attacking.state.players[1]!.security.length ===…
+    116|     expect(attacking.state.players[0]!.battleArea.some((p) => p.topCar…
+       |                                                                                                 ^
+    117|
+    118|     const outside = setupEngine(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > keeps the grant on an attack-capable unaffected opponent Digimon but does not trigger it
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-057.test.ts:115:72
+    113|     });
+    114|     await settle(() => observe(s.engine).customEffectGrants(s.perm("un…
+    115|     expect(observe(s.engine).customEffectGrants(s.perm("unaffected")))…
+       |                                                                        ^
+    116|
+    117|     await advance(s.engine).runTurn(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants a selected opponent the forced start-of-main attack effect when linked
+AssertionError: expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/cards/BT21/BT21-073.test.ts:191:42
+    189|     await settle(() => s.state.players[0]!.security.length === 0);
+    190|     expect(s.perm("target").isSuspended).toBe(true);
+    191|     expect(s.state.players[0]!.security).toHaveLength(0);
+       |                                          ^
+    192|     advance(s.engine).endMainPhaseIfOpen(1);
+    193|     await opponentTurn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-073.test.ts:254:102
+    252|     await settle(() => s.state.players[0]!.trash.some((card) => card.i…
+    253|     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    254|     expect(s.perm("host").linked.some((card) => card.instanceId === s.…
+       |                                                                                                      ^
+    255|
+    256|     expect(await advance(s.engine).verb.deletePermanent([s.perm("host"…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-075.test.ts:97:84
+     95|     })).toEqual({ ok: true });
+     96|     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.p…
+     97|     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId ==…
+       |                                                                                    ^
+     98|     expect(s.state.players[1]!.security).toHaveLength(1);
+     99|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card
+AssertionError: permanent for "stronger" (seed-perm-182) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-094.test.ts:157:51
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon
+AssertionError: permanent for "option" (inst-75) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-100.test.ts:135:102
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-100.test.ts:135:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  7 failed | 12 passed (19)
+      Tests  8 failed | 297 passed (305)
+   Start at  10:49:25
+   Duration  8.62s (transform 75%, import 14%, tests 11%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-001.test.ts src/cards/BT21/BT21-003.test.ts src/cards/BT21/BT21-004.test.ts src/cards/BT21/BT21-005.test.ts src/cards/BT21/BT21-024.test.ts src/cards/BT21/BT21-025.test.ts src/cards/BT21/BT21-057.test.ts src/cards/BT21/BT21-073.test.ts src/cards/BT21/BT21-075.test.ts src/cards/BT21/BT21-091.test.ts src/cards/BT21/BT21-093.test.ts src/cards/BT21/BT21-094.test.ts src/cards/BT21/BT21-098.test.ts src/cards/BT21/BT21-100.test.ts src/cards/BT21/BT21-101.test.ts src/engine/effects/digimonTopTrashEvents.test.ts src/engine/effects/primitives.test.ts src/engine/overflow.test.ts src/engine/subTriggerSeams.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

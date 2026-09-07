@@ -1,0 +1,36 @@
+
+> aegis@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna
+> pnpm --filter @aegis/shared build && pnpm -r typecheck
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+
+> @aegis/shared@1.1.0 copy:data /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> node scripts/copy-data.mjs
+
+copy-data: cards/data/cards.json -> dist
+copy-data: effects/effects.json -> dist
+copy-data: effects/generated-digivolve-overrides.json -> dist
+Scope: 3 of 4 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/web typecheck$ tsc --noEmit -p tsconfig.json
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/web typecheck: Done
+apps/api typecheck: src/cards/BT21/BT21-022.test.ts(278,97): error TS2345: Argument of type '"Digimon"' is not assignable to parameter of type 'CardKind'.
+apps/api typecheck: src/cards/BT21/BT21-022.test.ts(284,97): error TS2345: Argument of type '"Digimon"' is not assignable to parameter of type 'CardKind'.
+apps/api typecheck: src/cards/BT21/BT21-091.test.ts(19,37): error TS2339: Property 'actions' does not exist on type 'Action'.
+apps/api typecheck:   Property 'actions' does not exist on type 'DrawAction'.
+apps/api typecheck: src/cards/BT21/BT21-093.test.ts(72,33): error TS2339: Property 'actions' does not exist on type 'Action'.
+apps/api typecheck:   Property 'actions' does not exist on type 'DrawAction'.
+apps/api typecheck: src/cards/BT21/BT21-094.test.ts(72,37): error TS2339: Property 'actions' does not exist on type 'Action'.
+apps/api typecheck:   Property 'actions' does not exist on type 'DrawAction'.
+apps/api typecheck: src/cards/BT21/BT21-100.test.ts(63,34): error TS2339: Property 'actions' does not exist on type 'Action'.
+apps/api typecheck:   Property 'actions' does not exist on type 'DrawAction'.
+apps/api typecheck: Failed
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @aegis/api@1.1.0 typecheck: `tsc --noEmit -p tsconfig.json`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.

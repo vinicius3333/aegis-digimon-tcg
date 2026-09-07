@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-078.js";
@@ -108,6 +109,82 @@ describe("BT21-078 WereGarurumon", () => {
     expect(s.perm("allianceTarget").isSuspended).toBe(false);
   });
 
+  it("uses the granted Alliance in a public battle after declining the optional effect attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-078", as: "source" },
+            { card: "BT1-009", as: "ally" },
+          ],
+          hand: [{ card: "BT21-057", as: "adventure" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("source"), "Alliance"));
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ally").isSuspended);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it("consumes the Your Turn trigger once for the same WereGarurumon source", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-078", as: "source" },
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+          hand: [
+            { card: "BT21-057", as: "firstAdventure" },
+            { card: "BT21-057", as: "secondAdventure" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("firstTarget").permanentId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("firstTarget"), "Alliance"));
+
+    preferred.splice(0, preferred.length, s.perm("secondTarget").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondAdventure").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("firstTarget"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("secondTarget"), "Alliance")).toBe(false);
+  });
+
   it("Q4732 still allows an attack when the played Digimon is not ADVENTURE", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -125,17 +202,71 @@ describe("BT21-078 WereGarurumon", () => {
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("other").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(observe(s.engine).hasKeyword(s.perm("weregarurumon"), "Alliance")).toBe(false);
   });
 
   it("grants inherited Alliance on a realistic evolution stack", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-079", as: "host", under: [{ card: "BT21-078", as: "source" }] }] },
-    });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-067", as: "base" },
+            { card: "BT1-009", as: "ally" },
+          ],
+          hand: [
+            { card: "BT21-078", as: "source" },
+            { card: "ST6-13", as: "host" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT11-111", as: "stronger", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-078");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST6-13");
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
+    const targetId = s.perm("stronger").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("ST6-13");
+    expect(s.perm("ally").isSuspended).toBe(true);
   });
 
   it.each([
@@ -158,5 +289,56 @@ describe("BT21-078 WereGarurumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("weregarurumon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+  it("independently chooses the Alliance recipient and effect attacker, then expires the grant at turn end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-078", as: "source" },
+            { card: "BT1-009", as: "recipient" },
+          ],
+          hand: [{ card: "BT21-057", as: "adventure" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { security: ["BT1-001"], deck: ["BT1-014", "BT1-015"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("recipient").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance") && s.state.pendingDecision?.kind === "optional",
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(false);
+    const decision = s.state.pendingDecision;
+    expect(decision?.kind).toBe("optional");
+    preferred.splice(0, preferred.length, s.perm("source").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("recipient").isSuspended).toBe(false);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: s.perm("source").permanentId }),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance")).toBe(false);
   });
 });

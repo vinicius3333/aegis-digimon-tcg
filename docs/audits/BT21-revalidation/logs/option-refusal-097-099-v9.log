@@ -1,0 +1,23 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > verifies the Appmon waiver, reveal-and-place Main, Delay Link, and Security placement 2ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > reveals an Appmon/App Driver card, trashes the rest, and places itself 19ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Q4734 waives color for an Appmon Digimon in breeding 2ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > ages a publicly played Option before activating Delay at a later own turn 29ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > declines an eligible aged Delay link after a public turn boundary 13ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > publicly places itself from Security without changing memory 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > executes the Main placement by moving a Save Digimon from hand under an own Tamer 3ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly places a Save Digimon from trash under an own Tamer 2ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > places the Save card only under one of its controller's Tamers 3ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > places Save from hand/trash under a Tamer and offers Save digivolution from trash 0ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > Security plays a cost-5-or-less Save Digimon from trash and adds itself to hand 6ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly performs the optional placement and free Save digivolution in sequence 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly refuses both optional Main actions while retaining eligible Save cards 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > leaves both optional Main actions inert when no Save cards are available 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly plays a cost-5-or-less Save Digimon from hand during Security 4ms
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  23:09:16
+   Duration  7.31s (transform 84%, import 15%, tests 1%)

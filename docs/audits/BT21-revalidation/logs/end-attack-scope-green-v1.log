@@ -1,0 +1,123 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing 28ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base 11ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > rejects a second DigiXros material and preserves hand, board, and memory 1ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > performs a security check after deleting a suspended Digimon by battle with Piercing 19ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > public Raid redirects to the highest-DP unsuspended target, then Piercing checks security 10ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > on deletion places an eligible card and then itself under a Tamer 15ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and Save after battle deletion 12ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > declining the optional first placement still offers the Save continuation 9ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > grants inherited +2000 DP only during its controller's turn 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack plus one, wipes opposing Digimon, and recurs Guilmon family 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack +1 and deletes every Digimon on both sides at end of attack 7ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > wipes both battle areas after a real public attack resolves 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks 8ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks 9ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it 10ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > base cost 3 8ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 9 total trash keeps cap 3 2ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 10 total trash raises cap to 5 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 20 total trash raises cap to 7 8ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > counts both players' trashes for the cost-5 ceiling 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not play a non-Guilmon-family card even below the cost ceiling 2ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > uses the level-5 Growlmon-name alternate evolution route for 4 3ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect from a nonattacking own host 12ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve a BT21-079 host's End of Attack effect for an opponent's attack 9ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect when it is the defender against Armor Purge 9ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > resolves BT21-079's own End of Attack deletion after its public attack 10ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > plays Owen Dreadnought when digivolving with at most one Tamer and gains memory once per turn on security removal 0ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > plays Owen free after digivolving with zero existing Tamers 3ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > plays Owen free after digivolving with one existing Tamers 4ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > does not play Owen with two Tamers and may decline with one 7ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > gains memory once only for opponent security removal 4ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > does not gain memory when an opponent attacks and removes this player's security 6ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > gains inherited memory only once across two public opponent-security removals in one turn 22ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > gains memory from a public attack that removes the opponent's security 7ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > reduces its play cost by two per opposing Digimon and preserves all three keywords 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 11 with 0 opposing Digimon 3ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 7 with 2 opposing Digimon 3ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 0 with 6 opposing Digimon 8ms
+ × src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > attacks immediately after a public reduced-cost play because of Rush 7ms
+   → permanent for "wargreymon" (inst-261) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Raid to attack the highest-DP unsuspended opponent instead of checking security 17ms
+ × src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Blocker to redirect an opponent's public player attack 59ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > retains Rush, Raid, and Blocker after evolving from a legal red level 5 5ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > may unsuspend when an opposing Digimon is deleted, only once per turn 12ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > unsuspends from a public attack that deletes an opposing Digimon 18ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > stays suspended when its controller's Digimon is deleted or the optional effect is declined 15ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves Rush, Raid, and the once-per-turn attack after linking 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > links to an Appmon for 2, grants 3000 DP, and lets the host attack 4ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links DoGatchmon and resolves its When Linking attack 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks immediately after a public play because of Rush 17ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > uses Raid to redirect an attack to the opponent's highest-DP unsuspended Digimon 9ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links onto DoGatchmon and resolves only one self-linked attack 18ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > fuses the printed Gatchmon plus Navimon pair through the production App Fusion verb 11ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Navimon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Tweetmon App Fusion pair 8ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Gatchmon App Fusion pair 12ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Tweetmon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Gatchmon App Fusion pair 8ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Navimon App Fusion pair 5ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the same-name App Fusion pair 3ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the non-recipe App Fusion pair 3ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks once when its own stack gets linked and ignores another stack 27ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > may decline both link-granted attack paths 2ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > gets a second public linked attack after the next real turn unsuspends it 78ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > attacks immediately after a public reduced-cost play because of Rush
+AssertionError: permanent for "wargreymon" (inst-261) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-026.test.ts:90:26
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-026.test.ts:90:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Blocker to redirect an opponent's public player attack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-026.test.ts:134:46
+    132|     });
+    133|     await settle(() => s.perm("wargreymon").isSuspended);
+    134|     expect(s.perm("wargreymon").isSuspended).toBe(true);
+       |                                              ^
+    135|     expect(s.state.players[0]!.security).toHaveLength(1);
+    136|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 70 passed (72)
+   Start at  11:16:55
+   Duration  23.96s (transform 83%, import 14%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/endOfAttackScope.test.ts src/cards/BT21/BT21-079.test.ts src/cards/BT21/BT21-016.test.ts src/cards/BT21/BT21-017.test.ts src/cards/BT21/BT21-018.test.ts src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

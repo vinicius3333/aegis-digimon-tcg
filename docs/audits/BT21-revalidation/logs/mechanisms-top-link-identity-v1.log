@@ -1,0 +1,483 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 linkMax — base 1 + Σ active <Link +N> grants (documented behavior Permanent.LinkedMax, documented behavior) > returns the base 1 with no grant, base + delta with grants, and ignores grants on other permanents 1ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 linkMax — base 1 + Σ active <Link +N> grants (documented behavior Permanent.LinkedMax, documented behavior) > models <Link +2> as a single delta-2 grant (EX11-073 documented rule(2)) 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > link-max grant store lifecycle (INRT-01: read by linkMax, cleared like grantedKeywords) > dropPermanent / clearContinuous / reset all clear the grant (no dead store) 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule-check sweep trims the excess (CR §4-8-5 / §17-1-3-2-5) > lands both offered cards on a base-limit-1 Digimon, then the rule-check sweep trims it back to 1 20ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule-check sweep trims the excess (CR §4-8-5 / §17-1-3-2-5) > <Link +1> raises the limit so BOTH cards land 3ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 link cost — runLink consumes a real link cost that costDelta adjusts (documented behavior GetChangedLinkCost) > linkCostOf differs by exactly 1 between costDelta:0 and costDelta:-1 and floors at 0 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 link cost — runLink consumes a real link cost that costDelta adjusts (documented behavior GetChangedLinkCost) > pays the link card's printed cost from memory (delta vs. an identical no-link play) 5ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documented behavior) > offers an eligible Digimon recipient and REJECTS a token / non-Digimon / breeding recipient 1ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documented behavior) > allows breeding only through an explicit card-effect override 1ms
+ ✓ src/engine/conformance/ch10-link.test.ts > A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documented behavior) > rejects a recipient that fails the link card's structured target condition 1ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1 Link (comprehensive-0140) > 10-1-1/10-1-3-2: linking a hand card to a battle-area Digimon is a Main-phase action that pays the printed link cost 1ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1 Link (comprehensive-0140) > 10-1-1 (bare case): a card ALREADY on the battle area can be linked to another Digimon, not just a hand card 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1 Link (comprehensive-0140) > 10-1-1 + INFERENCE: a battle-area source's own digivolution stack and own link card are trashed when its top card is linked elsewhere (no direct KB ruling found — see comment) 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1 Link (comprehensive-0140) > control: an unrelated removeLooseInstance caller (trash) still CANNOT consume a permanent's own top card 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1 Link (comprehensive-0140) > EX11-027's own [On Play] 'link this Digimon to 1 of your other Digimon' actually links (proves the real card, not just the primitive) 2ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1-2 Link Rules (comprehensive-0141) > 10-1-2-2: a card plugged in for a link becomes a link card — tracked in `linked`, distinct from the digivolution stack, and flips face-up 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1-2 Link Rules (comprehensive-0141) > 10-1-2-3: an immediate-type effect tied to linking fires only AFTER the card is linked and the Digimon is chosen 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10-1-2 Link Rules (comprehensive-0141) > NOW MET: when a Digimon already holding a link card receives another, the new one is plugged in at the BOTTOM 0ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and the excess is trashed after, not refused at declaration > the player-facing linkCard verb and a card effect's Link action converge on the SAME outcome at the boundary 6ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and the excess is trashed after, not refused at declaration > <Link +1> raises the limit for BOTH paths — 2 cards land and stay (no trim) once headroom covers them 3ms
+ ✓ src/engine/conformance/ch10-link.test.ts > §10 Link — fixture sanity > BT21-009 carries a real, structured link requirement (printed 'Cost 1') 0ms
+stdout | src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-15 <Rush> (comprehensive-0233) > 16-15-1: a printed-<Rush> Digimon may attack the same turn it entered the field
+[WinCheck] seat 0 wins (reason: security) — turn 1, phase Main, memory 0
+
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-10 <Digisorption> (comprehensive-0228) > 16-10-1: suspending 1 Digimon reduces the digivolution cost by the printed amount 5ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-11 <Reboot> (comprehensive-0229) > 16-11-1: an opponent's <Reboot> permanent unsuspends during the turn player's own unsuspend phase 1ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-11 <Reboot> (comprehensive-0229) > NEGATIVE CONTROL: without Reboot, an opponent's suspended permanent stays suspended through the turn player's unsuspend phase 0ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-13 <Retaliation> (comprehensive-0231) > a Digimon deleted in battle with <Retaliation> also deletes the opponent's battled Digimon 8ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-14 <Digi-Burst> (comprehensive-0232) > 16-14-1: trashing the specified number of digivolution cards activates the attached effect 6ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-15 <Rush> (comprehensive-0233) > 16-15-1: a printed-<Rush> Digimon may attack the same turn it entered the field 2ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-15 <Rush> (comprehensive-0233) > NEGATIVE CONTROL: without Rush, a Digimon that entered this turn can't declare an attack 0ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-16 <Blitz> (comprehensive-0234) > 16-16-1/16-16-5: keeps the Main phase open for one more attack once memory has crossed to the opponent, and only then 0ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-17 <Delay> (comprehensive-0235) > 16-17-1/16-17-3: a <Delay> [Main] ability is unusable the turn the card enters the battle area 0ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-17 <Delay> (comprehensive-0235) > becomes activatable (and mandatorily trashes the card) once it's been on the field since a prior turn 2ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-18 <Decoy> (comprehensive-0236) > a <Decoy>-protected Digimon stays deletable: the protection is paid by deleting the Decoy holder 1ms
+ ✓ src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts > §16-19 <Armor Purge> (comprehensive-0237) > NOW MET: a printed-<Armor Purge> Digimon that loses a battle should be spared by trashing its own top card 53ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes effectText in the card's complete printed text (main) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes inheritedEffectText in the card's complete printed text (inherited) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes securityEffectText in the card's complete printed text (Security) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes linkEffect in the card's complete printed text (Link) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes linkRequirement in the card's complete printed text (Link requirement) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes dualEffect in the card's complete printed text (DUAL) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > includes optionEffect in the card's complete printed text (Option) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > matchNameOrTrait text matching > does not match a near token absent from every printed text field 0ms
+ ✓ src/engine/effects/interpreter.test.ts > registerIrCard > replaces a previously registered IR module with the latest compiled card 0ms
+ ✓ src/engine/effects/interpreter.test.ts > registerIrCard > does not overwrite a handwritten module 0ms
+ ✓ src/engine/effects/interpreter.test.ts > registerIrCard > uses the registered runtime card when another card activates its effect 1ms
+ ✓ src/engine/effects/interpreter.test.ts > registerIrCard > uses the registered runtime card when reactivating its own effect 0ms
+ ✓ src/engine/effects/interpreter.test.ts > registerIrCard > preserves a copied effect key for nested action identities 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > checks the preceding target DP against the source Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > includes the current Digimon when checking for same-level stacked cards 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > recognizes a source card in the current reveal window 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > matches revealed cards and distinct filtered Tamer colors 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > rejects malformed zoneCount zones and operators without throwing 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > checks named attack procedures and the empty breeding slot 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > checks all-yours filters and selected stack counts 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > uses a totalDigimonGte count threshold when value is omitted 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > scopes anyHas across both players while honoring an explicit controller 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > keeps the new predicates conservative at their boundaries 0ms
+ ✓ src/engine/effects/interpreter.test.ts > new typed RAW-elimination conditions > matches the event subject and stack cards through their full definitions 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Return result bindings > keeps the scaled level ceiling when adding a scaled play-cost ceiling 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Return result bindings > aborts an ordered tail when an accepted self Return moves no card 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Return result bindings > clears a stale if-you-did receipt after no loose candidates 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Return result bindings > clears a stale if-you-did receipt after an empty up-to selection 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Return result bindings > does not satisfy an if-you-did branch when the selected permanent was not moved 0ms
+ ✓ src/engine/effects/interpreter.test.ts > wouldBePlayed self-reducer payment feasibility > does not offer BT12-112's Shoutmon payment without a battle-area Shoutmon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > suspension cost cardinality > available 1, upTo false: payment succeeds false 0ms
+ ✓ src/engine/effects/interpreter.test.ts > suspension cost cardinality > available 2, upTo false: payment succeeds true 0ms
+ ✓ src/engine/effects/interpreter.test.ts > suspension cost cardinality > available 1, upTo true: payment succeeds true 0ms
+ ✓ src/engine/effects/interpreter.test.ts > attack cost feasibility > offers only the copy that can legally attack, including a same-turn Rush Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > filtered hand-trash cost feasibility > does not offer the cost when the hand has cards but none match its filter 0ms
+ ✓ src/engine/effects/interpreter.test.ts > filtered hand-trash cost feasibility > offers the cost when enough matching hand cards exist 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Delete except chooser routing > lets the opponent choose the one survivor before deleting all other matching Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > BT16-048 TyrantKabuterimon > plays the selected trait Digimon with the cost reduction folded into the play 1ms
+ ✓ src/engine/effects/interpreter.test.ts > BT16-048 TyrantKabuterimon > returns any opponent Digimon within the suspended Digimon's DP, not only suspended ones 0ms
+ ✓ src/engine/effects/interpreter.test.ts > BT17-065 DexDorugamon branch fidelity > deletes instead of drawing when Dorugamon is in stack 0ms
+ ✓ src/engine/effects/interpreter.test.ts > BT17-065 DexDorugamon branch fidelity > deletes instead of drawing when it digivolved from trash 0ms
+ ✓ src/engine/effects/interpreter.test.ts > BT17-065 DexDorugamon branch fidelity > draws when neither Dorugamon-in-stack nor digivolved-from-trash is true 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Reveal action dispatch > reveals top cards from the chosen deck without moving them 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Reveal action dispatch > selects hand cards for reveal without moving them 0ms
+ ✓ src/engine/effects/interpreter.test.ts > legacy action-kind dispatch > ActivateEffect normalizes to the server-side foreign effect runner 0ms
+ ✓ src/engine/effects/interpreter.test.ts > legacy action-kind dispatch > ActivateOptionMain dispatches through the existing ActivateMain path 0ms
+ ✓ src/engine/effects/interpreter.test.ts > legacy action-kind dispatch > direct Prevent installs a would-leave-play prevention subscription 0ms
+ ✓ src/engine/effects/interpreter.test.ts > DelayedDelete action dispatch > arms delayed deletion for the permanent just played by the prior action 1ms
+ ✓ src/engine/effects/interpreter.test.ts > Replacement sourceFilter zone gate > does not install a battle-area replacement while the source is in breeding 0ms
+ ✓ src/engine/effects/interpreter.test.ts > MovePermanent (L_breeding) > toBreeding moves the self permanent into the breeding slot 0ms
+ ✓ src/engine/effects/interpreter.test.ts > MovePermanent (L_breeding) > toBattle moves an eligible (level >= 3) breeding Digimon to the battle area 0ms
+ ✓ src/engine/effects/interpreter.test.ts > MovePermanent (L_breeding) > toBattle does NOT move a breeding Digimon below the level minimum (Q4242) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > selfDigivolutionStackHasTrait condition (BT7-024 family) > gains memory only when a [Hybrid] card (trait in `forms`) is in the source stack 0ms
+ ✓ src/engine/effects/interpreter.test.ts > selfDigivolutionStackHasTrait condition (BT7-024 family) > gains memory only when YOUR security is fewer than the opponent's (op:lt) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > selfDigivolutionStackHasTrait condition (BT7-024 family) > gains memory only when YOUR security is more than the opponent's (op:gt) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > irCardModule timing routing > routes [On Play] Delete to the OnPlay timing and dispatches deletePermanent 0ms
+ ✓ src/engine/effects/interpreter.test.ts > irCardModule timing routing > Delete raises its printed DP cap by the active DP-deletion-maximum bonus 0ms
+ ✓ src/engine/effects/interpreter.test.ts > irCardModule timing routing > routes [On Deletion] Gain 2 memory to OnDestroyedAnyone and gains memory 0ms
+ ✓ src/engine/effects/interpreter.test.ts > irCardModule timing routing > routes [Security] Play this card to SecuritySkill and plays self from security 0ms
+ ✓ src/engine/effects/interpreter.test.ts > irCardModule timing routing > keeps compound [Security][Your Turn] effects in the continuous timing 0ms
+ ✓ src/engine/effects/interpreter.test.ts > SearchSecurity action > offers only matching security cards and plays the selected one without cost 0ms
+ ✓ src/engine/effects/interpreter.test.ts > optional PlayWithoutCost > does not ask the player when no legal loose card can be played 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Search action from security > plays the selected card without cost when its Search chain requires it 0ms
+ ✓ src/engine/effects/interpreter.test.ts > unsupported actions are loud > throws UnsupportedEffectError for a RawUnparsed action in strict (test) mode 0ms
+ ✓ src/engine/effects/interpreter.test.ts > unsupported actions are loud > throws UnsupportedEffectError for an action kind missing from the Action union 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > supports player-wide DP with owner-turn state true 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > supports player-wide DP with owner-turn state false 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > rejects the continuous runtime path before granting DP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > rejects the combined keyword runtime path before granting DP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > rejects the budget target runtime path before granting DP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > rejects the count-all target runtime path before granting DP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > rejects the count-modified target runtime path before granting DP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > untilOpponentNextTurnEnd DP scope is loud > rejects the multi-id sameTarget runtime path before granting DP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > applies for-each scaling to a ModifyDP amount (self gets +1000 per your Tamer) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > EX2-038 ReactivateEffect scales by Tamer count > re-runs the [When Digivolving] effect once per Tamer 1ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > EX2-038 ReactivateEffect scales by Tamer count > does not re-run at all with no Tamers (Q3331) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > BT2-104 Security unsuspends and grants +5000 DP for the turn > compiles both Unsuspend and a +5000 forTheTurn ModifyDP (FAILS-WHEN-REVERTED) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > records a continuous restriction via fx.restrict 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > shuffles security via fx.shuffleSecurity 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > lets the controller choose a partial trash amount for up-to leaveCount security 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > flips the opponent's top face-down security card via fx.flipSecurityFaceUp (EX11-064) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > threads faceUp:true into fx.addSecurity for a placeAsSecurity self placement (BT25-102) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > installs a delayed sub-trigger via fx.subscribeSubTrigger 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > gates an inherited discarded-source watcher by exact instance and effect provenance 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > CostModifier onConsume installs end-of-turn actions bound to the consumed digivolve target 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > installs next-end-of-opponent-turn delayed effects as one-shot endOfTurn watchers 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > grants a continuous keyword (non-Piercing) via fx.grantKeyword 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > plays a filtered card from trash via playInstances (PlayWithoutCost non-self) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > routes a self-play from hand through the effect-play seam 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > adds to target count when a countModifier condition passes 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > multiplies the PlayWithoutCost target count by its live scaling factor 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > plays selected cards up to the total play-cost budget (PlayMultiple) 1ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > trashes cards from hand using the added-to-hand trigger count (HandManipulation trashVariable) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > notSameNameAs drops candidates sharing a name with a battle-area or trash card (PlayWithoutCost) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > de-digivolves a resolved opponent permanent via fx.deDigivolve 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > runs ＜Recovery +N＞ as recoverToSecurity (action-keyword verb) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > waits for a Draw encoded as an action keyword before resolving 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > discards N from hand for a hand-zone Trash target 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > accepts two cards sharing a color when each can still claim a distinct one 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > accepts two copies of the same two-color card as different colors 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > rejects a second pick that cannot claim any unused color 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v2 IR actions dispatch to real primitives > routes a token play to playToken primitive 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > SetTurnEndMemory records the active threshold for the source controller 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > pays a memory cost (payMemory) via gainMemory(-N) before the action 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > an optional cost (canNoSelect) that the controller declines still resolves the action 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > an Aura grants its keyword only while its gate holds (re-evaluated each resolve) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > ＜Save＞ places this card under a chosen Tamer (PlaceUnder self form) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > does not offer an optional PlaceUnder action when no loose card is eligible 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > does not offer an optional PlaceUnder action when no destination host is legal 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > PlaceUnder targetIsPermanent relocates a battle-area permanent at the requested stack position 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > MindLink relocates the source Tamer under a chosen Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > 'both players' security trash hits each seat's stack 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > 'both players' security trash honors leaveCount for each stack 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > placeAsSecurity from hand selects a loose card and adds it to security 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > placeAsSecurity fromDigivolutionTop adds the selected permanent's top stack card 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > a routed place-as-cost (destination:security, top, face down) adds the chosen hand card to security 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > a routed place-as-cost (destination:security, bottom, face up) places the card face up at the bottom 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > a routed place-as-cost (destination:digivolutionStack, self, top) places under the source permanent's top 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > a named place cost selects one exact card of each required name 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > does not pay or bind a routed digivolution-stack cost when placeUnder moves no selected card 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > does not bind a multi-source permanent payment when its atomic move fails 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > plays the selected level-limited card from the selected Digimon's stack 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > an onAddDigivolutionCards sub-trigger installs a subscription 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > a keyword-presence filter (with ＜Save＞) only matches cards whose text declares it 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > a filter.or group matches a permanent satisfying EITHER alternative (color OR trait) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v3 IR actions (round-3 fixes) dispatch to real primitives > Digisorption -N compiles to a reduceCost replacement (behavior, not cosmetic) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P3: digivolution requirements are parsed (BT10-082, EX8-017, ST17-04, BT20-034) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P4: BT13-074 grants Jamming to YOUR Digimon (controller not inverted) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P4: BT20-034 restriction targets opponent Digimon only (not Tamers) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P1: ST9-14 returns a SUSPENDED opponent Digimon (state filter kept) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P1: BT12-098 reveal-add keeps the ＜Save＞-in-text filter 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P1: BT4-099 runtime record keeps the DP bound (name-exclusion gate is a known drop) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P6: BT20-011 DNA digivolve pays its cost (payCost true) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P6: BT25-072 link carries the -2 cost reduction 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P6: BT17-001 carries a memory cost of 1 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P4: BT3-090 trashes BOTH players' security 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P5: P-115 ＜Save＞ compiles to a PlaceUnder (place-under-Tamer), not a self keyword grant 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P5: BT2-026 'while you have a blue Tamer' compiles to an Aura (dynamic duration) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P2: BT21-045 emits the delete blocks and ＜Security Attack +1＞ (the +3000 rider is a known drop) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > round-3 regression: dropped semantics now captured in the IR > P2: BT13-074 emits both ＜Jamming＞ and ＜Reboot＞ grants 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v4 IR actions (runtime record-v2 schema additions) > TrashDigivolution trashes the TOP digivolution card of a targeted opponent Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v4 IR actions (runtime record-v2 schema additions) > TrashDigivolution keeps an aborting fixed-count payment atomic when too few cards remain 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v4 IR actions (runtime record-v2 schema additions) > TrashDigivolution mandatory effects trash as many cards as the target has 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v4 IR actions (runtime record-v2 schema additions) > TrashDigivolution: a redirect (BT10-084 Q2004) collapses the target onto the new host, re-clamping the count to ITS stack instead of the original's 0ms
+ ✓ src/engine/effects/interpreter.test.ts > v4 IR actions (runtime record-v2 schema additions) > payCost 'by trashing N of THIS Digimon's digivolution cards' (BT10-084 Q2006): a redirect trashes the reacting Digimon's cards and the paid count still reflects what was actually taken 2ms
+ ✓ src/engine/effects/interpreter.test.ts > v4 IR actions (runtime record-v2 schema additions) > opponentHasNone gates an Aura: +1000 DP applies only when the opponent has no unsuspended Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > combat IR actions dispatch to the attack-and-block verbs > Attack (self) calls forceAttack on the source permanent 0ms
+ ✓ src/engine/effects/interpreter.test.ts > combat IR actions dispatch to the attack-and-block verbs > a flagged Attack skips attacker selection and forceAttack while combat is already resolving 0ms
+ ✓ src/engine/effects/interpreter.test.ts > combat IR actions dispatch to the attack-and-block verbs > Attack (forced, all matching) calls forceAttack on each resolved permanent 0ms
+ ✓ src/engine/effects/interpreter.test.ts > combat IR actions dispatch to the attack-and-block verbs > RedirectAttack resolves its filter and calls redirectAttack with the candidates 0ms
+ ✓ src/engine/effects/interpreter.test.ts > combat IR actions dispatch to the attack-and-block verbs > RedirectAttack chooser=opponent prompts the OPPONENT seat among their own Digimon, and is optional (BT4-075) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RestrictPlay seat-level prohibition dispatch > resolves the opponent seat and calls restrictPlay with the seat/match/mode/duration (EX7-014) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier play/use dispatch (now executable) > a play-cost reducer for your Digimon dispatches to changePlayCost with a matching predicate 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier play/use dispatch (now executable) > a self use-cost reducer matches only this source's own card id 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier play/use dispatch (now executable) > mode:reduce records a negative digivolve-cost delta from a positive printed amount 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier play/use dispatch (now executable) > an inherited self reducer also enforces its digivolve-into filter 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier play/use dispatch (now executable) > onConsume arms end-of-turn actions for the Digimon whose once evo-cost modifier was consumed 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier mode:set (absolute cost set) > records a SET digivolve cost via changeEvoCost with setFixed:true (not a delta) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier mode:set (absolute cost set) > a SET with a security count of 0 still records cost 0 (no early-return) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier mode:set (absolute cost set) > sets the play cost to 0 only when ALL three named Digimon are in play (AND, not OR) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier mode:set (absolute cost set) > does NOT set the cost when only some of the named Digimon are in play 0ms
+ ✓ src/engine/effects/interpreter.test.ts > CostModifier mode:set (absolute cost set) > sets the cost across both controllers when each exact name is present 0ms
+ ✓ src/engine/effects/interpreter.test.ts > [Main] / activateEffect reconciliation > exposes an IR [Main] effect at BOTH OnUseOption and OnDeclaration 0ms
+ ✓ src/engine/effects/interpreter.test.ts > superlative narrowing — highestDP / lowestDP > lowestDP: narrows to the lowest-DP Digimon among opponents 0ms
+ ✓ src/engine/effects/interpreter.test.ts > superlative narrowing — highestDP / lowestDP > highestDP: narrows to the highest-DP Digimon among opponents 0ms
+ ✓ src/engine/effects/interpreter.test.ts > superlative narrowing — highestDP / lowestDP > ties: all extrema are kept (both 3000-DP Digimon when lowestDP) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > superlative narrowing — highestDP / lowestDP > no-DP: a permanent with DP <= 0 is excluded from highestDP 0ms
+ ✓ src/engine/effects/interpreter.test.ts > superlative narrowing — highestDP / lowestDP > FAILS-WHEN-REVERTED: without DP branch, lowestDP selects wrong target 0ms
+ ✓ src/engine/effects/interpreter.test.ts > DeleteBudget (budget-multi-delete) > budget=3: only the play-cost-3 permanent is deleted (5 and 7 exceed budget) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > DeleteBudget (budget-multi-delete) > budget=10: play-cost-3 and 5 deleted (cumulative 8 <= 10), 7 skipped 0ms
+ ✓ src/engine/effects/interpreter.test.ts > DeleteBudget (budget-multi-delete) > budget=0: nothing is deleted (returns 0) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > DeleteBudget (budget-multi-delete) > FAILS-WHEN-REVERTED: without DeleteBudget case, UnsupportedEffectError is thrown 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > selects bottom sources with faceDown=true and hidden=true 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > selects bottom sources with faceDown=undefined and hidden=true 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > selects bottom sources with faceDown=true and hidden=false 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > excludes the imminent play instance from digivolutionCards while preserving another source 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > excludes the imminent play instance from underMyTamers while preserving another source 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > excludes the imminent play instance from underTamers while preserving another source 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > excludes the imminent play instance from underTamer while preserving another source 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > excludes the imminent play instance from digivolutionCardsUnderTamers while preserving another source 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > hostFilter {kind:['Tamer']} includes cards under Tamer, excludes cards under Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > without hostFilter, both Digimon and Tamer stack cards are included 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > applies a common hostFilter only to hosted cards in a mixed loose/stack pool 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > does not let a loose card satisfy an OR branch qualified by a hostFilter 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > falls through an invalid hosted OR branch to a later branch that does not require that host 0ms
+ ✓ src/engine/effects/interpreter.test.ts > candidateLooseInstances — hostFilter gating > FAILS-WHEN-REVERTED: removing hostFilter check returns both cards 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Replacement digisorptionRedirect > digisorptionRedirect:true passes the redirect flag via subscribeReplacement 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Replacement digisorptionRedirect > digisorptionRedirect absent: flag is not set on the subscription 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Replacement digisorptionRedirect > FAILS-WHEN-REVERTED: digisorptionRedirect:false — flag is absent, cost targets controller's own Digimon 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd optional ('you may ... among them') > optional spec prompts and lets the player decline (plays nothing) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd optional ('you may ... among them') > optional spec with no eligible revealed cards skips the empty selection prompt 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd optional ('you may ... among them') > mandatory play spec with one match still asks for confirmation 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd optional ('you may ... among them') > mandatory search-to-hand with one match still asks for confirmation 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd optional ('you may ... among them') > pays the remaining cost for a reduced-cost revealed play 1ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd rest-to-trash sequencing > applies add-slot countModifier before trashing the unrevealed remainder 0ms
+ ✓ src/engine/effects/interpreter.test.ts > RevealAdd rest-to-trash sequencing > waits for trashing the unrevealed remainder before resolving 1ms
+ ✓ src/engine/effects/interpreter.test.ts > payCost: count:"all" trash/return costs > BT21-054-shape: trashing ALL of any of your Digimon's digivolution cards is payable with a nonempty pool 0ms
+ ✓ src/engine/effects/interpreter.test.ts > payCost: count:"all" trash/return costs > FAILS-WHEN-REVERTED: with Infinity as n, the same nonempty pool would be unpayable 0ms
+ ✓ src/engine/effects/interpreter.test.ts > payCost: count:"all" trash/return costs > BT17-068-shape: returning ALL matching cards from trash to the deck is payable with a nonempty pool 0ms
+ ✓ src/engine/effects/interpreter.test.ts > payCost: count:"all" trash/return costs > an empty candidate pool for an all-shaped trash cost is unpayable (not vacuously true) 0ms
+ ✓ src/engine/effects/interpreter.test.ts > payCost: count:"all" trash/return costs > AddDPFromSuspendedCost binds the suspended Digimon DP and attack keyword 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Trash/HandManipulation chooser: "opponent" routing > Trash (hand zone, chooser: opponent) prompts ctx.ask.opponent, not the controller 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Trash/HandManipulation chooser: "opponent" routing > HandManipulation (chooser: opponent) prompts ctx.ask.opponent, not the controller 0ms
+ ✓ src/engine/effects/interpreter.test.ts > Trash/HandManipulation chooser: "opponent" routing > Trash (hand zone, no chooser) still prompts the controller, unaffected by the addition 0ms
+ ✓ src/engine/effects/interpreter.test.ts > cards that delete the Digimon this effect played > EX10-061 arms the turn-end delete on the permanent it played from its digivolution cards 0ms
+ ✓ src/engine/effects/interpreter.test.ts > cards that delete the Digimon this effect played > EX11-061 arms the turn-end delete inside its digivolve watcher, not when the clause installs 1ms
+ ✓ src/engine/effects/interpreter.test.ts > cards that delete the Digimon this effect played > EX10-072's ＜Delay＞ arms the owner-turn-end delete on the Digimon it played from security 0ms
+ ✓ src/engine/effects/interpreter.test.ts > cards that delete the Digimon this effect played > EX10-072's [Security] effect anchors its turn-end delete on the permanent it played 0ms
+ ✓ src/engine/effects/interpreter.test.ts > cards that delete the Digimon this effect played > EX3-069 restricts and one-shot-deletes exactly the Digimon it played 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is deleted in combat 3ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is returned to hand by an effect 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is deleted by an effect (trashed) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > does NOT process Overflow when the ACE is played onto the field (entering, §4-18-3) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > does NOT process Overflow when the ACE is placed under another card (§4-18-4) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's OWNER even when the deletion happens on the opponent's turn 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > does nothing when a non-ACE Digimon leaves the field 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is bounced from the field to security 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it is returned to the deck by an effect 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the controller when <De-Digivolve> demotes the ACE off the top 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the controller when the trash() verb itself moves the ACE out from under a card 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > charges the ACE's controller when it leaves a breeding-area permanent's digivolution stack 0ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > resolves simultaneous Overflow instances turn-player-first, changing the clamped result (§4-18-5) 1ms
+ ✓ src/engine/overflow.test.ts > <Overflow> (Comprehensive Rules §4-18) > resolves simultaneous Overflow turn-player-first through a single multi-permanent deletePermanent call (§4-18-5) 1ms
+ ✓ src/engine/effects/stack.test.ts > derived activation tiers > resumes the interrupted derived tier after a nested batch completes 1ms
+ ✓ src/engine/effects/stack.test.ts > derived activation tiers > finishes both derived effects for seat 0 before returning to an older pending effect 0ms
+ ✓ src/engine/effects/stack.test.ts > derived activation tiers > finishes both derived effects for seat 1 before returning to an older pending effect 0ms
+ ✓ src/engine/effects/stack.test.ts > orderTurnPlayerFirst > places the turn player's effects before the opponent's, stable within each side 0ms
+ ✓ src/engine/effects/stack.test.ts > orderTurnPlayerFirst > orders opponent-first when the opponent is the turn player 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > classifies a linked Option clause as a Digimon effect while it resolves (BT25-100/101, Q6471/Q6476) 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > re-entrantly drains the remaining effects without re-entering the current effect 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > does not re-offer an optional effect declined during a re-entrant drain 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > propagates a drained effect error and clears the outer effect's in-progress guard 1ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > resolves a single mandatory triggered effect without an ordering decision 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > resolves the turn player's bucket fully before the opponent's 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > records a use per resolved effect (maxPerTurn accounting) 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: ordering and single-trigger resolution > resolves an UNLIMITED mandatory triggered effect exactly once per window 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: choosing which effect to process first > prompts chooseOrder when two same-side effects are simultaneously active and resolves the chosen one first 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: choosing which effect to process first > honors a decline (null) only when every remaining effect is optional 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: choosing which effect to process first > coerces a chooseOrder decline to the first effect when a mandatory effect remains 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: choosing which effect to process first > forces the mandatory effect first when chooseOrder declines, then offers the lone optional 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: optional prompt > skips an optional effect the controller declines and does NOT record a use 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: optional prompt > resolves an optional effect the controller accepts and records the use 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: effects triggered during resolution (re-scan) > resolves an effect that becomes active only after an earlier one resolves 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: effects triggered during resolution (re-scan) > picks up a brand-new trigger surfaced by collect() after a resolution 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: effects triggered during resolution (re-scan) > stops immediately when the game ends mid-resolution 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinite loops) > throws when the pass cap is exceeded and the env has no declareDraw (today's safety net) 32ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinite loops) > §18-3-2: resolves the match to a draw instead of throwing when the env wires declareDraw 31ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinite loops) > §18-3-3: stops a loop a player CAN stop (an optional link) instead of declaring a draw 33ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinite loops) > §18-3-3-3: the stopped loop is not re-entered later in the same window 35ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source stops being collectable (§15-4-4-3/5) > does not activate an effect whose source left its area mid-window and later returned 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source stops being collectable (§15-4-4-3/5) > still resolves an effect that stays collectable for the whole window 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > Q2738/Q2769: digivolving on top of the source kills its other pending [When Attacking] 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > Q2738/Q2769: the buried trigger stays dead even if its card becomes the top card again 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > Q2805: a pending effect is dropped when its card is re-hosted under another permanent 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > keeps an inherited effect pending while its own permanent's stack grows 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > still collects the NEW top card's trigger after a mid-window digivolution 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > leaves a linked card's pending effect alone when an unrelated permanent changes 0ms
+ ✓ src/engine/effects/stack.test.ts > resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3) > does not mark the running effect departed when its own body re-hosts its source card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: draw > moves top deck cards to hand, marks them face-up, emits cardsMoved 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: draw > stops at an empty deck and returns fewer cards (deck-out is handled elsewhere) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: draw > publishes the resolving effect's owner and Digimon kind with hand additions 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: memory (delegates to MemoryGauge) > gainMemory moves the shared gauge in the turn player's favour 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: memory (delegates to MemoryGauge) > setMemory sets the turn player's memory absolutely 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBreeding moves the whole permanent into the empty slot, preserving stack + suspension 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBreeding is a no-op when the breeding slot is already occupied 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBattle moves the breeding permanent to the battle area, preserving stack + suspension 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBattle is a no-op for an id not in the breeding slot 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: movePermanentZone (L_breeding, P-143/P-130) > toBreeding drops the moved source's subTrigger replacements + watchers (WR-02) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > buffs a permanent's currentDP for a duration and the sweep restores it 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > is a no-op for an unknown permanent id 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > frames opponent-targeted durations from the resolving effect controller 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: modifyDP (BT15-002 style) > enforces can't unsuspend against effect-driven unsuspension 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > plays a Digimon from hand as a new permanent with DP from its definition 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > does not play an Option as a permanent (not a permanent kind) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > pays the play cost when payCost is set and there is enough memory 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > stacks an effect-provided reduction with active play-cost modifiers 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > skips an unaffordable payCost play (no partial pay, card stays in hand) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playFromHand / playFromSecurity (BT7-089 style) > plays a card from security for free (playFromSecurity) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeOptionAsPermanent (EX3-036 option-permanent placement) > places an Option from hand as a 0-DP battle-area permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeOptionAsPermanent (EX3-036 option-permanent placement) > fires whenOptionPlayed after placing the Option permanent (BT13-007 seam) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeOptionAsPermanent (EX3-036 option-permanent placement) > REVERT-CONFIRM-RED: refuses a non-Option (Digimon) card -> no placement, card stays in hand 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playToken (PlayToken IR kind) > creates a named token as a new battle-area permanent for the seat 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playToken (PlayToken IR kind) > preserves descriptor keyword metadata on Atho, René & Por 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playToken (PlayToken IR kind) > REVERT-CONFIRM-RED: an unknown token name creates nothing 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forceBattle (Battle may-battle, §14 DP comparison) > deletes the lower-DP Digimon in a direct battle (KB Q6278 standard-rules battle) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forceBattle (Battle may-battle, §14 DP comparison) > REVERT-CONFIRM-RED: the lower-DP attacker is the one deleted (outcome follows DP, not role) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashes loose cards from hand to their owner's trash 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > attributes hand-trash triggers to the effect controller 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashFromSecurity removes from the bottom by default and the top with fromTop 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashFromSecurity names the trashed cards and their seat on the movement event 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > trashFromSecurity removes an explicitly selected card from anywhere in security 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > securityToHand publishes the generic security-removal event after the move 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > deletePermanent sends the whole permanent to trash and drops its modifiers 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > deletePermanent narrates the move to trash exactly once for the whole batch 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > deletePermanent narrates a breeding deletion from the breeding area 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > applies source-kind-qualified beAffected restrictions to hand-written mutations 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: trash / delete / suspend > suspend / unsuspend flips the permanent flag 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToHand returns the top card and trashes its digivolution cards 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToDeck places a loose card on top or bottom, face-down 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToDeck atomically reorders cards already in that deck 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnToDeck routes a Digi-Egg card back to the Digi-Egg deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > returnStackTopsToDeck returns the current top first, promotes the remaining source, and fires one deck-add event 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: return to hand / deck > trashPermanentByRule moves the whole invalid position without deletion or trash-by-effect reactions 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > reveal flips the top N deck cards face-up in place 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > reveal publishes one cardRevealed per card, because a face-up deck card is still private state 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > reveal publishes nothing for an empty deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > searchDeck adds the controller's chosen matching card to hand and re-hides the deck 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > searchDeck returns nothing when no card matches the filter 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity places loose cards onto the security stack face-down 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity moves only a permanent's top card to security and trashes its attachments 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity can shed only a permanent's top card and promote its digivolution card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity with faceUp:true places the card FACE UP at the bottom (BT25-102) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity respects an active leave-prevention reaction for a field permanent (finding 14) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: reveal / searchDeck / addSecurity > addSecurity does NOT gate loose hand/deck/trash cards on leave-prevention 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: flipSecurityFaceUp (EX11-064) > flips the top FACE-DOWN security card face up, leaving it in security 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: flipSecurityFaceUp (EX11-064) > flips the FIRST face-down card, skipping an already-face-up top card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: flipSecurityFaceUp (EX11-064) > is a no-op (returns false) when there is no face-down security card 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > preflights a paid effect play with the same explicit reduction used by the play 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > honors play-cost reduction restrictions during affordability preflight 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > plays a chosen loose card from trash as a new permanent (free) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > plays a loose card from under another permanent (a Tamer's digivolution stack) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > skips an Option (not a permanent kind) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances (filtered PlayWithoutCost) > publishes every permanent created by one simultaneous whenPlayed event 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > stacks a loose hand card onto a target permanent, prior top sliding under 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > prices a paid digivolve off the alternate digivolution requirement when no printed EvoCost matches 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > uses a selected alternate cost and enforces its digivolution-stack name gate 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance (effect-driven digivolve) > rejects a selected alternate cost when its required named source is absent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve > moves the top card to the trash and promotes the card beneath 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve > is a no-op when the Digimon has no digivolution cards 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve > stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921) 1ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > placeUnder puts loose cards into a permanent's digivolution stack 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > trashDigivolutionCards reveals a face-down stacked card in trash (BT26-094 Q7159) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > atomically trashes an exact cross-host digivolution-card cost before publishing watchers 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > moves nothing and publishes nothing when one member of an exact atomic cost is protected 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > link moves loose cards into a permanent's linked list 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > relocatePermanent tears down the moved source's subTrigger replacements + watchers (WR-02) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > relocatePermanent keeps the moved cards face-up 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > relocatePermanentByEffect awaits the destination's add-digivolution window 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > preflights every multi-source move before touching the destination 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > keeps a multi-source move atomic when one source cannot leave except by deletion 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: placeUnder / link > returnToHand tears down the bounced source's subTrigger replacements + watchers (WR-01) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > consumes two materials and plays the result carrying their cards beneath 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > returns undefined with fewer than two materials 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > trashes each material's linked cards instead of dropping them (CR 8-2-2-1-2) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: dnaDigivolveInto > enters unsuspended even when both materials were suspended (CR 8-2-2-1-1) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: effect-driven digivolve cost honors the continuous evo-cost ledger (ENG-03 / WR-03) > effect-driven digivolveFromInstance pays the REDUCED cost off the memory gauge 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: effect-driven digivolve cost honors the continuous evo-cost ledger (ENG-03 / WR-03) > pays the printed cost when effect-driven digivolution reductions are blocked 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: effect-driven digivolve cost honors the continuous evo-cost ledger (ENG-03 / WR-03) > DNA dnaDigivolveInto pays the REDUCED cost off the memory gauge 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: recoverToSecurity > moves the top N deck cards onto the top of the security stack, face-down 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: recoverToSecurity > can raise security above 5 when the card effect has no printed ceiling 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: recoverToSecurity > still recovers at 5 security when the printed effect permits it 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: shuffleSecurity re-hides face-up cards > publishes one chosen card identity without revealing any surrounding private cards 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: shuffleSecurity re-hides face-up cards > resets faceUp to false on every security card (EX11-064 Q5929-5931) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: changeEvoCost / grantPierce record into the ledger > changeEvoCost records an adjustment readable for matching permanents 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: changeEvoCost / grantPierce record into the ledger > grantPierce records a pierce grant on the permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > Q3400 does not nest a second forced attack while the first attack is resolving 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > prompts the OPPONENT (defending) seat and redirects to the chosen Digimon 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > when the (optional) chooser declines, the attack proceeds unchanged (no redirect) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > accepts the reserved player candidate and redirects the attack to the opponent 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > defaults to the controller seat and is mandatory when no opts are given 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > fires whenAttackTargetSwitched with the attacker as subject after a successful redirect 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: redirectAttack (chooser / optional) > does NOT fire whenAttackTargetSwitched when the (optional) redirect is declined 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > places a Digimon in the empty breeding slot when breeding:true 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > returns [] when the breeding slot is already occupied (single-occupancy) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > skips a non-Digimon/non-DigiEgg card when breeding:true (§6-4) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: playInstances — breeding destination > FAILS-WHEN-REVERTED: without breeding, the card lands in battleArea (wrong destination) 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > records per-seat zone expansion and returns it via digiXrosExpandedZones 1ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > different seats have independent expansions 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > FAILS-WHEN-REVERTED: without expansion call, zones return empty (no extra sources) 0ms
+ ✓ src/engine/effects/primitives.test.ts > expandDigiXrosZones > scopes per-play expansions and cleanup to the pending play instance 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > grantKind delegates to ContinuousEffectLedger.addKindGrant and is queryable via grantedKinds 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > effectiveKinds returns static kinds ∪ granted kinds via GameAccess 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost suspends an unsuspended battle-area permanent and returns true 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for an already-suspended permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a non-existent permanentId 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a breeding-area permanent 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a permanent with beAffected restriction 0ms
+ ✓ src/engine/effects/primitives.test.ts > grantKind + effectiveKinds + payActivationCost (HARD-05) > payActivationCost returns false for a permanent that can't be suspended 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > keeps the destination's printed cost when requirements are ignored, then applies costDelta 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > ignoreRequirements lets an off-level base digivolve, paying exactly the costOverride 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > rejects that same ignoreRequirements request while a cannot-ignore rule is live 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > costOverride WITHOUT ignoreRequirements still enforces the printed requirement 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: digivolveFromInstance costOverride + ignoreRequirements > costOverride pays the fixed cost when the requirement IS met (BT7-051 shape) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > fires whenEffectSuspends with the suspended permanent + acting seat 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > does NOT fire whenEffectSuspends when the permanent is already suspended (no transition) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > reports only permanents that actually transitioned to suspended 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: suspend (whenEffectSuspends fire seam) > omits effectSuspendSeat when no acting seat is supplied (engine-internal suspend) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve stopAtLevel (can't trash past level N) > promotes to the floor, then stops before trashing past it (stopAtLevel:3) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: deDigivolve stopAtLevel (can't trash past level N) > applies the standard level-3 floor even when no explicit stopAtLevel is encoded 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forced-attack target legality > excludes the player, protected Digimon, and unsuspended Digimon when the effect requires a Digimon target 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: forced-attack target legality > ends without opening a target decision when a Digimon-only forced attack has no legal target 0ms
+ ✓ src/engine/effects/primitives.test.ts > Primitives completeness guard (no declared-but-unassigned methods) > createPrimitives assigns every declared method except the documented pending follow-ups 0ms
+ ✓ src/engine/effects/primitives.test.ts > Primitives completeness guard (no declared-but-unassigned methods) > the pending-follow-up allowlist is exactly today's known gap (fails loudly if it grows) 0ms
+ ✓ src/engine/effects/primitives.test.ts > Primitives completeness guard (no declared-but-unassigned methods) > grantCustom is assigned and callable (regression guard: was declared but never wired, so every ctx.fx.grantCustom?.() call site silently did nothing) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > resolveCardEffect runs a registered module's effect for the given timing 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > resolveCardEffect returns false and does nothing for an unregistered cardId 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > useOptionFromHand resolves the used card's OnUseOption effect before trashing it (regression: it used to only trash the card and fire whenOptionUsed, silently skipping the Option's own effect body for BT26-012/-090, EX4-030, BT10-041, ST22-07 and every other hand-written 'use 1 Option from hand' card) 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > does not trash an Option that placed itself in the battle area while resolving 0ms
+ ✓ src/engine/effects/primitives.test.ts > primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix) > uses and trashes the exact Option linked to a breeding-area Digimon 0ms
+ ✓ src/engine/linkState.test.ts > A3 linkMax — base 1 + Σ active <Link +N> grants (documented behavior Permanent.LinkedMax, documented behavior) > returns the base 1 with no grant, base + delta with grants, and ignores grants on other permanents 0ms
+ ✓ src/engine/linkState.test.ts > A3 linkMax — base 1 + Σ active <Link +N> grants (documented behavior Permanent.LinkedMax, documented behavior) > models <Link +2> as a single delta-2 grant (EX11-073 documented rule(2)) 0ms
+ ✓ src/engine/linkState.test.ts > link-max grant store lifecycle (INRT-01: read by linkMax, cleared like grantedKeywords) > dropPermanent / clearContinuous / reset all clear the grant (no dead store) 0ms
+ ✓ src/engine/linkState.test.ts > A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule-check sweep trims the excess (CR §4-8-5 / §17-1-3-2-5) > lands both offered cards on a base-limit-1 Digimon, then the rule-check sweep trims it back to 1 3ms
+ ✓ src/engine/linkState.test.ts > A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule-check sweep trims the excess (CR §4-8-5 / §17-1-3-2-5) > <Link +1> raises the limit so BOTH cards land 2ms
+ ✓ src/engine/linkState.test.ts > A3 link cost — runLink consumes a real link cost that costDelta adjusts (documented behavior GetChangedLinkCost) > linkCostOf differs by exactly 1 between costDelta:0 and costDelta:-1 and floors at 0 0ms
+ ✓ src/engine/linkState.test.ts > A3 link cost — runLink consumes a real link cost that costDelta adjusts (documented behavior GetChangedLinkCost) > pays the link card's printed cost from memory (delta vs. an identical no-link play) 3ms
+ ✓ src/engine/linkState.test.ts > A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documented behavior) > offers an eligible Digimon recipient and REJECTS a token / non-Digimon / breeding recipient 1ms
+ ✓ src/engine/linkState.test.ts > A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documented behavior) > allows breeding only through an explicit card-effect override 0ms
+ ✓ src/engine/linkState.test.ts > A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documented behavior) > rejects a recipient that fails the link card's structured target condition 0ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — breeding non-Digimon (CR §17-1-3-2-3) > trashes a Tamer illegally sitting in the breeding slot 12ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — breeding non-Digimon (CR §17-1-3-2-3) > negative control: a hatched Digi-Egg in the breeding slot is untouched 10ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — face-down top card (CR §17-1-3-2-4) > trashes a permanent whose top card is illegally face-down 11ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — face-down top card (CR §17-1-3-2-4) > negative control: a face-down card UNDER the top card (digivolution stack) is untouched 11ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — excess link cards (CR §17-1-3-2-5) > trashes only the linked cards beyond the effective link limit (base 1), and the owner picks which 12ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — excess link cards (CR §17-1-3-2-5) > Q6370: the controller's pick is honored, not the tail of the link list 12ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — excess link cards (CR §17-1-3-2-5) > Q6370: a forced trim — every link card is excess — resolves without asking 12ms
+ ✓ src/engine/ruleProcess.test.ts > A4 ruleProcess — excess link cards (CR §17-1-3-2-5) > negative control: a single linked card (within the base limit of 1) is untouched 12ms
+ ✓ src/engine/ruleCheckPool.test.ts > rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-3) > preserves sweep provenance order when identifying the first deleted permanent 0ms
+ ✓ src/engine/ruleCheckPool.test.ts > rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-3) > two DIFFERENT sweeps of one pass put their [On Deletion] effects in ONE ordering prompt 15ms
+ ✓ src/engine/ruleCheckPool.test.ts > rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-3) > the turn player's trigger activates first even when the OPPONENT's card was removed by an earlier sweep 15ms
+ ✓ src/engine/ruleCheckPool.test.ts > rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-3) > negative control: a lone rule-check deletion resolves without an ordering prompt 14ms
+ ✓ src/engine/ruleCheckPool.test.ts > rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-3) > retains a deleted Token source until its pooled [On Deletion] effect resolves 14ms
+ ✓ src/engine/effects/catalogActionKindGate.test.ts > catalog action-kind gate — ENGINE-HANDLER-PLAN Phase 0 > has no new action kinds outside the Action union unless explicitly allowlisted 8ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits the pre-purge Armor Form identity and preserves the promoted host 4ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host 5ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > does not confuse ordinary source-card trash or another controller's top identity 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > preserves a promoted Digi-Egg's printed DP when it has DP 2ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > trashes from the current top and promotes at most the requested number 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > crosses the level-3 floor and promotes a bottom Digi-Egg unlike De-Digivolve 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > respects an opponent stack-trash lock while ignoring cantBeDeDigivolved 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > does not emit OnDeletion when a Digimon top is peeled 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > applies Overflow when an ACE is peeled 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > marks an invalid promoted Option for rule trash rather than deletion 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow a top source card into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > keeps a self target on the same host when its top card evolves 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow an inherited source into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow an linked source into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > uses the captured host when the source leaves it but the original host remains 0ms
+ ✓ src/engine/actions/linkHistory.test.ts > public Link history > trashes the existing link across separate public Link actions 2ms
+
+ Test Files  14 passed (14)
+      Tests  472 passed (472)
+   Start at  21:01:28
+   Duration  8.82s (transform 79%, import 14%, tests 6%)

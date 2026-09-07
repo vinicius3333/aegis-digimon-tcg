@@ -1,0 +1,55 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ❯ src/cards/BT21/BT21-006.test.ts (5 tests | 1 failed) 113ms
+   ❯ BT21-006 Tsumemon (5)
+     × proves the four-Vemmon state through a legal public evolution chain 89ms
+ ❯ src/cards/BT21/BT21-005.test.ts (5 tests | 1 failed) 31ms
+   ❯ BT21-005 Swipemon (5)
+     × draws when the realistic Swipemon evolution stack gets linked 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the realistic Swipemon evolution stack gets linked
+AssertionError: expected [ 'BT21-005', 'BT21-009' ] to deeply equal [ 'BT21-005', 'BT21-009', 'BT21-018' ]
+
+- Expected
++ Received
+
+  [
+    "BT21-005",
+    "BT21-009",
+-   "BT21-018",
+  ]
+
+ ❯ src/cards/BT21/BT21-005.test.ts:71:61
+     69|     await settle(() => s.state.players[0]!.hand.some((card) => card.in…
+     70|     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).to…
+     71|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+       |                                                             ^
+     72|   });
+     73|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > proves the four-Vemmon state through a legal public evolution chain
+AssertionError: expected 3 to be greater than or equal to 4
+ ❯ src/cards/BT21/BT21-006.test.ts:154:90
+    152|         s.perm("tsumemon").stack.filter((card) => card.cardId === "BT2…
+    153|     );
+    154|     expect(s.perm("tsumemon").stack.filter((card) => card.cardId === "…
+       |                                                                                          ^
+    155|     expect(s.perm("tsumemon").currentDP).toBe(17000);
+    156|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  2 failed | 17 passed (19)
+   Start at  00:48:18
+   Duration  15.00s (transform 86%, import 13%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-004.test.ts src/cards/BT21/BT21-005.test.ts src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache

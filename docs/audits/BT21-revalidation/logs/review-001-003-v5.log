@@ -1,0 +1,58 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > encodes the inherited once-per-turn trigger for one of your played WG Digimon 3ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played beside a realistic Yokomon evolution stack 27ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > builds the WG stack through public evolution 15ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played through the public play action 7ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw for a non-WG Digimon 4ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw for an opponent WG Digimon 4ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw for a WG Option 4ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws only once when multiple WG Digimon are played in the same turn 22ms
+stdout | src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 8
+
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > registers an optional, paid hand digivolution only for opponent security removal 1ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves a realistic Dragonkin stack from hand and pays the cost reduced by one 10ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves from a public attack that removes the opponent's security 17ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > builds the inherited source through public level-3 and level-4 evolution 3ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger when the controller's own security is removed 3ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn 23ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > encodes the inherited Gammamon-text or Hero condition once per turn 0ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Hero trait 6ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Gammamon in text 7ms
+ × src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > builds the Gammamon-text branch through public evolution 9ms
+   → expected 7 to be 8 // Object.is equality
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > does not draw for a near-match-free non-Hero host 11ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws only once across repeated attacks in the same turn 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > builds the Gammamon-text branch through public evolution
+AssertionError: expected 7 to be 8 // Object.is equality
+
+- Expected
++ Received
+
+- 8
++ 7
+
+ ❯ src/cards/BT21/BT21-002.test.ts:73:28
+     71|     await settle(() => s.perm("host").topCard.cardId === "BT21-019");
+     72|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+     73|     expect(s.state.memory).toBe(8);
+       |                            ^
+     74|   });
+     75|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 19 passed (20)
+   Start at  00:55:18
+   Duration  11.81s (transform 84%, import 14%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-001.test.ts src/cards/BT21/BT21-002.test.ts src/cards/BT21/BT21-003.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

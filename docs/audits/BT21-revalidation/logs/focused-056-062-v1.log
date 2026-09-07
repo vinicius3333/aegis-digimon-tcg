@@ -1,0 +1,129 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > registers all three printed timings and the Snatchmon evolution route 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > deletes one of the opponent's Digimon on start of main phase 14ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does NOT delete when it is the opponent's turn ([Your Turn] gate) 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > places exactly 4 Vemmon-text cards and uses Ragnarok Cannon for free 11ms
+ × src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > pays the four-card Vemmon-text placement cost even with no legal Ragnarok target 4ms
+   → settle is not defined
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > returns exactly 4 stacked Vemmon to deck bottom to prevent leaving 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4570 cannot partially place only three Vemmon-text cards to use Ragnarok Cannon 1ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4571 cannot prevent leaving with only three stacked Vemmon 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > alternate-digivolves from Snatchmon for 9 3ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses the engine's stacked-card trash lock for the Digivolving protection 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses this stack's Vemmon cards for the inherited attack-prevention cost 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scopes the leaving-play revival to this stack's exact Vemmon cards 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scales De-Digivolve by Vemmon cards in this Digimon's stack 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > de-digivolves two cards when four Vemmon are in its stack 8ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4563 blocks opponent-effect stack trash while allowing the controller's own effect 5ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > plays one Vemmon from its stack without cost when leaving the battle area 5ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > returns exactly two Vemmon to end an opponent's attack before the security check 7ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4564 cannot pay with only one Vemmon, so the attack continues 5ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 3ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 5ms
+ × src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack 9ms
+   → expected ArraySchema{ items: [ …(3) ], …(5) } to have a length of 4 but got 3
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > preserves both alternate Digivolution requirements and inherited Alliance 0ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > keeps the conditional Alliance and optional attack inside each trigger 0ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > de-digivolves one opponent for each two Tamer colors on play 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4568 performs two separate De-Digivolve 1 processes for four Tamer colors 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined 3ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4731 still offers and resolves the attack after a non-ADVENTURE Digimon is played 5ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > grants inherited Alliance to a realistic higher evolution 5ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 5ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 2ms
+ × src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 3ms
+   → expected 4 to be 3 // Object.is equality
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses the two available distinct recipe names through the production verb 4ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > preserves both alternate Digivolution requirements and complete coverage 0ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants the opponent's Digimon the printed conditional start-of-main attack 0ms
+ × src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack 6ms
+   → Cannot run seat 1's turn while seat 0 is active
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer 2ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from Agumon for 2 2ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from a non-Agumon ADVENTURE rookie for the same printed cost 1ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants Reboot to a realistic evolution host 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack
+AssertionError: expected ArraySchema{ items: [ …(3) ], …(5) } to have a length of 4 but got 3
+
+- Expected
++ Received
+
+- 4
++ 3
+
+ ❯ src/cards/BT21/BT21-056.test.ts:197:33
+    195|     ).toEqual({ ok: true });
+    196|     await settle(() => s.perm("egg").topCard.cardId === "BT21-060");
+    197|     expect(s.perm("egg").stack).toHaveLength(4);
+       |                                 ^
+    198|     expect(s.perm("egg").stack.filter((card) => card.cardId === "BT21-…
+    199|     expect(s.perm("egg").stack.some((card) => card.cardId === "BT21-05…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack
+Error: Cannot run seat 1's turn while seat 0 is active
+ ❯ Object.runTurn src/engine/testkit/advance.ts:54:15
+     52|     async runTurn(seat: Seat): Promise<void> {
+     53|       if (internals.state.turnSeat !== seat) {
+     54|         throw new Error(`Cannot run seat ${seat}'s turn while seat ${i…
+       |               ^
+     55|       }
+     56|
+ ❯ src/cards/BT21/BT21-057.test.ts:74:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link
+AssertionError: expected 4 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 4
+
+ ❯ src/cards/BT21/BT21-059.test.ts:134:28
+    132|     ).toEqual({ ok: true });
+    133|     await settle(() => s.perm("opponent").topCard.cardId === "BT21-044…
+    134|     expect(s.state.memory).toBe(3);
+       |                            ^
+    135|
+    136|     expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > pays the four-card Vemmon-text placement cost even with no legal Ragnarok target
+ReferenceError: settle is not defined
+ ❯ src/cards/BT21/BT21-062.test.ts:132:5
+    130|     await s.ready();
+    131|     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm(…
+    132|     await settle(() => s.perm("galacticmon").stack.length === 4);
+       |     ^
+    133|     expect(s.perm("galacticmon").stack).toHaveLength(4);
+    134|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed | 2 passed (6)
+      Tests  4 failed | 43 passed (47)
+   Start at  09:05:19
+   Duration  8.39s (transform 84%, import 14%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-056.test.ts src/cards/BT21/BT21-057.test.ts src/cards/BT21/BT21-059.test.ts src/cards/BT21/BT21-060.test.ts src/cards/BT21/BT21-061.test.ts src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

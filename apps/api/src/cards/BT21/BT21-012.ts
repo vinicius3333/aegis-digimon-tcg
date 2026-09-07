@@ -10,50 +10,32 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              hasInheritedEffects: true,
-              controller: "mine",
-              kind: ["Tamer"],
-              colors: ["Red"],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
+          kind: "CostGatedBlock",
           cost: {
             kind: "suspend",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             raw: "By suspending this Digimon",
           },
-          optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "PlaceUnder",
-          target: {
-            filter: {
-              isSelfRef: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { hasInheritedEffects: true, controller: "mine", kind: ["Tamer"], colors: ["Red"] },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+              abortOnDecline: true,
             },
-            count: 1,
-            isSelf: true,
-          },
-          underFilter: {
-            lastPlayed: true,
-            controllerDefault: "mine",
-            kind: ["Tamer"],
-          },
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "you did",
-          },
+            {
+              kind: "PlaceUnder",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              underFilter: { lastPlayed: true, controllerDefault: "mine", kind: ["Tamer"] },
+              condition: { kind: "ifThisEffectActed", raw: "you did" },
+            },
+          ],
         },
       ],
     },

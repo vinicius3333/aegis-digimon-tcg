@@ -1748,6 +1748,21 @@ export function tamerOntoDigivolveLevel(cardId: string): number | undefined {
  * target-highlighting so both agree. See {@link BaseGrantedDigivolve}.
  */
 export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
+  // BT21-010 / Q5210: this permission can combine with an effect such as Training.
+  "BT21-010": [
+    {
+      target: { namesExact: ["Siriusmon"] },
+      cost: 4,
+      ignoreRequirements: true,
+      condition: {
+        kind: "anyOf",
+        conditions: [
+          { kind: "securityAtMost", count: 2 },
+          { kind: "distinctNamedTamersWithTrait", trait: "Hero", count: 3 },
+        ],
+      },
+    },
+  ],
   // ST7-03 Guilmon: while the opponent has a Lv.6+ Digimon, a [Gallantmon] from hand digivolves
   // onto this Guilmon for 4, ignoring requirements (documented behavior — CardNames.Contains("Gallantmon"),
   // Condition: HasMatchConditionOpponentsPermanent(level >= 6)).

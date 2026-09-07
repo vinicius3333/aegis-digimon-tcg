@@ -1,0 +1,38 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > exposes complete effect coverage with no residual clauses 5ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the GeoGreymon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > grants one Marcus Damon the temporary Digimon, DP, restriction, and keyword effects 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > shares one once-per-turn budget between the main and inherited deletion watchers 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > enters through the public play intent with Marcus and attack hooks registered 35ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly lets the selected Marcus Damon attack after On Play 58ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not treat a combined Marcus Damon card name as exact 17ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > observably turns exactly one Marcus into a 3000 DP Digimon with both keywords and no digivolution 12ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > alternate-digivolves from GeoGreymon for 3 and resolves the optional attack 66ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > places Marcus from trash on top of security after a yellow Tamer is deleted 28ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly recovers Marcus after the first red/yellow Tamer deletion and shares the once-per-turn limit 91ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not trigger the security recovery for a non-red, non-yellow Tamer deletion 9ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation and recurs ADVENTURE 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays a qualifying ADVENTURE Digimon from trash when deleted 9ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation to the same selected Digimon 4ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack 13ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > publicly proves granted Retaliation deletes an established host after it loses to higher DP 13ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > keeps play grants through the opponent turn and expires Raid and Retaliation on the next own turn 25ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > resolves natural deletion after normal cost-4 evolution with inherited=false and accept=true 135ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > resolves natural deletion after normal cost-4 evolution with inherited=false and accept=false 23ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > resolves natural deletion after normal cost-4 evolution with inherited=true and accept=true 54ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > resolves natural deletion after normal cost-4 evolution with inherited=true and accept=false 27ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays an ADVENTURE Tamer at the play-cost-4 boundary 7ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an ADVENTURE card above play cost 4 7ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not cross the ADVENTURE trait boundary for a cheap non-ADVENTURE card 11ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an eligible ADVENTURE card from the opponent's trash 6ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > executes the inherited deletion play from a realistic stack 59ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the Greymon-name alternate evolution route for 3 27ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the ADVENTURE alternate evolution route for 3 3ms
+
+ Test Files  2 passed (2)
+      Tests  30 passed (30)
+   Start at  19:54:29
+   Duration  29.97s (transform 84%, import 13%, tests 3%)

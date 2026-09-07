@@ -633,8 +633,8 @@ export class GameEngine {
    * Cards linked since the last over-limit rule check (fed by the link verb through
    * `PrimitivesEngine.noteLinked`). Comprehensive Rules §4-9-5 trashes EXISTING link cards
    * "at the same time as the newly linked cards", so {@link chooseExcessLinkCards} keeps
-   * these out of the candidate pool. Cleared by that sweep, which is the moment the rule is
-   * applied.
+   * these out of the candidate pool. Cleared after every completed rule-check fixpoint,
+   * including quiet checks with no excess.
    */
   private readonly justLinked = new Set<string>();
   /** Last resolved continuous DP contribution, used only to preserve dependency inputs between passes. */
@@ -1691,6 +1691,8 @@ export class GameEngine {
       // EvoCost color test (static-continuous-effects, LOCKED Q4 — KB BT3-040 Q1075). The
       // continuous tier is recomputed before each fired timing, so the store is current.
       derivedBaseColors: (_state, permanent) => this.effectiveColorsOf(permanent),
+      effectiveBaseKinds: (_state, permanent) =>
+        effectiveKinds(this.continuous, permanent.permanentId, definitionOf(permanent.topCard)?.kinds ?? []),
       // Positive "can only digivolve into [X]" constraint (EX10-035 digivolveExceptInto): consult
       // the continuous ledger with the evolving card's definition; reject a non-matching target.
       digivolveIntoAllowed: (_state, permanent, evolving) =>
@@ -1785,7 +1787,7 @@ export class GameEngine {
       costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
       blastWindowAllowed: (_state, seat) => this.combat.hasOpenCounterWindow && this.combat.counterWindowSeat === seat,
       draw: (_state, seat, count) => this.drawCards(seat, count),
-      fireWhenDigivolving: async (_state, seat, permanent, previousLevel) => {
+      fireWhenDigivolving: async (_state, seat, permanent, previousLevel, baseWasDigimon) => {
         // Turn-scoped fact consumed by inherited effects such as BT1-007. Register before
         // firing When Digivolving so effects in that window can observe the completed evolution.
         // Effects do not inspect the breeding area unless their text explicitly says so (BT1-007
@@ -1809,7 +1811,9 @@ export class GameEngine {
           previousDigivolutionLevel: previousLevel,
         };
         await this.withPendingSubTriggers(
-          ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
+          // Q6671: a Tamer source does not emit Digimon-evolution watcher events.
+          // The destination card still resolves its own When Digivolving effect.
+          baseWasDigimon === false ? [] : ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
           digivolveTrigger,
           async () => {
             // Scope [When Digivolving] to the permanent that just digivolved (its top card
@@ -1918,7 +1922,8 @@ export class GameEngine {
     base: Permanent,
     evolving: CardDefinition,
   ): { cost: number } | undefined {
-    if (base.inBreeding) return undefined;
+    if (base.inBreeding || base.controllerSeat !== seat || this.state.turnSeat !== seat) return undefined;
+    if (this.continuous.cannotIgnoreDigivolution(seat)) return undefined;
     const grants = baseGrantedDigivolveFor(base.topCard.cardId);
     if (grants === undefined) return undefined;
     for (const grant of grants) {
@@ -1942,6 +1947,9 @@ export class GameEngine {
   private baseGrantConditionHolds(seat: Seat, condition: NonNullable<BaseGrantedDigivolve["condition"]>): boolean {
     if (condition.kind === "anyOf") {
       return condition.conditions.some((nested) => this.baseGrantConditionHolds(seat, nested));
+    }
+    if (condition.kind === "securityAtMost") {
+      return this.access.player(seat).security.length <= condition.count;
     }
     if (condition.kind === "opponentHasDigimonLevelAtLeast") {
       const opponentSeat = this.access.opponentOf(seat);
@@ -3759,6 +3767,7 @@ export class GameEngine {
     opts?: {
       isDnaDigivolve?: boolean;
       digivolvedFromZone?: ZoneRef;
+      baseWasDigimon?: boolean;
       playedFromZone?: ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
@@ -3811,6 +3820,7 @@ export class GameEngine {
         enteredByEffect: ownerSeat,
         ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
+      if (opts?.baseWasDigimon === false) return;
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
@@ -4574,6 +4584,10 @@ export class GameEngine {
         this.ruleProcessing = false;
       }
     }
+    // Even a quiet check establishes the current Link cards as existing cards for
+    // the next Link operation. Keep the markers through this whole fixpoint, then
+    // retire them before its deferred reactions can create a fresh batch of Links.
+    this.justLinked.clear();
   }
 
   /**
@@ -4803,7 +4817,6 @@ export class GameEngine {
       const excess = permanent.linked.length - this.linkMaxOf(permanent);
       if (excess > 0) toTrash.push(...(await this.chooseExcessLinkCards(permanent, excess)));
     }
-    this.justLinked.clear();
     if (toTrash.length > 0) await this.primitives.trash(toTrash, { byRule: true });
   }
 

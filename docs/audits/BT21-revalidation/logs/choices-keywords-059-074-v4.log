@@ -1,0 +1,42 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > protects a Digimon and shares once-per-turn De-Digivolve 1ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > places an Appmon under a Digimon and protects that Digimon 19ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not place or protect a host when the optional placement has no eligible card 2ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > publicly refuses the optional placement while preserving an eligible Appmon card 2ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > blocks an opponent's public return on the protected host but allows it on an unprotected control 13ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > blocks an opponent's public De-Digivolve on the protected host but allows it on an unprotected control 17ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > applies the same placement and protection through public When Digivolving 5ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > keeps public protection through the opponent turn and expires at its end 6ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > shares the once-per-turn De-Digivolve budget from public evolution into public attack 12ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not pay the stack-trash cost when the effect is declined 4ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the public attack intent to De-Digivolve an opposing stack 6ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > links for 3 and deletes only the level-4 boundary target 3ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the Three Musketeers-text alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > preserves both alternate Digivolution requirements and inherited Alliance 0ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > keeps the conditional Alliance and optional attack inside each trigger 1ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > de-digivolves one opponent for each two Tamer colors on play 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4568 performs two separate De-Digivolve 1 processes for four Tamer colors 5ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > counts distinct Tamer colors rather than Tamer quantity 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined 3ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4731 still offers and resolves the attack after a non-ADVENTURE Digimon is played 3ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > triggers from a public ADVENTURE digivolution and separates Alliance choice from attack choice 10ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > independently chooses the Alliance recipient and effect attacker 11ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > consumes the Your Turn watcher once across two public ADVENTURE plays 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > grants inherited Alliance to a realistic higher evolution 4ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 5ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses the paid link requirement for a non-Appmon card without spending memory 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 3ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 4ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses two distinct recipe names through the public evolution intent 3ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses same-name App Fusion material without moving either card 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > uses printed Blocker to intercept and win a public attack 6ms
+
+ Test Files  3 passed (3)
+      Tests  34 passed (34)
+   Start at  22:53:21
+   Duration  6.88s (transform 83%, import 15%, tests 2%)

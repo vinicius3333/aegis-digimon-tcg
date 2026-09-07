@@ -1,0 +1,32 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+···x
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon
+AssertionError: expected 'inst-23' to be 'inst-19' // Object.is equality
+
+Expected: "inst-19"
+Received: "inst-23"
+
+ ❯ src/cards/BT21/BT21-100.test.ts:138:51
+    136|
+    137|     await settle(() => s.perm("growlmon").topCard.instanceId === s.ins…
+    138|     expect(s.perm("growlmon").topCard.instanceId).toBe(s.inst("megidra…
+       |                                                   ^
+    139|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+    140|     advance(s.engine).endMainPhaseIfOpen(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  10:47:33
+   Duration  1.28s (transform 75%, import 17%, tests 7%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=dot

@@ -1,0 +1,36 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > verifies Blocker/Link +1, Appmon link windows, and the once-per-turn linked security cost 2ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > fires from a natural own-Digimon Link and ignores an opponent Digimon Link 24ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > exposes Blocker and Link +1 through the live keyword surface 1ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > once per turn unsuspends after linking and trashes exactly one top security 3ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost 9ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > publicly declines the optional attack-time link and rejects a non-Link candidate 6ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > publicly links the second Globemon host recipe material through Haru into zero-cost Gaiamon App Fusion 14ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > publicly links the second Charismon host recipe material through Haru into zero-cost Gaiamon App Fusion 9ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public Haru linking rejects an ineligible Appmon recipe and preserves its cards 4ms
+stdout | src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > plays Marcus Damon and digivolves into a yellow RizeGreymon for free
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > preserves the Agumon Dinosaur alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > once per turn offers a free yellow RizeGreymon evolution when a Marcus Damon is played 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > preserves the inherited +2000 DP Your Turn modifier 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > plays through the public intent and exposes the +2000 DP Your Turn modifier 2ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > evolves from a level-3 Dinosaur with Agumon in its name for 2 1ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > plays Marcus Damon and digivolves into a yellow RizeGreymon for free 7ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > consumes its once-per-turn trigger after a public refusal and ignores a second Marcus play 6ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > ignores a public Marcus Damon played by the opponent 2ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > does not trigger from a combined Marcus Damon card name 1ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > ignores an opponent's Marcus Damon and an unrelated own Tamer 2ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > grants inherited +2000 DP only during its controller's turn 1ms
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  19:05:33
+   Duration  7.36s (transform 83%, import 15%, tests 1%)

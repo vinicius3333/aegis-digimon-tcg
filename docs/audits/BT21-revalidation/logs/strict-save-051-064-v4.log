@@ -1,0 +1,163 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > models Blast Digivolve, Reboot, Blocker, and the shared On Play/When Digivolving sequence 2ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > keeps the alternate WG level-5 evolution requirement at cost 3 0ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > de-digivolves one target by 2, then bottom-decks a different suspended Digimon 26ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > resolves the de-digivolve and bottom-deck sequence from a public play 7ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > refuses the alternate evolution from a level-5 without the WG trait 2ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > publicly keeps the de-digivolve result when no suspended target exists 3ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > alternate-digivolves from a level-5 WG Digimon for 3 4ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > exposes Reboot and Blocker through the live keyword surface 1ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > Blast Digivolves through a real Counter window, resolves WD, then blocks the attack 20ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > Reboot unsuspends Puppetmon during the opponent's public turn and Overflow charges on battle removal 14ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > preserves both alternate Digivolution requirements and the Appmon link requirement 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > requires trashing an Appmon or Three Musketeers card from a digivolution stack 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > deletes one opposing play-cost-3-or-less Digimon when linked 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes a qualifying own stack card to de-digivolve an opponent 7ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly pays the On Play cost with a Three Musketeers trait source 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > does not pay the stack-trash cost or de-digivolve when the effect is declined 2ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines the On Play cost when no qualifying stack card exists 2ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > refuses linking onto a non-Appmon host without spending memory 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > links for 1 and deletes only the play-cost-3 boundary target 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines an offered eligible On Play cost and preserves both source and target 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes its link card at rule check after Tankmon makes the host ineligible 5ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > zero-cost evolves through both the Three Musketeers-text and Appmon routes 3ms
+ ✓ src/engine/effects/saveSourceIdentity.test.ts > Save source identity > places the deleted instance under a Tamer without relocating an identical surviving Digimon 7ms
+ ✓ src/engine/effects/saveSourceIdentity.test.ts > Save source identity > keeps a saved source under the selected Tamer across the independent Save continuation 10ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses the engine's stacked-card trash lock for the Digivolving protection 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses this stack's Vemmon cards for the inherited attack-prevention cost 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scopes the leaving-play revival to this stack's exact Vemmon cards 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scales De-Digivolve by Vemmon cards in this Digimon's stack 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > de-digivolves two cards when four Vemmon are in its stack 6ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > publicly evolves exact Vemmon for 6 and preserves the one-source De-Digivolve boundary 5ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > publicly protects its stacked cards from an opponent De-Digivolve effect 5ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > publicly places two Vemmon before the exact-name evolution and applies one De-Digivolve 15ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4563 blocks opponent-effect stack trash while allowing the controller's own effect 4ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > plays one Vemmon from its stack without cost when leaving the battle area 7ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > returns exactly two Vemmon to end an opponent's attack before the security check 20ms
+ × src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4564 cannot pay with only one Vemmon, so the attack continues 7ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > preserves both alternate Digivolution requirements and inherited Alliance 0ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > keeps the conditional Alliance and optional attack inside each trigger 0ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > de-digivolves one opponent for each two Tamer colors on play 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4568 performs two separate De-Digivolve 1 processes for four Tamer colors 8ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > counts distinct Tamer colors rather than Tamer quantity 7ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined 4ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4731 still offers and resolves the attack after a non-ADVENTURE Digimon is played 6ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > triggers from a public ADVENTURE digivolution and separates Alliance choice from attack choice 16ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > grants inherited Alliance to a realistic higher evolution 5ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > preserves both zero-cost alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > draws two after the printed Guilmon-family or Hero hand-trash cost 0ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Guilmon-family card and draws exactly two 3ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Hero card and draws exactly two 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > does not offer the hand-trash cost when the hand has no matching name or Hero trait 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > declining the hand-trash cost does not draw 1ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > gains 1 memory when a realistic host carrying Guilmon is deleted 3ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > gains inherited memory from a public battle deletion 8ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 0 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 1 3ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > preserves both zero-cost alternate Digivolution requirements and inherited DP gain 0ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > requires trashing a Save-text or Hero card to draw two 0ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Save-text card and draws exactly two 4ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Hero card and draws exactly two 3ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > does not draw or trash a nonmatching hand card 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > publicly uses the zero-cost Save-text alternate evolution route 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > refuses both zero-cost alternates from a neutral level-2 without Save text or Hero trait 1ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > publicly uses the zero-cost Hero alternate evolution route 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > executes Save by placing itself under an own Tamer on deletion 4ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > preserves full coverage and identical On Play/When Digivolving action sequences 0ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > adds the Vemmon card to hand and trashes the non-Vemmon cards 2ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > does NOT add to hand when no [Vemmon]-in-text card is in the revealed 3 1ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > recognizes a card whose printed effect text mentions [Vemmon] 2ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > places up to two Vemmon from trash under one chosen Digimon 4ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > deletes only an opposing play-cost-4-or-less Digimon when this stack returns Vemmon 27ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly plays Snatchmon and accounts for reveal, trash, and two-card bottom placement 6ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly resolves the identical When Digivolving reveal path from Vemmon 5ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly builds four Vemmon and resolves two paid Zenith returns with one inherited deletion 71ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly declines Vemmon placement and preserves the trash source 2ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > preserves the Examon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > models the printed keywords and When Digivolving sequence 0ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > keeps the once-per-turn suspension watcher scoped to its own trigger 0ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > suspends every opposing Digimon and Tamer, then deletes exactly one suspended target 6ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > unsuspends itself, trashes top security with an Examon source, and spends the once-per-turn budget 6ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly fires the watcher with an exact X Antibody Option source 33ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > does not fire the security-removal branch for a differently named X Antibody Digimon source 16ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > still unsuspends without an Examon or X Antibody digivolution card but does not trash security 2ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > alternate-digivolves from Examon for 2 and exposes all three live keywords 7ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > rejects the exact Examon alternate route from a non-Examon level-6 base 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly unsuspends and trashes security once, then leaves the source suspended on the second attack 27ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > uses Piercing in a real battle and performs the additional security check 19ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > uses Blocker in a real opponent attack and keeps the defending security stack 18ms
+ × src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > accepts Evade against a public opponent-effect deletion and rejects it while already suspended 4ms
+   → expected { ok: false, reason: 'not-your-turn' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 7ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses the paid link requirement for a non-Appmon card without spending memory 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 4ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 6ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses two distinct recipe names through the public evolution intent 3ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses same-name App Fusion material without moving either card 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > publicly evolves from a black Digi-Egg in breeding for zero memory 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > does not reduce an inherited host's evolution into a card without Vemmon in its text 3ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 4ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > refuses the optional recovery through a public play while preserving both zones 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 3ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 9ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through public evolutions of a legal Vemmon stack 8ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces a second qualifying evolution after the next own turn resets Once Per Turn 59ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > accepts Evade against a public opponent-effect deletion and rejects it while already suspended
+AssertionError: expected { ok: false, reason: 'not-your-turn' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "not-your-turn",
+  }
+
+ ❯ src/cards/BT21/BT21-052.test.ts:358:7
+    356|         instanceId: s.inst("source").instanceId,
+    357|       }),
+    358|     ).toEqual({ ok: true });
+       |       ^
+    359|     await settle(() => s.events.some((event) => event.kind === "evadeP…
+    360|     expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4564 cannot pay with only one Vemmon, so the attack continues
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-060.test.ts:336:53
+    334|       }),
+    335|     ).toEqual({ ok: true });
+    336|     await settle(() => s.state.players[0]!.security.length === 0 && !o…
+       |                                                     ^
+    337|
+    338|     expect(s.perm("host").stack.some((card) => card.instanceId === s.i…
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-060.test.ts:336:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 9 passed (11)
+      Tests  2 failed | 108 passed (110)
+   Start at  22:01:32
+   Duration  13.23s (transform 81%, import 14%, tests 5%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/saveSourceIdentity.test.ts src/cards/BT21/BT21-051.test.ts src/cards/BT21/BT21-052.test.ts src/cards/BT21/BT21-054.test.ts src/cards/BT21/BT21-056.test.ts src/cards/BT21/BT21-058.test.ts src/cards/BT21/BT21-059.test.ts src/cards/BT21/BT21-060.test.ts src/cards/BT21/BT21-061.test.ts src/cards/BT21/BT21-063.test.ts src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

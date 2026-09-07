@@ -1,0 +1,267 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > audits every BT21 card in the committed printed catalog 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-001 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-002 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-003 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-004 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-005 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-006 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-007 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-008 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-009 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-010 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-011 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-012 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-013 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-014 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-015 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-016 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-017 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-018 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-019 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-020 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-021 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-022 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-023 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-024 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-025 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-026 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-027 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-028 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-029 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-030 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-031 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-032 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-033 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-034 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-035 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-036 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-037 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-038 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-039 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-040 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-041 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-042 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-043 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-044 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-045 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-046 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-047 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-048 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-049 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-050 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-051 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-052 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-053 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-054 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-055 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-056 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-057 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-058 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-059 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-060 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-061 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-062 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-063 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-064 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-065 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-066 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-067 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-068 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-069 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-070 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-071 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-072 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-073 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-074 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-075 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-076 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-077 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-078 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-079 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-080 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-081 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-082 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-083 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-084 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-085 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-086 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-087 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-088 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-089 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-090 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-091 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-092 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-093 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-094 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-095 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-096 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-097 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-098 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-099 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-100 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-101 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-102 exclusively through its compiled IR 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > contains exactly the authoritative BT21 card keys 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps every record synchronized with its authoritative module 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-001 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-002 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-003 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-004 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-005 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-006 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-007 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-008 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-009 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-010 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-011 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-012 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-013 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-014 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-015 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-016 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-017 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-018 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-019 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-020 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-021 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-022 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-023 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-024 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-025 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-026 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-027 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-028 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-029 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-030 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-031 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-032 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-033 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-034 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-035 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-036 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-037 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-038 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-039 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-040 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-041 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-042 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-043 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-044 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-045 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-046 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-047 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-048 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-049 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-050 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-051 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-052 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-053 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-054 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-055 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-056 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-057 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-058 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-059 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-060 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-061 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-062 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-063 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-064 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-065 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-066 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-067 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-068 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-069 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-070 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-071 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-072 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-073 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-074 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-075 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-076 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-077 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-078 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-079 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-080 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-081 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-082 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-083 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-084 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-085 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-086 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-087 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-088 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-089 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-090 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-091 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-092 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-093 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-094 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-095 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-096 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-097 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-098 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-099 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-100 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-101 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-102 at full coverage with no residual prose 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing 20ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > performs a security check after deleting a suspended Digimon by battle with Piercing 10ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > on deletion places an eligible card and then itself under a Tamer 12ms
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and mandatory Save after battle deletion 11ms
+   → permanent for "king" (seed-perm-16) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > declining the optional first placement still offers the Save continuation 4ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > grants inherited +2000 DP only during its controller's turn 2ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays from security and deletes one opposing Digimon at 4000 DP or less on play or digivolution 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays for 5 and deletes exactly one opposing Digimon at the 4000 DP boundary 3ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > deletes an eligible Digimon after a real digivolution 3ms
+ × src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays itself free from Security and resolves its On Play deletion 4ms
+   → expected undefined to be defined
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > grants inherited +2000 DP only during its controller's turn 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays itself free from Security and resolves its On Play deletion
+AssertionError: expected undefined to be defined
+ ❯ src/cards/BT21/BT21-015.test.ts:135:29
+    133|     const checked = s.events[checkedIndex] as { battle?: unknown } | u…
+    134|     expect(checkedIndex).toBeGreaterThanOrEqual(0);
+    135|     expect(checked?.battle).toBeDefined();
+       |                             ^
+    136|     expect(playedIndex).toBeGreaterThan(checkedIndex);
+    137|     expect(s.state.memory).toBe(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and mandatory Save after battle deletion
+AssertionError: permanent for "king" (seed-perm-16) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-016.test.ts:161:91
+ ❯ Proxy.some ../../node_modules/.pnpm/@colyseus+schema@3.0.76/node_modules/@colyseus/schema/src/types/custom/ArraySchema.ts:566:27
+ ❯ src/cards/BT21/BT21-016.test.ts:161:43
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  2 failed | 221 passed (223)
+   Start at  01:06:43
+   Duration  8.27s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-015.test.ts src/cards/BT21/BT21-016.test.ts src/cards/BT21/BT21-catalog-sync.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

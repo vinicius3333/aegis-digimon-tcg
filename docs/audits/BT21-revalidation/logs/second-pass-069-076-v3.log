@@ -1,0 +1,45 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 22ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > publicly pays the On Play source from trash before deleting an eligible target 6ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT1-009 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the exact Gammamon alternate from BT21-069 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 3ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public play with only a level-5 target 3ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > may pay the optional placement cost through public digivolve with only a level-5 target 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 6ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > mills two, grants keywords, and offers once-per-turn evolution 0ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > trashes two cards and gains Raid and Retaliation on play 2ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 0 total trash cards costs 5 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 9 total trash cards costs 5 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 10 total trash cards costs 4 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 20 total trash cards costs 3 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the public attack intent for the once-per-turn Megidramon evolution 6ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > leaves the top card unchanged when a public attack has no eligible evolution target 4ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the attack evolution only once per turn 4ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > inherited deletion trashes the opponent's top security 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > trashes the opponent's security after a public battle deletes a legal inherited stack 11ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the Growlmon alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation and recurs ADVENTURE 0ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays a qualifying ADVENTURE Digimon from trash when deleted 3ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation to the same selected Digimon 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack 6ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays an ADVENTURE Tamer at the play-cost-4 boundary 4ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an ADVENTURE card above play cost 4 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not cross the ADVENTURE trait boundary for a cheap non-ADVENTURE card 4ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an eligible ADVENTURE card from the opponent's trash 3ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > executes the inherited deletion play from a realistic stack 6ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the Greymon-name alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the ADVENTURE alternate evolution route for 3 2ms
+
+ Test Files  3 passed (3)
+      Tests  37 passed (37)
+   Start at  18:13:36
+   Duration  6.60s (transform 83%, import 15%, tests 2%)

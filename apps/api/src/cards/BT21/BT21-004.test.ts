@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-004.js";
 import "../index.js";
 
@@ -52,13 +53,20 @@ describe("BT21-004 Koromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-009", as: "host", under: ["BT21-004"] },
-            { card: "BT21-084", as: "haru" },
+            { card: "BT21-004", as: "host" },
+            { card: "BT21-084", as: "haru1" },
+            { card: "BT21-084", as: "haru2" },
           ],
-          hand: [{ card: "BT21-009", as: "link" }],
+          hand: [
+            { card: "BT21-009", as: "evolved" },
+            { card: "BT21-009", as: "link" },
+          ],
           deck: [
+            { card: "BT1-004", as: "evolutionBonus" },
             { card: "BT1-001", as: "haruDrawn" },
-            { card: "BT1-002", as: "koromonDrawn" },
+            { card: "BT1-002", as: "haru2Drawn" },
+            { card: "BT1-003", as: "koromonDrawn" },
+            { card: "BT1-005", as: "sentinel" },
           ],
         },
       },
@@ -69,18 +77,213 @@ describe("BT21-004 Koromon", () => {
 
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolved").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionBonus").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+
+    expect(
+      s.engine.applyIntent(0, {
         type: "linkCard",
         instanceId: s.inst("link").instanceId,
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.length === 2);
+    await settle(() => s.state.players[0]!.hand.length === 4);
 
-    expect(s.perm("haru").isSuspended).toBe(true);
+    expect(s.perm("haru1").isSuspended).toBe(true);
+    expect(s.perm("haru2").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("haruDrawn").instanceId, s.inst("koromonDrawn").instanceId]),
+      expect.arrayContaining([
+        s.inst("haruDrawn").instanceId,
+        s.inst("haru2Drawn").instanceId,
+        s.inst("koromonDrawn").instanceId,
+      ]),
     );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("draws when public Marcus play suspends a yellow/red Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "host", under: ["BT21-004"] }],
+          hand: [{ card: "BT21-086", as: "marcus" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.perm("marcus").isSuspended).toBe(true);
+  });
+
+  it("does not draw when a public Main effect suspends a white Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-011", as: "host", under: ["BT21-004"] },
+            { card: "BT10-008", as: "save" },
+            { card: "BT12-098", as: "watchmaker" },
+            { card: "BT1-086", as: "blueTamer" },
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT1-087", as: "yellowTamer" },
+          ],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("watchmaker")) as { effectKey: string }[];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("watchmaker").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("watchmaker").isSuspended);
+    expect(s.perm("watchmaker").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+  });
+
+  it("does not draw from a public opponent suspension of a blue Tamer or red Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-011", as: "host", under: ["BT21-004"] },
+            { card: "BT1-086", as: "blueTamer" },
+            { card: "BT1-009", as: "redDigimon" },
+          ],
+          deck: [{ card: "BT1-001", as: "top" }],
+        },
+        1: {
+          battleArea: [{ card: "BT20-045", as: "examon" }],
+          hand: [{ card: "BT21-052", as: "examonX" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("examon").permanentId,
+        instanceId: s.inst("examonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("examon").topCard.cardId === "BT21-052");
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("does not draw when a public own effect suspends a red Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-011", as: "host", under: ["BT21-004"] },
+            { card: "BT1-064", as: "greenSource" },
+            { card: "BT1-009", as: "redDigimon" },
+          ],
+          hand: [{ card: "BT14-043", as: "suspender" }],
+          deck: [{ card: "BT1-001", as: "top" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    preferred.push(s.inst("redDigimon").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("redDigimon").isSuspended);
+    expect(s.perm("redDigimon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("refuses the public suspension cost when the only target is a blue Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-011", as: "host", under: ["BT21-004"] },
+            { card: "BT21-045", as: "attacker" },
+            { card: "BT1-086", as: "blueTamer" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("blueTamer").isSuspended).toBe(false);
+  });
+
+  it("refuses the public suspension cost when the only target is a red Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-011", as: "host", under: ["BT21-004"] },
+            { card: "BT21-045", as: "attacker" },
+            { card: "BT1-009", as: "redDigimon" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("redDigimon").isSuspended).toBe(false);
   });
 
   it.each([

@@ -1,0 +1,48 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > keeps Alliance/Link +1, shared once-per-turn play effects, and links an Appmon from this stack to an owned Digimon 2ms
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > Q4892 does not relink App Fusion materials without Link after playing an Appmon 25ms
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > does not link an eligible Appmon from another Digimon's evolution stack 6ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > uses an explicit linked partner to App Fuse Gatchmon into DoGatchmon at cost 0 5ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion intent when the linked partner is the wrong name 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects duplicate-name App Fusion materials instead of treating them as distinct names 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on an opponent-controlled host 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on a breeding-area host 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion result that is not in hand 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps the ordinary printed cost and linked card when App Fusion is not declared 4ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=false 5ms
+ × src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=true 15ms
+   → expected 1 to be +0 // Object.is equality
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps App Fusion at printed cost 0 with a legal Lv2 Appmon source under Gatchmon 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=true
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/engine/actions/appFusion.test.ts:209:28
+    207|
+    208|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+    209|     expect(s.state.memory).toBe(0);
+       |                            ^
+    210|   });
+    211|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 12 passed (13)
+   Start at  20:19:25
+   Duration  7.72s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/actions/appFusion.test.ts src/cards/BT22/BT22-039.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

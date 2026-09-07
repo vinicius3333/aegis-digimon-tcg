@@ -363,7 +363,7 @@ export interface CustomEffectGrant {
    * trash). The instanceId is unique per match, so the grant cannot mis-fire on a reused id.
    */
   instanceId: string;
-  /** Seat the duration sweep is framed from (the granter's seat = the granted card's owner). */
+  /** Seat the duration sweep is framed from (the granter, which may differ from the recipient). */
   ownerSeat: Seat;
   token: string;
   duration: EffectDuration;

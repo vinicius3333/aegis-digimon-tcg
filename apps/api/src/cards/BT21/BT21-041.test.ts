@@ -75,6 +75,14 @@ describe("BT21-041 compiled implementation", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const checkedIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT21-041",
+    );
+    const playedIndex = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-041");
+    const checked = s.events[checkedIndex] as { battle?: unknown } | undefined;
+    expect(checkedIndex).toBeGreaterThanOrEqual(0);
+    expect(checked?.battle).toBeDefined();
+    expect(playedIndex).toBeGreaterThan(checkedIndex);
   });
 
   it("links to an Appmon for 1, grants 2000 DP, and reduces only opposing Security Digimon", async () => {
@@ -102,6 +110,77 @@ describe("BT21-041 compiled implementation", () => {
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
     expect(observe(s.engine).securityDp(0)).toBe(0);
+  });
+
+  it("makes a real Security Digimon battle survivable only with the linked reduction", async () => {
+    for (const linked of [true, false]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-018", as: "host" }],
+            hand: [{ card: "BT21-041", as: "calendamon" }],
+          },
+          1: { security: [{ card: "BT1-059", as: "securityDigimon" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 2;
+      const hostId = s.perm("host").permanentId;
+      await s.ready();
+      if (linked) {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "linkCard",
+            instanceId: s.inst("calendamon").instanceId,
+            targetPermanentId: hostId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("host").linked.length === 1 && s.state.pendingDecision === undefined);
+      }
+      expect(s.perm("host").currentDP).toBe(linked ? 8000 : 6000);
+      expect(observe(s.engine).securityDp(1)).toBe(linked ? -3000 : 0);
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
+      );
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-059");
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(linked);
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-018")).toBe(!linked);
+    }
+  });
+
+  it("resolves a non-Digimon Security effect while the linked DP modifier is active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host" }],
+          hand: [{ card: "BT21-041", as: "calendamon" }],
+        },
+        1: { security: [{ card: "ST1-16", as: "option" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("calendamon").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.cardId === "BT21-041"));
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-018")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "ST1-16")).toBe(true);
   });
 
   it("does not reduce Security Digimon on the opponent's turn", async () => {

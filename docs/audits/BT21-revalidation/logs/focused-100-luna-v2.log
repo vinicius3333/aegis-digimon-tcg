@@ -1,0 +1,17 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement 20ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload 1ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > gains 1 memory and enters the battle area from a real security check 6ms
+ × src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon 4ms
+   → card "option" (inst-9) is no longer in the match: expected undefined to be defined
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  10:17:55
+   Duration  1.21s (transform 79%, import 19%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

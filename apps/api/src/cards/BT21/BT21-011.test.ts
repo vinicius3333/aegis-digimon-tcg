@@ -108,6 +108,61 @@ describe("BT21-011 Shoutmon", () => {
     expect(s.state.memory).toBe(target === "BT21-016" ? 3 : 4);
   });
 
+  it("lets a newly played and evolved Xros Heart host attack with Rush", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT21-011", as: "shoutmon" },
+          { card: "BT21-016", as: "king" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+      1: { security: ["BT1-003"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-011"));
+    const hostId = s.perm("shoutmon").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst("king").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shoutmon").topCard.cardId === "BT21-016");
+    expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Rush")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+  });
+
+  it("does not let a newly played and evolved non-Xros Hero host attack without Rush", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT21-011", as: "shoutmon" },
+          { card: "BT21-013", as: "agunimon" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-011"));
+    const hostId = s.perm("shoutmon").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst("agunimon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shoutmon").topCard.cardId === "BT21-013");
+    expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Rush")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("does not reduce a near-matching non-Xros-Heart/non-Hero evolution", async () => {
     const s = setupEngine({
       0: {
@@ -142,6 +197,17 @@ describe("BT21-011 Shoutmon", () => {
     matching.state.turnSeat = 1;
     await advance(matching.engine).recompute();
     expect(observe(matching.engine).hasKeyword(matching.perm("matching"), "Rush")).toBe(false);
+  });
+
+  it("does not expose inherited Rush from breeding or during the opponent's turn", async () => {
+    const breeding = setupEngine({ 0: { breeding: { card: "BT21-016", as: "shoutmon", under: ["BT21-011"] } } });
+    await breeding.ready();
+    expect(observe(breeding.engine).hasKeyword(breeding.perm("shoutmon"), "Rush")).toBe(false);
+    const opponentTurn = setupEngine({ 0: { battleArea: [{ card: "BT21-016", as: "host", under: ["BT21-011"] }] } });
+    await opponentTurn.ready();
+    opponentTurn.state.turnSeat = 1;
+    await advance(opponentTurn.engine).recompute();
+    expect(observe(opponentTurn.engine).hasKeyword(opponentTurn.perm("host"), "Rush")).toBe(false);
   });
 
   it("saves the deleted Shoutmon under one of its Tamers", async () => {

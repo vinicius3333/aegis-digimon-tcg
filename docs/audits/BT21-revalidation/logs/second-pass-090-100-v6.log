@@ -1,0 +1,119 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > keeps the Delay payload separate from the placement watcher 2ms
+ × src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > naturally gains Delay when an effect places a card under an own Digimon 24ms
+   → expected false to be true // Object.is equality
+ × src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reacts only to a later public Canoweissmon placement and free-evolves a legal host 52ms
+   → expected [ 'BT1-009' ] to deeply equal [ 'BT1-009', 'BT21-019' ]
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reveals three cards, adds a Gammamon-text card, and places itself 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Q4733 waives the color requirement for a Gammamon-text card in breeding 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not waive the color requirement without a Gammamon-text card on the field 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not use an opponent's Gammamon-text card for the color waiver 1ms
+ × src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself 8ms
+   → expected -3 to be +0 // Object.is equality
+ × src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may choose the hand source for its cost-4-or-less Gammamon-text play 6ms
+   → expected -3 to be +0 // Object.is equality
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement 3ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload 0ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > gains 1 memory and enters the battle area from a real security check 3ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > public effect deletion resolves Delay only after aging: false 8ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > public effect deletion resolves Delay only after aging: true 24ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > publicly declines an eligible aged Delay evolution without paying or changing the host 17ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 0ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 10ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 11ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 1ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 5ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security also plays a cost-6-or-less Vemmon-text card from hand 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > naturally gains Delay when an effect places a card under an own Digimon
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-090.test.ts:84:69
+     82|     await settle(() => s.perm("pulsemon").stack.some((card) => card.ca…
+     83|
+     84|     expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).to…
+       |                                                                     ^
+     85|   });
+     86|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reacts only to a later public Canoweissmon placement and free-evolves a legal host
+AssertionError: expected [ 'BT1-009' ] to deeply equal [ 'BT1-009', 'BT21-019' ]
+
+- Expected
++ Received
+
+  [
+    "BT1-009",
+-   "BT21-019",
+  ]
+
+ ❯ src/cards/BT21/BT21-090.test.ts:157:62
+    155|       true,
+    156|     );
+    157|     expect(s.perm("color").stack.map((card) => card.cardId)).toEqual([…
+       |                                                              ^
+    158|     expect(s.perm("cano1").stack.some((card) => card.instanceId === s.…
+    159|     expect(s.perm("cano2").stack.some((card) => card.instanceId === s.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself
+AssertionError: expected -3 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ -3
+
+ ❯ src/cards/BT21/BT21-090.test.ts:263:28
+    261|       expect.arrayContaining(["BT21-010", "BT21-090"]),
+    262|     );
+    263|     expect(s.state.memory).toBe(0);
+       |                            ^
+    264|     advance(s.engine).endMainPhaseIfOpen(1);
+    265|     await opponentTurn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may choose the hand source for its cost-4-or-less Gammamon-text play
+AssertionError: expected -3 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ -3
+
+ ❯ src/cards/BT21/BT21-090.test.ts:297:28
+    295|     );
+    296|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+    297|     expect(s.state.memory).toBe(0);
+       |                            ^
+    298|     advance(s.engine).endMainPhaseIfOpen(1);
+    299|     await opponentTurn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  4 failed | 18 passed (22)
+   Start at  18:59:45
+   Duration  7.35s (transform 82%, import 15%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-090.test.ts src/cards/BT21/BT21-098.test.ts src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose
