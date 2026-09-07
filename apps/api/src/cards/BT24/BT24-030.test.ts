@@ -104,7 +104,7 @@ describe("BT24-030 Neptunemon", () => {
         battleArea: [
           { card: "BT1-009", as: "fewestA" },
           { card: "BT1-010", as: "fewestB" },
-          { card: "BT1-011", as: "more", under: ["BT1-001"] },
+          { card: "BT1-011", as: "more", under: ["BT1-013"] },
         ],
       },
     });
