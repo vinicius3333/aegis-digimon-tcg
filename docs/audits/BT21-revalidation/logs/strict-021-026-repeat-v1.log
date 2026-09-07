@@ -1,0 +1,91 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > reduces its play cost by two per opposing Digimon and preserves all three keywords 1ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 11 with 0 opposing Digimon 19ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 7 with 2 opposing Digimon 6ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 0 with 6 opposing Digimon 4ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > attacks immediately after a public reduced-cost play because of Rush 10ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Raid to attack the highest-DP unsuspended opponent instead of checking security 10ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Blocker to redirect an opponent's public player attack 11ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > retains Rush, Raid, and Blocker after evolving from a legal red level 5 4ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > may unsuspend when an opposing Digimon is deleted, only once per turn 8ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > unsuspends from a public attack that deletes an opposing Digimon 11ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses two public opponent Digimon deletions for one once-per-turn unsuspend 22ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > stays suspended when its controller's Digimon is deleted or the optional effect is declined 7ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > does not unsuspend when its controller deletes their own Digimon 38ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > declines the unsuspend after a public Gaia Force deletes an opponent Digimon 6ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security card when an eligible attack target changes 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only for a controller's Reptile or Dragonkin target change and only once per turn 6ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack 8ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security from a public Raid target switch 10ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only once across two public Raid target switches while Lamiamon remains active 35ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays a qualifying inherited Digimon from a public security attack 20ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays the inherited Digimon only once across two public security removals in one turn 27ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free 6ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > publicly declines the inherited play after an opponent security removal and preserves exact hand boundaries 14ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > does not play for the controller's security removal and permits declining the optional play 2ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not use its DigiXros-only alias for an alternate digivolution 2ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 6ms
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 10ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > uses DigiXros with exactly one Shoutmon material through the public play intent 2ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > inherits Rush from BT21-021 under a legal public BT21-027 DigiXros host 16ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host 4ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > rejects a DigiXros intent offering two materials for the one-material recipe 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 11ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly places a qualifying Digimon under the played Tamer before Save 14ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly declines an eligible End of Attack play without deleting itself 6ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly completes End of Attack with an ineligible card and no self-deletion 6ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not declare a nested attack for the Digimon played while End of Attack is resolving (Q4728) 23ms
+ × src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4727: publicly declares BT19-014 DigiXros using the attacking OmniShoutmon 16ms
+   → expected [] to deeply equal [ 'inst-259', 'inst-260', …(3) ]
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly pays the reduced cost above five before deleting itself after a successful play 10ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 5ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4727: publicly declares BT19-014 DigiXros using the attacking OmniShoutmon
+AssertionError: expected [] to deeply equal [ 'inst-259', 'inst-260', …(3) ]
+
+- Expected
++ Received
+
+- [
+-   "inst-259",
+-   "inst-260",
+-   "inst-261",
+-   "inst-262",
+-   "inst-264",
+- ]
++ []
+
+ ❯ src/cards/BT21/BT21-021.test.ts:497:55
+    495|     const ex6 = s.state.players[0]!.battleArea.find((permanent) => per…
+    496|     expect(ex6).toBeDefined();
+    497|     expect(ex6?.stack.map((card) => card.instanceId)).toEqual(material…
+       |                                                       ^
+    498|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+    499|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 46 passed (47)
+   Start at  20:37:40
+   Duration  15.47s (transform 83%, import 14%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-021.test.ts src/cards/BT21/BT21-025.test.ts src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

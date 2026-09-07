@@ -1,0 +1,108 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > registers all three printed timings and the Snatchmon evolution route 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > deletes one of the opponent's Digimon on start of main phase 14ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly deletes an opposing Digimon at the real start of its Main phase 6ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does NOT delete when it is the opponent's turn ([Your Turn] gate) 1ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > places exactly 4 Vemmon-text cards and uses Ragnarok Cannon for free 11ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > pays the four-card Vemmon-text placement cost even with no legal Ragnarok target 4ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: true 10ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: false 5ms
+ × src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly pays all four Vemmon sources before declining an eligible Ragnarok Cannon 8ms
+   → expected undefined to be 4 // Object.is equality
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > returns exactly 4 stacked Vemmon to deck bottom to prevent leaving 3ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly builds the legal Snatchmon stack, then protects against an opponent Option deletion 9ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does not treat Snatchmon text as exact Vemmon names for leave prevention 6ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4570 cannot partially place only three Vemmon-text cards to use Ragnarok Cannon 1ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4571 cannot prevent leaving with only three stacked Vemmon 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > alternate-digivolves from Snatchmon for 9 1ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays from security, enables paid Hybrid/Hero digivolution, and gates the inherited trigger to opponent security 1ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > Q4595 counts itself and evolves into a Hybrid for 1 less 4ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > resolves the reduced Hybrid evolution at the public start of main phase 4ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > counts different red Tamer names once each 4ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not evolve into a non-Hybrid non-Hero card 1ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > inherited watcher plays one red Tamer only for opponent security removal 7ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > triggers the inherited Tamer play from a public opponent security check 14ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not play the inherited Tamer when the opponent removes your security 5ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > declines a legal Hybrid evolution at the real start of Main 3ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not offer a normally legal non-Hybrid non-Hero evolution at Start of Main 2ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > declines an eligible inherited red Tamer play after a complete public security check 5ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays itself from security without paying cost 4ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation and recurs ADVENTURE 0ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays a qualifying ADVENTURE Digimon from trash when deleted 3ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation to the same selected Digimon 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack 6ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > publicly proves granted Retaliation deletes an established host after it loses to higher DP 8ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > keeps play grants through the opponent turn and expires Raid and Retaliation on the next own turn 6ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays an ADVENTURE Tamer at the play-cost-4 boundary 3ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an ADVENTURE card above play cost 4 1ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not cross the ADVENTURE trait boundary for a cheap non-ADVENTURE card 3ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an eligible ADVENTURE card from the opponent's trash 4ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > executes the inherited deletion play from a realistic stack 8ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the Greymon-name alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the ADVENTURE alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly evolves into Charismon and resolves its When Digivolving Link 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 2ms
+ × src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants a selected opponent the forced start-of-main attack effect when linked 4ms
+   → expected 1 to be +0 // Object.is equality
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly pays all four Vemmon sources before declining an eligible Ragnarok Cannon
+AssertionError: expected undefined to be 4 // Object.is equality
+
+- Expected:
+4
+
++ Received:
+undefined
+
+ ❯ src/cards/BT21/BT21-062.test.ts:230:25
+    228|     const payment = s.state.pendingDecision!;
+    229|     if (payment.kind !== "selectCards") throw new Error("expected four…
+    230|     expect(payment.min).toBe(4);
+       |                         ^
+    231|     expect(s.engine.applyIntent(0, { type: "respondDecision", decision…
+    232|     await settle(() => s.perm("snatchmon").stack.length === 5);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants a selected opponent the forced start-of-main attack effect when linked
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/cards/BT21/BT21-073.test.ts:209:28
+    207|     await settle(() => observe(s.engine).customEffectGrants(s.perm("ta…
+    208|     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toH…
+    209|     expect(s.state.memory).toBe(0);
+       |                            ^
+    210|
+    211|     // The grant's [Start of Your Main Phase] trigger is consumed thro…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 51 passed (53)
+   Start at  19:45:35
+   Duration  7.41s (transform 83%, import 14%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-062.test.ts src/cards/BT21/BT21-073.test.ts src/cards/BT21/BT21-075.test.ts src/cards/BT21/BT21-082.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

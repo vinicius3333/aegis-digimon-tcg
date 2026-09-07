@@ -1,0 +1,29 @@
+{
+  "028": [
+    "Legal MetalSeadramon alternate evolution pays2; MegaSeadramon X normal evolution pays5. Exact MetalSeadramon/X Antibody sources qualify, a trait-only source does not, and the Proto Form Rule Name qualifies.",
+    "Optional source play accepts/refuses, selects only this stack and level5-or-lower Digimon, leaves the level6/Option sources, and costs no additional memory. A real evolution followed by an attack proves the shared once-per-turn limit; real turns reset it.",
+    "Actual own source play triggers De-Digivolve2; ordinary own hand play and opponent source play do not. Two source plays in one turn use the watcher once; next-turn source play resets it. Q4321 plays GigaSeadramon itself from sources; the On Play-related watcher resolves after Maelstrom Main, leaving the opponent at BT20-013 with no stack.",
+    "Public combat proves Security Attack+1 checks twice, Reboot unsuspends at the opponent turn, and Blocker redirects an actual attack while preserving security."
+  ],
+  "029": [
+    "Official Bandai text and committed Q4322/Q4323 correct the community catalog name-only transcription to full Pulsemon text. Direct IR uses the existing full-text matcher. The original memory assertion fails for BT17-034 with the old IR.",
+    "Public battle/breeding and text/SEEKERS/nonmatching destinations prove the one-memory reduction and its exclusions. Opponent-turn scope uses the documented read-only cost observation seam because ordinary evolution is illegal on that turn.",
+    "Public Bibimon and independent SEEKERS egg alternatives cost0 with exact source transitions; nonmatching egg cannot use the route.",
+    "Legal inherited hosts gain one memory on actual battle deletion, do not repeat after public Garurumon unsuspend in the same turn, and reset after real turns. Simultaneous host/opponent deletion gives no memory (Q4324)."
+  ],
+  "030": [
+    "Public play pays3 and reveals three; independently adds one ACCEL or Chaosmon-name Digimon and one ACCEL Option; exact remaining cards go to deck bottom. Mixed-pool, single-category and no-match cases distinguish the branches.",
+    "Public breeding evolution proves independent ACCEL Pinamon and named non-ACCEL Frimon alternatives cost0; a nonmatching red egg is refused.",
+    "Barrier exists only in a legal inherited position; actual losing-battle acceptance spends one security and saves the host, while refusal deletes the host and leaves security."
+  ],
+  "031": [
+    "Public On Play costs4 and alternate ACCEL evolution costs2; ordinary matching-color evolution costs3 and an invalid source is refused.",
+    "Both entry timings reduce one opponent Digimon by3000DP, leaving another opponent and an ally unchanged. No-target play succeeds; a real turn boundary removes the modifier.",
+    "Legal inherited position supplies Barrier; public losing-battle acceptance/refusal proves security payment and host survival/deletion, while the standalone card has no Barrier."
+  ],
+  "032": [
+    "Public play pays6: at3security optional top-card-to-hand accepts/refuses with exact identity; at2security mandatory Recovery adds exact deck-top; at4security removing one leaves3 and skips Recovery.",
+    "Public legal Pulsemon alternate evolution and a full printed normal route distinguish costs; evolution draws first, then returns exact top security and recovers exact next deck card. Invalid source is refused.",
+    "Legal inherited host gains one memory from actual battle deletion; other allied battle deletion and simultaneous host/opponent deletion do not trigger it. Public Garurumon unsuspend plus a second battle prove OPT; real turns reset it."
+  ]
+}

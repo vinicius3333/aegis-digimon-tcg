@@ -16,6 +16,17 @@ import type { Filter } from "@aegis/shared";
  */
 export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filter): string[] {
   const t = subCtx.trigger;
+  // Top-card trash promotes the next source before reactions resolve. Match the old
+  // printed identity rather than the promoted Digimon (BT21-094 Armor Form watcher).
+  if (t.trashedDigimonTop !== undefined) {
+    const snapshot = t.trashedDigimonTop;
+    const selfId = subCtx.source.permanent()?.permanentId;
+    if (filter.isSelfRef === true && selfId !== snapshot.permanentId) return [];
+    if ((filter.excludeSelf === true || filter.isSelfRef === false) && selfId === snapshot.permanentId) return [];
+    if (!seatsForController(subCtx, filter).includes(snapshot.controllerSeat)) return [];
+    const definition = subCtx.game.definitionOf({ cardId: snapshot.cardId });
+    return definitionMatches(filter, definition) ? [snapshot.permanentId] : [];
+  }
   // `whenOptionUsed` carries the used Option's instance id, not a battle-area
   // permanent id. Resolve that event directly from the owner's loose zones so
   // trait/name source filters remain meaningful for Option-use watchers.

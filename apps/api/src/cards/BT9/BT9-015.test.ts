@@ -5,6 +5,7 @@ import { toDuration } from "../../engine/effects/interpreter/duration.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT10/BT10-042.js";
+import "../BT1/BT1-015.js";
 import "./BT9-109.js";
 import { compiled } from "./BT9-015.js";
 describe("BT9-015 MetalGreymon (X Antibody)", () => {
@@ -99,8 +100,9 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("stack").currentDP === 11000);
-    expect(s.perm("stack").currentDP).toBe(11000);
+    // Greymon contributes its inherited +2000 DP on top of the +3000 grant.
+    await settle(() => s.perm("stack").currentDP === 13000);
+    expect(s.perm("stack").currentDP).toBe(13000);
     expect(s.state.memory).toBe(1);
   });
   it("gains Security Attack +1 and 3000 DP over MetalGreymon", async () => {

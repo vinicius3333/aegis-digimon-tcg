@@ -1,0 +1,87 @@
+{
+  "cardId": "BT20-048",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-048.ts",
+    "apps/api/src/cards/BT20/BT20-048.test.ts",
+    "node tools/kb/query.mjs card BT20-048",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-048-runtime-disabled.json",
+    "round5-gates.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "7/7 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-048",
+      "result": "3 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-048 Dorumon reveals three, adds one X Antibody card and one Chronicle Tamer or Option, and bottoms the rest",
+    "BT20-048 Dorumon grants the inherited +2000 DP during the opponent's turn",
+    "BT20-048 Dorumon adds one X Antibody card and one Chronicle Tamer, then bottoms the nonmatch",
+    "BT20-048 Dorumon adds a Chronicle Option from a mixed reveal pool",
+    "BT20-048 Dorumon returns all revealed cards to the bottom when either requested category is absent",
+    "BT20-048 Dorumon uses the 0-cost route only over a black level-2 X Antibody source",
+    "BT20-048 Dorumon grants its inherited host +2000 DP only during the opponent's turn"
+  ],
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-048.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-048;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "7 cases pass for BT20-048; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
+    }
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
+}

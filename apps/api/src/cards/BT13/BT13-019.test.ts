@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-019.js";
+import "../BT10/BT10-085.js";
 
 async function fireOnPlay(s: ReturnType<typeof setupEngine>): Promise<void> {
   await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gankoomon"));
@@ -77,7 +78,9 @@ describe("BT13-019 Gankoomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-085"));
-    expect(s.state.memory).toBe(5);
+    // Ciel gains 1 memory when the Royal Knight digivolution finishes.
+    await settle(() => s.state.memory === 6);
+    expect(s.state.memory).toBe(6);
   });
 
   it("may decline an eligible Sistermon play", async () => {

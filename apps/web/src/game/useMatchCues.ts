@@ -102,6 +102,7 @@ import {
   FIELD_CLASH_IMPACT_AT_MS,
   FIELD_CLASH_LUNGE_AT_MS,
   FIELD_CLASH_TOTAL_MS,
+  PLAY_LEAD_IN_BUDGET_MS,
   SECURITY_BRANCH_IN_MS,
   SECURITY_DOCK_CLOSE_MS,
   SHOWCASE_TOTAL_MS,
@@ -109,12 +110,13 @@ import {
 } from "./timings";
 import type { ColorName } from "../design/theme";
 
-/** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
-export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
-
-/** Must match `.game-draw-flight` in game.css. */
-const DRAW_FLIGHT_WIDTH = 30;
-const DRAW_FLIGHT_HEIGHT = 42;
+/**
+ * Card back sent from a deck pile to the hand that just grew, in board coordinates.
+ * `x`/`y` are the centre of the deck pile: `.game-draw-flight` pulls itself back
+ * over that point with its own negative margins, so the card back can be resized
+ * per layout without the launch point drifting.
+ */
+export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number; duration: number };
 
 /** Starburst left where a turn-start draw lands, in board coordinates. */
 export type DrawBurst = { key: number; x: number; y: number };
@@ -216,6 +218,14 @@ export interface MatchCues {
    * A card an effect trashes out of a stack holds the same way, until its scene is over.
    */
   securityRevealPending: boolean;
+  /**
+   * A play the board is still explaining — the card held centre-stage under its
+   * DigiXros call-out, then the [On Play] clause that deleted something. A prompt
+   * those beats are the answer to must not open over them, but the board itself stays
+   * live: this is a wall clock capped at {@link PLAY_LEAD_IN_BUDGET_MS}, so a beat that
+   * never runs can never leave the viewer unable to answer.
+   */
+  decisionHeldForPlay: boolean;
   /** The player whose board the unsuspend phase is currently sweeping. */
   unsuspendSweep: UnsuspendSweep | null;
   /** Bursts left where permanents were deleted, in board coordinates. */
@@ -262,9 +272,17 @@ export interface MatchCues {
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
+/** The phone layouts, matching GameScreen's `NARROW_LAYOUT_QUERY` and the touch block in game.css. */
+const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
+
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function isTouchLayout(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(TOUCH_LAYOUT_QUERY).matches;
 }
 
 function remove(ids: ReadonlySet<string>, id: string): ReadonlySet<string> {
@@ -370,6 +388,9 @@ export function useMatchCues({
   const [securityBranch, setSecurityBranch] = useState<SecurityBranchScene | null>(null);
   // The check whose reveal the screen still owes the viewer, by clash key.
   const [pendingRevealKey, setPendingRevealKey] = useState<number | null>(null);
+  // When the beats explaining the play currently on screen are done, as a wall clock.
+  // Null whenever nothing is being explained.
+  const [playLeadInUntil, setPlayLeadInUntil] = useState<number | null>(null);
   const [unsuspendSweep, setUnsuspendSweep] = useState<UnsuspendSweep | null>(null);
   const [deleteBursts, setDeleteBursts] = useState<readonly DeleteBurst[]>([]);
   const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
@@ -556,6 +577,19 @@ export function useMatchCues({
     });
   }
 
+  /**
+   * Hold the viewer's own prompt for `ms` while the beats that explain the play run.
+   *
+   * A wall clock rather than a queued step, and clamped: the prompt is the viewer's only
+   * way to answer, so it may wait for the explanation but must never depend on a step
+   * actually running to be released.
+   */
+  function holdForPlayLeadIn(ms: number) {
+    if (ms <= 0) return;
+    const until = Date.now() + Math.min(ms, PLAY_LEAD_IN_BUDGET_MS);
+    setPlayLeadInUntil((current) => (current !== null && current > until ? current : until));
+  }
+
   function openNotice(notice: MatchNotice) {
     setNotices((stack) => pushNotice(expireNotices(stack, notice.createdAt), notice));
   }
@@ -669,6 +703,15 @@ export function useMatchCues({
     let afterArrivalPanels: readonly SidePanel[] = [];
     /** The arrival cues themselves, held back so the check can take the screen first. */
     let deferredZoneChanges: readonly AnimationStep[] = [];
+    /** How long the cut-in this batch enqueued owns the centre of the screen first. */
+    let cutInLeadInMs = 0;
+    /**
+     * How long the beats that explain an announced play own the screen before anything
+     * that play caused may be narrated: the cut-in, the card held centre-stage under its
+     * call-out, then the clause it triggered. The battle's `combatLeadInMs` above is the
+     * same idea one step earlier in the chain, and the two stack.
+     */
+    let playLeadInMs = 0;
     /** Permanents kept off the board until their arrival cue has actually run. */
     const arrivalHoldIds: string[] = [];
     function releaseArrivalHoldsWhenIdle() {
@@ -741,6 +784,9 @@ export function useMatchCues({
         cutInKeyRef.current += 1;
         const announced = cutInFromEvent(event, cutInKeyRef.current, areCutInsEnabled());
         if (!announced) continue;
+        // A cut-in replaces the track, so only the last one enqueued in a batch ever
+        // plays: what it costs the beats behind it is its own length, not the sum.
+        cutInLeadInMs = cutInTotalMs(announced.tier);
         enqueue({
           id: `cut-in-${announced.key}`,
           track: CENTER_STAGE_TRACK,
@@ -773,6 +819,15 @@ export function useMatchCues({
       const zoneChanges: AnimationStep[] = [];
       /** The first event that puts a card on the field, which is what the check's play is. */
       let firstArrivalIndex = fresh.length;
+      /* A named-mechanic call-out belongs WITH the card it names. "DigiXros!" printed after
+         the showcase reads as a caption for whatever came next — which, when the Xrosed card
+         has an [On Play] that deletes, is the board emptying. So it is raised as the card
+         goes centre-stage and shares that beat, and everything else the batch raised waits
+         until the showcase is over. A security check owns its own ordering (below) and is
+         left alone. */
+      const calloutNotices = securityReveal ? [] : raised.filter((notice) => notice.body.variant === "keyword");
+      const afterShowcaseNotices = raised.filter((notice) => !calloutNotices.includes(notice));
+      let calloutEnqueued = false;
       for (const [eventIndex, event] of fresh.entries()) {
         showcaseKeyRef.current += 1;
         const key = showcaseKeyRef.current;
@@ -781,7 +836,25 @@ export function useMatchCues({
         if (!showcase && !burst) continue;
         showcased ||= showcase !== null;
         if (showcase) firstArrivalIndex = Math.min(firstArrivalIndex, eventIndex);
-        const step = zoneChangeStep(key, showcase, burst, combatLeadInMs);
+        // The call-out and the showcase behind it are one beat on one serial track, so the
+        // battle's lead-in is waited out once, by whichever of the two goes first.
+        let leadInMs = combatLeadInMs;
+        if (showcase && !calloutEnqueued && calloutNotices.length > 0) {
+          calloutEnqueued = true;
+          leadInMs = 0;
+          const callout = calloutNotices;
+          enqueue({
+            id: `showcase-callout-${key}`,
+            track: CENTER_STAGE_TRACK,
+            skippable: false,
+            async run(context) {
+              await context.wait(combatLeadInMs);
+              if (context.cancelled) return;
+              for (const notice of callout) openNotice({ ...notice, createdAt: Date.now() });
+            },
+          });
+        }
+        const step = zoneChangeStep(key, showcase, burst, leadInMs);
         if (securityReveal) zoneChanges.push(step);
         else enqueue(step);
         // The board renders a permanent the moment its patch lands, so a card whose
@@ -908,8 +981,14 @@ export function useMatchCues({
           },
         });
       } else if (showcased && presenting) {
-        const heldForShowcase = raised;
+        const heldForShowcase = afterShowcaseNotices;
         const panelsForShowcase = opened;
+        // The clause the played card triggered gets the beat after the showcase to itself:
+        // it is read out, and only then does what it did reach the board.
+        const clauseRead = heldForShowcase.some((notice) => notice.body.variant === "effect");
+        playLeadInMs = showcasePlays
+          ? cutInLeadInMs + SHOWCASE_TOTAL_MS + (clauseRead ? TIMINGS.effectAnnounce : 0)
+          : 0;
         enqueue({
           id: `showcase-notices-${showcaseKeyRef.current}`,
           track: CENTER_STAGE_TRACK,
@@ -919,6 +998,10 @@ export function useMatchCues({
             openPanels(panelsForShowcase);
           },
         });
+        // The prompt this play is about to raise waits behind the same beats and the
+        // shatter they end on, so the viewer reads what happened before being asked
+        // about it.
+        holdForPlayLeadIn(playLeadInMs > 0 ? playLeadInMs + TIMINGS.cardShatter : 0);
       } else if (combatLeadInMs > 0 && presenting) {
         // These read as what the battle caused, so they are raised once the blow has
         // landed. Their clock starts there too, not at the batch that carried them.
@@ -1492,11 +1575,15 @@ export function useMatchCues({
     }
     for (const event of fresh) {
       for (const anchorId of deletionAnchorIdsFromEvent(event)) {
+        // A deletion a battle dealt waits for the blow; one an announced play dealt waits
+        // for the beats that explain it — the card centre-stage under its call-out, then
+        // the clause that did the deleting — capped so the shatter never drifts far from
+        // the board dropping the permanent.
         const delayMs = clashLoserIds.has(anchorId)
           ? FIELD_CLASH_TOTAL_MS
           : beaten.has(anchorId)
             ? COMBAT_IMPACT_TOTAL_MS
-            : 0;
+            : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
         const step = deleteBurstStep(anchorId, delayMs);
         if (step) enqueue(step);
       }
@@ -1603,11 +1690,57 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decisionPending, pendingRevealKey, queue]);
 
+  // The other end of `holdForPlayLeadIn`: the clock runs out on its own, whatever the
+  // queue did or failed to do with the beats it was counting.
+  useEffect(() => {
+    if (playLeadInUntil === null) return;
+    const release = () => setPlayLeadInUntil((current) => (current === playLeadInUntil ? null : current));
+    const remaining = playLeadInUntil - Date.now();
+    if (remaining <= 0) {
+      release();
+      return;
+    }
+    const timer = setTimeout(release, remaining);
+    return () => clearTimeout(timer);
+  }, [playLeadInUntil]);
+
   // One step for the whole column, holding for the soonest expiry. A second panel
   // joining shortens every remaining time, so the step is simply re-enqueued with
   // the new figure rather than each panel owning a timer.
+  // The notices and panels explain what raised a decision, so their clocks stop while
+  // the viewer's decision waits: whatever time the wait took is given back to each of
+  // them (only the part of it they were on screen for) when it is answered.
+  const holdStartRef = useRef<number | null>(null);
+  useEffect(() => {
+    const now = Date.now();
+    if (decisionPending) {
+      holdStartRef.current ??= now;
+      return;
+    }
+    const holdStart = holdStartRef.current;
+    if (holdStart === null) return;
+    holdStartRef.current = null;
+    const heldFor = (createdAt: number) => now - Math.max(holdStart, createdAt);
+    setNotices((stack) =>
+      stack.map((notice) => ({ ...notice, createdAt: notice.createdAt + heldFor(notice.createdAt) })),
+    );
+    setSidePanels((stack) =>
+      stack.map((panel) => ({ ...panel, createdAt: panel.createdAt + heldFor(panel.createdAt) })),
+    );
+  }, [decisionPending]);
+
   useEffect(() => {
     if (sidePanels.length === 0) return;
+    if (decisionPending) {
+      queue.enqueue({
+        id: "side-panel-expiry-held",
+        track: "infoPanelExpiry",
+        replace: true,
+        skippable: false,
+        async run() {},
+      });
+      return;
+    }
     const remaining = nextSidePanelExpiry(sidePanels, Date.now()) ?? 0;
     queue.enqueue({
       id: `side-panel-expiry-${sidePanels.length}-${remaining}`,
@@ -1620,11 +1753,21 @@ export function useMatchCues({
         setSidePanels((panels) => expireSidePanels(panels, Date.now()));
       },
     });
-  }, [sidePanels, queue]);
+  }, [sidePanels, queue, decisionPending]);
 
   // The same shape for notices: a third one arriving shortens the whole stack.
   useEffect(() => {
     if (notices.length === 0) return;
+    if (decisionPending) {
+      queue.enqueue({
+        id: "notice-expiry-held",
+        track: "noticeExpiry",
+        replace: true,
+        skippable: false,
+        async run() {},
+      });
+      return;
+    }
     const remaining = nextNoticeExpiry(notices, Date.now()) ?? 0;
     queue.enqueue({
       id: `notice-expiry-${notices.length}-${remaining}`,
@@ -1638,7 +1781,7 @@ export function useMatchCues({
         setNotices((stack) => expireNotices(stack, Date.now()));
       },
     });
-  }, [notices, queue]);
+  }, [notices, queue, decisionPending]);
 
   // A DP figure that moved gets a pulse. The driver is the synchronized
   // `currentDP` itself: the engine has already applied every modifier by the time
@@ -2008,15 +2151,20 @@ export function useMatchCues({
     // and so no step is ever enqueued there.
     if (!sourceRect.width || !targetRect.width) return;
     const from = {
-      x: sourceRect.left + sourceRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
-      y: sourceRect.top + sourceRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
+      x: sourceRect.left + sourceRect.width / 2 - boardRect.left,
+      y: sourceRect.top + sourceRect.height / 2 - boardRect.top,
     };
     const to = {
-      x: targetRect.left + targetRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
-      y: targetRect.top + targetRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
+      x: targetRect.left + targetRect.width / 2 - boardRect.left,
+      y: targetRect.top + targetRect.height / 2 - boardRect.top,
     };
     const key = (drawFlightKeyRef.current += 1);
-    const flight: DrawFlight = { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y };
+    // The card back is hand-card sized on a phone; at 340ms that size crosses a
+    // 393px screen too fast to register, so the touch layouts get a longer trip.
+    // The element animates on this same number, set inline by GameScreen, so the
+    // unmount below can never cut the flight short.
+    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
+    const flight: DrawFlight = { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y, duration };
     // Two hands can grow at once, so each flight gets a track of its own rather
     // than queueing behind the other side's.
     queue.enqueue({
@@ -2024,7 +2172,7 @@ export function useMatchCues({
       track: `drawFlight-${key}`,
       async run(context) {
         setDrawFlights((flights) => [...flights, flight]);
-        await context.wait(TIMINGS.drawFlight);
+        await context.wait(duration);
         setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
         // Only the draw the turn opens with gets the starburst: an effect draw is
         // already narrated by its own notice, and two cues would read as two draws.
@@ -2057,6 +2205,7 @@ export function useMatchCues({
     securityBreak,
     securityBranch,
     securityRevealPending: pendingRevealKey !== null,
+    decisionHeldForPlay: playLeadInUntil !== null,
     unsuspendSweep,
     deleteBursts,
     zoneShowcase,

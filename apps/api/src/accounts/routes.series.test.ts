@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { AddressInfo } from "node:net";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../db/snapshotFixture.js";
 import { AccountStore } from "./AccountStore.js";
 import { installAccountRoutes } from "./routes.js";
 
@@ -21,13 +22,31 @@ let tournamentId: string;
 let matchId: string;
 let accounts: Record<"alice" | "bob" | "carol", string>;
 
+const openServers: (() => Promise<void>)[] = [];
+
+afterAll(async () => {
+  for (const close of openServers) await close();
+});
+
+/**
+ * One express server and one database for the file, restored to its just-started state before each
+ * test. Standing the server up and re-migrating per test cost far more than the requests under
+ * test; the snapshot makes every test see the same clean database without paying for either.
+ */
+const harnessFor = snapshotFixtures<Harness>();
+
 async function startHarness(): Promise<Harness> {
-  const store = new AccountStore(createMemoryPool());
+  return harnessFor("default", buildHarness);
+}
+
+async function buildHarness(pool: Pool): Promise<Harness> {
+  const store = new AccountStore(pool);
   const app = express();
   app.use(express.json());
   installAccountRoutes(app, store);
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
+  openServers.push(() => new Promise<void>((resolve) => server.close(() => resolve())));
   const cookies = {} as Record<"alice" | "bob" | "carol", string>;
   accounts = {} as Record<"alice" | "bob" | "carol", string>;
   for (const name of ["alice", "bob", "carol"] as const) {
@@ -41,7 +60,8 @@ async function startHarness(): Promise<Harness> {
     url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
     cookies,
     store,
-    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+    // The server outlives each test; `afterAll` below shuts it down once the file is done.
+    close: async () => {},
   };
 }
 

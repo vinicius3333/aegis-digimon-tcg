@@ -103,7 +103,7 @@ function legalIntoCandidates(
           })
         : undefined;
     const baseGranted =
-      virtualBase === undefined && base
+      virtualBase === undefined && base && sourceZone === "hand"
         ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
         : undefined;
     // Tamers and other level-less bases cannot satisfy an ordinary level-gated EvoCost. They
@@ -155,6 +155,13 @@ function filterToTriggeredSource(
  */
 export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, { kind: "Digivolve" }>): boolean {
   if (!action.target) return false;
+  // A movement cost binds the exact breeding Digimon after moving it. Before
+  // payment, validate evolution against that same cost target in its original zone.
+  const moveTarget = action.cost?.kind === "moveToBattleArea" ? action.cost.target : undefined;
+  const target =
+    moveTarget?.bindAs !== undefined && moveTarget.bindAs === action.target.fromSelectionRef
+      ? moveTarget
+      : action.target;
   const intoTarget = digivolveIntoTarget(action);
   if (intoTarget === undefined) return false;
   const allowNoTarget = action.allowNoTarget === true;
@@ -168,7 +175,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
     action.cost.target?.filter.faceDown === true &&
     action.cost.target.filter.zone === "digivolutionCards" &&
     canPayCost(ctx, action.cost) &&
-    candidatePermanents(ctx, action.target).length > 0
+    candidatePermanents(ctx, target).length > 0
   )
     return true;
   let pool = filterToTriggeredSource(ctx, action, candidateLooseInstances(ctx, intoTarget, zones));
@@ -224,11 +231,11 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
     return hasDistinctRotationHost && legalAgainst();
   };
 
-  if (action.target.targetBreeding === true) {
+  if (target.targetBreeding === true) {
     const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
     return breeding !== undefined ? hasLegalDestination(breeding.permanentId) : allowNoTarget;
   }
-  const targets = candidatePermanents(ctx, action.target);
+  const targets = candidatePermanents(ctx, target);
   return targets.length > 0 ? targets.some((permanent) => hasLegalDestination(permanent.permanentId)) : allowNoTarget;
 }
 

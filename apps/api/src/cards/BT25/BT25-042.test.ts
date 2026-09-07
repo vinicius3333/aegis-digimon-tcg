@@ -79,6 +79,36 @@ describe("BT25-042 ClavisAngemon", () => {
     expect(label).toBeDefined();
   });
 
+  it("chooses the bottom security card and shares the Once Per Turn gate with a later attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-042", as: "clavis" }],
+          security: [
+            { card: "BT1-001", as: "top" },
+            { card: "BT1-002", as: "bottom" },
+          ],
+          deck: ["BT1-003"],
+        },
+        1: { security: ["BT1-004", "BT1-005"], deck: ["BT1-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clavis").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-042"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+    await advance(s.engine).verb.unsuspend([s.perm("clavis").permanentId]);
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("clavis"), {
+      attackerPermanentId: s.perm("clavis").permanentId,
+    });
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
   it("may decline the security cost without gaining immunity", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT25-042", as: "clavis" }], security: ["BT1-001"] } },
@@ -182,6 +212,41 @@ describe("BT25-042 ClavisAngemon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(false);
   });
 
+  it("fires the follow-up from a real opponent security check and expires at the opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-042", as: "clavis" },
+            { card: "BT1-009", as: "ally" },
+            { card: "BT1-010", as: "second" },
+          ],
+          hand: [{ card: "BT25-034", as: "angel" }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-011", as: "attacker" }], security: ["BT1-002"], deck: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-034")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("clavis"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("clavis"), "Blocker")).toBe(true);
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("clavis"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("clavis"), "Blocker")).toBe(false);
+  });
+
   it("digivolves from a level-5 Angel/Archangel/TS Digimon through the alternate cost-3 route", async () => {
     expect(BT25_042.digivolutionRequirement).toEqual([
       { level: 5, traits: ["Angel", "Archangel", "TS"], cost: 3, isAlternate: true },
@@ -209,5 +274,52 @@ describe("BT25-042 ClavisAngemon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT25-042");
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-040"]);
+  });
+
+  it.each([
+    ["ordinary yellow", "BT1-058", "yellowBase"],
+    ["ordinary black", "BT10-064", "blackBase"],
+  ] as const)("uses the %s Lv.5 evolution at its printed cost 4", async (_label, source, alias) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: source, as: alias }],
+          hand: [{ card: "BT25-042", as: "clavis" }],
+          security: ["BT1-001"],
+          deck: ["BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(alias).permanentId,
+        instanceId: s.inst("clavis").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm(alias).topCard?.cardId === "BT25-042");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm(alias).stack.map((card) => card.cardId)).toEqual([source]);
+  });
+
+  it("rejects a wrong-color non-trait Lv.3 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT25-042", as: "clavis" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("clavis").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redBase").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-042");
+    expect(s.state.memory).toBe(4);
   });
 });

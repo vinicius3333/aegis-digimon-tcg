@@ -1,0 +1,21 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > uses an explicit linked partner to App Fuse Gatchmon into DoGatchmon at cost 0 20ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion intent when the linked partner is the wrong name 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects duplicate-name App Fusion materials instead of treating them as distinct names 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on an opponent-controlled host 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on a breeding-area host 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion result that is not in hand 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps the ordinary printed cost and linked card when App Fusion is not declared 6ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=false 5ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=true 15ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps App Fusion at printed cost 0 with a legal Lv2 Appmon source under Gatchmon 3ms
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > keeps Alliance/Link +1, shared once-per-turn play effects, and links an Appmon from this stack to an owned Digimon 1ms
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > Q4892 does not relink App Fusion materials without Link after playing an Appmon 7ms
+ ✓ src/cards/BT22/BT22-039.test.ts > BT22-039 Ouranosmon > does not link an eligible Appmon from another Digimon's evolution stack 6ms
+
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+   Start at  20:20:46
+   Duration  7.12s (transform 84%, import 15%, tests 1%)

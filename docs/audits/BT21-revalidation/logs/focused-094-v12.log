@@ -1,0 +1,39 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 18ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 1ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 8ms
+ × src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 29ms
+   → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-094.test.ts:142:105
+    140|     // The aged option reacts at the public Armor Purge event and pays…
+    141|     await settle(() => s.state.players[0]!.battleArea.some((permanent)…
+    142|     expect(s.state.players[0]!.battleArea.some((permanent) => permanen…
+       |                                                                                                         ^
+    143|     expect(s.state.players[0]!.trash.some((card) => card.cardId === "B…
+    144|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  10:45:33
+   Duration  7.00s (transform 83%, import 16%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

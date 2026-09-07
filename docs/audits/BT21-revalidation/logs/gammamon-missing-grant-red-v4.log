@@ -1,0 +1,76 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Your Turn permission, and inherited DP
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > qualifying permission digivolves into Siriusmon for exactly 4 with two security cards
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-002
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-004
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch 15ms
+   → expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch 5ms
+   → expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training target a differently named red Digimon when Siriusmon is absent
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training activate the Siriusmon permission when neither gate is true
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not qualify with three security and only two distinct Hero Tamer names
+ ↓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > may decline the permission and inherited +2000 DP expires on the opponent's turn
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch
+AssertionError: expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
+  }
+
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:43:18
+     41|     effectKey: `P-103/ir-${EffectTiming.OnDeclaration}-0`,
+     42|   });
+     43|   expect(result).toMatchObject({ ok: opts.rejected !== true });
+       |                  ^
+     44|   if (!opts.rejected) await settle(() => s.perm("gammamon").topCard.ca…
+     45|   return s;
+ ❯ src/cards/BT21/BT21-010.test.ts:158:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch
+AssertionError: expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
+  }
+
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:43:18
+     41|     effectKey: `P-103/ir-${EffectTiming.OnDeclaration}-0`,
+     42|   });
+     43|   expect(result).toMatchObject({ ok: opts.rejected !== true });
+       |                  ^
+     44|   if (!opts.rejected) await settle(() => s.perm("gammamon").topCard.ca…
+     45|   return s;
+ ❯ src/cards/BT21/BT21-010.test.ts:165:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 skipped (11)
+   Start at  21:21:08
+   Duration  6.64s (transform 84%, import 15%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-010.test.ts -t Q5210 --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

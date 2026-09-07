@@ -39,7 +39,15 @@ export interface SecurityBattleResult {
  * - `dna` — DNA digivolve / Jogress (§8-2-2), two permanents merging into one.
  * - `digiXros` — a DigiXros play consuming materials (§7-2-2-7).
  */
-export type DigivolveMechanic = "normal" | "alternate" | "baseGranted" | "burst" | "blast" | "dna" | "digiXros";
+export type DigivolveMechanic =
+  | "normal"
+  | "alternate"
+  | "baseGranted"
+  | "burst"
+  | "blast"
+  | "dna"
+  | "digiXros"
+  | "appFusion";
 
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }
@@ -345,6 +353,13 @@ export interface DecisionRequest {
     choices?: string[]; // modal labels for chooseOption
     triggerKeys?: string[]; // pending choices for orderTriggers; the client selects exactly one
     triggerCardIds?: string[]; // authoritative source card for each triggerKeys entry
+    /**
+     * Firing window of each `triggerKeys` entry (e.g. "OnPlay", "WhenDigivolving"),
+     * aligned by index; an empty string marks an entry the engine has no timing for.
+     * Two triggers of the SAME permanent differ only by this, so the chooser needs it
+     * to tell them apart without inventing a "copy" that is not on the board.
+     */
+    triggerTimings?: string[];
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;

@@ -1,0 +1,25 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays from security, enables paid Hybrid/Hero digivolution, and gates the inherited trigger to opponent security 1ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > Q4595 counts itself and evolves into a Hybrid for 1 less 18ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > resolves the reduced Hybrid evolution at the public start of main phase 8ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > counts different red Tamer names once each 6ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not evolve into a non-Hybrid non-Hero card 1ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > inherited watcher plays one red Tamer only for opponent security removal 6ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > triggers the inherited Tamer play from a public opponent security check 13ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not play the inherited Tamer when the opponent removes your security 4ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays itself from security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > suspends this Tamer, grants Piercing to a Reptile/Dragonkin, and makes that same Digimon attack 0ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main with an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > Q4593 suspends Owen, grants Piercing, and forces the selected Digimon to attack 8ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > declining does not suspend Owen or attack 2ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > may pay the suspend cost without an eligible Reptile or Dragonkin 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > plays itself from security without paying cost 4ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > uses the granted Piercing during a forced Dragonkin battle and clears it at turn end 5ms
+
+ Test Files  2 passed (2)
+      Tests  17 passed (17)
+   Start at  18:27:26
+   Duration  7.26s (transform 84%, import 15%, tests 1%)

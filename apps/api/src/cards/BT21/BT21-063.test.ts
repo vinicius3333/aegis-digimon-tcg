@@ -1,7 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-063.js";
 import "../index.js";
 
@@ -92,18 +92,93 @@ describe("BT21-063 Gumdramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-063", as: "gumdramon" }],
-          hand: [{ card: "BT1-009", as: "nonmatching" }],
+          hand: [
+            { card: "BT21-063", as: "gumdramon" },
+            { card: "BT1-009", as: "nonmatching" },
+          ],
           deck: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gumdramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gumdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gumdramon").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("publicly uses the zero-cost Save-text alternate evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT12-005", as: "saveEgg" },
+        hand: [{ card: "BT21-063", as: "gumdramon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("saveEgg").permanentId,
+        instanceId: s.inst("gumdramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("saveEgg").topCard.cardId === "BT21-063");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("saveEgg").stack.map((card) => card.cardId)).toEqual(["BT12-005"]);
+  });
+
+  it("refuses both zero-cost alternates from a neutral level-2 without Save text or Hero trait", async () => {
+    for (const alternateRequirementIndex of [0, 1] as const) {
+      const s = setupEngine({
+        0: { breeding: { card: "BT1-001", as: "unqualifiedEgg" }, hand: [{ card: "BT21-063", as: "gumdramon" }] },
+      });
+      s.state.memory = 1;
+      await s.ready();
+      const handId = s.inst("gumdramon").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("unqualifiedEgg").permanentId,
+          instanceId: handId,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+      expect(s.perm("unqualifiedEgg").topCard.cardId).toBe("BT1-001");
+      expect(s.state.memory).toBe(1);
+    }
+  });
+
+  it("publicly uses the zero-cost Hero alternate evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-002", as: "heroEgg" },
+        hand: [{ card: "BT21-063", as: "gumdramon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("heroEgg").permanentId,
+        instanceId: s.inst("gumdramon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("heroEgg").topCard.cardId === "BT21-063");
+    expect(s.state.memory).toBe(1);
   });
 
   it("executes Save by placing itself under an own Tamer on deletion", async () => {
@@ -129,6 +204,71 @@ describe("BT21-063 Gumdramon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId)).toBe(false);
   });
 
+  it("executes Save after a public losing battle and preserves the card under its Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-063", as: "gumdramon", suspended: true },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-068", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const gumdramonId = s.perm("gumdramon").topCard.instanceId;
+    const gumdramonPermanentId = s.perm("gumdramon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: gumdramonPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === gumdramonId));
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === gumdramonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId)).toBe(false);
+  });
+
+  it("publicly declines eligible Save after the losing battle and leaves Gumdramon in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-063", as: "gumdramon", suspended: true },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-068", as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const gumdramonId = s.perm("gumdramon").topCard.instanceId;
+    const gumdramonPermanentId = s.perm("gumdramon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: gumdramonPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId) && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId)).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === gumdramonPermanentId)).toBe(
+      false,
+    );
+  });
+
   it("gives its evolution host +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-066", as: "host", under: [{ card: "BT21-063", as: "source" }] }] },
@@ -140,5 +280,27 @@ describe("BT21-063 Gumdramon", () => {
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(6000);
+  });
+
+  it("confirms inherited DP through the public owner-to-opponent turn lifecycle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-066", as: "host", under: [{ card: "BT21-063", as: "source" }] }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        security: ["BT1-004"],
+      },
+      1: { deck: ["BT1-005", "BT1-006", "BT1-007"], security: ["BT1-008"] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(8000);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("host").currentDP).toBe(6000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 });

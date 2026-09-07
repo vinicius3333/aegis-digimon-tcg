@@ -1,0 +1,53 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > preserves the Examon alternate Digivolution requirement 3ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > models the printed keywords and When Digivolving sequence 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > keeps the once-per-turn suspension watcher scoped to its own trigger 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > suspends every opposing Digimon and Tamer, then deletes exactly one suspended target 44ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > unsuspends itself, trashes top security with an Examon source, and spends the once-per-turn budget 12ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly fires the watcher with an exact X Antibody Option source 57ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > does not fire the security-removal branch for a differently named X Antibody Digimon source 23ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > still unsuspends without an Examon or X Antibody digivolution card but does not trash security 6ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > alternate-digivolves from Examon for 2 and exposes all three live keywords 14ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > rejects the exact Examon alternate route from a non-Examon level-6 base 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly unsuspends and trashes security once, then leaves the source suspended on the second attack 27ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > uses Piercing in a real battle and performs the additional security check 13ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > uses Blocker in a real opponent attack and keeps the defending security stack 12ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > uses Evade only while unsuspended (initially suspended: false) 8ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > uses Evade only while unsuspended (initially suspended: true) 4ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses the engine's stacked-card trash lock for the Digivolving protection 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses this stack's Vemmon cards for the inherited attack-prevention cost 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scopes the leaving-play revival to this stack's exact Vemmon cards 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scales De-Digivolve by Vemmon cards in this Digimon's stack 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > de-digivolves two cards when four Vemmon are in its stack 6ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > publicly evolves exact Vemmon for 6 and preserves the one-source De-Digivolve boundary 4ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > publicly protects its stacked cards from an opponent De-Digivolve effect 6ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > publicly places two Vemmon before the exact-name evolution and applies one De-Digivolve 16ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4563 blocks opponent-effect stack trash while allowing the controller's own effect 3ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > plays one Vemmon from its stack without cost when leaving the battle area 7ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > returns exactly two Vemmon to end an opponent's attack before the security check 16ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4564 cannot pay with only one Vemmon, so the attack continues 10ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > preserves both alternate Digivolution requirements, DigiXros, and complete coverage 0ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > DigiXroses with exactly one Save-text Digimon for a 2-memory reduction 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays Hunter/Hero Tamers and saves a qualifying Digimon 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hunter Tamer from hand without cost on play 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hero Tamer from hand without cost on play 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > does not play a nonmatching Tamer 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly declines an eligible Hunter Tamer on play without moving or paying it 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly declines an eligible Hero Tamer on digivolving without moving or paying it 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly uses the Hero alternate evolution route at its printed cost 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly plays a Hunter Tamer for free on the When Digivolving trigger 6ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Save-text-only trash card and itself under an own Tamer on deletion 11ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Hero-only hand card and itself under an own Tamer on deletion 20ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > can decline both optional On Deletion placement and Save 5ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines placement but accepts optional Save 12ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion accepts placement but declines optional Save 18ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines both choices and preserves source zones 20ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly triggers On Deletion after losing a battle and Saves under an own Tamer 16ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > gives its evolution host +2000 DP only during its controller's turn 1ms
+
+ Test Files  3 passed (3)
+      Tests  45 passed (45)
+   Start at  22:02:36
+   Duration  43.59s (transform 87%, import 12%, tests 1%)

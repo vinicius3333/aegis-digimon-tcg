@@ -1,0 +1,64 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > binds one qualifying Digimon so Blocker and conditional DP share the target 2ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main without an opposing Digimon gains NaN memory 11ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main with an opposing Digimon gains NaN memory 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenPlayed suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 8ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenOneOfYoursDigivolves suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the when-played watcher from a qualifying Digimon play 6ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the digivolve watcher from a legal qualifying evolution 11ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > expires the public Blocker and DP grant after the opponent's turn ends 12ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > at 9 total trash grants Blocker but not the conditional +2000 DP 3ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > accepts any own Digimon as the event subject, while declining pays no cost 3ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > plays itself from Security without paying cost 7ms
+stdout | src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > encodes stack transfer, counted reduction, color waiver, and Security play 0ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count 9ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > waives color with a Xros Heart Digimon and rejects the option without one 1ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > does not borrow an opponent's Xros Heart trait for the color waiver 0ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > Security plays a cost-5 Xros Heart Tamer from trash without paying cost 4ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > does not play a Xros Heart card above the Security play-cost ceiling 4ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 [Main] on-play body fires on a real playCard (not dead) > deletes the opponent's highest-DP Digimon and lands in the battle area 5ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > models the conditional use reduction, highest-DP deletion, and Delay digivolution 0ms
+ × src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms and publicly activates Delay for a Reptile or Dragonkin host only 6ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 3 opposing security pays a use cost of 4 7ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 4 opposing security pays a use cost of 8 1ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > Security deletes only one opposing highest-DP Digimon 1ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > keeps the Delay payload separate from the placement watcher 1ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > naturally gains Delay when an effect places a card under an own Digimon 6ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reveals three cards, adds a Gammamon-text card, and places itself 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Q4733 waives the color requirement for a Gammamon-text card in breeding 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not waive the color requirement without a Gammamon-text card on the field 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not use an opponent's Gammamon-text card for the color waiver 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself 3ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may choose the hand source for its cost-4-or-less Gammamon-text play 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms and publicly activates Delay for a Reptile or Dragonkin host only
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-093.test.ts:128:55
+    126|       }),
+    127|     ).toEqual({ ok: true });
+    128|     await settle(() => !observe(s.engine).isAttacking() && s.state.pla…
+       |                                                       ^
+    129|
+    130|     // Delay cannot activate in the same turn the Option entered the b…
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-093.test.ts:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 30 passed (31)
+   Start at  18:46:54
+   Duration  7.65s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-089.test.ts src/cards/BT21/BT21-090.test.ts src/cards/BT21/BT21-092.test.ts src/cards/BT21/BT21-093.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

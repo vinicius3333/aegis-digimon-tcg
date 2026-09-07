@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-015.js";
@@ -26,7 +25,19 @@ describe("BT21-015 Cyclonemon", () => {
         trigger: "Security",
         timing: "endOfBattle",
         actions: [
-          { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+          {
+            kind: "SubTrigger",
+            event: "whenSecurityBattleEnded",
+            once: true,
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                from: ["trash"],
+                payCost: false,
+              },
+            ],
+          },
         ],
       }),
       expect.objectContaining({
@@ -113,19 +124,41 @@ describe("BT21-015 Cyclonemon", () => {
   });
 
   it("plays itself free from Security and resolves its On Play deletion", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { security: [{ card: "BT21-015", as: "cyclonemon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 6000 },
+            { card: "BT1-010", as: "target", dp: 4000 },
+          ],
+        },
+        1: { security: [{ card: "BT21-015", as: "cyclonemon" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").topCard.instanceId);
+    const attackerPermanentId = s.perm("attacker").permanentId;
+    const targetPermanentId = s.perm("target").permanentId;
     s.state.memory = 2;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("cyclonemon"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-015"));
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId, target: { kind: "player" } })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-015"));
+    const checkedIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT21-015",
+    );
+    const playedIndex = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-015");
+    const checked = s.events[checkedIndex] as { battle?: unknown } | undefined;
+    expect(checkedIndex).toBeGreaterThanOrEqual(0);
+    expect(checked?.battle).toBeDefined();
+    expect(playedIndex).toBeGreaterThan(checkedIndex);
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerPermanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === targetPermanentId)).toBe(false);
   });
 
   it("grants inherited +2000 DP only during its controller's turn", async () => {

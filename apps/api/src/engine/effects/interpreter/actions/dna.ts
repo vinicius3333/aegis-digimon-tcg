@@ -17,6 +17,16 @@ function dnaResultTarget(into: NonNullable<Extract<Action, { kind: "DnaDigivolve
   return "filter" in encodedInto ? (encodedInto as Target) : { filter: encodedInto as Filter, count: 1 };
 }
 
+function selfDnaPartnerFilter(filter: Filter): Filter {
+  return {
+    ...filter,
+    controller: filter.controller ?? filter.controllerDefault ?? "mine",
+    isSelfRef: undefined,
+    includesSelf: undefined,
+    excludeSelf: true,
+  };
+}
+
 export async function runDnaDigivolve(
   ctx: EffectContext,
   action: Extract<Action, { kind: "DnaDigivolve" }>,
@@ -103,16 +113,23 @@ export async function runDnaDigivolve(
       // the controller pick the remaining count-1 partners from the rest of the filter (excluding self).
       const self = ctx.source.permanent();
       const remainingCount = Math.max(1, (typeof action.materials.count === "number" ? action.materials.count : 2) - 1);
-      const others = await resolvePermanentTargets(ctx, {
-        filter: {
-          ...action.materials.filter,
-          isSelfRef: undefined,
-          includesSelf: undefined,
-          excludeSelf: true,
+      if (self === undefined) return;
+      const eligible =
+        remainingCount === 1 && action.looseMaterials === undefined
+          ? (permanentId: string): boolean =>
+              resultPool.some(
+                ({ instanceId }) => ctx.fx.canDnaDigivolve?.([self.permanentId, permanentId], instanceId) !== false,
+              )
+          : undefined;
+      const others = await resolvePermanentTargets(
+        ctx,
+        {
+          filter: selfDnaPartnerFilter(action.materials.filter),
+          count: remainingCount,
         },
-        count: remainingCount,
-      });
-      materialIds = [...(self ? [self.permanentId] : []), ...others];
+        eligible ? { eligible } : undefined,
+      );
+      materialIds = [self.permanentId, ...others];
     } else if (!materialsAreLoose && action.materials.includeRef !== undefined) {
       // One material slot is pinned to a referenced permanent; the player picks the
       // remaining count-1 materials from the filter, excluding the pinned id.
@@ -261,10 +278,10 @@ export function canAttemptDnaDigivolve(ctx: EffectContext, action: Extract<Actio
       looseMaterialCombinations = combinations(candidates, wanted);
       materialCombinations = [[]];
     } else {
-      const self =
-        action.materials.isSelf || action.materials.filter.isSelfRef || action.materials.filter.includesSelf
-          ? ctx.source.permanent()?.permanentId
-          : undefined;
+      const includesSelf =
+        action.materials.isSelf || action.materials.filter.isSelfRef || action.materials.filter.includesSelf;
+      const self = includesSelf ? ctx.source.permanent()?.permanentId : undefined;
+      if (includesSelf && self === undefined) return false;
       const pinned =
         action.materials.includeRef === "triggerSubject"
           ? (ctx.trigger.subjectPermanentId ?? ctx.trigger.deletedPermanentId ?? ctx.trigger.attackerPermanentId)
@@ -273,8 +290,11 @@ export function canAttemptDnaDigivolve(ctx: EffectContext, action: Extract<Actio
             : self;
       if ((action.materials.includeRef !== undefined || self !== undefined) && pinned === undefined) return false;
 
-      const remaining = pinned === undefined ? wanted : Math.max(0, wanted - 1);
-      const candidates = candidatePermanents(ctx, { filter: action.materials.filter, count: "all" })
+      // The self-only encoding means "this Digimon and another", just as in
+      // runDnaDigivolve. Do not keep the self filter on the partner candidates.
+      const remaining = pinned === undefined ? wanted : Math.max(includesSelf ? 1 : 0, wanted - 1);
+      const partnerFilter = includesSelf ? selfDnaPartnerFilter(action.materials.filter) : action.materials.filter;
+      const candidates = candidatePermanents(ctx, { filter: partnerFilter, count: "all" })
         .map(({ permanentId }) => permanentId)
         .filter((permanentId) => permanentId !== pinned);
       materialCombinations = combinations(candidates, remaining).map((ids) =>

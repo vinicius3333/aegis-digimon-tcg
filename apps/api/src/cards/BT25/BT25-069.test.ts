@@ -54,6 +54,7 @@ describe("BT25-069 Raremon", () => {
         permanentId: legal.perm("tsBase").permanentId,
         instanceId: legal.inst("rare").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("tsBase").topCard.cardId === CARD_ID);
@@ -70,6 +71,7 @@ describe("BT25-069 Raremon", () => {
         permanentId: invalid.perm("plainLv3").permanentId,
         instanceId: invalid.inst("rare").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
@@ -115,11 +117,50 @@ describe("BT25-069 Raremon", () => {
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("rare").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").linked.some((card) => card.instanceId === s.inst("linkCard").instanceId));
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
+  });
+
+  it("uses the ordinary black Lv3 evolution at exact cost 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-058", as: "base" }], hand: [{ card: CARD_ID, as: "rare" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rare").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard?.cardId).toBe(CARD_ID);
+  });
+
+  it("can refuse the optional On Play link without moving the TS card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-011", as: "recipient" }],
+          hand: [{ card: CARD_ID, as: "rare" }],
+          trash: [{ card: LINKABLE_TS, as: "linkCard" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rare").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === CARD_ID));
+    expect(s.perm("recipient").linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("linkCard").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 
   it("Q6366 rejects a TS card without its own Link requirement", async () => {
@@ -143,13 +184,13 @@ describe("BT25-069 Raremon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-013", dp: 4000, as: "host", under: [CARD_ID] },
+          { card: "BT25-074", dp: 7000, as: "host", under: [CARD_ID] },
           { card: CARD_ID, dp: 7000, as: "standalone" },
         ],
       },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(8000);
     expect(s.perm("standalone").currentDP).toBe(7000);
   });
 });

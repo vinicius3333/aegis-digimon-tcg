@@ -1,0 +1,14 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 2ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 19ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 4ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives color while a Tamer with an inherited-effect source is on the field 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 6ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > triggers Delay from a public inherited-effect Tamer play and evolves it into a Hybrid 115ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  10:44:35
+   Duration  7.10s (transform 83%, import 15%, tests 2%)

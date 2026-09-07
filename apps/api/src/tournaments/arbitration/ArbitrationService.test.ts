@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
-import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { RED_DECK } from "../../engine/testDecks.js";
 import { EliminationStore } from "../elimination/index.js";
 import { ParticipantStore } from "../participants/index.js";
@@ -38,8 +39,32 @@ describe("ArbitrationService", () => {
   let players: { id: string; participantId: string }[];
   let tournamentId: string;
 
+  type Fixture = {
+    accounts: AccountStore;
+    participants: ParticipantStore;
+    series: SeriesStore;
+    swiss: SwissProgram;
+    elimination: EliminationStore;
+    arbitration: ArbitrationService;
+    organizerId: string;
+    players: { id: string; participantId: string }[];
+    tournamentId: string;
+  };
+
+  /** One arrangement, built once and restored before each test. */
+  const fixtureFor = snapshotFixtures<Fixture>();
+
   beforeEach(async () => {
-    accounts = new AccountStore(createMemoryPool());
+    ({ accounts, participants, series, swiss, elimination, arbitration, organizerId, players, tournamentId } =
+      await fixtureFor("default", buildFixture));
+  });
+
+  /**
+   * Assigns the file's module-level bindings rather than shadowing them, so the helpers and
+   * assertions below read the same instances the snapshot restores.
+   */
+  async function buildFixture(pool: Pool): Promise<Fixture> {
+    accounts = new AccountStore(pool);
     participants = new ParticipantStore(accounts);
     series = new SeriesStore(accounts);
     swiss = new SwissProgram(accounts, series);
@@ -83,9 +108,10 @@ describe("ArbitrationService", () => {
       const player = players.find((entry) => entry.id === participant.accountId);
       if (player) player.participantId = participant.id;
     }
-  });
+    return { accounts, participants, series, swiss, elimination, arbitration, organizerId, players, tournamentId };
+  }
 
-  afterEach(async () => {
+  afterAll(async () => {
     await accounts.close();
   });
 

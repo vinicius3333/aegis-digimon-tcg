@@ -1,9 +1,9 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-066.js";
+import "../BT6/BT6-108.js";
 import "./index.js";
 
 describe("BT20-066 Stingmon", () => {
@@ -89,30 +89,36 @@ describe("BT20-066 Stingmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-076"));
     const imperialdramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076")!;
     expect(imperialdramon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("imperialdramon").instanceId)).toBe(
+      false,
+    );
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-059"]);
   });
 
-  it("deletes level 3 on the opponent's turn but does not offer the DNA branch", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT20-061", as: "base" },
-          { card: "BT20-074", under: ["BT20-069"], as: "material" },
-        ],
-        hand: [
-          { card: "BT20-066", as: "stingmon" },
-          { card: "BT20-076", as: "imperialdramon" },
-        ],
-        deck: ["BT20-047"],
+  it("deletes level 3 through public evolution and declines DNA when no qualifying hand card exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-065", as: "base" }],
+          hand: [{ card: "BT20-066", as: "stingmon" }],
+          deck: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT20-061", as: "level3" }] },
       },
-      1: { battleArea: [{ card: "BT20-061", as: "level3" }] },
-    });
-    s.state.turnSeat = 1;
-    await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("stingmon").instanceId, {
-      payCost: false,
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("stingmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-076");
+    expect(s.perm("base").topCard.cardId).toBe("BT20-066");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-065"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("grants inherited Retaliation only from underneath a host", async () => {
@@ -127,5 +133,47 @@ describe("BT20-066 Stingmon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Retaliation")).toBe(false);
+  });
+
+  it("does not DNA evolve when Underworld's Call plays Stingmon from security on the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT6-108", as: "underworld" }, "BT1-009"],
+          trash: [{ card: "BT20-066", as: "stingmon" }],
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "imperialdramon" }],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 15000 }], deck: ["BT20-010", "BT20-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security[0]?.cardId === "BT1-009" &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-066"),
+    );
+
+    const stingmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-066");
+    expect(stingmon).toBeDefined();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("imperialdramon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-074", "BT20-016"]),
+    );
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-076")).toBe(false);
   });
 });

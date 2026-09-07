@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-032.js";
 import "../index.js";
@@ -82,6 +83,7 @@ describe("BT21-032 compiled implementation", () => {
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("veemon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: base === "BT12-002" ? 0 : 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT21-032");
@@ -115,6 +117,31 @@ describe("BT21-032 compiled implementation", () => {
     expect(s.state.memory).toBe(4 - (printedCost - 1));
   });
 
+  it.each([0, 1])(
+    "rejects alternate requirement %s from a non-DemiVeemon, non-Hero base",
+    async (alternateRequirementIndex) => {
+      const s = setupEngine({
+        0: {
+          breeding: { card: "BT1-003", as: "base" },
+          hand: [{ card: "BT21-032", as: "veemon" }],
+        },
+      });
+      s.state.memory = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("veemon").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.memory).toBe(1);
+      expect(s.perm("base").topCard.cardId).toBe("BT1-003");
+    },
+  );
+
   it("does not reduce a near-matching evolution or apply the reduction in breeding", async () => {
     for (const zone of ["battleArea", "breeding"] as const) {
       const s = setupEngine({
@@ -141,15 +168,38 @@ describe("BT21-032 compiled implementation", () => {
     }
   });
 
-  it("grants inherited +2000 DP only during its controller's turn", async () => {
-    for (const turnSeat of [0, 1] as const) {
-      const s = setupEngine({
-        0: { battleArea: [{ card: "BT21-035", as: "host", under: ["BT21-032"] }] },
-      });
-      s.state.turnSeat = turnSeat;
-      await s.ready();
+  it("builds the inherited source through a public battle-area evolution and follows real turn ownership", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-032", as: "veemon", under: ["BT21-002"] }],
+        hand: [{ card: "BT21-036", as: "magnamon" }],
+        deck: ["BT1-001", "BT1-002", "BT1-004"],
+      },
+      1: { deck: ["BT1-001", "BT1-002", "BT1-004"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
 
-      expect(s.perm("host").currentDP).toBe(turnSeat === 0 ? 8000 : 6000);
-    }
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("magnamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-036");
+    expect(s.perm("veemon").stack.map((card) => card.cardId)).toEqual(["BT21-002", "BT21-032"]);
+    expect(s.perm("veemon").currentDP).toBe(9000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("veemon").currentDP).toBe(7000);
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("veemon").currentDP).toBe(9000);
   });
 });

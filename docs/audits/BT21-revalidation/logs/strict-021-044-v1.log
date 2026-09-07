@@ -1,0 +1,64 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not use its DigiXros-only alias for an alternate digivolution 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 18ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 16ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > uses DigiXros with exactly one Shoutmon material through the public play intent 3ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > inherits Rush from BT21-021 under a legal public BT21-027 DigiXros host 15ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host 4ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > rejects a DigiXros intent offering two materials for the one-material recipe 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 12ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly places a qualifying Digimon under the played Tamer before Save 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly declines an eligible End of Attack play without deleting itself 6ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly completes End of Attack with an ineligible card and no self-deletion 6ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not declare a nested attack for the Digimon played while End of Attack is resolving (Q4728) 18ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly pays the reduced cost above five before deleting itself after a successful play 9ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 4ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the GeoGreymon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > grants one Marcus Damon the temporary Digimon, DP, restriction, and keyword effects 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > shares one once-per-turn budget between the main and inherited deletion watchers 0ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > enters through the public play intent with Marcus and attack hooks registered 2ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly lets the selected Marcus Damon attack after On Play 10ms
+ × src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > expires the public Marcus treatment at the end of its own turn 19ms
+   → Seat 1's Main phase did not become ready
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not treat a combined Marcus Damon card name as exact 2ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > observably turns exactly one Marcus into a 3000 DP Digimon with both keywords and no digivolution 2ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > alternate-digivolves from GeoGreymon for 3 and resolves the optional attack 8ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > places Marcus from trash on top of security after a yellow Tamer is deleted 4ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly recovers Marcus after the first red/yellow Tamer deletion and shares the once-per-turn limit 11ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not trigger the security recovery for a non-red, non-yellow Tamer deletion 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > expires the public Marcus treatment at the end of its own turn
+Error: Seat 1's Main phase did not become ready
+ ❯ Object.waitForMainPhase src/engine/testkit/advance.ts:31:15
+     29|       }
+     30|       if (internals.mainPhase.seat !== seat || internals.state.phase !…
+     31|         throw new Error(`Seat ${seat}'s Main phase did not become read…
+       |               ^
+     32|       }
+     33|       // TurnStateMachine deliberately opens Main before its asynchron…
+ ❯ src/cards/BT21/BT21-044.test.ts:172:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 31 passed (32)
+   Start at  20:06:54
+   Duration  9.52s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-021.test.ts src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

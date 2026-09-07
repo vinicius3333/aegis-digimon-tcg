@@ -90,6 +90,48 @@ describe("BT20-062 Candlemon", () => {
     );
   });
 
+  it("publicly builds a Yaamon-Candlemon-Punkmon stack before the inherited deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-006", as: "yaamon" }],
+          hand: [
+            { card: "BT20-062", as: "candlemon" },
+            { card: "BT20-069", as: "host" },
+            { card: "BT20-047", as: "cost" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-066", as: "level4" },
+            { card: "BT20-076", as: "attacker" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yaamon").permanentId,
+        instanceId: s.inst("candlemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yaamon").topCard.cardId === "BT20-062");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yaamon").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yaamon").topCard.cardId === "BT20-069");
+    expect(s.perm("yaamon").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX7-006", "BT20-062"]));
+  });
+
   it("may decline the inherited hand cost and deletion", async () => {
     const s = setupEngine(
       {

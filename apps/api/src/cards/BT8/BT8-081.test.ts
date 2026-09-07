@@ -84,7 +84,9 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
     s.perm("rasenmon").isSuspended = true;
     const before = s.perm("rasenmon").currentDP;
     const source = internalsOf(s.engine).cardSourceOf(s.perm("rasenmon").topCard);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith(`${source.cardId}/`),
+    )!.effectKey;
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -100,7 +102,7 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT4-012", as: "host", under: ["BT8-081", "BT8-003"], suspended: true }] },
-        1: { battleArea: [{ card: "BT8-017", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 4000, as: "target" }] },
       },
       { autoSelectCards: true },
     );
@@ -108,7 +110,9 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
     s.state.phase = Phase.Main;
     const before = s.perm("host").currentDP;
     const source = internalsOf(s.engine).cardSourceOf(s.perm("host").topCard);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith(`${source.cardId}/`),
+    )!.effectKey;
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",

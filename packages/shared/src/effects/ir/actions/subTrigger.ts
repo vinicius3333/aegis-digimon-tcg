@@ -42,6 +42,7 @@ export type SubTriggerEvent =
   | "whenLeavesPlay" // a non-replacement reaction
   | "whenLinked"
   | "whenLinkTrashed" // a genuine trash, NOT a link-card replace (KB EX10-062 Q5172 / EX10-073 Q5188)
+  | "whenDigimonTopTrashed" // a Digimon top is trashed while its source is promoted
   | "whenDigivolutionTrashed" // a genuine effect-trash, NOT a return-to-hand bounce-clear (KB P-004 Q4113)
   | "whenOptionUsed" // BT19-040 token watcher
   | "onDigivolutionCardDiscarded" // per-card event (BT10-006, BT14-083)

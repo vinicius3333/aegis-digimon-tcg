@@ -43,6 +43,17 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
       // `_CanNoSelect: () => active.All(s => s.CardEffect.IsSkippable(...))`).
       const triggerKeys = active.map((c) => buildTriggerKey(c.source.instanceId, c.effect.effectKey));
       const triggerCardIds = active.map((c) => c.source.cardId);
+      // One permanent can put two effects on the stack at once (Megadramon's [On Play]
+      // and [When Digivolving]). They share an instanceId and a card, so the chooser can
+      // only name them apart by the window each one fired in.
+      const decisionTiming = timing !== undefined ? EffectTiming[timing] : undefined;
+      const triggerTimings = active.map(
+        (c) =>
+          c.effect.timingOverride ??
+          (c.timing !== undefined ? EffectTiming[c.timing] : undefined) ??
+          decisionTiming ??
+          "",
+      );
       const sharedSourceCardId = triggerCardIds.every((cardId) => cardId === triggerCardIds[0])
         ? triggerCardIds[0]
         : undefined;
@@ -54,7 +65,8 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
         options: {
           triggerKeys,
           triggerCardIds,
-          ...(timing !== undefined ? { timing: EffectTiming[timing] } : {}),
+          ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),
+          ...(decisionTiming !== undefined ? { timing: decisionTiming } : {}),
         },
       });
       if (response.kind !== "orderTriggers") return null;

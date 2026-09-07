@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-060.js";
 import "./index.js";
 
@@ -92,64 +93,131 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
     }
   });
 
+  it("expires the -15000 reduction at the real end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-060", as: "ouryuken" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT20-057", dp: 20000, as: "target" }], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ouryuken").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 5000);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("target").currentDP).toBe(20000);
+  });
+
   it("Q4398 Blast DNA finishes security trash and Recovery before deleting a 0-DP target", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT20-056", as: "alphamon" },
+          battleArea: [{ card: "BT20-056", as: "alphamon" }],
+          hand: [
             { card: "BT20-018", as: "ouryumon" },
+            { card: "BT20-060", as: "ouryuken" },
           ],
-          hand: [{ card: "BT20-060", as: "ouryuken" }],
           deck: [
             { card: "BT20-047", as: "drawn" },
             { card: "BT20-047", as: "recovered" },
           ],
+          security: [{ card: "BT20-047", as: "ownSecurity" }],
         },
         1: {
           battleArea: [{ card: "BT20-057", dp: 15000, as: "target" }],
           security: [{ card: "BT20-047", as: "trashed" }, "BT20-047"],
+          deck: ["BT20-001", "BT20-002"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoDeclineOptional: true },
     );
-    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
     expect(
-      s.engine.applyIntent(0, {
-        type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("alphamon").permanentId, s.perm("ouryumon").permanentId],
-        instanceId: s.inst("ouryuken").instanceId,
-        useBlastDigivolve: true,
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    await settle(() => s.state.memory === 3);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovered").instanceId);
-    expect(s.state.memory).toBe(3);
-  });
-
-  it("rejects Blast DNA when the Ouryumon material is missing", () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT20-056", as: "alphamon" },
-          { card: "BT20-057", as: "wrong" },
-        ],
-        hand: [{ card: "BT20-060", as: "ouryuken" }],
-      },
-    });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const choice = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("ouryuken").instanceId);
+    expect(choice).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
-        type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("alphamon").permanentId, s.perm("wrong").permanentId],
-        instanceId: s.inst("ouryuken").instanceId,
-        useBlastDigivolve: true,
+        type: "respondCounter",
+        sourceInstanceId: choice!.instanceId,
+        effectKey: choice!.effectKey,
       }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "counterResolved") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-060") &&
+        s.state.pendingDecision === undefined,
+    );
+    const recoveryIndex = s.events.findIndex((event) => event.kind === "securityRecovered" && event.seat === 0);
+    const targetTrashIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(s.inst("target").instanceId),
+    );
+    expect(recoveryIndex).toBeGreaterThanOrEqual(0);
+    expect(targetTrashIndex).toBeGreaterThan(recoveryIndex);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovered").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ouryuken").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-060")!.stack.map(
+        (card) => card.cardId,
+      ),
+    ).toEqual(["BT20-018", "BT20-056"]);
+  });
+
+  it("does not offer Blast DNA when the Ouryumon material is missing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-056", as: "alphamon" }],
+          hand: [{ card: "BT20-060", as: "ouryuken" }],
+          security: ["BT20-047"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-009", as: "attacker" }],
+          security: ["BT20-047"],
+          deck: ["BT20-001", "BT20-002"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ouryuken").instanceId)).toBe(true);
   });
 
   it("gains 3 memory only once across removals from both security stacks", async () => {

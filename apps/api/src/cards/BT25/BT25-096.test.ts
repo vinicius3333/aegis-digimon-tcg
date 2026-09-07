@@ -142,7 +142,7 @@ describe("BT25-096 Mirage Beast Knight", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
   });
 
-  it("does not substitute a higher face-down Tamer card for a face-up bottom card", async () => {
+  it("pays the first face-down Tamer card above a face-up bottom (Q4785)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -168,10 +168,8 @@ describe("BT25-096 Mirage Beast Knight", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT25-096"));
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("thomas").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("bottom").instanceId,
-      s.inst("upper").instanceId,
-    ]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("upper").instanceId);
+    expect(s.perm("thomas").stack.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
   });
 });

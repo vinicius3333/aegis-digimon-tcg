@@ -31,42 +31,30 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenDigivolutionTrashed",
+          event: "whenDigimonTopTrashed",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }],
           },
-          requireTrashedDigivolutionCardWasTop: true,
           actions: [
             {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              kind: "Digivolve",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }],
+              },
+              payCost: false,
+              from: ["hand"],
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          kind: "Digivolve",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }],
-          },
-          payCost: false,
-          from: ["hand"],
-          optional: true,
         },
       ],
     },

@@ -28,6 +28,7 @@ describe("BT25-068 Deltamon", () => {
         permanentId: legal.perm("tsBase").permanentId,
         instanceId: legal.inst("delta").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("tsBase").topCard.cardId === CARD_ID);
@@ -44,6 +45,35 @@ describe("BT25-068 Deltamon", () => {
         permanentId: invalid.perm("plain").permanentId,
         instanceId: invalid.inst("delta").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("ordinary-digivolves from black non-TS Lv.3 for 2 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT10-058", as: "blackBase" }], hand: [{ card: CARD_ID, as: "delta" }] },
+    });
+    ordinary.state.memory = 3;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("delta").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === CARD_ID);
+    expect(ordinary.state.memory).toBe(1);
+
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: CARD_ID, as: "delta" }] },
+    });
+    wrongColor.state.memory = 3;
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("delta").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
@@ -131,7 +161,7 @@ describe("BT25-068 Deltamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-013", dp: 4000, as: "host", under: [CARD_ID] },
+          { card: "BT10-064", dp: 4000, as: "host", under: [CARD_ID] },
           { card: CARD_ID, dp: 4000, as: "standalone" },
         ],
       },

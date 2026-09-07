@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -84,6 +83,7 @@ describe("BT25-018 Apollomon", () => {
         0: {
           hand: [{ card: "BT25-018", as: "apollomon" }],
           battleArea: [{ card: "BT1-009", as: "ally" }],
+          breeding: { card: "BT25-008", as: "breedingDigimon" },
         },
         1: {
           battleArea: [
@@ -92,7 +92,7 @@ describe("BT25-018 Apollomon", () => {
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
     const atBoundaryId = s.perm("atBoundary").permanentId;
     preferred.push(atBoundaryId);
@@ -102,6 +102,47 @@ describe("BT25-018 Apollomon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === atBoundaryId));
     expect(s.perm("aboveBoundary").currentDP).toBe(13000);
+  });
+
+  it("keeps a zero-DP Digimon selectable until the entry effect finishes (Q6267)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-018", as: "apollomon" }], battleArea: [{ card: "BT1-009", as: "ally" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 4000, as: "zero" },
+            { card: "BT1-013", dp: 16000, as: "otherEligible" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("zero").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apollomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("otherEligible").permanentId]);
+    expect(s.perm("otherEligible").currentDP).toBe(12000);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("zero").instanceId);
+  });
+
+  it("does not discount play for a qualifying Digimon confined to breeding", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT25-018", as: "apollomon" }] },
+      1: { breeding: { card: "BT1-084", as: "breedingOnly" } },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apollomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(-2);
+    expect(s.perm("breedingOnly").inBreeding).toBe(true);
   });
 
   it("resolves the same DP reduction and deletion after digivolving", async () => {
@@ -140,16 +181,20 @@ describe("BT25-018 Apollomon", () => {
           ],
           hand: [{ card: "BT25-103", as: "grace" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: { security: ["BT1-001"], battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("apollo"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103"));
     const grace = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-103");
     expect(grace).toBeDefined();
     expect(grace!.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("still offers the follow-up attack when the end-turn DNA effect is declined", async () => {
@@ -166,7 +211,9 @@ describe("BT25-018 Apollomon", () => {
       },
       { autoSelectCards: true },
     );
-    const firing = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("apollo"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const dnaPrompt = s.state.pendingDecision!;
     expect(
@@ -187,7 +234,7 @@ describe("BT25-018 Apollomon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await firing;
+    await turn;
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("apollo").isSuspended).toBe(true);
@@ -195,40 +242,48 @@ describe("BT25-018 Apollomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
-  it("deletes once while attacking through a realistic evolution stack", async () => {
+  it("applies inherited deletion once from a legal Lv7 Omnimon stack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT25-018", under: ["BT25-017"], as: "apollo" }] },
+        0: { battleArea: [{ card: "BT1-084", under: ["BT25-018"], as: "grace" }] },
         1: {
-          security: ["BT1-001", "BT1-001"],
           battleArea: [
-            { card: "BT1-013", dp: 1000, as: "firstTarget" },
-            { card: "BT1-013", dp: 12000, as: "secondTarget" },
+            { card: "BT1-009", dp: 1000, as: "firstTarget" },
+            { card: "BT1-009", dp: 1000, as: "secondTarget" },
           ],
+          security: ["BT1-001", "BT1-001"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
     );
     const firstTargetId = s.perm("firstTarget").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
     preferred.push(firstTargetId);
+    await s.ready();
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("apollo").permanentId,
+        attackerPermanentId: s.perm("grace").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstTargetId));
-    await advance(s.engine).verb.unsuspend([s.perm("apollo").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([secondTargetId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstTarget").instanceId);
+    await advance(s.engine).verb.unsuspend([s.perm("grace").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("apollo").permanentId,
+        attackerPermanentId: s.perm("grace").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-013")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondTargetId)).toBe(true);
   });
 });

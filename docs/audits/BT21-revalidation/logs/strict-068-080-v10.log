@@ -1,0 +1,33 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > implements the main-phase memory, digivolution-card trigger, and security play 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main without an opposing Digimon gains NaN memory 10ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main with an opposing Digimon gains NaN memory 4ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > gains the conditional Start of Your Main Phase memory through the public turn lifecycle 10ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Gammamon text host 7ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Hero trait host 3ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > does not trigger for a nonmatching host 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > triggers from a public effect-driven placement under a Hero host 10ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > triggers from the same public placement producer under a Gammamon-text-only host 7ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > does not trigger when that public placement targets a nonmatching host 7ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > accepts public Snatchmon placement but declines eligible Hiro reward 9ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > declining does not suspend, draw, or gain memory 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from a public security attack without paying cost 6ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > preserves the Guilmon alternate Digivolution requirement and inherited deletion memory 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an opposing Digimon and conditionally mills two 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > must delete an eligible 4000 DP Digimon and does not mill 4ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an eligible printed opponent through the public play intent 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when an eligible target prevents deletion with printed Armor Purge 5ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two after the public When Digivolving trigger has no eligible target 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 4001 DP Digimon 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 9000 DP Digimon 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains 1 memory when a realistic host carrying Growlmon is deleted 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > uses the Guilmon alternate evolution route for exactly 2 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains inherited memory when a public battle deletes a legal Growlmon stack 5ms
+
+ Test Files  2 passed (2)
+      Tests  25 passed (25)
+   Start at  22:32:19
+   Duration  6.91s (transform 83%, import 15%, tests 2%)

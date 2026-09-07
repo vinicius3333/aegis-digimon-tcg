@@ -1,0 +1,33 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > reduces its play cost by two per opposing Digimon and preserves all three keywords 1ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 11 with 0 opposing Digimon 16ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 7 with 2 opposing Digimon 5ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 0 with 6 opposing Digimon 3ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > attacks immediately after a public reduced-cost play because of Rush 9ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Raid to attack the highest-DP unsuspended opponent instead of checking security 8ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Blocker to redirect an opponent's public player attack 11ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > retains Rush, Raid, and Blocker after evolving from a legal red level 5 4ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > may unsuspend when an opposing Digimon is deleted, only once per turn 8ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > unsuspends from a public attack that deletes an opposing Digimon 10ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > stays suspended when its controller's Digimon is deleted or the optional effect is declined 7ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > does not unsuspend when its controller deletes their own Digimon 30ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > declines the unsuspend after a public Gaia Force deletes an opponent Digimon 5ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security card when an eligible attack target changes 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only for a controller's Reptile or Dragonkin target change and only once per turn 5ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack 7ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security from a public Raid target switch 8ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays a qualifying inherited Digimon from a public security attack 17ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free 6ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > publicly declines the inherited play after an opponent security removal and preserves exact hand boundaries 13ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > does not play for the controller's security removal and permits declining the optional play 3ms
+
+ Test Files  2 passed (2)
+      Tests  25 passed (25)
+   Start at  20:17:37
+   Duration  8.12s (transform 84%, import 14%, tests 2%)

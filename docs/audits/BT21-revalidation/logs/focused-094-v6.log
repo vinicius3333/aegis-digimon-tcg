@@ -1,0 +1,36 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 19ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 1ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 11ms
+ × src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > arms Delay from a public Armor Purge battle and free-evolves an Armor Form 42ms
+   → expected 'BT21-032' to be 'BT21-036' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > arms Delay from a public Armor Purge battle and free-evolves an Armor Form
+AssertionError: expected 'BT21-032' to be 'BT21-036' // Object.is equality
+
+Expected: "BT21-036"
+Received: "BT21-032"
+
+ ❯ src/cards/BT21/BT21-094.test.ts:153:43
+    151|     await advance(s.engine).fire(EffectTiming.OnDeclaration, optionPer…
+    152|     await settle(() => s.perm("base").topCard.cardId === "BT21-036");
+    153|     expect(s.perm("base").topCard.cardId).toBe("BT21-036");
+       |                                           ^
+    154|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+    155|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  10:08:47
+   Duration  7.41s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

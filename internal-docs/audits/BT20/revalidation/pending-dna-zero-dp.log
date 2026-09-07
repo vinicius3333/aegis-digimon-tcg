@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/engine/effects/pendingDnaAttackTriggers.test.ts (3 tests | 1 failed) 158ms
+   ❯ deferred triggers from a DNA attack (3)
+     × resolves P-221 effects and DP rules before Counter (target DP 20000) 36ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/pendingDnaAttackTriggers.test.ts > deferred triggers from a DNA attack > resolves P-221 effects and DP rules before Counter (target DP 20000)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/engine/effects/pendingDnaAttackTriggers.test.ts:54:128
+     52|     expect(s.state.players[1]!.security).toHaveLength(2);
+     53|     if (targetDP === 20000) {
+     54|       expect(s.state.players[1]!.battleArea.some((permanent) => perman…
+       |                                                                                                                                ^
+     55|       expect(s.state.players[1]!.trash.some((card) => card.instanceId …
+     56|     } else {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  11:23:04
+   Duration  1.39s (transform 43%, import 43%, tests 13%, worker 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

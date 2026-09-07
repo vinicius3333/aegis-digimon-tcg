@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/engine/blastDnaCounter.test.ts (11 tests | 1 failed) 114ms
+   ❯ BT20-045 Examon Blast DNA Counter (11)
+     × rejects a second response while the accepted Blast DNA is still resolving 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/blastDnaCounter.test.ts > BT20-045 Examon Blast DNA Counter > rejects a second response while the accepted Blast DNA is still resolving
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/engine/blastDnaCounter.test.ts:171:68
+    169|     const choice = opened.eligibleCounters[0]!;
+    170|     expect(s.engine.applyIntent(0, { type: "respondCounter", sourceIns…
+    171|     expect(s.engine.applyIntent(0, { type: "respondCounter" }).ok).toB…
+       |                                                                    ^
+    172|     await settle(() => s.events.some((event) => event.kind === "counte…
+    173|     expect(s.events.filter((event) => event.kind === "counterResolved"…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  10:43:55
+   Duration  531ms (import 46%, transform 30%, tests 24%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/blastDnaCounter.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

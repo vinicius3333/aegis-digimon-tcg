@@ -30,6 +30,7 @@ describe("BT25-074 Tankdramon", () => {
         permanentId: legal.perm("offColorAccel").permanentId,
         instanceId: legal.inst("tank").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("offColorAccel").topCard.cardId === CARD_ID);
@@ -45,9 +46,31 @@ describe("BT25-074 Tankdramon", () => {
         permanentId: invalid.perm("plainBlueLv4").permanentId,
         instanceId: invalid.inst("tank").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(invalid.state.memory).toBe(3);
+  });
+
+  it.each([
+    ["black", "BT10-061"],
+    ["purple", "BT10-074"],
+  ] as const)("uses the ordinary %s Lv4 evolution at exact cost 4", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: CARD_ID, as: "tank" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tank").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard?.cardId).toBe(CARD_ID);
   });
 
   it("reveals exactly 3, plays one matching cost-12-or-less Digimon at cost minus 5, and trashes the rest", async () => {
@@ -73,6 +96,7 @@ describe("BT25-074 Tankdramon", () => {
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("tank").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: true });
     await settle(
@@ -111,13 +135,40 @@ describe("BT25-074 Tankdramon", () => {
     expect(observe(s.engine).hasRestriction(s.perm("target").permanentId, "digivolve")).toBe(true);
   });
 
+  it("resolves the printed When Attacking reveal from a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "tank" }],
+          deck: ["BT1-001", "BT14-060", "BT1-002"],
+        },
+        1: { security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tank").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT14-060"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT14-060")).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002"]),
+    );
+  });
+
   it("grants inherited Reboot and Blocker only on the opponent turn and only to a qualifying host", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT20-043", as: "accelHost", under: [CARD_ID] },
-          { card: "BT4-090", as: "chaosmonHost", under: [CARD_ID] },
-          { card: "BT1-013", as: "plainHost", under: [CARD_ID] },
+          { card: "LM-043", as: "accelHost", under: [CARD_ID] },
+          { card: "BT4-090", as: "chaosmonHost", under: [CARD_ID, "BT25-075"] },
+          { card: "BT25-075", as: "plainHost", under: [CARD_ID] },
         ],
       },
     });

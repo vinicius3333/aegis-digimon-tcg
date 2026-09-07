@@ -742,6 +742,22 @@ describe("triggerLabel / triggerLabels", () => {
     expect(labelB).toContain("copy 2");
   });
 
+  it("never numbers two effects of ONE permanent as copies", () => {
+    const onPlay = buildTriggerKey("perm-A", "AD1-001/on-play");
+    const whenDigivolving = buildTriggerKey("perm-A", "AD1-001/when-digivolving");
+    expect(triggerLabels([onPlay, whenDigivolving], t)).toEqual(["Greymon", "Greymon"]);
+  });
+
+  it("numbers copies per permanent, so a permanent's two effects share one number", () => {
+    const first = buildTriggerKey("perm-A", "AD1-001/on-play");
+    const firstAgain = buildTriggerKey("perm-A", "AD1-001/when-digivolving");
+    const second = buildTriggerKey("perm-B", "AD1-001/on-play");
+    const [a, b, c] = triggerLabels([first, firstAgain, second], t);
+    expect(a).toContain("copy 1");
+    expect(b).toContain("copy 1");
+    expect(c).toContain("copy 2");
+  });
+
   it("leaves a single trigger's label undecorated", () => {
     const key = buildTriggerKey("perm-1", "AD1-001/dp-plus-1000");
     expect(triggerLabels([key], t)[0]).not.toContain("copy");

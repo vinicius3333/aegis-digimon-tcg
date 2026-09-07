@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-076.js";
+import "./BT20-016.js";
+import "./BT20-020.js";
+import "./BT20-074.js";
 import "./index.js";
 
 describe("BT20-076 Imperialdramon: Dragon Mode", () => {
@@ -93,27 +96,44 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
       const s = setupEngine(
         {
           0: {
-            battleArea: [
-              { card: "BT20-074", as: "dinobeemon" },
-              { card: "BT20-016", as: "paildramon" },
-            ],
+            battleArea: [{ card: "BT20-074", as: "dinobeemon" }],
             hand: [
               { card: "BT20-076", as: "dragon" },
+              { card: "BT20-016", as: "paildramon" },
               ...(fighterZone === "hand" ? [{ card: "BT20-020", as: "fighter" }] : []),
             ],
             ...(fighterZone === "trash" ? { trash: [{ card: "BT20-020", as: "fighter" }] } : {}),
             deck: ["BT20-047"],
           },
-          1: { battleArea: [{ card: "BT20-059", dp: 11000, as: "target" }] },
+          1: {
+            battleArea: [
+              { card: "BT20-059", dp: 11000, as: "target" },
+              { card: "BT20-069", as: "attacker" },
+            ],
+            security: ["BT20-047"],
+          },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+      const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+      if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+      const choice = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("dragon").instanceId);
+      expect(choice).toBeDefined();
       expect(
         s.engine.applyIntent(0, {
-          type: "dnaDigivolve",
-          materialPermanentIds: [s.perm("dinobeemon").permanentId, s.perm("paildramon").permanentId],
-          instanceId: s.inst("dragon").instanceId,
-          useBlastDigivolve: true,
+          type: "respondCounter",
+          sourceInstanceId: choice!.instanceId,
+          effectKey: choice!.effectKey,
         }),
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-020"));
@@ -125,24 +145,39 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
     }
   });
 
-  it("rejects Blast DNA when Paildramon is missing", () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT20-074", as: "dinobeemon" },
-          { card: "BT20-075", as: "wrong" },
-        ],
-        hand: [{ card: "BT20-076", as: "dragon" }],
+  it("may decline Blast DNA in the public counter window and leaves Dragon Mode in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-074", as: "dinobeemon" }],
+          hand: [
+            { card: "BT20-076", as: "dragon" },
+            { card: "BT20-016", as: "paildramon" },
+            { card: "BT20-020", as: "fighter" },
+          ],
+          security: ["BT1-001"],
+          deck: ["BT20-047", "BT20-048"],
+        },
+        1: { battleArea: [{ card: "BT20-069", dp: 4000, as: "attacker" }], security: ["BT1-010"] },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
     expect(
-      s.engine.applyIntent(0, {
-        type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("dinobeemon").permanentId, s.perm("wrong").permanentId],
-        instanceId: s.inst("dragon").instanceId,
-        useBlastDigivolve: true,
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
       }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dragon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-074"]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("charges Overflow -4 when the ACE leaves battle", async () => {

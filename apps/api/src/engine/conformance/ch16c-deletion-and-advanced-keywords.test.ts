@@ -443,44 +443,57 @@ describe("§16-30 <Collision> (comprehensive-0249) — verified in combat/keywor
 });
 
 describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
-  it("16-31-1: a card printing <Blast DNA Digivolve> DNA digivolves from hand for free, without paying the cost", async () => {
+  it("16-31-1: Counter Blast DNA consumes one field Digimon and one hand card without paying memory", async () => {
     cite(
       "comprehensive-0250",
-      "16-31-1 <Blast DNA Digivolve>: one of your Digimon specified in this effect and a card " +
-        "from your hand may digivolve into a card with this keyword effect in the hand without " +
-        "paying the cost. BT17-078's printed <Blast DNA Digivolve ([WarGreymon] + " +
-        "[MetalGarurumon])> compiles to an empty-actions 'Counter'-trigger keyword marker (like " +
-        "AD1-005's <Blast Digivolve>); the new player-facing `dnaDigivolve` verb " +
-        "(actions/dnaDigivolve.ts) consumes it the same way `digivolve` consumes <Blast " +
-        "Digivolve> — DnaDigivolveDeps.costWaived, sourced from the same hasBlastDigivolveKeyword " +
-        "compiled-IR registry.",
+      "16-31-1: Blast DNA uses one specified field Digimon and one hand card; it resolves optionally during Counter timing.",
     );
-
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    // The recipe names its two materials, so they have to BE those cards: a <Blast DNA Digivolve>
-    // still checks the requirement, it only waives the cost.
-    const materialA = digimon(0, 8000, "AD1-004"); // WarGreymon
-    const materialB = digimon(0, 8000, "AD1-014"); // MetalGarurumon
-    p0.battleArea.push(materialA, materialB);
-    const blastDna = instance("BT17-078", 0, false); // printed <Blast DNA Digivolve ([WarGreymon] + [MetalGarurumon])>
-    p0.hand.push(blastDna);
-    s.state.memory = 0; // deliberately NOT enough to pay the normal DNA digivolve cost
-
-    // Per §16-31-1: a free DNA digivolution is offered despite 0 memory.
-    const result = s.engine.applyIntent(0, {
-      type: "dnaDigivolve",
-      materialPermanentIds: [materialA.permanentId, materialB.permanentId],
-      instanceId: blastDna.instanceId,
-      useBlastDigivolve: true,
-    } as never);
-    expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT17-078"), 5000);
-    expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT17-078")).toBe(true);
-    // The two materials were consumed (left the battle area as their own permanents).
-    expect(p0.battleArea.some((p) => p.permanentId === materialA.permanentId)).toBe(false);
-    expect(p0.battleArea.some((p) => p.permanentId === materialB.permanentId)).toBe(false);
-    expect(s.state.memory).toBe(0); // cost genuinely waived, not merely affordable
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "AD1-004", as: "wargreymon" }],
+          hand: [
+            { card: "AD1-014", as: "metalgarurumon" },
+            { card: "BT17-078", as: "omnimon" },
+          ],
+          deck: ["BT20-001"],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    const oldId = s.perm("wargreymon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter did not open");
+    const choice = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("omnimon").instanceId)!;
+    expect(choice).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: choice.instanceId,
+        effectKey: choice.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((event) => event.kind === "effectActivated" && event.effectKey === choice.effectKey),
+    );
+    const result = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT17-078")!;
+    expect(result).toBeDefined();
+    expect(result.permanentId).not.toBe(oldId);
+    expect(result.stack.map((card) => card.cardId)).toEqual(["AD1-014", "AD1-004"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-001"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("16-31-1 control: a plain (non-<Blast>) card DNA digivolves normally when its printed requirement matches", () => {

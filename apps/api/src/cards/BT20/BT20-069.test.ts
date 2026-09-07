@@ -110,6 +110,45 @@ describe("BT20-069 Punkmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(true);
   });
 
+  it("uses the granted Blocker and Retaliation in a public battle", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-061", as: "ally" }],
+          hand: [
+            { card: "BT20-069", as: "punkmon" },
+            { card: "BT20-047", as: "fodder" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT20-010", dp: 1000, as: "attacker" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    preferred.push(s.perm("ally").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("punkmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Blocker"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("applies inherited +2000 only underneath a host on its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-072", under: ["BT20-069"], as: "host" }] } });
     s.state.turnSeat = 0;

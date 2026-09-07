@@ -16,17 +16,23 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Static",
+      trigger: "YourTurn",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "digivolve",
-          amount: 1,
-          target: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }, count: "all" },
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" },
           into: { kind: ["Digimon"], effectTextContains: "Digi-Burst" },
-          duration: "forTheTurn",
-          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              optional: true,
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+            },
+          ],
         },
       ],
     },

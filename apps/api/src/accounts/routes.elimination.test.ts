@@ -1,7 +1,8 @@
 import type { AddressInfo } from "node:net";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../db/snapshotFixture.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { BotSeatingStore } from "../tournaments/bots/index.js";
 import { EliminationStore } from "../tournaments/elimination/index.js";
@@ -32,8 +33,25 @@ let harness: Harness;
 // oxlint-disable-next-line typescript/no-explicit-any -- a wire test asserts the shape, not a DTO
 type ResponseBody = any;
 
+const openServers: (() => Promise<void>)[] = [];
+
+afterAll(async () => {
+  for (const close of openServers) await close();
+});
+
+/**
+ * One express server and one database for the file, restored to its just-started state before each
+ * test. Standing the server up and re-migrating per test cost far more than the requests under
+ * test; the snapshot makes every test see the same clean database without paying for either.
+ */
+const harnessFor = snapshotFixtures<Harness>();
+
 async function startHarness(): Promise<Harness> {
-  const store = new AccountStore(createMemoryPool());
+  return harnessFor("default", buildHarness);
+}
+
+async function buildHarness(pool: Pool): Promise<Harness> {
+  const store = new AccountStore(pool);
   const participants = new ParticipantStore(store);
   const series = new SeriesStore(store);
   const swiss = new SwissProgram(store, series);
@@ -44,6 +62,7 @@ async function startHarness(): Promise<Harness> {
   installAccountRoutes(app, store, participants, series, swiss, elimination, bots);
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
+  openServers.push(() => new Promise<void>((resolve) => server.close(() => resolve())));
   const organizer = await store.accountForIdentity("discord", "organizer", "Organizer");
   const session = await store.issueSession(organizer);
   return {
@@ -52,7 +71,8 @@ async function startHarness(): Promise<Harness> {
     store,
     participants,
     bots,
-    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+    // The server outlives each test; `afterAll` below shuts it down once the file is done.
+    close: async () => {},
   };
 }
 

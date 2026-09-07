@@ -11,6 +11,7 @@ const HIGH = "BT1-019";
 const TARGET = "BT25-078";
 const CEILING_TS = "BT25-071";
 const OVER_CEILING_TS = "BT25-073";
+const CARD_ID = "BT25-077";
 
 describe("BT25-077 Bacchusmon", () => {
   it("matches every printed catalog field and alternate TS evolution requirement", () => {
@@ -36,6 +37,79 @@ describe("BT25-077 Bacchusmon", () => {
     expect(card.effectText).toBeDefined();
     if (card.effectText === undefined) return;
     expect(card.effectText.replace(/\u00a0/g, " ")).toContain("[Digivolve] Lv.5 w/[TS] trait: Cost 3");
+  });
+
+  it.each([
+    ["black", "BT10-064"],
+    ["green", "BT1-075"],
+  ] as const)("uses the ordinary %s Lv5 evolution at exact cost 4", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: CARD_ID, as: "bacchusmon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bacchusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard?.cardId).toBe(CARD_ID);
+  });
+
+  it("rejects a red Lv5 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: CARD_ID, as: "bacchusmon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bacchusmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(CARD_ID);
+  });
+
+  it("uses the TS Lv5 alternate for cost 3 and rejects a non-TS explicit route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-073", as: "tsBase" }], hand: [{ card: CARD_ID, as: "bacchusmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("bacchusmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT10-064", as: "nonTsBase" }], hand: [{ card: CARD_ID, as: "bacchusmon" }] },
+    });
+    invalid.state.memory = 4;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonTsBase").permanentId,
+        instanceId: invalid.inst("bacchusmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.state.memory).toBe(4);
   });
 
   it("suspends one Digimon when any Digimon is manually played, including while Bacchusmon is suspended", async () => {

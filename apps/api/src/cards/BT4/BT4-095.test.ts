@@ -70,6 +70,7 @@ describe("BT4-095 Yoshino Fujieda", () => {
     );
     s.state.memory = 2;
     await s.ready();
+    expect(s.perm("yoshino").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -79,6 +80,69 @@ describe("BT4-095 Yoshino Fujieda", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("yoshino").isSuspended && s.perm("base").topCard.cardId === "BT4-054");
     expect(s.state.memory).toBe(1);
+  });
+
+  it("may decline the reduction without suspending Yoshino", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-095", as: "yoshino" },
+            { card: "BT4-051", as: "base" },
+          ],
+          hand: [{ card: "BT4-054", as: "evolving" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(s.perm("yoshino").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT4-054");
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT4-095")).toBe(true);
+    expect(s.perm("yoshino").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("cannot discount another evolution while Yoshino remains suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-095", as: "yoshino" },
+            { card: "BT4-051", as: "base" },
+          ],
+          hand: [
+            { card: "BT4-054", as: "level4" },
+            { card: "BT4-059", as: "level5" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.perm("yoshino").isSuspended).toBe(false);
+    for (const alias of ["level4", "level5"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst(alias).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst(alias).instanceId);
+      expect(s.perm("yoshino").isSuspended).toBe(true);
+    }
+    expect(s.state.memory).toBe(6); // (2 - 1) for level 4, then the full 3 for level 5.
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT4-095")).toHaveLength(1);
   });
 
   it("plays itself from security", async () => {

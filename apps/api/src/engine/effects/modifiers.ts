@@ -467,14 +467,21 @@ export class ModifierLedger {
 
   /**
    * The base DP a permanent's `currentDP` is computed from: the value of the most
-   * recently applied active override, or the permanent's printed `baseDP` when no
-   * override is active. Last-applied wins between competing overrides.
+   * active override, or the permanent's printed `baseDP` when no override is active.
+   * A live continuous treatment wins over triggered treatments regardless of activation
+   * order (BT25-104 Q6503); within the same tier, the latest activation wins.
    */
   private baseDpOf(permanent: Permanent): number {
     let chosen: BaseDpOverride | undefined;
     for (const o of this.baseDpOverrides) {
       if (o.permanentId !== permanent.permanentId) continue;
-      if (chosen === undefined || o.activatedAt > chosen.activatedAt) chosen = o;
+      if (
+        chosen === undefined ||
+        (o.continuous === true && chosen.continuous !== true) ||
+        (o.continuous === chosen.continuous && o.activatedAt > chosen.activatedAt)
+      ) {
+        chosen = o;
+      }
     }
     return chosen?.value ?? permanent.baseDP;
   }

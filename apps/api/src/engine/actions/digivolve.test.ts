@@ -386,6 +386,41 @@ describe("digivolve — apply (stack, DP, cost, draw, suspended carry, timing)",
     expect(state.players[0]!.hand.some((c) => c.instanceId === evolver.instanceId)).toBe(false);
   });
 
+  it("rejects App Fusion if an awaited prepayment hook removes the declared partner", async () => {
+    const { state, gauge, permanent, evolver } = makeState({
+      baseCardId: "BT21-009",
+      evolverCardId: "BT21-018",
+      memory: 0,
+    });
+    const partner = instance("BT21-047", 0);
+    const unrelatedLink = instance("BT21-070", 0);
+    const originalTopId = permanent.topCard.instanceId;
+    permanent.linked.push(partner, unrelatedLink);
+
+    const deps = depsFrom(gauge, {
+      prepareDigivolveCost: async () => {
+        const partnerIndex = permanent.linked.findIndex((card) => card.instanceId === partner.instanceId);
+        expect(partnerIndex).toBeGreaterThanOrEqual(0);
+        permanent.linked.splice(partnerIndex, 1);
+        state.players[0]!.trash.push(partner);
+      },
+    });
+    const result = await applyDigivolve(
+      state,
+      0,
+      { ...intent(permanent.permanentId, evolver.instanceId), appFusionLinkedInstanceId: partner.instanceId },
+      deps,
+    );
+
+    expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(permanent.topCard.instanceId).toBe(originalTopId);
+    expect(permanent.topCard.cardId).toBe("BT21-009");
+    expect(permanent.linked.map((card) => card.instanceId)).toEqual([unrelatedLink.instanceId]);
+    expect(state.players[0]!.trash.map((card) => card.instanceId)).toContain(partner.instanceId);
+    expect(state.players[0]!.hand.map((card) => card.instanceId)).toContain(evolver.instanceId);
+    expect(state.memory).toBe(0);
+  });
+
   it("flips the evolving card face-up so the permanent stays a recognised Digimon", async () => {
     // Regression: hand cards start face-down (setup.ts). If the digivolve does not flip the
     // new top face-up, isDigimonCard(topCard) is false and the permanent can no longer attack,

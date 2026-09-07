@@ -1,0 +1,77 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation and recurs ADVENTURE 2ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays a qualifying ADVENTURE Digimon from trash when deleted 20ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation to the same selected Digimon 3ms
+ × src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack 49ms
+   → expected ArraySchema{ items: [], …(5) } to have a length of 1 but got +0
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays an ADVENTURE Tamer at the play-cost-4 boundary 10ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an ADVENTURE card above play cost 4 2ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > executes the inherited deletion play from a realistic stack 12ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the Greymon-name alternate evolution route for 3 8ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the ADVENTURE alternate evolution route for 3 3ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 6ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 0ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 5ms
+ × src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > arms Delay from a public Armor Purge battle and free-evolves an Armor Form 3ms
+   → permanent for "option" (inst-43) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 0ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 9ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 14ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 2ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 4ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > preserves complete residual-free coverage 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces Ghost digivolution cost on your turn and gains memory on deletion 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces a Ghost evolution by exactly 1 through the public intent 3ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce an evolution into a non-Ghost card 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce a Ghost evolution from the breeding area (Q4573) 1ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a realistic host carrying Ghostmon is deleted 3ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a public battle deletes a legal Ghost host stack 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack
+AssertionError: expected ArraySchema{ items: [], …(5) } to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-075.test.ts:97:42
+     95|     })).toEqual({ ok: true });
+     96|     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.p…
+     97|     expect(s.state.players[1]!.security).toHaveLength(1);
+       |                                          ^
+     98|   });
+     99|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > arms Delay from a public Armor Purge battle and free-evolves an Armor Form
+AssertionError: permanent for "option" (inst-43) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-094.test.ts:129:26
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-094.test.ts:129:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 24 passed (26)
+   Start at  10:05:11
+   Duration  10.47s (transform 84%, import 14%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-065.test.ts src/cards/BT21/BT21-075.test.ts src/cards/BT21/BT21-094.test.ts src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

@@ -160,6 +160,35 @@ describe("ModifierLedger DP modifiers", () => {
     expect(s.perm("friendly").currentDP).toBe(10000);
   });
 
+  it("dynamically suppresses opponent modifiers during immunity and reapplies stored modifiers after expiry (Q6360-Q6362)", () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 7000, as: "target" }] } });
+    const ledgers = advance(s.engine).ledgers;
+    const targetId = s.perm("target").permanentId;
+
+    ledgers.modifiers.addDpModifier(s.state, targetId, -2000, EffectDuration.UntilEachTurnEnd, {
+      sourceSeat: 1,
+      sourceKinds: ["Digimon"],
+    });
+    expect(s.perm("target").currentDP).toBe(5000);
+
+    ledgers.continuous.addRestriction(targetId, "beAffected", EffectDuration.UntilOwnerTurnEnd, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+    ledgers.modifiers.recomputeDP(s.state, targetId);
+    expect(s.perm("target").currentDP).toBe(7000);
+
+    ledgers.modifiers.addDpModifier(s.state, targetId, -1000, EffectDuration.UntilEachTurnEnd, {
+      sourceSeat: 1,
+      sourceKinds: ["Digimon"],
+    });
+    expect(s.perm("target").currentDP).toBe(7000);
+
+    ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
+    ledgers.modifiers.recomputeDP(s.state, targetId);
+    expect(s.perm("target").currentDP).toBe(4000);
+  });
+
   it("recomputes currentDP from baseDP plus active deltas", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 3000, as: "p1" }] } });
     const permanent = s.perm("p1");
@@ -487,6 +516,21 @@ describe("ModifierLedger base-DP overrides (SetBaseDP)", () => {
 
     ledger.addBaseDpOverride(s.state, p1, 16000, EffectDuration.UntilEachTurnEnd);
     ledger.addBaseDpOverride(s.state, p1, 3000, EffectDuration.UntilEachTurnEnd);
+    expect(permanent.currentDP).toBe(3000);
+  });
+
+  it("keeps a live continuous treatment above a later triggered override (BT25-104 Q6503)", () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 0, as: "marcus" }] } });
+    const permanent = s.perm("marcus");
+    const ledger = new ModifierLedger();
+
+    ledger.addBaseDpOverride(s.state, permanent.permanentId, 12000, EffectDuration.Permanent, {
+      continuous: true,
+    });
+    ledger.addBaseDpOverride(s.state, permanent.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
+    expect(permanent.currentDP).toBe(12000);
+
+    ledger.clearContinuous(s.state);
     expect(permanent.currentDP).toBe(3000);
   });
 

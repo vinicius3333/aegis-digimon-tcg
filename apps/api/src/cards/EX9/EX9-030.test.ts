@@ -205,7 +205,7 @@ describe("EX9-030", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it.each([false, true])("may pay the trash cost under Psychemon without reducing payment (free=%s)", async (free) => {
+  it.each([false, true])("does not activate the play-cost reducer under Psychemon (free=%s)", async (free) => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX9-030", as: "source" }, "EX9-023"] },
@@ -222,9 +222,10 @@ describe("EX9-030", () => {
     expect(declared).toEqual(free ? undefined : { ok: true });
     await settle();
     expect(s.state.memory).toBe(free ? 10 : 3);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    // ST12-03 Q755: the reduction effect cannot activate, so its cost is not paid.
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-023"]);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-030");
-    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["EX9-023"]);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual([]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

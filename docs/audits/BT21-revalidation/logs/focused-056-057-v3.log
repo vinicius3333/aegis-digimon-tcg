@@ -1,0 +1,50 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > preserves both alternate Digivolution requirements and complete coverage 2ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants the opponent's Digimon the printed conditional start-of-main attack 1ms
+ × src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack 38ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer 3ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from Agumon for 2 5ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from a non-Agumon ADVENTURE rookie for the same printed cost 4ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants Reboot to a realistic evolution host 5ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 7ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 7ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-057.test.ts:79:42
+     77|     await advance(s.engine).waitForMainPhase(1);
+     78|     await settle(() => s.state.players[0]!.security.length === 0);
+     79|     expect(s.perm("target").isSuspended).toBe(true);
+       |                                          ^
+     80|     expect(s.state.players[0]!.security).toHaveLength(0);
+     81|     advance(s.engine).endMainPhaseIfOpen(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 14 passed (15)
+   Start at  09:07:20
+   Duration  11.74s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-056.test.ts src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

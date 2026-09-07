@@ -82,6 +82,8 @@ export interface SecurityManipulationAction extends ActionBase {
   bothPlayers?: boolean;
   /** For trashTop; default 1. */
   amount?: number;
+  /** Eligible loose cards when adding security from hand or handOrTrash. */
+  filter?: Filter;
   /** Compute the amount from a preceding action's named count (e.g. 7 minus deletions). */
   amountFromNamedCount?: { base: number; countSource: string; per: number; floor?: number };
   /** For trashTop: trash enough to leave this many cards in the stack. */

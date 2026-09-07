@@ -1,9 +1,10 @@
 import type { AddressInfo } from "node:net";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
-import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../db/snapshotFixture.js";
 import { RED_DECK } from "../engine/testDecks.js";
 
 /**
@@ -114,8 +115,16 @@ async function register(as: Player, tournamentId: string, deck: Deck): Promise<{
   return request("POST", `/tournaments/${tournamentId}/participants`, as, { savedDeckId: await saveDeck(as, deck) });
 }
 
-beforeEach(async () => {
-  accounts = new AccountStore(createMemoryPool());
+type Fixture = { accounts: AccountStore; url: string; close: () => Promise<void>; cookieOf: Map<string, string> };
+
+/**
+ * One express server and one database for the file, restored to its just-started state before each
+ * test. Assigns the module-level bindings rather than shadowing them: the helpers below read them.
+ */
+const fixtureFor = snapshotFixtures<Fixture>();
+
+async function buildFixture(pool: Pool): Promise<Fixture> {
+  accounts = new AccountStore(pool);
   const app = express();
   app.use(express.json());
   installAccountRoutes(app, accounts);
@@ -130,9 +139,16 @@ beforeEach(async () => {
     if (name === "organizer") await accounts.pool.query("UPDATE accounts SET is_admin=true WHERE id=$1", [account.id]);
     cookieOf.set(name, `aegis_session=${(await accounts.issueSession(account)).id}`);
   }
+  return { accounts, url, close, cookieOf };
+}
+
+beforeEach(async () => {
+  ({ accounts, url, close, cookieOf } = await fixtureFor("default", buildFixture));
 });
 
-afterEach(async () => {
+// The server and its database are shared for the file (see `fixtureFor` above), so they are torn
+// down once at the end rather than after each test.
+afterAll(async () => {
   await close();
   await accounts.close();
 });

@@ -1,0 +1,26 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > encodes the inherited Gammamon-text or Hero condition once per turn 1ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Hero trait 20ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Gammamon in text 12ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > builds the Gammamon-text branch through public evolution 6ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > does not draw for a near-match-free non-Hero host 4ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws only once across repeated attacks in the same turn 12ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces Xros Heart/Hero digivolution costs and grants Rush only while this Digimon has Xros Heart 1ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > grants inherited Rush to a Xros Heart Digimon 4ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces a matching Xros Heart evolution cost by exactly 1 2ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces a matching Hero evolution cost by exactly 1 2ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > lets a newly played and evolved Xros Heart host attack with Rush 9ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not let a newly played and evolved non-Xros Hero host attack without Rush 5ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not reduce a near-matching non-Xros-Heart/non-Hero evolution 3ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > grants inherited Rush only to an Xros Heart host and only on your turn 1ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not expose inherited Rush from breeding or during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > saves the deleted Shoutmon under one of its Tamers 6ms
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  00:57:51
+   Duration  8.28s (transform 84%, import 15%, tests 1%)

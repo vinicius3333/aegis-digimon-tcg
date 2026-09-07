@@ -43,7 +43,8 @@ describe("BT25-067 Sealsdramon", () => {
 
     const effect = BT25_067.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(effect).toMatchObject({ trigger: "YourTurn" });
-    expect(effect?.actions?.[0]).toMatchObject({
+    const subTrigger = effect!.actions[0]!;
+    expect(subTrigger).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
       sourceFilter: {
@@ -52,7 +53,7 @@ describe("BT25-067 Sealsdramon", () => {
         nameOrTrait: [{ tokens: ["D-Brigade", "ACCEL"], match: "trait" }],
       },
     });
-    expect((effect?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    expect((subTrigger as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "Digivolve",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       from: ["hand"],
@@ -134,6 +135,83 @@ describe("BT25-067 Sealsdramon", () => {
     expect(nearMatch.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       nearMatch.inst("tank").instanceId,
     );
+  });
+
+  it.each([
+    ["black", "BT10-058"],
+    ["purple", "BT10-071"],
+  ] as const)("uses the ordinary %s Lv3 evolution at exact cost 3", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "source" }], hand: [{ card: CARD_ID, as: "seals" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("seals").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("source").topCard?.cardId).toBe(CARD_ID);
+  });
+
+  it("rejects an off-color ordinary Lv3 source without changing payment state", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "source" }], hand: [{ card: CARD_ID, as: "seals" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("seals").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(CARD_ID);
+  });
+
+  it("accepts the printed D-Brigade/ACCEL alternate at exact cost 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-063", as: "source" }], hand: [{ card: CARD_ID, as: "seals" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("seals").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("source").topCard?.cardId).toBe(CARD_ID);
+  });
+
+  it("rejects the alternate when neither color nor required trait matches", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "source" }], hand: [{ card: CARD_ID, as: "seals" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("seals").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 
   it("does not trigger during the opponent's turn, and declining leaves the optional evolution untouched", async () => {

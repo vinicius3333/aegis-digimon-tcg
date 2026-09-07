@@ -1,0 +1,90 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Arts Digivolve gate, and inherited DP 4ms
+   → expected 'Main' to be 'YourTurn' // Object.is equality
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Arts Digivolves into Siriusmon for exactly 4 with two security cards 27ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-002 2ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-004 2ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security 13ms
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch 6ms
+   → permanent for "training" (seed-perm-32) is no longer on the board: expected undefined to be defined
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch 5ms
+   → permanent for "training" (seed-perm-41) is no longer on the board: expected undefined to be defined
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training target a near-name red Digimon when Siriusmon is absent 3ms
+   → permanent for "training" (seed-perm-55) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not qualify with three security and only two distinct Hero Tamer names 1ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > may decline Arts Digivolve and inherited +2000 DP expires on the opponent's turn 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Arts Digivolve gate, and inherited DP
+AssertionError: expected 'Main' to be 'YourTurn' // Object.is equality
+
+Expected: "YourTurn"
+Received: "Main"
+
+ ❯ src/cards/BT21/BT21-010.test.ts:66:77
+     64|     ]);
+     65|     const arts = compiled.effects.find((effect) => !effect.isInherited…
+     66|     expect(compiled.effects.find((effect) => !effect.isInherited)?.tri…
+       |                                                                             ^
+     67|     expect(arts).toMatchObject({
+     68|       kind: "Digivolve",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch
+AssertionError: permanent for "training" (seed-perm-32) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:47:30
+ ❯ src/cards/BT21/BT21-010.test.ts:179:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch
+AssertionError: permanent for "training" (seed-perm-41) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:47:30
+ ❯ src/cards/BT21/BT21-010.test.ts:186:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training target a near-name red Digimon when Siriusmon is absent
+AssertionError: permanent for "training" (seed-perm-55) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:47:30
+ ❯ src/cards/BT21/BT21-010.test.ts:195:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 6 passed (10)
+   Start at  21:12:10
+   Duration  7.32s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

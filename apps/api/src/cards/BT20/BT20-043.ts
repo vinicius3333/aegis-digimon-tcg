@@ -129,19 +129,21 @@ export const compiled: CompiledCard = {
           },
           payCost: true,
           optional: true,
+          bindResultAs: "dnaDigivolvedByThisEffect",
         },
         {
           kind: "Attack",
+          // Q4361: resolve the DNA result's pending effects before Counter timing.
+          drainTimingWindowDuringAttack: true,
           target: {
             filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
+              boundRef: "dnaDigivolvedByThisEffect",
             },
             count: 1,
           },
           withoutSuspending: false,
           optional: true,
-          condition: { kind: "ifThisEffectActed" },
+          condition: { kind: "bindingExists", ref: "dnaDigivolvedByThisEffect" },
         },
       ],
     },

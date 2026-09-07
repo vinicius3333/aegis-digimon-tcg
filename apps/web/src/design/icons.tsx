@@ -66,6 +66,11 @@ const ChevronRight = (p: IconProps) => (
     <polyline points="9 18 15 12 9 6" />
   </Svg>
 );
+const ChevronLeft = (p: IconProps) => (
+  <Svg {...p}>
+    <polyline points="15 18 9 12 15 6" />
+  </Svg>
+);
 const ChevronDown = (p: IconProps) => (
   <Svg {...p}>
     <path d="m6 9 6 6 6-6" />
@@ -409,6 +414,7 @@ export const Icons = {
   LogOut,
   Rocket,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   ChevronUp,
   ArrowLeft,

@@ -1,0 +1,23 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > registers all three printed timings and the Snatchmon evolution route 6ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > deletes one of the opponent's Digimon on start of main phase 23ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly deletes an opposing Digimon at the real start of its Main phase 13ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does NOT delete when it is the opponent's turn ([Your Turn] gate) 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > places exactly 4 Vemmon-text cards and uses Ragnarok Cannon for free 24ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > pays the four-card Vemmon-text placement cost even with no legal Ragnarok target 7ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: true 19ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: false 20ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly pays all four Vemmon sources before declining an eligible Ragnarok Cannon 17ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > returns exactly 4 stacked Vemmon to deck bottom to prevent leaving 8ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly builds the legal Snatchmon stack, then protects against an opponent Option deletion 23ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does not treat Snatchmon text as exact Vemmon names for leave prevention 16ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4570 cannot partially place only three Vemmon-text cards to use Ragnarok Cannon 3ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4571 cannot prevent leaving with only three stacked Vemmon 5ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > alternate-digivolves from Snatchmon for 9 3ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  19:47:29
+   Duration  30.14s (transform 85%, import 14%, tests 1%)

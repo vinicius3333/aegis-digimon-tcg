@@ -1,0 +1,30 @@
+
+> aegis@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna
+> pnpm --filter @aegis/shared build && pnpm -r typecheck
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+
+> @aegis/shared@1.1.0 copy:data /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> node scripts/copy-data.mjs
+
+copy-data: cards/data/cards.json -> dist
+copy-data: effects/effects.json -> dist
+copy-data: effects/generated-digivolve-overrides.json -> dist
+Scope: 3 of 4 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/web typecheck$ tsc --noEmit -p tsconfig.json
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/web typecheck: Done
+apps/api typecheck: src/engine/effects/catalogActionKindGate.test.ts(134,3): error TS1360: Type '{ ActivateEffect: true; ActivateForeignEffect: true; ActivateMain: true; ActivateOptionMain: true; AddDPFromSuspendedCost: true; AddDPFromTrashedCard: true; AddToDPDeleteBudget: true; ... 105 more ...; WinGame: true; }' does not satisfy the expected type 'Record<"Draw" | "DeDigivolve" | "Link" | "Trash" | "GainMemory" | "PayMemoryUpTo" | "SetMemory" | "SetTurnEndMemory" | "Delete" | "DeletePerColor" | "DeleteUntilCount" | "DeleteBudget" | ... 101 more ... | "RawUnparsed", true>'.
+apps/api typecheck:   Property 'TrashTopStackedCards' is missing in type '{ ActivateEffect: true; ActivateForeignEffect: true; ActivateMain: true; ActivateOptionMain: true; AddDPFromSuspendedCost: true; AddDPFromTrashedCard: true; AddToDPDeleteBudget: true; ... 105 more ...; WinGame: true; }' but required in type 'Record<"Draw" | "DeDigivolve" | "Link" | "Trash" | "GainMemory" | "PayMemoryUpTo" | "SetMemory" | "SetTurnEndMemory" | "Delete" | "DeletePerColor" | "DeleteUntilCount" | "DeleteBudget" | ... 101 more ... | "RawUnparsed", true>'.
+apps/api typecheck: src/engine/effects/interpreter.test.ts(752,9): error TS2741: Property 'trashStackTops' is missing in type '{ draw: (seat: Seat, n: number, opts?: { excludeInstanceIds?: readonly string[] | undefined; } | undefined) => Promise<never[]>; gainMemory: (...args: unknown[]) => never; gainMemoryForSeat: (...args: unknown[]) => never; ... 84 more ...; delayedDeletePlayed: (playedPermanentId: string, timing?: "endOfOpponentTurn" ...' but required in type 'Primitives'.
+apps/api typecheck: src/engine/effects/selfTargetIdentity.test.ts(63,5): error TS2740: Type 'CardInstance[]' is missing the following properties from type 'ArraySchema<CardInstance>': items, tmpItems, deletedIndexes, isMovingItems, and 14 more.
+apps/api typecheck: Failed
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @aegis/api@1.1.0 typecheck: `tsc --noEmit -p tsconfig.json`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.

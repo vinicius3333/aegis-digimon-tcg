@@ -1,0 +1,44 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > exposes complete effect coverage with no residual clauses
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > preserves the registered effect triggers and action boundaries
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security card when an eligible attack target changes
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only for a controller's Reptile or Dragonkin target change and only once per turn
+ × src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack 25ms
+   → expected false to be true // Object.is equality
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security from a public Raid target switch
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays a qualifying inherited Digimon from a public security attack
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free
+ ↓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > does not play for the controller's security removal and permits declining the optional play
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-025.test.ts:116:97
+    114|     expect(attacking.engine.applyIntent(0, { type: "attack", attackerP…
+    115|     await settle(() => attacking.state.players[1]!.security.length ===…
+    116|     expect(attacking.state.players[0]!.battleArea.some((p) => p.topCar…
+       |                                                                                                 ^
+    117|
+    118|     const outside = setupEngine(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 skipped (9)
+   Start at  10:52:22
+   Duration  7.51s (transform 85%, import 15%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-025.test.ts -t Progress protects --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

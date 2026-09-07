@@ -8,6 +8,7 @@ import {
   breeding,
   colorWaiverStatic,
   digivolveCostStatic,
+  endOfAttack,
   handCounter,
   inTrash,
   onAddHand,
@@ -20,6 +21,7 @@ import {
   turnTiming,
   whenMoving,
   whenAttacking,
+  whenBlocked,
   whenDigivolving,
   whenTrashedFromBattleArea,
 } from "../builders.js";
@@ -335,6 +337,10 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenDigivolving;
     case "WhenAttacking":
       return whenAttacking;
+    case "EndOfAttack":
+      return endOfAttack;
+    case "WhenBlocked":
+      return whenBlocked;
     case "WhenMoving":
       return whenMoving;
     case "OnDeletion":

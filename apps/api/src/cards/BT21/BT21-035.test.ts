@@ -56,6 +56,25 @@ describe("BT21-035 compiled implementation", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 2, isAlternate: true }]);
   });
 
+  it("refuses the alternate evolution from a level-3 that is not named Veemon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-033", as: "floramon" }], hand: [{ card: "BT21-035", as: "flamedramon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const handId = s.inst("flamedramon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("floramon").permanentId,
+        instanceId: handId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("stacks Veemon's reduction and inherited DP with its own evolution bonus", async () => {
     const s = setupEngine({
       0: {
@@ -132,5 +151,87 @@ describe("BT21-035 compiled implementation", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("flamedramon"));
 
     expect(s.perm("flamedramon").currentDP).toBe(8000);
+  });
+
+  it("expires the When Digivolving bonus after the opponent's production turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST8-04", as: "veemon", under: ["BT12-002"] }],
+        hand: [{ card: "BT21-035", as: "flame" }],
+        deck: ["BT1-001", "BT1-001"],
+      },
+      1: { deck: ["BT1-002", "BT1-002"] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("flame").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-035");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("flame").currentDP).toBe(8000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("flame").currentDP).toBe(8000);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("flame").currentDP).toBe(6000);
+  });
+
+  it("naturally unsuspends after Raid switches its public attack target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-035", as: "flame" }],
+          hand: [{ card: "BT21-075", as: "skull" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "blocker" },
+            { card: "BT1-011", as: "blocker2" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("flame"), "Raid"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("flame").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 1 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("flame").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("flame").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("flame").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

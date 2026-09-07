@@ -1,3 +1,4 @@
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -84,6 +85,28 @@ describe("BT21-048 compiled implementation", () => {
   });
 
   it("may suspend an own Digimon and may decline without suspending anything", async () => {
+    const preferred: string[] = [];
+    const publicOwn = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-048", as: "mushroomon" }],
+          battleArea: [{ card: "BT1-009", as: "ownTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(publicOwn.perm("ownTarget").topCard.instanceId);
+    publicOwn.state.memory = 4;
+    await publicOwn.ready();
+    expect(
+      publicOwn.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: publicOwn.inst("mushroomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => publicOwn.perm("ownTarget").isSuspended);
+    expect(publicOwn.perm("ownTarget").isSuspended).toBe(true);
+
     const accepted = setupEngine(
       {
         0: {
@@ -112,10 +135,10 @@ describe("BT21-048 compiled implementation", () => {
     expect(declined.perm("target").isSuspended).toBe(false);
   });
 
-  it("zero-cost digivolves from a level-2 WG card", async () => {
+  it("zero-cost digivolves from a level-2 WG egg in the breeding area", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-003", as: "wgEgg" }],
+        breeding: { card: "BT21-003", as: "wgEgg" },
         hand: [{ card: "BT21-048", as: "mushroomon" }],
       },
     });
@@ -134,27 +157,75 @@ describe("BT21-048 compiled implementation", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("rejects the zero-cost alternate evolution from a non-WG level-2 base", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-003", as: "base" }], hand: [{ card: "BT21-048", as: "mushroomon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mushroomon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-003");
+  });
+
+  it("publicly declines On Play suspension and leaves both players' Digimon ready", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-048", as: "mushroomon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mushroomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("mushroomon").instanceId),
+    );
+    expect(s.perm("mushroomon").isSuspended).toBe(false);
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+
   it("grants observable Piercing to a realistic WG evolution stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-034", as: "host", under: [{ card: "BT21-048", as: "source" }] }] },
+        0: { battleArea: [{ card: "BT21-048", as: "source" }], hand: [{ card: "BT21-034", as: "host" }] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "target", dp: 2000, suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.instanceId === s.inst("host").instanceId);
+    expect(observe(s.engine).hasPierce(s.perm("source"))).toBe(true);
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
+        attackerPermanentId: s.perm("source").permanentId,
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

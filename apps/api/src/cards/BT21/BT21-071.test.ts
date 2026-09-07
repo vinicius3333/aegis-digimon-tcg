@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-071.js";
 import "../index.js";
@@ -66,10 +64,8 @@ describe("BT21-071 Scopemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT21-071", as: "scopemon" },
-            { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "existing" }] },
-          ],
+          battleArea: [{ card: "BT21-069", as: "host", under: [{ card: "BT1-009", as: "existing" }] }],
+          hand: [{ card: "BT21-071", as: "scopemon" }],
           trash: [{ card: "BT6-065", as: "musketeer" }],
         },
       },
@@ -77,13 +73,16 @@ describe("BT21-071 Scopemon", () => {
     );
     await s.ready();
     preferred.push(s.inst("musketeer").instanceId, s.perm("host").permanentId);
-    s.state.memory = 0;
+    s.state.memory = 10;
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("scopemon"));
-    await settle(() => s.state.memory === 1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scopemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("musketeer").instanceId));
 
     expect(s.perm("host").stack[0]?.instanceId).toBe(s.inst("musketeer").instanceId);
     expect(s.perm("host").stack.at(-1)?.instanceId).toBe(s.inst("existing").instanceId);
+    expect(s.state.memory).toBe(7); // play cost 4, then the optional placement gains 1 memory
   });
 
   it.each([
@@ -93,8 +92,10 @@ describe("BT21-071 Scopemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-071", as: "scopemon" }],
-          hand: [{ card: costCard, as: "cost" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: costCard, as: "cost" },
+          ],
         },
       },
       decline
@@ -102,11 +103,70 @@ describe("BT21-071 Scopemon", () => {
         : { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 0;
+    s.state.memory = 10;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("scopemon"));
-    expect(s.state.memory).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scopemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-071") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("scopemon").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+  });
+
+  it("publicly declines placement when no Appmon or Three Musketeers card is eligible", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: "BT1-009", as: "nonmatching" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scopemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-071"));
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
+  });
+
+  it("publicly places an eligible Three Musketeers card from trash during alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-054", as: "shotmon" }],
+          hand: [{ card: "BT21-071", as: "scopemon" }],
+          trash: [{ card: "BT6-065", as: "musketeer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shotmon").permanentId,
+        instanceId: s.inst("scopemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shotmon").stack.some((card) => card.instanceId === s.inst("musketeer").instanceId));
+    expect(s.perm("shotmon").stack[0]?.instanceId).toBe(s.inst("musketeer").instanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("musketeer").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(2);
   });
 
   it("links for 2, draws two, and trashes exactly two selected hand cards", async () => {
@@ -143,6 +203,8 @@ describe("BT21-071 Scopemon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("scopemon").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("drawA").instanceId, s.inst("drawB").instanceId]),
     );
@@ -168,5 +230,35 @@ describe("BT21-071 Scopemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("shotmon").topCard.instanceId === s.inst("scopemon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("resolves the placement-and-memory branch from a public alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-054", as: "shotmon" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: "BT21-041", as: "appmon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shotmon").permanentId,
+        instanceId: s.inst("scopemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shotmon").topCard.cardId === "BT21-071");
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("shotmon").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
   });
 });

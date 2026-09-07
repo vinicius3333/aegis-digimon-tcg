@@ -1,0 +1,50 @@
+Command: pnpm exec oxfmt (176 explicitly scoped paths)
+Finished in 68ms on 176 files using 10 threads.
+Command: pnpm exec oxlint (176 explicitly scoped paths)
+apps/api/src/engine/effects/tamerEvolutionEvents.test.ts:92:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-059.test.ts:2:10: warning eslint(no-unused-vars): Identifier 'advance' is imported but never used. help: Consider removing this import.
+apps/api/src/cards/BT21/BT21-075.test.ts:217:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-075.test.ts:225:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-075.test.ts:226:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:161:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:162:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:163:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:164:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:186:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:187:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:188:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:299:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:300:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:301:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:302:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:319:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:320:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:321:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:322:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:461:20: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:493:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:494:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:570:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:591:20: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/engine/actions/digivolve.test.ts:438:28: warning vitest(require-mock-type-parameters): Missing type parameters on mock function call help: Add a type parameter to the mock function, e.g. `vi.fn<() => void>()`.
+apps/api/src/engine/actions/digivolve.test.ts:473:32: warning vitest(require-mock-type-parameters): Missing type parameters on mock function call help: Add a type parameter to the mock function, e.g. `vi.fn<() => void>()`.
+apps/api/src/cards/BT21/BT21-031.test.ts:3:10: warning eslint(no-unused-vars): Identifier 'advance' is imported but never used. help: Consider removing this import.
+apps/api/src/cards/BT21/BT21-041.test.ts:131:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+packages/shared/src/protocol/events.ts:281:7: warning eslint(no-underscore-dangle): Unexpected dangling '_' in '`_serverEventKindsComplete`'. help: Remove the dangling '_' or add `_serverEventKindsComplete` to the 'allow' configuration.
+packages/shared/src/protocol/events.ts:383:7: warning eslint(no-underscore-dangle): Unexpected dangling '_' in '`_targetFatesComplete`'. help: Remove the dangling '_' or add `_targetFatesComplete` to the 'allow' configuration.
+packages/shared/src/protocol/events.ts:406:7: warning eslint(no-underscore-dangle): Unexpected dangling '_' in '`_decisionKindsComplete`'. help: Remove the dangling '_' or add `_decisionKindsComplete` to the 'allow' configuration.
+apps/api/src/cards/BT21/BT21-038.test.ts:160:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT24/BT24-087.test.ts:224:42: warning eslint(no-shadow): 'card' is already declared in the upper scope. help: Consider renaming 'card' to avoid shadowing the variable from the outer scope.
+apps/api/src/cards/BT24/BT24-087.test.ts:225:43: warning eslint(no-shadow): 'card' is already declared in the upper scope. help: Consider renaming 'card' to avoid shadowing the variable from the outer scope.
+apps/api/src/cards/BT24/BT24-087.test.ts:272:3: warning vitest(expect-expect): Test has no assertions help: Add assertion(s) in this Test
+apps/api/src/cards/BT21/BT21-073.test.ts:234:7: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-040.test.ts:379:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-040.test.ts:380:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-040.test.ts:381:9: warning vitest(no-conditional-expect): Unexpected conditional expect help: Avoid calling `expect` conditionally
+apps/api/src/cards/BT21/BT21-030.test.ts:366:79: warning eslint(no-shadow): 'card' is already declared in the upper scope. help: Consider renaming 'card' to avoid shadowing the variable from the outer scope.
+apps/api/src/cards/BT21/BT21-030.test.ts:376:43: warning eslint(no-shadow): 'card' is already declared in the upper scope. help: Consider renaming 'card' to avoid shadowing the variable from the outer scope.
+Command: pnpm exec oxfmt (176 explicitly scoped paths)
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 64ms on 176 files using 10 threads.

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT25-049 (Armalizamon).
 // runtime-effect fix:
 // - YourTurn Replacement: sourceFilter adds kind:["Option"] + Glowing Dawn trait restriction.

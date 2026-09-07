@@ -4,6 +4,7 @@ import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { selfTargetPermanent } from "../matching/selfTarget.js";
 import { scaleFactor } from "../scaling.js";
 import type { Condition, Filter, Permanent, Seat, Target } from "@aegis/shared";
 
@@ -61,7 +62,7 @@ export function candidatePermanents(
   // no candidates, never throw: a TypeError here aborts the whole intent, so one malformed
   // action silently disables every later action in the same effect.
   if ((target.isSelf || target.filter?.isSelfRef) && (target.orFilters?.length ?? 0) === 0) {
-    const self = source.permanent();
+    const self = selfTargetPermanent(ctx, source);
     if (self === undefined) return [];
     // Real self targets still have to satisfy their printed qualifiers (for example,
     // "this blue Digimon with [TS]"). Some lightweight dispatch seams intentionally

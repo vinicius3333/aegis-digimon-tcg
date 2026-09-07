@@ -304,6 +304,9 @@ export async function runPlaceUnder(
     return;
   }
   if (action.target?.isSelf || action.target?.filter?.isSelfRef) {
+    // A deleted source that an earlier action already moved cannot move again as
+    // "this card", nor can its new host become the source of the continuation.
+    if (ctx.activeTiming === "OnDeletion" && ctx.source.isInTrash?.() === false) return;
     // ＜Save＞ form: place THIS card under one of the controller's Tamers (chosen).
     // `underFilter` carries the destination predicate (mine, Tamer, non-Token).
     const underFilter = action.underFilter ?? {
@@ -316,11 +319,7 @@ export async function runPlaceUnder(
         ctx.source.permanent() ??
         ctx.game
           .player(ctx.source.ownerSeat)
-          .battleArea.find(
-            (permanent) =>
-              permanent.topCard?.instanceId === ctx.source.instanceId ||
-              permanent.topCard?.cardId === ctx.source.cardId,
-          );
+          .battleArea.find((permanent) => permanent.topCard?.instanceId === ctx.source.instanceId);
       // `lastPlayed`: the host is whatever this effect's own PlayWithoutCost just played
       // ("place this card as the PLAYED Digimon's bottom digivolution card" — EX9-005),
       // not a fresh choice among the controller's board.

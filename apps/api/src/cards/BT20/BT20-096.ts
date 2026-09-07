@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           to: "deckBottom",
+          from: ["trash"],
           condition: {
             kind: "zoneCount",
             seat: "mine",

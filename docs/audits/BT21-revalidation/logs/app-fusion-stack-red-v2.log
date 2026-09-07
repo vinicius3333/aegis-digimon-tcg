@@ -1,0 +1,61 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ × src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Navimon above Gatchmon into the DoGatchmon stack through Haru 146ms
+   → expected [ 'BT21-009' ] to deeply equal [ 'BT21-009', 'BT21-047' ]
+ × src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Gatchmon above Navimon into the same App Fusion stack 87ms
+   → expected [ 'BT21-047' ] to deeply equal [ 'BT21-047', 'BT21-009' ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Navimon above Gatchmon into the DoGatchmon stack through Haru
+AssertionError: expected [ 'BT21-009' ] to deeply equal [ 'BT21-009', 'BT21-047' ]
+
+- Expected
++ Received
+
+  [
+    "BT21-009",
+-   "BT21-047",
+  ]
+
+ ❯ src/engine/effects/appFusionStack.test.ts:44:61
+     42|
+     43|     expect(s.perm("host").topCard.cardId).toBe("BT21-018");
+     44|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+       |                                                             ^
+     45|     expect(s.perm("host").linked).toHaveLength(0);
+     46|     expect(s.perm("host").currentDP).toBe(6000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Gatchmon above Navimon into the same App Fusion stack
+AssertionError: expected [ 'BT21-047' ] to deeply equal [ 'BT21-047', 'BT21-009' ]
+
+- Expected
++ Received
+
+  [
+    "BT21-047",
+-   "BT21-009",
+  ]
+
+ ❯ src/engine/effects/appFusionStack.test.ts:89:61
+     87|     );
+     88|
+     89|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+       |                                                             ^
+     90|     expect(s.perm("host").linked).toHaveLength(0);
+     91|     expect(s.perm("host").currentDP).toBe(6000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  20:08:28
+   Duration  21.64s (transform 85%, import 14%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/appFusionStack.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

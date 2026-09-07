@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import "../BT1/BT1-020.js";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -99,7 +100,7 @@ describe("EX8-060", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-081", as: "host", under: ["EX8-060"] },
+            { card: "BT1-020", as: "host", under: ["EX8-060"] },
             { card: "BT1-010", as: "other" },
           ],
         },
@@ -197,7 +198,7 @@ describe("EX8-060", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-081", as: "host", under: ["EX8-060"] },
+            { card: "BT1-020", as: "host", under: ["EX8-060"] },
             { card: "BT1-010", as: "otherA" },
             { card: "BT1-011", as: "otherB" },
           ],

@@ -1,5 +1,6 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_011 } from "./BT25-011.js";
 import "../index.js";
@@ -55,6 +56,128 @@ describe("BT25-011 Aquilamon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT16-012");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("silphymon").instanceId);
+  });
+
+  it("suspends on the opponent turn but does not offer the conditional DNA effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-011", as: "aquilamon" },
+            { card: "BT24-034", as: "partner" },
+          ],
+          hand: [{ card: "BT16-012", as: "silphymon" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("aquilamon"));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT16-012"]);
+  });
+
+  it("does not DNA-digivolve when there is only one own material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-011", as: "aquilamon" }],
+          hand: [{ card: "BT16-012", as: "silphymon" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("aquilamon"));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual(["BT25-011"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT16-012"]);
+  });
+
+  it("reaches Aquilamon through a legal Hawkmon stack, then resolves DNA into Silphymon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-010", as: "hawkmon" },
+            { card: "BT24-034", as: "partner" },
+          ],
+          hand: [
+            { card: "BT25-011", as: "aquilamon" },
+            { card: "BT16-012", as: "silphymon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hawkmon").permanentId,
+        instanceId: s.inst("aquilamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("target").isSuspended &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-012"),
+    );
+
+    const merged = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT16-012")!;
+    expect(merged.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT25-010", "BT25-011", "BT24-034"]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    // Both BT25-010 and BT25-011 are inherited sources in this legal DNA stack.
+    expect(merged.currentDP).toBe(12000);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(merged.currentDP).toBe(8000);
+  });
+
+  it("declines the optional DNA evolution despite two legal materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-011", as: "aquilamon" },
+            { card: "BT24-034", as: "partner" },
+          ],
+          hand: [{ card: "BT16-012", as: "silphymon" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const firing = advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("aquilamon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual(["BT25-011", "BT24-034"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT16-012"]);
   });
 
   it("uses the printed Raid keyword on a public player-directed attack", async () => {

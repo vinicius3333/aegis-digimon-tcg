@@ -1,0 +1,15 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays from security and deletes one opposing Digimon at 4000 DP or less on play or digivolution 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays for 5 and deletes exactly one opposing Digimon at the 4000 DP boundary 16ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > deletes an eligible Digimon after a real digivolution 9ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays itself free from Security and resolves its On Play deletion 8ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > grants inherited +2000 DP only during its controller's turn 1ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  01:09:08
+   Duration  8.58s (transform 84%, import 15%)

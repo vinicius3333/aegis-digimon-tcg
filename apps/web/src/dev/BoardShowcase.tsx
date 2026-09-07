@@ -173,6 +173,20 @@ const TRIGGER_DECISION: DecisionRequest = {
   },
 };
 
+/** One permanent, two windows: the case that must never read as two copies. */
+const SAME_PERMANENT_TRIGGER_DECISION: DecisionRequest = {
+  decisionId: "showcase-same-permanent-triggers",
+  seat: 0,
+  kind: "orderTriggers",
+  promptText: "Choose one effect to activate",
+  options: {
+    triggerKeys: [`p-you-1-top::EX12-064/on-play`, `p-you-1-top::EX12-064/when-digivolving`],
+    triggerCardIds: ["EX12-064", "EX12-064"],
+    triggerTimings: ["OnPlay", "WhenDigivolving"],
+    timing: "OnPlay",
+  },
+};
+
 const HAND_SELECTION_DECISION: DecisionRequest = {
   decisionId: "showcase-hand-selection",
   seat: 0,
@@ -1433,6 +1447,21 @@ export function BoardShowcase() {
               triggerDetails={[
                 { sourceLabel: "Field:1", summary: "Draw 1 card, then trash 1 card in your hand." },
                 { sourceLabel: "Field:2", summary: "Delete 1 of your opponent's Digimon with 5000 DP or…" },
+              ]}
+              onTogglePick={noop}
+              onRespond={noop}
+            />
+          </div>
+        </Stage>
+        <Stage label="trigger chooser (one permanent, two windows)" height={700}>
+          <div className="game-modal" style={{ position: "absolute", inset: 0 }}>
+            <DecisionOverlay
+              request={SAME_PERMANENT_TRIGGER_DECISION}
+              candidates={[]}
+              picks={[]}
+              triggerDetails={[
+                { sourceLabel: "Field: 1", summary: "Delete 1 of your opponent's level 4 or lower Digimon…" },
+                { sourceLabel: "Field: 1", summary: "Delete 1 of your opponent's level 4 or lower Digimon…" },
               ]}
               onTogglePick={noop}
               onRespond={noop}

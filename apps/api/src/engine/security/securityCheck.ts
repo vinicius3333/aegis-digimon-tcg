@@ -9,6 +9,7 @@ import {
   type SecurityBattleResult,
   type ServerEvent,
 } from "@aegis/shared";
+import { peekCheckedCard, takeCheckedCard, withCheckedCard } from "./checkedCard.js";
 import { resolveSecurityBattle } from "../combat/resolve.js";
 import { extractCardAt, insertCard } from "../state/access.js";
 import type { WinCheck } from "./winCheck.js";
@@ -29,35 +30,26 @@ import type { WinCheck } from "./winCheck.js";
  *   3. Otherwise loop up to `Strike` times while security cards remain:
  *      a. take the top security card (security[0]), reveal it (faceUp = true) and
  *         announce the reveal (`securityRevealed`) before anything it causes,
- *      b. run its [Security] effect, if any (the card is STILL in the security
- *         stack, so a [Security] "play this card" effect can locate it there),
- *      c. fire the OnSecurityCheck trigger,
- *      d. remove it from the security stack (by instanceId; skipped if the
- *         effect already moved it out),
- *      e. fire OnLoseSecurity + whenSecurityRemoved watchers,
- *      f. if the card is still a Security Digimon -> battle the attacker (DP compare),
- *      g. the checked card goes to trash unless an effect relocated it,
- *      h. stop early if the attacker has left play.
+ *      b. remove the checked card into its temporary no-area context,
+ *      c. run its immediate [Security] effect, then the simultaneous check/removal pool,
+ *      d. if the checked card is still a Security Digimon, battle the attacker,
+ *      e. move the checked card to trash unless an effect relocated it,
+ *      f. stop early if the attacker has left play.
  *
- * Step b runs BEFORE step c: Comprehensive Rules 15-16-10-2 — "a triggered [Security]
+ * The immediate Security effect precedes other activations: CR 15-16-10-2 — "a triggered [Security]
  * effect will immediately activate without pending activation. Therefore, [Security]
  * effects take precedence for activation even when they trigger simultaneously with
  * other effects" — confirmed by KB Q6085/Q2221.
  *
- * Steps d/e run BEFORE the battle (Comprehensive Rules 13-1-6: "a checked card is
+ * Removal and its watchers precede the battle (Comprehensive Rules 13-1-6: "a checked card is
  * removed from the security stack" happens at the check; the battle is the later
  * 13-1-8-3 step). So an attacker deleted BY the battle still fires its
  * whenSecurityRemoved watchers (e.g. BT14-001's inherited ＜Draw 1＞), while one removed
  * by the [Security] effect does not (KB Q2611/Q2629).
  *
- * Known limitation (Comprehensive Rules 13-1-6 + 15-4-3-5): OnSecurityCheck and
- * OnLoseSecurity are one simultaneous trigger set in the rules — the checked card is
- * removed from the stack AS it is checked, so both timings occur at the same point and
- * the turn player orders all of them first. This engine opens the two timing windows in
- * sequence instead, because the resolver's collect/fixpoint is keyed on a single
- * EffectTiming. Consequence: a non-turn-player OnSecurityCheck effect resolves before a
- * turn-player OnLoseSecurity effect. Fixing it needs a multi-timing window in
- * effects/stack.ts, not a change here.
+ * Reveal, OnSecurityCheck, OnLoseSecurity and security-removal watchers share one pending
+ * activation pool. The engine snapshots eligibility before the immediate Security effect,
+ * then permits controller ordering across all families (Q4284, CR 15-4-3-5).
  *
  * The pieces this subsystem does not own — firing the effect stack at a timing
  * window, activating a card's [Security] effect, and the concrete deletePermanent
@@ -139,10 +131,18 @@ export interface SecurityCheckDeps {
    */
   fireFaceUpSecurityAdded?(info: { seat: Seat; instanceId: string }): Promise<void>;
 
+  /** Capture all simultaneous check/removal triggers; activate after the immediate [Security] effect. */
+  prepareCheckTriggers?(info: {
+    attackerPermanentId: string;
+    securityInstanceId: string;
+    defenderSeat: Seat;
+    wasAlreadyFaceUp: boolean;
+  }): () => Promise<void>;
+
   /**
    * Resolve the revealed card's [Security] effect, if any. Returns true when a
    * security effect existed and was resolved. A Digimon still battles afterward unless
-   * that effect relocated it out of security. `attackerPermanentId`
+   * that effect relocated it into an area. `attackerPermanentId`
    * identifies the attacking permanent so a security-effect disable attached to it
    * (DisableSecurityEffect) can skip the effect while still trashing the card (KB Q886).
    */
@@ -245,7 +245,7 @@ export async function runSecurityCheck(
     const revealed = defender.security[0];
     if (revealed === undefined) break;
 
-    // A pre-existing face-up security card fires whenCheckedFaceUpSecurity BEFORE the reveal
+    // A pre-existing face-up security card triggers whenCheckedFaceUpSecurity at the reveal
     // (KB BT20-055: "when your Digimon checks a face-up security card"). Check the flag now,
     // before the reveal sets it, so a face-down card never triggers the event.
     const wasAlreadyFaceUp = revealed.faceUp === true;
@@ -277,106 +277,79 @@ export async function runSecurityCheck(
       ...hints,
     });
 
-    if (wasAlreadyFaceUp) {
-      await deps.fireSubTrigger?.("whenCheckedFaceUpSecurity", {
+    // CR 13-1-6: the checked card leaves security before triggered effects resolve.
+    // Keep it accessible only by its exact identity while it has no area.
+    extractCardAt(defender, Zone.Security, 0);
+    await withCheckedCard(state, { card: revealed, seat: defenderSeat }, async () => {
+      const activateCheckTriggers = deps.prepareCheckTriggers?.({
         attackerPermanentId: attacker.permanentId,
         securityInstanceId: revealed.instanceId,
+        defenderSeat,
+        wasAlreadyFaceUp,
       });
-    } else {
-      // The check just flipped a face-down card face-up — the other half of
-      // "whenFaceUpCardsAddedToOpponentSecurity" (KB Q5789 binding: a security check revealing
-      // a card counts as a face-up card being "added", not just an effect-driven add). Fires
-      // for defenderSeat's stack; the interpreter gate matches a watcher only when defenderSeat
-      // is THAT watcher's own opponent (so the defender's own copy of this card does not react
-      // to its own security being checked).
-      await deps.fireFaceUpSecurityAdded?.({ seat: defenderSeat, instanceId: revealed.instanceId });
-    }
+      // Q4284: Security immediately activates; all other simultaneous triggers remain pending.
+      const securityEffectActivated = await deps.resolveSecurityEffect(
+        revealed,
+        attacker.permanentId,
+        wasAlreadyFaceUp,
+      );
+      if (activateCheckTriggers !== undefined) {
+        await activateCheckTriggers();
+      } else {
+        // Subsystem fakes may expose separate ports; GameEngine supplies the unified pool.
+        if (wasAlreadyFaceUp) {
+          await deps.fireSubTrigger?.("whenCheckedFaceUpSecurity", {
+            attackerPermanentId: attacker.permanentId,
+            securityInstanceId: revealed.instanceId,
+          });
+        } else {
+          await deps.fireFaceUpSecurityAdded?.({ seat: defenderSeat, instanceId: revealed.instanceId });
+        }
+        const info = {
+          attackerPermanentId: attacker.permanentId,
+          securityInstanceId: revealed.instanceId,
+          removedFromSecuritySeat: defenderSeat,
+        };
+        await deps.fireTiming(EffectTiming.OnSecurityCheck, info);
+        await deps.fireTiming(EffectTiming.OnLoseSecurity, info);
+        await deps.fireSubTrigger?.("whenSecurityRemoved", info);
+      }
 
-    // Resolve the card's own [Security] effect FIRST — before the triggers this check
-    // fired. Comprehensive Rules 15-16-10-2: a [Security] effect activates immediately
-    // without pending activation, so it takes precedence even over effects that triggered
-    // simultaneously (KB Q6085/Q2221).
-    //
-    // It resolves WHILE the card is still in the security stack (Comprehensive Rules
-    // §15-14-5: a {Security} effect activates while its card is face-up in the security
-    // stack), so a [Security] "play this card" effect (playFromSecurity) can locate it
-    // there. The battle, if any, happens after the removal triggers below.
-    const securityEffectActivated = await deps.resolveSecurityEffect(revealed, attacker.permanentId, wasAlreadyFaceUp);
-
-    // Triggers that watch the check / the security loss.
-    await deps.fireTiming(EffectTiming.OnSecurityCheck, {
-      attackerPermanentId: attacker.permanentId,
-      securityInstanceId: revealed.instanceId,
-    });
-
-    // Either the [Security] effect or an OnSecurityCheck-timed reaction may have already
-    // relocated the revealed card out of the security stack — e.g. Baihumon's "when your
-    // security is checked, if that card is a Digimon with [Deva], play it WITHOUT BATTLING
-    // and without paying the cost" (EX5-053, KB Q3644/Q3645). A relocated card is not a
-    // Security Digimon any more, so it never battles.
-    const remainsInSecurity = defender.security.some((card) => card.instanceId === revealed.instanceId);
-    const hadSecurityEffect = securityEffectActivated || !remainsInSecurity;
-    // An attacker that already left play (e.g. via the [Security] effect) never battles.
-    const battlesAttacker =
-      remainsInSecurity && deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined;
-    const resolution: "effect" | "battle" | "trashed" = battlesAttacker
-      ? "battle"
-      : hadSecurityEffect
-        ? "effect"
-        : "trashed";
-
-    // Remove it from the security stack (source: IReduceSecurity removes
-    // SecurityCards[0]) — located by instanceId, NOT a blind shift: if the
-    // [Security] effect already moved the card out (played itself / returned to
-    // hand), a shift would wrongly remove a DIFFERENT security card.
-    const revealedIndex = defender.security.findIndex((c) => c.instanceId === revealed.instanceId);
-    if (revealedIndex >= 0) extractCardAt(defender, Zone.Security, revealedIndex);
-
-    await deps.fireTiming(EffectTiming.OnLoseSecurity, {
-      attackerPermanentId: attacker.permanentId,
-      securityInstanceId: revealed.instanceId,
-      removedFromSecuritySeat: defenderSeat,
-    });
-    // SubTrigger bus: "when a card is removed from security" watchers, co-located with
-    // OnLoseSecurity. The removed security card is the event subject (a loose instance).
-    await deps.fireSubTrigger?.("whenSecurityRemoved", {
-      attackerPermanentId: attacker.permanentId,
-      securityInstanceId: revealed.instanceId,
-      removedFromSecuritySeat: defenderSeat,
-    });
-
-    // The battle against a Security Digimon is the step AFTER the card left the
-    // security stack (CR 13-1-8-3, 13-1-7 "a checked Digimon card is treated as a
-    // Security Digimon"), so watchers of the removal have already run by now.
-    const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed) : undefined;
-
-    emit({
-      kind: "securityChecked",
-      seat: defenderSeat,
-      revealedCardId: revealed.cardId,
-      resolution,
-      ...(battle === undefined ? {} : { battle }),
-    });
-
-    // The checked card goes to trash unless an effect already relocated it
-    // (e.g. a security Digimon that survived and was put into play, or a
-    // [Security] effect that moved it elsewhere).
-    const trashedFromSecurity = trashIfStillLoose(state, defenderSeat, revealed);
-    if (trashedFromSecurity) {
-      await deps.fireSubTrigger?.("whenCardTrashedFromSecurity", {
-        attackerPermanentId: attacker.permanentId,
-        securityInstanceId: revealed.instanceId,
-        removedFromSecuritySeat: defenderSeat,
-        trashedFromSecurityInstanceIds: [revealed.instanceId],
+      const stillChecked = peekCheckedCard(state, revealed.instanceId) !== undefined;
+      const hadSecurityEffect = securityEffectActivated || !stillChecked;
+      const battlesAttacker =
+        stillChecked && deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined;
+      const resolution: "effect" | "battle" | "trashed" = battlesAttacker
+        ? "battle"
+        : hadSecurityEffect
+          ? "effect"
+          : "trashed";
+      const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed) : undefined;
+      emit({
+        kind: "securityChecked",
+        seat: defenderSeat,
+        revealedCardId: revealed.cardId,
+        resolution,
+        ...(battle === undefined ? {} : { battle }),
       });
-    }
-
-    if (battlesAttacker) {
-      await deps.fireSubTrigger?.("whenSecurityBattleEnded", {
-        attackerPermanentId: attacker.permanentId,
-        securityInstanceId: revealed.instanceId,
-      });
-    }
+      const trashedFromSecurity =
+        peekCheckedCard(state, revealed.instanceId) !== undefined && trashIfStillLoose(state, defenderSeat, revealed);
+      takeCheckedCard(state, revealed.instanceId);
+      if (trashedFromSecurity) {
+        await deps.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+          attackerPermanentId: attacker.permanentId,
+          securityInstanceId: revealed.instanceId,
+          removedFromSecuritySeat: defenderSeat,
+          trashedFromSecurityInstanceIds: [revealed.instanceId],
+        });
+      }
+      if (battlesAttacker) {
+        await deps.fireSubTrigger?.("whenSecurityBattleEnded", {
+          attackerPermanentId: attacker.permanentId,
+          securityInstanceId: revealed.instanceId,
+        });
+      }
+    });
 
     // A loss may have been flagged by an effect during resolution.
     if (win.resolveLossFlags()) break;

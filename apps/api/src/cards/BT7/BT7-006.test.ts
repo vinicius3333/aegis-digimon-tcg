@@ -10,7 +10,7 @@ describe("BT7-006 Kokomon", () => {
           battleArea: [{ card: "BT6-069", under: ["BT7-006"], as: "host" }],
           deck: [{ card: "BT1-085", as: "tamer" }, "BT1-010", "BT1-011"],
         },
-        1: { security: ["BT1-101"] },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -35,7 +35,7 @@ describe("BT7-006 Kokomon", () => {
           battleArea: [{ card: "BT6-069", under: ["BT7-006"], as: "host" }],
           deck: [{ card: "BT1-085", as: "tamer" }, "BT1-010", "BT1-011"],
         },
-        1: { security: ["BT1-101"] },
+        1: { security: ["BT1-001"] },
       },
       { autoDeclineOptional: true },
     );

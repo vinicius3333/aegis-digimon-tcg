@@ -36,11 +36,11 @@ export const compiled: CompiledCard = {
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
+            kind: "selfDigivolutionStackMatchesFilter",
             filter: {
               nameOrTrait: [
-                { tokens: ["MegaSeadramon"], match: "name" },
-                { tokens: ["X Antibody"], match: "trait" },
+                { tokens: ["MegaSeadramon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
             raw: "[MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards",
@@ -78,11 +78,11 @@ export const compiled: CompiledCard = {
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
+            kind: "selfDigivolutionStackMatchesFilter",
             filter: {
               nameOrTrait: [
-                { tokens: ["MegaSeadramon"], match: "name" },
-                { tokens: ["X Antibody"], match: "trait" },
+                { tokens: ["MegaSeadramon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
             raw: "[MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards",
