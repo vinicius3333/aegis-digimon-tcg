@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-050.js";
 import "../index.js";
 
@@ -75,6 +76,7 @@ describe("BT21-050 Cherrymon", () => {
   });
 
   it("Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -83,8 +85,11 @@ describe("BT21-050 Cherrymon", () => {
         },
         1: { battleArea: [{ card: "ST18-03", as: "falcomon" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    const redirectTargetId = s.perm("cherrymon").permanentId;
+    // Falcomon suspends Cherrymon before the same attack can redirect to it.
+    preferred.push(s.perm("cherrymon").topCard.instanceId);
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
@@ -100,6 +105,14 @@ describe("BT21-050 Cherrymon", () => {
 
     expect(s.perm("cherrymon").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "attackDeclared",
+        target: { kind: "permanent", permanentId: redirectTargetId },
+      }),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === redirectTargetId)).toBe(true);
   });
 
   it("Q4556 observably permits an own Digimon suspension", async () => {
