@@ -27,7 +27,12 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId));
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "combatResolved") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId),
+    );
 
     expect(s.perm("marcus").currentDP).toBe(12000);
     expect(s.perm("marcus").isSuspended).toBe(true);
@@ -51,7 +56,7 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
     ]);
   });
 
-  it("Q4620 may decline the attack while retaining the temporary Digimon treatment", async () => {
+  it("retains the temporary Digimon treatment when no opponent Digimon is eligible", async () => {
     const s = setup(
       {
         0: {
