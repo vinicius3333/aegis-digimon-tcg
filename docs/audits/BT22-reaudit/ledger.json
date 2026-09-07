@@ -2,7 +2,7 @@
   "set": "BT22",
   "date": "2026-09-07",
   "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
-  "status": "incomplete",
+  "status": "complete",
   "scoreCategories": [
     "catalogRules",
     "irTrace",
@@ -19,8 +19,8 @@
     "lint": "passed",
     "format": "passed",
     "diffCheck": "passed",
-    "pushed": "pending",
-    "reviewPr": "pending"
+    "pushed": "passed",
+    "reviewPr": "passed"
   },
   "cards": [
     {
@@ -50,9 +50,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-001.md",
       "commands": [
         {
@@ -113,9 +113,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-002.md",
       "commands": [
         {
@@ -175,9 +175,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-003.md",
       "commands": [
         {
@@ -238,9 +238,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-004.md",
       "commands": [
         {
@@ -301,9 +301,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-005.md",
       "commands": [
         {
@@ -364,9 +364,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-006.md",
       "commands": [
         {
@@ -426,9 +426,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-007.md",
       "commands": [
         {
@@ -500,9 +500,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-008.md",
       "commands": [
         {
@@ -571,9 +571,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-009.md",
       "commands": [
         {
@@ -649,9 +649,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-010.md",
       "commands": [
         {
@@ -727,9 +727,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-011.md",
       "commands": [
         {
@@ -805,9 +805,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-012.md",
       "commands": [
         {
@@ -883,9 +883,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-013.md",
       "commands": [
         {
@@ -961,9 +961,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-014.md",
       "commands": [
         {
@@ -1040,9 +1040,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-015.md",
       "commands": [
         {
@@ -1113,9 +1113,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-016.md",
       "commands": [
         {
@@ -1191,9 +1191,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-017.md",
       "commands": [
         {
@@ -1264,9 +1264,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-018.md",
       "commands": [
         {
@@ -1335,9 +1335,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-019.md",
       "commands": [
         {
@@ -1406,9 +1406,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-020.md",
       "commands": [
         {
@@ -1479,9 +1479,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-021.md",
       "commands": [
         {
@@ -1549,9 +1549,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-022.md",
       "commands": [
         {
@@ -1620,9 +1620,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-023.md",
       "commands": [
         {
@@ -1692,9 +1692,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-024.md",
       "commands": [
         {
@@ -1763,9 +1763,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-025.md",
       "commands": [
         {
@@ -1839,9 +1839,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-026.md",
       "commands": [
         {
@@ -1911,9 +1911,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-027.md",
       "commands": [
         {
@@ -1981,9 +1981,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-028.md",
       "commands": [
         {
@@ -2052,9 +2052,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-029.md",
       "commands": [
         {
@@ -2121,9 +2121,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-030.md",
       "commands": [
         {
@@ -2198,9 +2198,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-031.md",
       "commands": [
         {
@@ -2270,9 +2270,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-032.md",
       "commands": [
         {
@@ -2344,9 +2344,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-033.md",
       "commands": [
         {
@@ -2418,9 +2418,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-034.md",
       "commands": [
         {
@@ -2493,9 +2493,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-035.md",
       "commands": [
         {
@@ -2567,9 +2567,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-036.md",
       "commands": [
         {
@@ -2637,9 +2637,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-037.md",
       "commands": [
         {
@@ -2709,9 +2709,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-038.md",
       "commands": [
         {
@@ -2779,9 +2779,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-039.md",
       "commands": [
         {
@@ -2853,9 +2853,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-040.md",
       "commands": [
         {
@@ -2924,9 +2924,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-041.md",
       "commands": [
         {
@@ -2995,9 +2995,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-042.md",
       "commands": [
         {
@@ -3071,9 +3071,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-043.md",
       "commands": [
         {
@@ -3148,9 +3148,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-044.md",
       "commands": [
         {
@@ -3219,9 +3219,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-045.md",
       "commands": [
         {
@@ -3295,9 +3295,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-046.md",
       "commands": [
         {
@@ -3367,9 +3367,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-047.md",
       "commands": [
         {
@@ -3443,9 +3443,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-048.md",
       "commands": [
         {
@@ -3516,9 +3516,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-049.md",
       "commands": [
         {
@@ -3586,9 +3586,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-050.md",
       "commands": [
         {
@@ -3658,9 +3658,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-051.md",
       "commands": [
         {
@@ -3730,9 +3730,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-052.md",
       "commands": [
         {
@@ -3801,9 +3801,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-053.md",
       "commands": [
         {
@@ -3877,9 +3877,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-054.md",
       "commands": [
         {
@@ -3948,9 +3948,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-055.md",
       "commands": [
         {
@@ -4025,9 +4025,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-056.md",
       "commands": [
         {
@@ -4097,9 +4097,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-057.md",
       "commands": [
         {
@@ -4167,9 +4167,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-058.md",
       "commands": [
         {
@@ -4239,9 +4239,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-059.md",
       "commands": [
         {
@@ -4311,9 +4311,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-060.md",
       "commands": [
         {
@@ -4383,9 +4383,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-061.md",
       "commands": [
         {
@@ -4460,9 +4460,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-062.md",
       "commands": [
         {
@@ -4539,9 +4539,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-063.md",
       "commands": [
         {
@@ -4611,9 +4611,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-064.md",
       "commands": [
         {
@@ -4687,9 +4687,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-065.md",
       "commands": [
         {
@@ -4765,9 +4765,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-066.md",
       "commands": [
         {
@@ -4843,9 +4843,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-067.md",
       "commands": [
         {
@@ -4920,9 +4920,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-068.md",
       "commands": [
         {
@@ -4998,9 +4998,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-069.md",
       "commands": [
         {
@@ -5075,9 +5075,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-070.md",
       "commands": [
         {
@@ -5152,9 +5152,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-071.md",
       "commands": [
         {
@@ -5230,9 +5230,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-072.md",
       "commands": [
         {
@@ -5308,9 +5308,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-073.md",
       "commands": [
         {
@@ -5385,9 +5385,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-074.md",
       "commands": [
         {
@@ -5461,9 +5461,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-075.md",
       "commands": [
         {
@@ -5541,9 +5541,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-076.md",
       "commands": [
         {
@@ -5620,9 +5620,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-077.md",
       "commands": [
         {
@@ -5697,9 +5697,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-078.md",
       "commands": [
         {
@@ -5762,9 +5762,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-079.md",
       "commands": [
         {
@@ -5823,9 +5823,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-080.md",
       "commands": [
         {
@@ -5886,9 +5886,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-081.md",
       "commands": [
         {
@@ -5949,9 +5949,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-082.md",
       "commands": [
         {
@@ -6012,9 +6012,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-083.md",
       "commands": [
         {
@@ -6074,9 +6074,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-084.md",
       "commands": [
         {
@@ -6136,9 +6136,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-085.md",
       "commands": [
         {
@@ -6197,9 +6197,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-086.md",
       "commands": [
         {
@@ -6259,9 +6259,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-087.md",
       "commands": [
         {
@@ -6320,9 +6320,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-088.md",
       "commands": [
         {
@@ -6381,9 +6381,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-089.md",
       "commands": [
         {
@@ -6443,9 +6443,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-090.md",
       "commands": [
         {
@@ -6504,9 +6504,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-091.md",
       "commands": [
         {
@@ -6565,9 +6565,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-092.md",
       "commands": [
         {
@@ -6626,9 +6626,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-093.md",
       "commands": [
         {
@@ -6687,9 +6687,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-094.md",
       "commands": [
         {
@@ -6748,9 +6748,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-095.md",
       "commands": [
         {
@@ -6809,9 +6809,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-096.md",
       "commands": [
         {
@@ -6870,9 +6870,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-097.md",
       "commands": [
         {
@@ -6931,9 +6931,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-098.md",
       "commands": [
         {
@@ -6992,9 +6992,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-099.md",
       "commands": [
         {
@@ -7054,9 +7054,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-100.md",
       "commands": [
         {
@@ -7115,9 +7115,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-101.md",
       "commands": [
         {
@@ -7178,9 +7178,9 @@
         "irTrace": 2,
         "behavior": 2,
         "peerStack": 2,
-        "delivery": 0
+        "delivery": 2
       },
-      "status": "verified-pending-delivery",
+      "status": "complete",
       "evidence": "evidence/BT22-102.md",
       "commands": [
         {
@@ -7256,5 +7256,10 @@
       "format": "212 files checked",
       "diffCheck": "clean"
     }
+  },
+  "reviewPr": {
+    "number": 4723,
+    "url": "https://github.com/vinicius3333/aegis-digimon-tcg/pull/4723",
+    "state": "open"
   }
 }
