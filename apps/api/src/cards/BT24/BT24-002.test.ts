@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -52,6 +52,33 @@ describe("BT24-002 Bukamon", () => {
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("enters a legal host through public egg evolution and then unsuspends it", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT24-002", as: "egg" }, hand: [{ card: "BT24-020", as: "host" }] },
+    }, { autoAcceptOptional: true });
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("egg").permanentId,
+      instanceId: s.inst("host").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.instanceId === s.inst("host").instanceId);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toContain("BT24-002");
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    s.perm("egg").isSuspended = true;
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("egg"));
+    expect(s.perm("egg").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("does not offer the effect to a blue non-TS or red TS host", async () => {
