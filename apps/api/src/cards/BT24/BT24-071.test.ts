@@ -24,6 +24,7 @@ describe("BT24-071 Raidramon", () => {
         { color: "Red", level: 3, memoryCost: 3 },
       ],
     });
+    expect(BT24_071.appFusionRequirement).toEqual([{ names: ["Hackmon", "Protecmon", "Pipomon"], cost: 0 }]);
   });
 
   it("grants Security Attack +1 to one eligible trait Digimon and revives level 3 Appmon", () => {
