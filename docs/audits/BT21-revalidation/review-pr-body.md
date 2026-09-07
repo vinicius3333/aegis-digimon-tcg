@@ -1,12 +1,5 @@
-BT21 implementations and historical audit scores contained incorrect costs, missing runtime paths, and tests that could pass with impossible stacks or before effects finished. This draft independently revalidates all 102 catalog cards and corrects production behavior through compiled IR and reusable engine mechanisms.
+BT21 card behavior and its historical audit evidence contained gaps in optional costs, source identity, effect timing, evolution legality, and printed target comparisons. This branch corrects audited modules through compiled IR and adds public game-flow regressions, with reusable engine fixes for the shared failures.
 
-The latest checkpoint fixes Save capturing an identical live card or relocating a Tamer after the deleted source already moved. Shoutmon King and Arresterdramon now offer Save independently of their preceding placement. Examon X requires a source named X Antibody; the trait alone does not qualify. Public tests now exercise Counter/Blast evolution, blocking, Reboot, Overflow, Evade, distinct trait alternatives, refusal, and completed combat.
+The latest checkpoint passes **2,573 tests across 150 card/mechanism files**, shared/API/web typecheck, the BT21-only effects check, scoped formatting/lint, and full baseline `git diff --check`. All 102 BT21 effects records are synchronized; 22 differ semantically from the original baseline and no other set is changed by synchronization. Lint exits successfully with nonblocking warnings retained in the evidence logs.
 
-Validation at b29ab04e8:
-
-- 2534/2534 assertions across 150 files, including every BT21 card and affected mechanism/cross-set suites; one worker, 2048 MB worker heap.
-- Shared/API/web typecheck passes; Oxfmt/Oxlint exit successfully on 184 changed code/data paths (nonblocking lint warnings remain logged); `git diff --check` passes.
-- BT21-only synchronization checks all 102 records: 22 semantic changes against the audit baseline, zero semantic or byte changes outside the set.
-- Atomic implementation and per-card proof commits; reproducible red/green logs and exact suite manifest under `docs/audits/BT21-revalidation`.
-
-**Incomplete: 695/1020 accepted points; 0/102 final 10/10.** Fifty-nine cards have accepted fidelity evidence; delivery points remain withheld. Forty-three cards still require strict clause review or outstanding proof. Historical passing reports are not accepted as final proof. The ledger records each card's remaining gaps; this PR stays draft until every collection gate is satisfied.
+This PR remains a draft: **68 cards have accepted 8/10 fidelity evidence, 722/1020 points, and 0/102 final 10/10**. Final delivery points are withheld. Remaining work includes protection expiry, same-source once-per-turn repetition, public refusal/choice proofs, and final clause review for every below 8 card. The collection ledger, exact commands/logs, and atomic commit map are under `docs/audits/BT21-revalidation`; historical report scores are not treated as current proof.

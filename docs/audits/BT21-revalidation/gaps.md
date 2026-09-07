@@ -1,3 +1,19 @@
+## Public proof checkpoint v13 (current review)
+
+The lead recalculated all 102 cards: **722/1020**, **68 cards at accepted 8/10 fidelity**, **0/102 final 10/10**. Delivery is incomplete. The full v13 collection gate is being recorded separately; focused passes alone do not close this collection.
+
+New exact review gaps to carry into the next implementation batch:
+
+- BT21-060: prove the stack-trash/De-Digivolve protection persists through the opponent turn and expires at its end using public effects and lifecycle.
+- BT21-061: add a second eligible public play/evolution for the same source in the same turn; a structural once-per-turn declaration is insufficient repetition proof.
+- BT21-063: add public eligible Save refusal. Its inherited turn comparison currently uses explicit seat change/recomputation; retain this as supplemental until lifecycle coverage is reviewed.
+- BT21-074: replace direct evolution/attack trigger injection in the shared-budget test with public evolution followed by a completed public attack; current public attack needs explicit completion.
+- BT21-078: the test titled “different Digimon for Alliance and the optional attack” actually declines the effect attack and manually attacks with the Alliance recipient. It proves Alliance combat, but does not yet prove independent recipient/attacker choices. Add the actual effect-choice comparison and review inherited Alliance combat.
+
+Resolved false-positive fixtures in this checkpoint: BT21-070 Link/When Digivolving used an Appmon Digi-Egg and only waited for recovery without asserting it. They now recover valid BT21-041 with exact hand/trash assertions; a public Digi-Egg rejection passes. The engine correctly excludes Digi-Egg cards. Q5334 belongs to BT23-065 and now has a public Hand/Main producer proving BT21-065 reduces the cost to 2. BT21-050 now uses a neutral WG play producer, and the second BT21-067 public attack uses the same host after Victory Sword.
+
+Earlier sections below are historical checkpoints; the ledger and latest executed logs supersede pending counts and corrected fixture claims.
+
 # Open findings
 
 ## Save identity, exact-name and strict-proof checkpoint v12

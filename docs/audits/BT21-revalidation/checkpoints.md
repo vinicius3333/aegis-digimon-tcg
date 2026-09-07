@@ -119,3 +119,13 @@ All **2534/2534** assertions pass across **150 files** in `logs/collection-save-
 Nineteen atomic proof commits through `b29ab04e8` strengthen legal breeding/evolution stacks, complete combat outcomes, actual Counter/Blast/Blocker/Reboot/Overflow/Evade, independent trait alternatives, and eligible refusal. First drafts that used incorrect levels, wrong trait fields, unavailable decisions or incomplete assertions were corrected before acceptance. `strict-051-064-v3.log` exited 137 before assertions; it is not a test result. The initial `strict-051-counter-v1.log` was interrupted without results. The successful later focused and collection runs supersede both.
 
 The ledger recalculates to **695/1020**, **0/102 final 10/10**; 59 cards have accepted fidelity evidence and remain delivery-pending. Remaining work includes BT21-005/016 and strict review of the 43 cards still below 8. This checkpoint remains incomplete and does not authorize Orca completion.
+
+## Public proof checkpoint v13
+
+- All 102 cards recalculated: 722/1020, 68 accepted fidelity 8/10, zero final 10/10. Entire collection remains incomplete.
+- Full BT21 plus affected mechanisms: 2573/2573 in 150 files, logs/collection-public-proofs-v13.log, exact paths collection-suite-v13.json. Single worker, 2048 MiB heap cap.
+- Shared/API/web typecheck passed; scoped set check confirms 102 synchronized, 22 semantic changes versus original baseline and zero outside-set changes. Style passes with recorded nonblocking warnings; full baseline git diff --check passes.
+- Added 32 atomic test/evidence commits through 8d3663f3d; exact per-card hashes in card-proof-commits-v13.json. No production engine or card behavior changed since v12 in this checkpoint.
+- Fixed test evidence errors: same-host repetition, independent trait unions, neutral play producers, legal evolution stacks, bonus draws, exact final zones after completed combat, actual Armor Purge responses, public turn aging, and explicit eligible refusal.
+- Gossipmon’s prior Digi-Egg recovery was a test false positive because settle timeout was not asserted; valid positive recovery and explicit Digi-Egg rejection now pass. Ghostmon’s Q5334 is a related-card ruling from BT23-065; the real Hand/Main producer now proves reduced cost 2.
+- Independent review keeps 060 protection expiry, 061 same-source repetition, 063 Save refusal/lifecycle, 074 public shared-budget proof, and 078 independent target choices open. Other below 8 cards retain the lead’s pending final clause review. No partial proof checkpoint counts as collection completion.

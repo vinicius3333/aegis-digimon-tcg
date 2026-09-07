@@ -76,6 +76,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-001.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-001.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -144,6 +149,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-002.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-002.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -216,6 +226,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-003.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-003.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -289,6 +304,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-004.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-004.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -364,6 +384,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-005.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-005.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -433,6 +458,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "5/5",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -500,6 +530,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -567,6 +602,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-008.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-008.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -639,6 +679,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -713,6 +758,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -780,6 +830,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-011.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-011.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -846,6 +901,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -917,6 +977,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-013.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-013.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -996,6 +1061,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-014.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-014.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1064,6 +1134,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-015.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-015.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1073,17 +1148,16 @@
     {
       "cardId": "BT21-016",
       "name": "Shoutmon (King Version)",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-016.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -1141,6 +1215,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1148,7 +1232,8 @@
         "bf6954228",
         "68742aeb6",
         "b93f4b92d",
-        "dc1df3e60"
+        "dc1df3e60",
+        "b46506307573bd1df8857601b7c83ee8c32b352d"
       ]
     },
     {
@@ -1221,6 +1306,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-017.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-017.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1299,6 +1389,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "21/21",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "21/21",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1368,6 +1463,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-019.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-019.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1434,6 +1534,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-020.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-020.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1506,6 +1611,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-021.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "19/19",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-021.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1575,6 +1685,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-022.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-022.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1657,6 +1772,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-023.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-023.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1731,6 +1851,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-024.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-024.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1804,6 +1929,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-025.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-025.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1882,6 +2012,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -1956,6 +2091,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-027.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-027.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2029,6 +2169,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-028.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-028.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2107,6 +2252,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-029.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-029.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2185,6 +2335,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-030.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-030.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2263,6 +2418,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2341,6 +2501,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-032.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-032.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2419,6 +2584,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2497,6 +2667,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-034.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-034.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2575,6 +2750,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-035.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-035.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2653,6 +2833,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-036.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-036.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2731,6 +2916,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-037.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-037.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2809,6 +2999,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-038.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "19/19",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-038.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2888,6 +3083,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-039.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-039.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -2966,6 +3166,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-040.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "18/18",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-040.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "18/18",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3044,6 +3249,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-041.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-041.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3117,6 +3327,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-042.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-042.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3195,6 +3410,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3268,6 +3488,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3357,6 +3582,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-045.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-045.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3440,6 +3670,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-046.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-046.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3523,6 +3758,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-047.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-047.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3606,6 +3846,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-048.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-048.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3617,17 +3862,16 @@
     {
       "cardId": "BT21-049",
       "name": "Woodmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-049.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -3690,28 +3934,38 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "1e3e27b60",
         "311be22ff",
-        "6fed3caaa"
+        "6fed3caaa",
+        "0040747f66aaba553ae6e3d3036262689f610125"
       ]
     },
     {
       "cardId": "BT21-050",
       "name": "Cherrymon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-050.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -3769,12 +4023,23 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/strict-050-087-v7.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "c55349af6",
         "491cfca14",
-        "2eb97bb9c"
+        "2eb97bb9c",
+        "723ee4869ec00f74b2cab113bbdf37205cd9a64c"
       ]
     },
     {
@@ -3847,6 +4112,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -3940,6 +4210,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4013,6 +4288,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-053.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-053.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4096,6 +4376,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-054.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-054.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4174,6 +4459,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-055.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-055.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4254,12 +4544,23 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "bc2284dec",
         "2b14bfcb0",
-        "61af52223"
+        "61af52223",
+        "c67079f4d74bf3c852b9db3c5b064fffaba0967c"
       ]
     },
     {
@@ -4331,6 +4632,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -4405,12 +4711,23 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "98a07cfb0",
         "80918a43e",
-        "523f4da51"
+        "523f4da51",
+        "bb6052ac1a049b9881fc94672484c7fbc7e53193"
       ]
     },
     {
@@ -4489,6 +4806,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4574,12 +4901,23 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "10417ed45",
         "2a4a62735",
-        "64063dca6"
+        "64063dca6",
+        "2fe203560ba6cef0a82e3f54f90cada108d81f2b"
       ]
     },
     {
@@ -4653,6 +4991,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4721,6 +5064,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -4747,7 +5095,8 @@
       "deliveryCommits": [
         "f05a5893f",
         "594f11e49",
-        "e4d0b3447"
+        "e4d0b3447",
+        "0e688ab3a200d9cf0c5ab92084dac8706f1e33d0"
       ],
       "commands": [
         {
@@ -4804,6 +5153,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -4883,28 +5242,38 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
     {
       "cardId": "BT21-065",
       "name": "Ghostmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-065.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "ea28b12ca",
-        "eb853825b"
+        "eb853825b",
+        "4798eec230c8e380e26f75450709104ea085063b"
       ],
       "commands": [
         {
@@ -4956,6 +5325,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/strict-065-088-v9.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5035,28 +5414,33 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-066.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "18/18",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-066.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "18/18",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
     {
       "cardId": "BT21-067",
       "name": "Garurumon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-067.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "47a92d46c",
-        "109fe1e26"
+        "109fe1e26",
+        "c2606d11814fc9b41b21b10dca6320b3b5a59dd5"
       ],
       "commands": [
         {
@@ -5103,28 +5487,38 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-067.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-067.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/strict-050-087-v7.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-067.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
     {
       "cardId": "BT21-068",
       "name": "Growlmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-068.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "4419ca1e8",
-        "0fedb1fe4"
+        "0fedb1fe4",
+        "8441673b2b2dbafac58598ec01bffafe1e4742bf"
       ],
       "commands": [
         {
@@ -5171,6 +5565,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-068.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-068.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/strict-068-080-v10.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-068.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5238,28 +5642,33 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
     {
       "cardId": "BT21-070",
       "name": "Gossipmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-070.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "fb93271bb",
-        "c7fd51cba"
+        "c7fd51cba",
+        "1b031cecaf784aca0cf0be55de1b73b22cb68973"
       ],
       "commands": [
         {
@@ -5306,6 +5715,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/strict-065-088-v9.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5327,7 +5746,8 @@
       ],
       "deliveryCommits": [
         "51c2b9ded",
-        "b7fce2f9b"
+        "b7fce2f9b",
+        "63a4d9d5fa396a7f702f10af4edc6213ec910aed"
       ],
       "commands": [
         {
@@ -5374,28 +5794,38 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
     {
       "cardId": "BT21-072",
       "name": "Arresterdramon: Superior Mode",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-072.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "58ec247ee",
-        "f695da99e"
+        "f695da99e",
+        "007cd0cdb3bb0e48e0b1d276cdb079ed03db8470"
       ],
       "commands": [
         {
@@ -5442,6 +5872,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5510,6 +5950,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-073.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "22/22",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-073.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "22/22",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -5584,6 +6029,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-074.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-074.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-074.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5647,6 +6102,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-075.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "17/17",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-075.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "17/17",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -5721,6 +6181,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-076.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-076.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5742,7 +6207,8 @@
       ],
       "deliveryCommits": [
         "b92f46c7d",
-        "41fbc6fd1"
+        "41fbc6fd1",
+        "3d38cef2b5c57c3a5de3109e44a546baf6a62636"
       ],
       "commands": [
         {
@@ -5789,6 +6255,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-077.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-077.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-077.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5810,7 +6286,8 @@
       ],
       "deliveryCommits": [
         "75256536e",
-        "225986de3"
+        "225986de3",
+        "be9bb774c35b6b1bb6701bc34f4fba036ac92e87"
       ],
       "commands": [
         {
@@ -5857,6 +6334,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-078.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-078.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-078.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5878,7 +6365,8 @@
       ],
       "deliveryCommits": [
         "bd9d34e5d",
-        "6354ac0ca"
+        "6354ac0ca",
+        "bdc0807cbb379b2e14215c9ef46665420b545563"
       ],
       "commands": [
         {
@@ -5925,6 +6413,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-079.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-079.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-079.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -5946,7 +6444,8 @@
       ],
       "deliveryCommits": [
         "82529a55f",
-        "a56ef8d23"
+        "a56ef8d23",
+        "3b9848fb76afc3c326eeed44b382915c830b13c1"
       ],
       "commands": [
         {
@@ -5993,28 +6492,38 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-080.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-080.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/strict-068-080-v10.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-080.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
     {
       "cardId": "BT21-081",
       "name": "Owen Dreadnought",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-081.md",
       "gaps": [
-        "Q4594 simultaneous two-Owen trigger interaction remains supplemental",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "b4d7774ab",
-        "61ee00248"
+        "61ee00248",
+        "a198f169dc92cb9e7bb1aa5890a479c1a166d909"
       ],
       "commands": [
         {
@@ -6061,6 +6570,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/strict-public-proofs-v6.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6119,6 +6638,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-082.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-082.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -6144,7 +6668,8 @@
       ],
       "deliveryCommits": [
         "759f2b2c6",
-        "e499b4fd9"
+        "e499b4fd9",
+        "e2955f079f1bdda352f1b393adacf6ed6baddd29"
       ],
       "commands": [
         {
@@ -6191,6 +6716,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-083.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-083.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/strict-083-086-v8.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-083.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6212,7 +6747,8 @@
       ],
       "deliveryCommits": [
         "4712f2d0e",
-        "eabcd5bdd"
+        "eabcd5bdd",
+        "82c53457c1a4e7d3583ef0ffc5c805ab543de29d"
       ],
       "commands": [
         {
@@ -6259,6 +6795,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/strict-050-087-v7.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6332,6 +6878,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/strict-050-087-v7.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6353,7 +6909,8 @@
       ],
       "deliveryCommits": [
         "a750d11c4",
-        "d857dcbc0"
+        "d857dcbc0",
+        "f47bca680caf843da01407e14df3cfeb9364cc91"
       ],
       "commands": [
         {
@@ -6405,6 +6962,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/strict-083-086-v8.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6478,6 +7045,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/strict-050-087-v7.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6494,12 +7071,13 @@
       ],
       "evidence": "cards/BT21-088.md",
       "gaps": [
-        "Opponent under-Tamer material exclusion and opponent-turn evolution scope need final comparative review.",
+        "Opponent-controller and opponent-Tamer material negatives pass; own evolution on opponent turn still requires an actual effect producer or isolated event proof.",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "e6537145b",
-        "af82bf5a8"
+        "af82bf5a8",
+        "d5fa0c0a8e09b7d6c918e5e9e76c5e207c67e5d5"
       ],
       "commands": [
         {
@@ -6551,6 +7129,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "18/18",
+          "log": "logs/strict-065-088-v9.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6573,7 +7161,8 @@
       "deliveryCommits": [
         "9051179c2",
         "aa34236cf",
-        "47791d062"
+        "47791d062",
+        "45b1ac8742c971c5e99e50e08db673bec0fe0b94"
       ],
       "commands": [
         {
@@ -6620,6 +7209,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-089.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-089.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6641,7 +7235,8 @@
       ],
       "deliveryCommits": [
         "90d5bd6f0",
-        "c1d873be0"
+        "c1d873be0",
+        "28ac258c28c336d716d571c36612da59da67b5a4"
       ],
       "commands": [
         {
@@ -6688,6 +7283,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6747,6 +7347,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-091.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-091.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -6771,7 +7376,8 @@
       ],
       "deliveryCommits": [
         "2fc6cc732",
-        "3a970b932"
+        "3a970b932",
+        "487b533cecb61d78f99773f44234a31f2221c631"
       ],
       "commands": [
         {
@@ -6818,6 +7424,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-092.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-092.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -6877,6 +7488,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-093.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-093.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
@@ -6939,10 +7555,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "5/5",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
-        "7e4f2050e"
+        "7e4f2050e",
+        "e65e4cfe2655418387cd8aa42c2f64bf82796dd9"
       ]
     },
     {
@@ -7010,6 +7632,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-095.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-095.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -7032,7 +7659,8 @@
       "deliveryCommits": [
         "607af2a3b",
         "3257a96a8",
-        "fc759fee1"
+        "fc759fee1",
+        "ad49841de4b868095b8f63a2b8445424f550393c"
       ],
       "commands": [
         {
@@ -7079,6 +7707,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-096.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-096.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -7147,6 +7780,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-097.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "5/5",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-097.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -7211,11 +7849,17 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "6151393f1",
-        "cee8ce24e"
+        "cee8ce24e",
+        "bb75e3c96bf03770c704192c2689accfadcd9bc3"
       ]
     },
     {
@@ -7236,7 +7880,8 @@
       ],
       "deliveryCommits": [
         "07b70678f",
-        "29fd24f31"
+        "29fd24f31",
+        "6ef0fcb64505583bbcbafaa29bbc7f90b0129982"
       ],
       "commands": [
         {
@@ -7283,6 +7928,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-099.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-099.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     },
@@ -7342,10 +7992,16 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
-        "890e7f774"
+        "890e7f774",
+        "386437b8f9df2012ca613f80721491a9d9ac1bb6"
       ]
     },
     {
@@ -7409,12 +8065,18 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-101.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-101.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ],
       "deliveryCommits": [
         "1622ba96c",
         "3bc7fdf50",
-        "ce6dced21"
+        "ce6dced21",
+        "1e843072a7048be5cf91668b54e3101237464102"
       ]
     },
     {
@@ -7435,7 +8097,8 @@
       ],
       "deliveryCommits": [
         "7632dd026",
-        "66cfda08d"
+        "66cfda08d",
+        "8d3663f3d4f34e7b50381d2f1f4b82796bc0f537"
       ],
       "commands": [
         {
@@ -7482,6 +8145,11 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-102.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-save-v12.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-102.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-public-proofs-v13.log"
         }
       ]
     }
@@ -7489,10 +8157,10 @@
   "commandNote": "Per-card commands reproduce the card assertions. Recorded logs may group multiple listed card paths into one serialized invocation; aggregate red runs are explicitly not delivery gates.",
   "deliveryGates": {
     "status": "pending",
-    "collection": "2534/2534 assertions across 150 files in logs/collection-save-v12.log; exact paths collection-suite-v12.json. Final all-card clause review remains incomplete.",
-    "typecheck": "Shared/API/web passed in logs/typecheck-save-v6.log.",
-    "sync": "102 BT21 records synchronized; 22 semantic changes against baseline, zero semantic or byte changes outside BT21 (logs/effects-check-save-v2.log).",
-    "review": "Draft PR https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; Save source identity fix dc1df3e60 and atomic card corrections/proofs through b29ab04e8. Luna reviewed exact-name and Save mechanisms; final all-card clause review incomplete.",
-    "style": "Oxfmt/Oxlint exit successfully on 184 changed code/data paths in logs/style-save-v2.log; lint warnings remain recorded, no errors. git diff --check clean."
+    "collection": "2573/2573 assertions across 150 files in logs/collection-public-proofs-v13.log; exact paths collection-suite-v13.json. Final all-card clause review remains incomplete.",
+    "typecheck": "Shared/API/web passed in logs/typecheck-public-proofs-v2.log.",
+    "sync": "102 BT21 records synchronized; 22 semantic changes against baseline, zero semantic or byte changes outside BT21 (logs/effects-check-public-proofs-v3.log).",
+    "review": "Draft PR https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; 32 additional atomic card proof commits recorded in card-proof-commits-v13.json. Independent review identified precise remaining fidelity gaps; collection incomplete.",
+    "style": "Oxfmt/Oxlint/check exit successfully on all 180 changed apps/packages TypeScript/JSON paths in logs/style-public-proofs-v3.log; nonblocking lint warnings recorded. Full baseline and working-tree git diff --check clean."
   }
 }

@@ -1,0 +1,149 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > preserves both alternate Digivolution requirements and residual-free coverage 1ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > supports security play, ADVENTURE recovery, and inherited draw-trash 1ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > returns an ADVENTURE Digimon from the trash when played 14ms
+ × src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > plays itself from security at end of battle without paying cost 11ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > does not return a non-ADVENTURE Digimon from trash after a public play 2ms
+ × src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > returns an ADVENTURE Digimon from trash through a public When Digivolving trigger 28ms
+   → expected true to be false // Object.is equality
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > refuses both alternate routes from a level-3 that is neither Gabumon nor ADVENTURE 1ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > alternate-digivolves from a non-Gabumon ADVENTURE rookie for the printed cost 2ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > draws and trashes exactly once per turn from a realistic evolution stack 4ms
+ × src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > retains inherited draw-trash through a legal Ghostmon-to-Garurumon stack 4ms
+   → observe is not defined
+ × src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > resolves inherited draw-trash once across two same-host public attacks 3ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > has Raid/Piercing, optional unsuspended attack, stack scaling, and inherited DP 0ms
+ × src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > gets +1000 DP for each digivolution card and exposes Raid and Piercing 5ms
+   → expected 14000 to be 12000 // Object.is equality
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > Q4580 attacks while already suspended without suspending again 7ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > declining the optional evolution attack leaves security untouched 1ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > uses the Save-text alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > uses the Hero alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > refuses both alternate routes from a neutral Lv4 without Save text or Hero 1ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > proves inherited +2000 DP on a legal Lv4-to-Lv5 evolution stack 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > preserves complete residual-free coverage 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces Ghost digivolution cost on your turn and gains memory on deletion 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces a Ghost evolution by exactly 1 through the public intent 4ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce an evolution into a non-Ghost card 1ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce a Ghost evolution from the breeding area (Q4573) 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > rejects a Ghost evolution during the opponent's turn before card-specific processing 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > pays the reduced Ghost evolution from zero memory through the shared negative gauge 1ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a realistic host carrying Ghostmon is deleted 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a public battle deletes a legal Ghost host stack 5ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > gains memory after placing an Appmon or Three Musketeers card 0ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > draws 2 and trashes 2 when linked 0ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > keeps the evolution requirement and complete coverage metadata 0ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > places an Appmon under an own Digimon and gains memory on play 5ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > places a Three Musketeers card from trash at the true bottom and gains memory 3ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > does not place a card or gain memory when the cost is declined 1ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > does not place a card or gain memory when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > publicly declines placement when no Appmon or Three Musketeers card is eligible 2ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > publicly places an eligible Three Musketeers card from trash during alternate evolution 4ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > links for 2, draws two, and trashes exactly two selected hand cards 2ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > uses the Three Musketeers-text alternate evolution route for 2 1ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > resolves the placement-and-memory branch from a public alternate evolution 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > preserves the Appmon link requirement and linked recovery 0ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays from security and recovers Appmon 0ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > returns an Appmon from trash through its public On Play effect 3ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > links to an Appmon for 2 and recovers an Appmon from trash 12ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > recovers through the When Digivolving branch 12ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > does not recover a non-Appmon Digimon 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > publicly declines the optional On Play recovery with an eligible Appmon still in trash 3ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays itself from security without paying cost 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > plays itself from security at end of battle without paying cost
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-067.test.ts:88:18
+     86|       () =>
+     87|         s.state.players[1]!.battleArea.some((card) => card.topCard.ins…
+     88|         s.events.some((event) => event.kind === "securityChecked") &&
+       |                  ^
+     89|         !observe(s.engine).isAttacking(),
+     90|     );
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-067.test.ts:85:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > returns an ADVENTURE Digimon from trash through a public When Digivolving trigger
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-067.test.ts:136:106
+    134|         s.state.players[0]!.hand.some((card) => card.instanceId === s.…
+    135|     );
+    136|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+       |                                                                                                          ^
+    137|   });
+    138|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > retains inherited draw-trash through a legal Ghostmon-to-Garurumon stack
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-067.test.ts:257:39
+    255|     ).toEqual({ ok: true });
+    256|     await settle(
+    257|       () => s.state.players[0]!.trash.some((card) => card.instanceId =…
+       |                                       ^
+    258|     );
+    259|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-067.test.ts:256:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > resolves inherited draw-trash once across two same-host public attacks
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-067.test.ts:279:53
+    277|     await s.ready();
+    278|     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanent…
+    279|     await settle(() => s.state.players[1]!.security.length === 1 && !o…
+       |                                                     ^
+    280|     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).to…
+    281|     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).t…
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-067.test.ts:279:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > gets +1000 DP for each digivolution card and exposes Raid and Piercing
+AssertionError: expected 14000 to be 12000 // Object.is equality
+
+- Expected
++ Received
+
+- 12000
++ 14000
+
+ ❯ src/cards/BT21/BT21-072.test.ts:60:42
+     58|     await s.ready();
+     59|
+     60|     expect(s.perm("superior").currentDP).toBe(12000);
+       |                                          ^
+     61|     expect(observe(s.engine).hasKeyword(s.perm("superior"), "Raid")).t…
+     62|     expect(observe(s.engine).hasPierce(s.perm("superior"))).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  5 failed | 44 passed (49)
+   Start at  22:19:11
+   Duration  7.27s (transform 81%, import 16%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-065.test.ts src/cards/BT21/BT21-067.test.ts src/cards/BT21/BT21-070.test.ts src/cards/BT21/BT21-071.test.ts src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose
