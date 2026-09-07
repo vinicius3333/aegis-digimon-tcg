@@ -78186,7 +78186,7 @@
           },
           {
             "kind": "Restrict",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": { "filter": { "boundRef": "sangomonHost" }, "count": 1 },
             "restriction": "beDeletedInBattle",
             "duration": "untilOpponentTurnEnd"
           }
@@ -120476,8 +120476,7 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "levelEq": "selectedHybridLevel" },
               "count": 1
             },
-            "to": "hand",
-            "returnDigivolutionCardsFirst": true
+            "to": "hand"
           }
         ]
       },
@@ -120506,8 +120505,7 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "levelEq": "selectedHybridLevel" },
               "count": 1
             },
-            "to": "hand",
-            "returnDigivolutionCardsFirst": true
+            "to": "hand"
           }
         ]
       },
