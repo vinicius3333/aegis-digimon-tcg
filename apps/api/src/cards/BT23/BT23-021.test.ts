@@ -80,6 +80,107 @@ describe("BT23-021 Dosukomon", () => {
     expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
   });
 
+  it("linked Dosukomon survives losing a public battle while immunity lasts", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT23-021", as: "dosukomon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 12000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dosukomon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(s.perm("host").permanentId);
+    expect(s.perm("host").linked).toHaveLength(1);
+  });
+
+  it("expires linked battle immunity after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT23-021", as: "dosukomon" }],
+          security: 10,
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender", dp: 12000, suspended: true }],
+          security: 10,
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const hostId = s.perm("host").permanentId;
+    const defenderId = s.perm("defender").permanentId;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dosukomon").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(hostId);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: defenderId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(hostId);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.permanentId === hostId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("host").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(10);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("rejects the printed Link onto a non-Appmon without moving the card", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host" }], hand: [{ card: "BT23-021", as: "dosukomon" }] },
@@ -146,6 +247,61 @@ describe("BT23-021 Dosukomon", () => {
     await settle();
     expect(invalid.perm("base").linked).toHaveLength(0);
     expect(invalid.state.players[0]!.hand.map((card) => card.instanceId)).toContain(invalid.inst("noLink").instanceId);
+  });
+
+  it("shares the link use across digivolving and attacking, then resets on the next own turn", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-017", as: "host" }],
+          hand: [
+            { card: "BT23-021", as: "dosukomon" },
+            { card: "BT23-007", as: "first" },
+            { card: "BT23-007", as: "second" },
+          ],
+          deck,
+        },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"], deck },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const hostId = s.perm("host").permanentId;
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst("dosukomon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([firstId]);
+    expect(s.state.turnSeat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 4);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([firstId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(secondId);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([secondId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(firstId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(secondId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("when digivolving links from this Digimon's stack, not another friendly stack", async () => {
