@@ -236,6 +236,109 @@ describe("BT21-088 Tagiru Akashi", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-063"]);
   });
 
+  it("does not use material under an opponent's Tamer for the reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-088", as: "tagiru" },
+            { card: "BT21-063", as: "host" },
+          ],
+          hand: [{ card: "BT21-066", as: "evolution" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "opponentTamer", under: [{ card: "BT1-009", as: "opponentMaterial" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("tagiru").isSuspended).toBe(false);
+    expect(s.perm("opponentTamer").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("opponentMaterial").instanceId,
+    ]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-063"]);
+  });
+
+  it("does not reduce an opponent-controller evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-088", as: "tagiru" },
+            { card: "BT1-085", as: "ownTamer", under: [{ card: "BT1-009", as: "ownMaterial" }] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT21-063", as: "opponentHost" }],
+          hand: [{ card: "BT21-066", as: "opponentEvolution" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("opponentHost").permanentId,
+        instanceId: s.inst("opponentEvolution").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponentHost").topCard.instanceId === s.inst("opponentEvolution").instanceId);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("tagiru").isSuspended).toBe(false);
+    expect(s.perm("ownTamer").stack.map((card) => card.instanceId)).toEqual([s.inst("ownMaterial").instanceId]);
+    expect(s.perm("opponentHost").stack.map((card) => card.cardId)).toEqual(["BT21-063"]);
+  });
+
+  it("supplementally leaves an own Digimon evolution unreduced while the opponent has the turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-088", as: "tagiru", under: [{ card: "BT1-009", as: "material" }] },
+            { card: "BT21-063", as: "host" },
+          ],
+          hand: [{ card: "BT21-066", as: "evolution" }],
+        },
+        1: { deck: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("host").permanentId, s.inst("evolution").instanceId, {
+      payCost: true,
+      useAlternateCost: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
+
+    expect(s.state.memory).toBe(5); // The non-active controller pays 2 toward the active player.
+    expect(s.perm("tagiru").isSuspended).toBe(false);
+    expect(s.perm("tagiru").stack.map((card) => card.instanceId)).toEqual([s.inst("material").instanceId]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-063"]);
+  });
+
   it.each([
     ["Save-only", "BT12-076", "BT21-063", 1, true],
     ["Hero-only", "BT21-013", "BT1-010", 1, true],
