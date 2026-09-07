@@ -56,6 +56,21 @@ describe("BT24-020 Gomamon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("resolves the top-three search from a public play", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-020", as: "gomamon" }],
+        deck: [{ card: "BT24-022", as: "seaBeast" }, { card: "BT24-083", as: "tsTamer" }, { card: "BT1-009", as: "miss" }],
+      },
+    }, { autoSelectCards: true, autoOrderCards: true });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gomamon").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("seaBeast").instanceId, s.inst("tsTamer").instanceId]));
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
   it("draws at seven cards only for its own host's unsuspend, once per turn", async () => {
     const s = setupEngine({
       0: {
