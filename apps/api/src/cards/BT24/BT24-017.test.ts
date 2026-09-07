@@ -76,6 +76,38 @@ describe("BT24-017 Medusamon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("uses the activating player’s ordered trash choices and expires the DP boost", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-016", as: "base" }], hand: [{ card: "BT24-017", as: "medusamon" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "lowest", dp: 3000 }],
+          trash: [{ card: "BT1-010", as: "first" }, { card: "BT1-011", as: "second" }],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("second").instanceId, s.inst("first").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("medusamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT24-017");
+    // The engine appends each selected card at the physical deck bottom; its
+    // tail therefore reads reverse insertion order while preserving the
+    // activating player's [second, first] choices.
+    expect(s.state.players[1]!.deck.slice(-2).map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
+    expect(s.perm("base").currentDP).toBe(15000);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("base").currentDP).toBe(11000);
+  });
+
   it("does not play tokens or gain DP when the two-card return cost is declined", async () => {
     const s = setupEngine(
       {
