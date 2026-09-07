@@ -137,6 +137,50 @@ describe("createResolverDecisions.chooseOrder", () => {
     expect(index).toBe(1);
   });
 
+  it("carries the firing window of each pending trigger", async () => {
+    const game = gameWithSeats();
+    const { transport, requests, bind } = autoTransport((req) => ({
+      kind: "orderTriggers",
+      order: (req.options?.triggerKeys ?? []).slice(0, 1),
+    }));
+    const manager = new DecisionManager(game, transport);
+    bind(manager);
+
+    const decisions = createResolverDecisions(manager);
+    // One Megadramon whose [On Play] and [When Digivolving] both fired: same
+    // permanent, same card, two windows.
+    await decisions.chooseOrder(
+      0,
+      [
+        { ...fakeCollected("EX1-069/on-play", false, "megadramon", "EX1-069"), timing: EffectTiming.OnPlay },
+        {
+          ...fakeCollected("EX1-069/when-digivolving", false, "megadramon", "EX1-069"),
+          timing: EffectTiming.WhenDigivolving,
+        },
+      ],
+      EffectTiming.OnPlay,
+    );
+
+    expect(requests[0]?.options?.triggerTimings).toEqual(["OnPlay", "WhenDigivolving"]);
+  });
+
+  it("falls back to the decision timing and omits the field when no window is known", async () => {
+    const game = gameWithSeats();
+    const { transport, requests, bind } = autoTransport((req) => ({
+      kind: "orderTriggers",
+      order: (req.options?.triggerKeys ?? []).slice(0, 1),
+    }));
+    const manager = new DecisionManager(game, transport);
+    bind(manager);
+
+    const decisions = createResolverDecisions(manager);
+    await decisions.chooseOrder(0, [fakeCollected("a"), fakeCollected("b")], EffectTiming.OnPlay);
+    await decisions.chooseOrder(0, [fakeCollected("c"), fakeCollected("d")]);
+
+    expect(requests[0]?.options?.triggerTimings).toEqual(["OnPlay", "OnPlay"]);
+    expect(requests[1]?.options?.triggerTimings).toBeUndefined();
+  });
+
   it("maps the chosen key to its index", async () => {
     const game = gameWithSeats();
     const { transport, bind } = autoTransport(() => ({
