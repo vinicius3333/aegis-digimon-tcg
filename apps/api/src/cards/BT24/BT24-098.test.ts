@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -17,6 +17,20 @@ function delayEffectKey(s: ReturnType<typeof setupEngine>): string {
 }
 
 describe("BT24-098 Invasion of the Titans", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-098")).toMatchObject({
+      cardId: "BT24-098",
+      nameEn: "Invasion of the Titans",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["Titan", "TS"],
+    });
+  });
+
   it("draws and trashes on Main, then arms and consumes Delay correctly", () => {
     const main = BT24_098.effects?.find((entry) => entry.trigger === "Main" && entry.keywords === undefined);
     expect(main?.actions).toEqual([
