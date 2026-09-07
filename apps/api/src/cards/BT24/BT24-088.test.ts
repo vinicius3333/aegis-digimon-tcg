@@ -129,11 +129,11 @@ describe("BT24-088 Asuna Shiroki", () => {
           battleArea: [{ card: "BT24-088", as: "asuna" }],
           hand: [
             { card: "BT21-054", as: "cost" },
-            { card: "BT1-001", as: "unrelated" },
+            { card: "BT1-013", as: "unrelated" },
           ],
           deck: [
-            { card: "BT1-002", as: "drawn1" },
-            { card: "BT1-003", as: "drawn2" },
+            { card: "BT1-015", as: "drawn1" },
+            { card: "BT1-045", as: "drawn2" },
           ],
         },
       },
@@ -161,8 +161,8 @@ describe("BT24-088 Asuna Shiroki", () => {
           security: [{ card: "BT24-088", as: "asuna" }],
           hand: [{ card: "BT21-054", as: "cost" }],
           deck: [
-            { card: "BT1-002", as: "drawn1" },
-            { card: "BT1-003", as: "drawn2" },
+            { card: "BT1-015", as: "drawn1" },
+            { card: "BT1-045", as: "drawn2" },
           ],
         },
       },
