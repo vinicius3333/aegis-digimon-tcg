@@ -34,6 +34,33 @@ describe("BT21-100 The Digimon I Designed", () => {
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
+  it("rejects the Main play when no Takato is present to waive the purple color requirement", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redDigimon" }],
+          hand: [
+            { card: "BT21-100", as: "option" },
+            { card: "BT1-010", as: "filler" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("option").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.memory).toBe(2);
+  });
+
   it("models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload", () => {
     const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static");
     expect(staticEffect?.actions[0]).toMatchObject({
