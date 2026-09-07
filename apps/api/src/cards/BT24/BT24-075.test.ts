@@ -51,7 +51,7 @@ describe("BT24-075 SkullBaluchimon", () => {
         0: {
           hand: [
             { card: "BT24-075", as: "skullbaluchimon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
         1: {
@@ -93,7 +93,7 @@ describe("BT24-075 SkullBaluchimon", () => {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [
             { card: "BT24-075", as: "skullbaluchimon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
         1: {
@@ -131,7 +131,7 @@ describe("BT24-075 SkullBaluchimon", () => {
         {
           0: {
             battleArea: [{ card: "BT24-075", as: "skullbaluchimon" }],
-            hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
           },
           1: {
             battleArea: [
