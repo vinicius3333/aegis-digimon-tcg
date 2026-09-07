@@ -40,7 +40,10 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer â†
           // Taiki (Tamer) on the battle area.
           battleArea: [{ card: TAIKI, dp: 0, as: "taiki", under: [{ card: "BT1-002", as: "existing" }] }],
           // Xros Heart Digimon in hand.
-          hand: [{ card: XROS_HEART_DIGIMON, as: "xros" }],
+          hand: [
+            { card: XROS_HEART_DIGIMON, as: "xros" },
+            { card: "BT1-009", as: "mainAction" },
+          ],
           // Card in deck to draw.
           deck: [{ card: "BT1-001", faceUp: false }],
         },
@@ -95,6 +98,38 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer â†
     expect(s.state.memory).toBe(memBefore);
     expect(p0?.deck.length).toBe(1);
     expect(s.perm("taiki").stack.length).toBe(0);
+  });
+
+  it("runs the Start of Your Main Phase placement through the public turn lifecycle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TAIKI, as: "taiki" }],
+          hand: [
+            { card: XROS_HEART_DIGIMON, as: "xros" },
+            { card: "BT1-009", as: "mainAction" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-004"],
+        },
+        1: { deck: ["BT1-005", "BT1-006", "BT1-007"], security: ["BT1-008"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("taiki").stack.some((card) => card.instanceId === s.inst("xros").instanceId));
+
+    expect(s.perm("taiki").stack[0]?.instanceId).toBe(s.inst("xros").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xros").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.memory).toBe(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });
 
