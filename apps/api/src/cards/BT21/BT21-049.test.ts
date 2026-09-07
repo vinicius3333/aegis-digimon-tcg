@@ -267,4 +267,23 @@ describe("BT21-049 Woodmon", () => {
     await settle(() => s.perm("mushroomon").topCard.instanceId === s.inst("woodmon").instanceId);
     expect(s.state.memory).toBe(1);
   });
+  it("rejects the alternate route from a same-color non-WG base without moving cards or paying memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "BT21-049", as: "evolution" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    const cardId = s.inst("evolution").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: cardId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-064");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([cardId]);
+  });
 });
