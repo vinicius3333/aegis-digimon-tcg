@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -5,6 +6,28 @@ import { compiled as BT24_033 } from "./BT24-033.js";
 import "../index.js";
 
 describe("BT24-033 Salamon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-033")).toMatchObject({
+      cardId: "BT24-033",
+      nameEn: "Salamon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Mammal", "Iliad", "TS"],
+      evoCosts: [
+        { color: "Yellow", level: 2, memoryCost: 0 },
+        { color: "Red", level: 2, memoryCost: 0 },
+      ],
+    });
+    expect(BT24_033.digivolutionRequirement).toEqual([
+      { level: 2, traits: ["TS"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("reduces your-turn Iliad digivolution costs by one", () => {
     const effect = BT24_033.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(effect?.actions?.[0]).toMatchObject({
