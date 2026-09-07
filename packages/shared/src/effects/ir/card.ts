@@ -3,7 +3,7 @@
 import type { Action } from "./actions/action.js";
 import type { KeywordRef } from "./keywords.js";
 import type { Condition } from "./predicates/conditions.js";
-import type { DigivolutionRequirement } from "./requirements/digivolve.js";
+import type { BaseGrantedDigivolve, DigivolutionRequirement } from "./requirements/digivolve.js";
 import type { AppFusionRequirement, AssemblyRequirement, DnaDigivolveRequirement } from "./requirements/fusion.js";
 import type { DigiXrosRequirement, LinkRequirement, MindLinkRequirement } from "./requirements/xrosLink.js";
 import type { EffectFrequency, EffectTrigger } from "./triggers.js";
@@ -91,6 +91,8 @@ export interface CompiledCard {
    * lists several paths.
    */
   digivolutionRequirement?: DigivolutionRequirement[];
+  /** Base-granted digivolution paths offered by this card while it is in the battle area. */
+  baseGrantedDigivolve?: BaseGrantedDigivolve[];
   dnaDigivolveRequirement?: DnaDigivolveRequirement[];
   appFusionRequirement?: AppFusionRequirement[];
   /** What the card may be linked to, and at what cost. */

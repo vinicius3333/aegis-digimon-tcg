@@ -8,47 +8,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "YourTurn",
-      actions: [
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Antylamon"],
-                match: "name",
-              },
-            ],
-          },
-          payCost: true,
-          from: ["hand"],
-          costOverride: 3,
-          ignoreRequirements: true,
-          condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Makiko Date"],
-                  match: "name",
-                },
-              ],
-            },
-            raw: "you have [Makiko Date]",
-          },
-        },
-      ],
-    },
-    {
       trigger: "AllTurns",
       actions: [
         {
@@ -71,9 +30,17 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  baseGrantedDigivolve: [
+    {
+      target: { namesExact: ["Antylamon"] },
+      cost: 3,
+      ignoreRequirements: true,
+      condition: { kind: "tamerHasExactName", name: "Makiko Date" },
+    },
+  ],
   digivolutionRequirement: [
     {
-      names: ["Kokomon"],
+      namesExact: ["Kokomon"],
       cost: 0,
       isAlternate: true,
     },

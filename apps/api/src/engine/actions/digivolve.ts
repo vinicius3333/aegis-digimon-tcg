@@ -13,6 +13,7 @@ import {
   type Permanent,
   type Seat,
   type ServerEvent,
+  type ZoneRef,
 } from "@aegis/shared";
 import {
   cardHasTrait,
@@ -259,6 +260,7 @@ export interface DigivolveDeps {
     seat: Seat,
     base: Permanent,
     evolving: CardDefinition,
+    sourceZone?: ZoneRef,
   ): { cost: number } | undefined;
   /**
    * Whether `evolving`'s printed keyword waives this digivolve's memory cost entirely
@@ -475,7 +477,7 @@ export function validateDigivolve(
   // Base-GRANTED path (ST7-03/BT6-060): a static on the BASE permanent lets this specific card
   // digivolve onto it for a fixed cost, ignoring the printed color/level requirement. An
   // independent third path — legal even when neither the EvoCost nor an alternate requirement match.
-  const baseGranted = deps.baseGrantedDigivolve?.(state, seat, permanent, definition);
+  const baseGranted = deps.baseGrantedDigivolve?.(state, seat, permanent, definition, "hand");
 
   if (evoCost === undefined && altRequirement === undefined && baseGranted === undefined) {
     return { ok: false, reason: "invalid-evolution" };

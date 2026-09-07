@@ -691,6 +691,13 @@ function baseGrantConditionHolds(
     }
     return names.size >= condition.count;
   }
+  if (condition.kind === "tamerHasExactName") {
+    if (!viewer) return false;
+    return viewer.battleArea.some((p) => {
+      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
+      return def?.kinds.includes(CardKind.Tamer) && def.nameEn === condition.name;
+    });
+  }
   return false;
 }
 

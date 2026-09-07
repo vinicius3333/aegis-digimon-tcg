@@ -953,7 +953,8 @@ export class GameEngine {
       finishEffectBody: () => {
         this.effectResolutionDepth = Math.max(0, this.effectResolutionDepth - 1);
       },
-      baseGrantedDigivolve: (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
+        this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       emit: (event) => this.hooks.emit(event),
       nextPermanentId: () => this.nextPermanentId(),
       nextInstanceId: () => this.nextInstanceId(),
@@ -1122,7 +1123,7 @@ export class GameEngine {
       (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
-      (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      (seat, base, evolving, sourceZone) => this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       undefined,
       (id, traits) =>
         this.continuous.linkCostReductionGrant(
@@ -1817,7 +1818,8 @@ export class GameEngine {
       // Base-granted digivolve path (ST7-03/BT6-060): the base permanent's static grant lets this
       // specific evolving card digivolve onto it, ignoring color/level, when active (battle area,
       // owner's turn — guaranteed by the verb — and the opponent-level condition when present).
-      baseGrantedDigivolve: (_state, seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      baseGrantedDigivolve: (_state, seat, base, evolving, sourceZone) =>
+        this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       // ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ (§16-26-1/§16-31-1): the evolving hand card's
       // own printed keyword, read from the compiled-IR side registry (registerIrCard populates it
       // via registerBlastDigivolveFromEffects) since the card is in hand, not a live permanent.
@@ -1956,8 +1958,10 @@ export class GameEngine {
     seat: Seat,
     base: Permanent,
     evolving: CardDefinition,
+    sourceZone?: ZoneRef,
   ): { cost: number } | undefined {
-    if (base.inBreeding) return undefined;
+    if (base.inBreeding || base.controllerSeat !== seat || this.state.turnSeat !== seat || sourceZone !== "hand")
+      return undefined;
     const grants = baseGrantedDigivolveFor(base.topCard.cardId);
     if (grants === undefined) return undefined;
     for (const grant of grants) {
@@ -1999,6 +2003,12 @@ export class GameEngine {
         names.add(definition.nameEn);
       }
       return names.size >= condition.count;
+    }
+    if (condition.kind === "tamerHasExactName") {
+      return this.access.player(seat).battleArea.some((perm) => {
+        const definition = perm.topCard === undefined ? undefined : lookupDefinition(perm.topCard.cardId);
+        return definition !== undefined && isTamer(definition) && definition.nameEn === condition.name;
+      });
     }
     const textCondition = condition as unknown as { kind: string; text?: string };
     if (textCondition.kind === "tamerHasText" && textCondition.text !== undefined) {

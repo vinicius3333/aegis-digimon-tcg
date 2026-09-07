@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { CardKind, Phase } from "@aegis/shared";
+import { CardKind, Phase, PlayerState, Permanent, CardInstance } from "@aegis/shared";
 import { buildTriggerKey } from "@aegis/shared";
-import type { Permanent, ServerEvent } from "@aegis/shared";
+import type { ServerEvent } from "@aegis/shared";
 import { translator } from "../i18n";
 import {
   activeBlockWindow,
@@ -527,6 +527,31 @@ describe("BT22-061 intrinsic face-down-source digivolution reduction", () => {
     ] as typeof base.stack;
     const options = getDigivolveCostOptions("BT22-061", base);
     expect(options).toContainEqual(expect.objectContaining({ type: "alternate", cost: 1 }));
+  });
+});
+
+describe("Lopmon base-granted evolution pricing", () => {
+  it.each([
+    ["own Makiko", ["BT23-082"], [], true],
+    ["missing Makiko", [], [], false],
+    ["opponent Makiko", [], ["BT23-082"], false],
+    ["card naming Makiko in its text", ["BT23-026"], [], false],
+  ] as const)("offers Antylamon at cost 3 only with %s", (_label, ownCards, opponentCards, eligible) => {
+    const owner = new PlayerState();
+    const opponent = new PlayerState();
+    for (const [player, cards] of [
+      [owner, ownCards],
+      [opponent, opponentCards],
+    ] as const) {
+      for (const cardId of cards) {
+        const permanent = new Permanent();
+        permanent.topCard = new CardInstance();
+        permanent.topCard.cardId = cardId;
+        player.battleArea.push(permanent);
+      }
+    }
+    const options = getDigivolveCostOptions("BT23-029", permOf("BT23-026"), owner, opponent);
+    expect(options.map(({ type, cost }) => ({ type, cost }))).toEqual(eligible ? [{ type: "alternate", cost: 3 }] : []);
   });
 });
 

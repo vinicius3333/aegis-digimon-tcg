@@ -135,7 +135,12 @@ export function createGameAccess(
     permanentId: string,
     printedKinds: readonly import("@aegis/shared").CardKind[],
   ) => import("@aegis/shared").CardKind[],
-  baseGrantedDigivolve?: (seat: Seat, base: Permanent, evolving: CardDefinition) => { cost: number } | undefined,
+  baseGrantedDigivolve?: (
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: import("@aegis/shared").ZoneRef,
+  ) => { cost: number } | undefined,
   effectiveDP?: (permanentId: string) => number,
   linkCostReductionGrant?: (
     recipientId: string,

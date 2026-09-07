@@ -1269,7 +1269,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
 
 /** The base-granted digivolution paths a card in play offers, or undefined when it grants none. */
 export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] | undefined {
-  return BASE_GRANTED_DIGIVOLVE[cardId];
+  return compiledEffects[cardId]?.baseGrantedDigivolve ?? BASE_GRANTED_DIGIVOLVE[cardId];
 }
 
 /**

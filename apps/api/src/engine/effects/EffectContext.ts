@@ -579,7 +579,12 @@ export interface GameAccess {
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
   /** A live battle-area base-granted evolution path, usable by effect-driven digivolution. */
-  baseGrantedDigivolve?(seat: Seat, base: Permanent, evolving: CardDefinition): { cost: number } | undefined;
+  baseGrantedDigivolve?(
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: ZoneRef,
+  ): { cost: number } | undefined;
   /** Whether the permanent is currently prevented from activating this timing. */
   isTimingEffectDisabled?(permanentId: string, timing: "whenDigivolving" | "whenAttacking" | "onPlay"): boolean;
 }

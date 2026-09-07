@@ -119,7 +119,12 @@ export interface PrimitivesEngine {
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
-  baseGrantedDigivolve?(seat: Seat, base: Permanent, evolving: CardDefinition): { cost: number } | undefined;
+  baseGrantedDigivolve?(
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: ZoneRef,
+  ): { cost: number } | undefined;
   /** Emit a server event (narration/log). */
   emit(event: ServerEvent): void;
   /** Allocate a permanentId unique within the match (play-from-hand/security). */
@@ -1337,7 +1342,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // original card's Tamer/name/trait identity here would incorrectly admit alternate
         // paths in addition to the stated virtual level and colors.
         const baseGranted =
-          opts.virtualBase === undefined ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
+          opts.virtualBase === undefined
+            ? engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone)
+            : undefined;
         const alternate =
           opts.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
@@ -1391,7 +1398,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // only gate a base that carries a level — a level-less base (Q4242) satisfies no level-gated
       // requirement, so the check is meaningless and is skipped rather than rejecting the digivolve.
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
-      const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
+      const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       if (
         baseDef.level !== undefined &&
         !canDigivolveOntoWithAlternates(definition, baseDef) &&

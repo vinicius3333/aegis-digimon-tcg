@@ -162,4 +162,5 @@ export type BaseGrantedDigivolveCondition =
   | { kind: "distinctNamedTamersWithTrait"; trait: string; count: number }
   /** "you have a Tamer with [X] in its text" (full printed-text union). */
   | { kind: "tamerHasText"; text: string }
+  | { kind: "tamerHasExactName"; name: string }
   | { kind: "anyOf"; conditions: BaseGrantedDigivolveCondition[] };
