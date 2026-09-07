@@ -11,6 +11,45 @@ describe("BT21-056 Vemmon", () => {
     expect(compiled.residual ?? []).toEqual([]);
   });
 
+  it("publicly evolves from a black Digi-Egg in breeding for zero memory", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT21-006", as: "egg" }, hand: [{ card: "BT21-056", as: "vemmon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("vemmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-056");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT21-006"]);
+  });
+
+  it("does not reduce an inherited host's evolution into a card without Vemmon in its text", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-058", as: "host", under: ["BT21-056"] }],
+        hand: [{ card: "BT2-060", as: "megadramon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("megadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT2-060");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-056", "BT21-058"]);
+  });
+
   it("trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     const action = effect?.actions[0] as { target?: unknown; cost?: unknown } | undefined;
@@ -121,8 +160,24 @@ describe("BT21-056 Vemmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId));
-
+    const costId = s.inst("cost").instanceId;
+    await settle(
+      () =>
+        s.events.some(
+          (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(costId),
+        ) && s.state.pendingDecision === undefined,
+    );
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(costId),
+      ),
+    ).toBe(true);
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(costId),
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === costId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
@@ -154,7 +209,7 @@ describe("BT21-056 Vemmon", () => {
         ],
       },
     });
-    s.state.memory = 12;
+    s.state.memory = 10;
     await s.ready();
 
     expect(
@@ -165,7 +220,7 @@ describe("BT21-056 Vemmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("destromon").instanceId);
-    expect(s.state.memory).toBe(8);
+    expect(s.state.memory).toBe(6);
 
     expect(
       s.engine.applyIntent(0, {
@@ -175,16 +230,15 @@ describe("BT21-056 Vemmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(0);
   });
 
-  it("carries the inherited reduction through a legal public egg-to-Vemmon stack", async () => {
+  it("carries the inherited reduction through public evolutions of a legal Vemmon stack", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-006", as: "egg" }],
+          battleArea: [{ card: "BT21-056", as: "host", under: ["BT21-006"] }],
           hand: [
-            { card: "BT21-056", as: "vemmon" },
             { card: "BT21-058", as: "snatchmon" },
             { card: "BT21-060", as: "destromon" },
           ],
@@ -192,48 +246,38 @@ describe("BT21-056 Vemmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 12;
+    s.state.memory = 10;
     await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
-        instanceId: s.inst("vemmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === "BT21-056");
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
+        permanentId: s.perm("host").permanentId,
         instanceId: s.inst("snatchmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === "BT21-058");
+    await settle(() => s.perm("host").topCard.cardId === "BT21-058");
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
+        permanentId: s.perm("host").permanentId,
         instanceId: s.inst("destromon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === "BT21-060");
-    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT21-006", "BT21-056", "BT21-058"]);
-    expect(s.perm("egg").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(1);
-    expect(s.perm("egg").stack.some((card) => card.cardId === "BT21-058")).toBe(true);
-    expect(s.state.memory).toBe(5);
+    await settle(() => s.perm("host").topCard.cardId === "BT21-060");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-006", "BT21-056", "BT21-058"]);
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(1);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT21-058")).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("reduces a second qualifying evolution after the next own turn resets Once Per Turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-006", as: "egg" }],
+          battleArea: [{ card: "BT21-056", as: "host", under: ["BT21-006"] }],
           hand: [
-            { card: "BT21-056", as: "vemmon" },
             { card: "BT21-058", as: "snatchmon" },
             { card: "BT21-060", as: "destromon" },
             { card: "BT21-062", as: "galacticmon" },
@@ -263,15 +307,15 @@ describe("BT21-056 Vemmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    for (const alias of ["vemmon", "snatchmon", "destromon"] as const) {
+    for (const alias of ["snatchmon", "destromon"] as const) {
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
-          permanentId: s.perm("egg").permanentId,
+          permanentId: s.perm("host").permanentId,
           instanceId: s.inst(alias).instanceId,
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.perm("egg").topCard.cardId === s.inst(alias).cardId);
+      await settle(() => s.perm("host").topCard.cardId === s.inst(alias).cardId);
     }
     const memoryAfterFirstTurnReduction = s.state.memory;
 
@@ -287,11 +331,11 @@ describe("BT21-056 Vemmon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
+        permanentId: s.perm("host").permanentId,
         instanceId: s.inst("galacticmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.instanceId === s.inst("galacticmon").instanceId);
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId);
     expect(memoryAfterFirstTurnReduction).toBe(3);
     expect(s.state.memory).toBe(5);
     advance(s.engine).endMainPhaseIfOpen(0);
