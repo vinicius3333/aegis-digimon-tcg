@@ -22,7 +22,10 @@ describe("BT22-058 Dreammon", () => {
   });
 
   it("accepts the official Stnd. level-2 alternate route and rejects a non-Stnd. base", async () => {
-    for (const [base, legal] of [["BT22-030", true], ["BT22-019", false]] as const) {
+    for (const [base, legal] of [
+      ["BT22-030", true],
+      ["BT22-019", false],
+    ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-058", as: "dreammon" }] },
       });

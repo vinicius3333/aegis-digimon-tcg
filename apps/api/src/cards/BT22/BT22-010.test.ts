@@ -36,7 +36,10 @@ describe("BT22-010 Meramon", () => {
   });
 
   it("pays exactly 2 through public Main activation and grants Raid and Piercing", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] }, 1: { security: ["BT1-001"] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] }, 1: { security: ["BT1-001"] } },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
     const source = (
       s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
@@ -73,10 +76,16 @@ describe("BT22-010 Meramon", () => {
   it("pays the Main cost even when the optional follow-up attack is declined", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] } }, { autoDeclineOptional: true });
     await s.ready();
-    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(s.perm("meramon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-010/"))!.effectKey;
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("meramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-010/"),
+    )!.effectKey;
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.state.memory === 3);
     expect(s.state.memory).toBe(3);
     expect(observe(s.engine).hasKeyword(s.perm("meramon"), "Raid")).toBe(true);
@@ -86,43 +95,91 @@ describe("BT22-010 Meramon", () => {
   it("expires temporary keywords and enforces Once Per Turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] } }, { autoDeclineOptional: true });
     await s.ready();
-    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(s.perm("meramon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-010/"))!.effectKey;
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("meramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-010/"),
+    )!.effectKey;
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.state.memory === 3);
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }).ok).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }).ok).toBe(
+      false,
+    );
     await advance(s.engine).runTurn(0);
     expect(observe(s.engine).hasKeyword(s.perm("meramon"), "Raid")).toBe(false);
     expect(observe(s.engine).hasPierce(s.perm("meramon"))).toBe(false);
   });
 
   it("accepts normal red and alternate CS level-3 evolution sources and rejects level 2", async () => {
-    const normal = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT22-010", as: "meramon" }] } });
+    const normal = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT22-010", as: "meramon" }] },
+    });
     await normal.ready();
     normal.state.memory = 4;
-    expect(normal.engine.applyIntent(0, { type: "digivolve", permanentId: normal.perm("base").permanentId, instanceId: normal.inst("meramon").instanceId }).ok).toBe(true);
-    const alternate = setupEngine({ 0: { battleArea: [{ card: "BT22-008", as: "csBase" }], hand: [{ card: "BT22-010", as: "meramon" }] } });
+    expect(
+      normal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: normal.perm("base").permanentId,
+        instanceId: normal.inst("meramon").instanceId,
+      }).ok,
+    ).toBe(true);
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT22-008", as: "csBase" }], hand: [{ card: "BT22-010", as: "meramon" }] },
+    });
     await alternate.ready();
     alternate.state.memory = 4;
-    expect(alternate.engine.applyIntent(0, { type: "digivolve", permanentId: alternate.perm("csBase").permanentId, instanceId: alternate.inst("meramon").instanceId }).ok).toBe(true);
-    const invalid = setupEngine({ 0: { battleArea: [{ card: "BT1-007", as: "level2" }], hand: [{ card: "BT22-010", as: "meramon" }] } });
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("csBase").permanentId,
+        instanceId: alternate.inst("meramon").instanceId,
+      }).ok,
+    ).toBe(true);
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-007", as: "level2" }], hand: [{ card: "BT22-010", as: "meramon" }] },
+    });
     await invalid.ready();
     invalid.state.memory = 4;
-    expect(invalid.engine.applyIntent(0, { type: "digivolve", permanentId: invalid.perm("level2").permanentId, instanceId: invalid.inst("meramon").instanceId }).ok).toBe(false);
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("level2").permanentId,
+        instanceId: invalid.inst("meramon").instanceId,
+      }).ok,
+    ).toBe(false);
   });
 
   it("accepts the black CS alternate route with exact cost 2 and rejects non-red non-CS", async () => {
-    const alternate = setupEngine({ 0: { battleArea: [{ card: "BT22-053", as: "keramon" }], hand: [{ card: "BT22-010", as: "meramon" }] } });
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT22-053", as: "keramon" }], hand: [{ card: "BT22-010", as: "meramon" }] },
+    });
     await alternate.ready();
     alternate.state.memory = 4;
-    expect(alternate.engine.applyIntent(0, { type: "digivolve", permanentId: alternate.perm("keramon").permanentId, instanceId: alternate.inst("meramon").instanceId })).toEqual({ ok: true });
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("keramon").permanentId,
+        instanceId: alternate.inst("meramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => alternate.perm("keramon").topCard?.cardId === "BT22-010");
     expect(alternate.perm("keramon").topCard?.cardId).toBe("BT22-010");
     expect(alternate.state.memory).toBe(2);
-    const invalid = setupEngine({ 0: { battleArea: [{ card: "BT3-021", as: "blueBase" }], hand: [{ card: "BT22-010", as: "meramon" }] } });
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT3-021", as: "blueBase" }], hand: [{ card: "BT22-010", as: "meramon" }] },
+    });
     await invalid.ready();
     invalid.state.memory = 4;
-    expect(invalid.engine.applyIntent(0, { type: "digivolve", permanentId: invalid.perm("blueBase").permanentId, instanceId: invalid.inst("meramon").instanceId }).ok).toBe(false);
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("blueBase").permanentId,
+        instanceId: invalid.inst("meramon").instanceId,
+      }).ok,
+    ).toBe(false);
   });
 });

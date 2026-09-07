@@ -34,7 +34,7 @@ describe("BT22-024 MarineBullmon", () => {
         filter: {
           controller: "mine",
           kind: ["Digimon"],
-        nameOrTrait: [{ tokens: ["Sangomon"], match: "nameExact" }],
+          nameOrTrait: [{ tokens: ["Sangomon"], match: "nameExact" }],
         },
         count: 1,
       },
@@ -155,16 +155,21 @@ describe("BT22-024 MarineBullmon", () => {
   it("requires an exact Sangomon host and does not accept MoriShellmon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT5-051", as: "moriShellmon" }, { card: "BT22-086", as: "yao" }],
+        battleArea: [
+          { card: "BT5-051", as: "moriShellmon" },
+          { card: "BT22-086", as: "yao" },
+        ],
         hand: [{ card: "BT22-024", as: "marineBullmon" }],
         trash: ["BT22-021"],
       },
     });
     await s.ready();
-    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(
-      s.inst("marineBullmon"),
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("marineBullmon"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("BT22-024/"),
     );
-    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) => entry.effectKey.startsWith("BT22-024/"));
     expect(effect).toBeDefined();
     expect(
       s.engine.applyIntent(0, {

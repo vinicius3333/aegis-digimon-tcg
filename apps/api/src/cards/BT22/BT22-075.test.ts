@@ -10,7 +10,10 @@ describe("BT22-075 Fakemon", () => {
       { level: 4, colors: ["Green"], cost: 4, isAlternate: false },
       { level: 4, traits: ["Sup."], cost: 4, isAlternate: true },
     ]);
-    for (const [base, legal] of [["BT22-058", true], ["BT22-020", false]] as const) {
+    for (const [base, legal] of [
+      ["BT22-058", true],
+      ["BT22-020", false],
+    ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-075", as: "fakemon" }] },
       });

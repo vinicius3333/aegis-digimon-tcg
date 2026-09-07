@@ -101,13 +101,22 @@ describe("BT22-087 Torajiro Asuka", () => {
             { card: "BT22-087", as: "torajiro" },
             { card: "BT22-035", as: "entermon", linked: [{ card: "BT22-075", as: "fakemon" }] },
           ],
-          hand: [{ card: "BT22-058", as: "link" }, { card: "BT22-039", as: "ouranosmon" }],
+          hand: [
+            { card: "BT22-058", as: "link" },
+            { card: "BT22-039", as: "ouranosmon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "linkCard", instanceId: s.inst("link").instanceId, targetPermanentId: s.perm("entermon").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("entermon").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("entermon").topCard?.cardId === "BT22-039");
     expect(s.perm("entermon").topCard?.cardId).toBe("BT22-039");
   });

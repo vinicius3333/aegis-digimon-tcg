@@ -64,7 +64,11 @@ describe("BT22-033 Mediamon", () => {
   });
 
   it("allows colored routes and the differently-colored Stnd. route, while rejecting a non-Stnd. base", async () => {
-    for (const [base, legal] of [["BT22-030", true], ["BT22-016", true], ["BT1-009", false]] as const) {
+    for (const [base, legal] of [
+      ["BT22-030", true],
+      ["BT22-016", true],
+      ["BT1-009", false],
+    ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-033", as: "mediamon" }] },
       });

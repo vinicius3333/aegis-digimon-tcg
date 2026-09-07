@@ -90,28 +90,59 @@ describe("BT22-012 RizeGreymon", () => {
 
   it("accepts a red cost-4-or-less Tamer through the first option", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT22-012", as: "rize" }], hand: [{ card: "BT1-085", as: "redTamer" }, { card: "BT1-086", as: "blueNonCs" }, { card: "AD1-020", as: "highCostRed" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT22-012", as: "rize" }],
+          hand: [
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT1-086", as: "blueNonCs" },
+            { card: "AD1-020", as: "highCostRed" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rize"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-085")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("blueNonCs").instanceId, s.inst("highCostRed").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("blueNonCs").instanceId,
+      s.inst("highCostRed").instanceId,
+    ]);
   });
 
   it("supports the legal Greymon-name route and rejects a level-3 source", async () => {
-    const greymon = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "greymon" }], hand: [{ card: "BT22-012", as: "rize" }] } });
+    const greymon = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "greymon" }], hand: [{ card: "BT22-012", as: "rize" }] },
+    });
     await greymon.ready();
     greymon.state.memory = 4;
-    expect(greymon.engine.applyIntent(0, { type: "digivolve", permanentId: greymon.perm("greymon").permanentId, instanceId: greymon.inst("rize").instanceId }).ok).toBe(true);
-    const invalid = setupEngine({ 0: { battleArea: [{ card: "BT22-008", as: "level3" }], hand: [{ card: "BT22-012", as: "rize" }] } });
+    expect(
+      greymon.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: greymon.perm("greymon").permanentId,
+        instanceId: greymon.inst("rize").instanceId,
+      }).ok,
+    ).toBe(true);
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT22-008", as: "level3" }], hand: [{ card: "BT22-012", as: "rize" }] },
+    });
     await invalid.ready();
     invalid.state.memory = 4;
-    expect(invalid.engine.applyIntent(0, { type: "digivolve", permanentId: invalid.perm("level3").permanentId, instanceId: invalid.inst("rize").instanceId }).ok).toBe(false);
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("level3").permanentId,
+        instanceId: invalid.inst("rize").instanceId,
+      }).ok,
+    ).toBe(false);
   });
 
   it("allows refusal of the optional Tamer play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-012", as: "rize" }], hand: [{ card: "BT22-083", as: "candidate" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-012", as: "rize" }], hand: [{ card: "BT22-083", as: "candidate" }] } },
+      { autoDeclineOptional: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rize"));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
@@ -123,7 +154,13 @@ describe("BT22-012 RizeGreymon", () => {
       1: { security: ["BT1-001", "BT1-001"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });

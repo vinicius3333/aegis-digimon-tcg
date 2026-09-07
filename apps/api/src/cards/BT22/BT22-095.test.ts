@@ -124,11 +124,7 @@ describe("BT22-095 Akemi Suedou", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
-    expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([
-      akemiId,
-      s.inst("existing").instanceId,
-    ]);
+    expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([akemiId, s.inst("existing").instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
-
 });

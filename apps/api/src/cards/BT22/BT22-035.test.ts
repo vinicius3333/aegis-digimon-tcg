@@ -23,10 +23,7 @@ describe("BT22-035 Entermon", () => {
             kind: ["Digimon"],
             levelComparison: { op: "lte", value: 4 },
             hasLinkRequirement: true,
-            or: [
-              { zone: "hand" },
-              { zone: "digivolutionCards", hostFilter: { isSelfRef: true } },
-            ],
+            or: [{ zone: "hand" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
           },
           count: 1,
         },
@@ -86,7 +83,11 @@ describe("BT22-035 Entermon", () => {
   });
 
   it("allows colored routes and the differently-colored Sup. route, while rejecting a non-Sup. base", async () => {
-    for (const [base, legal] of [["BT22-034", true], ["BT22-058", true], ["BT22-020", false]] as const) {
+    for (const [base, legal] of [
+      ["BT22-034", true],
+      ["BT22-058", true],
+      ["BT22-020", false],
+    ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-035", as: "entermon" }] },
       });
@@ -139,9 +140,7 @@ describe("BT22-035 Entermon", () => {
     await settle();
 
     expect(s.perm("entermon").linked).toHaveLength(0);
-    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(
-      true,
-    );
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(true);
   });
 
   it("plays one cost-4-or-lower Appmon only when Entermon itself gets linked", async () => {
@@ -199,7 +198,10 @@ describe("BT22-035 Entermon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT22-035", as: "entermon" }, { card: "BT22-030", as: "appmon" }],
+          battleArea: [
+            { card: "BT22-035", as: "entermon" },
+            { card: "BT22-030", as: "appmon" },
+          ],
           hand: [{ card: "BT22-035", as: "link" }],
         },
         1: { battleArea: [{ card: "BT22-024", dp: 30000, as: "opponent" }] },

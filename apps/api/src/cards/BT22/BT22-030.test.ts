@@ -176,7 +176,10 @@ describe("BT22-030 Musimon", () => {
       {
         0: {
           battleArea: [{ card: "BT22-035", as: "host" }],
-          hand: [{ card: "BT22-030", as: "appmonLink" }, { card: "BT22-032", as: "nonAppmon" }],
+          hand: [
+            { card: "BT22-030", as: "appmonLink" },
+            { card: "BT22-032", as: "nonAppmon" },
+          ],
         },
       },
       { autoSelectCards: true },

@@ -13,9 +13,7 @@ describe("BT22-036 Chaperomon", () => {
   });
 
   it("keeps the Arisa trash-placement digivolution and Puppet Overclock/leave replacement", () => {
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 4, colors: ["Yellow"], cost: 3, isAlternate: false },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, colors: ["Yellow"], cost: 3, isAlternate: false }]);
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main).toMatchObject({ isFromHand: true, condition: { kind: "youHave" } });
     expect(main?.actions[0]).toMatchObject({

@@ -111,10 +111,19 @@ describe("BT22-088 Arisa Kinosaki", () => {
   });
 
   it("plays Arisa from security during a public security check", async () => {
-    const s = setupEngine({ 0: { security: ["BT22-088"] }, 1: { battleArea: [{ card: "BT1-009", as: "attacker" }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { security: ["BT22-088"] }, 1: { battleArea: [{ card: "BT1-009", as: "attacker" }] } },
+      { autoAcceptOptional: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-088"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-088")).toBe(true);
   });

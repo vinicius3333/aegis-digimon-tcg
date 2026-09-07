@@ -98,13 +98,26 @@ describe("BT22-011 BlueMeramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(s.perm("blueMeramon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-011/"))!.effectKey;
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("blueMeramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-011/"),
+    )!.effectKey;
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("csOnly").instanceId));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("csOnly").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("cost6Flame").instanceId, s.inst("neither").instanceId]);
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("csOnly").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("csOnly").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("cost6Flame").instanceId,
+      s.inst("neither").instanceId,
+    ]);
   });
 
   it("grants Alliance to a CS inherited host only during its controller's turn", async () => {
@@ -118,12 +131,21 @@ describe("BT22-011 BlueMeramon", () => {
   });
 
   it("declines the optional paid trash-play clause without paying or attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-011", as: "blueMeramon" }], trash: [{ card: "BT22-010", as: "candidate" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-011", as: "blueMeramon" }], trash: [{ card: "BT22-010", as: "candidate" }] } },
+      { autoDeclineOptional: true },
+    );
     await s.ready();
-    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(s.perm("blueMeramon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-011/"))!.effectKey;
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("blueMeramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-011/"),
+    )!.effectKey;
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.state.memory === 5);
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);

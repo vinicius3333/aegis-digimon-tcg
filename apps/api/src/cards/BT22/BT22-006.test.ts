@@ -128,7 +128,6 @@ describe("BT22-006 Moonmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
     );
     preferredIds.push(s.inst("evolving").instanceId);
-    const hostPermanentId = s.perm("host").permanentId;
     const originalLunamonId = s.perm("host").topCard!.instanceId;
     const moonmonId = s.perm("host").stack[0]!.instanceId;
     s.state.memory = 10;

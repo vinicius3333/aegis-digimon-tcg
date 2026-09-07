@@ -12,7 +12,14 @@ describe("BT22-063 Alphamon", () => {
       {
         names: ["Kyoko Kuremi"],
         cost: 5,
-        whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3, raw: "while you have 3 or fewer security cards" },
+        whileCondition: {
+          kind: "zoneCount",
+          seat: "mine",
+          zone: "security",
+          op: "lte",
+          value: 3,
+          raw: "while you have 3 or fewer security cards",
+        },
         isAlternate: true,
       },
     ]);

@@ -110,7 +110,10 @@ describe("BT22-043 Terriermon", () => {
   it("does not play a CS Tamer from a CS placement during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        hand: [{ card: "BT22-091", as: "arata" }, { card: "BT22-019", as: "csCard" }],
+        hand: [
+          { card: "BT22-091", as: "arata" },
+          { card: "BT22-019", as: "csCard" },
+        ],
         battleArea: [{ card: "BT22-046", as: "host", under: ["BT22-043"] }],
       },
     });

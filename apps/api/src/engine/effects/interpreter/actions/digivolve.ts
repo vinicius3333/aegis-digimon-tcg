@@ -216,7 +216,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
     // permanent remains unchanged and its current top is authoritative.
     const rotation =
       action.cost?.kind === "compound"
-      ? action.cost.costs?.find((nested) => nested.kind === "placeOwnTopAtStackBottom")
+        ? action.cost.costs?.find((nested) => nested.kind === "placeOwnTopAtStackBottom")
         : undefined;
     const hasDistinctRotationHost =
       rotation?.target !== undefined &&

@@ -101,7 +101,10 @@ describe("BT22-008 Agumon", () => {
   });
 
   it("allows its printed red route and rejects a level-3 base of the wrong color", async () => {
-    for (const [base, legal] of [["BT1-001", true], ["BT1-005", false]] as const) {
+    for (const [base, legal] of [
+      ["BT1-001", true],
+      ["BT1-005", false],
+    ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-008", as: "agumon" }] },
       });
