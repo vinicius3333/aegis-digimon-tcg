@@ -176,6 +176,72 @@ describe("BT24-029 Whamon", () => {
     expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("ownTarget").instanceId);
   });
 
+  it("resets the inherited attack play on the owner's later turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT24-030",
+              as: "host",
+              under: [
+                { card: "BT24-027", as: "firstTarget" },
+                { card: "BT24-027", as: "secondTarget" },
+                "BT24-029",
+              ],
+            },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("firstTarget").instanceId, s.inst("secondTarget").instanceId);
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstTarget").instanceId),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondTarget").instanceId),
+    );
+    expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("secondTarget").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
+  });
+
   it("plays the own stacked TS card at the end of a natural public attack", async () => {
     const s = setupEngine(
       {
