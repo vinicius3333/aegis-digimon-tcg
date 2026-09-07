@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,23 @@ import { compiled as BT24_032 } from "./BT24-032.js";
 import "../index.js";
 
 describe("BT24-032 Pipomon", () => {
+  it("matches the catalog identity and link contract", () => {
+    expect(getCardDefinition("BT24-032")).toMatchObject({
+      cardId: "BT24-032",
+      nameEn: "Pipomon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Stnd.", "Appmon"],
+      attributes: ["System"],
+      types: ["Warning", "Leviathan"],
+      linkDp: 2000,
+      linkRequirement: "[Link] [Appmon] trait: Cost 1",
+    });
+  });
+
   it("reveals three and searches Appmon plus System/Transmutation", () => {
     const reveal = BT24_032.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0] as any;
     expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
@@ -58,6 +75,35 @@ describe("BT24-032 Pipomon", () => {
       expect.arrayContaining([s.inst("appmon").instanceId, s.inst("system").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
+  it("resolves the reveal search from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-032", as: "pipomon" }],
+          deck: [
+            { card: "BT21-009", as: "appmon" },
+            { card: "BT24-053", as: "system" },
+            { card: "BT1-009", as: "miss" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("appmon").instanceId, s.inst("system").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pipomon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("system").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("appmon").instanceId, s.inst("system").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("miss").instanceId);
   });
 
   it("links for cost 1, contributes 2000 DP, and gives an opponent Digimon -2000 DP", async () => {
@@ -117,6 +163,30 @@ describe("BT24-032 Pipomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("pipomon").instanceId);
 
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("pipomon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
+  });
+
+  it("rejects linking from a non-Appmon host without moving the card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "host" }],
+        hand: [{ card: "BT24-032", as: "pipomon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("pipomon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("pipomon").instanceId);
+    expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.memory).toBe(3);
   });
 });
