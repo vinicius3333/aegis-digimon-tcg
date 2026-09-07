@@ -57,3 +57,5 @@ App Fusion investigation: committed comprehensive rules §8-4-3-3 require moving
 Temporary execution sessions/logs were not retained across the latest continuation; authoritative workspace edits/commits remain. New local logs use docs/audits/BT23-reaudit/logs, with command/result summaries persisted here and in per-card reports. Final set sync/check, typecheck, collection and style gates remain outstanding.
 
 Main readiness integration committed 5e13ae16c after 21 files / 361 timing and combat tests passed. The held start-main regression is red without the guard and green with it; independent review found no production regression. Garurumon final focused proof committed 56c9bd237 after the 008/018 pair passed 21 tests with both physical-source orders. Ledger now 128/1020, still 0/102 at final 10/10.
+
+Motimon coordinator rerun passed 1 file / 9 tests in 0.794s, with exact second Option arrival, own-turn memory, refusal payment/draw, and real turn-loop reset assertions. Applicable Oxlint, Oxfmt and diff check passed. Ledger recalculated to 136/1020; no final 10/10 cards. Origin was confirmed at 2c4d744b6 before this integration.

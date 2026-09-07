@@ -4,13 +4,13 @@ Baseline: a924de971e0b43ad9ebd8f82a454d495ff880a60. Current status: INCOMPLETE. 
 
 Scoring: catalog/rules, IR trace, behavioral proof, peer/stack proof, delivery gates, each 0–2. Unreviewed rows carry zero current evidence credit. Reports live in BT23-reaudit/CARD-ID.md.
 
-Current aggregate: 128/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
+Current aggregate: 136/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
 
 | Card     | Name                               | Catalog |  IR | Behavior | Peer/stack | Gates | Score | Status / evidence                                                                                      |
 | -------- | ---------------------------------- | ------: | --: | -------: | ---------: | ----: | ----: | ------------------------------------------------------------------------------------------------------ |
 | BT23-001 | Flickmon                           |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-001.md); final gates pending                                    |
 | BT23-002 | Yokomon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-002.md); final gates pending                                    |
-| BT23-003 | Motimon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | Start-main readiness race reproduced; guard regression in review                                       |
+| BT23-003 | Motimon | 2 | 2 | 2 | 2 | 0 | 8/10 | Reviewed; [evidence](BT23-reaudit/BT23-003.md); final gates pending |
 | BT23-004 | DemiMeramon                        |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-004.md); final gates pending                                    |
 | BT23-005 | Elizamon                           |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-005.md); final gates pending                                    |
 | BT23-006 | Huckmon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-006.md); final gates pending                                    |
@@ -20,15 +20,15 @@ Current aggregate: 128/1020; 0/102 cards independently accepted at 10/10. All 10
 | BT23-010 | GeoGreymon                         |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-010.md)                                    |
 | BT23-011 | Birdramon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-011.md)                                    |
 | BT23-012 | Garudamon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-012.md)                                    |
-| BT23-013 | Jesmon                             |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
-| BT23-014 | Gallantmon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
-| BT23-015 | Phoenixmon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
+| BT23-013 | Jesmon                             |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; clause-specific gaps remain                                                                                                 |
+| BT23-014 | Gallantmon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; clause-specific gaps remain                                                                                                 |
+| BT23-015 | Phoenixmon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; clause-specific gaps remain                                                                                                 |
 | BT23-016 | Dokamon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-016.md)                                    |
 | BT23-017 | Betamon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-017.md)                                    |
 | BT23-018 | Garurumon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-018.md)                                    |
 | BT23-019 | Gekomon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-019.md)                                    |
 | BT23-020 | Seadramon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-020.md)                                    |
-| BT23-021 | Dosukomon                          |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
+| BT23-021 | Dosukomon                          |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; clause-specific gaps remain                                                                                                 |
 | BT23-022 | Oujamon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
 | BT23-023 | Whamon                             |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
 | BT23-024 | Poseidomon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
@@ -108,5 +108,5 @@ Current aggregate: 128/1020; 0/102 cards independently accepted at 10/10. All 10
 | BT23-098 | Unique Emblem: Soul Banquet        |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
 | BT23-099 | The Sistermon Sisters Training Gym |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
 | BT23-100 | Hudie Net CafxE9                   |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
-| BT23-101 | Hudiemon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
-| BT23-102 | Mastemon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                                                                 |
+| BT23-101 | Hudiemon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; clause-specific gaps remain                                                                                                 |
+| BT23-102 | Mastemon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; clause-specific gaps remain                                                                                                 |
