@@ -138,9 +138,60 @@ describe("BT21-102 Tai Kamiya", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
     expect(s.perm("tai").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("rejects public reactivation after Main returns Tai to the deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-102", as: "tai" }],
+          hand: [{ card: "BT21-009", as: "gatchmon" }],
+          deck: ["BT1-001", "BT1-010"],
+        },
+        1: { deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const taiInstanceId = s.inst("tai").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: taiInstanceId,
+        effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.deck.at(-1)?.instanceId === taiInstanceId &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"),
+    );
+    expect(s.state.memory).toBe(10);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: taiInstanceId,
+        effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(taiInstanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("counts its white color, plays a cost-3 Hero, then returns itself to deck bottom", async () => {
