@@ -61,6 +61,28 @@ describe("BT24-033 Salamon", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("does not reduce a public evolution into a non-Iliad Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-033", as: "salamon" }],
+        hand: [{ card: "BT24-035", as: "gatomon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("salamon").permanentId,
+        instanceId: s.inst("gatomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("salamon").topCard.instanceId === s.inst("gatomon").instanceId);
+
+    expect(s.state.memory).toBe(4);
+  });
+
   it("does not reduce the same Iliad evolution in breeding (Q5612)", async () => {
     const s = setupEngine({
       0: {
