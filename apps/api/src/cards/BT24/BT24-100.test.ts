@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
@@ -8,6 +8,17 @@ import { compiled as BT24_100 } from "./BT24-100.js";
 import "../index.js";
 
 describe("BT24-100 In-Between Theater", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-100")).toMatchObject({
+      cardId: "BT24-100",
+      nameEn: "In-Between Theater",
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["TS"],
+    });
+  });
+
   it("waives color requirements and reveals TS before entering the battle area", () => {
     expect(BT24_100.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0]).toMatchObject({
       kind: "WaiveColorRequirement",
