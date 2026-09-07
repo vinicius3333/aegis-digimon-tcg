@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -86,7 +86,7 @@ describe("BT24-001 Gigimon", () => {
       {
         0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-001"] }] },
         1: {
-          security: [{ card: "BT1-001", as: "removed" }],
+          security: [{ card: "BT1-010", as: "removed" }],
           battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }],
         },
       },
@@ -104,7 +104,7 @@ describe("BT24-001 Gigimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT24-001"] }] },
-        1: { security: ["BT1-001"], battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+        1: { security: ["BT1-010"], battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -117,5 +117,149 @@ describe("BT24-001 Gigimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("is reached through a legal two-step breeding stack before attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT24-001", as: "egg" },
+          hand: [
+            { card: "BT24-009", as: "level3" },
+            { card: "BT24-010", as: "level4" },
+          ],
+        },
+        1: { security: ["BT1-010", "BT1-013"], battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("level3").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-009");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("level4").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-010");
+    const breedingTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.state.phase).toBe(Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("egg").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length < 2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-001", "BT24-009"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await breedingTurn;
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("egg").permanentId)).toBe(true);
+  });
+
+  it("does not trigger when the opponent removes their own security on their turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-001"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-045", as: "yellowSource" },
+            { card: "BT1-009", as: "target", dp: 3000 },
+          ],
+          hand: [{ card: "BT24-093", as: "temple" }],
+          security: [{ card: "BT1-010", as: "removed" }],
+          deck: ["BT1-013", "BT1-045"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("temple").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-010"));
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("removed").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-013"]);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("resets its once-per-turn trigger on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-014", as: "host", under: ["BT24-001", "BT1-009", "BT1-014"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-014", "BT1-009", "BT1-010", "BT1-014"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-014"],
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 3000 },
+            { card: "BT1-009", as: "second", dp: 3000 },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-014", "BT1-009", "BT1-010", "BT1-014", "BT1-009", "BT1-010", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
