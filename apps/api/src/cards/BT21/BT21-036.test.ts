@@ -68,7 +68,7 @@ describe("BT21-036 compiled implementation", () => {
   ])("evolves from $route for 3 reduced to 2 by the realistic source stack", async ({ base }) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: base, as: "base" }],
+        battleArea: [{ card: base, as: "base", under: ["BT21-002"] }],
         hand: [{ card: "BT21-036", as: "magnamon" }],
       },
     });
@@ -86,9 +86,36 @@ describe("BT21-036 compiled implementation", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT21-036");
 
     expect(s.state.memory).toBe(1);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-002", base]);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Armor Purge")).toBe(true);
+  });
+
+  it("rejects both alternate requirements from a legal non-Veemon, non-Hero Lv3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-033", as: "floramon", under: ["BT21-003"] }],
+        hand: [{ card: "BT21-036", as: "magnamon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    const sourceId = s.perm("floramon").permanentId;
+    const handId = s.inst("magnamon").instanceId;
+    for (const alternateRequirementIndex of [0, 1]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: sourceId,
+          instanceId: handId,
+          useAlternateCost: true,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+      expect(s.perm("floramon").topCard.cardId).toBe("BT21-033");
+      expect(s.state.memory).toBe(4);
+    }
   });
 
   it("uses Blocker in a public attack battle", async () => {
@@ -96,7 +123,7 @@ describe("BT21-036 compiled implementation", () => {
       {
         0: { battleArea: [{ card: "BT21-036", as: "magnamon" }], deck: ["BT1-009", "BT1-009"] },
         1: {
-          battleArea: [{ card: "BT21-011", as: "attacker", dp: 3000 }],
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
           security: ["BT1-001"],
           deck: ["BT1-009", "BT1-009"],
         },
@@ -126,7 +153,7 @@ describe("BT21-036 compiled implementation", () => {
           deck: ["BT1-009", "BT1-009"],
         },
         1: {
-          battleArea: [{ card: "BT21-011", as: "attacker", dp: 9000 }],
+          battleArea: [{ card: "BT1-059", as: "attacker" }],
           security: ["BT1-001"],
           deck: ["BT1-009", "BT1-009"],
         },
@@ -144,7 +171,6 @@ describe("BT21-036 compiled implementation", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard.cardId === "BT21-036");
-    await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
     s.state.turnSeat = 1;
     const defenderId = s.perm("source").permanentId;
     const attackerId = s.perm("attacker").permanentId;
@@ -152,10 +178,12 @@ describe("BT21-036 compiled implementation", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: attackerId,
-        target: { kind: "permanent", permanentId: defenderId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: defenderId })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.events.some((event) => event.kind === "combatResolved"));
     expect(
       s.state.players[0]!.battleArea.some((p) => p.permanentId === defenderId && p.topCard.cardId === "BT21-032"),
     ).toBe(true);
@@ -163,24 +191,26 @@ describe("BT21-036 compiled implementation", () => {
   });
 
   it("unsuspends and gives one target -2000 DP per Armor Form card in trash", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-032", as: "veemon", suspended: true }],
+          battleArea: [{ card: "BT21-032", as: "veemon", suspended: true, under: ["BT21-002"] }],
           hand: [{ card: "BT21-036", as: "magnamon" }],
           trash: ["BT21-035", "P-137", "BT1-009"],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "target", dp: 10000 },
-            { card: "BT1-010", as: "other", dp: 9000 },
+            { card: "BT1-024", as: "target" },
+            { card: "BT1-042", as: "other" },
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 3;
     await s.ready();
+    preferred.push(s.perm("other").topCard.instanceId);
 
     expect(
       s.engine.applyIntent(0, {
@@ -193,12 +223,13 @@ describe("BT21-036 compiled implementation", () => {
     await settle(() => s.perm("veemon").topCard.cardId === "BT21-036");
 
     expect(s.perm("veemon").isSuspended).toBe(false);
-    expect(s.perm("target").currentDP).toBe(6000);
-    expect(s.perm("other").currentDP).toBe(9000);
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.perm("other").currentDP).toBe(6000);
     s.give(0, Zone.Deck, "BT1-001");
     s.give(1, Zone.Deck, "BT1-002");
     await advance(s.engine).runTurn(0);
     expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.perm("other").currentDP).toBe(10000);
   });
 
   it("does not reduce DP when no Armor Form card is in trash", async () => {
@@ -209,7 +240,7 @@ describe("BT21-036 compiled implementation", () => {
           hand: [{ card: "BT21-036", as: "magnamon" }],
           trash: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 9000 }] },
+        1: { battleArea: [{ card: "BT1-059", as: "target" }] },
       },
       { autoSelectCards: true },
     );
