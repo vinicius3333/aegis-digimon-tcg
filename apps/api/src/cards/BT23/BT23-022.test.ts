@@ -1,5 +1,6 @@
 import { appFusionCostFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -63,6 +64,7 @@ describe("BT23-022 Oujamon", () => {
   it("links onto an Appmon for 3, adds 4000 DP, and grants Security Attack +1", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT23-022", as: "oujamon" }] },
+      1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
     });
     s.state.memory = 5;
     const baseDp = s.perm("host").currentDP;
@@ -77,6 +79,111 @@ describe("BT23-022 Oujamon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(baseDp + 4000);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("publicly uses Raid to redirect a player attack to the highest-DP unsuspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-022", as: "oujamon", dp: 9000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 4000 },
+            { card: "BT1-010", as: "high", dp: 8000 },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const highId = s.perm("high").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("oujamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === highId));
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("low").permanentId]);
+  });
+
+  it("shares the link use across public evolution and attack, then resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-020", as: "base" }],
+          hand: [
+            { card: "BT23-022", as: "oujamon" },
+            { card: "BT23-007", as: "firstLink" },
+            { card: "BT23-007", as: "secondLink" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          hand: [{ card: "ST1-02", as: "neutralPlay" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("oujamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").linked.length === 1);
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toEqual([s.inst("firstLink").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toEqual([s.inst("firstLink").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondLink").instanceId);
+    const firstLinkId = s.inst("firstLink").instanceId;
+    const secondLinkId = s.inst("secondLink").instanceId;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("base").linked).toHaveLength(1);
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toEqual([secondLinkId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(firstLinkId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("rejects Link onto a non-Appmon without spending memory", async () => {
@@ -151,8 +258,8 @@ describe("BT23-022 Oujamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT23-020", as: "base", under: [{ card: "BT23-021", as: "ownLink" }] },
-            { card: "BT23-020", as: "otherHost", under: [{ card: "BT23-021", as: "otherLink" }] },
+            { card: "BT23-020", as: "base", under: [{ card: "BT23-007", as: "ownLink" }] },
+            { card: "BT23-020", as: "otherHost", under: [{ card: "BT23-007", as: "otherLink" }] },
           ],
           hand: [{ card: "BT23-022", as: "oujamon" }],
           deck: ["BT1-009"],
