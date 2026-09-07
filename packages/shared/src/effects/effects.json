@@ -72376,10 +72376,9 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "TrashDigivolution",
+            "kind": "TrashTopStackedCards",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "amount": 10,
-            "fromTop": true
+            "amount": 10
           }
         ]
       },
@@ -72387,10 +72386,9 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "TrashDigivolution",
+            "kind": "TrashTopStackedCards",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "amount": 10,
-            "fromTop": true
+            "amount": 10
           }
         ]
       },
@@ -72412,7 +72410,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 6, "traits": ["Hero"], "cost": 3, "isAlternate": true }],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["Hero"], "cost": 5, "isAlternate": true }],
     "digiXrosRequirement": [
       {
         "materials": [

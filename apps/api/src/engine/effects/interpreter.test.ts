@@ -899,6 +899,10 @@ function makeContext(opts: {
       rec.calls.push({ verb: "returnToDeck", args: a });
       return [];
     },
+    trashStackTops: async (...a) => {
+      rec.calls.push({ verb: "trashStackTops", args: a });
+      return [];
+    },
     returnStackTopsToDeck: async (...a) => {
       rec.calls.push({ verb: "returnStackTopsToDeck", args: a });
       return [];

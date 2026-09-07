@@ -2662,6 +2662,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     restrictUnsuspendedDigivolve: true,
     returnToDeck: true,
     returnStackTopsToDeck: true,
+    trashStackTops: true,
     returnToEggDeck: true,
     returnToHand: true,
     reveal: true,

@@ -1076,6 +1076,9 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { byEffectSeat?: Seat; byEffectCardId?: string; position?: "top" | "bottom" },
   ): Promise<CardInstance[]>;
+  /** Trash up to n current top cards, promoting sources and leaving the bottom card.
+   * This is not De-Digivolve: no level-3 floor or De-Digivolve immunity applies. */
+  trashStackTops(permanentId: string, n: number, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
   reveal(seat: Seat, n: number): Promise<CardInstance[]>;

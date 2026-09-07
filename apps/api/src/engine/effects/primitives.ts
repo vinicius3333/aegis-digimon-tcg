@@ -1719,16 +1719,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * trash and promote the digivolution card directly beneath it
    * to the new top (the Digimon reverts a stage). Stops when the stack is empty.
    */
-  const deDigivolve = async (
+  const peelStackTops = async (
     permanentId: string,
     n: number,
-    opts?: { byEffectSeat?: Seat; stopAtLevel?: number },
+    opts?: { byEffectSeat?: Seat; stopAtLevel?: number; stackedCards?: boolean },
   ): Promise<CardInstance[]> => {
     const permanent = access.permanentById(permanentId);
     if (permanent === undefined) return [];
     // EX10-029 whenLinked grant (rule implementation): a Digimon with this restriction
     // is immune to De-Digivolve effects for the duration of the grant.
-    if (isRestricted(permanentId, "cantBeDeDigivolved")) return [];
+    if (!opts?.stackedCards && isRestricted(permanentId, "cantBeDeDigivolved")) return [];
     // EX11-070 stacked-trash-lock (KB Q5943 explicitly names <De-Digivolve>): an OPPONENT effect
     // may not strip the host's stacked cards. <De-Digivolve> demotes the top by removing a source,
     // so a locked host is immune to an opponent's <De-Digivolve> (the controller's own still works).
@@ -1747,6 +1747,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // that the remaining repetitions can affect; the rule-process sweep then
       // trashes that illegal top and all cards still under it (Q1921).
       if (
+        !opts?.stackedCards &&
         currentTopDefinition !== undefined &&
         !currentTopDefinition.kinds.includes(CardKind.Digimon) &&
         !currentTopDefinition.kinds.includes(CardKind.DigiEgg)
@@ -1757,7 +1758,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // early (a level-4 top never reached level 3) and, without an explicit
       // stopAtLevel, repeated De-Digivolve could incorrectly promote a Digi-Egg.
       const currentTopLevel = currentTopDefinition?.level;
-      if (currentTopLevel !== undefined && currentTopLevel <= levelFloor) break;
+      if (!opts?.stackedCards && currentTopLevel !== undefined && currentTopLevel <= levelFloor) break;
       const oldTop = permanent.topCard;
       const newTop = popFromStack(permanent);
       if (newTop === undefined) break;
@@ -1768,8 +1769,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         moved.push(oldTop);
       }
       const def = requireCardDefinition(newTop.cardId);
-      const dp = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
+      const dp = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
       permanent.baseDP = dp;
+      if (opts?.stackedCards) permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
       ledger.recomputeDP(state, permanent.permanentId);
     }
     // <Overflow> (CR §4-18): each demoted `oldTop` just left the field for the trash —
@@ -1784,6 +1786,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         to: Zone.Trash,
       });
     }
+    if (opts?.stackedCards && moved.length > 0) await engine.recomputeContinuousEffects?.();
     for (const card of moved) {
       if (!requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon)) continue;
       await engine.fireSubTrigger?.("whenDigimonTopTrashed", {
@@ -1794,6 +1797,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     return moved;
   };
+
+  const deDigivolve: Primitives["deDigivolve"] = (permanentId, n, opts) => peelStackTops(permanentId, n, opts);
+  const trashStackTops: Primitives["trashStackTops"] = (permanentId, n, opts) =>
+    peelStackTops(permanentId, n, { ...opts, stackedCards: true });
 
   /**
    * ＜Armor Purge＞'s cost (Comprehensive Rules §16-19-1): trash this permanent's own CURRENT
@@ -5745,6 +5752,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     returnToHand,
     returnToDeck,
     returnStackTopsToDeck,
+    trashStackTops,
     returnToEggDeck,
     reveal,
     searchDeck,

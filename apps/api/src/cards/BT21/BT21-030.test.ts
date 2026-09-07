@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-030.js";
 import "../index.js";
 
@@ -56,9 +57,8 @@ describe("BT21-030 compiled implementation", () => {
           trigger,
           actions: [
             {
-              kind: "TrashDigivolution",
+              kind: "TrashTopStackedCards",
               amount: 10,
-              fromTop: true,
               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             },
           ],
@@ -91,6 +91,7 @@ describe("BT21-030 compiled implementation", () => {
         costReduction: 1,
       },
     ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 6, traits: ["Hero"], cost: 5, isAlternate: true }]);
   });
 
   it("pays 14 and places its Shoutmon cost under the played card", async () => {
@@ -103,7 +104,7 @@ describe("BT21-030 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 14;
+    s.state.memory = 10;
     const shoutmonId = s.perm("shoutmon").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
@@ -112,7 +113,7 @@ describe("BT21-030 compiled implementation", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-030"));
 
     const superior = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-030")!;
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-4);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shoutmonId)).toBe(false);
     expect(superior.stack.map((card) => card.cardId)).toContain("BT21-011");
   });
@@ -128,7 +129,7 @@ describe("BT21-030 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 13;
+    s.state.memory = 10;
 
     expect(
       s.engine.applyIntent(0, {
@@ -140,7 +141,7 @@ describe("BT21-030 compiled implementation", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-030"));
 
     const superior = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-030")!;
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-3);
     expect(superior.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-011", "BT21-021"]));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashMaterial").instanceId)).toBe(
       false,
@@ -162,7 +163,7 @@ describe("BT21-030 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    valid.state.memory = 14;
+    valid.state.memory = 10;
     await valid.ready();
     expect(
       valid.engine.applyIntent(0, {
@@ -182,7 +183,7 @@ describe("BT21-030 compiled implementation", () => {
     expect(validHost.stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT21-011", "BT21-021", "BT10-008", "BT10-009"]),
     );
-    expect(valid.state.memory).toBe(3);
+    expect(valid.state.memory).toBe(-1);
 
     const duplicate = setupEngine(
       {
@@ -197,7 +198,7 @@ describe("BT21-030 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    duplicate.state.memory = 14;
+    duplicate.state.memory = 10;
     await duplicate.ready();
     expect(
       duplicate.engine.applyIntent(0, {
@@ -226,8 +227,9 @@ describe("BT21-030 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    nearInvalid.state.memory = 14;
+    nearInvalid.state.memory = 10;
     await nearInvalid.ready();
+    const nearInvalidHand = nearInvalid.state.players[0]!.hand.map((card) => card.instanceId);
     expect(
       nearInvalid.engine.applyIntent(0, {
         type: "playCard",
@@ -235,38 +237,159 @@ describe("BT21-030 compiled implementation", () => {
         digiXros: { materialInstanceIds: [nearInvalid.inst("nonXros").instanceId] },
       }),
     ).toMatchObject({ ok: false });
+    expect(nearInvalid.state.memory).toBe(10);
+    expect(nearInvalid.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(nearInvalidHand);
   });
 
-  it("trashes only stacked cards from the top and leaves the opponent's top card", async () => {
-    const stack = Array.from({ length: 11 }, (_, index) => ({ card: "BT1-001", as: `source-${index}` }));
+  it("publicly plays and peels a legal stack down to its bottom Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-030", as: "superior" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", under: stack }] },
+        0: {
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }],
+          hand: [{ card: "BT21-030", as: "superior" }],
+        },
+        1: {
+          battleArea: [{ card: "BT21-021", as: "target", under: ["BT21-011", "BT21-016"] }],
+          deck: ["BT1-003", "BT1-004", "BT1-005"],
+        },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
+    const peeledIds = [s.perm("target").topCard.instanceId, s.perm("target").stack[1]!.instanceId];
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("superior"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").topCard.cardId === "BT21-011" && s.state.pendingDecision === undefined);
 
-    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
-    expect(s.perm("target").stack).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(10);
+    expect(s.perm("target").topCard.cardId).toBe("BT21-011");
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(peeledIds);
   });
 
-  it("evolves from a Hero level 6 for 3 and trashes all available sources", async () => {
+  it("publicly trashes ten cards from the top of a legal eleven-source DigiXros stack", async () => {
+    const materials = [
+      "BT10-007",
+      "BT10-008",
+      "BT10-009",
+      "BT10-012",
+      "BT10-013",
+      "BT10-015",
+      "BT10-029",
+      "BT10-034",
+      "BT10-049",
+      "BT10-058",
+      "BT11-015",
+    ] as const;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }],
+          hand: [
+            { card: "BT21-030", as: "superior" },
+            ...materials.map((card, index) => ({ card, as: `material${index}` })),
+          ],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT21-030",
+              as: "target",
+              under: materials.map((card, index) => ({ card, as: `targetSource${index}` })),
+            },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetSourceIds = s.perm("target").stack.map((card) => card.instanceId);
+    const originalTopId = s.perm("target").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("superior").instanceId,
+        digiXros: { materialInstanceIds: materials.map((_, index) => s.inst(`material${index}`).instanceId) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("target").topCard.instanceId === targetSourceIds[1] && s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("target").topCard.instanceId).toBe(targetSourceIds[1]);
+    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.perm("target").stack[0]!.cardId).toBe(materials[0]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
+      originalTopId,
+      ...targetSourceIds.slice(2).reverse(),
+    ]);
+  });
+
+  it("publicly leaves a source-less opponent Digimon unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-011", as: "shoutmon" }], hand: [{ card: "BT21-030", as: "superior" }] },
+        1: { battleArea: [{ card: "BT21-021", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-030"));
+    expect(s.perm("target").topCard.cardId).toBe("BT21-021");
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it.each([
+    { card: "BT21-001", alias: "eggBottom" },
+    { card: "BT9-109", alias: "xAntibodyBottom" },
+  ])("Q4541/Q4542 publicly peels down to $alias and rule-trashes the invalid remnant", async ({ card, alias }) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-011", as: "shoutmon" }], hand: [{ card: "BT21-030", as: "superior" }] },
+        1: { battleArea: [{ card: "BT21-021", as: "target", under: [{ card, as: alias }, "BT21-011", "BT21-016"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const bottomId = s.inst(alias).instanceId;
+    const allIds = [...s.perm("target").stack, s.perm("target").topCard].map((card) => card.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(allIds));
+    expect(s.state.players[1]!.trash.some((saved) => saved.instanceId === bottomId)).toBe(true);
+  });
+
+  it("evolves from a Hero level 6 for 5 and peels to the bottom Digimon", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT21-028", as: "hero" }],
           hand: [{ card: "BT21-030", as: "superior" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target", under: ["BT1-001", "BT1-002"] }] },
+        1: { battleArea: [{ card: "BT21-021", as: "target", under: ["BT21-011", "BT21-016"] }] },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 5;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -281,6 +404,7 @@ describe("BT21-030 compiled implementation", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.trash).toHaveLength(2);
+    expect(s.perm("target").topCard.cardId).toBe("BT21-011");
   });
 
   it("returns only a source-less opposing Digimon to deck bottom and may decline", async () => {
@@ -337,5 +461,99 @@ describe("BT21-030 compiled implementation", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === sourceLessId));
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-009");
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("returns only once across two public attacks after a real Cyclonic Kick unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-030", as: "superior", enteredThisTurn: false },
+            { card: "BT1-089", as: "greenTamer" },
+          ],
+          hand: [{ card: "BT4-108", as: "cyclonicKick" }],
+        },
+        1: {
+          deck: [{ card: "BT1-001", as: "oldBottom" }],
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+          security: ["BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("superior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstTargetId),
+    );
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclonicKick").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("superior").isSuspended);
+    expect(s.state.memory).toBe(6);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("superior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondTargetId)).toBe(true);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-009"]);
+  });
+
+  it("publicly declines the optional bottom-deck return and preserves the source-less target", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-030", as: "superior", enteredThisTurn: false }] },
+        1: {
+          deck: [{ card: "BT1-001", as: "old-bottom" }],
+          battleArea: [{ card: "BT1-009", as: "sourceLess" }],
+          security: ["BT1-002"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const sourceLessId = s.perm("sourceLess").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("superior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === sourceLessId)).toBe(true);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-001");
   });
 });

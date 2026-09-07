@@ -952,6 +952,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     case "ReturnToEggDeck":
     case "Return":
     case "ReturnTopDigivolutionCards":
+    case "TrashTopStackedCards":
     case "DeletionMaxDpModifier":
     case "DelayedDelete":
     case "DelayedDeletePlayed":
