@@ -46,14 +46,18 @@ describe("BT21-089 Takato Matsuki", () => {
     ["with an opposing Digimon", true, 1],
   ])("start of main %s gains %i memory", async (_label, hasOpponent, expectedGain) => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-089", as: "takato" }] },
+      0: { battleArea: [{ card: "BT21-089", as: "takato" }], hand: ["BT1-009"], deck: ["BT1-010"] },
       1: hasOpponent ? { battleArea: [{ card: "BT1-009", as: "opponent" }] } : {},
     });
     await s.ready();
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("takato"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === expectedGain);
     expect(s.state.memory).toBe(expectedGain);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it.each(["whenPlayed", "whenOneOfYoursDigivolves"] as const)(
@@ -64,7 +68,7 @@ describe("BT21-089 Takato Matsuki", () => {
           0: {
             battleArea: [
               { card: "BT21-089", as: "takato" },
-              { card: "BT21-064", as: "hero", dp: 3000 },
+              { card: "BT21-064", as: "hero" },
             ],
             trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
           },
@@ -75,11 +79,11 @@ describe("BT21-089 Takato Matsuki", () => {
       await s.ready();
 
       await advance(s.engine).fireSubTrigger(event, { subjectPermanentId: s.perm("hero").permanentId });
-      await settle(() => s.perm("hero").currentDP === 5000);
+      await settle(() => s.perm("hero").currentDP === 3000);
 
       expect(s.perm("takato").isSuspended).toBe(true);
       expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
-      expect(s.perm("hero").currentDP).toBe(5000);
+      expect(s.perm("hero").currentDP).toBe(3000);
     },
   );
 
@@ -229,11 +233,12 @@ describe("BT21-089 Takato Matsuki", () => {
         0: {
           battleArea: [{ card: "BT21-089", as: "takato" }],
           hand: [{ card: "BT21-064", as: "hero" }],
+          security: ["BT1-001"],
           trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          battleArea: [{ card: "BT1-010", as: "opponent" }],
           trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
           security: [{ card: "BT1-009" }],
@@ -255,6 +260,18 @@ describe("BT21-089 Takato Matsuki", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
     expect(s.perm("hero").currentDP).toBe(3000);
+    const attackerId = s.perm("opponent").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("hero").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("hero").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
@@ -268,7 +285,7 @@ describe("BT21-089 Takato Matsuki", () => {
         0: {
           battleArea: [
             { card: "BT21-089", as: "takato" },
-            { card: "BT21-064", as: "hero", dp: 3000 },
+            { card: "BT21-064", as: "hero" },
           ],
           trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
         },
@@ -281,7 +298,7 @@ describe("BT21-089 Takato Matsuki", () => {
     await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("hero").permanentId });
     await settle(() => s.perm("takato").isSuspended);
     expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
-    expect(s.perm("hero").currentDP).toBe(3000);
+    expect(s.perm("hero").currentDP).toBe(1000);
   });
 
   it("accepts any own Digimon as the event subject, while declining pays no cost", async () => {
@@ -291,7 +308,7 @@ describe("BT21-089 Takato Matsuki", () => {
           0: {
             battleArea: [
               { card: "BT21-089", as: "takato" },
-              { card: "BT21-064", as: "hero", dp: 3000 },
+              { card: "BT21-064", as: "hero" },
               { card: "BT1-009", as: "nonmatching" },
             ],
           },
@@ -311,7 +328,7 @@ describe("BT21-089 Takato Matsuki", () => {
 
   it("plays itself from Security without paying cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      0: { battleArea: [{ card: "BT21-032", as: "attacker" }] },
       1: { security: [{ card: "BT21-089", as: "takato" }] },
     });
     s.state.memory = 0;
