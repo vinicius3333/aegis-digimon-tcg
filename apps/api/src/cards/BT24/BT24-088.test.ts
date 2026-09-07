@@ -75,6 +75,25 @@ describe("BT24-088 Asuna Shiroki", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
   });
 
+  it("may decline the Start of Your Turn return and optional trash play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-088", as: "asuna" }],
+          trash: [{ card: "BT24-010", as: "target" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("asuna"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("asuna").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
   it("Q5679: does not activate the start-of-turn effect on the Asuna it just played", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -145,13 +164,32 @@ describe("BT24-088 Asuna Shiroki", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("asuna"));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("unrelated").instanceId,
-        s.inst("drawn1").instanceId,
-        s.inst("drawn2").instanceId,
-      ]),
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("unrelated").instanceId,
+      s.inst("drawn1").instanceId,
+      s.inst("drawn2").instanceId,
+    ]);
+  });
+
+  it("may decline the On Play hand-trash cost without drawing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-088", as: "asuna" }],
+          hand: [{ card: "BT21-054", as: "cost" }],
+          deck: [{ card: "BT1-015", as: "drawn1" }, { card: "BT1-045", as: "drawn2" }],
+        },
+      },
+      { autoDeclineOptional: true },
     );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("asuna"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("drawn1").instanceId,
+      s.inst("drawn2").instanceId,
+    ]);
   });
 
   it("plays itself from security without paying the cost", async () => {
