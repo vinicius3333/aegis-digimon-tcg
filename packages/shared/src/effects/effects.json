@@ -85818,7 +85818,10 @@
           {
             "kind": "DnaDigivolve",
             "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Shakkoumon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "nameOrTrait": [{ "tokens": ["Shakkoumon"], "match": "nameExact" }]
+            },
             "from": ["hand"],
             "payCost": true,
             "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
@@ -85833,7 +85836,10 @@
           {
             "kind": "DnaDigivolve",
             "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Shakkoumon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "nameOrTrait": [{ "tokens": ["Shakkoumon"], "match": "nameExact" }]
+            },
             "from": ["hand"],
             "payCost": true,
             "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
@@ -86149,6 +86155,23 @@
     "digivolutionRequirement": [{ "level": 4, "traits": ["CS"], "cost": 3, "isAlternate": true }]
   },
   "BT23-032": {
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 4 },
+          { "color": "Black", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 4 },
+          { "color": "Blue", "level": 4 }
+        ]
+      }
+    ],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["CS"], "cost": 3, "isAlternate": true }],
     "effects": [
       {
         "trigger": "WhenDigivolving",

@@ -18,6 +18,23 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Replacement filter changed from AND (colors+CS) to orFilters: yellow/black OR CS-trait
 //   - leaveCause added: otherThanYourEffect (text: "other than by your effects")
 export const compiled: CompiledCard = {
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Blue", level: 4 },
+      ],
+    },
+  ],
+  digivolutionRequirement: [{ level: 4, traits: ["CS"], cost: 3, isAlternate: true }],
   effects: [
     {
       trigger: "WhenDigivolving",
