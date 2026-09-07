@@ -82,6 +82,36 @@ describe("BT24-066 Guilmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("may refuse the second matching reveal while preserving exact hand and deck zones", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-066", as: "source" },
+            { card: "BT1-009", as: "handCost" },
+          ],
+          deck: [
+            { card: "BT10-093", as: "purpleTamer" },
+            { card: "BT24-066", as: "evil" },
+            { card: "BT1-010", as: "miss" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("purpleTamer").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("evil").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("evil").instanceId, s.inst("handCost").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
   it.each([
     ["normal purple level-2 requirement", "BT10-006", false],
     ["alternate exact Gigimon requirement", "BT24-001", true],
