@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -105,9 +105,12 @@ describe("BT24-006 Tapmon", () => {
         hand: [
           { card: "BT24-067", as: "hackmon" },
           { card: "BT24-053", as: "link" },
+          { card: "BT4-022", as: "startingHand" },
         ],
+        deck: [{ card: "BT4-022", as: "drawn" }, "BT4-022", "BT4-022", "BT4-022", "BT4-022"],
       },
-    });
+      1: { deck: ["BT4-022", "BT4-022", "BT4-022", "BT4-022", "BT4-022"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 5;
     await s.ready();
 
@@ -123,5 +126,30 @@ describe("BT24-006 Tapmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT24-067");
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-006"]);
+    const setupTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await setupTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("link").instanceId,
+      targetPermanentId: s.perm("egg").permanentId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("startingHand").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    await settle(() => s.decisions.length === 0, 1000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });
