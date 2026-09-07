@@ -140,30 +140,52 @@ describe("BT24-054 Ryudamon", () => {
     expect(s.perm("target").isSuspended).toBe(false);
   });
 
-  it("uses the inherited suspension only once per turn", async () => {
+  it("uses inherited suspension once per turn and resets on the next public attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-055", as: "host", under: ["BT24-054"] }] },
+        0: {
+          battleArea: [{ card: "BT24-055", as: "host", under: ["BT24-054"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
         1: {
           battleArea: [
             { card: "BT1-088", as: "first" },
             { card: "BT1-089", as: "second" },
           ],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("first").isSuspended);
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
 
-    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
-    expect(s.perm("second").isSuspended).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, s.perm("second").permanentId);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("second").isSuspended);
+    expect(s.perm("second").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("activates inherited suspension from a public attack", async () => {
