@@ -10,7 +10,15 @@ export type Intent =
   | { type: "mulligan"; keep: boolean } // answer opening-hand mulligan
 
   // --- Main-phase verbs ---
-  | { type: "playCard"; instanceId: string; targetSlot?: number; digiXros?: DigiXrosPlan; assembly?: AssemblyPlan } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
+  | {
+      type: "playCard";
+      instanceId: string;
+      /** Choose the Digimon or Option side of a DUAL card. */
+      useAs?: "digimon" | "option";
+      targetSlot?: number;
+      digiXros?: DigiXrosPlan;
+      assembly?: AssemblyPlan;
+    } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
   | {
       type: "digivolve";
       permanentId: string;
