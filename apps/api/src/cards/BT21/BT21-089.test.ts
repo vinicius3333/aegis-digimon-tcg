@@ -103,6 +103,26 @@ describe("BT21-089 Takato Matsuki", () => {
     expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
   });
 
+  it("publicly declines the eligible Hero watcher without paying or granting Blocker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-089", as: "takato" }],
+          hand: [{ card: "BT21-064", as: "hero" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hero").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("hero").topCard.cardId === "BT21-064");
+    expect(s.perm("takato").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(false);
+    expect(s.perm("hero").currentDP).toBe(1000);
+  });
+
   it("naturally triggers the digivolve watcher from a legal qualifying evolution", async () => {
     const s = setupEngine(
       {
