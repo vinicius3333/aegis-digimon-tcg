@@ -52,10 +52,10 @@ describe("BT24-008 Elizamon", () => {
           battleArea: [{ card: "BT24-008", as: "elizamon" }],
           hand: [
             { card: "BT24-011", as: "dragonkin" },
-            { card: "BT1-001", as: "nonMatch" },
+            { card: "BT1-013", as: "nonMatch" },
           ],
           deck: [
-            { card: "BT1-002", as: "drawOne" },
+            { card: "BT1-015", as: "drawOne" },
             { card: "BT1-003", as: "drawTwo" },
           ],
         },
@@ -81,7 +81,7 @@ describe("BT24-008 Elizamon", () => {
         0: {
           battleArea: [{ card: "BT24-008", as: "elizamon" }],
           hand: [{ card: "BT24-011", as: "dragonkin" }],
-          deck: ["BT1-002", "BT1-003"],
+          deck: ["BT1-015", "BT1-003"],
         },
       },
       { autoDeclineOptional: true },
@@ -102,7 +102,7 @@ describe("BT24-008 Elizamon", () => {
             { card: "BT24-008", as: "elizamon" },
             { card: "BT24-011", as: "dragonkin" },
           ],
-          deck: ["BT1-002", "BT1-003"],
+          deck: ["BT1-015", "BT1-003"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -134,7 +134,7 @@ describe("BT24-008 Elizamon", () => {
   it("gains memory from a natural player attack that removes opponent security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-013"] },
     });
     s.state.memory = 0;
     await s.ready();
@@ -156,8 +156,8 @@ describe("BT24-008 Elizamon", () => {
       1: {
         battleArea: ["BT1-045"],
         hand: [{ card: "BT24-093", as: "temple" }],
-        security: [{ card: "BT1-001", as: "removed" }],
-        deck: ["BT1-002"],
+        security: [{ card: "BT1-013", as: "removed" }],
+        deck: ["BT1-015"],
       },
     });
     s.state.memory = 5;
