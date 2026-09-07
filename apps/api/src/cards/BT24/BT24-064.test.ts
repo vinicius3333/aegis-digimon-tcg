@@ -60,8 +60,8 @@ describe("BT24-064 Ouryumon", () => {
             hand: [{ card: "BT24-064", as: "ouryumon" }],
             deck: [
               { card: "BT24-060", as: "played" },
-              { card: "BT1-001", as: "miss1" },
-              { card: "BT1-002", as: "miss2" },
+              { card: "BT1-013", as: "miss1" },
+              { card: "BT1-015", as: "miss2" },
             ],
           },
         },
@@ -107,7 +107,12 @@ describe("BT24-064 Ouryumon", () => {
     preferred.push(s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId);
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("ouryumon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("first").topCard.cardId === "BT24-050");
     expect(s.perm("first").topCard.cardId).toBe("BT24-050");
 
     await advance(s.engine).verb.suspend([s.perm("ouryumon").permanentId]);
