@@ -200,13 +200,14 @@ describe("BT24-087 Rei Katsura public behavior", () => {
         0: {
           battleArea: [
             { card: "BT24-087", as: "rei" },
-            { card: "BT24-067", as: "host" },
+            { card: DOCMON, as: "host" },
           ],
           hand: [
-            { card: "BT24-032", as: "link" },
+            { card: MEDICMON, as: "link" },
             { card: "BT1-009", as: "discard" },
           ],
           deck: [{ card: "BT1-010", as: "drawn" }],
+          trash: [{ card: TARGET, as: "fusion" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -220,7 +221,10 @@ describe("BT24-087 Rei Katsura public behavior", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("rei").isSuspended);
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("fusion").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe(TARGET);
+    expect(s.perm("host").linked.map((card) => card.cardId)).toContain(MEDICMON);
+    expect(s.perm("rei").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
   });
