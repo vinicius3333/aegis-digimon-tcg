@@ -95,7 +95,7 @@ describe("BT24-014 Aegiochusmon", () => {
         0: {
           battleArea: [
             {
-              card: "BT24-011",
+              card: "ST1-10",
               as: "host",
               under: ["BT24-014", { card: "P-194", as: "aegiomon" }],
             },
@@ -148,5 +148,107 @@ describe("BT24-014 Aegiochusmon", () => {
     await settle(() => s.perm("aegiomon").topCard.instanceId === s.inst("aegiochusmon").instanceId);
 
     expect(s.state.memory).toBe(2);
+  });
+
+  it("inherits Decode through public evolution and plays Aegiomon from that leaving stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST2-16", as: "cocytus" }],
+          battleArea: [{ card: "BT12-032", as: "blueSource" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT24-014",
+              as: "host",
+              under: [{ card: "P-194", as: "source" }],
+            },
+            {
+              card: "BT24-014",
+              as: "neighbor",
+              under: [{ card: "P-194", as: "neighborSource" }],
+            },
+          ],
+          hand: [{ card: "ST1-10", as: "levelSix" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
+    );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("levelSix").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("levelSix").instanceId);
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["P-194", "BT24-014"]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("source").instanceId,
+      s.inst("host").instanceId,
+    ]);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual([s.inst("neighborSource").instanceId]);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 7;
+    await s.engine.recomputeContinuousEffects();
+    preferred.push(s.perm("host").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-194"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["P-194", "BT24-014"]),
+    );
+    expect(
+      s.state.players[1]!.battleArea.find((permanent) => permanent.topCard.cardId === "P-194")!.topCard.instanceId,
+    ).toBe(s.inst("source").instanceId);
+    expect(
+      s.state.players[1]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT24-014")!.topCard.instanceId,
+    ).toBe(s.inst("neighbor").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("host").instanceId]);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("levelSix").instanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("neighborSource").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("checks two opposing security cards through the public attack intent", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-014", as: "attacker", under: [{ card: "P-194", as: "aegiomon" }] }],
+        deck: ["BT1-013", "BT1-015", "BT1-045"],
+      },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("attacker").permanentId,
+    );
   });
 });
