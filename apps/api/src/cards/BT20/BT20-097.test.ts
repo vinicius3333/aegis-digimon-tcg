@@ -154,4 +154,51 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-082")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-082")).toBe(true);
   });
+
+  it("public Security check plays Dorumon and returns this Option to hand, with refusal preserving Dorumon", async () => {
+    for (const accept of [true, false]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+          1: { hand: [{ card: "BT20-048", as: "dorumon" }], security: [{ card: "BT20-097", faceUp: true }] },
+        },
+        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT20-097"));
+      expect(s.state.players[1]!.hand.map((card) => card.cardId)).toContain("BT20-097");
+      expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT20-048")).toBe(accept);
+      expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT20-048")).toBe(!accept);
+    }
+  });
+
+  it("Delay refusal preserves the stacked Dorumon and DeathXmon in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-097", as: "option" },
+            { card: "BT17-073", as: "dex", under: ["BT20-048"] },
+          ],
+          trash: [{ card: "BT20-082", as: "deathX" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("dex").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.every((p) => p.topCard.cardId !== "BT20-082"));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-082", "BT20-048"]),
+    );
+  });
 });

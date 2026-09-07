@@ -1,0 +1,63 @@
+{
+  "complete": true,
+  "main": "9bb623a88",
+  "review": "MERGE-MAIN.md",
+  "scope": "Integration after explicit user authorization to merge PR4721 into main; all 102 BT20 cards revalidated.",
+  "collection": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-collection.json",
+    "passed": 969,
+    "failed": 0,
+    "result": "merge-main-collection.json"
+  },
+  "mechanisms": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts src/engine/effects/ContinuousEffectScope.test.ts src/engine/dnaDigivolve.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-mechanisms.json",
+    "passed": 473,
+    "failed": 0,
+    "result": "merge-main-mechanisms.json"
+  },
+  "sharedDna": {
+    "command": "pnpm --filter @aegis/shared exec vitest run src/effects/dnaDigivolutionCoverage.test.ts src/effects/digivolutionRequirementsFor.test.ts --maxWorkers=1 --no-file-parallelism --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-shared-dna.json",
+    "passed": 180,
+    "failed": 0,
+    "result": "merge-main-shared-dna.json"
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0,
+    "log": "merge-main-typecheck.log"
+  },
+  "api-typecheck": {
+    "command": "pnpm --filter @aegis/api typecheck",
+    "exitCode": 0,
+    "log": "merge-main-api-typecheck.log"
+  },
+  "catalog-check": {
+    "command": "pnpm effects:check:set -- --set BT20",
+    "exitCode": 0,
+    "log": "merge-main-catalog-check.log"
+  },
+  "format": {
+    "command": "pnpm exec oxfmt --check apps/api/src/engine/GameEngine.ts apps/api/src/cards/BT20/BT20-011.test.ts apps/api/src/cards/BT20/BT20-016.test.ts apps/api/src/cards/BT20/BT20-045.test.ts apps/api/src/cards/BT20/BT20-085.test.ts",
+    "exitCode": 0,
+    "log": "merge-main-format.log"
+  },
+  "lint": {
+    "command": "pnpm exec oxlint apps/api/src/engine/GameEngine.ts apps/api/src/cards/BT20/BT20-011.test.ts apps/api/src/cards/BT20/BT20-016.test.ts apps/api/src/cards/BT20/BT20-045.test.ts apps/api/src/cards/BT20/BT20-085.test.ts",
+    "exitCode": 0,
+    "log": "merge-main-lint.log"
+  },
+  "diffCheck": {
+    "command": "git diff --check; git diff --cached --check",
+    "exitCode": 0
+  },
+  "sensitivity": {
+    "cards": [
+      "BT20-011",
+      "BT20-016",
+      "BT20-045",
+      "BT20-085"
+    ],
+    "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs <cardId>",
+    "result": "Meaningful observable assertion failures for every changed proof; all production modules restored."
+  }
+}

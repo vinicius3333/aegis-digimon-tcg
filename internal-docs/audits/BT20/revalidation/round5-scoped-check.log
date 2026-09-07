@@ -1,0 +1,20 @@
+
+> aegis@1.1.0 effects:check:set /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna
+> node tools/sync-effects-from-card-modules.mjs --check -- --set BT20
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+
+> @aegis/shared@1.1.0 copy:data /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/packages/shared
+> node scripts/copy-data.mjs
+
+copy-data: cards/data/cards.json -> dist
+copy-data: effects/effects.json -> dist
+copy-data: effects/generated-digivolve-overrides.json -> dist
+
+> @aegis/api@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+> tsc --noCheck -p tsconfig.json
+
+BT20: 102 records already synchronized.

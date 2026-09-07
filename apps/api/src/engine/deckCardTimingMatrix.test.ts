@@ -95,7 +95,9 @@ describe("catalogued deck cards — declared trigger matrix", () => {
 
   for (const cardId of playableDeckCards) {
     const triggers = triggersFor(cardId);
-    it(`${cardId} resolves its declared discrete timing windows`, async () => {
+    // Each scenario owns its engine and board; the registered card catalog is read-only.
+    // Overlap their async drains using Vitest's bounded concurrency (default: five).
+    it.concurrent(`${cardId} resolves its declared discrete timing windows`, async () => {
       for (const trigger of triggers) {
         if (
           trigger === "OnPlay" ||

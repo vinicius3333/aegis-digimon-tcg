@@ -101,16 +101,58 @@ describe("BoardSelectionRail", () => {
   });
 });
 
+describe("board prompt scrim", () => {
+  it("mounts a scrim beside the rail for the phone stylesheet to show", () => {
+    const { container } = renderIn(
+      <BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />,
+    );
+    const scrim = container.querySelector(".board-prompt-scrim");
+    expect(scrim).toBeTruthy();
+    expect(scrim?.nextElementSibling?.classList.contains("board-prompt")).toBe(true);
+  });
+});
+
 describe("BoardOptionalPrompt", () => {
   it("asks the Use / Not use question against the source card's clause", () => {
     const onUse = vi.fn<() => void>();
     const onDecline = vi.fn<() => void>();
     renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={onUse} onDecline={onDecline} />);
-    expect(screen.getByText("Will you use “Draw 1 card.”?")).toBeTruthy();
+    expect(screen.getByText("Use this effect?")).toBeTruthy();
+    expect(screen.getByText("Draw 1 card.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Use" }));
     fireEvent.click(screen.getByRole("button", { name: "Not use" }));
     expect(onUse).toHaveBeenCalledTimes(1);
     expect(onDecline).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks the engine's own question when it sent one", () => {
+    renderIn(
+      <BoardOptionalPrompt
+        sourceCardId="ST1-07"
+        prompt="Activate Blitz?"
+        clause="Draw 1 card."
+        onUse={noop}
+        onDecline={noop}
+      />,
+    );
+    expect(screen.getByText("Activate Blitz?")).toBeTruthy();
+    expect(screen.queryByText("Use this effect?")).toBeNull();
+  });
+
+  it("offers no way into the dialog beyond Escape, since the dialog shows nothing more", () => {
+    const onOpenDialog = vi.fn<() => void>();
+    renderIn(
+      <BoardOptionalPrompt
+        sourceCardId="ST1-07"
+        clause="Draw 1 card."
+        onUse={noop}
+        onDecline={noop}
+        onOpenDialog={onOpenDialog}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Open the decision dialog" })).toBeNull();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onOpenDialog).toHaveBeenCalledTimes(1);
   });
 
   it("names itself after the source card so the rail is addressable", () => {

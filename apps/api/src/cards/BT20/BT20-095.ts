@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
@@ -44,48 +45,37 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "Digivolve",
               target: {
-                filter: { isSelfRef: true },
+                filter: { controller: "mine", kind: ["Digimon"] },
+                fromSelectionRef: "fellowshipMoved",
                 count: 1,
-                isSelf: true,
               },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+              },
+              payCost: false,
+              from: ["hand", "trash"],
+              optional: true,
+              cost: {
+                kind: "moveToBattleArea",
+                target: {
+                  filter: {
+                    zone: "breeding",
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "gte", value: 3 },
+                  },
+                  count: 1,
+                  bindAs: "fellowshipMoved",
+                },
+                raw: "By moving your level 3 or higher Digimon from the breeding area to the battle area",
+              },
+              abortOnDecline: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "Digivolve",
-          target: {
-            filter: {
-              zone: "breeding",
-              controller: "mine",
-              kind: ["Digimon"],
-              levelComparison: { op: "gte", value: 3 },
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
-          },
-          payCost: false,
-          from: ["hand", "trash"],
-          optional: true,
-          cost: {
-            kind: "moveToBattleArea",
-            raw: "By moving your level 3 or higher Digimon from the breeding area to the battle area",
-          },
-          abortOnDecline: true,
         },
       ],
     },

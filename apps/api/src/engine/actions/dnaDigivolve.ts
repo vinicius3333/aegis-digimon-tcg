@@ -7,7 +7,6 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { definitionOf, isDigimon } from "../cards/cardData.js";
-import { blastDnaMaterialNames, blastDnaMaterialsMatch } from "../cards/blastDnaMaterials.js";
 import { findBattleAreaPermanent, findInHand, playerAt } from "./digivolveState.js";
 
 /**
@@ -23,17 +22,11 @@ import { findBattleAreaPermanent, findInHand, playerAt } from "./digivolveState.
  * merge (consuming the materials, placing the result, drawing, firing WhenDigivolving) to the
  * EXISTING `dnaDigivolveInto` primitive (effects/primitives.ts) — the same primitive
  * `runDnaDigivolve` itself calls via `ctx.fx.dnaDigivolveInto`. This module never re-implements
- * the stack-merge; `dnaDigivolveCostFor` (also exported by primitives.ts) is reused so this
+ * the stack-merge; `matchingDnaDigivolveCost` (also exported by primitives.ts) is reused so this
  * verb's synchronous affordability check can never drift from what the primitive accepts.
  *
- * ＜Blast DNA Digivolve＞ (§16-31-1): "One of your Digimon specified in this effect and a card
- * from your hand may digivolve into a card with this keyword effect in the hand without paying
- * the cost." `costWaived` (bound to `hasBlastDigivolveKeyword`, the same compiled-IR registry
- * §16-26's ＜Blast Digivolve＞ waiver reads) skips the memory payment. What it does NOT skip is
- * the keyword's own named materials ("[WarGreymon] + [MetalGarurumon]"): no
- * `dnaDigivolveRequirement` compiles for these cards, so the names are read off the printed text
- * by `blastDnaMaterialNames` and matched here. This mirrors §16-26, where the waived path still
- * enforces the printed EvoCost.
+ * Blast DNA is a separate Counter procedure using one field Digimon and one hand card.
+ * It cannot waive the cost or requirements of this Main-phase verb.
  *
  * Server-authoritative and platform-independent. `validateDnaDigivolve` mutates nothing; `applyDnaDigivolve`
  * mutates only what the injected `dnaDigivolveInto` primitive mutates.
@@ -45,7 +38,7 @@ export interface DnaDigivolveIntent {
   materialPermanentIds: string[];
   /** The hand instance becoming the DNA-digivolved result. */
   instanceId: string;
-  /** Explicitly activate the card's ＜Blast DNA Digivolve＞ waiver. Omitted for normal DNA. */
+  /** Legacy protocol field; true is rejected because Blast DNA belongs to Counter timing. */
   useBlastDigivolve?: boolean;
 }
 
@@ -74,9 +67,7 @@ export type DnaDigivolveCheck =
       definition: CardDefinition;
       /** The material permanents (deduplicated, resolved). */
       materials: Permanent[];
-      /** True when ＜Blast DNA Digivolve＞ waives the memory cost (§16-31-1). */
-      costWaived: boolean;
-      /** Memory to pay (0 when `costWaived`). */
+      /** Memory to pay for the selected printed DNA requirement. */
       cost: number;
     };
 
@@ -89,8 +80,7 @@ export interface DnaDigivolveDeps {
   maxAffordable(state: GameState, seat: Seat): number;
   /**
    * The DNA-digivolve memory cost for `definition` given the resolved `materials`' definitions,
-   * or undefined when no printed DNA-digivolve requirement (nor a per-material fallback EvoCost)
-   * matches. The engine binds this to `dnaDigivolveCostFor` (effects/primitives.ts) so this
+   * or undefined when no printed DNA-digivolve requirement matches. The engine binds this to `matchingDnaDigivolveCost` (effects/primitives.ts) so this
    * verb's cost-matching can never drift from the primitive's own.
    */
   matchingCost(definition: CardDefinition, materials: CardDefinition[]): number | undefined;
@@ -112,18 +102,11 @@ export interface DnaDigivolveDeps {
     definition: CardDefinition,
     evolvingInstanceId: string,
   ): Promise<number>;
-  /**
-   * Whether `instance`'s printed keyword waives this DNA digivolve's memory cost entirely
-   * (＜Blast DNA Digivolve＞, §16-31-1). Optional: when absent no waiver applies. The engine
-   * binds this to `hasBlastDigivolveKeyword(instance.cardId)`.
-   */
-  costWaived?(state: GameState, instance: CardInstance): boolean;
   /** Whether any chosen material is currently prohibited from digivolving. */
   materialsRestricted?(state: GameState, materials: Permanent[], definition: CardDefinition): boolean;
   /**
    * Consume `materialPermanentIds` and play `resultInstanceId` as the DNA-digivolved result
-   * (the existing `dnaDigivolveInto` primitive — effects/primitives.ts). `payCost` pays the
-   * printed cost when set; the caller omits it on the ＜Blast DNA Digivolve＞ waived path.
+   * (the existing `dnaDigivolveInto` primitive — effects/primitives.ts), paying the selected cost.
    */
   dnaDigivolveInto(
     materialPermanentIds: string[],
@@ -155,7 +138,6 @@ export function validateDnaDigivolve(
     | "effectiveMaterialDefinitions"
     | "adjustedCost"
     | "potentialInteractiveDnaDigivolveReduction"
-    | "costWaived"
     | "materialsRestricted"
   >,
 ): DnaDigivolveCheck {
@@ -191,28 +173,10 @@ export function validateDnaDigivolve(
     return { ok: false, reason: "invalid-evolution" };
   }
 
-  // 4. ＜Blast DNA Digivolve＞ (§16-31-1): "without paying the cost" waives the memory cost and
-  //    the printed DNA-digivolve requirement (these cards print none), but NOT the materials the
-  //    keyword itself names — "([WarGreymon] + [MetalGarurumon])" is the requirement for this
-  //    path. They are read off the printed text because no structured field compiles for them.
-  const costWaived = intent.useBlastDigivolve === true && deps.costWaived?.(state, found.instance) === true;
-  if (intent.useBlastDigivolve === true && !costWaived) {
-    return { ok: false, reason: "invalid-evolution" };
-  }
-  if (costWaived) {
-    const required = blastDnaMaterialNames(found.instance.cardId);
-    if (required !== undefined) {
-      const effectiveDefinitions =
-        deps.effectiveMaterialDefinitions?.(state, materials, definition) ??
-        materials.map((material) => definitionOf(material.topCard!.cardId));
-      const materialNames = effectiveDefinitions.map((material) => material.nameEn);
-      if (!blastDnaMaterialsMatch(materialNames, required)) return { ok: false, reason: "invalid-evolution" };
-    }
-    return { ok: true, instance: found.instance, definition, materials, costWaived: true, cost: 0 };
-  }
+  // Blast DNA can only be activated through the Counter procedure, never a Main-phase waiver.
+  if (intent.useBlastDigivolve === true) return { ok: false, reason: "invalid-evolution" };
 
-  // 5. §8-2-2-2: the printed DNA-digivolve requirement (or per-material fallback EvoCost) must
-  //    match the resolved materials, and the resulting cost must be affordable.
+  // The declared Main action requires a printed DNA requirement matching every material.
   const materialDefs =
     deps.effectiveMaterialDefinitions?.(state, materials, definition) ??
     materials.map((m) => definitionOf(m.topCard!.cardId));
@@ -225,12 +189,12 @@ export function validateDnaDigivolve(
     return { ok: false, reason: "insufficient-memory" };
   }
 
-  return { ok: true, instance: found.instance, definition, materials, costWaived: false, cost };
+  return { ok: true, instance: found.instance, definition, materials, cost };
 }
 
 /**
  * Apply a dnaDigivolve verb. Validates first (so it is safe to call directly), then delegates
- * the merge + (unless waived) cost payment to the injected `dnaDigivolveInto` primitive.
+ * the merge and cost payment to the injected `dnaDigivolveInto` primitive.
  */
 export async function applyDnaDigivolve(
   state: GameState,
@@ -241,26 +205,25 @@ export async function applyDnaDigivolve(
   const check = validateDnaDigivolve(state, seat, intent, deps);
   if (!check.ok) return check;
 
-  const interactiveReduction = check.costWaived
-    ? 0
-    : ((await deps.activateInteractiveDnaDigivolveReduction?.(
-        state,
-        seat,
-        check.materials,
-        check.definition,
-        intent.instanceId,
-      )) ?? 0);
+  const interactiveReduction =
+    (await deps.activateInteractiveDnaDigivolveReduction?.(
+      state,
+      seat,
+      check.materials,
+      check.definition,
+      intent.instanceId,
+    )) ?? 0;
   const finalCost = Math.max(0, check.cost - interactiveReduction);
 
   const result = await deps.dnaDigivolveInto(
     check.materials.map((m) => m.permanentId),
     intent.instanceId,
-    { payCost: !check.costWaived, costOverride: finalCost },
+    { payCost: true, costOverride: finalCost },
   );
   if (result === undefined) {
     // The primitive re-validates atomically at apply time (materials/cost may have shifted
     // since the synchronous check above); a race loses this way, not by throwing.
-    return { ok: false, reason: check.costWaived ? "invalid-evolution" : "insufficient-memory" };
+    return { ok: false, reason: "insufficient-memory" };
   }
 
   return {

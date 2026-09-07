@@ -153,6 +153,7 @@ import {
   sourcePermanentIdOf,
   triggerClauseSummary,
   triggerSource,
+  type TriggerSource,
 } from "./decisionPresentation";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
@@ -351,6 +352,22 @@ export function GameScreen({
   const [decisionAsDialog, setDecisionAsDialog] = useState(false);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    const syncFullscreen = () => setFullscreen(document.fullscreenElement !== null);
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+  // The browser's own bars are what keep a phone match short of the screen; the
+  // request can be refused (an iframe, an unsupported browser), which just leaves
+  // the page as it was.
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+    } else {
+      void document.documentElement.requestFullscreen?.().catch(() => undefined);
+    }
+  }
   // A card name clicked in the play log opens the card itself, without closing the log.
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
@@ -1529,6 +1546,7 @@ export function GameScreen({
 
   // ----- log + game over -----
   const log: LogLine[] = buildMatchLog(events, viewerSeat, instanceIndex, t);
+  const latestOwnLogLine = [...log].reverse().find((line) => line.kind === "you");
   const gameOverReason = (() => {
     for (let i = events.length - 1; i >= 0; i -= 1) {
       const e = events[i]!;
@@ -1570,7 +1588,10 @@ export function GameScreen({
   // for a card the viewer never saw, so the prompt waits for the reveal (spec §4b step
   // 10b). Only the presentation waits — the decision itself is untouched, and the hold
   // is released by the scene it belongs to.
-  const viewerDecision = decision && decision.seat === viewerSeat && !securityRevealPending ? decision : undefined;
+  const viewerDecision =
+    decision && decision.seat === viewerSeat && !securityRevealPending && !cues.decisionHeldForPlay
+      ? decision
+      : undefined;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
@@ -1584,6 +1605,8 @@ export function GameScreen({
       })
     : "dialog";
   const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
+  // The notices explain what raised the decision, so their clocks stop while it waits.
+  const decisionHoldsNotices = decision?.seat === viewerSeat && decision.kind !== "mulligan";
   const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
 
   const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
@@ -1687,16 +1710,21 @@ export function GameScreen({
   const triggerDetails =
     viewerDecision?.kind === "orderTriggers"
       ? (viewerDecision.options?.triggerKeys ?? []).map((key, index) => {
-          const slots = fieldSlots(allPermanents);
-          const source = triggerSource(parseTriggerKey(key).instanceId, {
-            fieldSlots: slots,
-            handInstanceIds,
-          });
+          // Positions count inside the owner's own battle area: numbering across both
+          // players' fields printed "Field: 3" for the first Digimon a player had out.
+          const instanceId = parseTriggerKey(key).instanceId;
+          const source = ((): TriggerSource => {
+            const mine = triggerSource(instanceId, { fieldSlots: fieldSlots(you.battleArea), handInstanceIds });
+            if (mine.zone !== "unknown") return mine;
+            return triggerSource(instanceId, { fieldSlots: fieldSlots(opp.battleArea), handInstanceIds });
+          })();
           const cardId = viewerDecision.options?.triggerCardIds?.[index] ?? triggerCardId(key);
           const clause =
             playerFacingEffectClause({
               cardId,
-              timing: viewerDecision.options?.timing,
+              // Per-trigger truth: one permanent can queue an [On Play] and a [When
+              // Digivolving] at once, and each row must read its own clause.
+              timing: viewerDecision.options?.triggerTimings?.[index] || viewerDecision.options?.timing,
               description: undefined,
             }) ?? getCardDefinition(cardId)?.effectText;
           return {
@@ -2287,11 +2315,31 @@ export function GameScreen({
                   <Icons.Bug size={16} />
                 </button>
                 <button
+                  className="game-mobile-fullscreen"
+                  onClick={toggleFullscreen}
+                  aria-label={t(fullscreen ? "game.exitFullscreen" : "game.fullscreen")}
+                  aria-pressed={fullscreen}
+                >
+                  {fullscreen ? <Icons.Minimize size={16} /> : <Icons.Maximize size={16} />}
+                </button>
+                <button
                   className="game-mobile-surrender"
                   onClick={() => room && intents.surrender(room)}
                   aria-label={t("game.surrender")}
                 >
                   <Icons.LogOut size={16} />
+                </button>
+                {/* The viewer's latest move, where the phone has no sidebar log to show it;
+                    the opponent's moves already run in their own feed under the header. */}
+                <button
+                  type="button"
+                  className="game-log-strip"
+                  onClick={() => setHistoryOpen(true)}
+                  aria-label={t("game.matchLog")}
+                  data-testid="log-strip"
+                >
+                  <Icons.ScrollText size={14} aria-hidden="true" />
+                  <span>{latestOwnLogLine?.text ?? t("game.noActions")}</span>
                 </button>
               </>
             ) : (
@@ -2326,25 +2374,42 @@ export function GameScreen({
           {/* A security card's notice follows the opponent's panels down their column,
               under the cards it revealed; on the portrait phone every notice folds into
               the one top band instead, so the column carries nothing there. */}
+          {/* A security card's notice follows the opponent's panels down their column,
+              under the cards it revealed. On the portrait phone every panel and every
+              notice folds into one top band instead — two anchored blocks there
+              landed on each other — so the column carries all of the notices. */}
           {!state.gameOver ? (
             <SidePanelStack
               panels={sidePanels}
+              collapse={collapseNotices}
+              held={decisionHoldsNotices}
+              underSheet={collapseNotices && answerOnBoard && viewerDecision !== undefined}
               onDismiss={cues.dismissPanel}
               oppColumnTail={
-                !collapseNotices && cues.notices.some((notice) => notice.fromSecurity) ? (
+                collapseNotices ? (
+                  cues.notices.length ? (
+                    <NoticeStack
+                      notices={cues.notices}
+                      family="all"
+                      collapse
+                      held={decisionHoldsNotices}
+                      onDismiss={cues.dismissNotice}
+                    />
+                  ) : undefined
+                ) : cues.notices.some((notice) => notice.fromSecurity) ? (
                   <NoticeStack notices={cues.notices} family="security" onDismiss={cues.dismissNotice} />
                 ) : undefined
               }
             />
           ) : null}
 
-          {/* Collapsed on a portrait phone only: the landscape phone keeps its
-              right-anchored corners, where the short viewport has no top band. */}
-          {!state.gameOver ? (
+          {/* The landscape phone keeps its right-anchored corners, where the short
+              viewport has no top band. */}
+          {!state.gameOver && !collapseNotices ? (
             <NoticeStack
               notices={cues.notices}
-              family={collapseNotices ? "all" : "corners"}
-              collapse={collapseNotices}
+              family="corners"
+              held={decisionHoldsNotices}
               onDismiss={cues.dismissNotice}
             />
           ) : null}
@@ -2938,6 +3003,9 @@ export function GameScreen({
                 {
                   left: flight.x,
                   top: flight.y,
+                  // The cue queue waits on this same number, so the card back is
+                  // never unmounted part-way across the board.
+                  "--t-draw-flight": `${flight.duration}ms`,
                   "--battle-flight-dx": `${flight.dx}px`,
                   "--battle-flight-dy": `${flight.dy}px`,
                 } as CSSProperties

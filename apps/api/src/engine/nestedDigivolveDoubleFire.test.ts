@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { registerIrCard } from "./effects/interpreter.js";
-import { unregisterCard } from "./effects/registry.js";
+import { compiled as driverCompiled } from "../cards/ST1/ST1-02.js";
 import { setupEngine } from "./testkit/harness.js";
 import "../cards/index.js";
 
@@ -16,12 +16,12 @@ import "../cards/index.js";
  * [When Digivolving] once. Without freezing the subject-instance set at window open, the
  * outer re-collect would surface the new top card and fire it a SECOND time.
  *
- * The vehicle: `DRIVER_ID` is a vanilla card (no registered module) hijacked with a
+ * The vehicle: `DRIVER_ID` is a vanilla card (an empty IR module) hijacked with a
  * [When Digivolving] that digivolves its own permanent into a Lv.6 Digimon (EX11-024) from
  * hand, ignoring cost/requirements. A manual digivolve onto it opens the permanent-scoped
  * window; EX11-024's [When Digivolving] "play 1 [Puppet]" must resolve exactly once.
  */
-const DRIVER_ID = "ST1-02"; // vanilla Lv.3 Red (evoCost Lv.2 Red) — no real module to clobber
+const DRIVER_ID = "ST1-02"; // vanilla Lv.3 Red (evoCost Lv.2 Red)
 const EGG_BASE_ID = "BT1-001"; // Lv.2 Red DigiEgg — matches ST1-02's evoCost
 const PUPPET_A = "BT11-035";
 const PUPPET_B = "BT13-035";
@@ -52,9 +52,9 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  // Restore the shared registry: this file installed a stand-in module for a real cardId,
-  // and Vitest runs with `isolate: false` (one registry across files).
-  unregisterCard(DRIVER_ID);
+  // Restore both executable and compiled registries. Removing only the executable
+  // module leaves the synthetic IR visible to later files under `isolate: false`.
+  registerIrCard(DRIVER_ID, driverCompiled);
 });
 
 describe("nested digivolve does not double-fire WhenDigivolving", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-092.js";
 import "./index.js";
@@ -85,5 +86,19 @@ describe("BT20-092 Battle NPC", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-092")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-046")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-092")).toBe(true);
+  });
+
+  it("sets memory to exactly 3 at start of turn when the gauge is at 2", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT20-092", as: "npc" }], deck: ["BT1-010"] }, 1: { deck: ["BT1-010"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });

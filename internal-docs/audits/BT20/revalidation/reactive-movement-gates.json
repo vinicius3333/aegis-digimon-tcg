@@ -1,0 +1,127 @@
+{
+  "set": "BT20",
+  "status": "passed-for-current-checkpoint",
+  "collection": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+    "passed": 836,
+    "failed": 0,
+    "artifact": "collection-after-reactive-delay-results.json"
+  },
+  "mechanisms": {
+    "artifact": "reactive-movement-affected-results.json",
+    "passed": 552,
+    "failed": 0,
+    "command": "pnpm --filter @aegis/api exec vitest run src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/delayPlacement.test.ts src/engine/immediateReturnReaction.test.ts src/engine/nestedDigivolveDoubleFire.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/subTriggerSeams.test.ts src/engine/targetedBreedingMoveCost.test.ts src/engine/cards/breedingCluster.test.ts src/engine/security/revealTriggerPriority.test.ts src/engine/security/simultaneousCheckTriggers.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/dynamicCostProducedTarget.test.ts src/engine/effects/ex12Gap5Delay.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/leavePrevent.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/reactive-movement-affected-results.json"
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "result": "passed",
+    "artifact": "reactive-movement-typecheck.log"
+  },
+  "catalog": {
+    "commands": [
+      "pnpm effects:sync:set -- --set BT20",
+      "pnpm effects:check:set -- --set BT20"
+    ],
+    "result": "102 records synchronized and checked; only 9 BT20 records differ from checkpoint baseline",
+    "artifacts": [
+      "reactive-movement-sync.log",
+      "reactive-movement-sync-check.log"
+    ],
+    "executionNote": "The existing script build watchdog was temporarily raised from120000ms to600000ms in a Python try/finally; both standard set commands succeeded and the script was restored. No production/build semantics were changed."
+  },
+  "style": {
+    "commands": [
+      [
+        "pnpm",
+        "exec",
+        "oxfmt",
+        "--check",
+        "apps/api/src/cards/BT20/BT20-014.test.ts",
+        "apps/api/src/cards/BT20/BT20-015.test.ts",
+        "apps/api/src/cards/BT20/BT20-015.ts",
+        "apps/api/src/cards/BT20/BT20-016.test.ts",
+        "apps/api/src/cards/BT20/BT20-017.test.ts",
+        "apps/api/src/cards/BT20/BT20-018.test.ts",
+        "apps/api/src/cards/BT20/BT20-019.test.ts",
+        "apps/api/src/cards/BT20/BT20-020.test.ts",
+        "apps/api/src/cards/BT20/BT20-021.test.ts",
+        "apps/api/src/cards/BT20/BT20-022.test.ts",
+        "apps/api/src/cards/BT20/BT20-023.test.ts",
+        "apps/api/src/cards/BT20/BT20-024.test.ts",
+        "apps/api/src/cards/BT20/BT20-025.test.ts",
+        "apps/api/src/cards/BT20/BT20-026.test.ts",
+        "apps/api/src/cards/BT20/BT20-051.test.ts",
+        "apps/api/src/cards/BT20/BT20-051.ts",
+        "apps/api/src/cards/BT20/BT20-053.test.ts",
+        "apps/api/src/cards/BT20/BT20-053.ts",
+        "apps/api/src/cards/BT20/BT20-061.test.ts",
+        "apps/api/src/cards/BT20/BT20-061.ts",
+        "apps/api/src/cards/BT20/BT20-083.test.ts",
+        "apps/api/src/cards/BT20/BT20-083.ts",
+        "apps/api/src/cards/BT20/BT20-084.test.ts",
+        "apps/api/src/cards/BT20/BT20-084.ts",
+        "apps/api/src/cards/BT20/BT20-093.test.ts",
+        "apps/api/src/cards/BT20/BT20-093.ts",
+        "apps/api/src/cards/BT20/BT20-094.test.ts",
+        "apps/api/src/cards/BT20/BT20-094.ts",
+        "apps/api/src/cards/BT20/BT20-095.test.ts",
+        "apps/api/src/cards/BT20/BT20-095.ts",
+        "apps/api/src/cards/BT20/BT20-102.test.ts",
+        "apps/api/src/engine/GameEngine.ts",
+        "apps/api/src/engine/effects/interpreter/actions/digivolve.ts",
+        "apps/api/src/engine/effects/interpreter/costs.ts",
+        "apps/api/src/engine/replacementRecomputeBarrier.test.ts",
+        "apps/api/src/engine/targetedBreedingMoveCost.test.ts"
+      ],
+      [
+        "pnpm",
+        "exec",
+        "oxlint",
+        "apps/api/src/cards/BT20/BT20-014.test.ts",
+        "apps/api/src/cards/BT20/BT20-015.test.ts",
+        "apps/api/src/cards/BT20/BT20-015.ts",
+        "apps/api/src/cards/BT20/BT20-016.test.ts",
+        "apps/api/src/cards/BT20/BT20-017.test.ts",
+        "apps/api/src/cards/BT20/BT20-018.test.ts",
+        "apps/api/src/cards/BT20/BT20-019.test.ts",
+        "apps/api/src/cards/BT20/BT20-020.test.ts",
+        "apps/api/src/cards/BT20/BT20-021.test.ts",
+        "apps/api/src/cards/BT20/BT20-022.test.ts",
+        "apps/api/src/cards/BT20/BT20-023.test.ts",
+        "apps/api/src/cards/BT20/BT20-024.test.ts",
+        "apps/api/src/cards/BT20/BT20-025.test.ts",
+        "apps/api/src/cards/BT20/BT20-026.test.ts",
+        "apps/api/src/cards/BT20/BT20-051.test.ts",
+        "apps/api/src/cards/BT20/BT20-051.ts",
+        "apps/api/src/cards/BT20/BT20-053.test.ts",
+        "apps/api/src/cards/BT20/BT20-053.ts",
+        "apps/api/src/cards/BT20/BT20-061.test.ts",
+        "apps/api/src/cards/BT20/BT20-061.ts",
+        "apps/api/src/cards/BT20/BT20-083.test.ts",
+        "apps/api/src/cards/BT20/BT20-083.ts",
+        "apps/api/src/cards/BT20/BT20-084.test.ts",
+        "apps/api/src/cards/BT20/BT20-084.ts",
+        "apps/api/src/cards/BT20/BT20-093.test.ts",
+        "apps/api/src/cards/BT20/BT20-093.ts",
+        "apps/api/src/cards/BT20/BT20-094.test.ts",
+        "apps/api/src/cards/BT20/BT20-094.ts",
+        "apps/api/src/cards/BT20/BT20-095.test.ts",
+        "apps/api/src/cards/BT20/BT20-095.ts",
+        "apps/api/src/cards/BT20/BT20-102.test.ts",
+        "apps/api/src/engine/GameEngine.ts",
+        "apps/api/src/engine/effects/interpreter/actions/digivolve.ts",
+        "apps/api/src/engine/effects/interpreter/costs.ts",
+        "apps/api/src/engine/replacementRecomputeBarrier.test.ts",
+        "apps/api/src/engine/targetedBreedingMoveCost.test.ts"
+      ]
+    ],
+    "result": "passed without warnings",
+    "artifacts": [
+      "reactive-movement-format-check.log",
+      "reactive-movement-lint.log"
+    ]
+  },
+  "review": "Independent Luna shared-engine review clean; root reviewed and corrected all changed public fixtures.",
+  "completion": "COLLECTION INCOMPLETE; acceptance and pushed delivery recorded separately."
+}

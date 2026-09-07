@@ -127,12 +127,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   // Tamer") stay a resolution gate, where an effect still triggers and then does nothing.
   const triggerCondition = (effect: CardEffect, ctx: Parameters<NonNullable<BuilderOptions["when"]>>[0]): boolean =>
     effect.condition?.kind.startsWith("trigger") !== true || effectCondition(effect, ctx);
-  // The on-play body is the FIRST plain (non-security, non-＜Delay＞) [Main] of an Option — the one
+  // The on-play body is the FIRST ordinary (non-trash, non-security, non-＜Delay＞) [Main] of an Option — the one
   // play-card fires via OnUseOption. Only that clause is stripped of the OnDeclaration co-home (so
   // it cannot re-fire on the placed option permanent); later [Main] clauses stay activatable.
   let seenOptionPlayMain = false;
   const isPlainMain = (e: CardEffect): boolean =>
-    e.trigger === "Main" && !e.isSecurity && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
+    e.trigger === "Main" && !e.isSecurity && !e.isFromTrash && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
   // Pre-bucket effects by their target EffectTiming so effectsForTiming is O(1).
   const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect }[]>();
   let index = 0;

@@ -2,10 +2,11 @@ import type { AddressInfo } from "node:net";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import type { Client } from "colyseus";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
-import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../db/snapshotFixture.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { AegisRoom, type AegisJoinOptions } from "../rooms/AegisRoom.js";
 import { ArbitrationService } from "./arbitration/index.js";
@@ -182,8 +183,28 @@ async function attendanceBase(matchId: string): Promise<number> {
   return (await joinDeadlineOf(matchId))! - BANDAI_GENERAL_PRESET.attendance.joinGraceMs;
 }
 
-beforeEach(async () => {
-  accounts = new AccountStore(createMemoryPool());
+type Fixture = {
+  accounts: AccountStore;
+  participants: ParticipantStore;
+  series: SeriesStore;
+  swiss: SwissProgram;
+  elimination: EliminationStore;
+  topCut: TopCutProgram;
+  arbitration: ArbitrationService;
+  scheduler: DeadlineScheduler;
+  url: string;
+  close: () => Promise<void>;
+  cookieOf: Map<string, string>;
+};
+
+/**
+ * One express server and one database for the file, restored to its just-started state before each
+ * test. Assigns the module-level bindings rather than shadowing them: the helpers below read them.
+ */
+const fixtureFor = snapshotFixtures<Fixture>();
+
+async function buildFixture(pool: Pool): Promise<Fixture> {
+  accounts = new AccountStore(pool);
   participants = new ParticipantStore(accounts);
   series = new SeriesStore(accounts);
   swiss = new SwissProgram(accounts, series);
@@ -231,10 +252,18 @@ beforeEach(async () => {
     cookieOf.set(name, cookie);
     cookieOf.set(account.id, cookie);
   }
+  return { accounts, participants, series, swiss, elimination, topCut, arbitration, scheduler, url, close, cookieOf };
+}
+
+beforeEach(async () => {
+  ({ accounts, participants, series, swiss, elimination, topCut, arbitration, scheduler, url, close, cookieOf } =
+    await fixtureFor("default", buildFixture));
   roomCounter = 0;
 });
 
-afterEach(async () => {
+// The server and its database are shared for the file (see `fixtureFor` above), so they are torn
+// down once at the end rather than after each test.
+afterAll(async () => {
   await close();
   await accounts.close();
 });

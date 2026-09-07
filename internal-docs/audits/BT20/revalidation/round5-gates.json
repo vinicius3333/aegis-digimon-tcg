@@ -1,0 +1,53 @@
+{
+  "complete": true,
+  "collection": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+    "passed": 968,
+    "failed": 0
+  },
+  "mechanisms": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+    "passed": 465,
+    "failed": 0
+  },
+  "bt22SourceMechanisms": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-007.test.ts -t 'place-as-top|inherited leave-play' --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-bt22-source-mechanisms.json",
+    "passed": 8,
+    "failed": 0
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0,
+    "log": "round5-final-typecheck.log"
+  },
+  "finalApiTypecheck": {
+    "command": "pnpm --filter @aegis/api typecheck",
+    "exitCode": 0,
+    "log": "round5-final-api-typecheck.log"
+  },
+  "sync": {
+    "command": "pnpm effects:sync:set -- --set BT20",
+    "exitCode": 0,
+    "log": "round5-scoped-sync.log"
+  },
+  "syncCheck": {
+    "command": "pnpm effects:check:set -- --set BT20",
+    "exitCode": 0,
+    "log": "round5-scoped-check.log"
+  },
+  "style": {
+    "paths": "round5-style-paths.json",
+    "commands": [
+      "pnpm exec oxfmt <paths>",
+      "pnpm exec oxfmt --check <paths>",
+      "pnpm exec oxlint <paths>"
+    ],
+    "exitCode": 0
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "scope": "All 102 BT20 cards; accepted001-043 artifacts unchanged. New044-102 acceptance requires pushed commits.",
+  "baselineLimitation": "BT22-007 unrelated standalone zero-DP OnPlay fixture fails with both old and new source-play code; source-choice-old-engine-results.json reproduces the baseline. Its affected own-stack/name/condition mechanisms pass separately. P-176 legacy paid-evolution limitation remains outside BT20; legal peer paths are used."
+}

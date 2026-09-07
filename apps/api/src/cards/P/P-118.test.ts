@@ -38,11 +38,14 @@ describe("P-118 Wormmon", () => {
     const s = setupEngine(
       {
         0: {
+          // A DNA digivolve needs a matching printed recipe: BT12-028 Paildramon prints
+          // [DNA Digivolve] Blue Lv.4 + Green Lv.4 for cost 0, so the host (the self material)
+          // is a blue level 4 and the partner a green level 4.
           battleArea: [
-            { card: "BT1-064", as: "host", under: ["P-118"] },
-            { card: "BT3-021", as: "partner" },
+            { card: "BT1-036", as: "host", under: ["P-118"] },
+            { card: "BT1-070", as: "partner" },
           ],
-          hand: [{ card: "BT12-022", as: "dna" }],
+          hand: [{ card: "BT12-028", as: "dna" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

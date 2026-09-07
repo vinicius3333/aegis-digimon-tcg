@@ -3,6 +3,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-056.js";
 import "./BT18-008.js";
+import "../BT1/BT1-020.js";
 
 describe("BT18-056 TigerVespamon", () => {
   it("scales its suspension by security count and grants Piercing, Reboot, and unsuspend prevention", async () => {
@@ -106,7 +107,7 @@ describe("BT18-056 TigerVespamon", () => {
         0: {
           battleArea: [
             { card: "BT18-056", as: "tiger", suspended: true },
-            { card: "BT1-081", as: "friendly" },
+            { card: "BT1-020", as: "friendly" },
           ],
         },
         1: {
@@ -127,7 +128,8 @@ describe("BT18-056 TigerVespamon", () => {
         target: { kind: "permanent", permanentId: s.perm("firstOpponent").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.perm("tiger").isSuspended);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
     expect(s.perm("tiger").isSuspended).toBe(false);
 
     expect(

@@ -1,0 +1,110 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-045.test.ts (11 tests | 5 failed) 116ms
+   ❯ BT20-045 Examon ACE (11)
+     × rejects ordinary DNA routing because Examon only has the Blast DNA route 11ms
+     × public Counter Blast DNA uses one field Breakdramon and one named hand Slayerdramon 19ms
+     × does not offer Blast DNA when a field-treated name is only present on a hand card 4ms
+     × uses public Blocker and Evade combat decisions 4ms
+     × spends the public once-per-turn unsuspend, then resets after a completed turn 28ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-045.test.ts > BT20-045 Examon ACE > rejects ordinary DNA routing because Examon only has the Blast DNA route
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/cards/BT20/BT20-045.test.ts:84:7
+     82|         instanceId: s.inst("examon").instanceId,
+     83|       }),
+     84|     ).toMatchObject({ ok: false });
+       |       ^
+     85|     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toCont…
+     86|     expect(s.state.players[1]!.battleArea).toHaveLength(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT20/BT20-045.test.ts > BT20-045 Examon ACE > public Counter Blast DNA uses one field Breakdramon and one named hand Slayerdramon
+AssertionError: expected [ 'BT20-044' ] to deeply equal { Object (sample, inverse, ...) }
+
+- Expected
++ Received
+
+- ArrayContaining [
++ [
+    "BT20-044",
+-   "BT20-027",
+  ]
+
+ ❯ src/cards/BT20/BT20-045.test.ts:114:68
+    112|     await settle(() => s.perm("breakdramon").topCard.cardId === "BT20-…
+    113|     expect(s.perm("breakdramon").topCard.cardId).toBe("BT20-045");
+    114|     expect(s.perm("breakdramon").stack.map((card) => card.cardId)).toE…
+       |                                                                    ^
+    115|     expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)…
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT20/BT20-045.test.ts > BT20-045 Examon ACE > does not offer Blast DNA when a field-treated name is only present on a hand card
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT20/BT20-045.test.ts:161:103
+    159|     const opened = s.events.find((event) => event.kind === "counterWin…
+    160|     if (opened?.kind !== "counterWindowOpened") throw new Error("count…
+    161|     expect(opened.eligibleCounters.some((entry) => entry.instanceId ==…
+       |                                                                                                       ^
+    162|     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toCont…
+    163|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT20/BT20-045.test.ts > BT20-045 Examon ACE > uses public Blocker and Evade combat decisions
+Error: block window did not open
+ ❯ src/cards/BT20/BT20-045.test.ts:202:60
+    200|     await settle(() => blocker.events.some((event) => event.kind === "…
+    201|     const blockerWindow = blocker.events.findLast((event) => event.kin…
+    202|     if (blockerWindow?.kind !== "blockWindowOpened") throw new Error("…
+       |                                                            ^
+    203|     expect(blockerWindow.eligibleBlockerIds).toContain(blocker.perm("e…
+    204|     expect(blocker.engine.applyIntent(0, { type: "declareBlock", block…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT20/BT20-045.test.ts > BT20-045 Examon ACE > spends the public once-per-turn unsuspend, then resets after a completed turn
+Error: Seat 1's Main phase did not become ready
+ ❯ Object.waitForMainPhase src/engine/testkit/advance.ts:31:15
+     29|       }
+     30|       if (internals.mainPhase.seat !== seat || internals.state.phase !…
+     31|         throw new Error(`Seat ${seat}'s Main phase did not become read…
+       |               ^
+     32|       }
+     33|       // TurnStateMachine deliberately opens Main before its asynchron…
+ ❯ Object.runTurn src/engine/testkit/advance.ts:58:7
+ ❯ src/cards/BT20/BT20-045.test.ts:287:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 6 passed (11)
+   Start at  10:34:33
+   Duration  716ms (transform 42%, import 40%, tests 18%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

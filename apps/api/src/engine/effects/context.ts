@@ -281,6 +281,7 @@ export function unimplementedPrimitives(): Primitives {
     disableSecurityEffect: () => refuse("static-continuous-effects", "disableSecurityEffect"),
     disableSecurityEffectsForSeat: () => refuse("static-continuous-effects", "disableSecurityEffectsForSeat"),
     disableTimingEffect: () => refuse("static-continuous-effects", "disableTimingEffect"),
+    disableTimingEffectsForPlayer: () => refuse("static-continuous-effects", "disableTimingEffectsForPlayer"),
     declareWinner: () => refuse("effect-primitives", "declareWinner"),
     setMemory: () => refuse("effect-primitives", "setMemory"),
     modifyDP: () => refuse("effect-primitives", "modifyDP"),

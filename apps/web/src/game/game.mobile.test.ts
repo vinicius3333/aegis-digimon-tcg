@@ -89,7 +89,7 @@ describe("mobile portrait match layout", () => {
     // The row scrolls, so burying a card under its neighbour bought no room and
     // left the overlapped edge selecting the wrong card.
     expect(portraitRules).not.toMatch(/\[data-testid="hand"\] > div \{[^}]*margin-left:\s*-/);
-    expect(portraitRules).toMatch(/\[data-testid="hand"\] > div \{[^}]*margin-left:\s*var\(--ds-space-1\)/);
+    expect(portraitRules).toMatch(/\[data-testid="hand"\] > div \{[^}]*margin-left:\s*var\(--game-hand-gap\)/);
   });
 
   it("gives field cards and hand cards a touch sheet", () => {
@@ -284,6 +284,38 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
     expect(portraitRules).not.toMatch(/\.card-action-sheet__body > div:first-child \{/);
   });
 
+  it("lays the stack viewer out as one vertical sheet with wrapping card grids", () => {
+    // The desktop dialog put the state block and every role side by side, so on a
+    // phone the sources ran off the right edge behind a horizontal scrollbar.
+    expect(portraitRules).toMatch(/\.stack-sheet \.card-action-sheet__panel \{[^}]*max-height:\s*85dvh/);
+    expect(portraitRules).toMatch(/\.stack-sheet__groups \{[^}]*display:\s*grid/);
+    expect(portraitRules).toMatch(
+      /\.stack-sheet__grid \{[^}]*grid-template-columns:\s*repeat\(auto-fill, minmax\(4\.5rem, 1fr\)\)/,
+    );
+    expect(portraitRules).not.toMatch(/\.stack-sheet__grid \{[^}]*overflow-x:\s*auto/);
+    // The active card is a medium tap target, not a full-width blow-up.
+    expect(portraitRules).toMatch(
+      /\.stack-sheet \.card-action-sheet__body \{[^}]*grid-template-columns:\s*minmax\(0, 40%\)/,
+    );
+    expect(portraitRules).toMatch(/\.stack-sheet \.stack-viewer-state__restrictions,[\s\S]{0,80}flex-wrap:\s*wrap/);
+    expect(overlaysSource).toMatch(/className="card-action-sheet stack-sheet"/);
+  });
+
+  it("makes the digivolve cost chooser hug its content as a bottom sheet", () => {
+    // Its inline `top: 120px` survived the switch to a fixed panel, so with
+    // `bottom` also pinned the sheet stretched to the floor with a dark gap
+    // below the buttons. The top edge has to be released.
+    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*top:\s*auto !important/);
+    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*height:\s*auto !important/);
+    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*bottom:\s*0 !important/);
+    // Bottom-sheet dressing, matching `.card-action-sheet__panel`.
+    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*padding:[^;]*env\(safe-area-inset-bottom\)[^;]*;/);
+    expect(portraitRules).toMatch(
+      /\.evo-cost-prompt \{[^}]*border-radius:\s*var\(--ds-radius-lg\) var\(--ds-radius-lg\) 0 0 !important/,
+    );
+    expect(portraitRules).toMatch(/\.evo-cost-prompt::before \{[^}]*height:\s*4px[^}]*border-radius:\s*999px/);
+  });
+
   it("spans the reveal panel across the screen", () => {
     expect(portraitRules).toMatch(/\.side-panel-stack,\s*\.match-notice-stack \{[^}]*width:\s*auto/);
   });
@@ -458,6 +490,33 @@ describe("the mulligan sheet keeps the opening hand next to its copy", () => {
   });
 });
 
+describe("the viewer's own moves on a phone", () => {
+  it("gives the header a fullscreen control next to the other two", () => {
+    expect(portraitRules).toMatch(
+      /\.game-opponent-bar \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto auto auto auto/,
+    );
+    expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-fullscreen,\s*\.game-mobile-bug \{/);
+    expect(gameScreenSource).toMatch(/className="game-mobile-fullscreen"/);
+  });
+
+  it("runs the latest own log line as a strip across the header on touch layouts", () => {
+    expect(portraitRules).toMatch(/\.game-log-strip \{[^}]*grid-column:\s*1 \/ -1/);
+    expect(portraitRules).toMatch(/\.game-log-strip > span \{[^}]*text-overflow:\s*ellipsis/);
+    expect(gameScreenSource).toMatch(/className="game-log-strip"[\s\S]*?onClick=\{\(\) => setHistoryOpen\(true\)\}/);
+  });
+});
+
+describe("timed panels and notices share one band on a phone in portrait", () => {
+  it("folds the side panels into a single top column with the notices under them", () => {
+    expect(narrowWidthRules).toMatch(
+      /\.side-panel-stack\[data-side="all"\] \{[^}]*top:\s*calc\(10\.5rem[^}]*bottom:\s*auto[^}]*flex-direction:\s*column/,
+    );
+    expect(gameScreenSource).toMatch(/<SidePanelStack[\s\S]*?collapse=\{collapseNotices\}/);
+    // The standalone notice stack is the landscape phone's and the desktop's only.
+    expect(gameScreenSource).toMatch(/!state\.gameOver && !collapseNotices \? \([\s\S]*?<NoticeStack/);
+  });
+});
+
 describe("the board-mode rail becomes a bottom sheet on a phone in portrait", () => {
   it("anchors the prompt above the hand instead of over the field", () => {
     expect(phonePortraitRules).toMatch(
@@ -472,8 +531,45 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
     expect(phonePortraitRules).toMatch(/\.board-prompt__actions > button \{[^}]*min-height:\s*44px/);
   });
 
+  it("dims the board under the sheet and keeps the feed column short of it", () => {
+    expect(phonePortraitRules).toMatch(
+      /\.board-prompt-scrim \{[^}]*inset:\s*0 0 calc\(var\(--game-hand-h\)[^}]*pointer-events:\s*none/,
+    );
+    expect(phonePortraitRules).toMatch(
+      /\.side-panel-stack\[data-under-sheet\] \{[^}]*max-height:\s*30dvh[^}]*overflow-y:\s*auto/,
+    );
+    expect(gameCss).toMatch(/\[data-held\] \.match-notice__erode \{[^}]*animation-play-state:\s*paused/);
+  });
+
+  it("is dressed like the card action sheets: edge to edge, rounded on top, with a grip and no back control", () => {
+    expect(phonePortraitRules).toMatch(/\.board-prompt \{[^}]*right:\s*0;[^}]*left:\s*0;/);
+    expect(phonePortraitRules).toMatch(
+      /\.board-prompt \{[^}]*border-radius:\s*var\(--ds-radius-lg\) var\(--ds-radius-lg\) 0 0/,
+    );
+    expect(phonePortraitRules).toMatch(/\.board-prompt__grip \{[^}]*display:\s*block/);
+    expect(phonePortraitRules).toMatch(/\.board-prompt__back \{[^}]*display:\s*none/);
+    expect(gameCss).toMatch(/\n\.board-prompt__grip,\n\.board-prompt-scrim \{[^}]*display:\s*none/);
+  });
+
   it("leaves the landscape phone with the left rail it was tuned for", () => {
     expect(landscapeRules).not.toMatch(/\.board-prompt \{/);
+  });
+});
+
+describe("the trigger chooser is a row of compact tiles on a phone in portrait", () => {
+  it("lays the pending effects across one scrolling row instead of stacking full cards", () => {
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser \{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/);
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser__option \{[^}]*flex:\s*0 0 auto[^}]*max-width:\s*8rem/);
+  });
+
+  it("shrinks the art to a thumbnail and drops the clause the dialog already prints", () => {
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser__card > div \{[^}]*width:\s*64px/);
+    expect(phonePortraitRules).toMatch(/\.trigger-chooser__summary \{[^}]*display:\s*none/);
+  });
+
+  it("keeps the desktop chooser wrapping at full card size", () => {
+    expect(gameCss).toMatch(/\n\.trigger-chooser \{[^}]*flex-wrap:\s*wrap/);
+    expect(gameCss).toMatch(/\n\.trigger-chooser__timing \{[^}]*font-weight:\s*800/);
   });
 });
 
@@ -594,5 +690,101 @@ describe("landscape phone match layout", () => {
     // Even the compact Digimon (106px) is taller than a row here.
     expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
     expect(gameScreenSource).toMatch(/width=\{landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined\}/);
+  });
+});
+
+describe("the phone hand strip during a board-mode selection", () => {
+  it("separates the cards so two selection rings cannot merge", () => {
+    expect(portraitRules).toBeDefined();
+    expect(portraitRules).toMatch(/\[data-testid="hand"\] \{[^}]*--game-hand-gap:\s*16px/);
+    expect(portraitRules).toMatch(
+      /\.game-player-dock \[data-testid="hand"\] > div \{[^}]*margin-left:\s*var\(--game-hand-gap\) !important/,
+    );
+    // Answering a decision spends even more air: every ring is on screen at once.
+    expect(portraitRules).toMatch(/\[data-testid="hand"\]\.game-hand--selecting \{\s*--game-hand-gap:\s*22px/);
+  });
+
+  it("tells an eligible card from a picked one by colour, not by brightness", () => {
+    expect(portraitRules).toMatch(
+      /\.game-hand-card--pickable \{[^}]*var\(--ds-accent\)[^}]*var\(--ds-accent-surface\)/,
+    );
+    expect(portraitRules).toMatch(
+      /\.game-hand-card--picked \{[^}]*var\(--ds-success\)[^}]*var\(--ds-success-surface\)/,
+    );
+    expect(portraitRules).toMatch(/\.game-hand-card--unpickable \{\s*opacity:\s*0\.32/);
+    // The same three states exist outside the phone block, so the pointer layout
+    // reads the selection the same way.
+    expect(gameCss).toMatch(/\.game-hand-card--pickable \{[^}]*var\(--ds-accent\)/);
+  });
+
+  it("keeps the pick-order badge inside the card the strip clips", () => {
+    // The strip hides its own overflow to keep the scrollbar off the board, so a
+    // badge hung over the card's top edge was cut in half.
+    expect(portraitRules).toMatch(/\.game-hand-card__pick-badge \{\s*top:\s*0\.15rem;\s*right:\s*0\.15rem/);
+  });
+
+  it("hangs the scroll cues over the ends of the strip", () => {
+    // `display: contents` everywhere else: the pointer fan must not gain a box.
+    expect(gameCss).toMatch(/\.game-hand-scroller \{\s*display:\s*contents/);
+    expect(portraitRules).toMatch(/\.game-hand-scroller \{[^}]*display:\s*block[^}]*position:\s*relative/);
+    expect(portraitRules).toMatch(/\.game-hand-scroll-cue \{[^}]*position:\s*absolute[^}]*top:\s*50%/);
+    expect(portraitRules).toMatch(/\.game-hand-scroll-cue--start \{\s*left:\s*0/);
+    expect(portraitRules).toMatch(/\.game-hand-scroll-cue--end \{\s*right:\s*0/);
+  });
+
+  it("mounts the cues only on the touch layout, and only where cards are hidden", () => {
+    expect(boardPiecesSource).toMatch(/useMediaQuery\(TOUCH_LAYOUT_QUERY\)/);
+    expect(boardPiecesSource).toMatch(/touchLayout && overflow\.start \?/);
+    expect(boardPiecesSource).toMatch(/touchLayout && overflow\.end \?/);
+    // Scrolling and resizing both change the answer, so both are watched.
+    expect(boardPiecesSource).toMatch(/addEventListener\("scroll", measure/);
+    expect(boardPiecesSource).toMatch(/new ResizeObserver\(measure\)/);
+  });
+});
+
+describe("the draw cue on a phone", () => {
+  const useMatchCuesSource = readFileSync(new URL("./useMatchCues.ts", import.meta.url), "utf8");
+  const reducedMotionRules = gameCss.match(/@media \(prefers-reduced-motion: reduce\) \{(?<rules>[\s\S]*)$/)?.groups
+    ?.rules;
+
+  it("flies a hand-card-sized back instead of a 30px one", () => {
+    expect(portraitRules).toMatch(
+      /\.game-draw-flight \{[^}]*--draw-flight-w:\s*var\(--hand-card-width\)[^}]*--draw-flight-h:\s*calc\(var\(--hand-card-width\) \* 1\.4\)/,
+    );
+    // The starburst opens where the card landed, so it grows with it.
+    expect(portraitRules).toMatch(/\.game-draw-burst \{[^}]*--draw-flight-w:\s*var\(--hand-card-width\)/);
+    expect(portraitRules).toMatch(/\.game-draw-flight \{[^}]*box-shadow:[^}]*var\(--battle-cyan\)/);
+  });
+
+  it("centres the card back on the pile with its own margins, at any size", () => {
+    // The board hands over a raw centre point now, so a resized card back cannot
+    // launch or land off the pile it belongs to.
+    expect(gameCss).toMatch(
+      /\.game-draw-flight \{[^}]*margin-top:\s*calc\(var\(--draw-flight-h\) \/ -2\)[^}]*margin-left:\s*calc\(var\(--draw-flight-w\) \/ -2\)/,
+    );
+    expect(gameCss).toMatch(/\.game-draw-burst \{[^}]*margin-top:\s*calc\(var\(--draw-flight-h\) \/ -2\)/);
+    expect(useMatchCuesSource).not.toMatch(/DRAW_FLIGHT_WIDTH/);
+  });
+
+  it("gives the trip its longer touch duration from the queue, not from CSS alone", () => {
+    // A CSS-only override would outlive the timeout that unmounts the card back.
+    expect(useMatchCuesSource).toMatch(/isTouchLayout\(\) \? TIMINGS\.drawFlightTouch : TIMINGS\.drawFlight/);
+    expect(useMatchCuesSource).toMatch(/await context\.wait\(duration\)/);
+    expect(gameScreenSource).toMatch(/"--t-draw-flight": `\$\{flight\.duration\}ms`/);
+    expect(portraitRules).not.toMatch(/\.game-draw-flight \{[^}]*animation-duration/);
+  });
+
+  it("keeps an accent ring on the card that landed in the strip", () => {
+    // On its own pseudo-element: --playable / --pickable / --picked each own the
+    // card's box-shadow, and the class stays for as long as the card is in hand.
+    expect(portraitRules).toMatch(
+      /\.game-hand-card--drawn::after \{[^}]*animation:\s*battle-hand-draw-ring var\(--t-hand-draw-ring, 900ms\)/,
+    );
+    expect(portraitRules).not.toMatch(/\.game-hand-card--drawn \{/);
+  });
+
+  it("still stands down for reduced motion", () => {
+    expect(reducedMotionRules).toMatch(/\.game-draw-flight \{\s*display:\s*none/);
+    expect(reducedMotionRules).toMatch(/\.game-hand-card--drawn::after \{\s*display:\s*none/);
   });
 });

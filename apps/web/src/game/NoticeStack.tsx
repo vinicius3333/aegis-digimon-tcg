@@ -189,6 +189,7 @@ export function NoticeStack({
   family = "all",
   panelSide = "right",
   collapse = false,
+  held = false,
   nowMs,
   onDismiss,
 }: {
@@ -208,6 +209,8 @@ export function NoticeStack({
    * corner-anchored notice landed on the hand or the field being read.
    */
   collapse?: boolean;
+  /** The clocks are stopped (a decision is waiting), so the eroding borders pause with them. */
+  held?: boolean;
   /** Injected so the eroding borders start at the right point after a re-render. */
   nowMs?: number;
   onDismiss: (id: string) => void;
@@ -217,7 +220,12 @@ export function NoticeStack({
   const now = nowMs ?? Date.now();
   if (collapse) {
     return (
-      <div className="match-notice-stack" data-anchor="top-center" data-testid="match-notice-stack">
+      <div
+        className="match-notice-stack"
+        data-anchor="top-center"
+        data-held={held || undefined}
+        data-testid="match-notice-stack"
+      >
         {noticesCollapsed(shown).map((notice) => (
           <NoticeView
             key={notice.id}
@@ -232,7 +240,13 @@ export function NoticeStack({
   return (
     <>
       {occupiedAnchors(shown, panelSide).map((anchor: NoticeAnchor) => (
-        <div className="match-notice-stack" data-anchor={anchor} data-testid="match-notice-stack" key={anchor}>
+        <div
+          className="match-notice-stack"
+          data-anchor={anchor}
+          data-held={held || undefined}
+          data-testid="match-notice-stack"
+          key={anchor}
+        >
           {noticesAt(shown, anchor, panelSide).map((notice) => (
             <NoticeView
               key={notice.id}

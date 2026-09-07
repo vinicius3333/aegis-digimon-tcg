@@ -43,7 +43,7 @@ describe("BT7-025 Beowolfmon", () => {
         0: { battleArea: [{ card: "BT7-025", under: [{ card: "BT6-049", as: "hybrid" }], as: "beowolf" }] },
         1: {
           battleArea: [{ card: "BT6-049", under: [{ card: "BT1-010", as: "targetSource" }], as: "target" }],
-          security: ["BT1-101"],
+          security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -73,7 +73,7 @@ describe("BT7-025 Beowolfmon", () => {
         0: { battleArea: [{ card: "BT7-025", under: [{ card: "BT6-049", as: "hybrid" }], as: "beowolf" }] },
         1: {
           battleArea: [{ card: "BT6-049", under: [{ card: "BT1-010", as: "targetSource" }], as: "target" }],
-          security: ["BT1-101"],
+          security: ["BT1-001"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

@@ -863,9 +863,14 @@ export function triggerCardId(triggerKey: string): string {
 
 /**
  * Label every triggerKey in an `orderTriggers` decision, appending "(copy N)"
- * when two or more keys share a base label (two permanents of the same card
- * triggering simultaneously) so the overlay's rows read as distinct choices,
- * not duplicated text.
+ * only when two DIFFERENT permanents share a card — the one thing a copy number
+ * can honestly mean.
+ *
+ * A permanent can queue two effects at once (Megadramon's [On Play] and [When
+ * Digivolving] both fire when it is played onto a base). Those entries share an
+ * instanceId, so numbering them as copies claimed a second Megadramon that was
+ * never on the board. They are told apart by their firing window instead, which
+ * the chooser renders beside the name (see DecisionOverlay).
  */
 export function triggerLabels(
   triggerKeys: readonly string[],
@@ -879,18 +884,22 @@ export function triggerLabels(
   // Effect-key suffixes are implementation details (`ir-6-0`, `GainMemory`) and
   // are neither stable nor meaningful to a player. The server now carries timing
   // separately for the printed clause; rows identify the actual source card only.
-  const baseLabels = triggerKeys.map((key, index) => {
+  const entries = triggerKeys.map((key, index) => {
     const cardId = triggerCardIds[index] ?? triggerCardId(key);
-    return getCardDefinition(cardId)?.nameEn ?? cardId;
+    return { label: getCardDefinition(cardId)?.nameEn ?? cardId, instanceId: parseTriggerKey(key).instanceId };
   });
-  const totalByLabel = new Map<string, number>();
-  for (const label of baseLabels) totalByLabel.set(label, (totalByLabel.get(label) ?? 0) + 1);
-  const seenByLabel = new Map<string, number>();
-  return baseLabels.map((label) => {
-    if ((totalByLabel.get(label) ?? 0) <= 1) return label;
-    const copyNumber = (seenByLabel.get(label) ?? 0) + 1;
-    seenByLabel.set(label, copyNumber);
-    return t("log.copySuffix", { label, n: copyNumber });
+  // Copy numbers are per PERMANENT, not per entry, so a permanent that queued two
+  // effects keeps one identity and a card with no second permanent keeps none.
+  const instancesByLabel = new Map<string, string[]>();
+  for (const entry of entries) {
+    const seen = instancesByLabel.get(entry.label) ?? [];
+    if (!seen.includes(entry.instanceId)) seen.push(entry.instanceId);
+    instancesByLabel.set(entry.label, seen);
+  }
+  return entries.map(({ label, instanceId }) => {
+    const instances = instancesByLabel.get(label) ?? [];
+    if (instances.length <= 1) return label;
+    return t("log.copySuffix", { label, n: instances.indexOf(instanceId) + 1 });
   });
 }
 

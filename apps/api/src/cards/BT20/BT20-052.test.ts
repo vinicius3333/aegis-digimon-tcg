@@ -56,6 +56,22 @@ describe("BT20-052 Oblivimon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("naturally plays from face-up security at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT20-052", as: "oblivimon", faceUp: true }] },
+      1: { deck: ["BT20-001"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-052"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-052")).toBe(true);
+  });
+
   it("uses the Cyborg route for 3 and flips the next face-down security card", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-050", as: "base" }], hand: [{ card: "BT20-052", as: "oblivimon" }] },
@@ -96,6 +112,27 @@ describe("BT20-052 Oblivimon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-050");
   });
 
+  it("does not place its top card when the security check is face-down", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-052", under: ["BT20-050"], as: "oblivimon" }] },
+        1: { security: [{ card: "BT20-047", as: "faceDown" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("oblivimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-052")).toBe(true);
+  });
+
   it("grants the inherited target-change lock only on its controller's turn", async () => {
     const s = setupEngine({
       0: {
@@ -111,5 +148,38 @@ describe("BT20-052 Oblivimon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(false);
+  });
+
+  it("publicly refuses a Blocker redirect from an inherited Oblivimon attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-055", dp: 12000, under: ["BT20-052"], as: "host" }] },
+        1: {
+          battleArea: [{ card: "BT20-047", as: "blocker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-047")).toBe(true);
   });
 });

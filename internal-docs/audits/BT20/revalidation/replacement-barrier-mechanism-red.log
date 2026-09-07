@@ -1,0 +1,29 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/engine/replacementRecomputeBarrier.test.ts (1 test | 1 failed) 67ms
+   ❯ continuous replacement recompute barrier (1)
+     × recomputes BT20-093 before a public non-battle leave and resolves immediate DNA 66ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  14:09:00
+   Duration  1.07s (transform 57%, import 36%, tests 7%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/replacementRecomputeBarrier.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/replacementRecomputeBarrier.test.ts > continuous replacement recompute barrier > recomputes BT20-093 before a public non-battle leave and resolves immediate DNA
+AssertionError: expected undefined to be defined
+ ❯ src/engine/replacementRecomputeBarrier.test.ts:62:20
+     60|
+     61|     const examon = s.state.players[0]!.battleArea.find((perm) => perm.…
+     62|     expect(examon).toBeDefined();
+       |                    ^
+     63|     expect(examon!.stack.map((card) => card.cardId)).toEqual(expect.ar…
+     64|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯

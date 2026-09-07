@@ -125,4 +125,46 @@ describe("BT20-068 Bakemon", () => {
     );
     expect(s.state.memory).toBe(-1);
   });
+
+  it("publicly builds a Yaamon-Ghostmon-Bakemon-Sandiramon stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX7-006", as: "yaamon" }],
+        hand: [
+          { card: "BT20-063", as: "ghostmon" },
+          { card: "BT20-068", as: "bakemon" },
+          { card: "BT10-079", as: "host" },
+        ],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yaamon").permanentId,
+        instanceId: s.inst("ghostmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yaamon").topCard.cardId === "BT20-063");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yaamon").permanentId,
+        instanceId: s.inst("bakemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yaamon").topCard.cardId === "BT20-068");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yaamon").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yaamon").topCard.cardId === "BT10-079");
+    expect(s.perm("yaamon").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX7-006", "BT20-063", "BT20-068"]),
+    );
+  });
 });
