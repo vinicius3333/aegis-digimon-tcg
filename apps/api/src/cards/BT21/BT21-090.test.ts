@@ -374,4 +374,70 @@ describe("BT21-090 The Strongest of Brothers", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gammamon").instanceId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });
+
+  it("Security may decline an eligible Gammamon-text play and still places the Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT21-090", as: "option" }],
+          hand: [{ card: "BT21-010", as: "gammamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("option").instanceId,
+        ) && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gammamon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-090")).toBe(true);
+  });
+
+  it("Security does not offer a Gammamon-text card above the printed cost-4 limit", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT21-090", as: "option" }],
+          hand: [{ card: "BT21-022", as: "overCap" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("option").instanceId,
+        ) && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("overCap").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-090")).toBe(true);
+  });
 });
