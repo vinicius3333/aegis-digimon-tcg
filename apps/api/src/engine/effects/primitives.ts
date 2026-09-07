@@ -156,6 +156,14 @@ export interface PrimitivesEngine {
   ) => Promise<void>;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
+  /** Resolve the normal When Digivolving window for a public digivolution-like entry. */
+  fireWhenDigivolving?: (seat: Seat, permanent: Permanent, previousLevel?: number) => Promise<void>;
+  /** Run the would-digivolve and before-cost windows for effect-driven App Fusion. */
+  prepareAppFusion?: (seat: Seat, target: Permanent, result: CardInstance, into: CardDefinition) => Promise<void>;
+  /** Apply active ordinary-digivolution target restrictions to effect-driven App Fusion. */
+  appFusionTargetAllowed?: (seat: Seat, target: Permanent, result: CardInstance) => boolean;
+  /** Resolve the would-digivolve window after effect-route cost decisions complete. */
+  fireWouldDigivolve?: (seat: Seat, target: Permanent, into: CardDefinition) => Promise<void>;
   /**
    * Resolve the played loose card's own pay-time reducers ("when this card would be
    * played") before effect-driven play. Free play runs the same window with a
@@ -1621,16 +1629,24 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * when the source/result is missing, the fusion is illegal, the choice is invalid, or the cost
    * is unaffordable.
    */
-  const appFuseInto = async (sourcePermanentId: string, resultInstanceId: string): Promise<Permanent | undefined> => {
+  const appFuseInto = async (
+    sourcePermanentId: string,
+    resultInstanceId: string,
+    requestedLinkedInstanceId?: string,
+    costOverride?: number,
+    opts?: { publicEntry?: boolean },
+  ): Promise<Permanent | undefined> => {
     const permanent = access.permanentById(sourcePermanentId);
     if (permanent === undefined || permanent.topCard === undefined) return undefined;
     const peek = peekLooseInstance(state, resultInstanceId);
     if (peek === undefined) return undefined;
+    const originalResultLocation = locateLooseInstance(state, resultInstanceId);
+    if (originalResultLocation === undefined) return undefined;
     const definition = requireCardDefinition(peek.cardId);
     if (!definition.kinds.includes(CardKind.Digimon)) return undefined;
+    if (engine.appFusionTargetAllowed?.(permanent.controllerSeat, permanent, peek) === false) return undefined;
     // Enforce the fusion-target's app-fusion legality + read its cost (server-authoritative).
     const originalTopId = permanent.topCard.instanceId;
-    const originalResultId = peek.instanceId;
     const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
     const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
     if (appFusionCostFor(peek.cardId, { topName, linkedNames }) === undefined) return undefined;
@@ -1644,22 +1660,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         appFusionCostFor(peek.cardId, {
           topName,
           linkedNames: [requireCardDefinition(card.cardId).nameEn],
-        }) !== undefined &&
-        engine.memory.maxCostFor(seat) >=
-          appFusionCostFor(peek.cardId, {
-            topName,
-            linkedNames: [requireCardDefinition(card.cardId).nameEn],
-          })!,
+        }) !== undefined,
     );
     if (eligiblePartners.length === 0) return undefined;
-    const selectedPartnerIds = await engine.ask.selectInstances(
-      seat,
-      eligiblePartners.map((card) => card.instanceId),
-      1,
-      1,
-      "App Fusion: choose the linked card used as fusion material.",
-      { sourceCardId: peek.cardId, timing: "WhenDigivolving", effectText: "App Fusion" },
-    );
+    const selectedPartnerIds =
+      requestedLinkedInstanceId === undefined
+        ? await engine.ask.selectInstances(
+            seat,
+            eligiblePartners.map((card) => card.instanceId),
+            1,
+            1,
+            "App Fusion: choose the linked card used as fusion material.",
+            { sourceCardId: peek.cardId, timing: "WhenDigivolving", effectText: "App Fusion" },
+          )
+        : [requestedLinkedInstanceId];
     if (selectedPartnerIds.length !== 1) return undefined;
     const selectedPartnerId = selectedPartnerIds[0]!;
     const partnerIndex = permanent.linked.findIndex((card) => card.instanceId === selectedPartnerId);
@@ -1667,36 +1681,83 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Revalidate every mutable identity after the awaited choice. The source may have moved,
     // changed controller/top card, or lost the result card while the decision was open.
     const currentPermanent = access.permanentById(sourcePermanentId);
-    const currentResult = peekLooseInstance(state, resultInstanceId);
+    const currentResult = locateLooseInstance(state, resultInstanceId);
     if (
       currentPermanent !== permanent ||
       permanent.controllerSeat !== seat ||
       permanent.topCard?.instanceId !== originalTopId ||
-      currentResult?.instanceId !== originalResultId
+      currentResult?.card !== peek ||
+      currentResult.ownerSeat !== originalResultLocation.ownerSeat ||
+      currentResult.zone !== originalResultLocation.zone
     )
       return undefined;
     // The selected physical card determines the actual printed route and therefore the cost paid.
     const selectedName = requireCardDefinition(permanent.linked[partnerIndex]!.cardId).nameEn;
-    const selectedCost = appFusionCostFor(peek.cardId, { topName, linkedNames: [selectedName] });
+    const selectedCost = costOverride ?? appFusionCostFor(peek.cardId, { topName, linkedNames: [selectedName] });
     if (selectedCost === undefined || peekLooseInstance(state, resultInstanceId) === undefined) return undefined;
-    if (engine.memory.maxCostFor(seat) < selectedCost) return undefined;
-    if (selectedCost > 0) engine.memory.pay(seat, selectedCost, "appFusion");
+    if (opts?.publicEntry !== true) await engine.prepareAppFusion?.(seat, permanent, peek, definition);
+    const effectiveCost =
+      costOverride !== undefined
+        ? selectedCost
+        : ((await engine.finalizeEffectDigivolveCost?.(permanent, resultInstanceId, definition, selectedCost)) ??
+          selectedCost);
+    const postAwaitPermanent = access.permanentById(sourcePermanentId);
+    const postAwaitResult = locateLooseInstance(state, resultInstanceId);
+    const postAwaitPartnerIndex =
+      postAwaitPermanent?.linked.findIndex(({ instanceId }) => instanceId === selectedPartnerId) ?? -1;
+    if (
+      postAwaitPermanent !== permanent ||
+      postAwaitPermanent.controllerSeat !== seat ||
+      postAwaitPermanent.topCard?.instanceId !== originalTopId ||
+      postAwaitResult?.card !== peek ||
+      postAwaitResult.ownerSeat !== originalResultLocation.ownerSeat ||
+      postAwaitResult.zone !== originalResultLocation.zone ||
+      postAwaitPartnerIndex < 0
+    )
+      return undefined;
+    if (engine.memory.maxCostFor(seat) < effectiveCost) return undefined;
+    if (opts?.publicEntry !== true) await engine.fireWouldDigivolve?.(seat, permanent, definition);
+    const afterWouldPermanent = access.permanentById(sourcePermanentId);
+    const afterWouldResult = locateLooseInstance(state, resultInstanceId);
+    const afterWouldPartnerIndex =
+      afterWouldPermanent?.linked.findIndex(({ instanceId }) => instanceId === selectedPartnerId) ?? -1;
+    if (
+      afterWouldPermanent !== permanent ||
+      afterWouldPermanent.controllerSeat !== seat ||
+      afterWouldPermanent.topCard?.instanceId !== originalTopId ||
+      afterWouldResult?.card !== peek ||
+      afterWouldResult.ownerSeat !== originalResultLocation.ownerSeat ||
+      afterWouldResult.zone !== originalResultLocation.zone ||
+      afterWouldPartnerIndex < 0
+    )
+      return undefined;
+    if (engine.memory.maxCostFor(seat) < effectiveCost) return undefined;
+    if (effectiveCost > 0) engine.memory.pay(seat, effectiveCost, "appFusion");
     const instance = removeLooseInstance(state, resultInstanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
-    const partner = permanent.linked.splice(partnerIndex, 1)[0];
+    const previousLevel = requireCardDefinition(priorTop.cardId).level;
+    const partner = permanent.linked.splice(afterWouldPartnerIndex, 1)[0];
     pushOnStack(permanent, priorTop);
     if (partner !== undefined) pushOnStack(permanent, partner);
     setTopCard(permanent, instance);
+    permanent.enteredByEffect = opts?.publicEntry !== true;
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
     ledger.recomputeDP(state, permanent.permanentId);
     permanent.isSuspended = carriedSuspended;
-    engine.emit({ kind: "cardPlayed", seat, cardId: instance.cardId, permanentId: permanent.permanentId });
+    engine.emit({
+      kind: "digivolved",
+      seat,
+      cardId: instance.cardId,
+      permanentId: permanent.permanentId,
+      mechanic: "appFusion",
+      inBreeding: false,
+    });
     engine.emit({ kind: "cardsMoved", instanceIds: [instance.instanceId], from: "various", to: Zone.BattleArea });
     // CR 8-4-3-3: the app fusion procedure itself draws 1 card — unconditional, part of the
     // placement procedure (mirrors applyDigivolve step 6 / dnaDigivolveInto).
@@ -1710,7 +1771,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // of [When Digivolving] ("triggered ... when the action of digivolving into a card with that
     // effect is complete") together say App Fusion IS "digivolving" for the entering card's own
     // [When Digivolving] window, so it fires here.
-    await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat);
+    if (opts?.publicEntry === true) {
+      await engine.fireWhenDigivolving?.(seat, permanent, previousLevel);
+    } else {
+      await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat);
+    }
     return permanent;
   };
 
@@ -5977,7 +6042,13 @@ function removeLooseInstance(
  * digivolution-stack / linked card — NOT a permanent's top card) WITHOUT removing it.
  * Used to inspect a card's definition (kind/cost) before deciding to play it.
  */
-function peekLooseInstance(state: GameState, instanceId: string): CardInstance | undefined {
+type LooseInstanceLocation = {
+  card: CardInstance;
+  ownerSeat: Seat;
+  zone: "resolvingOption" | "hand" | "security" | "deck" | "trash" | "stack" | "linked";
+};
+
+function locateLooseInstance(state: GameState, instanceId: string): LooseInstanceLocation | undefined {
   for (const owner of state.players) {
     // §9-1-4/9-1-5: an Option resolving its own [Main] effect is held on `resolvingOption`
     // (no zone array) rather than pre-trashed. Its own effect can still relocate it into a
@@ -5985,25 +6056,36 @@ function peekLooseInstance(state: GameState, instanceId: string): CardInstance |
     // an area" clause is exactly this: PlaceInBattleAreaSelf (BT18-100 option permanents),
     // PlayWithoutCost, and self-referencing SecurityManipulation (P-181) all resolve by
     // finding and moving "this card" through these loose-instance helpers.
-    if (owner.resolvingOption?.instanceId === instanceId) return owner.resolvingOption;
-    for (const list of [owner.hand, owner.security, owner.deck, owner.trash]) {
+    if (owner.resolvingOption?.instanceId === instanceId) {
+      return { card: owner.resolvingOption, ownerSeat: owner.seat, zone: "resolvingOption" };
+    }
+    for (const [zone, list] of [
+      ["hand", owner.hand],
+      ["security", owner.security],
+      ["deck", owner.deck],
+      ["trash", owner.trash],
+    ] as const) {
       const found = list.find((c) => c.instanceId === instanceId);
-      if (found) return found;
+      if (found) return { card: found, ownerSeat: owner.seat, zone };
     }
     for (const permanent of owner.battleArea) {
       const inStack = permanent.stack.find((c) => c.instanceId === instanceId);
-      if (inStack) return inStack;
+      if (inStack) return { card: inStack, ownerSeat: owner.seat, zone: "stack" };
       const inLinked = permanent.linked.find((c) => c.instanceId === instanceId);
-      if (inLinked) return inLinked;
+      if (inLinked) return { card: inLinked, ownerSeat: owner.seat, zone: "linked" };
     }
     if (owner.breeding !== undefined) {
       const inStack = owner.breeding.stack.find((c) => c.instanceId === instanceId);
-      if (inStack) return inStack;
+      if (inStack) return { card: inStack, ownerSeat: owner.seat, zone: "stack" };
       const inLinked = owner.breeding.linked.find((c) => c.instanceId === instanceId);
-      if (inLinked) return inLinked;
+      if (inLinked) return { card: inLinked, ownerSeat: owner.seat, zone: "linked" };
     }
   }
   return undefined;
+}
+
+function peekLooseInstance(state: GameState, instanceId: string): CardInstance | undefined {
+  return locateLooseInstance(state, instanceId)?.card;
 }
 
 /**

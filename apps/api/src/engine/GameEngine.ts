@@ -24,6 +24,7 @@ import {
   baseGrantedDigivolveFor,
   digiXrosRequirementFor,
   assemblyRequirementFor,
+  appFusionCostFor,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
@@ -387,6 +388,18 @@ export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledR
     transientCandidates: pool.flatMap((entry) => entry.transientCandidates),
   };
 }
+
+type AppFusionValidation =
+  | { ok: false; reason: RejectReason }
+  | {
+      ok: true;
+      source: Permanent;
+      result: CardInstance;
+      resultDefinition: CardDefinition;
+      linked: CardInstance;
+      printedCost: number;
+      projectedCost: number;
+    };
 
 export class GameEngine {
   private readonly memory: MemoryGauge;
@@ -995,6 +1008,21 @@ export class GameEngine {
       reactivateOnPlay: (permanentId, opts) => this.reactivateOnPlay(permanentId, opts),
       fireEnteredByEffect: (timing, instanceId, ownerSeat, opts) =>
         this.fireEnteredByEffectTiming(timing, instanceId, ownerSeat, opts),
+      fireWhenDigivolving: (seat, permanent, previousLevel) =>
+        this.digivolveDeps().fireWhenDigivolving!(this.state, seat, permanent, previousLevel),
+      prepareAppFusion: async (seat, target, result, into) => {
+        const deps = this.digivolveDeps();
+        await deps.prepareDigivolveCost?.(this.state, seat, target, result, into);
+      },
+      appFusionTargetAllowed: (seat, target, result) => {
+        const deps = this.digivolveDeps();
+        return (
+          deps.digivolveBaseRestricted?.(this.state, target, result) !== true &&
+          deps.digivolveIntoAllowed?.(this.state, target, result) !== false
+        );
+      },
+      fireWouldDigivolve: (seat, target, into) =>
+        this.digivolveDeps().fireWouldDigivolve!(this.state, seat, target, into),
       consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
         this.consultLeavePrevention(ids, cause, resolvingSeat, opts),
       consultDigivolutionTrashRedirect: (ids) => this.consultDigivolutionTrashRedirect(ids),
@@ -1271,7 +1299,24 @@ export class GameEngine {
       if (check.ok) return true;
     }
 
-    // 3. Digivolve a hand Digimon onto a battle-area or breeding permanent
+    // 3. App Fusion from hand using an explicitly linked physical material.
+    for (const card of player.hand) {
+      const def = lookupDefinition(card.cardId);
+      if (!def?.kinds.includes(CardKind.Digimon)) continue;
+      for (const perm of player.battleArea) {
+        for (const linked of perm.linked) {
+          const check = this.validateAppFusion(seat, {
+            type: "appFusion",
+            permanentId: perm.permanentId,
+            instanceId: card.instanceId,
+            linkedInstanceId: linked.instanceId,
+          });
+          if (check.ok) return true;
+        }
+      }
+    }
+
+    // 4. Digivolve a hand Digimon onto a battle-area or breeding permanent
     const digiDeps = this.digivolveDeps();
     for (const card of player.hand) {
       const def = lookupDefinition(card.cardId);
@@ -5793,15 +5838,25 @@ export class GameEngine {
       this.activeWindowToken !== undefined || this.effectResolutionDepth > 0 || this.optionResolutionDepth > 0;
     if (
       mainActionWhileResolving &&
-      ["playCard", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve", "endPhase"].includes(
-        intent.type,
-      )
+      [
+        "playCard",
+        "appFusion",
+        "digivolve",
+        "attack",
+        "activateEffect",
+        "linkCard",
+        "dnaDigivolve",
+        "endPhase",
+      ].includes(intent.type)
     ) {
       return { ok: false, reason: "wrong-phase" };
     }
     switch (intent.type) {
       case "playCard":
         return this.handlePlayCard(seat, intent);
+
+      case "appFusion":
+        return this.handleAppFusion(seat, intent);
 
       case "digivolve":
         return this.handleDigivolve(seat, intent);
@@ -6487,6 +6542,100 @@ export class GameEngine {
    * to clients as Colyseus deltas and any prompt arrives on the decision channel,
    * matching the API-CONTRACT "Digivolve" flow.
    */
+  private validateAppFusion(seat: Seat, intent: Extract<Intent, { type: "appFusion" }>): AppFusionValidation {
+    if (this.state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
+    if (this.state.phase !== Phase.Main) return { ok: false, reason: "wrong-phase" };
+    const player = this.state.players[seat];
+    const source = player?.battleArea.find(({ permanentId }) => permanentId === intent.permanentId);
+    const result = player?.hand.find(({ instanceId }) => instanceId === intent.instanceId);
+    if (source === undefined || source.topCard === undefined || result === undefined) {
+      return { ok: false, reason: "illegal-target" };
+    }
+    const linked = source.linked.find(({ instanceId }) => instanceId === intent.linkedInstanceId);
+    if (linked === undefined) return { ok: false, reason: "illegal-target" };
+    const topName = lookupDefinition(source.topCard.cardId)?.nameEn;
+    const linkedName = lookupDefinition(linked.cardId)?.nameEn;
+    const resultDefinition = lookupDefinition(result.cardId);
+    const deps = this.digivolveDeps();
+    // App Fusion uses the same resulting stack transition as ordinary digivolution;
+    // active base restrictions therefore apply before any cost or zone mutation.
+    if (deps.digivolveBaseRestricted?.(this.state, source, result) === true) {
+      return { ok: false, reason: "illegal-target" };
+    }
+    if (deps.digivolveIntoAllowed?.(this.state, source, result) === false) {
+      return { ok: false, reason: "illegal-target" };
+    }
+    const printedCost =
+      topName === undefined || linkedName === undefined || resultDefinition === undefined
+        ? undefined
+        : appFusionCostFor(result.cardId, { topName, linkedNames: [linkedName] });
+    if (printedCost === undefined || resultDefinition === undefined) return { ok: false, reason: "illegal-target" };
+    const passiveCost =
+      deps.adjustedDigivolveCost?.(this.state, source, printedCost, resultDefinition, { consumeOnce: false }) ??
+      printedCost;
+    const potentialReduction =
+      deps.potentialInteractiveDigivolveReduction?.(this.state, seat, source, resultDefinition) ?? 0;
+    const projectedCost = Math.max(0, passiveCost - potentialReduction);
+    if (deps.maxAffordable(this.state, seat) < projectedCost) return { ok: false, reason: "insufficient-memory" };
+    return { ok: true, source, result, resultDefinition, linked, printedCost, projectedCost };
+  }
+
+  private handleAppFusion(seat: Seat, intent: Extract<Intent, { type: "appFusion" }>): IntentResult {
+    const check = this.validateAppFusion(seat, intent);
+    if (!check.ok) return check;
+    const { source, result, resultDefinition, printedCost } = check;
+    const originalTopInstanceId = source.topCard!.instanceId;
+    const originalLinkedInstanceId = intent.linkedInstanceId;
+    const samePublicAppFusionSnapshot = (): boolean => {
+      const currentSource = this.state.players[seat]?.battleArea.find(
+        ({ permanentId }) => permanentId === intent.permanentId,
+      );
+      const currentResult = this.state.players[seat]?.hand.find(({ instanceId }) => instanceId === intent.instanceId);
+      return (
+        currentSource === source &&
+        currentSource?.controllerSeat === seat &&
+        currentSource.topCard?.instanceId === originalTopInstanceId &&
+        currentSource.linked.some(({ instanceId }) => instanceId === originalLinkedInstanceId) &&
+        currentResult === result
+      );
+    };
+    const deps = this.digivolveDeps();
+
+    this.continueMainVerb(
+      async () => {
+        await deps.prepareDigivolveCost?.(this.state, seat, source, result, resultDefinition);
+        if (!samePublicAppFusionSnapshot()) return undefined;
+        const adjusted =
+          deps.adjustedDigivolveCost?.(this.state, source, printedCost, resultDefinition, { consumeOnce: true }) ??
+          printedCost;
+        const interactiveReduction =
+          (await deps.activateInteractiveDigivolveReduction?.(
+            this.state,
+            seat,
+            source,
+            resultDefinition,
+            result.instanceId,
+          )) ?? 0;
+        if (!samePublicAppFusionSnapshot()) return undefined;
+        const finalCost = Math.max(0, adjusted - interactiveReduction);
+        if (deps.maxAffordable(this.state, seat) < finalCost) return undefined;
+        await deps.fireWouldDigivolve?.(this.state, seat, source, resultDefinition);
+        if (!samePublicAppFusionSnapshot()) return undefined;
+        return this.primitives.appFuseInto(intent.permanentId, intent.instanceId, intent.linkedInstanceId, finalCost, {
+          publicEntry: true,
+        });
+      },
+      () => {},
+      (err) =>
+        this.hooks.emit({
+          kind: "actionRejected",
+          intent: "appFusion",
+          reason: err instanceof Error ? err.message : "app-fusion-apply-error",
+        }),
+    );
+    return { ok: true };
+  }
+
   private handleDigivolve(seat: Seat, intent: DigivolveIntent): IntentResult {
     const deps = this.digivolveDeps();
     const check = validateDigivolve(this.state, seat, intent, deps);

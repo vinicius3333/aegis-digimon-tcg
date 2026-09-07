@@ -11,6 +11,7 @@ export type Intent =
 
   // --- Main-phase verbs ---
   | { type: "playCard"; instanceId: string; targetSlot?: number; digiXros?: DigiXrosPlan; assembly?: AssemblyPlan } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
+  | { type: "appFusion"; permanentId: string; instanceId: string; linkedInstanceId: string }
   | {
       type: "digivolve";
       permanentId: string;

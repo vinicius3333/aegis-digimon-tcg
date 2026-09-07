@@ -39,7 +39,15 @@ export interface SecurityBattleResult {
  * - `dna` — DNA digivolve / Jogress (§8-2-2), two permanents merging into one.
  * - `digiXros` — a DigiXros play consuming materials (§7-2-2-7).
  */
-export type DigivolveMechanic = "normal" | "alternate" | "baseGranted" | "burst" | "blast" | "dna" | "digiXros";
+export type DigivolveMechanic =
+  | "normal"
+  | "alternate"
+  | "baseGranted"
+  | "burst"
+  | "blast"
+  | "dna"
+  | "digiXros"
+  | "appFusion";
 
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }

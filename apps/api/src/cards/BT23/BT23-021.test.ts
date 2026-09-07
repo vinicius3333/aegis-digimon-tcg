@@ -5,6 +5,8 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-021.js";
+import "../EX3/EX3-016.js";
+import "../EX3/EX3-019.js";
 
 describe("BT23-021 Dosukomon", () => {
   it("shares one Once Per Turn link effect across digivolving and attacking", () => {
@@ -356,8 +358,13 @@ describe("BT23-021 Dosukomon", () => {
         ],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      1: {
+        battleArea: [{ card: "EX3-019", as: "opponent", under: [{ card: "EX3-016" }] }],
+        security: 10,
+        deck: ["BT1-009"],
+      },
     });
+    await s.ready();
     const oldTopId = s.perm("host").topCard!.instanceId;
     s.state.memory = 5;
     expect(
@@ -397,6 +404,14 @@ describe("BT23-021 Dosukomon", () => {
     await settle(() => s.perm("host").topCard?.cardId === "BT23-021", 1000);
     const bonus = s.state.players[0]!.hand.find((card) => card.cardId === "BT1-009");
     expect(s.perm("host").topCard?.cardId).toBe("BT23-021");
+    expect(s.perm("host").enteredByEffect).toBe(true);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: "BT23-021" }),
+    );
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+    // The link declaration costs one memory and the opponent's SnowAgumon tax adds one
+    // to the printed-zero App Fusion, so the five-memory fixture settles at three.
+    expect(s.state.memory).toBe(3);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId, s.inst("partner").instanceId]);
     expect(bonus).toBeDefined();

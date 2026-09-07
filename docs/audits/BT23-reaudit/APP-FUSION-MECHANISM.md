@@ -1,0 +1,15 @@
+# App Fusion backend evidence
+
+The printed App Fusion procedure was only reachable through card effects and did not consistently apply ordinary digivolution costs or distinguish normal entry from effect-driven entry. CR 8-4-1/8-4-2-3/8-4-3 require a player declaration, exact linked material consumption, normal cost interactions and an evolution draw.
+
+The public `appFusion` intent identifies the host, result hand instance and selected linked instance. Main-action availability uses the same validator as declaration. The backend checks turn, phase, hand/battle-area membership, material recipe, restrictions and projected affordability. It resolves before-cost, cost-modifier and would-digivolve windows before paying. The shared primitive preserves the selected physical source, original loose result location and controller across awaited decisions. It places old top and selected link into sources, retains other links, draws once, and emits a digivolved event with App Fusion provenance. Normal entries use normal evolution watchers; Eri's effect route retains effect provenance and effect watchers.
+
+Focused tests in `apps/api/src/engine/appFusion.test.ts` cover 17 cases: exact physical material/source/draw, two eligible links, wrong source/result zones and seats, costs from EX3-016, unaffordability and zero-cost boundaries, Takumi evolution draw, Reapermon normal/effect distinction, and stale link/result mutations during a real DecisionManager prompt. Mutation setup uses an explicitly synthetic cost-reducer listener; the effect-path negative awaits the complete primitive result and preserves the moved result in trash. Existing Eri and Appmon card suites provide public effect-entry coverage.
+
+Coordinator validation:
+
+- `pnpm typecheck`: shared, API and web passed (`logs/typecheck-appfusion-marine-poseidon.log`).
+- `pnpm --filter @aegis/api exec vitest run src/engine/appFusion.test.ts src/cards/BT23/BT23-021.test.ts src/cards/BT23/BT23-024.test.ts src/cards/BT23/BT23-025.test.ts src/cards/BT23/BT23-079.test.ts src/cards/EX3/EX3-016.test.ts src/engine/effects/delayedDeletePlayed.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/conformance/ch08-digivolution.test.ts src/engine/linkState.test.ts src/engine/superlativeTarget.test.ts src/engine/actions/digivolve.test.ts src/engine/subTriggerSeams.test.ts --maxWorkers=1 --no-file-parallelism`: 14 files / 530 tests passed, 3.72s (`logs/appfusion-marine-poseidon-integration.log`). This working-tree integration includes the separately delivered MarineAngemon and Poseidomon fixes.
+- Applicable Oxfmt and git diff validation passed. Oxlint reports existing protocol underscore/test-branch warnings; no blanket suppression was added.
+
+Remaining delivery: server hand-route projection, transport/client selection and tap/drag integration, keyboard/locale/browser proof, and final collection gates. The standalone overlay is still unintegrated. This backend checkpoint does not give App Fusion cards final 10/10 acceptance.

@@ -787,7 +787,13 @@ export interface Primitives {
    * card being one of them). Returns the fused permanent, or undefined when the source/result
    * is missing, the fusion is illegal, or the app-fusion cost is unaffordable.
    */
-  appFuseInto(sourcePermanentId: string, resultInstanceId: string): Promise<Permanent | undefined>;
+  appFuseInto(
+    sourcePermanentId: string,
+    resultInstanceId: string,
+    requestedLinkedInstanceId?: string,
+    costOverride?: number,
+    opts?: { publicEntry?: boolean },
+  ): Promise<Permanent | undefined>;
   /**
    * De-Digivolve `n`: for a target permanent, up to `n` times move the current top
    * card to the BOTTOM of its owner's deck and promote the card directly beneath it
