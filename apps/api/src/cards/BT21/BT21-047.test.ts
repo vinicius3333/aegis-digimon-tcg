@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-047.js";
 import "../index.js";
@@ -82,10 +83,10 @@ describe("BT21-047 compiled implementation", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  it("zero-cost digivolves from a level-2 Appmon", async () => {
+  it("zero-cost digivolves from a level-2 Appmon egg in the breeding area", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
+        breeding: { card: "BT21-005", as: "appmonEgg" },
         hand: [{ card: "BT21-047", as: "navimon" }],
       },
     });
@@ -147,7 +148,7 @@ describe("BT21-047 compiled implementation", () => {
           hand: [{ card: "BT21-047", as: "navimon" }],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
@@ -175,7 +176,8 @@ describe("BT21-047 compiled implementation", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
