@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,21 @@ import { compiled as BT24_039 } from "./BT24-039.js";
 import "../index.js";
 
 describe("BT24-039 Piximon", () => {
+  it("matches the catalog identity and printed evolution", () => {
+    expect(getCardDefinition("BT24-039")).toMatchObject({
+      cardId: "BT24-039",
+      nameEn: "Piximon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 6000,
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Fairy", "Iliad", "TS"],
+    });
+  });
+
   it("plays from security without battle only against an opposing level 6+ Digimon", () => {
     const security = BT24_039.effects?.find((entry) => entry.trigger === "Security");
     expect(security?.actions?.[0]).toMatchObject({
@@ -36,6 +51,33 @@ describe("BT24-039 Piximon", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("piximon").instanceId);
+  });
+
+  it("plays from security through a public attack into security", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-039", as: "piximon" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "attacker" },
+          { card: "BT24-030", as: "level6", suspended: true },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 0 &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("piximon").instanceId),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(s.inst("piximon").instanceId);
+    expect(s.perm("attacker").isSuspended).toBe(true);
   });
 
   it("does not play from security when the opponent has only level 5 Digimon", async () => {
