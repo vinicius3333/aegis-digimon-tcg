@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
             raw: "you have a Digimon or Tamer with the [CS] trait",
           },
           cost: { kind: "payMemory", memory: 5, raw: "by paying 5 cost" },
-          optional: true,
+          optional: false,
           abortOnDecline: true,
           actions: [
             {
@@ -61,14 +61,22 @@ const compiled: CompiledCard = {
     {
       trigger: "Security",
       isSecurity: true,
+      timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          from: ["security"],
-          payCost: false,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              from: ["trash"],
+              payCost: false,
+            },
+            { kind: "DelayedDeletePlayed", timing: "endOfCurrentTurn" },
+          ],
         },
-        { kind: "DelayedDeletePlayed" },
       ],
     },
   ],
