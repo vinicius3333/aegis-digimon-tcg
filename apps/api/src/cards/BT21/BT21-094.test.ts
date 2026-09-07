@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import {
   makeInstance as instance,
@@ -64,11 +65,12 @@ describe("BT21-094 [Main] reveal-and-add", () => {
       {
         0: {
           battleArea: [{ card: "BT21-035", as: "armor", under: ["BT21-032"] }],
+          security: ["BT1-001", "BT1-002"],
           hand: [
             { card: "BT21-094", as: "option" },
             { card: "BT1-009", as: "nonArmor" },
           ],
-          deck: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-014", "BT1-015", "BT1-016"],
         },
         1: {
           battleArea: [{ card: "BT10-055", as: "stronger", suspended: true }],
@@ -85,6 +87,28 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094"));
 
+    // Age the Option through a real opponent turn so the negative proves that an
+    // ineligible destination fails after Delay is actually allowed to activate.
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("stronger").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
     // A public Armor Purge battle trashes the Armor Form top card and arms Delay.
     expect(
       s.engine.applyIntent(0, {
@@ -99,6 +123,8 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonArmor").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-032")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });
 
