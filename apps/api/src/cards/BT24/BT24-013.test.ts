@@ -208,4 +208,36 @@ describe("BT24-013 Fugamon", () => {
 
     expect(s.state.memory).toBe(3);
   });
+
+  it("checks hand size separately when two Fugamon are trashed by one public effect (Q5583)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-042", as: "purpleSource" }],
+          hand: [
+            { card: "BT24-098", as: "option" },
+            { card: "BT24-013", as: "firstFugamon" },
+            { card: "BT24-013", as: "secondFugamon" },
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+          ],
+          deck: [
+            { card: "BT1-012", as: "drawOne" },
+            { card: "BT1-014", as: "drawTwo" },
+            { card: "BT1-015", as: "activationDraw" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT24-013").length === 2);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT24-013")).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawOne").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawTwo").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("activationDraw").instanceId);
+  });
 });
