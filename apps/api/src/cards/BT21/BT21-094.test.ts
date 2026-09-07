@@ -157,7 +157,7 @@ describe("BT21-094 Delay watcher", () => {
   it("Security activates the full Main reveal and places the option", async () => {
     const s = setup(
       {
-        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        0: { battleArea: [{ card: "BT21-032", as: "attacker" }] },
         1: {
           security: [{ card: "BT21-094", as: "option" }],
           deck: [
@@ -179,7 +179,14 @@ describe("BT21-094 Delay watcher", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094"));
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094") &&
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("davis").instanceId, s.inst("free").instanceId]),
