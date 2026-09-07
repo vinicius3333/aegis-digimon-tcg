@@ -4,7 +4,7 @@ Baseline: a924de971e0b43ad9ebd8f82a454d495ff880a60. Current status: INCOMPLETE. 
 
 Scoring: catalog/rules, IR trace, behavioral proof, peer/stack proof, delivery gates, each 0–2. Unreviewed rows carry zero current evidence credit. Reports live in BT23-reaudit/CARD-ID.md.
 
-Current aggregate: 189/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
+Current aggregate: 197/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
 
 | Card     | Name                               | Catalog |  IR | Behavior | Peer/stack | Gates | Score | Status / evidence                                                                                                  |
 | -------- | ---------------------------------- | ------: | --: | -------: | ---------: | ----: | ----: | ------------------------------------------------------------------------------------------------------------------ |
@@ -31,7 +31,7 @@ Current aggregate: 189/1020; 0/102 cards independently accepted at 10/10. All 10
 | BT23-021 | Dosukomon                          |       2 |   2 |        1 |          2 |     0 |  7/10 | Combat/frequency reviewed; normal App Fusion and modifier support pending                                          |
 | BT23-022 | Oujamon                            |       2 |   2 |        1 |          2 |     0 |  7/10 | Raid/link reviewed; normal App Fusion and unsuspend frequency pending                                              |
 | BT23-023 | Whamon                             |       2 |   2 |        1 |          2 |     0 |  7/10 | Public deletion/Decoy frequency reviewed; refusal and OR boundaries pending                                        |
-| BT23-024 | Poseidomon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; public combat/link/duration proofs awaiting integration                                                 |
+| BT23-024 | Poseidomon                         |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; no-play-cost exception fixed; final gates pending; [evidence](BT23-reaudit/BT23-024.md)                  |
 | BT23-025 | MarineAngemon                      |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; Security battle/current-turn timing corrected; final gates pending; [evidence](BT23-reaudit/BT23-025.md) |
 | BT23-026 | Lopmon                             |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; public clause proofs being strengthened                                                                 |
 | BT23-027 | Angemon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | In progress; Luna A audits public DNA and Barrier clauses                                                          |

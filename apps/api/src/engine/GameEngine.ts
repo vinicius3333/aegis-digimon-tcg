@@ -3322,7 +3322,9 @@ export class GameEngine {
     for (const p of pool) {
       if (p.topCard === undefined) continue;
       const cost = lookupDefinition(p.topCard.cardId)?.playCost;
-      if (cost === undefined) continue;
+      // Negative play costs are sentinels for tokens / cards with no printed play cost;
+      // they must not become the highest-cost exemption when every candidate is uncosted.
+      if (cost === undefined || cost < 0) continue;
       costs.set(p.permanentId, cost);
       if (cost > best) best = cost;
     }
