@@ -9,27 +9,15 @@
         "cardId": "BT25-001",
         "set": "BT25",
         "nameEn": "Tokomon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "DigiEgg"
-        ],
+        "colors": ["Red"],
+        "kinds": ["DigiEgg"],
         "level": 2,
         "playCost": -1,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "In-Training"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Lesser",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["In-Training"],
+        "attributes": ["-"],
+        "types": ["Lesser", "Iliad", "TS"],
         "inheritedEffectText": "[When Attacking] [Once Per Turn] If this Digimon has the [TS] trait, ＜Draw 1＞",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -104,26 +92,15 @@
         "cardId": "BT25-002",
         "set": "BT25",
         "nameEn": "Wanyamon",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "DigiEgg"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["DigiEgg"],
         "level": 2,
         "playCost": -1,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "In-Training"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Lesser",
-          "DATA SQUAD"
-        ],
+        "forms": ["In-Training"],
+        "attributes": ["-"],
+        "types": ["Lesser", "DATA SQUAD"],
         "inheritedEffectText": "[Your Turn] [Once Per Turn] When any of your [DATA SQUAD] trait Tamers are played, both players ＜Draw 1＞",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -198,27 +175,15 @@
         "cardId": "BT25-003",
         "set": "BT25",
         "nameEn": "Frimon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "DigiEgg"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["DigiEgg"],
         "level": 2,
         "playCost": -1,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "In-Training"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Lesser",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["In-Training"],
+        "attributes": ["-"],
+        "types": ["Lesser", "Glowing Dawn", "BEATBREAK"],
         "inheritedEffectText": "[When Attacking] [Once Per Turn] By trashing your top security card, this Digimon may digivolve into a [Glowing Dawn] trait card in the hand with the cost reduced by 1.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -293,25 +258,15 @@
         "cardId": "BT25-004",
         "set": "BT25",
         "nameEn": "Tapmon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "DigiEgg"
-        ],
+        "colors": ["Green"],
+        "kinds": ["DigiEgg"],
         "level": 2,
         "playCost": -1,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "Appmon"
-        ],
-        "attributes": [
-          "Tool"
-        ],
-        "types": [
-          "Tap"
-        ],
+        "forms": ["Appmon"],
+        "attributes": ["Tool"],
+        "types": ["Tap"],
         "inheritedEffectText": "[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -386,27 +341,15 @@
         "cardId": "BT25-005",
         "set": "BT25",
         "nameEn": "Pagumon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "DigiEgg"
-        ],
+        "colors": ["Black"],
+        "kinds": ["DigiEgg"],
         "level": 2,
         "playCost": -1,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "In-Training"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Lesser",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["In-Training"],
+        "attributes": ["-"],
+        "types": ["Lesser", "Iliad", "TS"],
         "inheritedEffectText": "[Your Turn] [Once Per Turn] When [Three Musketeers] trait cards are placed in this Digimon's digivolution cards, it may digivolve into a Digimon card with [Three Musketeers] in its text or the [TS] trait in the hand with the cost reduced by 2.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -481,28 +424,15 @@
         "cardId": "BT25-006",
         "set": "BT25",
         "nameEn": "Dorimon",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "DigiEgg"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["DigiEgg"],
         "level": 2,
         "playCost": -1,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "In-Training"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Lesser",
-          "X Antibody",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["In-Training"],
+        "attributes": ["-"],
+        "types": ["Lesser", "X Antibody", "Titan", "TS"],
         "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, by trashing 1 card in your hand, 1 of your [Titan] trait Digimon unsuspends.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -577,12 +507,8 @@
         "cardId": "BT25-007",
         "set": "BT25",
         "nameEn": "Gatchmon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -593,16 +519,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Stnd.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Social"
-        ],
-        "types": [
-          "Search"
-        ],
+        "forms": ["Stnd.", "Appmon"],
+        "attributes": ["Social"],
+        "types": ["Search"],
         "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Appmon] trait card and 1 [Social], [Tool], [Reboot] or [Creation] trait card among them to the hand. Return the rest to the bottom of the deck.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -680,12 +599,8 @@
         "cardId": "BT25-008",
         "set": "BT25",
         "nameEn": "Coronamon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 1000,
@@ -701,17 +616,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Vaccine"],
+        "types": ["Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[When Moving] [On Play] By trashing up to 2 [Iliad] or [TS] trait cards from your hand, ＜Draw 1＞ for each card trashed.",
         "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
         "rarity": "U",
@@ -787,12 +694,8 @@
         "cardId": "BT25-009",
         "set": "BT25",
         "nameEn": "Bearmon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 1000,
@@ -808,17 +711,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Vaccine"],
+        "types": ["Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a Digimon card with [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits or the [TS] trait in the hand without paying the cost.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "U",
@@ -894,13 +789,8 @@
         "cardId": "BT25-010",
         "set": "BT25",
         "nameEn": "Hawkmon",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -916,17 +806,9 @@
             "memoryCost": 1
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Free"
-        ],
-        "types": [
-          "Avian",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Free"],
+        "types": ["Avian", "Iliad", "TS"],
         "effectText": "[Digivolve] [Poromon]/Lv.2 w/[TS] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with [Avian], [Bird], [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits, reduce the cost by 1.",
         "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
         "rarity": "C",
@@ -1002,13 +884,8 @@
         "cardId": "BT25-011",
         "set": "BT25",
         "nameEn": "Aquilamon",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 4000,
@@ -1024,17 +901,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Free"
-        ],
-        "types": [
-          "Giant Bird",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Free"],
+        "types": ["Giant Bird", "Iliad", "TS"],
         "effectText": "[Digivolve] [Hawkmon]/Lv.3 w/[TS] trait: Cost 2 \n\n＜Raid＞ \n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Silphymon] in the hand.",
         "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
         "rarity": "C",
@@ -1110,13 +979,8 @@
         "cardId": "BT25-012",
         "set": "BT25",
         "nameEn": "Grizzlymon",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 6000,
@@ -1132,17 +996,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Vaccine"],
+        "types": ["Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your Digimon with [Beast], [Animal] or [Sovereign], other than [Sea Animal], in any of its traits or the [Shaman] or [TS] trait gains ＜Raid＞ and +3000 DP for the turn.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -1218,12 +1074,8 @@
         "cardId": "BT25-013",
         "set": "BT25",
         "nameEn": "Firamon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 5000,
@@ -1239,17 +1091,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Vaccine"],
+        "types": ["Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] By trashing 1 card in your hand, you may return 1 red or blue [Iliad] trait Digimon card from your trash to the hand.\n[Your Turn] When your Digimon are played or digivolve, if any of them are blue, this Digimon may digivolve into [Flaremon] in the hand with the cost reduced by 1.",
         "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
         "rarity": "C",
@@ -1325,12 +1169,8 @@
         "cardId": "BT25-014",
         "set": "BT25",
         "nameEn": "Meramon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 5000,
@@ -1341,17 +1181,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Flame",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Flame", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[Flame]/[TS] trait: Cost 2 \n\n[Main] [Once Per Turn] By trashing 1 [Flame] or [TS] trait card from your hand, delete 1 of your opponent's Digimon with 4000 DP or less. If this effect didn't delete, ＜Draw 2＞",
         "inheritedEffectText": "[When Attacking] Delete 1 of your opponent's Digimon with 4000 DP or less.",
         "rarity": "C",
@@ -1427,13 +1259,8 @@
         "cardId": "BT25-015",
         "set": "BT25",
         "nameEn": "Garudamon",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -1449,17 +1276,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Birdkin",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Birdkin", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[Giant Bird]/[TS] trait: Cost 3 \n\n＜Raid＞ \n＜Fortitude＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 6000 DP or less.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
         "rarity": "U",
@@ -1535,13 +1354,8 @@
         "cardId": "BT25-016",
         "set": "BT25",
         "nameEn": "GrapLeomon",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -1557,17 +1371,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beastkin",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Beastkin", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP for the turn. Then, 1 of your Digimon may attack.\n[All Turns] When a Digimon with 13000 DP or more attacks, this Digimon may digivolve into [Marsmon] or [Callismon] in the hand without paying the cost.",
         "inheritedEffectText": "＜Security A. +1＞",
         "rarity": "R",
@@ -1643,12 +1449,8 @@
         "cardId": "BT25-017",
         "set": "BT25",
         "nameEn": "Flaremon",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 6,
         "dp": 7000,
@@ -1664,17 +1466,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beastkin",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Beastkin", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] This Digimon may attack. Then, by trashing 1 card in your hand, delete 1 of your opponent's Digimon with 7000 DP or less.\n[Your Turn] When your Digimon are played or digivolve, if any of them are blue, this Digimon may digivolve into [Apollomon] in the hand with the cost reduced by 2.",
         "inheritedEffectText": "＜Security A. +1＞",
         "rarity": "R",
@@ -1750,13 +1544,8 @@
         "cardId": "BT25-018",
         "set": "BT25",
         "nameEn": "Apollomon",
-        "colors": [
-          "Red",
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Yellow"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -1772,18 +1561,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Vaccine"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 3 \n\nWhen this card would be played, if your opponent has a Digimon with 12000 DP or more, reduce the cost by 5.\n[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon. Then, delete 1 of their Digimon with as much DP as this Digimon or less.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand. Then, 1 of your Digimon may attack.",
         "inheritedEffectText": "[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with as much DP as this Digimon or less.",
         "rarity": "SR",
@@ -1859,13 +1639,8 @@
         "cardId": "BT25-019",
         "set": "BT25",
         "nameEn": "UltimateBrachiomon",
-        "colors": [
-          "Red",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Black"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 13,
         "dp": 13000,
@@ -1881,19 +1656,9 @@
             "memoryCost": 5
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Cyborg",
-          "X Antibody",
-          "Titan",
-          "TS",
-          "Dinosaur"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Data"],
+        "types": ["Cyborg", "X Antibody", "Titan", "TS", "Dinosaur"],
         "effectText": "[Digivolve] Lv.5 w/[Dinosaur]/[TS] trait: Cost 4 \n\n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's highest DP Digimon.\n[End of Your Turn] [Once Per Turn] If your opponent has 5 or more memory, their Digimon effects don't affect this Digimon until their turn ends. Then, if they have 5 or less, their Option effects don't affect this Digimon until their turn ends.\n(Rule) Trait: Has [Dinosaur] Type.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -1968,13 +1733,8 @@
         "cardId": "BT25-020",
         "set": "BT25",
         "nameEn": "Marsmon",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -1990,18 +1750,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Vaccine"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 3 \n\nWhen this card would be played, if there is a Digimon with 13000 DP or more, reduce the cost by 5.\n[On Play] [When Digivolving] [When Attacking] 1 of your Digimon gets +3000 DP for the turn. Then, 1 of your Digimon may battle 1 of your opponent's Digimon.\n[All Turns] [Once Per Turn] When any of your [TS] trait Digimon win a battle, trash your opponent's top security card.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -2076,12 +1827,8 @@
         "cardId": "BT25-021",
         "set": "BT25",
         "nameEn": "Gaomon",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -2092,16 +1839,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Beast",
-          "DATA SQUAD"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Beast", "DATA SQUAD"],
         "effectText": "[Digivolve] [Wanyamon]/Lv.2 w/[DATA SQUAD] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Thomas H. Norstein] or card with the [DATA SQUAD] trait and 1 card with [Gaogamon] in its name among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "[When Attacking] [Once Per Turn] Both players ＜Draw 1＞",
         "rarity": "C",
@@ -2177,12 +1917,8 @@
         "cardId": "BT25-022",
         "set": "BT25",
         "nameEn": "Lunamon",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -2198,17 +1934,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Mammal",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Mammal", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Iliad] trait card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "＜Jamming＞",
         "rarity": "U",
@@ -2284,12 +2012,8 @@
         "cardId": "BT25-023",
         "set": "BT25",
         "nameEn": "Gaogamon",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 6000,
@@ -2300,16 +2024,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Beast",
-          "DATA SQUAD"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Beast", "DATA SQUAD"],
         "effectText": "[Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2 \n\n[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Thomas H. Norstein] from your hand without paying the cost.",
         "inheritedEffectText": "[When Attacking] [Once Per Turn] Both players ＜Draw 1＞",
         "rarity": "C",
@@ -2385,12 +2102,8 @@
         "cardId": "BT25-024",
         "set": "BT25",
         "nameEn": "Lekismon",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 5000,
@@ -2406,17 +2119,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Beastkin",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Beastkin", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] ＜Draw 1＞ \n[Your Turn] When your Digimon are played or digivolve, if any of them are red, this Digimon may digivolve into [Crescemon] in the trash with the cost reduced by 1.",
         "inheritedEffectText": "＜Jamming＞",
         "rarity": "C",
@@ -2492,13 +2197,8 @@
         "cardId": "BT25-025",
         "set": "BT25",
         "nameEn": "Aegiochusmon: Blue",
-        "colors": [
-          "Blue",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue", "Black"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 8,
         "dp": 8000,
@@ -2514,18 +2214,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Shaman",
-          "Iliad",
-          "TS",
-          "Cyborg"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Shaman", "Iliad", "TS", "Cyborg"],
         "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Blocker＞ \n＜Decode ([Aegiomon])＞ \n[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of your Digimon unsuspends.\n(Rule) Trait: Has [Cyborg] Type.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your [Shaman] trait Digimon may unsuspend.",
         "rarity": "R",
@@ -2601,12 +2292,8 @@
         "cardId": "BT25-026",
         "set": "BT25",
         "nameEn": "Crescemon",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 6,
         "dp": 7000,
@@ -2622,17 +2309,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Wizard",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Data"],
+        "types": ["Wizard", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] Trash the bottom 3 digivolution cards of 1 of your opponent's Digimon. Then, 1 of their Digimon with no digivolution cards can't suspend until their turn ends.\n[Your Turn] When your Digimon are played or digivolve, if any of them are red, this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2.",
         "inheritedEffectText": "[Your Turn] This Digimon's attack target can't change.",
         "rarity": "R",
@@ -2708,13 +2387,8 @@
         "cardId": "BT25-027",
         "set": "BT25",
         "nameEn": "MachGaogamon",
-        "colors": [
-          "Blue",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue", "Black"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -2725,16 +2399,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Cyborg",
-          "DATA SQUAD"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Data"],
+        "types": ["Cyborg", "DATA SQUAD"],
         "effectText": "[Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3 \n\n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 4 or lower Digimon to the hand. Then, by trashing the bottom face-down card from under any of your Tamers, this Digimon unsuspends.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon with [Gaogamon] in its name or the [DATA SQUAD] trait would leave the battle area, by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.",
         "rarity": "U",
@@ -2810,13 +2477,8 @@
         "cardId": "BT25-028",
         "set": "BT25",
         "nameEn": "Dianamon",
-        "colors": [
-          "Blue",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue", "Purple"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -2832,18 +2494,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Data"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 3 \n\nWhen this card would be played, if your opponent has a level 6 or higher Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] None of your opponent's Digimon with 1 or fewer digivolution cards can suspend until their turn ends. Then, delete 1 of your opponent's unsuspended Digimon.\n[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may trash any 4 digivolution cards from your opponent's Digimon. Then, 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand.",
         "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
         "rarity": "SR",
@@ -2919,13 +2572,8 @@
         "cardId": "BT25-029",
         "set": "BT25",
         "nameEn": "MirageGaogamon",
-        "colors": [
-          "Blue",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Blue", "Black"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -2941,16 +2589,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Beast Knight",
-          "DATA SQUAD"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Data"],
+        "types": ["Beast Knight", "DATA SQUAD"],
         "effectText": "[Digivolve] Lv.5 w/[Gaogamon] in name or w/[DATA SQUAD] trait: Cost 3 \n\n＜Reboot＞ \n＜Blocker＞ \n＜Evade＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand. Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.\n[All Turns] [Once Per Turn] When effects add cards to your opponent's hand or trash cards from under your Tamers, this Digimon may unsuspend.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -3025,12 +2666,8 @@
         "cardId": "BT25-030",
         "set": "BT25",
         "nameEn": "Elecmon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -3041,17 +2678,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Mammal",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Mammal", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] By adding your top security card to the hand, gain 1 memory.",
         "inheritedEffectText": "[When Attacking] [Once Per Turn] You may add your top security card to the hand. Then, if you have 0 security cards, ＜Recovery +1＞",
         "rarity": "C",
@@ -3127,12 +2756,8 @@
         "cardId": "BT25-031",
         "set": "BT25",
         "nameEn": "Patamon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -3143,18 +2768,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Mammal",
-          "Iliad",
-          "ADAMAS",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Mammal", "Iliad", "ADAMAS", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Angel], [Archangel], [Three Great Angels] or [Four Great Dragons] trait card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "＜Barrier＞",
         "rarity": "U",
@@ -3230,12 +2846,8 @@
         "cardId": "BT25-032",
         "set": "BT25",
         "nameEn": "Liollmon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -3246,17 +2858,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Holy Beast",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Vaccine"],
+        "types": ["Holy Beast", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Glowing Dawn] trait card and 1 yellow [BEATBREAK] trait card among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "＜Barrier＞",
         "rarity": "C",
@@ -3332,12 +2936,8 @@
         "cardId": "BT25-033",
         "set": "BT25",
         "nameEn": "Aegiomon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 5000,
@@ -3348,17 +2948,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Shaman",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Vaccine"],
+        "types": ["Shaman", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Barrier＞ \n[On Play] [When Digivolving] By adding your top security card to the hand, 1 of your opponent's Digimon gets -5000 DP for the turn.",
         "inheritedEffectText": "＜Barrier＞",
         "rarity": "U",
@@ -3434,12 +3026,8 @@
         "cardId": "BT25-034",
         "set": "BT25",
         "nameEn": "Angemon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 5000,
@@ -3450,17 +3038,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Angel",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Vaccine"],
+        "types": ["Angel", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\nWhen effects trash this card from the security stack, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost.\n＜Ascension＞",
         "inheritedEffectText": "＜Barrier＞",
         "rarity": "C",
@@ -3536,12 +3116,8 @@
         "cardId": "BT25-035",
         "set": "BT25",
         "nameEn": "Cougarmon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 6000,
@@ -3552,17 +3128,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Mammal",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Virus"],
+        "types": ["Mammal", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn. Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [Glowing Dawn] trait Digimon card in the hand without paying the cost.",
         "inheritedEffectText": "＜Barrier＞",
         "rarity": "U",
@@ -3638,12 +3206,8 @@
         "cardId": "BT25-036",
         "set": "BT25",
         "nameEn": "Craftmon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 5000,
@@ -3654,16 +3218,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Sup.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Tool"
-        ],
-        "types": [
-          "Design"
-        ],
+        "forms": ["Sup.", "Appmon"],
+        "attributes": ["Tool"],
+        "types": ["Design"],
         "effectText": "[App Fusion] [Kabemon] & [Gomimon] & [Ecomon] & [Puzzlemon]: Cost 0\nIf 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Security] At the end of the battle, play this card without paying the cost.\n[On Play] [When Digivolving] Add your top security card to the hand. Then, ＜Recovery +1＞",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -3741,13 +3298,8 @@
         "cardId": "BT25-037",
         "set": "BT25",
         "nameEn": "Pegasusmon",
-        "colors": [
-          "Yellow",
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow", "Blue"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 6,
         "dp": 6000,
@@ -3763,17 +3315,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Armor Form"
-        ],
-        "attributes": [
-          "Free"
-        ],
-        "types": [
-          "Holy Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Armor Form"],
+        "attributes": ["Free"],
+        "types": ["Holy Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] [Patamon]/Lv.3 w/[TS] trait: Cost 2 \n\n＜Armor Purge＞ \n[On Play] [When Digivolving] Add your top security card to the hand. Then, you may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card or 1 [TS] trait Tamer card from your hand as the top or bottom security card.",
         "rarity": "U",
         "maxCountInDeck": 4,
@@ -3848,13 +3392,8 @@
         "cardId": "BT25-038",
         "set": "BT25",
         "nameEn": "Shakkoumon",
-        "colors": [
-          "Yellow",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow", "Black"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 8,
         "dp": 8000,
@@ -3870,18 +3409,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Free"
-        ],
-        "types": [
-          "Mutant",
-          "Iliad",
-          "TS",
-          "Angel"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Free"],
+        "types": ["Mutant", "Iliad", "TS", "Angel"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3\n[DNA Digivolve] Yellow Lv.4 + blue/black Lv.4: Cost 0\n\n[On Play] [When Digivolving] You may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card from your hand or your Digimon's digivolution cards as the top or bottom security card. Then, if DNA digivolving, trash both players' top security cards.\n[All Turns] [Once Per Turn] When your security stack is added to, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.\n(Rule) Trait: Has [Angel] Type.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your opponent's Digimon gets -4000 DP for the turn.",
         "rarity": "C",
@@ -3957,13 +3487,8 @@
         "cardId": "BT25-039",
         "set": "BT25",
         "nameEn": "Sirenmon",
-        "colors": [
-          "Yellow",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow", "Green"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 6,
         "dp": 6000,
@@ -3979,17 +3504,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Shaman",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Data"],
+        "types": ["Shaman", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[Security] [End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7. If this effect played, you may place this card as the played Digimon's bottom digivolution card.\n[All Turns] When any of your other [Shaman] or [Iliad] trait Digimon or Tamers would leave the battle area other than by your effects, by deleting this Digimon, they don't leave.\n[On Deletion] You may place this card face up as the bottom security card.",
         "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to 1 of your suspended Digimon.",
         "rarity": "R",
@@ -4065,12 +3582,8 @@
         "cardId": "BT25-040",
         "set": "BT25",
         "nameEn": "MagnaAngemon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -4081,17 +3594,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Archangel",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Archangel", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\nWhen effects trash this card from the security stack, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost.\n＜Ascension＞ \n[On Play] [When Digivolving] By trashing your top or bottom security card, 1 of your opponent's Digimon gets -8000 DP until their turn ends.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, 1 of your opponent's Digimon gets -4000 DP for the turn.",
         "rarity": "U",
@@ -4167,12 +3672,8 @@
         "cardId": "BT25-041",
         "set": "BT25",
         "nameEn": "Murasamemon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -4183,17 +3684,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Beastkin",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Virus"],
+        "types": ["Beastkin", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n＜Alliance＞ \n[When Digivolving] [When Attacking] [Once Per Turn] If it's your turn, by adding your top security card to the hand or trashing the bottom face-down card under any of your Tamers, you may play or use 1 card with the [Glowing Dawn] trait from your hand with the cost reduced by 3.",
         "inheritedEffectText": "[End of Attack] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, this Digimon with the [Glowing Dawn] trait unsuspends.",
         "rarity": "R",
@@ -4269,13 +3762,8 @@
         "cardId": "BT25-042",
         "set": "BT25",
         "nameEn": "ClavisAngemon",
-        "colors": [
-          "Yellow",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow", "Black"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -4291,18 +3779,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Virtue",
-          "Iliad",
-          "TS",
-          "Angel"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Vaccine"],
+        "types": ["Virtue", "Iliad", "TS", "Angel"],
         "effectText": "[Digivolve] Lv.5 w/[Angel]/[Archangel]/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing your top or bottom security card, your opponent's Digimon effects don't affect this Digimon until their turn ends.\n[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost. Then, 2 of your Digimon gain ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.\n(Rule) Trait: Has [Angel] Type.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -4377,13 +3856,8 @@
         "cardId": "BT25-043",
         "set": "BT25",
         "nameEn": "Habakirimon",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon",
-          "Option"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Digimon", "Option"],
         "level": 6,
         "playCost": 6,
         "dp": 12000,
@@ -4394,26 +3868,16 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Shaman",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Virus"],
+        "types": ["Shaman", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.5 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] [When Attacking] [Once Per Turn] ＜Recovery +1＞ Then, by trashing the top security card of 1 player with the most security cards, this Digimon unsuspends.\n[All Turns] [Once Per Turn] When any of your [Glowing Dawn] trait Digimon would leave the battle area, by trashing your top security card, they don't leave.",
         "rarity": "UR",
         "maxCountInDeck": 4,
         "imageId": "BT25-043",
         "dualEffect": "Habakiri",
         "optionEffect": "＜Use Req. ([Glowing Dawn] trait)＞ \n[Main] 1 of your opponent's Digimon gets -8000 DP for the turn. Then, by trashing your top security card, all of your opponent's Digimon get -5000 DP for the turn.",
-        "optionColorRequirements": [
-          "Yellow"
-        ],
+        "optionColorRequirements": ["Yellow"],
         "isDualCard": true
       },
       "module": "apps/api/src/cards/BT25/BT25-043.ts",
@@ -4484,13 +3948,8 @@
         "cardId": "BT25-044",
         "set": "BT25",
         "nameEn": "Junomon",
-        "colors": [
-          "Yellow",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Yellow", "Purple"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -4506,18 +3965,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Virus"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[Angel]/[Archangel]/[TS] trait: Cost 3 \n\nWhen this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the cost by 5.\n[On Play] [When Digivolving] By placing 1 other Digimon as the top security card, trash both players' top security cards.\n[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 play cost 8 or lower [Angel], [Archangel] or [Iliad] trait card from your hand or trash without paying the cost.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -4592,12 +4042,8 @@
         "cardId": "BT25-045",
         "set": "BT25",
         "nameEn": "Onmon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -4608,16 +4054,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Stnd.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Game"
-        ],
-        "types": [
-          "Online"
-        ],
+        "forms": ["Stnd.", "Appmon"],
+        "attributes": ["Game"],
+        "types": ["Online"],
         "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1.",
         "rarity": "U",
         "maxCountInDeck": 4,
@@ -4695,12 +4134,8 @@
         "cardId": "BT25-046",
         "set": "BT25",
         "nameEn": "Gekkomon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -4711,17 +4146,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Reptile",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Reptile", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Glowing Dawn] trait and 1 green card with the [BEATBREAK] trait among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "＜Piercing＞",
         "rarity": "U",
@@ -4797,12 +4224,8 @@
         "cardId": "BT25-047",
         "set": "BT25",
         "nameEn": "Floramon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -4813,17 +4236,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Vegetation",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Vegetation", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Vegetation] or [Shaman] trait card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "[Your Turn] All of your Digimon get +1000 DP.",
         "rarity": "C",
@@ -4899,12 +4314,8 @@
         "cardId": "BT25-048",
         "set": "BT25",
         "nameEn": "Bearmon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -4920,17 +4331,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Vaccine"],
+        "types": ["Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a green [TS] trait Digimon card, reduce the cost by 1.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon wins a battle, ＜Draw 1＞",
         "rarity": "U",
@@ -5006,12 +4409,8 @@
         "cardId": "BT25-049",
         "set": "BT25",
         "nameEn": "Armalizamon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 4000,
@@ -5022,17 +4421,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Reptile",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Reptile", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2 \n\n[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon.\n[Your Turn][Once Per Turn] When you would use an Option card with the [Glowing Dawn] trait, by trashing the bottom face-down card under any of your Tamers, reduce the cost by 3.",
         "inheritedEffectText": "＜Piercing＞",
         "rarity": "U",
@@ -5108,12 +4499,8 @@
         "cardId": "BT25-050",
         "set": "BT25",
         "nameEn": "Kiwimon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 4000,
@@ -5124,18 +4511,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Ancient Bird",
-          "Iliad",
-          "TS",
-          "Vegetation"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Ancient Bird", "Iliad", "TS", "Vegetation"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your opponent's Digimon can't unsuspend until their turn ends.\n(Rule) Trait: Has [Vegetation] Type.",
         "inheritedEffectText": "[Your Turn] All of your Digimon get +1000 DP.",
         "rarity": "C",
@@ -5211,13 +4589,8 @@
         "cardId": "BT25-051",
         "set": "BT25",
         "nameEn": "Grizzlymon",
-        "colors": [
-          "Green",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Black"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 4000,
@@ -5233,17 +4606,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beast",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Vaccine"],
+        "types": ["Beast", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Blocker＞ \n[On Play] [When Digivolving] 1 of your Digimon with [Beast], [Animal] or [Sovereign], other than [Sea Animal] trait, in any of its traits or the [Shaman] or [TS] trait gets +3000 DP until your opponent's turn ends.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon wins a battle, ＜Draw 1＞",
         "rarity": "C",
@@ -5319,13 +4684,8 @@
         "cardId": "BT25-052",
         "set": "BT25",
         "nameEn": "Logimon",
-        "colors": [
-          "Green",
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Red"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 6000,
@@ -5341,16 +4701,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Sup.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Social"
-        ],
-        "types": [
-          "Login"
-        ],
+        "forms": ["Sup.", "Appmon"],
+        "attributes": ["Social"],
+        "types": ["Login"],
         "effectText": "[App Fusion] [Onmon] & [Gatchmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Kazuki & Itsuki] from your hand without paying the cost.",
         "rarity": "U",
         "maxCountInDeck": 4,
@@ -5428,13 +4781,8 @@
         "cardId": "BT25-053",
         "set": "BT25",
         "nameEn": "Aegiochusmon: Green",
-        "colors": [
-          "Green",
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Red"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 8,
         "dp": 8000,
@@ -5450,18 +4798,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Shaman",
-          "Iliad",
-          "TS",
-          "Vegetation"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Shaman", "Iliad", "TS", "Vegetation"],
         "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Vortex＞ \n＜Decode ([Aegiomon])＞ \n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends. Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, you may suspend 1 of your opponent's Digimon or Tamers.",
         "rarity": "R",
@@ -5537,13 +4876,8 @@
         "cardId": "BT25-054",
         "set": "BT25",
         "nameEn": "GreatGrizzlymon",
-        "colors": [
-          "Green",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Black"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 8,
         "dp": 7000,
@@ -5559,17 +4893,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Beastkin",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Vaccine"],
+        "types": ["Beastkin", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n＜Blocker＞ \n[On Play] [When Digivolving] Give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.\n[All Turns] When this Digimon wins a battle, it may digivolve into [Callismon] or [Marsmon] in the hand without paying the cost.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
         "rarity": "R",
@@ -5645,12 +4971,8 @@
         "cardId": "BT25-055",
         "set": "BT25",
         "nameEn": "Deramon",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 6,
         "dp": 6000,
@@ -5661,18 +4983,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Avian",
-          "Iliad",
-          "TS",
-          "Vegetation"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Data"],
+        "types": ["Avian", "Iliad", "TS", "Vegetation"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if there are 2 or more suspended Digimon, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon suspends, you may play 1 4000 DP or lower Digimon card with [Vegetation], [Plant], [Avian] or [Bird] in any of its traits or the [TS] trait from your hand without paying the cost.\n(Rule) Trait: Has [Vegetation] Type.",
         "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to 1 of your suspended Digimon.",
         "rarity": "C",
@@ -5748,13 +5061,8 @@
         "cardId": "BT25-056",
         "set": "BT25",
         "nameEn": "Bootmon",
-        "colors": [
-          "Green",
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Yellow"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -5770,16 +5078,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ult.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Tool"
-        ],
-        "types": [
-          "Super Boot"
-        ],
+        "forms": ["Ult.", "Appmon"],
+        "attributes": ["Tool"],
+        "types": ["Super Boot"],
         "effectText": "[App Fusion] [Logimon] & [Craftmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n＜Barrier＞ \n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] When this Digimon gets linked, suspend 1 of your opponent's Digimon or Tamers.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -5857,14 +5158,8 @@
         "cardId": "BT25-057",
         "set": "BT25",
         "nameEn": "Monarchlizamon",
-        "colors": [
-          "Green",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon",
-          "Option"
-        ],
+        "colors": ["Green", "Black"],
+        "kinds": ["Digimon", "Option"],
         "level": 5,
         "playCost": 4,
         "dp": 8000,
@@ -5880,26 +5175,16 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Cyborg",
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Data"],
+        "types": ["Cyborg", "Glowing Dawn", "BEATBREAK"],
         "effectText": "[Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 \n\n[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. \n[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
         "rarity": "UR",
         "maxCountInDeck": 4,
         "imageId": "BT25-057",
         "dualEffect": "Final Judgment",
         "optionEffect": "＜Use Req. ([Glowing Dawn] trait)＞ \n[Main] 1 of your Digimon gains ＜Rush＞ , ＜Security A. +1＞ and +5000 DP for the turn. Then, it may attack.",
-        "optionColorRequirements": [
-          "Green"
-        ],
+        "optionColorRequirements": ["Green"],
         "isDualCard": true
       },
       "module": "apps/api/src/cards/BT25/BT25-057.ts",
@@ -5970,13 +5255,8 @@
         "cardId": "BT25-058",
         "set": "BT25",
         "nameEn": "Callismon",
-        "colors": [
-          "Green",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Black"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 13,
         "dp": 13000,
@@ -5992,17 +5272,9 @@
             "memoryCost": 5
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Dark Animal",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Virus"],
+        "types": ["Dark Animal", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 4 \n\n＜Reboot＞ \n＜Blocker＞ \n＜Fortitude＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.\n[All Turns] [Once Per Turn] When effects play or digivolve any Digimon, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, this Digimon may battle 1 of your opponent's Digimon.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -6077,13 +5349,8 @@
         "cardId": "BT25-059",
         "set": "BT25",
         "nameEn": "Ceresmon",
-        "colors": [
-          "Green",
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "Yellow"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -6099,19 +5366,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS",
-          "Vegetation"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Data"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS", "Vegetation"],
         "effectText": "[Digivolve] Lv.5 w/[Vegetation]/[TS] trait: Cost 3 \n\nWhen this card would be played, if there are 2 or more suspended Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] You may suspend up to 2 Digimon. Then, none of your suspended [Vegetation] or [TS] trait Digimon are affected by your opponent's Digimon effects until their turn ends.\n[All Turns] [Once Per Turn] When any Digimon suspend, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each suspended Digimon.\n(Rule) Trait: Has [Vegetation] Type.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -6186,13 +5443,8 @@
         "cardId": "BT25-060",
         "set": "BT25",
         "nameEn": "Rebootmon",
-        "colors": [
-          "Green",
-          "White"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Green", "White"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -6203,16 +5455,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "God",
-          "Appmon"
-        ],
-        "attributes": [
-          "God"
-        ],
-        "types": [
-          "Reboot"
-        ],
+        "forms": ["God", "Appmon"],
+        "attributes": ["God"],
+        "types": ["Reboot"],
         "effectText": "[App Fusion] [Bootmon] & [Shutmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n＜Security A. +1＞ \n＜Reboot＞ \n＜Link +1＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By linking 1 [Appmon] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost, 1 of your Digimon may unsuspend.\n[All Turns] [Once Per Turn] When this Digimon gets linked or unsuspends, until your turn ends, this Digimon gains ＜Piercing＞ and ＜Blocker＞ , and your opponent's Digimon effects don't affect it.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -6287,12 +5532,8 @@
         "cardId": "BT25-061",
         "set": "BT25",
         "nameEn": "Offmon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -6303,16 +5544,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Stnd.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Game"
-        ],
-        "types": [
-          "Offline"
-        ],
+        "forms": ["Stnd.", "Appmon"],
+        "attributes": ["Game"],
+        "types": ["Offline"],
         "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[Start of Your Main Phase] By trashing 1 card with the [Appmon] trait from your hand, ＜Draw 1＞ and gain 1 memory.",
         "rarity": "U",
         "maxCountInDeck": 4,
@@ -6390,12 +5624,8 @@
         "cardId": "BT25-062",
         "set": "BT25",
         "nameEn": "Kokuwamon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 1000,
@@ -6406,17 +5636,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Machine",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Machine", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a [Machine], [Cyborg] or [TS] trait Digimon card in the hand without paying the cost.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -6492,13 +5714,8 @@
         "cardId": "BT25-063",
         "set": "BT25",
         "nameEn": "Commandramon",
-        "colors": [
-          "Black",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Purple"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -6514,17 +5731,9 @@
             "memoryCost": 1
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Cyborg",
-          "D-Brigade",
-          "ACCEL"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Virus"],
+        "types": ["Cyborg", "D-Brigade", "ACCEL"],
         "effectText": "[Digivolve] [Missimon]/Lv.2 w/[ACCEL] trait: Cost 0 \n\n[When Moving] [On Play] Reveal the top 3 cards of your deck. Add 1 card with [Chaosmon] in its name or the [D-Brigade] or [ACCEL] trait among them to the hand. Return the rest to the top or bottom of the deck.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -6600,12 +5809,8 @@
         "cardId": "BT25-064",
         "set": "BT25",
         "nameEn": "ToyAgumon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -6616,17 +5821,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Puppet",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Vaccine"],
+        "types": ["Puppet", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 Option card and 1 [TS] trait card among them to the hand. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "＜Reboot＞",
         "rarity": "C",
@@ -6702,12 +5899,8 @@
         "cardId": "BT25-065",
         "set": "BT25",
         "nameEn": "Monodramon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 4000,
@@ -6718,17 +5911,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Mini Dragon",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Vaccine"],
+        "types": ["Mini Dragon", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[All Turns] When this Digimon suspends, ＜Draw 1＞ \n[Your Turn] When this Digimon attacks a player, lose 2 memory.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -6804,12 +5989,8 @@
         "cardId": "BT25-066",
         "set": "BT25",
         "nameEn": "Guardromon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 5000,
@@ -6820,17 +6001,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Machine",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Virus"],
+        "types": ["Machine", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Blocker＞ \n[All Turns] When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -6906,13 +6079,8 @@
         "cardId": "BT25-067",
         "set": "BT25",
         "nameEn": "Sealsdramon",
-        "colors": [
-          "Black",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Purple"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 5000,
@@ -6928,17 +6096,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Cyborg",
-          "D-Brigade",
-          "ACCEL"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Virus"],
+        "types": ["Cyborg", "D-Brigade", "ACCEL"],
         "effectText": "[Digivolve] Lv.3 w/[D-Brigade]/[ACCEL] trait: Cost 2 \n\n[Your Turn] When any of your [D-Brigade] or [ACCEL] trait Digimon are played, this Digimon may digivolve into a [D-Brigade] or [ACCEL] trait Digimon card in the hand with the cost reduced by 2.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -7014,12 +6174,8 @@
         "cardId": "BT25-068",
         "set": "BT25",
         "nameEn": "Deltamon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 4000,
@@ -7030,17 +6186,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Composite",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Virus"],
+        "types": ["Composite", "Titan", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Collision＞ \n[All Turns] [Once Per Turn] When this Digimon suspends, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "U",
@@ -7116,12 +6264,8 @@
         "cardId": "BT25-069",
         "set": "BT25",
         "nameEn": "Raremon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 4,
         "dp": 4000,
@@ -7132,18 +6276,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Undead",
-          "Titan",
-          "TS",
-          "Cyborg"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Virus"],
+        "types": ["Undead", "Titan", "TS", "Cyborg"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Jamming＞ \n[On Play] [When Digivolving] You may link 1 [TS] trait card from your trash to 1 of your Digimon without paying the cost.\n(Rule) Trait: Has [Cyborg] Type.",
         "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
         "rarity": "C",
@@ -7219,13 +6354,8 @@
         "cardId": "BT25-070",
         "set": "BT25",
         "nameEn": "Logamon",
-        "colors": [
-          "Black",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Purple"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 6000,
@@ -7241,16 +6371,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Sup.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Social"
-        ],
-        "types": [
-          "Logoff"
-        ],
+        "forms": ["Sup.", "Appmon"],
+        "attributes": ["Social"],
+        "types": ["Logoff"],
         "effectText": "[App Fusion] [Offmon] & [Hackmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n[Main] [Once Per Turn] You may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 1.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
         "rarity": "U",
         "maxCountInDeck": 4,
@@ -7328,12 +6451,8 @@
         "cardId": "BT25-071",
         "set": "BT25",
         "nameEn": "Orochimon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 6000,
@@ -7344,17 +6463,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Dark Dragon",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Virus"],
+        "types": ["Dark Dragon", "Titan", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon or Tamers can't attack until their turn ends.\n[All Turns] [Once Per Turn] When this Digimon suspends, reveal the top 3 cards of your deck. You may play 1 play cost 4 or lower [TS] trait Digimon card among them without paying the cost. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon suspends, reveal the top 3 cards of your deck. You may play 1 play cost 4 or lower [TS] trait Digimon card among them without paying the cost. Return the rest to the bottom of the deck.",
         "rarity": "U",
@@ -7430,13 +6541,8 @@
         "cardId": "BT25-072",
         "set": "BT25",
         "nameEn": "Shutmon",
-        "colors": [
-          "Black",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Purple"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -7452,16 +6558,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ult.",
-          "Appmon"
-        ],
-        "attributes": [
-          "Tool"
-        ],
-        "types": [
-          "Forced Termination"
-        ],
+        "forms": ["Ult.", "Appmon"],
+        "attributes": ["Tool"],
+        "types": ["Forced Termination"],
         "effectText": "[App Fusion] [Logamon] & [Timemon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve.\n\n＜Jamming＞ \n[On Play] [When Digivolving] [When Attacking] If it's your turn, you may link 1 [Social], [Tool] or [Game] trait Digimon card from your trash or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.\n[All Turns] [Once Per Turn] When this Digimon gets linked, 1 of your opponent's Digimon or Tamers can't digivolve until their turn ends.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -7539,12 +6638,8 @@
         "cardId": "BT25-073",
         "set": "BT25",
         "nameEn": "Dragomon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -7555,17 +6650,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Aquabeast",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Virus"],
+        "types": ["Aquabeast", "Titan", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3 \n\n＜Jamming＞ \n[On Play] [When Digivolving] By trashing 1 of your Digimon's link cards, you may play or use 1 [TS] trait card with a play or use cost of 5 or less from your hand without paying the cost.",
         "inheritedEffectText": "[All Turns] When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
         "rarity": "U",
@@ -7641,13 +6728,8 @@
         "cardId": "BT25-074",
         "set": "BT25",
         "nameEn": "Tankdramon",
-        "colors": [
-          "Black",
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Purple"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -7663,17 +6745,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Machine",
-          "D-Brigade",
-          "ACCEL"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Virus"],
+        "types": ["Machine", "D-Brigade", "ACCEL"],
         "effectText": "[Digivolve] Lv.4 w/[D-Brigade]/[ACCEL] trait: Cost 3 \n\n[When Digivolving] [When Attacking] [Once Per Turn] Reveal the top 3 cards of your deck. You may play 1 play cost 12 or lower [D-Brigade] or [ACCEL] trait Digimon card among them with the cost reduced by 5. Trash the rest.\n[All Turns] [Once Per Turn] When any of your [D-Brigade] or [ACCEL] trait Digimon are played, 1 of your opponent's Digimon can't digivolve until their turn ends.",
         "inheritedEffectText": "[Opponent's Turn] This Digimon with [Chaosmon] in its name or the [D-Brigade] or [ACCEL] trait gains ＜Reboot＞ and ＜Blocker＞",
         "rarity": "R",
@@ -7749,13 +6823,8 @@
         "cardId": "BT25-075",
         "set": "BT25",
         "nameEn": "Vulcanusmon",
-        "colors": [
-          "Black",
-          "Red"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Red"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -7771,18 +6840,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Data"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 3 \n\nWhen this card would be played, if you have fewer Digimon than your opponent, reduce the cost by 5.\n[On Play] [When Digivolving] You may link up to 2 cards from your hand or trash to any of your Digimon without paying the cost. Then, for each of your link cards, ＜De-Digivolve 1＞ all of your opponent's Digimon. \n[All Turns] All of your [TS] trait Digimon gain ＜Rush＞ and ＜Link +1＞ \n[Your Turn] When your Digimon get linked, one of them may attack.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -7857,12 +6917,8 @@
         "cardId": "BT25-076",
         "set": "BT25",
         "nameEn": "Ghoulmon",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -7873,15 +6929,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Demon Lord"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Data"],
+        "types": ["Demon Lord"],
         "effectText": "When this card would be played, by deleting 1 of your play cost 11 or lower Digimon with [Negamon] in its digivolution cards and [Negamon] in its text, reduce the cost by the deleted Digimon's play cost.\n＜Rush＞ \n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Attacking] [On Deletion] Delete 1 of your opponent's Digimon with the lowest play cost. If this effect didn't delete, trash your opponent's top security card.",
         "rarity": "R",
         "maxCountInDeck": 4,
@@ -7956,13 +7006,8 @@
         "cardId": "BT25-077",
         "set": "BT25",
         "nameEn": "Bacchusmon",
-        "colors": [
-          "Black",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Black", "Green"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 12,
         "dp": 12000,
@@ -7978,18 +7023,9 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Shaman",
-          "Olympos XII",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Virus"],
+        "types": ["Shaman", "Olympos XII", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[TS] trait: Cost 3 \n\nWhen this card would be played, if there are 12 or more levels' total worth of Digimon, reduce the cost by 5.\n[On Play] [When Digivolving] You may play 1 [TS] trait Digimon card with 6000 DP or less from your hand without paying the cost.\n[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may suspend 1 Digimon. Then, if played or digivolved by an effect, delete 1 of your opponent's lowest DP Digimon.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -8064,12 +7100,8 @@
         "cardId": "BT25-078",
         "set": "BT25",
         "nameEn": "Gazimon",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 1000,
@@ -8080,17 +7112,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Mammal",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Virus"],
+        "types": ["Mammal", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.2 w/[Three Musketeers] in text or w/[TS] trait: Cost 0 \n\n[When Moving] [On Play] Reveal the top 3 cards of your deck. Among them, add 1 card with [Three Musketeers] in its text to the hand, or you may place 1 [Three Musketeers] trait card as this Digimon's bottom digivolution card. Return the rest to the bottom of the deck.",
         "inheritedEffectText": "＜Retaliation＞",
         "rarity": "C",
@@ -8166,12 +7190,8 @@
         "cardId": "BT25-079",
         "set": "BT25",
         "nameEn": "Hyemon",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["Digimon"],
         "level": 3,
         "playCost": 3,
         "dp": 2000,
@@ -8182,16 +7202,9 @@
             "memoryCost": 0
           }
         ],
-        "forms": [
-          "Rookie"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Beast",
-          "BEATBREAK"
-        ],
+        "forms": ["Rookie"],
+        "attributes": ["Data"],
+        "types": ["Beast", "BEATBREAK"],
         "effectText": "[All Turns] Players can't gain memory other than by Tamer effects.",
         "inheritedEffectText": "＜Retaliation＞",
         "rarity": "C",
@@ -8267,12 +7280,8 @@
         "cardId": "BT25-080",
         "set": "BT25",
         "nameEn": "Witchmon",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 6000,
@@ -8283,17 +7292,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Wizard",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Wizard", "Titan", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n[On Play] [When Attacking] [Once Per Turn] By trashing 1 card in your hand, you may return 1 [Titan] trait card from your trash to the hand. After, if played by an effect, delete 1 of your opponent's level 5 or lower Digimon.",
         "inheritedEffectText": "[All Turns] [Once Per Turn] When your hand is trashed from, if this Digimon has the [Titan] trait, delete 1 of your opponent's level 4 or lower Digimon.",
         "rarity": "C",
@@ -8369,12 +7370,8 @@
         "cardId": "BT25-081",
         "set": "BT25",
         "nameEn": "Fangmon",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 5,
         "dp": 5000,
@@ -8385,16 +7382,9 @@
             "memoryCost": 2
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Data"
-        ],
-        "types": [
-          "Dark Animal",
-          "BEATBREAK"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Data"],
+        "types": ["Dark Animal", "BEATBREAK"],
         "effectText": "[On Play] [When Digivolving] Suspend 1 non-purple Tamer.  [All Turns] [Once Per Turn] When any of your opponent's Tamers suspend, gain 1 memory.",
         "inheritedEffectText": "＜Retaliation＞",
         "rarity": "C",
@@ -8470,13 +7460,8 @@
         "cardId": "BT25-082",
         "set": "BT25",
         "nameEn": "BlackGatomon",
-        "colors": [
-          "Purple",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple", "Black"],
+        "kinds": ["Digimon"],
         "level": 4,
         "playCost": 6,
         "dp": 6000,
@@ -8492,17 +7477,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Champion"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Dark Animal",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Champion"],
+        "attributes": ["Virus"],
+        "types": ["Dark Animal", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.3 w/[Three Musketeers] in text or w/[TS] trait: Cost 2 \n\n[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 Tamer card with [Three Musketeers] in its text from your hand without paying the cost.\n[All Turns] While you have a Tamer with [Three Musketeers] in its text, this Digimon may digivolve into a [Three Musketeers] trait Digimon card for a digivolution cost of 4, ignoring digivolution requirements.",
         "inheritedEffectText": "[When Attacking] [Once Per Turn] By placing 1 [Three Musketeers] trait card from your hand or trash as this Digimon's bottom digivolution card, ＜Draw 1＞",
         "rarity": "R",
@@ -8578,12 +7555,8 @@
         "cardId": "BT25-083",
         "set": "BT25",
         "nameEn": "LadyDevimon",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["Digimon"],
         "level": 5,
         "playCost": 7,
         "dp": 7000,
@@ -8594,17 +7567,9 @@
             "memoryCost": 3
           }
         ],
-        "forms": [
-          "Ultimate"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Fallen Angel",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["Ultimate"],
+        "attributes": ["Virus"],
+        "types": ["Fallen Angel", "Titan", "TS"],
         "effectText": "[Digivolve] Lv.4 w/[Three Musketeers] in text or w/[TS] trait: Cost 3 \n\n[On Play] [When Digivolving] By placing 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution cards, ＜Draw 1＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 Option card from any of your Digimon's digivolution cards, you may use 1 [Three Musketeers] trait Option card from your trash with the cost reduced by 3.",
         "inheritedEffectText": "[On Deletion] You may play 1 level 4 or lower Digimon card with [Three Musketeers] in its text from your trash without paying the cost.",
         "rarity": "C",
@@ -8680,14 +7645,8 @@
         "cardId": "BT25-084",
         "set": "BT25",
         "nameEn": "Titamon",
-        "colors": [
-          "Purple",
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Purple", "Red", "Green"],
+        "kinds": ["Digimon"],
         "level": 6,
         "playCost": 13,
         "dp": 13000,
@@ -8708,17 +7667,9 @@
             "memoryCost": 5
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Shaman",
-          "Titan",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Virus"],
+        "types": ["Shaman", "Titan", "TS"],
         "effectText": "[Digivolve] [Titamon] w/o 3 colors: Cost 2\n[Digivolve] Lv.5 w/[TS] trait: Cost 4 \n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 card in your hand, delete all of your opponent's highest DP Digimon. After, if played or digivolved by an effect, trash their top security card.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by trashing 2 cards in your hand, it doesn't leave.\n[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.",
         "rarity": "SR",
         "maxCountInDeck": 4,
@@ -8793,14 +7744,8 @@
         "cardId": "BT25-085",
         "set": "BT25",
         "nameEn": "BeelStarmon",
-        "colors": [
-          "Purple",
-          "Black"
-        ],
-        "kinds": [
-          "Digimon",
-          "Option"
-        ],
+        "colors": ["Purple", "Black"],
+        "kinds": ["Digimon", "Option"],
         "level": 6,
         "playCost": 6,
         "dp": 12000,
@@ -8816,27 +7761,16 @@
             "memoryCost": 4
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Virus"
-        ],
-        "types": [
-          "Wizard",
-          "Three Musketeers",
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Virus"],
+        "types": ["Wizard", "Three Musketeers", "Iliad", "TS"],
         "effectText": "[Digivolve] Lv.5 w/[Three Musketeers] in text or w/[TS] trait: Cost 3 \n\n＜Blocker＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may use 1 [Three Musketeers] or [TS] trait Option card from your hand or this Digimon's digivolution cards without paying the cost.\n[When Digivolving] [When Attacking] [Counter] [Once Per Turn] By trashing 1 Option card from any of your Digimon's digivolution cards or link cards, this Digimon unsuspends.",
         "rarity": "UR",
         "maxCountInDeck": 4,
         "imageId": "BT25-085",
         "dualEffect": "Fly Bullet",
         "optionEffect": "＜Use Req. ([Three Musketeers] in text)＞ \n[Main] Delete 1 of your opponent's highest level Digimon. Then, you may place 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution card.",
-        "optionColorRequirements": [
-          "Purple"
-        ],
+        "optionColorRequirements": ["Purple"],
         "isDualCard": true
       },
       "module": "apps/api/src/cards/BT25/BT25-085.ts",
@@ -8907,25 +7841,14 @@
         "cardId": "BT25-086",
         "set": "BT25",
         "nameEn": "Dan Yuki",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Tamer"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "ADAMAS",
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["ADAMAS", "TS"],
         "effectText": "[Start of Your Main Phase] If you have 4 or less memory, gain 1 memory.\n[End of Your Turn] By suspending this Tamer, 1 of your [TS] trait Digimon gains +1000 DP for the turn for each memory your opponent has. Then, it may attack.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "R",
@@ -9001,24 +7924,14 @@
         "cardId": "BT25-087",
         "set": "BT25",
         "nameEn": "Thomas H. Norstein",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Tamer"],
         "playCost": 4,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "DATA SQUAD"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["DATA SQUAD"],
         "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When effects add cards to your opponent's hand, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer.\n[Your Turn] [Once Per Turn] When any of your Digimon would digivolve into a [DATA SQUAD] trait Digimon card, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "R",
@@ -9094,25 +8007,14 @@
         "cardId": "BT25-088",
         "set": "BT25",
         "nameEn": "Kyo Sawashiro",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Tamer"],
         "playCost": 4,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Glowing Dawn", "BEATBREAK"],
         "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When your security stack is removed from, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer.\n[Your Turn] [Once Per Turn] When any of your [Glowing Dawn] trait cards would be played, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "R",
@@ -9188,25 +8090,14 @@
         "cardId": "BT25-089",
         "set": "BT25",
         "nameEn": "Kazuki & Itsuki",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Tamer"],
         "playCost": 4,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "App Driver",
-          "Appmon"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["App Driver", "Appmon"],
         "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Main] By suspending this Tamer, you may link 1 [Appmon] trait Digimon card from your hand or your Digimon's digivolution cards to 1 of your Digimon with the cost reduced by 2.\n[End of Your Turn] [Once Per Turn] 1 of your Digimon may app fuse into a Digimon card in the hand.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "R",
@@ -9282,25 +8173,14 @@
         "cardId": "BT25-090",
         "set": "BT25",
         "nameEn": "Tomoro Tenma",
-        "colors": [
-          "Green"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Green"],
+        "kinds": ["Tamer"],
         "playCost": 4,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Glowing Dawn",
-          "BEATBREAK"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Glowing Dawn", "BEATBREAK"],
         "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When any Digimon suspend, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer.\n[Your Turn] [Once Per Turn] When you would use [Glowing Dawn] trait Option cards, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "R",
@@ -9376,24 +8256,14 @@
         "cardId": "BT25-091",
         "set": "BT25",
         "nameEn": "Monica Simmons",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Tamer"],
         "playCost": 4,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["TS"],
         "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[On Play] You may return 1 [TS] trait Option card from your trash to the hand. If this effect didn't return, ＜Draw 1＞ \n[Your Turn] When you use [TS] trait Option cards, by suspending this Tamer, 1 of your opponent's Digimon can't attack until their turn ends.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "SR",
@@ -9469,24 +8339,14 @@
         "cardId": "BT25-092",
         "set": "BT25",
         "nameEn": "Asuna Shiroki",
-        "colors": [
-          "Purple"
-        ],
-        "kinds": [
-          "Tamer"
-        ],
+        "colors": ["Purple"],
+        "kinds": ["Tamer"],
         "playCost": 4,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["TS"],
         "effectText": "[Start of Your Main Phase] By trashing 1 card with [Three Musketeers] in its text or the [TS] trait from your hand, ＜Draw 1＞ and gain 1 memory.\n[Main] By suspending this Tamer and trashing 1 Option card from your hand or your Digimon's digivolution cards, 1 of your Digimon may digivolve into a Digimon card with [Three Musketeers] in its text or the [TS] trait in the hand or trash with the cost reduced by 1.",
         "securityEffectText": "[Security] Play this card without paying the cost.",
         "rarity": "SR",
@@ -9562,24 +8422,14 @@
         "cardId": "BT25-093",
         "set": "BT25",
         "nameEn": "Ignition Flare",
-        "colors": [
-          "Red"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Red"],
+        "kinds": ["Option"],
         "playCost": 5,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["TS"],
         "effectText": "＜Use Req. ([TS] trait)＞ \n[Security] Activate this card's [Main] effects.\n[Main] Delete all of your opponent's Digimon with the lowest DP. If this effect didn't delete, trash 1 of your opponent's Option cards in the battle area. Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
         "rarity": "U",
         "maxCountInDeck": 4,
@@ -9657,26 +8507,14 @@
         "cardId": "BT25-094",
         "set": "BT25",
         "nameEn": "Cosmic Area",
-        "colors": [
-          "Red",
-          "Blue"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Red", "Blue"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Iliad", "TS"],
         "effectText": "While you have no face-up security cards, you can ignore this card's color requirements.\n[Security] [Your Turn] All of your red or blue [TS] trait Digimon gain ＜Alliance＞. While you have [Apollomon] or [Dianamon], they also gain ＜Rush＞ \n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 red or blue [TS] trait Digimon card from your hand with the cost reduced by 3.",
         "securityEffectText": "[Security] You may play 1 level 4 or lower red or blue [TS] trait Digimon card from your hand or trash without paying the cost.",
         "rarity": "U",
@@ -9752,26 +8590,14 @@
         "cardId": "BT25-095",
         "set": "BT25",
         "nameEn": "Paradise Colosseum",
-        "colors": [
-          "Red",
-          "Green"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Red", "Green"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Iliad", "TS"],
         "effectText": "While you have no face-up security cards, you can ignore this card's color requirements.\n[Security] [All Turns] All of your red or green [TS] trait Digimon get +2000 DP. While you have [Marsmon] or [Callismon], they also gain ＜Rush＞ \n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 red or green [TS] trait Digimon card from your hand with the cost reduced by 3.",
         "securityEffectText": "[Security] You may play 1 level 4 or lower red or green [TS] trait Digimon card from your hand or trash without paying the cost.",
         "rarity": "U",
@@ -9847,24 +8673,14 @@
         "cardId": "BT25-096",
         "set": "BT25",
         "nameEn": "Mirage Beast Knight",
-        "colors": [
-          "Blue"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Blue"],
+        "kinds": ["Option"],
         "playCost": 5,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "DATA SQUAD"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["DATA SQUAD"],
         "effectText": "When this card would be used, by trashing the bottom face-down card from under any of your Tamers, reduce the use cost by 2.  [Main] By placing 1 [Gaogamon] and 1 [MachGaogamon] from your trash as 1 of your [Gaomon]'s bottom digivolution cards, that Digimon may digivolve into [MirageGaogamon] in the hand, ignoring digivolution requirements and without paying the cost.",
         "securityEffectText": "[Security] You may play 1 [Gaomon] or [Thomas H. Norstein] from your hand or trash without paying the cost. Then, add this card to the hand.",
         "rarity": "C",
@@ -9940,26 +8756,14 @@
         "cardId": "BT25-097",
         "set": "BT25",
         "nameEn": "Guardian Palace",
-        "colors": [
-          "Yellow",
-          "Purple"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Yellow", "Purple"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Iliad", "TS"],
         "effectText": "While you have no face-up security cards, you can ignore this card's color requirements.\n[Security] [All Turns] All of your yellow or purple [TS] trait Digimon gain ＜Alliance＞ While you have a Digimon with [Junomon] in its name, they also gain ＜Scapegoat＞ \n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 yellow or purple [TS] trait Digimon card from your hand with the play cost reduced by 3.",
         "securityEffectText": "[Security] You may play 1 level 4 or lower yellow or purple [TS] trait Digimon card from your hand or trash without paying the cost.",
         "rarity": "U",
@@ -10035,24 +8839,14 @@
         "cardId": "BT25-098",
         "set": "BT25",
         "nameEn": "Cyber Engage",
-        "colors": [
-          "Yellow"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Yellow"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Appmon"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Appmon"],
         "effectText": "＜Use Req. ([Appmon] trait)＞ \n[Main] Reveal the top 3 cards of your deck. Add 1 [Appmon] trait card among them to the hand. Trash the rest. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・You may play 1 [Appmon] trait card from your hand with the cost reduced by 3.",
         "securityEffectText": "[Security] Place this card in the battle area.",
         "rarity": "C",
@@ -10128,26 +8922,14 @@
         "cardId": "BT25-099",
         "set": "BT25",
         "nameEn": "Gear Forest Village",
-        "colors": [
-          "Green",
-          "Black"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Green", "Black"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Iliad", "TS"],
         "effectText": "While you have no face-up security cards, you can ignore this card's color requirements.\n[Security] [Your Turn] All of your green or black [TS] trait Digimon gain ＜Alliance＞ While you have [Bacchusmon] or [Ceresmon], they also gain ＜Piercing＞ \n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 green or black [TS] trait Digimon card from your hand with the cost reduced by 3.",
         "securityEffectText": "[Security] You may play 1 level 4 or lower green or black [TS] trait Digimon card from your hand or trash without paying the cost.",
         "rarity": "U",
@@ -10223,24 +9005,14 @@
         "cardId": "BT25-100",
         "set": "BT25",
         "nameEn": "Iron Slash",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["TS"],
         "effectText": "＜Use Req. ([TS] trait)＞ \n[Security] Activate this card's [Main] effects.\n[Main] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -10318,24 +9090,14 @@
         "cardId": "BT25-101",
         "set": "BT25",
         "nameEn": "Divine Arms Version Ω",
-        "colors": [
-          "Black"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Black"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["TS"],
         "effectText": "＜Use Req. ([TS] trait)＞ \n[Security] Activate this card's [Main] effects.\n[Main] By trashing 1 [TS] trait card from your hand, ＜Draw 2＞ After, you may link this card or 1 [TS] trait card from your trash to 1 of your Digimon on the field without paying the cost.",
         "rarity": "C",
         "maxCountInDeck": 4,
@@ -10413,26 +9175,14 @@
         "cardId": "BT25-102",
         "set": "BT25",
         "nameEn": "Factorial Area",
-        "colors": [
-          "Black",
-          "Red"
-        ],
-        "kinds": [
-          "Option"
-        ],
+        "colors": ["Black", "Red"],
+        "kinds": ["Option"],
         "playCost": 3,
         "dp": 0,
         "evoCosts": [],
-        "forms": [
-          "-"
-        ],
-        "attributes": [
-          "-"
-        ],
-        "types": [
-          "Iliad",
-          "TS"
-        ],
+        "forms": ["-"],
+        "attributes": ["-"],
+        "types": ["Iliad", "TS"],
         "effectText": "While you have no face-up security cards, you can ignore this card's color requirements.\n[Security] [All Turns] All of your black or red [TS] trait Digimon gain ＜Blocker＞ While you have [Vulcanusmon], they also gain ＜Link +1＞ \n[Main] Add your bottom security card to the hand and place this card face up as the bottom security card. Then, you may play 1 black or red [TS] trait Digimon card from your hand with the play cost reduced by 3.",
         "securityEffectText": "[Security] You may play 1 level 4 or lower black or red [TS] trait Digimon card from your hand or trash without paying the cost.",
         "rarity": "U",
@@ -10508,13 +9258,8 @@
         "cardId": "BT25-103",
         "set": "BT25",
         "nameEn": "GraceNovamon",
-        "colors": [
-          "Red",
-          "Blue"
-        ],
-        "kinds": [
-          "Digimon"
-        ],
+        "colors": ["Red", "Blue"],
+        "kinds": ["Digimon"],
         "level": 7,
         "playCost": 15,
         "dp": 15000,
@@ -10530,18 +9275,9 @@
             "memoryCost": 5
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Galaxy",
-          "Iliad",
-          "TS",
-          "Olympos XII"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Vaccine"],
+        "types": ["Galaxy", "Iliad", "TS", "Olympos XII"],
         "effectText": "＜Security A. +1＞ \n＜Iceclad＞ \n＜Partition ([Apollomon] & [Dianamon])＞ \n[When Digivolving] [When Attacking] Return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon. Then, you may end this attack.\n(Rule) Trait: Has [Olympos XII].",
         "rarity": "SEC",
         "maxCountInDeck": 4,
@@ -10616,14 +9352,8 @@
         "cardId": "BT25-104",
         "set": "BT25",
         "nameEn": "ShineGreymon: Burst Mode",
-        "colors": [
-          "Red",
-          "Yellow"
-        ],
-        "kinds": [
-          "Digimon",
-          "Option"
-        ],
+        "colors": ["Red", "Yellow"],
+        "kinds": ["Digimon", "Option"],
         "level": 7,
         "playCost": 6,
         "dp": 15000,
@@ -10639,26 +9369,16 @@
             "memoryCost": 5
           }
         ],
-        "forms": [
-          "Mega"
-        ],
-        "attributes": [
-          "Vaccine"
-        ],
-        "types": [
-          "Light Dragon",
-          "DATA SQUAD"
-        ],
+        "forms": ["Mega"],
+        "attributes": ["Vaccine"],
+        "types": ["Light Dragon", "DATA SQUAD"],
         "effectText": "＜Raid＞ \n＜Piercing＞ \n＜Security A. +1＞ \n＜Blocker＞ \n＜Barrier＞ \n[When Digivolving] [When Attacking] [Once Per Turn] Activate 1 [Main] effect on this card's Option side.\n[Your Turn] All of your [Marcus Damon]s are also treated as 12000 DP Digimon and gain ＜Rush＞",
         "rarity": "SEC",
         "maxCountInDeck": 4,
         "imageId": "BT25-104",
         "dualEffect": "Final Shining Burst",
         "optionEffect": "＜Use Req. ([DATA SQUAD] trait)＞ \n[Main] 1 of your opponent's Digimon gets -15000 DP for the turn. Then, you may play 1 Tamer card from your hand without paying the cost.",
-        "optionColorRequirements": [
-          "Red",
-          "Yellow"
-        ],
+        "optionColorRequirements": ["Red", "Yellow"],
         "isDualCard": true
       },
       "module": "apps/api/src/cards/BT25/BT25-104.ts",
