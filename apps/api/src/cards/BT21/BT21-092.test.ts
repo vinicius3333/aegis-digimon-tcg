@@ -32,15 +32,15 @@ describe("BT21-092 Can't Turn My Back!", () => {
         0: {
           battleArea: [
             {
-              card: "BT10-008",
+              card: "BT21-021",
               as: "xrosHost",
               under: [
-                { card: "BT1-009", as: "digimonSourceA" },
-                { card: "BT1-010", as: "digimonSourceB" },
-                { card: "BT21-083", as: "tamerSource" },
+                { card: "BT21-001", as: "eggSource" },
+                { card: "BT21-011", as: "digimonSourceA" },
+                { card: "BT21-016", as: "digimonSourceB" },
               ],
             },
-            { card: "BT21-083", as: "destination", under: [{ card: "BT21-082", as: "existing" }] },
+            { card: "BT21-083", as: "destination", under: [{ card: "BT21-011", as: "existing" }] },
           ],
           hand: [
             { card: "BT21-092", as: "option" },
@@ -51,6 +51,7 @@ describe("BT21-092 Can't Turn My Back!", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     setup.state.memory = 10;
+    await setup.ready();
 
     expect(
       setup.engine.applyIntent(0, {
@@ -63,7 +64,7 @@ describe("BT21-092 Can't Turn My Back!", () => {
       setup.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedId),
     );
 
-    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([setup.inst("tamerSource").instanceId]);
+    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([setup.inst("eggSource").instanceId]);
     expect(setup.perm("destination").stack.map((card) => card.instanceId)).toEqual([
       setup.inst("digimonSourceA").instanceId,
       setup.inst("digimonSourceB").instanceId,
@@ -71,6 +72,71 @@ describe("BT21-092 Can't Turn My Back!", () => {
     ]);
     // 10 - option cost 2 - (Shoutmon cost 4 - 2 placed Digimon cards) = 6.
     expect(setup.state.memory).toBe(6);
+  });
+
+  it("plays an eligible Xros Heart card at its unreduced cost when no source cards are available", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-008", as: "xrosHost" }],
+          hand: [
+            { card: "BT21-092", as: "option" },
+            { card: "BT10-008", as: "playedXros" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    setup.state.memory = 6;
+    await setup.ready();
+
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      setup.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === setup.inst("playedXros").instanceId),
+    );
+
+    expect(setup.perm("xrosHost").stack).toHaveLength(0);
+    expect(setup.state.memory).toBe(0);
+    expect(setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("playedXros").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("keeps the mandatory placed source but preserves an eligible hand card when the optional play is declined", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-016", as: "xrosHost", under: [{ card: "BT21-011", as: "source" }] },
+            { card: "BT21-083", as: "destination" },
+          ],
+          hand: [
+            { card: "BT21-092", as: "option" },
+            { card: "BT10-008", as: "playedXros" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    setup.state.memory = 6;
+    await setup.ready();
+
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      setup.perm("destination").stack.some((card) => card.instanceId === setup.inst("source").instanceId),
+    );
+
+    expect(setup.perm("xrosHost").stack).toHaveLength(0);
+    expect(setup.perm("destination").stack.map((card) => card.instanceId)).toEqual([setup.inst("source").instanceId]);
+    expect(setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("playedXros").instanceId)).toBe(
+      true,
+    );
+    expect(setup.state.memory).toBe(4);
   });
 
   it("waives color with a Xros Heart Digimon and rejects the option without one", async () => {
