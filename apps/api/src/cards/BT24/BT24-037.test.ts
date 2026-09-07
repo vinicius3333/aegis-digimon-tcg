@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -8,6 +8,21 @@ import { compiled as BT24_037 } from "./BT24-037.js";
 import "../index.js";
 
 describe("BT24-037 Silphymon", () => {
+  it("matches the catalog identity and DNA route", () => {
+    expect(getCardDefinition("BT24-037")).toMatchObject({
+      cardId: "BT24-037",
+      nameEn: "Silphymon",
+      colors: ["Yellow", "Red"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      forms: ["Ultimate"],
+      attributes: ["Free"],
+      types: ["Beastkin", "Iliad", "TS"],
+    });
+  });
+
   it("allows yellow/red or TS level-4-or-lower stack plays", () => {
     const replacements = BT24_037.effects?.filter((entry) => entry.trigger === "AllTurns");
     expect(replacements).toHaveLength(2);
@@ -67,6 +82,27 @@ describe("BT24-037 Silphymon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("silphymon").isSuspended).toBe(false);
+  });
+
+  it("resolves the On Play DP reduction from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-037", as: "silphymon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("silphymon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 2000);
+
+    expect(s.perm("target").currentDP).toBe(2000);
+    expect(s.perm("silphymon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("silphymon").instanceId);
   });
 
   it("DNA digivolves for 0 and grants +5000 DP and Security Attack to the same Digimon", async () => {
