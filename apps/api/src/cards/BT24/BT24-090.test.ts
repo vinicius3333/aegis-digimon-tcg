@@ -85,8 +85,8 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
             { card: "BT24-020", as: "digimon" },
           ],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-013", as: "top" },
+            { card: "BT1-015", as: "bottom" },
           ],
         },
       },
