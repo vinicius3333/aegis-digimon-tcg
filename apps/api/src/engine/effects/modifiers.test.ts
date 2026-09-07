@@ -519,6 +519,21 @@ describe("ModifierLedger base-DP overrides (SetBaseDP)", () => {
     expect(permanent.currentDP).toBe(3000);
   });
 
+  it("keeps a live continuous treatment above a later triggered override (BT25-104 Q6503)", () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 0, as: "marcus" }] } });
+    const permanent = s.perm("marcus");
+    const ledger = new ModifierLedger();
+
+    ledger.addBaseDpOverride(s.state, permanent.permanentId, 12000, EffectDuration.Permanent, {
+      continuous: true,
+    });
+    ledger.addBaseDpOverride(s.state, permanent.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
+    expect(permanent.currentDP).toBe(12000);
+
+    ledger.clearContinuous(s.state);
+    expect(permanent.currentDP).toBe(3000);
+  });
+
   it("reverts to the printed base DP when the override expires at its boundary", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 4000, as: "p1" }] } });
     const permanent = s.perm("p1");

@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { compiled as original } from "../cards/BT1/BT1-010.js";
 import { registerIrCard } from "./effects/interpreter.js";
 import { advance } from "./testkit/advance.js";
-import { setupEngine } from "./testkit/harness.js";
+import { setupEngine, settle } from "./testkit/harness.js";
 import "../cards/index.js";
 
 const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
@@ -45,3 +45,74 @@ it.each(cases)(
     }
   },
 );
+
+it("BT25-104 Q6947 removes the continuous Digimon treatment before the zero-DP rule check", async () => {
+  const effectCardId = "BT1-010";
+  registerIrCard(effectCardId, {
+    effects: [
+      {
+        trigger: "OnPlay",
+        actions: [
+          {
+            kind: "ModifyDP",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
+              },
+              count: 1,
+            },
+            amount: -12000,
+            duration: "forTheTurn",
+          },
+          {
+            kind: "DeDigivolve",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["ShineGreymon"], match: "name" }],
+              },
+              count: 1,
+            },
+            amount: 1,
+          },
+        ],
+      },
+    ],
+    coverage: "full",
+    residual: [],
+  });
+  try {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-104", as: "shine", under: [{ card: "AD1-016", as: "base" }] },
+            { card: "BT13-095", as: "marcus" },
+          ],
+          hand: [{ card: effectCardId, as: "effect" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+    await s.ready();
+    expect(s.perm("marcus").currentDP).toBe(12000);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("effect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("shine").topCard.cardId === "AD1-016");
+
+    expect(s.perm("shine").topCard.cardId).toBe("AD1-016");
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("marcus").permanentId),
+    ).toBe(true);
+    expect(s.perm("marcus").currentDP).toBe(0);
+  } finally {
+    registerIrCard(effectCardId, original);
+  }
+});
