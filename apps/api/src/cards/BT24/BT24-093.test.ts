@@ -129,7 +129,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
       0: {
         battleArea: ["BT1-045"],
         hand: [{ card: "BT24-093", as: "option" }],
-        deck: [{ card: "BT1-001", as: "recovered" }],
+        deck: [{ card: "BT1-013", as: "recovered" }],
       },
     });
     s.state.memory = 2;
@@ -150,7 +150,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
             { card: "BT24-093", as: "option" },
             { card: "BT24-014", as: "host", under: [{ card: "BT24-034", as: "stacked" }] },
           ],
-          security: [{ card: "BT1-001", as: "removed" }],
+          security: [{ card: "BT1-013", as: "removed" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
