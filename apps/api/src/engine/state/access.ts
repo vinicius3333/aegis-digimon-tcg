@@ -330,6 +330,16 @@ export function linkCard(permanent: Permanent, card: CardInstance, position: Zon
 }
 
 /**
+ * Detach one linked card by instance id, leaving every other link in place; undefined when
+ * absent. The removed card is the caller's to place (App Fusion pushes it onto the stack).
+ */
+export function extractLinkedById(permanent: Permanent, instanceId: string): CardInstance | undefined {
+  const index = permanent.linked.findIndex((card) => card.instanceId === instanceId);
+  if (index === -1) return undefined;
+  return permanent.linked.splice(index, 1)[0];
+}
+
+/**
  * Set (or clear) the Option card resolving between activation and resolution of its 1st [Main]
  * effect — §9-1-4's "in no area" slot on PlayerState. Public: the card was revealed to be used.
  */
