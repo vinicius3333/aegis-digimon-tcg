@@ -119,7 +119,7 @@ describe("BT21-014 BurningGreymon", () => {
           hand: [{ card: "BT21-014", as: "burningGreymon" }],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 3000 }],
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
           security: ["BT1-001", "BT1-002"],
           deck: ["BT1-003"],
         },
@@ -147,7 +147,12 @@ describe("BT21-014 BurningGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.security.length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
     expect(s.state.players[1]!.security).toHaveLength(1);
 
     await advance(s.engine).runTurn(0);
