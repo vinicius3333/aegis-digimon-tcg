@@ -30,6 +30,7 @@ import type { AegisJoinOptions } from "../net/types";
 import { Avatar, Badge, Button, Logo, type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import { CardFull } from "../design/cards";
+import { AppFusionChoiceOverlay } from "./AppFusionChoiceOverlay";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
 import type { ColorName } from "../design/theme";
@@ -83,6 +84,7 @@ import {
   findPermanentInState,
   getDigivolveCostOptions,
   handCardEvolutionRoute,
+  appFusionRoutesForHost,
   parseActivatable,
   decisionEffectSource,
   otherSeat,
@@ -370,6 +372,10 @@ export function GameScreen({
     lockedCandidates: DigiXrosCandidate[];
     eligibleExpanders: DigiXrosEligibleExpander[];
     intrinsicTrashMax: number;
+  } | null>(null);
+  const [appFusionChoice, setAppFusionChoice] = useState<{
+    handInstanceId: string;
+    hostPermanentId: string;
   } | null>(null);
   const [actionConfirm, setActionConfirm] = useState<
     | { kind: "play"; instanceId: string; cardId: string }
@@ -925,6 +931,11 @@ export function GameScreen({
     playableFromHand: ci.playableFromHand,
     projectedPlayCost: ci.projectedPlayCost,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
+    appFusionRoutes: [...(ci.appFusionRoutes ?? [])].map((route) => ({
+      hostPermanentId: route.hostPermanentId,
+      linkedInstanceId: route.linkedInstanceId,
+      projectedCost: route.projectedCost,
+    })),
   }));
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
@@ -1173,8 +1184,16 @@ export function GameScreen({
     (instanceId
       ? handEntries.find((entry) => entry.instanceId === instanceId)?.digivolveTargetPermanentIds
       : undefined) ?? [];
+  const appFusionHostIdsOf = (instanceId: string | undefined): readonly string[] => {
+    const entry = instanceId ? handEntries.find((candidate) => candidate.instanceId === instanceId) : undefined;
+    if (!entry) return [];
+    return you.battleArea
+      .filter((host) => appFusionRoutesForHost(entry.appFusionRoutes ?? [], host).length > 0)
+      .map((host) => host.permanentId);
+  };
   const eligibleBase = (perm: Permanent): boolean =>
-    digivolveTargetsOf(handSel ?? undefined).includes(perm.permanentId);
+    digivolveTargetsOf(handSel ?? undefined).includes(perm.permanentId) ||
+    appFusionHostIdsOf(handSel ?? undefined).includes(perm.permanentId);
   const dragCardId = drag && drag.started ? drag.cardId : undefined;
   const dragIsPlay = drag?.kind === "play" && drag.started;
   const dragIsAttack = drag?.kind === "attack" && drag.started;
@@ -1205,10 +1224,16 @@ export function GameScreen({
     const route = base
       ? handCardEvolutionRoute(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId).includes(hit.id ?? ""))
       : undefined;
+    const appFusion = base
+      ? appFusionRoutesForHost(
+          handEntries.find((entry) => entry.instanceId === drag.instanceId)?.appFusionRoutes ?? [],
+          base,
+        ).length > 0
+      : false;
     return dragIntentFor({
       drag: held,
       target: hit.target,
-      evolutionRoute: route?.kind,
+      evolutionRoute: appFusion ? "normal" : route?.kind,
       digivolvable: !!you.breeding && digivolveTargetsOf(drag.instanceId).includes(you.breeding.permanentId),
     });
   };
@@ -1226,7 +1251,10 @@ export function GameScreen({
   // these permanents mark themselves — a Tamer never among them.
   const dragBasePermanentIds = new Set(
     dragIsPlay && drag
-      ? digivolveBasePermanentIds(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId))
+      ? [
+          ...digivolveBasePermanentIds(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId)),
+          ...appFusionHostIdsOf(drag.instanceId),
+        ]
       : [],
   );
 
@@ -1333,6 +1361,13 @@ export function GameScreen({
         const perm =
           you.battleArea.find((p) => p.permanentId === id) ??
           (you.breeding?.permanentId === id ? you.breeding : undefined);
+        const appFusionRoute = handEntries
+          .find((entry) => entry.instanceId === d.instanceId)
+          ?.appFusionRoutes?.some((route) => {
+            const host = you.battleArea.find((candidate) => candidate.permanentId === id);
+            return host !== undefined && appFusionRoutesForHost([route], host).length > 0;
+          });
+        if (perm && appFusionRoute) return openAppFusionChoice(d.instanceId, id);
         const evolutionRoute =
           perm && !perm.inBreeding
             ? handCardEvolutionRoute(
@@ -1402,6 +1437,19 @@ export function GameScreen({
     }
     return undefined;
   };
+
+  const openAppFusionChoice = (handInstanceId: string, hostPermanentId: string) => {
+    if (!appFusionActionAvailable()) return;
+    const entry = handEntries.find((candidate) => candidate.instanceId === handInstanceId);
+    const host = you.battleArea.find((candidate) => candidate.permanentId === hostPermanentId);
+    if (!entry || !host) return;
+    setAppFusionChoice({ handInstanceId, hostPermanentId });
+  };
+
+  const appFusionActionAvailable = () =>
+    Boolean(
+      !state.gameOver && !boardLocked && !decision && !state.pendingDecision && isMyTurn && state.phase === Phase.Main,
+    );
 
   /** Open the action menu anchored above a field card. */
   const showCardMenu = (permanentId: string, side: "you" | "opp") => {
@@ -1484,6 +1532,9 @@ export function GameScreen({
   // ----- click routing -----
   const onYourPerm = (perm: Permanent): (() => void) | undefined => {
     if (selCardId && handSel) {
+      if (appFusionHostIdsOf(handSel).includes(perm.permanentId)) {
+        return () => openAppFusionChoice(handSel, perm.permanentId);
+      }
       const route = handCardEvolutionRoute(selCardId, you.battleArea, eligibleBase(perm));
       if (route?.kind === "both")
         return () =>
@@ -1712,6 +1763,21 @@ export function GameScreen({
       : [];
 
   // ----- overlays -----
+  // The overlay stays mounted when its routes go stale so the player sees why the
+  // action disappeared; an empty route list disables confirmation.
+  const appFusionLive = appFusionChoice
+    ? (() => {
+        const entry = handEntries.find((candidate) => candidate.instanceId === appFusionChoice.handInstanceId);
+        const host = you.battleArea.find((candidate) => candidate.permanentId === appFusionChoice.hostPermanentId);
+        const usable = entry !== undefined && host !== undefined && appFusionActionAvailable();
+        return {
+          entry,
+          host,
+          routes: usable ? appFusionRoutesForHost(entry.appFusionRoutes ?? [], host) : [],
+          normalEvolutionLegal: usable && entry.digivolveTargetPermanentIds.includes(host.permanentId),
+        };
+      })()
+    : undefined;
   const stageEl = typeof document !== "undefined" ? document.getElementById("aegis-stage") : null;
   const overlays = (
     <>
@@ -1729,7 +1795,10 @@ export function GameScreen({
           cardId={handPreviewEntry.cardId}
           activatableEffects={parseActivatable(handPreviewEntry.activatableEffectsJson)}
           canPlay={handPreviewEntry.playableFromHand}
-          canDigivolve={handPreviewEntry.digivolveTargetPermanentIds.length > 0}
+          canDigivolve={
+            handPreviewEntry.digivolveTargetPermanentIds.length > 0 ||
+            appFusionHostIdsOf(handPreviewEntry.instanceId).length > 0
+          }
           onPlay={() => {
             if (handSel) playCard(handSel);
             setHandPreview(null);
@@ -1979,6 +2048,46 @@ export function GameScreen({
           }
           onCancel={() => {
             setActionConfirm(null);
+            clearSel();
+          }}
+        />
+      ) : null}
+
+      {appFusionChoice && appFusionLive ? (
+        <AppFusionChoiceOverlay
+          resultCardId={appFusionLive.entry?.cardId ?? ""}
+          hostCardId={appFusionLive.host?.topCard?.cardId ?? ""}
+          routes={appFusionLive.routes}
+          onConfirm={(linkedInstanceId) => {
+            const liveEntry = handEntries.find((entry) => entry.instanceId === appFusionChoice.handInstanceId);
+            const liveHost = you.battleArea.find(
+              (candidate) => candidate.permanentId === appFusionChoice.hostPermanentId,
+            );
+            const liveRoute =
+              liveEntry && liveHost
+                ? appFusionRoutesForHost(liveEntry.appFusionRoutes ?? [], liveHost).find(
+                    (route) => route.linkedInstanceId === linkedInstanceId,
+                  )
+                : undefined;
+            if (room && appFusionActionAvailable() && liveEntry && liveHost && liveRoute) {
+              intents.appFusion(room, liveHost.permanentId, liveEntry.instanceId, liveRoute.linkedInstanceId);
+              playGameCue("digivolve");
+            }
+            setAppFusionChoice(null);
+            clearSel();
+          }}
+          onNormalEvolution={
+            appFusionLive.normalEvolutionLegal
+              ? () => {
+                  const { entry, host } = appFusionLive;
+                  if (!entry || !host || !appFusionActionAvailable()) return;
+                  setAppFusionChoice(null);
+                  digivolveWithChoice(host.permanentId, entry.instanceId, entry.cardId, host);
+                }
+              : undefined
+          }
+          onCancel={() => {
+            setAppFusionChoice(null);
             clearSel();
           }}
         />
@@ -2618,7 +2727,7 @@ export function GameScreen({
                         "data-id": p.permanentId,
                         ...baseDropIntentAttrs(p.permanentId),
                       }}
-                      onClick={draggable ? undefined : onYourPerm(p)}
+                      onClick={handSel ? onYourPerm(p) : draggable ? undefined : onYourPerm(p)}
                       onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
                       // Drag-only permanents still need a pointer-free path: Enter or
                       // Space selects them like a tap would.
@@ -2816,7 +2925,10 @@ export function GameScreen({
                 canAttackSecurity={canAttackSecurity}
                 vortexMode={vortexMode}
                 canPlay={selEntry?.playableFromHand === true}
-                hasBase={(selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0}
+                hasBase={
+                  (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+                  appFusionHostIdsOf(selEntry?.instanceId).length > 0
+                }
                 onPlay={() => handSel && playCard(handSel)}
                 onAttackSec={() => selPerm && attack(selPerm, { kind: "player" }, vortexMode)}
                 onAttackPerm={(pid) => selPerm && attack(selPerm, { kind: "permanent", permanentId: pid }, vortexMode)}

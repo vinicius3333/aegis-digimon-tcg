@@ -22,6 +22,7 @@ import {
   buildInstanceIndex,
   getDigivolveCostOptions,
   handCardEvolutionRoute,
+  appFusionRoutesForHost,
   findDnaMaterialCombination,
   linkCardSlots,
   playButtonLabel,
@@ -29,6 +30,45 @@ import {
   triggerLabel,
   triggerLabels,
 } from "./boardModel";
+
+describe("appFusionRoutesForHost", () => {
+  const host = (permanentId: string, linked: { instanceId: string; cardId: string }[]) =>
+    ({ permanentId, linked }) as unknown as Permanent;
+
+  it("joins two current linked physical cards with server costs", () => {
+    expect(
+      appFusionRoutesForHost(
+        [
+          { hostPermanentId: "host", linkedInstanceId: "a", projectedCost: 0 },
+          { hostPermanentId: "host", linkedInstanceId: "b", projectedCost: 2 },
+        ],
+        host("host", [
+          { instanceId: "a", cardId: "BT23-007" },
+          { instanceId: "b", cardId: "BT23-021" },
+        ]),
+      ),
+    ).toEqual([
+      { linkedInstanceId: "a", linkedCardId: "BT23-007", projectedCost: 0 },
+      { linkedInstanceId: "b", linkedCardId: "BT23-021", projectedCost: 2 },
+    ]);
+  });
+
+  it("rejects routes for another host, removed links, and an empty host", () => {
+    const current = host("host", [{ instanceId: "a", cardId: "BT23-007" }]);
+    expect(
+      appFusionRoutesForHost(
+        [
+          { hostPermanentId: "other", linkedInstanceId: "a", projectedCost: 0 },
+          { hostPermanentId: "host", linkedInstanceId: "removed", projectedCost: 1 },
+        ],
+        current,
+      ),
+    ).toEqual([]);
+    expect(
+      appFusionRoutesForHost([{ hostPermanentId: "host", linkedInstanceId: "a", projectedCost: 0 }], undefined),
+    ).toEqual([]);
+  });
+});
 
 describe("buildInstanceIndex", () => {
   it("keeps rendering when a transient state patch omits a permanent card list", () => {

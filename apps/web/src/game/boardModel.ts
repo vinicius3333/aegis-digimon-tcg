@@ -118,6 +118,32 @@ export type HandCardEvolutionRoute =
   | { kind: "both"; materialPermanentIds: string[] }
   | undefined;
 
+export interface AppFusionOverlayRoute {
+  linkedInstanceId: string;
+  linkedCardId: string;
+  projectedCost: number;
+}
+
+/**
+ * Projects server-authorized App Fusion routes for the currently selected host.
+ * A route is shown only while both its host and linked physical card are still
+ * present; legality and projected cost remain server-owned.
+ */
+export function appFusionRoutesForHost(
+  routes: readonly { hostPermanentId: string; linkedInstanceId: string; projectedCost: number }[],
+  host: Permanent | undefined,
+): AppFusionOverlayRoute[] {
+  if (host === undefined) return [];
+  const linkedById = new Map((host.linked ?? []).map((card) => [card.instanceId, card.cardId]));
+  return routes
+    .filter((route) => route.hostPermanentId === host.permanentId && linkedById.has(route.linkedInstanceId))
+    .map((route) => ({
+      linkedInstanceId: route.linkedInstanceId,
+      linkedCardId: linkedById.get(route.linkedInstanceId)!,
+      projectedCost: route.projectedCost,
+    }));
+}
+
 /**
  * Resolve the legal evolution modes when a hand card is dropped onto one of its possible
  * bases. `normal` is the server's own verdict for this (card, base) pair

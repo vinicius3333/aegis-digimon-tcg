@@ -45,6 +45,12 @@ export interface HandEntry {
   projectedPlayCost: number;
   /** Server projection: own permanents this card may digivolve onto right now. */
   digivolveTargetPermanentIds: readonly string[];
+  /** Server-projected App Fusion routes; the board never derives legality locally. */
+  appFusionRoutes?: readonly {
+    hostPermanentId: string;
+    linkedInstanceId: string;
+    projectedCost: number;
+  }[];
 }
 
 /** How many pieces the security pane breaks into. */
