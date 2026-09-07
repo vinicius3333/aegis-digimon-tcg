@@ -101,7 +101,7 @@ describe("BT24-027 Lanamon", () => {
             { card: "BT24-027", as: "lanamon" },
             { card: "BT24-022", as: "placed" },
           ],
-          battleArea: [{ card: "BT24-020", as: "protected" }],
+          battleArea: [{ card: "BT24-020", as: "protected", suspended: true }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -153,6 +153,43 @@ describe("BT24-027 Lanamon", () => {
       s.inst("base").instanceId,
     ]);
     expect(observe(s.engine).isRestricted(s.perm("base"), "beDeletedInBattle")).toBe(true);
+  });
+
+  it("prevents a public battle attack from deleting the protected blue TS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-027", as: "lanamon" }, { card: "BT24-022", as: "placed" }],
+          battleArea: [{ card: "BT24-020", as: "protected" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle"));
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    s.perm("attacker").enterFieldTurnCount = s.state.turnCount - 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    s.perm("protected").isSuspended = true;
+    expect(s.perm("protected").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("protected").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(s.perm("protected").permanentId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("protected").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("Decodes Calmaramon only on non-battle removal", async () => {
