@@ -49,7 +49,7 @@ describe("BT21-068 Growlmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-068", as: "growlmon" }], deck: ["BT1-009", "BT1-010"] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
+        1: { battleArea: [{ card: "BT1-014", as: "target" }] },
       },
       { autoSelectCards: true },
     );
@@ -80,6 +80,52 @@ describe("BT21-068 Growlmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("mills two when an eligible target prevents deletion with printed Armor Purge", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-068", as: "growlmon" }],
+          deck: [
+            { card: "BT1-009", as: "millA" },
+            { card: "BT1-010", as: "millB" },
+            { card: "BT1-011", as: "sentinel" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT10-074", as: "protected", under: ["BT12-073"] }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    // The sole mandatory target is automatic; its controller chooses Armor Purge.
+    await settle(() => s.state.pendingDecision !== undefined);
+    const pending = s.state.pendingDecision;
+    expect(pending?.kind).toBe("selectCards");
+    expect(s.decisions.at(-1)!.seat).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: pending!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("protected").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("millA").instanceId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("millB").instanceId),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("protected").permanentId)).toBe(true);
+    expect(s.perm("protected").topCard.cardId).toBe("BT12-073");
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT10-074")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("millA").instanceId, s.inst("millB").instanceId]),
+    );
   });
 
   it("mills two after the public When Digivolving trigger has no eligible target", async () => {
