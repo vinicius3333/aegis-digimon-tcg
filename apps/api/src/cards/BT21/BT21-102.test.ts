@@ -77,6 +77,21 @@ describe("BT21-102 Tai Kamiya", () => {
     expect(s.state.memory).toBe(after);
   });
 
+  it("sets memory through the public Start-of-Turn lifecycle at the printed threshold", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-102", as: "tai" }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-010"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("suspends when an own Digimon attacks and draws exactly one", async () => {
     const s = setupEngine(
       {
