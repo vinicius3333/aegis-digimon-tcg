@@ -95,4 +95,23 @@ describe("BT22-086 Yao Qinglan", () => {
     expect(s.perm("yao").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
+
+  it("plays Yao Qinglan from security during a public security check", async () => {
+    const s = setupEngine(
+      { 0: { security: ["BT22-086"] }, 1: { battleArea: [{ card: "BT1-009", as: "attacker" }] } },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-086"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-086")).toBe(true);
+  });
 });

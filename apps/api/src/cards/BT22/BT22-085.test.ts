@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-085.js";
 
 describe("BT22-085 Rina Shinomiya", () => {
@@ -72,5 +75,35 @@ describe("BT22-085 Rina Shinomiya", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: id })).toEqual({ ok: true });
     await settle(() => s.perm("veedramon").currentDP !== before);
     expect(s.perm("veedramon").currentDP).toBe(before + 3000);
+  });
+
+  it("sets low memory to 3 at the public start-of-turn timing", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-085", as: "rina" }] } });
+    await s.ready();
+    s.state.memory = 2;
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartTurn);
+    await settle();
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("returns Rina and grants Jamming to the attacking Veedramon", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-022", as: "veedramon" }, { card: "BT22-085", as: "rina" }] }, 1: { security: ["BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("veedramon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-085"));
+    expect(observe(s.engine).hasKeyword(s.perm("veedramon"), "Jamming")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-085")).toBe(true);
+  });
+
+  it("plays Rina from security during a public security check", async () => {
+    const s = setupEngine({ 0: { security: ["BT22-085"] }, 1: { battleArea: [{ card: "BT1-009", as: "attacker" }] } }, { autoAcceptOptional: true });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-085"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-085")).toBe(true);
   });
 });
