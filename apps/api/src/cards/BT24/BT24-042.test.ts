@@ -189,4 +189,28 @@ describe("BT24-042 Goblimon", () => {
 
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not retroactively open Alliance after hand-trash evolution during an attack (Q5631)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-042", "ST16-03"] }],
+          hand: [{ card: "BT1-009", as: "drawnTrash" }],
+          trash: [{ card: "P-209", as: "titamon" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-013"], deck: ["BT1-014", "BT1-015", "BT1-016"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").topCard.cardId).toBe("P-209");
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
 });
