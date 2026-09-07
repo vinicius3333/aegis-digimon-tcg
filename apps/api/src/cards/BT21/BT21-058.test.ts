@@ -431,4 +431,75 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
       ),
     ).toBe(true);
   });
+
+  it("publicly triggers inherited Snatchmon deletion during an opponent-turn End Attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT11-111",
+              as: "host",
+              under: [
+                { card: VEMMON_CARD, as: "vemmonA" },
+                { card: "BT11-061", as: "vemmonB" },
+                { card: SNATCHMON, as: "snatchmonSource" },
+                { card: "BT21-060", as: "destromonSource" },
+              ],
+            },
+          ],
+          security: [{ card: "BT1-009", as: "security" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker" },
+            { card: "BT21-043", as: "deletionTarget" },
+          ],
+          deck: ["BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    preferred.push(s.perm("deletionTarget").permanentId);
+    const attackerId = s.perm("attacker").permanentId;
+    const targetId = s.perm("deletionTarget").permanentId;
+    const targetCardId = s.inst("deletionTarget").instanceId;
+    const vemmonAId = s.inst("vemmonA").instanceId;
+    const vemmonBId = s.inst("vemmonB").instanceId;
+    const destromonSourceId = s.inst("destromonSource").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") === false &&
+        s.state.players[0]!.security.length === 1 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === targetCardId),
+    );
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(
+      s.state.players[0]!.deck.slice(-2)
+        .map((card) => card.instanceId)
+        .sort(),
+    ).toEqual([vemmonAId, vemmonBId].sort());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT11-111")).toBe(true);
+    const host = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT11-111");
+    expect(host?.stack.map((card) => card.instanceId)).toEqual([
+      s.inst("snatchmonSource").instanceId,
+      destromonSourceId,
+    ]);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+  });
 });
