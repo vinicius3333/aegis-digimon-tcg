@@ -109,7 +109,7 @@ describe("BT21-060 Destromon", () => {
           hand: [{ card: "BT21-060", as: "destromon" }],
           deck: ["BT1-001"],
         },
-        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042"] }] },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
