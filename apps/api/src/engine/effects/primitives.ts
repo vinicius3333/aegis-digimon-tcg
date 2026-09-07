@@ -62,6 +62,7 @@ import {
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
 import { ContinuousEffectLedger, effectiveNames } from "./continuous.js";
+import { isTimingActivationDisabled } from "./timingActivation.js";
 import { SubTriggerRegistry, type DnaMemoryGain, type SubTriggerRootZone } from "./subtriggers.js";
 import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
@@ -724,7 +725,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addEffectTimingDisable(permanentId, timings, durationForTarget(permanentId, duration), continuousOpt());
   };
   const isTimingEffectDisabled: NonNullable<Primitives["isTimingEffectDisabled"]> = (permanentId, timing) =>
-    continuous.isTimingEffectDisabled(permanentId, timing) && !continuous.hasRestriction(permanentId, "beAffected");
+    isTimingActivationDisabled(continuous, permanentId, timing);
 
   const declareWinner = (seat: Seat): void => {
     if (engine.win) engine.win.declareWinner(seat, "effect");

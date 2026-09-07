@@ -1,3 +1,4 @@
+import { isTimingActivationDisabled } from "./effects/timingActivation.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
@@ -1114,9 +1115,7 @@ export class GameEngine {
         );
       },
       (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
-      (permanentId, timing) =>
-        this.continuous.isTimingEffectDisabled(permanentId, timing) &&
-        !this.continuous.hasRestriction(permanentId, "beAffected"),
+      (permanentId, timing) => isTimingActivationDisabled(this.continuous, permanentId, timing),
       (permanent) => this.effectiveColorsOf(permanent),
       (instanceId) => this.continuous.hasColorWaiver(instanceId),
       (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
@@ -3954,30 +3953,59 @@ export class GameEngine {
       .flatMap((instance) => {
         const source = this.cardSourceOf(instance);
         const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
-        return timings.flatMap((timing) => effectsOf(timing, source).map((effect) => ({ effect, source, ctx })));
+        return timings.flatMap((timing) => {
+          const timingKey: "whenDigivolving" | "onPlay" | "whenAttacking" | undefined =
+            timing === EffectTiming.WhenDigivolving
+              ? "whenDigivolving"
+              : timing === EffectTiming.OnPlay
+                ? "onPlay"
+                : timing === EffectTiming.OnUseAttack
+                  ? "whenAttacking"
+                  : undefined;
+          return effectsOf(timing, source).map((effect) => ({ effect, source, ctx, timing: timingKey }));
+        });
       })
       .filter(({ effect }) => !effect.isSecurity)
       .filter(({ effect, ctx }) => opts?.outsideTriggerWindow === true || canTrigger(effect, ctx, this.tracker));
-    if (candidates.length === 0) return false;
+    const availableCandidates = candidates.filter(({ ctx, timing }) => {
+      if (timing === undefined) return true;
+      const sourcePermanentId = ctx.source.permanent()?.permanentId;
+      return sourcePermanentId === undefined || !isTimingActivationDisabled(this.continuous, sourcePermanentId, timing);
+    });
+    if (availableCandidates.length === 0) return false;
     if (!chooseOne) {
       let activatedAny = false;
-      for (const { effect, ctx } of candidates) {
+      for (const { effect, ctx, timing } of availableCandidates) {
         if (!canActivate(effect, ctx, this.tracker)) continue;
+        const sourcePermanentId = ctx.source.permanent()?.permanentId;
+        if (
+          timing !== undefined &&
+          sourcePermanentId !== undefined &&
+          isTimingActivationDisabled(this.continuous, sourcePermanentId, timing)
+        )
+          continue;
         await effect.resolve(ctx);
         activatedAny = true;
       }
       await this.recomputeContinuousEffects();
       return activatedAny;
     }
-    let chosen = candidates[0]!;
-    if (candidates.length > 1) {
+    let chosen = availableCandidates[0]!;
+    if (availableCandidates.length > 1) {
       const index = await this.decisionApi.chooseOption(
         chosen.ctx,
-        candidates.map(({ effect }) => effect.description),
+        availableCandidates.map(({ effect }) => effect.description),
       );
-      chosen = candidates[index] ?? candidates[0]!;
+      chosen = availableCandidates[index] ?? availableCandidates[0]!;
     }
     if (!canActivate(chosen.effect, chosen.ctx, this.tracker)) return false;
+    const chosenSourcePermanentId = chosen.ctx.source.permanent()?.permanentId;
+    if (
+      chosen.timing !== undefined &&
+      chosenSourcePermanentId !== undefined &&
+      isTimingActivationDisabled(this.continuous, chosenSourcePermanentId, chosen.timing)
+    )
+      return false;
     await chosen.effect.resolve(chosen.ctx);
     await this.recomputeContinuousEffects();
     return true;
