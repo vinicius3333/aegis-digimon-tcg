@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -126,6 +127,42 @@ describe("BT21-060 Destromon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.perm("opponent").topCard.cardId).toBe("BT21-045");
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT21-056"]);
+  });
+
+  it("publicly protects its stacked cards from an opponent De-Digivolve effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-056", as: "source" }], hand: [{ card: "BT21-060", as: "destromon" }] },
+        1: {
+          hand: [{ card: "BT21-061", as: "opponent" }],
+          battleArea: [
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT1-086", as: "blueTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("destromon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-060");
+    const protectedStack = s.perm("source").stack.map((card) => card.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponent").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-061"));
+    expect(s.perm("source").topCard.cardId).toBe("BT21-060");
+    expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual(protectedStack);
   });
 
   it("publicly places two Vemmon before the exact-name evolution and applies one De-Digivolve", async () => {
@@ -263,7 +300,7 @@ describe("BT21-060 Destromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.deck.length === 2);
+    await settle(() => s.state.players[1]!.deck.length === 2 && !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-060"]);
@@ -300,7 +337,7 @@ describe("BT21-060 Destromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
 
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
   });
