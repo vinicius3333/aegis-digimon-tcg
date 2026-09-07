@@ -149,7 +149,7 @@ describe("BT22-030 Musimon", () => {
   it("applies the linked attack debuff once per turn from a realistic host", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT22-032", linked: [{ card: "BT22-030", as: "musimon" }], as: "host" }] },
+        0: { battleArea: [{ card: "BT22-035", linked: [{ card: "BT22-030", as: "musimon" }], as: "host" }] },
         1: {
           battleArea: [
             { card: "BT22-024", as: "firstTarget" },
@@ -169,5 +169,39 @@ describe("BT22-030 Musimon", () => {
 
     expect(s.perm("firstTarget").currentDP).toBe(firstDP - 2000);
     expect(s.perm("secondTarget").currentDP).toBe(secondDP);
+  });
+
+  it("charges the printed link cost and rejects a non-Appmon link card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-035", as: "host" }],
+          hand: [{ card: "BT22-030", as: "appmonLink" }, { card: "BT22-032", as: "nonAppmon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("appmonLink").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("appmonLink").instanceId));
+    expect(s.state.memory).toBe(0);
+
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("nonAppmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(1);
   });
 });
