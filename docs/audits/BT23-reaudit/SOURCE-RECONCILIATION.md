@@ -15,3 +15,17 @@ BT23-scoped effects sync initially exceeded its formatter's 30-second timeout. T
 ## Remaining source corrections
 
 [Examon's official collection entry](https://en.digimoncard.com/cardlist/index.php?category=508034&search=true) supplies a CS level-6 alternate for 5 and green/blue level-6 DNA for 0. [Mastemon's official entry](https://en.digimoncard.com/cardlist/?card_no=BT23-102&search=true) supplies a CS level-5 alternate for 5 and yellow/purple level-5 DNA for 0. Their catalog text is prepared in the working tree; direct IR and behavioral proofs remain queued. These cards remain incomplete.
+
+BT23-052 Consulmon: the catalog `linkEffect` carried a duplicated `[When Linking]` tag from the import. Removed the duplicate under coordinator ownership (text-only; no IR field depends on it). The double space in `effectText` between the Security and On Play clauses is left as imported.
+
+BT23-013 Jesmon: `ALTERNATE_DIGIVOLUTION_OVERRIDES["BT23-013"]` in `packages/shared/src/effects/data.ts` used substring `names` for the printed exact `[SaviorHuckmon]` and `[Huckmon]` routes, so BaoHuckmon could take the cost-5 Huckmon route. Changed to `namesExact` under coordinator ownership (session 2 exact-name sweep).
+
+Official "(Rule)" lines in BT23 (checked against logs/official-bt23.html, session 2): BT23-032 Angel type, BT23-042/043/045 Insectoid type, BT23-077 name alias [Sistermon Noir] plus Virus trait. The type and attribute halves are already present in the catalog `types`/`attributes` arrays. The 077 name alias was absent from both catalog text and module; the module now carries a `Rule` effect granting the name (same shape as BT6-084). The catalog `effectText` for these five cards omits the "(Rule)" sentence; it is left as imported because per-card tests assert the exact printed effect text, and the data fields carry the rule.
+
+BT23-084 Erika Mishima: the catalog kept the `[Security]` clause inside `effectText` with no `securityEffectText`, unlike every peer Tamer. Moved the clause to `securityEffectText` under coordinator ownership (session 2); engine behaviour is driven by the module's `Security` trigger and is unchanged. 082/084 focused suites: 31 passed after the change.
+
+Non-breaking spaces: several BT23 catalog `effectText` values carry U+00A0 (for example before "trait" in BT23-037, 041, 043, 053, 081, 087, 088). Some official entries print NBSP, some print ordinary spaces (BT23-088 differs). Tests normalise or pin as needed; a set-wide whitespace normalisation of the import is deferred to avoid churning exact-text assertions mid-audit.
+
+BT23-100: `nameEn` was stored as "Hudie Net CafxE9" (import mojibake for é). Corrected to "Hudie Net Café" in the catalog, the 100 test and the ledger under coordinator ownership (session 2). The same import defect exists outside BT23 in BT10-101 and BT6-105 `nameEn`; left for those set audits.
+
+BT23-099: catalog `effectText` read "with [Huckmon] in its name the field"; official text is "on the field". Corrected under coordinator ownership (session 2); the 099 test does not pin that fragment and stays green after a shared rebuild.
