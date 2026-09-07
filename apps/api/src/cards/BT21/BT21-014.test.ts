@@ -111,6 +111,55 @@ describe("BT21-014 BurningGreymon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("uses public Agunimon evolution for Piercing combat, then expires the bonuses at turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "agunimon" }],
+          hand: [{ card: "BT21-014", as: "burningGreymon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agunimon").permanentId,
+        instanceId: s.inst("burningGreymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agunimon").topCard.instanceId === s.inst("burningGreymon").instanceId);
+    expect(s.perm("agunimon").currentDP).toBe(11000);
+    expect(observe(s.engine).hasPierce(s.perm("agunimon"))).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("agunimon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.security.length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("agunimon").currentDP).toBe(8000);
+    expect(observe(s.engine).hasPierce(s.perm("agunimon"))).toBe(false);
+  });
+
   it("pays 3 to evolve into a level-5 Hybrid only after opponent security removal", async () => {
     const s = setupEngine(
       {
@@ -118,14 +167,19 @@ describe("BT21-014 BurningGreymon", () => {
           battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
           hand: [{ card: "BT21-020", as: "aldamon" }],
         },
+        1: { security: ["BT1-001", "BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("burningGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("burningGreymon").topCard.cardId === "BT21-020");
     expect(s.state.memory).toBe(2);
   });
@@ -137,13 +191,46 @@ describe("BT21-014 BurningGreymon", () => {
           battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
           hand: [{ card: "BT21-020", as: "aldamon" }],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoDeclineOptional: true },
     );
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("burningGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     expect(s.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("does not evolve after public security removal when the hand destination is not a Hybrid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
+          hand: [{ card: "BT21-022", as: "invalid" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("burningGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("invalid").instanceId]);
     expect(s.state.memory).toBe(5);
   });
 

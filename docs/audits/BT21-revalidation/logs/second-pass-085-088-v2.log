@@ -1,0 +1,100 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > draws after the Save/Hero hand placement and pays the digivolution reduction with both costs 2ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > places a Save Digimon under itself and gains memory at start of main phase 19ms
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Save text and places only the eligible hand Digimon at its bottom 12ms
+   → expected -3 to be 4 // Object.is equality
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digimon and places only the eligible hand Digimon at its bottom 5ms
+   → expected -3 to be 4 // Object.is equality
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks nonmatching Digimon and places only the eligible hand Digimon at its bottom 4ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Tamer and places only the eligible hand Digimon at its bottom 3ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digi-Egg and places only the eligible hand Digimon at its bottom 5ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > declining the start-of-main cost does not place, draw, or gain memory 4ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > reduces a Save/Hero digivolution by 1 and moves an under-Tamer card to the true bottom 8ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > plays itself from a public Security attack without paying cost 6ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > does not reduce or move material when the cost is declined 4ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > does not reduce or move material when the cost is no under-Tamer card 3ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > does not reduce or move material when the cost is already suspended 2ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > compares the Save-only evolution while paying from another own Tamer 4ms
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > compares the Hero-only evolution while paying from another own Tamer 5ms
+   → expected 2 to be 3 // Object.is equality
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > compares the neither evolution while paying from another own Tamer 4ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > registers the three printed timing windows and a real On Play suspension effect 0ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main with an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > suspends a Marcus Damon on the field when played 4ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > does not suspend an opponent's Marcus Damon 2ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > grants Piercing and +3000 DP to the same Digimon, then gives an opponent -3000 DP 3ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > declining the On Play suspension leaves every Marcus unsuspended and grants no modifiers 2ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > triggers only for this Marcus and only once per turn 4ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > plays itself from Security without paying cost 5ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > encodes the conditional memory, paid optional Main effect, and Security play 0ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > start of main with an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > gains the conditional memory through the public start-of-main lifecycle 3ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > suspends, trashes only the top Armor Form source, draws, and gains memory 4ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > declining pays neither cost and resolves neither reward 2ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > cannot pay the Main effect without a stacked Armor Form Digimon 1ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > plays itself from Security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > plays itself from a public Security attack without paying cost 4ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > models one Vemmon-text selection with the alternative free-play destination 0ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > adds a card that mentions Vemmon and trashes every revealed remainder 2ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > resolves the reveal through a public play intent 1ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > publicly chooses the exact-name Vemmon free-play disposition 2ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > names every revealed card in the prompt that offers them 1ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > sets memory to 3 only when it is 2 or less 1ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > sets memory to 3 through the public start-of-turn lifecycle 3ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > trashes all three revealed cards when none contain Vemmon in their text 1ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > plays itself from Security without paying cost and resolves its On Play reveal 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Save text and places only the eligible hand Digimon at its bottom
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digimon and places only the eligible hand Digimon at its bottom
+AssertionError: expected -3 to be 4 // Object.is equality
+
+- Expected
++ Received
+
+- 4
++ -3
+
+ ❯ src/cards/BT21/BT21-088.test.ts:105:30
+    103|       await advance(s.engine).waitForMainPhase(0);
+    104|       if (eligible) await settle(() => s.state.memory === 4);
+    105|       expect(s.state.memory).toBe(eligible ? 4 : 3);
+       |                              ^
+    106|       advance(s.engine).endMainPhaseIfOpen(0);
+    107|       await turn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > compares the Hero-only evolution while paying from another own Tamer
+AssertionError: expected 2 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 2
+
+ ❯ src/cards/BT21/BT21-088.test.ts:268:30
+    266|       ).toEqual({ ok: true });
+    267|       await settle(() => s.perm("host").topCard.cardId === evolution);
+    268|       expect(s.state.memory).toBe(5 - expectedCost);
+       |                              ^
+    269|       expect(s.perm("tagiru").isSuspended).toBe(reduces);
+    270|       expect(s.perm("otherTamer").stack).toHaveLength(reduces ? 0 : 1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  3 failed | 40 passed (43)
+   Start at  18:37:33
+   Duration  7.42s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-085.test.ts src/cards/BT21/BT21-086.test.ts src/cards/BT21/BT21-087.test.ts src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

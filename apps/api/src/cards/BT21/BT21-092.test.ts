@@ -1,7 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-092.js";
 import "../index.js";
 
@@ -64,9 +63,7 @@ describe("BT21-092 Can't Turn My Back!", () => {
       setup.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedId),
     );
 
-    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([
-      setup.inst("tamerSource").instanceId,
-    ]);
+    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([setup.inst("tamerSource").instanceId]);
     expect(setup.perm("destination").stack.map((card) => card.instanceId)).toEqual([
       setup.inst("digimonSourceA").instanceId,
       setup.inst("digimonSourceB").instanceId,
@@ -97,22 +94,68 @@ describe("BT21-092 Can't Turn My Back!", () => {
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
+  it("does not borrow an opponent's Xros Heart trait for the color waiver", async () => {
+    const setup = setupEngine({
+      0: { hand: [{ card: "BT21-092", as: "option" }] },
+      1: { battleArea: [{ card: "BT10-008", as: "opponentXros" }] },
+    });
+    setup.state.memory = 2;
+    await setup.ready();
+
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("option").instanceId)).toBe(true);
+  });
+
   it("Security plays a cost-5 Xros Heart Tamer from trash without paying cost", async () => {
     const setup = setupEngine(
       {
-        0: {
-          security: [{ card: "BT21-092", as: "option" }],
-          trash: [{ card: "BT10-087", as: "tamer" }],
-        },
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: { security: [{ card: "BT21-092", as: "option" }], trash: [{ card: "BT10-087", as: "tamer" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     setup.state.memory = 0;
     await setup.ready();
 
-    await advance(setup.engine).fireForInstance(EffectTiming.SecuritySkill, setup.inst("option"));
-    await settle(() => setup.state.players[0]!.battleArea.length === 1);
-    expect(setup.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(setup.inst("tamer").instanceId);
+    expect(
+      setup.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: setup.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      setup.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === setup.inst("tamer").instanceId),
+    );
+    expect(setup.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(setup.inst("tamer").instanceId);
+    expect(setup.state.memory).toBe(0);
+  });
+
+  it("does not play a Xros Heart card above the Security play-cost ceiling", async () => {
+    const setup = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: { security: [{ card: "BT21-092", as: "option" }], trash: [{ card: "BT10-009", as: "overCost" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    setup.state.memory = 0;
+    await setup.ready();
+
+    expect(
+      setup.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: setup.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(setup.engine).isAttacking());
+    expect(
+      setup.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === setup.inst("overCost").instanceId),
+    ).toBe(false);
     expect(setup.state.memory).toBe(0);
   });
 });

@@ -1,0 +1,122 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > models the printed optional bottom-material cost before each lowest-DP deletion 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > publishes Security Attack +1, Raid, and both alternate level-5 evolution routes 9ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > places a qualifying hand card under itself before deleting the lowest-DP opponent 19ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > still pays the optional hand placement when a public attack has no deletion target 9ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > deletes exactly one lowest-DP tie through the effect window 5ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > pays the hand cost during a natural attack after Raid resolves 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > publicly places a non-Hero card with Gammamon in its ef… as the bottom source before deleting the target 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > publicly places a Hero-only card as the bottom source before deleting the target 5ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > uses Raid to redirect a public attack to the opponent's highest-DP unsuspended Digimon 4ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > performs two security checks from Security Attack +1 6ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-077 alternate route and pays a qualifying bottom-material cost 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-021 alternate route and pays a qualifying bottom-material cost 5ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > does not pay or delete with only a nonmatching hand card 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > permits declining a payable bottom-material cost without deleting 3ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > shares one once-per-turn delete budget and places Petrification for either opponent event 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes Security Attack +1 and Progress 2ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > evolves from a red level 5, may delete exactly one lowest-DP Digimon, and pays 4 10ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > may decline the deletion and preserves every opposing Digimon 1ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > uses one shared delete activation across digivolution and end of attack 9ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > shares the deletion budget from a public evolution with its later public attack 22ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays a token from a real opponent Digimon deletion 7ms
+ × src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays only one token across two public opponent Digimon deletions in one turn 42ms
+   → expected true to be false // Object.is equality
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for onDeletionOf and observes the once-per-turn limit 7ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for whenSecurityRemoved and observes the once-per-turn limit 3ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly performs its Security Attack +1 check and creates one opponent token from security removal 13ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > public player attack resolves End of Attack lowest-DP deletion with printed boundaries 16ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly refuses the optional lowest-DP deletion and preserves targets 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > does not use its DigiXros-only alias for an alternate digivolution 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > requires OmniShoutmon and ZeigGreymon as the two DigiXros materials 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publishes both alternate evolution routes and its additional DigiXros names 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > accepts the printed alias in a later public DigiXros recipe 5ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes exactly the lowest-DP opponent on play 3ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes one selected lowest-DP tie and preserves the other tie and higher target 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from AD1-013 for cost 2 and deletes the lowest DP Digimon 7ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from BT21-021 for cost 3 and deletes the lowest DP Digimon 6ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly performs two Security checks after DigiXrosing with an inherited Rush source 19ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > rejects both alternate routes from a nonmatching level-3 base without paying 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > places only Xros Heart and Blue Flare Digimon sources under a Tamer, then still leaves 8ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > may decline moving sources and leaves without offering the effect when no Tamer exists 7ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly evolves into Charismon and resolves its When Digivolving Link 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants BT1-019 the attack effect and respects its immunity at start of main 15ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants BT19-101 the attack effect and respects its immunity at start of main 14ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > resolves the public evolution Link choice at capacity (accept=true) 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > resolves the public evolution Link choice at capacity (accept=false) 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 2ms
+ × src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > limits the grant across two public Links in the same turn 4ms
+   → expected [ 'BT21-047' ] to deeply equal [ 'BT21-009' ]
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > public Gaia Force leaves a legal Link+1 host once, then deletes it on the second opportunity 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly links Charismon to an Appmon for exactly 3 memory 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays only one token across two public opponent Digimon deletions in one turn
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-029.test.ts:277:106
+    275|     await settle(() => !observe(s.engine).isAttacking() && !s.state.pl…
+    276|     expect(s.state.players[1]!.battleArea.some((permanent) => permanen…
+    277|     expect(s.state.players[1]!.battleArea.some((permanent) => permanen…
+       |                                                                                                          ^
+    278|     expect(
+    279|       s.state.players[1]!.battleArea.filter((permanent) => permanent.t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > limits the grant across two public Links in the same turn
+AssertionError: expected [ 'BT21-047' ] to deeply equal [ 'BT21-009' ]
+
+- Expected
++ Received
+
+  [
+-   "BT21-009",
++   "BT21-047",
+  ]
+
+ ❯ src/cards/BT21/BT21-073.test.ts:319:66
+    317|     }
+    318|     expect(s.state.memory).toBe(3);
+    319|     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqu…
+       |                                                                  ^
+    320|   });
+    321|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 63 passed (65)
+   Start at  20:42:16
+   Duration  10.59s (transform 82%, import 14%, tests 4%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-027.test.ts src/cards/BT21/BT21-028.test.ts src/cards/BT21/BT21-029.test.ts src/cards/BT21/BT21-073.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

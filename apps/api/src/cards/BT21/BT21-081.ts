@@ -1,15 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT21-081 Owen Dreadnought (Tamer):
-// [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
-// [End of Your Turn] By suspending this Tamer, give <Piercing> to 1 of your
-//   [Reptile]/[Dragonkin] trait Digimon for the turn, and that Digimon attacks.
-// [Security] Play this card without paying the cost.
-//
-// KB Q4593: the chosen Digimon must attack if possible; can't choose not to attack.
-// KB Q4594: second copy can't trigger another attack if already mid-attack.
-
+// CR 15-7-5 permits suspending Owen even when no Reptile/Dragonkin can receive Piercing.
+// Pay the optional processing cost before binding the shared grant/attack target.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -33,21 +26,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "SelectBind",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Reptile", "Dragonkin"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-            bindAs: "piercingTarget",
-          },
+          kind: "CostGatedBlock",
           cost: {
             kind: "suspend",
             target: {
@@ -61,33 +40,52 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            fromSelectionRef: "piercingTarget",
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+          actions: [
+            {
+              kind: "SelectBind",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Reptile", "Dragonkin"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+                bindAs: "piercingTarget",
+              },
             },
-            count: 1,
-          },
-          keyword: {
-            keyword: "Piercing",
-            raw: "＜Piercing＞",
-          },
-          duration: "forTheTurn",
-        },
-        {
-          kind: "Attack",
-          target: {
-            fromSelectionRef: "piercingTarget",
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "GainKeyword",
+              target: {
+                fromSelectionRef: "piercingTarget",
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Piercing",
+                raw: "\uff1cPiercing\uff1e",
+              },
+              duration: "forTheTurn",
             },
-            count: 1,
-          },
+            {
+              kind: "Attack",
+              target: {
+                fromSelectionRef: "piercingTarget",
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+            },
+          ],
         },
       ],
     },

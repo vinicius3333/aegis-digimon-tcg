@@ -76,6 +76,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
           raw: "when your opponent's security stack is removed from, you may play 1 red Tamer card from your hand without paying the cost",
           fireCondition: {
             kind: "triggerRemovedSecuritySeat",

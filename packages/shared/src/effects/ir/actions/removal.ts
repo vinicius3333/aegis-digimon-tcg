@@ -42,6 +42,13 @@ export interface ReturnTopDigivolutionCardsAction extends ActionBase {
   order?: "any";
 }
 
+/** Trash current top cards and promote the remaining stack, always leaving one card. */
+export interface TrashTopStackedCardsAction extends ActionBase {
+  kind: "TrashTopStackedCards";
+  target: Target;
+  amount: number;
+}
+
 /** Delete one opponent Digimon for each distinct color in the source stack (EX9-074). */
 export interface DeletePerColorAction extends ActionBase {
   kind: "DeletePerColor";

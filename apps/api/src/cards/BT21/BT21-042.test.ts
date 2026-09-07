@@ -138,6 +138,68 @@ describe("BT21-042 compiled implementation", () => {
     expect(s.perm("geogreymon").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
   });
 
+  it("consumes its once-per-turn trigger after a public refusal and ignores a second Marcus play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-042", as: "geogreymon" }],
+          hand: [
+            { card: "BT4-092", as: "firstMarcus" },
+            { card: "BT4-092", as: "secondMarcus" },
+            { card: "BT21-044", as: "rizegreymon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.length > 0);
+    const refusal = s.decisions.at(-1)!.req;
+    expect(refusal.kind).toBe("optional");
+    if (refusal.kind !== "optional") throw new Error("expected optional first trigger decision");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: refusal.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("geogreymon").topCard.cardId).toBe("BT21-042");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT4-092").length === 2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("geogreymon").topCard.cardId).toBe("BT21-042");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rizegreymon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("ignores a public Marcus Damon played by the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-042", as: "geogreymon" }], hand: [{ card: "BT21-044", as: "rizegreymon" }] },
+        1: { hand: [{ card: "BT21-086", as: "opponentMarcus" }], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT21-086"));
+    expect(s.perm("geogreymon").topCard.cardId).toBe("BT21-042");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("rizegreymon").instanceId);
+  });
+
   it("does not trigger from a combined Marcus Damon card name", async () => {
     const s = setupEngine(
       {

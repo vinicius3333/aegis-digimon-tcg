@@ -11,6 +11,45 @@ describe("BT21-056 Vemmon", () => {
     expect(compiled.residual ?? []).toEqual([]);
   });
 
+  it("publicly evolves from a black Digi-Egg in breeding for zero memory", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT21-006", as: "egg" }, hand: [{ card: "BT21-056", as: "vemmon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("vemmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-056");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT21-006"]);
+  });
+
+  it("does not reduce an inherited host's evolution into a card without Vemmon in its text", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-058", as: "host", under: ["BT21-056"] }],
+        hand: [{ card: "BT2-060", as: "megadramon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("megadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT2-060");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-056", "BT21-058"]);
+  });
+
   it("trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     const action = effect?.actions[0] as { target?: unknown; cost?: unknown } | undefined;
@@ -54,6 +93,7 @@ describe("BT21-056 Vemmon", () => {
           hand: [
             { card: "BT21-056", as: "played" },
             { card: "BT11-061", as: "cost" },
+            { card: "BT1-009", as: "invalidCost" },
           ],
           trash: [
             { card: "BT21-058", as: "returned" },
@@ -73,7 +113,33 @@ describe("BT21-056 Vemmon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returned").instanceId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidCost").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("egg").instanceId)).toBe(true);
+  });
+
+  it("refuses the optional recovery through a public play while preserving both zones", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-056", as: "played" },
+            { card: "BT11-061", as: "cost" },
+          ],
+          trash: [{ card: "BT21-058", as: "target" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-056"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
   });
 
   it("offers the effect with an empty trash because the trashed cost card becomes the target", async () => {
@@ -94,8 +160,24 @@ describe("BT21-056 Vemmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId));
-
+    const costId = s.inst("cost").instanceId;
+    await settle(
+      () =>
+        s.events.some(
+          (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(costId),
+        ) && s.state.pendingDecision === undefined,
+    );
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(costId),
+      ),
+    ).toBe(true);
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(costId),
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === costId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
@@ -127,7 +209,7 @@ describe("BT21-056 Vemmon", () => {
         ],
       },
     });
-    s.state.memory = 12;
+    s.state.memory = 10;
     await s.ready();
 
     expect(
@@ -138,7 +220,7 @@ describe("BT21-056 Vemmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("destromon").instanceId);
-    expect(s.state.memory).toBe(8);
+    expect(s.state.memory).toBe(6);
 
     expect(
       s.engine.applyIntent(0, {
@@ -148,6 +230,115 @@ describe("BT21-056 Vemmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("carries the inherited reduction through public evolutions of a legal Vemmon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-056", as: "host", under: ["BT21-006"] }],
+          hand: [
+            { card: "BT21-058", as: "snatchmon" },
+            { card: "BT21-060", as: "destromon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-058");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("destromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-060");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-006", "BT21-056", "BT21-058"]);
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(1);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT21-058")).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("reduces a second qualifying evolution after the next own turn resets Once Per Turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-056", as: "host", under: ["BT21-006"] }],
+          hand: [
+            { card: "BT21-058", as: "snatchmon" },
+            { card: "BT21-060", as: "destromon" },
+            { card: "BT21-062", as: "galacticmon" },
+          ],
+          deck: [
+            "BT1-001",
+            "BT1-002",
+            "BT1-003",
+            "BT1-004",
+            "BT1-005",
+            "BT1-006",
+            "BT1-007",
+            "BT1-008",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+          ],
+        },
+        1: {
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          security: [{ card: "BT1-009" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    for (const alias of ["snatchmon", "destromon"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst(alias).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === s.inst(alias).cardId);
+    }
+    const memoryAfterFirstTurnReduction = s.state.memory;
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId);
+    expect(memoryAfterFirstTurnReduction).toBe(3);
+    expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

@@ -11,17 +11,24 @@ export const compiled: CompiledCard = {
       timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "OnPlay",
@@ -61,6 +68,7 @@ export const compiled: CompiledCard = {
             host: "self",
           },
           optional: true,
+          allowCostWithoutTarget: true,
           abortOnDecline: true,
         },
       ],
@@ -103,6 +111,7 @@ export const compiled: CompiledCard = {
             host: "self",
           },
           optional: true,
+          allowCostWithoutTarget: true,
           abortOnDecline: true,
         },
       ],
@@ -123,7 +132,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Gammamon"],
+      namesExact: ["Gammamon"],
       cost: 2,
       isAlternate: true,
     },

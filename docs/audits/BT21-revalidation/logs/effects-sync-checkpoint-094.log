@@ -1,0 +1,21 @@
+
+> aegis@1.1.0 effects:sync:set /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna
+> node tools/sync-effects-from-card-modules.mjs -- --set BT21 --base a924de971
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+
+> @aegis/shared@1.1.0 copy:data /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> node scripts/copy-data.mjs
+
+copy-data: cards/data/cards.json -> dist
+copy-data: effects/effects.json -> dist
+copy-data: effects/generated-digivolve-overrides.json -> dist
+
+> @aegis/api@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+> tsc --noCheck -p tsconfig.json
+
+BT21: 9 semantic changes against a924de971; zero semantic or byte changes outside the set.
+BT21: 102 records synchronized.

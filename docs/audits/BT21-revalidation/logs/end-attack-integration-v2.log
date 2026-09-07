@@ -1,0 +1,199 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > does not trigger Piercing acquired from a deleted Token's reaction 5ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > does not retroactively trigger Piercing gained by whenBattleWon 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > does not retroactively trigger Piercing gained by onDeletionOf 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > triggers Piercing gained simultaneously with the last opposing battle deletion (Q3883) 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > Piercing is captured before deletion reactions: true -> false 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > Piercing is captured before deletion reactions: false -> true 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > snapshots attack watchers before System-A timings and activates them afterward 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > runs an attack-cost callback after declaration and before suspension watchers 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > cleans up an in-flight attack when an attack-cost callback rejects 2ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > attacker with higher DP deletes the defender and suspends the attacker 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > a tie deletes BOTH permanents 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > a weaker attacker is deleted; the defender survives 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > fires whenBattleWon for the winning attacker (CR §14-2-1), naming it as the subject 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > fires whenBattleWon for the winning DEFENDER when the attacker loses 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > still fires whenBattleWon after the losing Digimon prevents deletion (Q7022/Q7023) 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > does NOT fire whenBattleWon on a tie (no winner) 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — Digimon vs Digimon > fires When Attacking (OnUseAttack + OnAllyAttack) and end-of-attack timings 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — player-directed (security hand-off) > drains the current timing while combat is open and before the security check 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — player-directed (security hand-off) > with no eligible blocker, hands the unblocked player attack to security-and-win-check 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — player-directed (security hand-off) > does not announce a block window when no eligible blocker exists 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController — block window > declareBlock redirects the attack onto the blocker, suspends it, and resolves combat there 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController — block window > declineBlock lets the player-directed attack proceed to the security hand-off 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController — block window > rejects a block from the wrong seat and an ineligible blocker 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController — block window > no longer reports an open window once combat finishes 0ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — attack target vanishes mid-resolution (§11-2-6) > fizzles (no security check, no battle) when the targeted Digimon is deleted before the block window 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — attacker invalidated mid-resolution still fires OnEndAttack > fires OnEndAttack when the attacker leaves the field during When Attacking 1ms
+ ✓ src/engine/combat/controller.test.ts > CombatController.resolveAttack — attacker invalidated mid-resolution still fires OnEndAttack > fires OnEndAttack when the attacker leaves the field during the block window 1ms
+ ✓ src/engine/combat/controller.test.ts > combat suspension fires the whenSuspended bus > fires for the attacker suspending to declare 1ms
+ ✓ src/engine/combat/controller.test.ts > combat suspension fires the whenSuspended bus > fires for the blocker, whose suspension is also a rules suspension 0ms
+ ✓ src/engine/combat/controller.test.ts > combat suspension fires the whenSuspended bus > does not fire for an attack declared without tapping 0ms
+ ✓ src/engine/combat/controller.test.ts > combat suspension fires the whenSuspended bus > does not fire again for an already-suspended permanent 0ms
+ ✓ src/engine/combat/controller.test.ts > combat suspension fires the whenSuspended bus > leaves whenEffectSuspends unfired — an attack suspension is not an effect's doing 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > requires OmniShoutmon and ZeigGreymon as the two DigiXros materials 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publishes both alternate evolution routes and its additional DigiXros names 23ms
+ × src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > accepts the printed alias in a later public DigiXros recipe 8ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes exactly the lowest-DP opponent on play 18ms
+ × src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes one selected lowest-DP tie and preserves the other tie and higher target 7ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material 13ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from AD1-013 for cost 2 and deletes the lowest DP Digimon 12ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from BT21-021 for cost 3 and deletes the lowest DP Digimon 7ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > rejects both alternate routes from a nonmatching level-3 base without paying 2ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > places only Xros Heart and Blue Flare Digimon sources under a Tamer, then still leaves 13ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > may decline moving sources and leaves without offering the effect when no Tamer exists 9ms
+stdout | src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > verifies the Shoutmon cost replacement, trash DigiXros expansion, stack trash, and attack return 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > pays 14 and places its Shoutmon cost under the played card 6ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > accepts a qualifying trash card as DigiXros material after paying the Shoutmon cost 6ms
+ × src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > still pays the optional bottom placement on a public attack when no opponent Digimon exists 21ms
+   → expected [] to include 'inst-72'
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > trashes only stacked cards from the top and leaves the opponent's top card 3ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > evolves from a Hero level 6 for 3 and trashes all available sources 6ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns only a source-less opposing Digimon to deck bottom and may decline 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > models the printed optional bottom-material cost before each lowest-DP deletion 0ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > publishes Security Attack +1, Raid, and both alternate level-5 evolution routes 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > places a qualifying hand card under itself before deleting the lowest-DP opponent 11ms
+ × src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > still pays the optional hand placement when a public attack has no deletion target 12ms
+   → expected [] to include 'inst-137'
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > deletes exactly one lowest-DP tie through the effect window 10ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > pays the hand cost during a natural attack after Raid resolves 12ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > uses Raid to redirect a public attack to the opponent's highest-DP unsuspended Digimon 6ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > performs two security checks from Security Attack +1 11ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-077 alternate route and pays a qualifying bottom-material cost 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-021 alternate route and pays a qualifying bottom-material cost 8ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > does not pay or delete with only a nonmatching hand card 4ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > permits declining a payable bottom-material cost without deleting 6ms
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 10ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > uses DigiXros with exactly one Shoutmon material through the public play intent 5ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > inherits Rush from BT21-021 under a legal public BT21-027 DigiXros host 28ms
+ × src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host 2ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > rejects a DigiXros intent offering two materials for the one-material recipe 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 20ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly pays the reduced cost above five before deleting itself after a successful play 17ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 7ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 2ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect from a nonattacking own host 13ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve a BT21-079 host's End of Attack effect for an opponent's attack 15ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect when it is the defender against Armor Purge 9ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > resolves BT21-079's own End of Attack deletion after its public attack 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "invalid-material",
+  }
+
+ ❯ src/cards/BT21/BT21-021.test.ts:202:7
+    200|         digiXros: { materialInstanceIds: [s.inst("source").instanceId,…
+    201|       }),
+    202|     ).toEqual({ ok: true });
+       |       ^
+    203|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+    204|     expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > accepts the printed alias in a later public DigiXros recipe
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "invalid-material",
+  }
+
+ ❯ src/cards/BT21/BT21-027.test.ts:87:9
+     85|       instanceId: s.inst("nextHost").instanceId,
+     86|       digiXros: { materialInstanceIds: [s.inst("omni").instanceId, s.i…
+     87|     })).toEqual({ ok: true });
+       |         ^
+     88|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+     89|     const host = s.state.players[0]!.battleArea.find((p) => p.topCard.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes one selected lowest-DP tie and preserves the other tie and higher target
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-027.test.ts:140:82
+    138|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.i…
+    139|     await settle(() => s.state.players[1]!.battleArea.length === 2);
+    140|     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId ==…
+       |                                                                                  ^
+    141|     expect([lowAId, lowBId].filter((id) => s.state.players[1]!.battleA…
+    142|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > still pays the optional hand placement when a public attack has no deletion target
+AssertionError: expected [] to include 'inst-137'
+ ❯ src/cards/BT21/BT21-028.test.ts:105:70
+    103|     await settle(() => s.state.players[1]!.security.length === 0);
+    104|
+    105|     expect(s.perm("siriusmon").stack.map((card) => card.instanceId)).t…
+       |                                                                      ^
+    106|     expect(s.state.memory).toBe(0);
+    107|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > still pays the optional bottom placement on a public attack when no opponent Digimon exists
+AssertionError: expected [] to include 'inst-72'
+ ❯ src/cards/BT21/BT21-030.test.ts:171:69
+    169|     ).toEqual({ ok: true });
+    170|     await settle(() => s.state.players[1]!.security.length === 1);
+    171|     expect(s.perm("superior").stack.map((card) => card.instanceId)).to…
+       |                                                                     ^
+    172|     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    173|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  4 failed | 2 passed (6)
+      Tests  5 failed | 81 passed (86)
+   Start at  11:18:04
+   Duration  22.58s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-021.test.ts src/cards/BT21/BT21-027.test.ts src/cards/BT21/BT21-028.test.ts src/cards/BT21/BT21-030.test.ts src/engine/effects/endOfAttackScope.test.ts src/engine/combat/controller.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

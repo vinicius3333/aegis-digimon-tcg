@@ -6,6 +6,7 @@ import { printedKeywordsOf } from "../../../combat/keywords.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
+import { selfTargetPermanent } from "./selfTarget.js";
 import { CardKind } from "@aegis/shared";
 import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
@@ -199,7 +200,7 @@ export function permanentMatchesFilter(
     filter = withoutStackKeywords;
   }
   if (filter.excludeSelf || filter.isSelfRef === false) {
-    const self = source.permanent();
+    const self = selfTargetPermanent(ctx, source);
     if (self !== undefined && self.permanentId === permanent.permanentId) {
       if (filter.excludeSelf) return false;
     }
@@ -209,7 +210,7 @@ export function permanentMatchesFilter(
   // (`orFilters`) where "this Digimon" is one alternative among several (BT21-013: place the
   // card under this Digimon OR under a red Tamer with inherited effects).
   if (filter.isSelfRef === true) {
-    const self = source.permanent();
+    const self = selfTargetPermanent(ctx, source);
     if (self === undefined || self.permanentId !== permanent.permanentId) return false;
   }
   // boundRef: restrict to permanents in the named effect-result binding (written by PlayPerLevel

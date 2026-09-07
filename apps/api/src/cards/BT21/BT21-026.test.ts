@@ -60,7 +60,7 @@ describe("BT21-026 WarGreymon", () => {
     { opponents: 2, expectedCost: 7 },
     { opponents: 6, expectedCost: 0 },
   ])("pays $expectedCost with $opponents opposing Digimon", async ({ opponents, expectedCost }) => {
-    const opposingCards = Array.from({ length: opponents }, () => "BT1-009");
+    const opposingCards = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"].slice(0, opponents);
     const s = setupEngine({
       0: { hand: [{ card: "BT21-026", as: "wargreymon" }] },
       1: { battleArea: opposingCards },
@@ -74,6 +74,92 @@ describe("BT21-026 WarGreymon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-026"));
 
     expect(s.state.memory).toBe(10 - expectedCost);
+  });
+
+  it("attacks immediately after a public reduced-cost play because of Rush", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-026", as: "wargreymon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-026"));
+    const playedId = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "BT21-026",
+    )!.permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: playedId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("uses Raid to attack the highest-DP unsuspended opponent instead of checking security", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-026", as: "wargreymon" }] },
+        1: {
+          battleArea: [
+            { card: "BT21-019", as: "highest" },
+            { card: "BT1-010", as: "lower" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("highest").permanentId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wargreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("lower").permanentId);
+  });
+
+  it("uses Blocker to redirect an opponent's public player attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-026", as: "wargreymon" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("wargreymon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("retains Rush, Raid, and Blocker after evolving from a legal red level 5", async () => {
@@ -123,6 +209,103 @@ describe("BT21-026 WarGreymon", () => {
     expect(s.perm("wargreymon").isSuspended).toBe(true);
   });
 
+  it("unsuspends from a public attack that deletes an opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "wargreymon", suspended: true },
+            { card: "BT21-062", as: "attacker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-007", as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("wargreymon").isSuspended);
+    expect(s.perm("wargreymon").isSuspended).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
+  });
+
+  it("uses two public opponent Digimon deletions for one once-per-turn unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "wargreymon", suspended: true },
+            { card: "BT21-062", as: "firstAttacker" },
+            { card: "BT21-062", as: "secondAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstVictim", suspended: true },
+            { card: "BT1-010", as: "secondVictim", suspended: true },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstVictimId = s.perm("firstVictim").permanentId;
+    const secondVictimId = s.perm("secondVictim").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: firstVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("wargreymon").isSuspended);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstVictimId)).toBe(false);
+    expect(s.perm("wargreymon").isSuspended).toBe(false);
+
+    // Spend the newly gained unsuspended state through a real player attack. The second
+    // opponent Digimon deletion then occurs in the same turn and must not unsuspend again.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wargreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 2 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: secondVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondVictimId),
+    );
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+  });
+
   it("stays suspended when its controller's Digimon is deleted or the optional effect is declined", async () => {
     for (const [deletedSeat, options] of [
       [0, { autoAcceptOptional: true }],
@@ -146,5 +329,57 @@ describe("BT21-026 WarGreymon", () => {
 
       expect(s.perm("wargreymon").isSuspended).toBe(true);
     }
+  });
+
+  it("does not unsuspend when its controller deletes their own Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "wargreymon", suspended: true },
+            { card: "BT2-067", as: "purpleSource" },
+            { card: "BT1-009", as: "sacrifice" },
+          ],
+          hand: [{ card: "BT2-109", as: "heatViper" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("sacrifice").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId));
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+  });
+
+  it("declines the unsuspend after a public Gaia Force deletes an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-026", as: "wargreymon", suspended: true }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+    await settle(
+      () =>
+        s.decisions.filter(({ req }) => req.kind === "optional").length === 1 && s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
   });
 });

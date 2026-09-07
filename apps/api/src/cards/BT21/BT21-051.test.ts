@@ -69,6 +69,69 @@ describe("BT21-051 Puppetmon", () => {
     expect(s.state.players[1]!.deck.at(-1)!.cardId).toBe("BT1-012");
   });
 
+  it("resolves the de-digivolve and bottom-deck sequence from a public play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-051", as: "puppetmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "stacked", under: ["BT21-042", "BT21-044"] },
+            { card: "BT1-012", as: "suspended", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("stacked").topCard.instanceId, s.perm("suspended").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("puppetmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("suspended").instanceId));
+    expect(s.perm("stacked").topCard.cardId).toBe("BT21-042");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("refuses the alternate evolution from a level-5 without the WG trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-044", as: "nonWG" }], hand: [{ card: "BT21-051", as: "puppetmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    const handId = s.inst("puppetmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonWG").permanentId,
+        instanceId: handId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("publicly keeps the de-digivolve result when no suspended target exists", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-051", as: "puppetmon" }] },
+        1: { battleArea: [{ card: "BT21-045", as: "stacked", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("puppetmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea[0]?.topCard.cardId === "BT21-042");
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT21-042");
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("alternate-digivolves from a level-5 WG Digimon for 3", async () => {
     const s = setupEngine({
       0: {
@@ -97,5 +160,103 @@ describe("BT21-051 Puppetmon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("puppetmon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("puppetmon"), "Blocker")).toBe(true);
+  });
+
+  it("Blast Digivolves through a real Counter window, resolves WD, then blocks the attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-020", as: "attacker", under: ["BT1-009", "BT1-019"] },
+            { card: "BT21-045", as: "victim", suspended: true, under: ["BT21-044"] },
+          ],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT21-050", as: "base" }],
+          hand: [{ card: "BT21-051", as: "puppetmon" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    preferred.push(s.perm("attacker").topCard.instanceId, s.perm("victim").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window missing");
+    const counter = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("puppetmon").instanceId);
+    expect(counter).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: counter!.instanceId,
+        effectKey: counter!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.perm("base").topCard.cardId).toBe("BT21-051");
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("base").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.perm("base").topCard.cardId).toBe("BT21-051");
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("Reboot unsuspends Puppetmon during the opponent's public turn and Overflow charges on battle removal", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-052", as: "attacker" }], deck: ["BT1-001", "BT1-002"] },
+      1: { battleArea: [{ card: "BT21-051", as: "puppetmon", suspended: true }], deck: ["BT1-003", "BT1-004"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("puppetmon").isSuspended).toBe(false);
+
+    const overflow = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT21-051", as: "puppetmon" }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    overflow.state.turnSeat = 0;
+    overflow.state.memory = 0;
+    await overflow.ready();
+    expect(
+      overflow.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: overflow.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => overflow.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(overflow.events.some((event) => event.kind === "blockWindowOpened")).toBe(true);
+    const overflowPuppetId = overflow.perm("puppetmon").permanentId;
+    expect(overflow.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: overflowPuppetId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        overflow.events.some((event) => event.kind === "combatResolved") &&
+        !observe(overflow.engine).isAttacking() &&
+        !overflow.state.players[1]!.battleArea.some((perm) => perm.permanentId === overflowPuppetId),
+    );
+    expect(overflow.state.memory).toBe(4);
   });
 });

@@ -108,6 +108,7 @@ const IMPLEMENTED_ACTION_KINDS = {
   Return: true,
   ReturnToEggDeck: true,
   ReturnTopDigivolutionCards: true,
+  TrashTopStackedCards: true,
   Reveal: true,
   RevealAdd: true,
   RevealChooseDeleteBudget: true,

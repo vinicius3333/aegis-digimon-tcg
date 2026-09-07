@@ -1,0 +1,70 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 1
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 4
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a level 4 or lower Digimon from the default hand/stack zones and deletes an equal-or-lower DP opponent once per turn 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play 22ms
+ × src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card 21ms
+   → expected 4 to be 3 // Object.is equality
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon 4ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > rejects linkless and level-5 cards and permits declining a legal link 4ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > deletes only an equal-or-lower DP target once when its own stack is linked 10ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly links twice, deleting one eligible victim first and none on the second link 6ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > fires Globemon's public When Linking deletion when linked onto another Appmon host 3ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > uses Globemon's printed 10000 DP ceiling on a public link while leaving a 12000 DP target 5ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > performs two real security checks with printed Security Attack +1 6ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card 5ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > reveals three, adds one Avian/Bird and one WG card, then bottoms the rest 0ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > preserves the zero-cost WG digivolution requirement and inherited Jamming 0ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > adds distinct Avian/Bird and WG matches and bottoms the nonmatch 3ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > adds at most one card for each category when one revealed card matches both 3ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > adds only the available matching category and bottoms every other revealed card 1ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > declines both additions when all three revealed cards miss both traits 2ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > evolves from a level-2 WG egg for 0 and preserves the stack 1ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > rejects the zero-cost alternate route from a non-WG level-2 base 1ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > publicly proves inherited Jamming prevents deletion in a losing security battle 7ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > carries Jamming through a public Floramon-to-Kiwimon evolution 3ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > grants Jamming only while Floramon is in the evolution stack 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card
+AssertionError: expected 4 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 4
+
+ ❯ src/cards/BT21/BT21-023.test.ts:158:28
+    156|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+    157|     expect(s.perm("host").linked.some((card) => card.instanceId === s.…
+    158|     expect(s.state.memory).toBe(3);
+       |                            ^
+    159|   });
+    160|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 25 passed (26)
+   Start at  21:11:04
+   Duration  7.07s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-023.test.ts src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

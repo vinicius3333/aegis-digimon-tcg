@@ -1,0 +1,71 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 2ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 35ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses the paid link requirement for a non-Appmon card without spending memory 3ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 6ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 6ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses the two available distinct recipe names through the production verb 5ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses same-name App Fusion material without moving either card 3ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > preserves both alternate Digivolution requirements and the Appmon link requirement 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > requires trashing an Appmon or Three Musketeers card from a digivolution stack 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > deletes one opposing play-cost-3-or-less Digimon when linked 0ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes a qualifying own stack card to de-digivolve an opponent 8ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly pays the On Play cost with a Three Musketeers trait source 6ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > does not pay the stack-trash cost or de-digivolve when the effect is declined 2ms
+ × src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines the On Play cost when no qualifying stack card exists 5ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > refuses linking onto a non-Appmon host without spending memory 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > links for 1 and deletes only the play-cost-3 boundary target 5ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines an offered eligible On Play cost and preserves both source and target 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes its link card at rule check after Tankmon makes the host ineligible 4ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > zero-cost evolves through both the Three Musketeers-text and Appmon routes 3ms
+stdout | src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly triggers from a legal Rock host and trashes only the play-cost-4 target
+[WinCheck] seat 1 wins (reason: security) — turn 0, phase Main, memory 7
+
+stdout | src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly trashes a source under a non-Mineral non-Rock host without triggering deletion
+[WinCheck] seat 1 wins (reason: security) — turn 0, phase Main, memory 7
+
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > uses the printed normal evolution from a black level-2 base for zero memory 2ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces eligible digivolution costs and deletes after its stack card is trashed 0ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > deletes an opposing low-play-cost Digimon when the inherited card is trashed 5ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly triggers the inherited deletion when BT3-026 trashes a legal Mineral stack source 17ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > does not trigger when the inherited source is trashed as a non-effect cost 1ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly triggers from a legal Rock host and trashes only the play-cost-4 target 13ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly trashes a source under a non-Mineral non-Rock host without triggering deletion 11ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces a Mineral evolution by 1 in the battle area 2ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > Q4559 does not reduce the same evolution in the breeding area 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > publicly declines the On Play cost when no qualifying stack card exists
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-054.test.ts:145:79
+    143|     await settle(() => s.state.players[0]!.battleArea.some((permanent)…
+    144|     expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
+    145|     expect(s.perm("ownHost").stack.some((card) => card.cardId === "BT1…
+       |                                                                               ^
+    146|   });
+    147|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 29 passed (30)
+   Start at  21:52:00
+   Duration  11.98s (transform 85%, import 14%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-054.test.ts src/cards/BT21/BT21-055.test.ts src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

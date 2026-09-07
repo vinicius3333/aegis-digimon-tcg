@@ -106,6 +106,46 @@ describe("BT21-067 Garurumon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
   });
 
+  it("refuses both alternate routes from a level-3 that is neither Gabumon nor ADVENTURE", async () => {
+    for (const alternateRequirementIndex of [0, 1] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-009", as: "nonMatching" }], hand: [{ card: "BT21-067", as: "garurumon" }] },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      const handId = s.inst("garurumon").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("nonMatching").permanentId,
+          instanceId: handId,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+      expect(s.perm("nonMatching").topCard.cardId).toBe("BT1-009");
+      expect(s.state.memory).toBe(3);
+    }
+  });
+
+  it("alternate-digivolves from a non-Gabumon ADVENTURE rookie for the printed cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST21-10", as: "adventureRookie" }], hand: [{ card: "BT21-067", as: "garurumon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("adventureRookie").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("adventureRookie").topCard.cardId === "BT21-067");
+    expect(s.state.memory).toBe(1);
+  });
+
   it("draws and trashes exactly once per turn from a realistic evolution stack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -134,5 +174,56 @@ describe("BT21-067 Garurumon", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("first").instanceId)).toBe(true);
+  });
+
+  it("retains inherited draw-trash through a legal Ghostmon-to-Garurumon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-065", as: "source" }],
+          hand: [
+            { card: "BT21-067", as: "garurumon" },
+            { card: "ST6-11", as: "host" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "firstEvolutionDraw" },
+            { card: "BT1-002", as: "secondEvolutionDraw" },
+            { card: "BT1-010", as: "drawn" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-067");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "ST6-11");
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 });

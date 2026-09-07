@@ -1,0 +1,40 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ❯ src/cards/BT21/BT21-001.test.ts (6 tests | 1 failed) 62ms
+   ❯ BT21-001 Gigimon (6)
+     × builds the inherited source through public level-3 and level-4 evolution 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > builds the inherited source through public level-3 and level-4 evolution
+AssertionError: expected [ 'BT21-001', 'BT1-009' ] to deeply equal [ 'BT21-001', 'BT1-009', 'BT21-015' ]
+
+- Expected
++ Received
+
+  [
+    "BT21-001",
+    "BT1-009",
+-   "BT21-015",
+  ]
+
+ ❯ src/cards/BT21/BT21-001.test.ts:114:61
+    112|     })).toEqual({ ok: true });
+    113|     await settle(() => s.perm("host").topCard.cardId === "BT21-015");
+    114|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+       |                                                             ^
+    115|     expect(s.state.memory).toBe(8);
+    116|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 212 passed (213)
+   Start at  00:46:55
+   Duration  7.75s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-001.test.ts src/cards/BT21/BT21-catalog-sync.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache

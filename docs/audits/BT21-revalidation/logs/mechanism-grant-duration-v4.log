@@ -1,0 +1,13 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end
+[WinCheck] seat 0 lost (cause: surrender) — turn 3, phase Main
+[WinCheck] seat 1 wins (reason: surrender) — turn 3, phase Main, memory 3
+
+ ✓ src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end 152ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  09:21:20
+   Duration  34.81s (transform 86%, import 13%)

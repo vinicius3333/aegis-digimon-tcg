@@ -1,0 +1,135 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes complete effect coverage with no residual clauses 4ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > shares one once-per-turn delete budget and places Petrification for either opponent event 3ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes Security Attack +1 and Progress 38ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > evolves from a red level 5, may delete exactly one lowest-DP Digimon, and pays 4 63ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > may decline the deletion and preserves every opposing Digimon 6ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > uses one shared delete activation across digivolution and end of attack 35ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays a token from a real opponent Digimon deletion 28ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for onDeletionOf and observes the once-per-turn limit 20ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for whenSecurityRemoved and observes the once-per-turn limit 5ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly performs its Security Attack +1 check and creates one opponent token from security removal 31ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > public player attack resolves End of Attack lowest-DP deletion with printed boundaries 42ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly refuses the optional lowest-DP deletion and preserves targets 16ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > preserves Piercing and Armor Purge 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > suspends one opposing Digimon and grants itself +2000 DP until the opponent's turn ends 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > preserves the Veemon alternate Digivolution cost 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > evolves from Veemon for 2 reduced to 1 and retains the realistic stack 37ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > uses Piercing in a public battle to delete a Digimon and check security 14ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > uses Armor Purge in a public battle and leaves its Veemon source 33ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > suspends exactly one opponent and gives itself +2000 DP 9ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > gains its DP even with no suspension target and exposes both keywords 3ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > preserves the WG alternate Digivolution requirement and inherited Piercing 2ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > optionally suspends one Digimon of either side on play 1ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > enters through the public play intent with its On Play optional effect registered 7ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > suspends an opponent Digimon on play while leaving another target unsuspended 5ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > may suspend an own Digimon and may decline without suspending anything 9ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > zero-cost digivolves from a level-2 WG card 2ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > rejects the zero-cost alternate evolution from a non-WG level-2 base 1ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > publicly declines On Play suspension and leaves both players' Digimon ready 7ms
+ × src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > grants observable Piercing to a realistic WG evolution stack 18ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > preserves the Examon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > models the printed keywords and When Digivolving sequence 0ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > keeps the once-per-turn suspension watcher scoped to its own trigger 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > suspends every opposing Digimon and Tamer, then deletes exactly one suspended target 16ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > unsuspends itself, trashes top security with an Examon source, and spends the once-per-turn budget 19ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > still unsuspends without an Examon or X Antibody digivolution card but does not trash security 7ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > alternate-digivolves from Examon for 2 and exposes all three live keywords 21ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > rejects the exact Examon alternate route from a non-Examon level-6 base 2ms
+ × src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly unsuspends and trashes security once, then leaves the source suspended on the second attack 213ms
+   → expected [] to have a length of 1 but got +0
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > models Blast Digivolve, Reboot, Blocker, and the shared On Play/When Digivolving sequence 1ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > keeps the alternate WG level-5 evolution requirement at cost 3 0ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > de-digivolves one target by 2, then bottom-decks a different suspended Digimon 12ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > resolves the de-digivolve and bottom-deck sequence from a public play 9ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > refuses the alternate evolution from a level-5 without the WG trait 2ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > publicly keeps the de-digivolve result when no suspended target exists 9ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > alternate-digivolves from a level-5 WG Digimon for 3 7ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > exposes Reboot and Blocker through the live keyword surface 2ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > preserves the WG alternate Digivolution requirement 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > models optional suspension on play and digivolving 0ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > keeps the suspended WG attack redirect once-per-turn and the inherited play watcher 3ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon 20ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4556 observably permits an own Digimon suspension 5ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > inherited watcher suspends an opponent only when an own WG Digimon is played 33ms
+ × src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > suspends exactly one opponent through a public When Digivolving effect 14ms
+   → expected [] to have a length of 1 but got +0
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > permits declining the public optional suspension 4ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > alternate-digivolves from a level-4 WG Digimon for 3 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > grants observable Piercing to a realistic WG evolution stack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-048.test.ts:218:72
+    216|     ).toEqual({ ok: true });
+    217|     await settle(() => s.perm("source").topCard.instanceId === s.inst(…
+    218|     expect(observe(s.engine).hasKeyword(s.perm("source"), "Piercing"))…
+       |                                                                        ^
+    219|
+    220|     expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > suspends exactly one opponent through a public When Digivolving effect
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-050.test.ts:175:73
+    173|     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s…
+    174|     await settle(() => s.perm("woodmon").topCard.cardId === "BT21-050"…
+    175|     expect(s.state.players[1]!.battleArea.filter((p) => p.isSuspended)…
+       |                                                                         ^
+    176|     expect(s.state.memory).toBe(1);
+    177|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly unsuspends and trashes security once, then leaves the source suspended on the second attack
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-052.test.ts:219:97
+    217|     expect(s.perm("examonX").isSuspended).toBe(true);
+    218|     expect(s.state.players[1]!.security).toHaveLength(1);
+    219|     expect(s.state.players[1]!.trash.filter((card) => card.instanceId …
+       |                                                                                                 ^
+    220|   });
+    221| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed | 3 passed (6)
+      Tests  3 failed | 57 passed (60)
+   Start at  11:35:36
+   Duration  38.92s (transform 85%, import 13%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-029.test.ts src/cards/BT21/BT21-037.test.ts src/cards/BT21/BT21-048.test.ts src/cards/BT21/BT21-050.test.ts src/cards/BT21/BT21-051.test.ts src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

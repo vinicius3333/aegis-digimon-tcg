@@ -1,0 +1,12 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/effects/tamerEvolutionEvents.test.ts > Tamer-source evolution event subjects > does not publish an own-Digimon evolution event for a Tamer source 31ms
+ ✓ src/engine/effects/tamerEvolutionEvents.test.ts > Tamer-source evolution event subjects > publishes the own-Digimon evolution event for an ordinary Digimon source 8ms
+ ✓ src/engine/effects/tamerEvolutionEvents.test.ts > Tamer-source evolution event subjects > keeps manual evolution watchers for a Tamer currently treated as a Digimon 10ms
+ ✓ src/engine/effects/tamerEvolutionEvents.test.ts > Tamer-source evolution event subjects > keeps effect evolution watchers for a Tamer currently treated as a Digimon 6ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  19:37:11
+   Duration  8.96s (transform 85%, import 14%, tests 1%)

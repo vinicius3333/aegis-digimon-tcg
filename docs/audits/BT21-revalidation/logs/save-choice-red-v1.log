@@ -1,0 +1,196 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > preserves the WG alternate Digivolution requirement 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > models optional suspension on play and digivolving 0ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > keeps the suspended WG attack redirect once-per-turn and the inherited play watcher 0ms
+ × src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon 24ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4556 observably permits an own Digimon suspension 3ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > inherited watcher suspends an opponent only when an own WG Digimon is played 19ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > suspends exactly one opponent through a public When Digivolving effect 6ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > permits declining the public optional suspension 3ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > alternate-digivolves from a level-4 WG Digimon for 3 6ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > preserves both alternate Digivolution requirements, DigiXros, and complete coverage 0ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > DigiXroses with exactly one Save-text Digimon for a 2-memory reduction 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays Hunter/Hero Tamers and saves a qualifying Digimon 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hunter Tamer from hand without cost on play 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hero Tamer from hand without cost on play 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > does not play a nonmatching Tamer 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly uses the Hero alternate evolution route at its printed cost 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly plays a Hunter Tamer for free on the When Digivolving trigger 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Save-text trash card and itself under an own Tamer on deletion 5ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Hero hand card and itself under an own Tamer on deletion 3ms
+ × src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > can decline both optional On Deletion placement and Save 10ms
+   → expected [ 'inst-64' ] to not include 'inst-64'
+ × src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines placement but accepts optional Save 58ms
+   → expected 1 to be 2 // Object.is equality
+ × src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion accepts placement but declines optional Save 59ms
+   → expected 1 to be 2 // Object.is equality
+ × src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines both choices and preserves source zones 61ms
+   → expected 1 to be 2 // Object.is equality
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly triggers On Deletion after losing a battle and Saves under an own Tamer 8ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a Hero-only level-3 base for the alternate cost 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > rejects a second DigiXros material and preserves hand, board, and memory 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > performs a security check after deleting a suspended Digimon by battle with Piercing 12ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > public Raid redirects to the highest-DP unsuspended target, then Piercing checks security 11ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > on deletion places an eligible card and then itself under a Tamer 6ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and Save after battle deletion 8ms
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly declines first placement but accepts the optional Save 4ms
+   → Cannot access 'first' before initialization
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly accepts first placement but declines the optional Save 4ms
+   → Cannot access 'placement' before initialization
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly declines both optional placement and Save 7ms
+   → expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of +0 but got 1
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > grants inherited +2000 DP only during its controller's turn 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly declines first placement but accepts the optional Save
+ReferenceError: Cannot access 'first' before initialization
+ ❯ src/cards/BT21/BT21-016.test.ts:323:100
+    321|     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanent…
+    322|     await settle(
+    323|       () => s.state.pendingDecision?.kind === "optional" && s.state.pe…
+       |                                                                                                    ^
+    324|     );
+    325|     const first = s.state.pendingDecision!;
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-016.test.ts:322:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly accepts first placement but declines the optional Save
+ReferenceError: Cannot access 'placement' before initialization
+ ❯ src/cards/BT21/BT21-016.test.ts:362:100
+    360|     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanent…
+    361|     await settle(
+    362|       () => s.state.pendingDecision?.kind === "optional" && s.state.pe…
+       |                                                                                                    ^
+    363|     );
+    364|     const placement = s.state.pendingDecision!;
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-016.test.ts:361:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly declines both optional placement and Save
+AssertionError: expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/cards/BT21/BT21-016.test.ts:403:35
+    401|         s.state.players[0]!.battleArea.every((permanent) => permanent.…
+    402|     );
+    403|     expect(s.perm("tamer").stack).toHaveLength(0);
+       |                                   ^
+    404|     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).to…
+    405|     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-050.test.ts:109:33
+    107|     expect(s.perm("cherrymon").isSuspended).toBe(true);
+    108|     expect(s.state.players[0]!.security).toHaveLength(1);
+    109|     await settle(() => s.events.some((event) => event.kind === "combat…
+       |                                 ^
+    110|     expect(s.events).toContainEqual(
+    111|       expect.objectContaining({
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-050.test.ts:109:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > can decline both optional On Deletion placement and Save
+AssertionError: expected [ 'inst-64' ] to not include 'inst-64'
+ ❯ src/cards/BT21/BT21-066.test.ts:275:70
+    273|     await settle(() => s.state.players[0]!.trash.some((card) => card.i…
+    274|
+    275|     expect(s.perm("tamer").stack.map((card) => card.instanceId)).not.t…
+       |                                                                      ^
+    276|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+    277|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines placement but accepts optional Save
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ battleDeleteWithSaveChoices src/cards/BT21/BT21-066.test.ts:53:27
+     51|       await settle(() => s.state.pendingDecision?.decisionId !== pendi…
+     52|     }
+     53|     expect(optionalCount).toBe(2);
+       |                           ^
+     54|     await settle(() => s.events.some((event) => event.kind === "combat…
+     55|     return { s, arresterId, savedId };
+ ❯ src/cards/BT21/BT21-066.test.ts:280:40
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion accepts placement but declines optional Save
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ battleDeleteWithSaveChoices src/cards/BT21/BT21-066.test.ts:53:27
+     51|       await settle(() => s.state.pendingDecision?.decisionId !== pendi…
+     52|     }
+     53|     expect(optionalCount).toBe(2);
+       |                           ^
+     54|     await settle(() => s.events.some((event) => event.kind === "combat…
+     55|     return { s, arresterId, savedId };
+ ❯ src/cards/BT21/BT21-066.test.ts:287:40
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines both choices and preserves source zones
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ battleDeleteWithSaveChoices src/cards/BT21/BT21-066.test.ts:53:27
+     51|       await settle(() => s.state.pendingDecision?.decisionId !== pendi…
+     52|     }
+     53|     expect(optionalCount).toBe(2);
+       |                           ^
+     54|     await settle(() => s.events.some((event) => event.kind === "combat…
+     55|     return { s, arresterId, savedId };
+ ❯ src/cards/BT21/BT21-066.test.ts:294:40
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  8 failed | 32 passed (40)
+   Start at  21:34:52
+   Duration  8.67s (transform 81%, import 15%, tests 4%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-016.test.ts src/cards/BT21/BT21-066.test.ts src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

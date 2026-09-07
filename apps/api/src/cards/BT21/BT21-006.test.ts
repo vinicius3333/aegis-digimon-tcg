@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-006.js";
 import "../index.js";
 
@@ -89,5 +89,62 @@ describe("BT21-006 Tsumemon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     expect(s.perm("host").currentDP).toBe(17000);
+  });
+
+  it("proves the four-Vemmon state through a legal public evolution chain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-006", as: "tsumemon" }],
+          hand: [
+            { card: "BT21-056", as: "vemmon" },
+            { card: "BT21-058", as: "snatchmon" },
+            { card: "BT21-062", as: "galacticmon" },
+            { card: "BT21-098", as: "cannon" },
+          ],
+          trash: ["BT21-056", "BT21-056", "BT21-056", "BT11-065", "BT11-065", "BT11-065"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsumemon").permanentId,
+        instanceId: s.inst("vemmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsumemon").topCard.cardId === "BT21-056");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsumemon").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsumemon").topCard.cardId === "BT21-058");
+    expect(s.perm("tsumemon").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(3);
+    expect(s.perm("tsumemon").currentDP).toBe(6000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsumemon").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("tsumemon").topCard.cardId === "BT21-062" &&
+        s.perm("tsumemon").stack.filter((card) => card.cardId === "BT21-056").length === 4,
+    );
+    expect(s.perm("tsumemon").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(4);
+    expect(s.perm("tsumemon").stack.filter((card) => card.cardId === "BT11-065")).toHaveLength(3);
+    expect(s.perm("tsumemon").currentDP).toBe(17000);
   });
 });

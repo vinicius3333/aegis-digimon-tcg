@@ -1,0 +1,45 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 1
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a level 4 or lower Digimon from the default hand/stack zones and deletes an equal-or-lower DP opponent once per turn 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play 23ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card 16ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon 5ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > rejects linkless and level-5 cards and permits declining a legal link 7ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > deletes only an equal-or-lower DP target once when its own stack is linked 9ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly links twice, deleting one eligible victim first and none on the second link 7ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > fires Globemon's public When Linking deletion when linked onto another Appmon host 3ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > uses Globemon's printed 10000 DP ceiling on a public link while leaving a 12000 DP target 4ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > performs two real security checks with printed Security Attack +1 7ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card 4ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > preserves Alliance 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > optionally plays a level 4 or lower WG Digimon from hand when digivolving 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > once per turn lets another Digimon digivolve from hand into a WG Digimon for free 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > enters through the public play intent with Alliance and WG evolution hooks registered 3ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > plays exactly one level-4-or-lower WG Digimon for free when digivolving 6ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > publicly digivolves from the legal level-5 WG route and resolves its free play 5ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > publicly plays exactly one eligible WG card on digivolution and preserves the other candidates 8ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > publicly declines the eligible WG play after digivolving 2ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > may decline the free WG play 1ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > digivolves another Digimon into a WG card for free and only once per turn 5ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > uses the public attack origin to free-digivolve another WG Digimon 4ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > does not free-digivolve a non-WG base when no legal target exists 10ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > uses the public When Attacking evolution only once per turn 27ms
+
+ Test Files  2 passed (2)
+      Tests  28 passed (28)
+   Start at  21:07:24
+   Duration  9.03s (transform 84%, import 14%, tests 2%)

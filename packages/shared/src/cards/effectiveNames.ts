@@ -36,6 +36,8 @@ function parsedStaticNameAliases(def: CardDefinition): string[] {
     ...(text.match(/[[(]Rule[\])]\s*Name:\s*(?:Also\s+)?treated as(?:\s+having)?[^.。]*/gi) ?? []),
   ];
   for (const phrase of aliasPhrases) {
+    // A material-only alias must not satisfy ordinary evolution or name gates.
+    if (/for\s+(?:a\s+)?DigiXros\b/i.test(phrase)) continue;
     for (const match of phrase.matchAll(/\[([^\]]+)\]/g)) {
       aliases.push(match[1]!.trim());
     }

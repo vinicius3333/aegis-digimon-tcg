@@ -1,0 +1,33 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > protects a Digimon and shares once-per-turn De-Digivolve 1ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > places an Appmon under a Digimon and protects that Digimon 19ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not place or protect a host when the optional placement has no eligible card 3ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > publicly refuses the optional placement while preserving an eligible Appmon card 2ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > blocks an opponent's public return on the protected host but allows it on an unprotected control 10ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > blocks an opponent's public De-Digivolve on the protected host but allows it on an unprotected control 18ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > applies the same placement and protection through public When Digivolving 4ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > keeps public protection through the opponent turn and expires at its end 7ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > shares the once-per-turn De-Digivolve budget across evolution and attack 5ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not pay the stack-trash cost when the effect is declined 2ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the public attack intent to De-Digivolve an opposing stack 6ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > links for 3 and deletes only the level-4 boundary target 3ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the Three Musketeers-text alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > costs a Gammamon card to grant Collision and recurs on deletion 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > trashes a Gammamon-text card and grants both effects to the same opponent 27ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > resolves the printed grant through a public play intent 26ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly triggers the selected opponent's gained attack at their next main phase 34ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is declined 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays Canoweissmon from trash 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays level-4 Gammamon-text from trash 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > inherited deletion plays level-4 Gammamon text but not Canoweissmon 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > uses the level-4 Gammamon-text alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > pays the optional trash cost through public play without an opponent Digimon 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > pays the optional trash cost through public digivolve without an opponent Digimon 3ms
+
+ Test Files  2 passed (2)
+      Tests  25 passed (25)
+   Start at  18:18:39
+   Duration  8.19s (transform 83%, import 15%, tests 2%)

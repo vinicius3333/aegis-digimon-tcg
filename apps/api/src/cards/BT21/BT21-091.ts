@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
@@ -76,55 +77,18 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
+              kind: "Digivolve",
+              target: { filter: { controller: "mine", kind: ["Tamer"] }, count: 1 },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }],
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
+              payCost: false,
+              from: ["hand"],
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
-      actions: [
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["Hybrid"],
-                match: "trait",
-              },
-            ],
-          },
-          payCost: false,
-          from: ["hand"],
-          optional: true,
         },
       ],
     },

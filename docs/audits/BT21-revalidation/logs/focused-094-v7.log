@@ -1,0 +1,12 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 20ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 1ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 11ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 14ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  10:09:35
+   Duration  7.56s (transform 85%, import 14%, tests 1%)

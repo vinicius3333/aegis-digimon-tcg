@@ -61,6 +61,63 @@ describe("BT21-068 Growlmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("deletes an eligible printed opponent through the public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-068", as: "growlmon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("mills two after the public When Digivolving trigger has no eligible target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-064", as: "guilmon" }],
+          hand: [{ card: "BT21-068", as: "growlmon" }],
+          deck: [
+            { card: "BT1-011", as: "bonusDraw" },
+            { card: "BT1-009", as: "millA" },
+            { card: "BT1-010", as: "millB" },
+            { card: "BT1-012", as: "sentinel" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("sentinel").instanceId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("millA").instanceId, s.inst("millB").instanceId]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
   it.each([4001, 9000])("mills two when the opponent has only a %i DP Digimon", async (dp) => {
     const s = setupEngine(
       {
@@ -116,5 +173,44 @@ describe("BT21-068 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("growlmon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("gains inherited memory when a public battle deletes a legal Growlmon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-068", as: "host", suspended: true }],
+          hand: [{ card: "ST6-11", as: "evolution" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "ST6-11");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-068"]);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const before = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    // Seat 0 gains memory while seat 1 is active: the active-seat gauge decreases.
+    expect(s.state.memory).toBe(before - 1);
   });
 });

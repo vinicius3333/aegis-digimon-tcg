@@ -1,0 +1,55 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > binds one qualifying Digimon so Blocker and conditional DP share the target 1ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main without an opposing Digimon gains NaN memory 11ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main with an opposing Digimon gains NaN memory 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenPlayed suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 8ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenOneOfYoursDigivolves suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the when-played watcher from a qualifying Digimon play 7ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the digivolve watcher from a legal qualifying evolution 11ms
+ × src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > does not treat a red Tamer-source evolution as an own Digimon evolution 14ms
+   → expected true to be false // Object.is equality
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > does treat an ordinary Digimon-source evolution into Agunimon as an own Digimon evolution 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > expires the public Blocker and DP grant after the opponent's turn ends 9ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > at 9 total trash grants Blocker but not the conditional +2000 DP 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > accepts any own Digimon as the event subject, while declining pays no cost 2ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > plays itself from Security without paying cost 6ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > uses the printed normal evolution from a black level-2 base for zero memory 3ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces eligible digivolution costs and deletes after its stack card is trashed 0ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > deletes an opposing low-play-cost Digimon when the inherited card is trashed 5ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > publicly triggers the inherited deletion when BT3-026 trashes a legal Mineral stack source 8ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > does not trigger when the inherited source is trashed as a non-effect cost 1ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces a Mineral evolution by 1 in the battle area 2ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > Q4559 does not reduce the same evolution in the breeding area 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > does not treat a red Tamer-source evolution as an own Digimon evolution
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-089.test.ts:172:42
+    170|     expect(s.perm("redTamer").stack.map((card) => card.cardId)).toCont…
+    171|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+    172|     expect(s.perm("takato").isSuspended).toBe(false);
+       |                                          ^
+    173|     expect(observe(s.engine).hasKeyword(s.perm("redTamer"), "Blocker")…
+    174|     expect(s.state.memory).toBe(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 19 passed (20)
+   Start at  19:32:29
+   Duration  7.46s (transform 84%, import 14%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-055.test.ts src/cards/BT21/BT21-089.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

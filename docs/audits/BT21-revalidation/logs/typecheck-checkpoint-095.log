@@ -1,0 +1,13 @@
+
+> aegis@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna
+> pnpm --filter @aegis/shared build && pnpm -r typecheck
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+error TS5033: Could not write file '/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared/dist/effects/effects.json': ENOSPC: no space left on device, write.
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @aegis/shared@1.1.0 build: `tsc -p tsconfig.json && pnpm run copy:data`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.

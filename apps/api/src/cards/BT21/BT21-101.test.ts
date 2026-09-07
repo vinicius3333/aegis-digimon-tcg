@@ -118,4 +118,123 @@ describe("BT21-101 Gaiamon", () => {
     expect(s.perm("gaiamon").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
+
+  it("public attack links an Appmon from hand without paying its link cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-101", as: "gaiamon" }], hand: [{ card: "BT21-009", as: "link" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    expect(s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+  });
+
+  it("publicly declines the optional attack-time link and rejects a non-Link candidate", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-101", as: "gaiamon" }], hand: [{ card: "BT21-005", as: "invalid" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("gaiamon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalid").instanceId)).toBe(true);
+  });
+
+  it.each([
+    ["Globemon host", "BT21-023", "BT21-073"],
+    ["Charismon host", "BT21-073", "BT21-023"],
+  ])(
+    "publicly links the second %s recipe material through Haru into zero-cost Gaiamon App Fusion",
+    async (_label, hostCard, linkCard) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-084", as: "haru" },
+              { card: hostCard, as: "host" },
+            ],
+            hand: [
+              { card: linkCard, as: "link" },
+              { card: "BT21-101", as: "gaiamon" },
+            ],
+            deck: ["BT1-001"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3; // The public Link costs 3; App Fusion itself costs 0.
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst("link").instanceId,
+          targetPermanentId: s.perm("host").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === "BT21-101");
+      expect(s.perm("host").topCard.cardId).toBe("BT21-101");
+      // App Fusion stacks both materials; Gaiamon's accepted evolution effect then
+      // links one of those two sources. The unchosen material remains in the stack.
+      await settle(() => s.perm("host").linked.length === 1);
+      expect(s.perm("host").stack).toHaveLength(1);
+      expect(s.perm("host").linked).toHaveLength(1);
+      expect([...s.perm("host").stack, ...s.perm("host").linked].map((card) => card.cardId).sort()).toEqual(
+        [hostCard, linkCard].sort(),
+      );
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gaiamon").instanceId)).toBe(false);
+      expect(s.state.memory).toBe(0);
+    },
+  );
+
+  it("public Haru linking rejects an ineligible Appmon recipe and preserves its cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-084", as: "haru" },
+            { card: "BT21-023", as: "host" },
+          ],
+          hand: [
+            { card: "BT21-009", as: "link" },
+            { card: "BT21-101", as: "gaiamon" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT21-023");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gaiamon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
 });

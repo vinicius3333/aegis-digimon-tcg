@@ -20,7 +20,7 @@ describe("BT21-086 Marcus Damon", () => {
   it.each([
     ["without an opposing Digimon", false, 0],
     ["with an opposing Digimon", true, 1],
-  ])("start of main %s gains %i memory", async (_label, hasOpponent, expectedGain) => {
+  ])("start of main %s (opponent present: %s) gains %i memory", async (_label, hasOpponent, expectedGain) => {
     const setup = setupEngine({
       0: { battleArea: [{ card: "BT21-086", as: "marcus" }] },
       1: hasOpponent ? { battleArea: [{ card: "BT1-009", as: "opponent" }] } : {},
@@ -54,6 +54,26 @@ describe("BT21-086 Marcus Damon", () => {
     await settle(() => setup.perm("existingMarcus").isSuspended, 200);
 
     expect(setup.perm("existingMarcus").isSuspended).toBe(true);
+  });
+
+  it("does not suspend an opponent's Marcus Damon", async () => {
+    const setup = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-086", as: "newMarcus" }] },
+        1: { battleArea: [{ card: "BT21-086", as: "opponentMarcus" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    setup.state.memory = 10;
+    await setup.ready();
+    const opponentMarcusId = setup.perm("opponentMarcus").permanentId;
+
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("newMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => setup.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-086"));
+    expect(setup.perm("opponentMarcus").permanentId).toBe(opponentMarcusId);
+    expect(setup.perm("opponentMarcus").isSuspended).toBe(false);
   });
 
   it("grants Piercing and +3000 DP to the same Digimon, then gives an opponent -3000 DP", async () => {
@@ -150,12 +170,31 @@ describe("BT21-086 Marcus Damon", () => {
   });
 
   it("plays itself from Security without paying cost", async () => {
-    const setup = setupEngine({ 0: { security: [{ card: "BT21-086", as: "marcus" }] } }, { autoDeclineOptional: true });
+    const setup = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: { security: [{ card: "BT21-086", as: "marcus" }] },
+      },
+      { autoDeclineOptional: true },
+    );
     setup.state.memory = 0;
     await setup.ready();
 
-    await advance(setup.engine).fireForInstance(EffectTiming.SecuritySkill, setup.inst("marcus"));
-    await settle(() => setup.state.players[0]!.battleArea.length === 1);
+    expect(
+      setup.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: setup.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      setup.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === setup.inst("marcus").instanceId),
+    );
     expect(setup.state.memory).toBe(0);
+    expect(
+      setup.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === setup.perm("marcus").permanentId,
+      ),
+    ).toBe(false);
   });
 });

@@ -1,0 +1,35 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > preserves Raid and both alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > shares one once-per-turn deletion budget between digivolving and attacking 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > requires one suspended red or yellow Tamer for the combined Security Attack and DP gain 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > enters through the public play intent with its Once Per Turn attack clauses registered 14ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > gains Security Attack and 3000 DP by suspending a red Tamer 13ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > naturally pays the Tamer suspension cost during a public security attack 22ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > publicly evolves, spends its deletion budget, and preserves the second legal attack target 17ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > publicly declines the eligible Tamer cost and leaves both attack bonuses absent 7ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > deletes one selected opponent naturally on a public RizeGreymon evolution 4ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > uses the alternate Hero evolution route for 3 and rejects a non-Hero level-5 base 3ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > does not pay the attack cost or grant bonuses without an eligible Tamer 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > uses Raid to redirect a player attack to the opponent's highest-DP unsuspended Digimon 7ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the zero-cost Dracomon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > optionally digivolves itself into a Coredramon from hand for free at both timings 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > does not treat Dracomon (X Antibody) as the standalone Dracomon alternate 1ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the inherited end-of-turn DNA Digivolution from two of your Digimon 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > enters through the public play intent before its start-main/evolution hooks resolve 2ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > zero-cost digivolves from Dracomon and immediately free-digivolves into Coredramon 7ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly free-digivolves into Coredramon at the start of the main phase 4ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly declines the eligible start-main Coredramon evolution and preserves the hand card 4ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > uses its inherited end-of-turn effect for a real Examon DNA digivolution 7ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > resolves inherited DNA through the production turn lifecycle 11ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly declines the inherited DNA evolution at end of turn and preserves both materials 11ms
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  21:48:50
+   Duration  13.01s (transform 84%, import 15%, tests 1%)

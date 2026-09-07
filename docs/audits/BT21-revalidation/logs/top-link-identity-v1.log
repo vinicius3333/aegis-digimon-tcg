@@ -1,0 +1,104 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves Blocker and Armor Purge 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > unsuspends itself and reduces one opposing Digimon by 2000 per Armor Form card in trash 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves both alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > evolves from Veemon for 3 reduced to 2 by the realistic source stack 23ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > evolves from level-3 Hero for 3 reduced to 2 by the realistic source stack 4ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > rejects both alternate requirements from a legal non-Veemon, non-Hero Lv3 2ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > uses Blocker in a public attack battle 14ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > uses Armor Purge in a public battle and leaves the underlying source 10ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > unsuspends and gives one target -2000 DP per Armor Form card in trash 10ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > does not reduce DP when no Armor Form card is in trash 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly evolves into Charismon and resolves its When Digivolving Link 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants BT1-019 the attack effect and respects its immunity at start of main 13ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants BT19-101 the attack effect and respects its immunity at start of main 14ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > resolves the public evolution Link choice at capacity (accept=true) 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > resolves the public evolution Link choice at capacity (accept=false) 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > limits the grant across two public Links in the same turn 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 8ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > public Gaia Force leaves a legal Link+1 host once, then deletes it on the second opportunity 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly links Charismon to an Appmon for exactly 3 memory 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 1ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 3ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws one for its controller whenever this Digimon suspends 0ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > preserves the WG alternate Digivolution and inherited Jamming 0ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws exactly one when Kiwimon suspends and ignores another Digimon suspending 3ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws from a public attack that naturally suspends Kiwimon 6ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > evolves from a level-3 WG Digimon for 2 2ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > grants Jamming only as an inherited effect 1ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > publicly proves inherited Jamming survives a losing security battle 5ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > does not draw when another Digimon suspends through a public attack 6ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws again after a public printed blue unsuspend between two attacks 14ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > refuses the alternate evolution from a level-3 without the WG trait 1ms
+stdout | src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > verifies the Shoutmon cost replacement, trash DigiXros expansion, stack trash, and attack return 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > pays 14 and places its Shoutmon cost under the played card 4ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > accepts a qualifying trash card as DigiXros material after paying the Shoutmon cost 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > publicly accepts variable distinct-number Xros Heart materials and rejects duplicate or near-invalid cards 8ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > publicly plays and peels a legal stack down to its bottom Digimon 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > publicly trashes ten cards from the top of a legal eleven-source DigiXros stack 32ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > publicly leaves a source-less opponent Digimon unchanged 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > Q4541/Q4542 publicly peels down to eggBottom and rule-trashes the invalid remnant 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > Q4541/Q4542 publicly peels down to xAntibodyBottom and rule-trashes the invalid remnant 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > evolves from a Hero level 6 for 5 and peels to the bottom Digimon 5ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns only a source-less opposing Digimon to deck bottom and may decline 3ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack 4ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns only once across two public attacks after a real Cyclonic Kick unsuspend 20ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > publicly declines the optional bottom-deck return and preserves the source-less target 8ms
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not use its DigiXros-only alias for an alternate digivolution 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 7ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > uses DigiXros with exactly one Shoutmon material through the public play intent 2ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > inherits Rush from BT21-021 under a legal public BT21-027 DigiXros host 24ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host 4ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > rejects a DigiXros intent offering two materials for the one-material recipe 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 19ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly places a qualifying Digimon under the played Tamer before Save 18ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly declines an eligible End of Attack play without deleting itself 8ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly completes End of Attack with an ineligible card and no self-deletion 9ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not declare a nested attack for the Digimon played while End of Attack is resolving (Q4728) 29ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4727: publicly declares BT19-014 DigiXros using the attacking OmniShoutmon 20ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly pays the reduced cost above five before deleting itself after a successful play 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 5ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > trashes from the current top and promotes at most the requested number 2ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > crosses the level-3 floor and promotes a bottom Digi-Egg unlike De-Digivolve 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > respects an opponent stack-trash lock while ignoring cantBeDeDigivolved 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > does not emit OnDeletion when a Digimon top is peeled 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > applies Overflow when an ACE is peeled 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > marks an invalid promoted Option for rule trash rather than deletion 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow a top source card into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > keeps a self target on the same host when its top card evolves 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow an inherited source into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > does not follow an linked source into a different host 1ms
+ ✓ src/engine/effects/selfTargetIdentity.test.ts > self-target permanent identity > uses the captured host when the source leaves it but the original host remains 1ms
+ ✓ src/engine/actions/linkHistory.test.ts > public Link history > trashes the existing link across separate public Link actions 4ms
+
+ Test Files  8 passed (8)
+      Tests  90 passed (90)
+   Start at  20:54:30
+   Duration  9.33s (transform 80%, import 14%, tests 5%)

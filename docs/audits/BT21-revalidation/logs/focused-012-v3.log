@@ -1,0 +1,20 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > plays a red Tamer with inherited effects by suspending this Digimon, then places it under that Tamer 0ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > suspends Flamemon, plays an eligible red Tamer for free, then places Flamemon under it 25ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > places Flamemon under the Tamer played by this effect, not an existing Tamer 8ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays suspension cost even when play fails for a red Tamer without inherited effects 2ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays suspension cost even when play fails for a non-red Tamer with inherited effects 2ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > may decline the inner play after paying suspension, leaving Flamemon suspended 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays the mandatory suspension cost even when no eligible Tamer exists 3ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > rejects activation when Flamemon is already suspended 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > grants inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > gets inherited DP only after a legal public evolution carries Flamemon under a level 4 host 7ms
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  01:03:45
+   Duration  10.47s (transform 85%, import 15%, tests 1%)

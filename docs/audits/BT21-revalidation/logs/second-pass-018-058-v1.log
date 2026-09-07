@@ -1,0 +1,138 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > preserves both alternate Digivolution requirements and complete coverage 227ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants the opponent's Digimon the printed conditional start-of-main attack 47ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack 7693ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > keeps the grant on an attack-capable unaffected opponent Digimon but does not trigger it 2339ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer 15ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from Agumon for 2 268ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from a non-Agumon ADVENTURE rookie for the same printed cost 16ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > inherits Reboot through public evolution and unsuspends only that host on the opponent turn 789ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > When Digivolving checks own non-Tai ADVENTURE Tamer before granting the forced attack 461ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > When Digivolving checks opponent ADVENTURE Tamer before granting the forced attack 295ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > When Digivolving checks own unrelated Hero Tamer before granting the forced attack 762ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > preserves full coverage and identical On Play/When Digivolving action sequences 84ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > adds the Vemmon card to hand and trashes the non-Vemmon cards 68ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > does NOT add to hand when no [Vemmon]-in-text card is in the revealed 3 9ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > recognizes a card whose printed effect text mentions [Vemmon] 12ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > places up to two Vemmon from trash under one chosen Digimon 179ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > deletes only an opposing play-cost-4-or-less Digimon when this stack returns Vemmon 111ms
+stdout | src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly returns named Vemmon from a legal inherited producer and deletes only the cost-4 boundary
+[WinCheck] seat 1 wins (reason: security) — turn 0, phase Main, memory 0
+
+ × src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly plays Snatchmon and accounts for reveal, trash, and one-card bottom placement 1264ms
+   → alias "vemmonInText" is not declared in the Board Spec: expected undefined to be defined
+ × src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly resolves the identical When Digivolving reveal path from Vemmon 33ms
+   → alias "vemmonInText" is not declared in the Board Spec: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly returns named Vemmon from a legal inherited producer and deletes only the cost-4 boundary 748ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves the registered effect triggers and action boundaries 24ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves Rush, Raid, and the once-per-turn attack after linking 1ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > links to an Appmon for 2, grants 3000 DP, and lets the host attack 55ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links DoGatchmon and resolves its When Linking attack 41ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks immediately after a public play because of Rush 25ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > uses Raid to redirect an attack to the opponent's highest-DP unsuspended Digimon 38ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links onto DoGatchmon and resolves only one self-linked attack 93ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links Gatchmon plus Navimon and fuses through Haru's watcher 63ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Navimon App Fusion pair 46ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Tweetmon App Fusion pair 192ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Gatchmon App Fusion pair 236ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Tweetmon App Fusion pair 100ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Gatchmon App Fusion pair 27ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Navimon App Fusion pair 174ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the same-name App Fusion pair after a public link 25ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the non-recipe App Fusion pair after a public link 15ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks once when its own stack gets linked and ignores another stack 162ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > may decline both link-granted attack paths 4ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > gets a second public linked attack after the next real turn unsuspends it 678ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 0ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 4ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 173ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > refuses the optional recovery through a public play while preserving both zones 12ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 7ms
+ × src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 10ms
+   → EffectTiming is not defined
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 157ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack 64ms
+ × src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces a second qualifying evolution after the next own turn resets Once Per Turn 37ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place
+ReferenceError: EffectTiming is not defined
+ ❯ src/cards/BT21/BT21-056.test.ts:140:34
+    138|     );
+    139|     await s.ready();
+    140|     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("vemmon")…
+       |                                  ^
+    141|
+    142|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces a second qualifying evolution after the next own turn resets Once Per Turn
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "invalid-evolution",
+  }
+
+ ❯ src/cards/BT21/BT21-056.test.ts:257:9
+    255|           ...(alias === "vemmon" ? { alternateRequirementIndex: 0 } : …
+    256|         }),
+    257|       ).toEqual({ ok: true });
+       |         ^
+    258|       await settle(() => s.perm("egg").topCard.cardId === s.inst(alias…
+    259|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly plays Snatchmon and accounts for reveal, trash, and one-card bottom placement
+AssertionError: alias "vemmonInText" is not declared in the Board Spec: expected undefined to be defined
+ ❯ lookup src/engine/testkit/harness.ts:416:73
+    414|   const lookup = (alias: string) => {
+    415|     const entry = aliases.get(alias);
+    416|     expect(entry, `alias "${alias}" is not declared in the Board Spec`…
+       |                                                                         ^
+    417|     return entry as { kind: "permanent" | "instance"; id: string; inst…
+    418|   };
+ ❯ Object.inst src/engine/testkit/harness.ts:435:21
+ ❯ src/cards/BT21/BT21-058.test.ts:237:74
+ ❯ Proxy.some ../../node_modules/.pnpm/@colyseus+schema@3.0.76/node_modules/@colyseus/schema/src/types/custom/ArraySchema.ts:566:27
+ ❯ src/cards/BT21/BT21-058.test.ts:237:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > publicly resolves the identical When Digivolving reveal path from Vemmon
+AssertionError: alias "vemmonInText" is not declared in the Board Spec: expected undefined to be defined
+ ❯ lookup src/engine/testkit/harness.ts:416:73
+    414|   const lookup = (alias: string) => {
+    415|     const entry = aliases.get(alias);
+    416|     expect(entry, `alias "${alias}" is not declared in the Board Spec`…
+       |                                                                         ^
+    417|     return entry as { kind: "permanent" | "instance"; id: string; inst…
+    418|   };
+ ❯ Object.inst src/engine/testkit/harness.ts:435:21
+ ❯ src/cards/BT21/BT21-058.test.ts:257:74
+ ❯ Proxy.some ../../node_modules/.pnpm/@colyseus+schema@3.0.76/node_modules/@colyseus/schema/src/types/custom/ArraySchema.ts:566:27
+ ❯ src/cards/BT21/BT21-058.test.ts:257:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  4 failed | 46 passed (50)
+   Start at  11:55:27
+   Duration  82.49s (transform 66%, tests 22%, import 12%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-018.test.ts src/cards/BT21/BT21-056.test.ts src/cards/BT21/BT21-057.test.ts src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

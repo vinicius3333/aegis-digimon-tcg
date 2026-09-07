@@ -109,6 +109,57 @@ describe("BT21-071 Scopemon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
   });
 
+  it("publicly declines placement when no Appmon or Three Musketeers card is eligible", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: "BT1-009", as: "nonmatching" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scopemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-071"));
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
+  });
+
+  it("publicly places an eligible Three Musketeers card from trash during alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-054", as: "shotmon" }],
+          hand: [{ card: "BT21-071", as: "scopemon" }],
+          trash: [{ card: "BT6-065", as: "musketeer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shotmon").permanentId,
+        instanceId: s.inst("scopemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shotmon").stack.some((card) => card.instanceId === s.inst("musketeer").instanceId));
+    expect(s.perm("shotmon").stack[0]?.instanceId).toBe(s.inst("musketeer").instanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("musketeer").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("links for 2, draws two, and trashes exactly two selected hand cards", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -168,5 +219,35 @@ describe("BT21-071 Scopemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("shotmon").topCard.instanceId === s.inst("scopemon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("resolves the placement-and-memory branch from a public alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-054", as: "shotmon" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: "BT21-041", as: "appmon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shotmon").permanentId,
+        instanceId: s.inst("scopemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shotmon").topCard.cardId === "BT21-071");
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("shotmon").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
   });
 });

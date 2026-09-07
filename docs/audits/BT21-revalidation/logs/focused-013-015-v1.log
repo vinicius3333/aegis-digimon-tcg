@@ -1,0 +1,33 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from a red Tamer for cost 2 1ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from BurningGreymon for cost 0 1ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may NOT digivolve from a non-red Tamer 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > is registered 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > places the card under THIS Digimon when no red Tamer is in play 7ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > offers the red Tamer with inherited effects alongside this Digimon 1ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > digivolves from BurningGreymon for 0 and bottoms a selected Hero card from hand 26ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > when attacking, pays the matching red Hero evolution cost reduced by 1 19ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > does not offer a non-Hybrid/non-Hero attack evolution 9ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > grants inherited +2000 DP only during its controller's turn 4ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > grants Piercing and +3000 DP on play or digivolution, and may evolve into a reduced-cost level 5 Hybrid 0ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > plays for 6 and gains observable +3000 DP and Piercing for the turn 3ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > digivolves from Agunimon for 1 and receives the same temporary bonuses 3ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > pays 3 to evolve into a level-5 Hybrid only after opponent security removal 12ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > may decline the security-removal evolution without paying memory 1ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > grants inherited +2000 DP only during its controller's turn 2ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays from security and deletes one opposing Digimon at 4000 DP or less on play or digivolution 0ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays for 5 and deletes exactly one opposing Digimon at the 4000 DP boundary 4ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > deletes an eligible Digimon after a real digivolution 3ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays itself free from Security and resolves its On Play deletion 4ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > grants inherited +2000 DP only during its controller's turn 1ms
+
+ Test Files  3 passed (3)
+      Tests  25 passed (25)
+   Start at  00:59:27
+   Duration  11.79s (transform 84%, import 15%, tests 1%)

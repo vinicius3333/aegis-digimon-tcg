@@ -1,0 +1,192 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Your Turn permission, and inherited DP 4ms
+   → expected 'Main' to be 'YourTurn' // Object.is equality
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > qualifying permission digivolves into Siriusmon for exactly 4 with two security cards 23ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-002 2ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-004 3ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security 16ms
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch 3ms
+   → expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch 1ms
+   → expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training target a differently named red Digimon when Siriusmon is absent 1ms
+ × src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training activate the Siriusmon permission when neither gate is true 1ms
+   → expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not qualify with three security and only two distinct Hero Tamer names 1ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > may decline the permission and inherited +2000 DP expires on the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > preserves the Appmon link requirement and linked Security Digimon DP reduction 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > defers the free Security play through the battle-ended event 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > marks the Security play at the printed end-of-battle timing 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > plays from Security after the battle finishes in a real security check 6ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > links to an Appmon for 1, grants 2000 DP, and reduces only opposing Security Digimon 3ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > makes a real Security Digimon battle survivable only with the linked reduction 13ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > resolves a non-Digimon Security effect while the linked DP modifier is active 8ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > does not reduce Security Digimon on the opponent's turn 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > rejects linking to a non-Appmon 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > evolves from a level-2 Appmon for 0 2ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: uses the real base grant for a hand ShineGreymon on the owner's turn 6ms
+ × src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its hand-only grant for the same card in trash 4ms
+   → expected 'BT13-018' to be 'BT21-040' // Object.is equality
+ × src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its Your Turn grant while the opponent owns the turn 3ms
+   → expected 'BT13-018' to be 'BT21-040' // Object.is equality
+ × src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: BT8-059 blocks the base-granted ignore-requirements permission 5ms
+   → expected 'BT13-018' to be 'BT21-040' // Object.is equality
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > ST7-03: [Gallantmon] digivolves onto this Guilmon while opponent has a Lv.6+ Digimon 5ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > ST7-03: rejected when the opponent has NO Lv.6+ Digimon (activation condition fails) 0ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > ST7-03: rejected for a near-name [Gallantmon: Crimson Mode] (exact-name target gate) 0ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT6-060: a [Three Musketeers] Digimon digivolves onto this for 6 (no opponent condition) 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its hand-only grant for the same card in trash
+AssertionError: expected 'BT13-018' to be 'BT21-040' // Object.is equality
+
+Expected: "BT21-040"
+Received: "BT13-018"
+
+ ❯ src/engine/baseGrantedDigivolve.test.ts:50:43
+     48|       payCost: true,
+     49|     });
+     50|     expect(s.perm("base").topCard.cardId).toBe("BT21-040");
+       |                                           ^
+     51|     expect(s.state.memory).toBe(4);
+     52|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its Your Turn grant while the opponent owns the turn
+AssertionError: expected 'BT13-018' to be 'BT21-040' // Object.is equality
+
+Expected: "BT21-040"
+Received: "BT13-018"
+
+ ❯ src/engine/baseGrantedDigivolve.test.ts:69:43
+     67|       payCost: true,
+     68|     });
+     69|     expect(s.perm("base").topCard.cardId).toBe("BT21-040");
+       |                                           ^
+     70|     expect(s.state.memory).toBe(4);
+     71|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: BT8-059 blocks the base-granted ignore-requirements permission
+AssertionError: expected 'BT13-018' to be 'BT21-040' // Object.is equality
+
+Expected: "BT21-040"
+Received: "BT13-018"
+
+ ❯ src/engine/baseGrantedDigivolve.test.ts:87:43
+     85|       payCost: true,
+     86|     });
+     87|     expect(s.perm("base").topCard.cardId).toBe("BT21-040");
+       |                                           ^
+     88|     expect(s.state.memory).toBe(4);
+     89|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Your Turn permission, and inherited DP
+AssertionError: expected 'Main' to be 'YourTurn' // Object.is equality
+
+Expected: "YourTurn"
+Received: "Main"
+
+ ❯ src/cards/BT21/BT21-010.test.ts:55:77
+     53|     ]);
+     54|     const arts = compiled.effects.find((effect) => !effect.isInherited…
+     55|     expect(compiled.effects.find((effect) => !effect.isInherited)?.tri…
+       |                                                                             ^
+     56|     expect(arts).toMatchObject({
+     57|       kind: "Digivolve",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch
+AssertionError: expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
+  }
+
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:43:18
+     41|     effectKey: `P-103/ir-${EffectTiming.OnDeclaration}-1`,
+     42|   });
+     43|   expect(result).toMatchObject({ ok: opts.rejected !== true });
+       |                  ^
+     44|   if (!opts.rejected) await settle(() => s.perm("egg").topCard.cardId …
+     45|   return s;
+ ❯ src/cards/BT21/BT21-010.test.ts:158:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch
+AssertionError: expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
+  }
+
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:43:18
+     41|     effectKey: `P-103/ir-${EffectTiming.OnDeclaration}-1`,
+     42|   });
+     43|   expect(result).toMatchObject({ ok: opts.rejected !== true });
+       |                  ^
+     44|   if (!opts.rejected) await settle(() => s.perm("egg").topCard.cardId …
+     45|   return s;
+ ❯ src/cards/BT21/BT21-010.test.ts:165:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training activate the Siriusmon permission when neither gate is true
+AssertionError: expected { ok: false, reason: 'illegal-target' } to match object { ok: true }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
+  }
+
+ ❯ evolveGammamonThroughTraining src/cards/BT21/BT21-010.test.ts:43:18
+     41|     effectKey: `P-103/ir-${EffectTiming.OnDeclaration}-1`,
+     42|   });
+     43|   expect(result).toMatchObject({ ok: opts.rejected !== true });
+       |                  ^
+     44|   if (!opts.rejected) await settle(() => s.perm("egg").topCard.cardId …
+     45|   return s;
+ ❯ src/cards/BT21/BT21-010.test.ts:185:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  7 failed | 24 passed (31)
+   Start at  21:17:55
+   Duration  7.33s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-010.test.ts src/cards/BT21/BT21-041.test.ts src/engine/baseGrantedDigivolve.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

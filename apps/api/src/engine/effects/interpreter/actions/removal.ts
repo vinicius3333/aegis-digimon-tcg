@@ -66,6 +66,17 @@ async function returnDigivolutionCardsFirst(
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
+    case "TrashTopStackedCards": {
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      const moved = [];
+      for (const permanentId of targetIds) {
+        moved.push(
+          ...(await ctx.fx.trashStackTops(permanentId, action.amount, { byEffectSeat: ctx.source.ownerSeat })),
+        );
+      }
+      ctx.lastEffectActed = moved.length > 0;
+      return false;
+    }
     case "ReturnTopDigivolutionCards": {
       const targetIds = await resolvePermanentTargets(ctx, action.target);
       const cards = targetIds.flatMap((id) => {

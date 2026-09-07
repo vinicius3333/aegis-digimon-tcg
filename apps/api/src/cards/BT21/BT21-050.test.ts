@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-050.js";
 import "../index.js";
 
@@ -75,6 +76,7 @@ describe("BT21-050 Cherrymon", () => {
   });
 
   it("Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -83,8 +85,11 @@ describe("BT21-050 Cherrymon", () => {
         },
         1: { battleArea: [{ card: "ST18-03", as: "falcomon" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    const redirectTargetId = s.perm("cherrymon").permanentId;
+    // Falcomon suspends Cherrymon before the same attack can redirect to it.
+    preferred.push(s.perm("cherrymon").topCard.instanceId);
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
@@ -100,6 +105,14 @@ describe("BT21-050 Cherrymon", () => {
 
     expect(s.perm("cherrymon").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "attackDeclared",
+        target: { kind: "permanent", permanentId: redirectTargetId },
+      }),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === redirectTargetId)).toBe(true);
   });
 
   it("Q4556 observably permits an own Digimon suspension", async () => {
@@ -131,6 +144,7 @@ describe("BT21-050 Cherrymon", () => {
           battleArea: [{ card: "BT21-051", as: "host", under: [{ card: "BT21-050", as: "source" }] }],
           hand: [
             { card: "BT21-048", as: "wg" },
+            { card: "BT21-048", as: "secondWg" },
             { card: "BT1-009", as: "nonWg" },
           ],
         },
@@ -154,6 +168,57 @@ describe("BT21-050 Cherrymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wg").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("chosen").isSuspended);
     expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWg").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("other").isSuspended).toBe(false);
+  });
+
+  it("suspends exactly one opponent through a public When Digivolving effect", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-049", as: "woodmon" }], hand: [{ card: "BT21-050", as: "cherrymon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosen" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("woodmon").permanentId,
+        instanceId: s.inst("cherrymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("woodmon").topCard.cardId === "BT21-050");
+    expect(s.perm("chosen").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.isSuspended)).toBe(false);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("permits declining the public optional suspension", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT21-050", as: "cherrymon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherrymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 
   it("alternate-digivolves from a level-4 WG Digimon for 3", async () => {

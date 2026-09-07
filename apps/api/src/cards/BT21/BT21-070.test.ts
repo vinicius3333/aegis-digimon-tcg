@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-070.js";
 import "../index.js";
 describe("BT21-070 Gossipmon", () => {
@@ -36,7 +37,14 @@ describe("BT21-070 Gossipmon", () => {
       expect.objectContaining({
         trigger: "Security",
         timing: "endOfBattle",
-        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenSecurityBattleEnded",
+            once: true,
+            actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+          }),
+        ],
       }),
     );
     expect(compiled.effects.filter((e) => e.trigger === "OnPlay" || e.trigger === "WhenDigivolving")).toHaveLength(2);
@@ -134,6 +142,7 @@ describe("BT21-070 Gossipmon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recovered").instanceId));
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("gossipmon").instanceId);
+    expect(s.state.memory).toBe(1);
   });
 
   it("does not recover a non-Appmon Digimon", async () => {
@@ -152,13 +161,62 @@ describe("BT21-070 Gossipmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
   });
 
+  it("publicly declines the optional On Play recovery with an eligible Appmon still in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-070", as: "gossipmon" }],
+          trash: [
+            { card: "BT1-009", as: "other" },
+            { card: "BT21-009", as: "eligible" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gossipmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gossipmon").instanceId),
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
+  });
+
   it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-070", as: "gossipmon" }] } });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: { security: [{ card: "BT21-070", as: "gossipmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("gossipmon"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gossipmon").instanceId),
+    );
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    const checked = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT21-070",
+    );
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-070");
+    expect(checked).toBeGreaterThanOrEqual(0);
+    expect(played).toBeGreaterThan(checked);
   });
 });

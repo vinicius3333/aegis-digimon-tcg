@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           abortOnDecline: true,
+          allowCostWithoutTarget: true,
           cost: {
             kind: "place",
             target: {
@@ -69,7 +70,7 @@ export const compiled: CompiledCard = {
                   filter: {
                     zone: "digivolutionCards",
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
                     hostFilter: { isSelfRef: true },
                   },
                   count: 4,

@@ -1,0 +1,34 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > encodes every Digivolve, Link, linked Raid, and linked-trigger clause 1ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > digivolves for zero from Appmon and rejects a non-Appmon/non-Hero level 2 23ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers 12ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers 9ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack 8ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not play Haru with two Tamers or when another Digimon gets linked 5ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not activate the inherited trigger during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > may decline and plays at most one Haru across repeated link events 10ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > links to an Appmon for 1 memory, adds 2000 DP, and grants Raid 4ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > uses Raid from the linked host to redirect a player attack 12ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > optionally returns one Reptile or Dragonkin Digimon from trash and grants +2000 DP on your turn 0ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > optionally returns one Reptile Digimon from trash through a real play 5ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > optionally returns one Dragonkin Digimon from trash through a real play 4ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > may decline the trash return and does not take an opponent's matching card 3ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > does not offer the optional return when only the opponent has an eligible trash card 1ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > gains inherited DP after a public legal evolution into level 4 6ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > grants the inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > reveals three, adds one Reptile/Dragonkin and one LIBERATOR, then bottoms the rest 0ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > plays for 3, adds separate Reptile and LIBERATOR cards, and bottoms the rest 4ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > accepts a Dragonkin card for the first search bucket 3ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > does not reuse one dual-trait card for both search buckets 3ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > evolves through the legal red level-2 route 2ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > gains inherited memory from a public attack that removes opponent security 23ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > does not gain memory when a public attack removes this player's security 6ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > leaves all three cards in the deck when neither search bucket matches 2ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > gains memory once per turn only when the opponent's security is removed 2ms
+
+ Test Files  3 passed (3)
+      Tests  26 passed (26)
+   Start at  00:51:17
+   Duration  10.74s (transform 83%, import 15%, tests 1%)

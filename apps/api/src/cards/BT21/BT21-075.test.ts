@@ -70,6 +70,184 @@ describe("BT21-075 SkullGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Raid")).toBe(false);
   });
 
+  it("naturally uses granted Raid to redirect a public player attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-075", as: "target" }], hand: [{ card: "BT21-075", as: "skull" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    const victimId = s.perm("victim").permanentId;
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Raid"));
+    // The public play grants Raid; this test then uses the established Digimon in the
+    // same production turn to isolate Raid's redirection behavior from summoning sickness.
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Raid")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("publicly proves granted Retaliation deletes an established host after it loses to higher DP", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-075", as: "host" }],
+          hand: [{ card: "BT21-075", as: "skull" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "higher", suspended: true }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("host").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Retaliation"));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+
+    const hostId = s.perm("host").permanentId;
+    const higherId = s.perm("higher").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: higherId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === higherId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT2-075")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT10-055")).toBe(true);
+  });
+
+  it("keeps play grants through the opponent turn and expires Raid and Retaliation on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-075", as: "host" }],
+          hand: [{ card: "BT21-075", as: "skull" }, "BT1-010"],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Retaliation"));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
+  it.each([
+    [false, true],
+    [false, false],
+    [true, true],
+    [true, false],
+  ] as const)(
+    "resolves natural deletion after normal cost-4 evolution with inherited=%s and accept=%s",
+    async (inherited, accept) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT15-011", as: "base" }],
+            hand: [{ card: "BT21-075", as: "skull" }, ...(inherited ? [{ card: "BT1-025", as: "war" }] : [])],
+            trash: [{ card: "BT21-057", as: "adventure" }],
+            deck: ["BT1-001", "BT1-002"],
+          },
+          1: { battleArea: [{ card: "BT10-055", as: "higher", suspended: true }] },
+        },
+        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("skull").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Retaliation"));
+      expect(s.state.memory).toBe(6);
+      expect(s.perm("base").topCard.cardId).toBe("BT21-075");
+      expect(observe(s.engine).hasKeyword(s.perm("base"), "Retaliation")).toBe(true);
+      if (inherited) {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("war").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("base").topCard.cardId === "BT1-025");
+        expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT15-011", "BT21-075"]);
+        expect(s.state.memory).toBe(3);
+      }
+      const baseId = s.perm("base").permanentId;
+      const higherId = s.perm("higher").permanentId;
+      const skullId = s.inst("skull").instanceId;
+      const recoveryId = s.inst("adventure").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: baseId,
+          target: { kind: "permanent", permanentId: higherId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.state.players[0]!.trash.some((card) => card.instanceId === skullId) && !observe(s.engine).isAttacking(),
+      );
+      expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === baseId)).toBe(false);
+      expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === higherId)).toBe(false);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === recoveryId)).toBe(accept);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === recoveryId)).toBe(!accept);
+      expect(s.state.memory).toBe(inherited ? 3 : 6);
+    },
+  );
+
   it("plays an ADVENTURE Tamer at the play-cost-4 boundary", async () => {
     const s = setupEngine(
       {
@@ -104,19 +282,97 @@ describe("BT21-075 SkullGreymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost5").instanceId)).toBe(true);
   });
 
-  it("executes the inherited deletion play from a realistic stack", async () => {
+  it("does not cross the ADVENTURE trait boundary for a cheap non-ADVENTURE card", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-076", as: "host", under: [{ card: "BT21-075", as: "source" }] }],
-          trash: [{ card: "BT21-057", as: "adventure" }],
+          battleArea: [{ card: "BT21-075", as: "skullgreymon" }],
+          trash: [{ card: "BT1-009", as: "nonAdventure" }],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "victim", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const nonAdventureId = s.inst("nonAdventure").instanceId;
+    const victimId = s.perm("victim").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skullgreymon").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-075")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === nonAdventureId)).toBe(true);
+  });
+
+  it("does not play an eligible ADVENTURE card from the opponent's trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-075", as: "skullgreymon" }] },
+        1: {
+          battleArea: [{ card: "BT10-055", as: "victim", suspended: true }],
+          trash: [{ card: "BT21-057", as: "opponentAdventure" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    const opponentAdventureId = s.inst("opponentAdventure").instanceId;
+    const victimId = s.perm("victim").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skullgreymon").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-075")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === opponentAdventureId)).toBe(true);
+  });
+
+  it("executes the inherited deletion play from a realistic stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-057", as: "base" }],
+          hand: [
+            { card: "BT21-075", as: "source" },
+            { card: "ST6-13", as: "host" },
+          ],
+          trash: [{ card: "BT21-057", as: "adventure" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-075");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST6-13");
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
     await settle(() =>
       s.state.players[0]!.battleArea.some((card) => card.topCard.instanceId === s.inst("adventure").instanceId),
     );

@@ -7,6 +7,28 @@ import { compiled } from "./BT21-021.js";
 import "../index.js";
 
 describe("BT21-021 OmniShoutmon", () => {
+  it("does not use its DigiXros-only alias for an alternate digivolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-021", as: "base" }],
+        hand: [{ card: "BT21-021", as: "destination" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("destination").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("base").topCard.cardId).toBe("BT21-021");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("destination").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+
   it("exposes complete effect coverage with no residual clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
@@ -75,7 +97,7 @@ describe("BT21-021 OmniShoutmon", () => {
         },
       ],
     });
-    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2 }]);
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2, maxMaterials: 1 }]);
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Shoutmon"], cost: 4, isAlternate: true },
       { level: 4, traits: ["Xros Heart", "Hero"], cost: 3, isAlternate: true },
@@ -122,6 +144,121 @@ describe("BT21-021 OmniShoutmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("uses DigiXros with exactly one Shoutmon material through the public play intent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-021", as: "material" }], hand: [{ card: "BT21-021", as: "omni" }] },
+    });
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("omni").instanceId,
+        digiXros: { materialInstanceIds: [s.perm("material").topCard.instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-021"));
+    expect(s.state.memory).toBe(1);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("omni").instanceId)?.stack.map(
+        (card) => card.instanceId,
+      ),
+    ).toEqual([s.inst("material").instanceId]);
+  });
+
+  it("inherits Rush from BT21-021 under a legal public BT21-027 DigiXros host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-027", as: "host" },
+            { card: "BT21-021", as: "source" },
+            { card: "AD1-013", as: "zeig" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("host").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("source").instanceId, s.inst("zeig").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("host").instanceId));
+    const hostId = s.perm("host").permanentId;
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+  });
+
+  it("does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT15-012", as: "host" },
+            { card: "BT21-021", as: "source" },
+            { card: "BT10-049", as: "ballistamon" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("host").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("source").instanceId, s.inst("ballistamon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("host").instanceId));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("rejects a DigiXros intent offering two materials for the one-material recipe", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-011", as: "first" },
+          { card: "BT21-011", as: "second" },
+        ],
+        hand: [{ card: "BT21-021", as: "omni" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("omni").instanceId,
+        digiXros: { materialInstanceIds: [s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("omni").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT21-011", "BT21-011"]);
+  });
+
   it("Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself", async () => {
     const s = setupEngine(
       {
@@ -154,6 +291,241 @@ describe("BT21-021 OmniShoutmon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("tamer").stack.some((card) => card.instanceId === s.inst("omni").instanceId)).toBe(true);
+  });
+
+  it("publicly places a qualifying Digimon under the played Tamer before Save", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT21-083", as: "tamer" }],
+          trash: [{ card: "BT10-007", as: "savedDigimon" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const omniId = s.inst("omni").instanceId;
+    const savedDigimonId = s.inst("savedDigimon").instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId,
+        ) &&
+        s.perm("tamer").stack.some((card) => card.instanceId === omniId) &&
+        s.perm("tamer").stack.some((card) => card.instanceId === savedDigimonId),
+    );
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([omniId, savedDigimonId]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === savedDigimonId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omniId)).toBe(false);
+  });
+
+  it("publicly declines an eligible End of Attack play without deleting itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT11-012", as: "candidate" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+  });
+
+  it("publicly completes End of Attack with an ineligible card and no self-deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT1-009", as: "ineligible" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ineligible").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not declare a nested attack for the Digimon played while End of Attack is resolving (Q4728)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-021", as: "omni" },
+            { card: "BT21-083", as: "taiki" },
+          ],
+          hand: [{ card: "BT10-007", as: "candidate" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("candidate").instanceId,
+        ) &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("candidate").instanceId,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    ).toBe(false);
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+  });
+
+  it("Q4727: publicly declares BT19-014 DigiXros using the attacking OmniShoutmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [
+            { card: "BT19-014", as: "ex6" },
+            { card: "BT19-026", as: "zeig" },
+            { card: "BT19-051", as: "atlur" },
+            { card: "BT19-038", as: "jaeger" },
+            { card: "BT19-061", as: "raptor" },
+          ],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const omniId = s.inst("omni").instanceId;
+    const ex6Id = s.inst("ex6").instanceId;
+    const materialIds = ["zeig", "atlur", "jaeger", "raptor", "omni"].map((as) => s.inst(as).instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ex6Id) &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const ex6 = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === ex6Id);
+    expect(ex6).toBeDefined();
+    expect(ex6?.stack.map((card) => card.instanceId)).toEqual([...materialIds].reverse());
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omniId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === ex6Id)).toBe(false);
+    // Eleven printed cost minus five from OmniShoutmon and ten from five materials floors at zero.
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("publicly pays the reduced cost above five before deleting itself after a successful play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT11-012", as: "candidate" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("candidate").instanceId),
+    );
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("omni").instanceId)).toBe(true);
   });
 
   it("does not delete itself when the play is declined or no eligible card exists", async () => {

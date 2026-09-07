@@ -26,26 +26,17 @@ describe("BT21-012 Flamemon", () => {
         trigger: "Main",
         actions: [
           {
-            kind: "PlayWithoutCost",
-            target: {
-              filter: { hasInheritedEffects: true, controller: "mine", kind: ["Tamer"], colors: ["Red"] },
-              count: 1,
-            },
-            from: ["hand"],
-            payCost: false,
             cost: {
               kind: "suspend",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               raw: "By suspending this Digimon",
             },
-            optional: true,
             abortOnDecline: true,
-          },
-          {
-            kind: "PlaceUnder",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            underFilter: { lastPlayed: true, controllerDefault: "mine", kind: ["Tamer"] },
-            condition: { kind: "ifThisEffectActed", raw: "you did" },
+            kind: "CostGatedBlock",
+            actions: [
+              expect.objectContaining({ kind: "PlayWithoutCost", optional: true }),
+              expect.objectContaining({ kind: "PlaceUnder" }),
+            ],
           },
         ],
       }),
@@ -121,7 +112,7 @@ describe("BT21-012 Flamemon", () => {
   it.each([
     ["a red Tamer without inherited effects", "BT1-085"],
     ["a non-red Tamer with inherited effects", "BT17-083"],
-  ])("does not pay the suspension cost for %s", async (_label, tamer) => {
+  ])("pays suspension cost even when play fails for %s", async (_label, tamer) => {
     const s = setupEngine(
       {
         0: {
@@ -132,17 +123,19 @@ describe("BT21-012 Flamemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("flamemon").topCard.instanceId,
-      effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("flamemon").topCard.instanceId,
+        effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
-    expect(s.perm("flamemon").isSuspended).toBe(false);
+    expect(s.perm("flamemon").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  it("may decline without suspending or moving Flamemon", async () => {
+  it("may decline the inner play after paying suspension, leaving Flamemon suspended", async () => {
     const s = setupEngine(
       {
         0: {
@@ -153,14 +146,44 @@ describe("BT21-012 Flamemon", () => {
       { autoDeclineOptional: true },
     );
     await s.ready();
-    s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("flamemon").topCard.instanceId,
-      effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("flamemon").topCard.instanceId,
+        effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
-    expect(s.perm("flamemon").isSuspended).toBe(false);
+    expect(s.perm("flamemon").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("pays the mandatory suspension cost even when no eligible Tamer exists", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT21-012", as: "flamemon" }] } }, { autoAcceptOptional: true });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("flamemon").topCard.instanceId,
+        effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("flamemon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("rejects activation when Flamemon is already suspended", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT21-012", as: "flamemon", suspended: true }] } });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("flamemon").topCard.instanceId,
+        effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("flamemon").isSuspended).toBe(true);
   });
 
   it("grants inherited +2000 DP only during its controller's turn", async () => {
@@ -172,5 +195,39 @@ describe("BT21-012 Flamemon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(5000);
+  });
+
+  it("gets inherited DP only after a legal public evolution carries Flamemon under a level 4 host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-001", as: "egg" }],
+        hand: [
+          { card: "BT21-012", as: "flamemon" },
+          { card: "BT21-015", as: "host" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("flamemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-012");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-015");
+    expect(s.perm("egg").currentDP).toBe(7000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("egg").currentDP).toBe(5000);
   });
 });

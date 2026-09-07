@@ -1,0 +1,58 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > preserves the Appmon link requirement and linked -2000 DP effect 0ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > plays itself without cost at the end of the Security battle 0ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > applies the same -2000 DP effect on play and when digivolving 0ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > plays through the public intent and reduces an opponent Digimon by 2000 DP 12ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > links to an Appmon for 2, grants 3000 DP, and applies the linking debuff 32ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > plays after a real Security battle and resolves its On Play debuff 10ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > expires the play and digivolution debuff at the opponent's turn end 6ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > digivolves normally and applies the same -2000 DP boundary 2ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > refuses the public Link onto a non-Appmon host without paying 1ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > preserves the Appmon link requirement and linked Security Digimon DP reduction 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > defers the free Security play through the battle-ended event 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > marks the Security play at the printed end-of-battle timing 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > plays from Security after the battle finishes in a real security check 4ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > links to an Appmon for 1, grants 2000 DP, and reduces only opposing Security Digimon 4ms
+ × src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > makes a real Security Digimon battle survivable only with the linked reduction 11ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > resolves a non-Digimon Security effect while the linked DP modifier is active 8ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > does not reduce Security Digimon on the opponent's turn 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > rejects linking to a non-Appmon 1ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > evolves from a level-2 Appmon for 0 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > makes a real Security Digimon battle survivable only with the linked reduction
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-041.test.ts:135:100
+    133|       expect(s.state.players[1]!.security).toHaveLength(0);
+    134|       expect(s.state.players[1]!.trash.map((card) => card.cardId)).toC…
+    135|       expect(s.state.players[0]!.battleArea.some((permanent) => perman…
+       |                                                                                                    ^
+    136|       expect(s.state.players[0]!.trash.some((card) => card.cardId === …
+    137|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 22 passed (23)
+   Start at  21:15:55
+   Duration  7.59s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-041.test.ts src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

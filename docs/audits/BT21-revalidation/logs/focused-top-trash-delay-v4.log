@@ -1,0 +1,91 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits the pre-purge Armor Form identity and preserves the promoted host 20ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host 11ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > does not confuse ordinary source-card trash or another controller's top identity 2ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 5ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 1ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 5ms
+ × src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 23ms
+   → expected undefined to be defined
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 0ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 6ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 3ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives color while a Tamer with an inherited-effect source is on the field 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 4ms
+ × src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > triggers Delay from a public inherited-effect Tamer play and evolves it into a Hybrid 11ms
+   → expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement 2ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload 0ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > gains 1 memory and enters the battle area from a real security check 3ms
+ × src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon 12ms
+   → expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > triggers Delay from a public inherited-effect Tamer play and evolves it into a Hybrid
+AssertionError: expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "wrong-phase",
+  }
+
+ ❯ src/cards/BT21/BT21-091.test.ts:173:100
+    171|     s.state.turnSeat = 0;
+    172|     s.state.memory = 10;
+    173|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.i…
+       |                                                                                                    ^
+    174|       ok: true,
+    175|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card
+AssertionError: expected undefined to be defined
+ ❯ src/cards/BT21/BT21-094.test.ts:158:24
+    156|       (effect) => String(effect.description).includes("Delay"),
+    157|     );
+    158|     expect(laterDelay).toBeDefined();
+       |                        ^
+    159|     expect(s.engine.applyIntent(0, {
+    160|       type: "activateEffect",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon
+AssertionError: expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "wrong-phase",
+  }
+
+ ❯ src/cards/BT21/BT21-100.test.ts:131:104
+    129|     s.state.turnSeat = 0;
+    130|     s.state.memory = 10;
+    131|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.i…
+       |                                                                                                        ^
+    132|     await settle(() => s.state.players[1]!.battleArea.length === 0 && …
+    133|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  3 failed | 14 passed (17)
+   Start at  10:30:50
+   Duration  6.87s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/digimonTopTrashEvents.test.ts src/cards/BT21/BT21-094.test.ts src/cards/BT21/BT21-091.test.ts src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

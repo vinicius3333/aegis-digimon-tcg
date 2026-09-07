@@ -157,6 +157,7 @@ export interface BaseGrantedDigivolve {
  * the leaf kinds are the board reads those alternatives are stated in.
  */
 export type BaseGrantedDigivolveCondition =
+  | { kind: "securityAtMost"; count: number }
   | { kind: "opponentHasDigimonLevelAtLeast"; level: number }
   /** "you have N or more [trait] Tamers with different names" */
   | { kind: "distinctNamedTamersWithTrait"; trait: string; count: number }

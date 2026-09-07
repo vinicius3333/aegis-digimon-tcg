@@ -107,12 +107,53 @@ describe("BT21-019 BetelGammamon", () => {
 
   it("grants inherited +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-020", as: "host", dp: 7000, under: ["BT21-019"] }] },
+      0: { battleArea: [{ card: "BT21-020", as: "host", under: ["BT21-019"] }] },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(9000);
+    expect(s.perm("host").currentDP).toBe(10000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("host").currentDP).toBe(7000);
+    expect(s.perm("host").currentDP).toBe(8000);
+  });
+
+  it("builds a legal Gammamon to BetelGammamon to Aldamon stack before checking inheritance", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-001", as: "egg" }],
+        hand: [
+          { card: "BT21-010", as: "gammamon" },
+          { card: "BT21-019", as: "betel" },
+          { card: "BT21-020", as: "aldamon" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("gammamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-010");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("betel").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-019");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-020");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT21-001", "BT21-010", "BT21-019"]);
+    expect(s.perm("egg").currentDP).toBe(12000);
   });
 });

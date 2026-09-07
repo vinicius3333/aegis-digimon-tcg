@@ -1,0 +1,18 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Arts Digivolve gate, and inherited DP 2ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Arts Digivolves into Siriusmon for exactly 4 with two security cards 47ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-002 4ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-004 5ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security 22ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not qualify with three security and only two distinct Hero Tamer names 3ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > may decline Arts Digivolve and inherited +2000 DP expires on the opponent's turn 5ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  00:54:27
+   Duration  11.35s (transform 84%, import 15%, tests 1%)

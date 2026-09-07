@@ -1,0 +1,27 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes level 4 or lower and triggers Alliance plus an attack 2ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes the correct level cap without two Tamer colors 18ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes the correct level cap with two Tamer colors 6ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > Q4588/Q4590 mandates Alliance for an ADVENTURE event but allows declining the attack 6ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > publicly uses different Digimon for Alliance and the optional attack 11ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > Q4732 still allows an attack when the played Digimon is not ADVENTURE 5ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > grants inherited Alliance on a realistic evolution stack 5ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > uses the Garurumon-name alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > uses the ADVENTURE alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > costs a Gammamon card to grant Collision and recurs on deletion 0ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > trashes a Gammamon-text card and grants both effects to the same opponent 30ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > resolves the printed grant through a public play intent 23ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly triggers the selected opponent's gained attack at their next main phase 29ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is declined 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays Canoweissmon from trash 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays level-4 Gammamon-text from trash 2ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > inherited deletion plays level-4 Gammamon text but not Canoweissmon 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > uses the level-4 Gammamon-text alternate evolution route for 3 1ms
+
+ Test Files  2 passed (2)
+      Tests  19 passed (19)
+   Start at  18:17:23
+   Duration  7.18s (transform 83%, import 15%, tests 2%)

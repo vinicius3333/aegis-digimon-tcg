@@ -7,8 +7,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // your trash can also be placed for DigiXros (in addition to hand).
 //
 // [On Play] / [When Digivolving]: Trash the top 10 stacked cards of 1 opponent's Digimon.
-// KB Q4540: stops when no more stacked cards remain (not the Digimon top card).
-// TrashDigivolution amount:10 fromTop:true reproduces this — mills min(10, stack.length).
+// KB Q4540: trash from the current top downward, retaining the bottom card.
+// Q4541/Q4542: an exposed non-DP or Option top is then removed by rule processing.
 //
 // [When Attacking] [Once Per Turn]: You may return 1 of your opponent's Digimon with
 // NO digivolution cards to the bottom of the deck.
@@ -63,7 +63,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "TrashDigivolution",
+          kind: "TrashTopStackedCards",
           target: {
             filter: {
               controller: "opponent",
@@ -72,7 +72,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 10,
-          fromTop: true,
         },
       ],
     },
@@ -80,7 +79,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "TrashDigivolution",
+          kind: "TrashTopStackedCards",
           target: {
             filter: {
               controller: "opponent",
@@ -89,7 +88,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 10,
-          fromTop: true,
         },
       ],
     },
@@ -119,7 +117,7 @@ export const compiled: CompiledCard = {
     {
       level: 6,
       traits: ["Hero"],
-      cost: 3,
+      cost: 5,
       isAlternate: true,
     },
   ],

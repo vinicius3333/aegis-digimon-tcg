@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "name",
+          digiXrosOnly: true,
           tokens: ["Shoutmon"],
         },
       ],
@@ -42,6 +43,7 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
+          allowDigiXros: true,
           optional: true,
           costReduction: 5,
         },
@@ -152,6 +154,7 @@ export const compiled: CompiledCard = {
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };

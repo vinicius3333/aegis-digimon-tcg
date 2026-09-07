@@ -93,7 +93,7 @@ describe("BT21-044 compiled implementation", () => {
 
   it("enters through the public play intent with Marcus and attack hooks registered", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT21-044", as: "rizegreymon" }] } });
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rizegreymon").instanceId })).toEqual({
       ok: true,
@@ -106,6 +106,95 @@ describe("BT21-044 compiled implementation", () => {
     );
   });
 
+  it("publicly lets the selected Marcus Damon attack after On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-044", as: "rize" }],
+          battleArea: [{ card: "BT13-095", as: "marcus" }],
+        },
+        1: { security: ["BT1-009", "BT1-001", "BT1-002"], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-044"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("marcus").permanentId && permanent.isSuspended,
+      ),
+    );
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("rize").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("rize").isSuspended).toBe(true);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("expires the public Marcus treatment at the end of its own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-095", as: "marcus" }],
+          hand: [{ card: "BT21-044", as: "rize" }, "BT1-009"],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: { hand: ["BT1-009"], security: ["BT1-001", "BT1-002"], deck: ["BT1-005", "BT1-006", "BT1-007"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance"));
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    // The printed "For the turn" duration ends at the end of the turn that played RizeGreymon,
+    // before the opponent reaches Main. The card remains a Tamer with its printed zero DP.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("marcus").topCard.cardId).toBe("BT13-095");
+    expect(s.perm("marcus").currentDP).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
   it("does not treat a combined Marcus Damon card name as exact", async () => {
     const s = setupEngine(
       {
@@ -116,7 +205,7 @@ describe("BT21-044 compiled implementation", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
@@ -207,6 +296,71 @@ describe("BT21-044 compiled implementation", () => {
 
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("marcus").instanceId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(false);
+  });
+
+  it("publicly recovers Marcus after the first red/yellow Tamer deletion and shares the once-per-turn limit", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-044", as: "rize" },
+            { card: "BT1-087", as: "yellowTamer" },
+            { card: "BT13-095", as: "redTamer" },
+          ],
+          trash: [
+            { card: "BT13-095", as: "marcus1" },
+            { card: "BT12-092", as: "marcus2" },
+          ],
+          security: [{ card: "BT1-001", as: "existingSecurity" }],
+        },
+        1: {
+          battleArea: [{ card: "BT15-055", as: "blackSource" }],
+          hand: [
+            { card: "BT15-097", as: "slicer1" },
+            { card: "BT15-097", as: "slicer2" },
+            { card: "BT15-055", as: "machine1" },
+            { card: "BT15-055", as: "machine2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const yellowTamerId = s.perm("yellowTamer").permanentId;
+    const redTamerId = s.perm("redTamer").permanentId;
+    const firstMarcusId = s.inst("marcus1").instanceId;
+    const secondMarcusId = s.inst("marcus2").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("slicer1").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === firstMarcusId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === yellowTamerId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === redTamerId)).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(firstMarcusId);
+    expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === firstMarcusId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("machine1").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("slicer1").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+
+    const optionalCountAfterFirst = s.decisions.filter(({ req }) => req.kind === "optional").length;
+    expect(optionalCountAfterFirst).toBe(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("slicer2").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === redTamerId) === false);
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(firstMarcusId);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === secondMarcusId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === secondMarcusId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("machine2").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("slicer2").instanceId)).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(optionalCountAfterFirst);
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not trigger the security recovery for a non-red, non-yellow Tamer deletion", async () => {

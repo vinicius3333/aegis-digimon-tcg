@@ -1,0 +1,125 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ❯ src/cards/BT21/BT21-009.test.ts (10 tests | 1 failed) 87ms
+   ❯ BT21-009 Gatchmon (10)
+     × uses Raid from the linked host to redirect a player attack 16ms
+ ❯ src/cards/BT21/BT21-008.test.ts (9 tests | 3 failed) 30ms
+   ❯ BT21-008 Elizamon (9)
+     × plays for 3, adds separate Reptile and LIBERATOR cards, and bottoms the rest 6ms
+     × does not reuse one dual-trait card for both search buckets 3ms
+     × evolves through the legal red level-2 route before using inherited memory 2ms
+ ❯ src/cards/BT21/BT21-007.test.ts (7 tests | 1 failed) 14ms
+   ❯ BT21-007 Agumon (7)
+     × gains inherited DP after a public legal evolution from the Digi-Egg 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > gains inherited DP after a public legal evolution from the Digi-Egg
+AssertionError: expected 1000 to be 3000 // Object.is equality
+
+- Expected
++ Received
+
+- 3000
++ 1000
+
+ ❯ src/cards/BT21/BT21-007.test.ts:132:37
+    130|     ).toEqual({ ok: true });
+    131|     await settle(() => s.perm("egg").topCard.cardId === "BT21-007");
+    132|     expect(s.perm("egg").currentDP).toBe(3000);
+       |                                     ^
+    133|     expect(s.state.memory).toBe(0);
+    134|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > plays for 3, adds separate Reptile and LIBERATOR cards, and bottoms the rest
+AssertionError: expected [ 'inst-59', 'inst-58' ] to deeply equal [ 'inst-58', 'inst-59' ]
+
+- Expected
++ Received
+
+  [
+-   "inst-58",
+    "inst-59",
++   "inst-58",
+  ]
+
+ ❯ src/cards/BT21/BT21-008.test.ts:80:69
+     78|       expect.arrayContaining([s.inst("reptile").instanceId, s.inst("li…
+     79|     );
+     80|     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).to…
+       |                                                                     ^
+     81|       s.inst("rest").instanceId,
+     82|       s.inst("tail").instanceId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > does not reuse one dual-trait card for both search buckets
+AssertionError: expected [ 'inst-66', 'inst-67' ] to deeply equal [ 'inst-67', 'inst-66' ]
+
+- Expected
++ Received
+
+  [
+-   "inst-67",
+    "inst-66",
++   "inst-67",
+  ]
+
+ ❯ src/cards/BT21/BT21-008.test.ts:125:69
+    123|     await settle(() => s.state.players[0]!.hand.length === 1);
+    124|     expect(s.state.players[0]!.hand[0]?.instanceId).toBe(s.inst("dual"…
+    125|     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).to…
+       |                                                                     ^
+    126|       s.inst("tail").instanceId,
+    127|       s.inst("rest").instanceId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > evolves through the legal red level-2 route before using inherited memory
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/cards/BT21/BT21-008.test.ts:145:28
+    143|     ).toEqual({ ok: true });
+    144|     await settle(() => s.perm("egg").topCard.cardId === "BT21-008");
+    145|     expect(s.state.memory).toBe(0);
+       |                            ^
+    146|     expect(s.perm("egg").topCard.cardId).toBe("BT21-008");
+    147|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > uses Raid from the linked host to redirect a player attack
+AssertionError: permanent for "high" (seed-perm-54) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-009.test.ts:278:100
+ ❯ Proxy.some ../../node_modules/.pnpm/@colyseus+schema@3.0.76/node_modules/@colyseus/schema/src/types/custom/ArraySchema.ts:566:27
+ ❯ src/cards/BT21/BT21-009.test.ts:278:56
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-009.test.ts:278:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  5 failed | 228 passed (233)
+   Start at  00:45:46
+   Duration  10.72s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-007.test.ts src/cards/BT21/BT21-008.test.ts src/cards/BT21/BT21-009.test.ts src/cards/BT21/BT21-catalog-sync.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache

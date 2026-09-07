@@ -1,0 +1,134 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack plus one, wipes opposing Digimon, and recurs Guilmon family 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack +1 and deletes every Digimon on both sides at end of attack 31ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > wipes both battle areas after a real public attack resolves 9ms
+ × src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks 16ms
+   → permanent for "opponentMegidramon" (seed-perm-23) is no longer on the board: expected undefined to be defined
+ × src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks 12ms
+   → permanent for "ownMegidramon" (seed-perm-27) is no longer on the board: expected undefined to be defined
+ × src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it 17ms
+   → permanent for "armor" (seed-perm-33) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > base cost 3 10ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 9 total trash keeps cap 3 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 10 total trash raises cap to 5 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 20 total trash raises cap to 7 8ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > counts both players' trashes for the cost-5 ceiling 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not play a non-Guilmon-family card even below the cost ceiling 2ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > uses the level-5 Growlmon-name alternate evolution route for 4 3ms
+ × src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect from a nonattacking own host 16ms
+   → expected false to be true // Object.is equality
+ × src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve a BT21-079 host's End of Attack effect for an opponent's attack 13ms
+   → expected false to be true // Object.is equality
+ × src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect when it is the defender against Armor Purge 8ms
+   → expected false to be true // Object.is equality
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > resolves BT21-079's own End of Attack deletion after its public attack 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks
+AssertionError: permanent for "opponentMegidramon" (seed-perm-23) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-079.test.ts:136:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks
+AssertionError: permanent for "ownMegidramon" (seed-perm-27) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-079.test.ts:167:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it
+AssertionError: permanent for "armor" (seed-perm-33) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-079.test.ts:198:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect from a nonattacking own host
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/engine/effects/endOfAttackScope.test.ts:38:85
+     36|     expect(s.events.some((event) => event.kind === "securityChecked" |…
+     37|     await settle(() => s.state.players[1]!.security.length === 0);
+     38|     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId ==…
+       |                                                                                     ^
+     39|   });
+     40|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve a BT21-079 host's End of Attack effect for an opponent's attack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/engine/effects/endOfAttackScope.test.ts:67:90
+     65|     expect(s.events.some((event) => event.kind === "securityChecked" |…
+     66|     await settle(() => s.state.players[1]!.security.length === 0);
+     67|     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId ==…
+       |                                                                                          ^
+     68|   });
+     69|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect when it is the defender against Armor Purge
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/engine/effects/endOfAttackScope.test.ts:99:86
+     97|     expect(s.engine.combat.currentAttackerId).toBeUndefined();
+     98|     expect(s.events.some((event) => event.kind === "securityChecked" |…
+     99|     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId ==…
+       |                                                                                      ^
+    100|     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId ==…
+    101|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  6 failed | 11 passed (17)
+   Start at  11:16:10
+   Duration  22.23s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/endOfAttackScope.test.ts src/cards/BT21/BT21-079.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

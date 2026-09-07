@@ -107,6 +107,9 @@ import { compiled as bt21102 } from "./BT21-102.js";
 
 const effectsPath = fileURLToPath(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url));
 const catalog = JSON.parse(readFileSync(effectsPath, "utf8")) as CompiledEffects;
+const printedCatalog = JSON.parse(
+  readFileSync(new URL("../../../../../packages/shared/src/cards/data/cards.json", import.meta.url), "utf8"),
+) as { cardId: string; set: string }[];
 const authoritative = {
   "BT21-001": bt21001,
   "BT21-002": bt21002,
@@ -213,6 +216,25 @@ const authoritative = {
 };
 
 describe("BT21 persisted IR", () => {
+  it("audits every BT21 card in the committed printed catalog", () => {
+    expect(Object.keys(authoritative).sort()).toEqual(
+      printedCatalog
+        .filter((card) => card.set === "BT21")
+        .map((card) => card.cardId)
+        .sort(),
+    );
+  });
+
+  it.each(Object.keys(authoritative))("registers %s exclusively through its compiled IR", (cardId) => {
+    const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.url), "utf8");
+    expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    expect(source).toMatch(new RegExp(`registerIrCard\\((?:"${cardId}"|cardId), compiled\\)`));
+    const registeredId =
+      source.match(/registerIrCard\("([^"]+)", compiled\)/)?.[1] ?? source.match(/const cardId = "([^"]+)"/)?.[1];
+    expect(registeredId).toBe(cardId);
+    expect(source).not.toMatch(/\bregisterCard\s*\(/);
+  });
+
   it("contains exactly the authoritative BT21 card keys", () => {
     const persistedCardIds = Object.keys(catalog)
       .filter((cardId) => /^BT21-\d{3}$/.test(cardId))

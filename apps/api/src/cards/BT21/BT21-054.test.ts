@@ -58,7 +58,7 @@ describe("BT21-054 Shotmon", () => {
       {
         0: {
           hand: [{ card: "BT21-054", as: "shotmon" }],
-          battleArea: [{ card: "BT1-009", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] }],
+          battleArea: [{ card: "BT21-043", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] }],
         },
         1: { battleArea: [{ card: "BT21-049", as: "opponent", under: ["BT21-048"] }] },
       },
@@ -75,13 +75,41 @@ describe("BT21-054 Shotmon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT21-049")).toBe(true);
   });
 
+  it("publicly pays the On Play cost with a Three Musketeers trait source", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-054", as: "shotmon" }],
+          battleArea: [
+            { card: "EX4-073", as: "traitHost", under: [{ card: "BT6-065", as: "traitSource" }] },
+            { card: "EX7-043", as: "controlHost", under: [{ card: "EX7-040", as: "textOnlySource" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-049", as: "opponent", under: ["BT21-048"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("traitSource").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-048" && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("traitSource").instanceId);
+    expect(s.perm("controlHost").stack.map((card) => card.cardId)).toContain("EX7-040");
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-048")).toBe(true);
+  });
+
   it("does not pay the stack-trash cost or de-digivolve when the effect is declined", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT21-054", as: "shotmon" },
-            { card: "BT1-009", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] },
+            { card: "BT21-043", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] },
           ],
         },
         1: { battleArea: [{ card: "BT21-049", as: "opponent", under: ["BT21-048"] }] },
@@ -94,6 +122,44 @@ describe("BT21-054 Shotmon", () => {
 
     expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(true);
     expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
+  });
+
+  it("publicly declines the On Play cost when no qualifying stack card exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-054", as: "shotmon" }],
+          battleArea: [{ card: "BT1-019", as: "ownHost", under: ["BT1-009"] }],
+        },
+        1: { battleArea: [{ card: "BT21-049", as: "opponent", under: ["BT21-048"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-054"));
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
+    expect(s.perm("ownHost").stack.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("refuses linking onto a non-Appmon host without spending memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host" }], hand: [{ card: "BT21-054", as: "shotmon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("shotmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shotmon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
   });
 
   it("links for 1 and deletes only the play-cost-3 boundary target", async () => {
@@ -127,7 +193,35 @@ describe("BT21-054 Shotmon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("cost3").instanceId));
 
     expect(s.state.memory).toBe(1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("shotmon").instanceId);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-043")).toBe(true);
+  });
+
+  it("publicly declines an offered eligible On Play cost and preserves both source and target", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT21-054", as: "shotmon" }],
+        battleArea: [{ card: "BT21-043", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] }],
+      },
+      1: { battleArea: [{ card: "BT21-049", as: "opponent", under: ["BT21-048"] }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("ownHost").stack.map((card) => card.instanceId)).toContain(s.inst("costCard").instanceId);
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
   });
 
   it("trashes its link card at rule check after Tankmon makes the host ineligible", async () => {

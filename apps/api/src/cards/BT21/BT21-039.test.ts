@@ -69,7 +69,7 @@ describe("BT21-039 compiled implementation", () => {
 
   it("enters through the public play intent with Alliance and WG evolution hooks registered", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT21-039", as: "gryphonmon" }] } });
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gryphonmon").instanceId })).toEqual({
       ok: true,
@@ -81,6 +81,7 @@ describe("BT21-039 compiled implementation", () => {
       true,
     );
     expect(observe(s.engine).hasKeyword(s.perm("gryphonmon"), "Alliance")).toBe(true);
+    expect(s.state.memory).toBe(-2);
   });
 
   it("plays exactly one level-4-or-lower WG Digimon for free when digivolving", async () => {
@@ -107,6 +108,105 @@ describe("BT21-039 compiled implementation", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("tooHigh").instanceId, s.inst("nonWg").instanceId]),
     );
+  });
+
+  it("publicly digivolves from the legal level-5 WG route and resolves its free play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-038", as: "base" }],
+          hand: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-034", as: "freeWg" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gryphonmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("gryphonmon").instanceId);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("freeWg").instanceId),
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("BT21-039");
+  });
+
+  it("publicly plays exactly one eligible WG card on digivolution and preserves the other candidates", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-038", as: "base" }],
+          hand: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-034", as: "firstEligible" },
+            { card: "BT21-033", as: "secondEligible" },
+            { card: "BT21-038", as: "tooHigh" },
+            { card: "BT1-009", as: "wrongTrait" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    preferInstanceIds.push(s.inst("firstEligible").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gryphonmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-039");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-034"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("secondEligible").instanceId,
+        s.inst("tooHigh").instanceId,
+        s.inst("wrongTrait").instanceId,
+      ]),
+    );
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT21-034")).toHaveLength(
+      1,
+    );
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("publicly declines the eligible WG play after digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-038", as: "base" }],
+          hand: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-034", as: "eligible" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gryphonmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-039");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 
   it("may decline the free WG play", async () => {
@@ -164,5 +264,128 @@ describe("BT21-039 compiled implementation", () => {
 
     expect(s.perm("secondBase").topCard.cardId).toBe("BT21-033");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEvolution").instanceId);
+  });
+
+  it("uses the public attack origin to free-digivolve another WG Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-033", as: "base" },
+          ],
+          hand: [{ card: "BT21-034", as: "evolution" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gryphonmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-034");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not free-digivolve a non-WG base when no legal target exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT1-009", as: "nonWgBase" },
+          ],
+          hand: [{ card: "BT21-034", as: "evolution" }],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gryphonmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.perm("nonWgBase").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("evolution").instanceId }),
+    );
+  });
+
+  it("uses the public When Attacking evolution only once per turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-033", as: "firstBase" },
+            { card: "BT21-033", as: "secondBase" },
+            { card: "BT1-089", as: "greenTamer" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          hand: [
+            { card: "BT21-034", as: "firstEvolution" },
+            { card: "BT21-034", as: "secondEvolution" },
+            { card: "ST8-11", as: "victorySword" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("firstBase").permanentId, s.inst("firstEvolution").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gryphonmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstBase").topCard.cardId === "BT21-034");
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("gryphonmon").topCard.cardId).toBe("BT21-039");
+    preferInstanceIds.splice(0, preferInstanceIds.length, s.perm("gryphonmon").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("victorySword").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("gryphonmon").isSuspended);
+    expect(s.state.memory).toBe(7);
+    preferInstanceIds.splice(
+      0,
+      preferInstanceIds.length,
+      s.perm("secondBase").permanentId,
+      s.inst("secondEvolution").instanceId,
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gryphonmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "alliancePrompt").length >= 2);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 2);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("secondBase").topCard.cardId).toBe("BT21-033");
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("secondEvolution").instanceId }),
+    );
   });
 });

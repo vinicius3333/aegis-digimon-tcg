@@ -204,7 +204,7 @@ describe("<Overflow> (Comprehensive Rules §4-18)", () => {
     p1.battleArea.push(perm);
 
     const before = memoryFor(s.state, 1);
-    primitivesOf(s).deDigivolve(perm.permanentId, 1);
+    await primitivesOf(s).deDigivolve(perm.permanentId, 1);
 
     expect(perm.topCard?.instanceId).not.toBe(aceTop.instanceId);
     // <De-Digivolve> TRASHES the demoted top card (KB Q3471/Q3478), so that is where the ACE

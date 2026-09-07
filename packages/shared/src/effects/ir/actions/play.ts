@@ -90,7 +90,7 @@ export interface PlayWithoutCostAction extends ActionBase {
   /**
    * Raise the target filter's `playCostLte` before resolving candidates:
    * `base + floor(matchingCards / per) * raise`. `base` overrides the filter's static
-   * `playCostLte`. With `filter.zone === "trash"` and `filter.controller === "both"`, both
+   * `playCostLte`. With `filter.zone === "trash"` and `filter.controller` set to "any" or "both", both
    * players' trashes count (CAP-E16, BT21-079).
    */
   playCostCeiling?: {

@@ -1,0 +1,79 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/effects/saveSourceIdentity.test.ts > Save source identity > places the deleted instance under a Tamer without relocating an identical surviving Digimon 23ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > preserves Raid and both alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > shares one once-per-turn deletion budget between digivolving and attacking 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > requires one suspended red or yellow Tamer for the combined Security Attack and DP gain 0ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > enters through the public play intent with its Once Per Turn attack clauses registered 4ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > gains Security Attack and 3000 DP by suspending a red Tamer 9ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > naturally pays the Tamer suspension cost during a public security attack 18ms
+ × src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > publicly evolves, spends its deletion budget, and preserves the second legal attack target 18ms
+   → permanent for "tooLarge" (seed-perm-31) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > publicly declines the eligible Tamer cost and leaves both attack bonuses absent 8ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > deletes one selected opponent naturally on a public RizeGreymon evolution 4ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > uses the alternate Hero evolution route for 3 and rejects a non-Hero level-5 base 4ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > does not pay the attack cost or grant bonuses without an eligible Tamer 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > uses Raid to redirect a player attack to the opponent's highest-DP unsuspended Digimon 7ms
+stdout | src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly free-digivolves into Coredramon at the start of the main phase
+[WinCheck] seat 1 lost (cause: surrender) — turn 2, phase Main
+[WinCheck] seat 0 wins (reason: surrender) — turn 2, phase Main, memory 3
+
+stdout | src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly declines the eligible start-main Coredramon evolution and preserves the hand card
+[WinCheck] seat 1 lost (cause: surrender) — turn 2, phase Main
+[WinCheck] seat 0 wins (reason: surrender) — turn 2, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the zero-cost Dracomon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > optionally digivolves itself into a Coredramon from hand for free at both timings 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > does not treat Dracomon (X Antibody) as the standalone Dracomon alternate 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the inherited end-of-turn DNA Digivolution from two of your Digimon 0ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > enters through the public play intent before its start-main/evolution hooks resolve 2ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > zero-cost digivolves from Dracomon and immediately free-digivolves into Coredramon 5ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly free-digivolves into Coredramon at the start of the main phase 5ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly declines the eligible start-main Coredramon evolution and preserves the hand card 6ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > uses its inherited end-of-turn effect for a real Examon DNA digivolution 7ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > resolves inherited DNA through the production turn lifecycle 10ms
+ × src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly declines the inherited DNA evolution at end of turn and preserves both materials 29ms
+   → Seat 1's Main phase did not become ready
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > publicly evolves, spends its deletion budget, and preserves the second legal attack target
+AssertionError: permanent for "tooLarge" (seed-perm-31) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-045.test.ts:197:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > publicly declines the inherited DNA evolution at end of turn and preserves both materials
+Error: Seat 1's Main phase did not become ready
+ ❯ Object.waitForMainPhase src/engine/testkit/advance.ts:31:15
+     29|       }
+     30|       if (internals.mainPhase.seat !== seat || internals.state.phase !…
+     31|         throw new Error(`Seat ${seat}'s Main phase did not become read…
+       |               ^
+     32|       }
+     33|       // TurnStateMachine deliberately opens Main before its asynchron…
+ ❯ src/cards/BT21/BT21-046.test.ts:276:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  2 failed | 26 passed (28)
+   Start at  21:47:38
+   Duration  10.46s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-045.test.ts src/cards/BT21/BT21-046.test.ts src/engine/effects/saveSourceIdentity.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

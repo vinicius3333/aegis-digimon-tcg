@@ -108,6 +108,42 @@ describe("BT21-078 WereGarurumon", () => {
     expect(s.perm("allianceTarget").isSuspended).toBe(false);
   });
 
+  it("publicly uses different Digimon for Alliance and the optional attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-078", as: "source" },
+            { card: "BT1-009", as: "ally" },
+          ],
+          hand: [{ card: "BT21-057", as: "adventure" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("source"), "Alliance"));
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ally").isSuspended);
+    expect(s.perm("ally").isSuspended).toBe(true);
+  });
+
   it("Q4732 still allows an attack when the played Digimon is not ADVENTURE", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -132,10 +168,34 @@ describe("BT21-078 WereGarurumon", () => {
 
   it("grants inherited Alliance on a realistic evolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-079", as: "host", under: [{ card: "BT21-078", as: "source" }] }] },
+      0: {
+        battleArea: [{ card: "BT21-067", as: "base" }],
+        hand: [
+          { card: "BT21-078", as: "source" },
+          { card: "ST6-13", as: "host" },
+        ],
+      },
     });
+    s.state.memory = 10;
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-078");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST6-13");
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
   });
 
   it.each([

@@ -1,0 +1,30 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/effects/saveSourceIdentity.test.ts > Save source identity > places the deleted instance under a Tamer without relocating an identical surviving Digimon 21ms
+ × src/engine/effects/saveSourceIdentity.test.ts > Save source identity > keeps a saved source under the selected Tamer across the independent Save continuation 14ms
+   → expected undefined to be defined
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/saveSourceIdentity.test.ts > Save source identity > keeps a saved source under the selected Tamer across the independent Save continuation
+AssertionError: expected undefined to be defined
+ ❯ src/engine/effects/saveSourceIdentity.test.ts:75:20
+     73|     const tamerA = s.state.players[0]!.battleArea.find((permanent) => …
+     74|     const tamerB = s.state.players[0]!.battleArea.find((permanent) => …
+     75|     expect(tamerA).toBeDefined();
+       |                    ^
+     76|     expect(tamerB).toBeDefined();
+     77|     expect(tamerA!.stack.map((card) => card.instanceId)).toEqual([dele…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  22:00:26
+   Duration  7.82s (transform 85%, import 15%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/saveSourceIdentity.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

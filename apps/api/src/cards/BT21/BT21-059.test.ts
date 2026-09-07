@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-059.js";
@@ -51,16 +52,26 @@ describe("BT21-059 Timemon", () => {
   });
 
   it("links for 2, grants 3000 DP, and resolves its linked De-Digivolve", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
+          battleArea: [
+            { card: "BT21-009", as: "host" },
+            { card: "BT21-045", as: "ownOther", under: ["BT21-042", "BT21-044"] },
+          ],
           hand: [{ card: "BT21-059", as: "timemon" }],
         },
-        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "otherOpponent", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("opponent").topCard.instanceId);
     s.state.memory = 3;
     await s.ready();
     const baseDp = s.perm("host").currentDP;
@@ -76,6 +87,31 @@ describe("BT21-059 Timemon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000);
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-044");
+    expect(s.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
+    expect(s.perm("otherOpponent").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("ownOther").topCard.cardId).toBe("BT21-045");
+  });
+
+  it("refuses the paid link requirement for a non-Appmon card without spending memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-009", as: "host" }],
+        hand: [{ card: "BT1-009", as: "nonAppmon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("nonAppmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonAppmon").instanceId)).toBe(true);
   });
 
   it("de-digivolves once when Timemon itself receives a real link card", async () => {
@@ -103,5 +139,113 @@ describe("BT21-059 Timemon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("timemon"), "Blocker")).toBe(true);
+  });
+
+  it("does not repeat Timemon's Your Turn linked trigger on a second public link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-059", as: "timemon" }],
+          hand: [
+            { card: "BT21-053", as: "watchmon" },
+            { card: "BT21-041", as: "calendamon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("watchmon").instanceId,
+        targetPermanentId: s.perm("timemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
+    expect(s.state.memory).toBe(4);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("calendamon").instanceId,
+        targetPermanentId: s.perm("timemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("timemon").linked.some((card) => card.cardId === "BT21-041"));
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-044");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("App Fuses two distinct recipe names through the public evolution intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-053", as: "watchmon", linked: [{ card: "BT21-041", as: "calendamon" }] }],
+          hand: [{ card: "BT21-059", as: "timemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("watchmon").permanentId,
+        instanceId: s.inst("timemon").instanceId,
+        appFusionLinkedInstanceId: s.inst("calendamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("watchmon").topCard.cardId === "BT21-059");
+    expect(s.perm("watchmon").topCard.cardId).toBe("BT21-059");
+    expect(s.perm("watchmon").stack.map((card) => card.cardId)).toEqual(["BT21-053", "BT21-041"]);
+    expect(s.perm("watchmon").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("refuses same-name App Fusion material without moving either card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-053", as: "watchmonHost" }],
+          hand: [
+            { card: "BT21-059", as: "timemon" },
+            { card: "BT21-053", as: "duplicateWatchmon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const timemonId = s.inst("timemon").instanceId;
+    const duplicateId = s.inst("duplicateWatchmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: duplicateId,
+        targetPermanentId: s.perm("watchmonHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("watchmonHost").linked.some((card) => card.instanceId === duplicateId));
+    expect(s.state.memory).toBe(5);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("watchmonHost").permanentId,
+        instanceId: timemonId,
+        appFusionLinkedInstanceId: duplicateId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([timemonId]);
+    expect(s.perm("watchmonHost").topCard.cardId).toBe("BT21-053");
+    expect(s.perm("watchmonHost").stack).toHaveLength(0);
+    expect(s.perm("watchmonHost").linked.map((card) => card.instanceId)).toEqual([duplicateId]);
   });
 });

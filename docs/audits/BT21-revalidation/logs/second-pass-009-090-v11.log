@@ -1,0 +1,84 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > mills two, grants keywords, and offers once-per-turn evolution 1ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > trashes two cards and gains Raid and Retaliation on play 13ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 0 total trash cards costs 5 9ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 9 total trash cards costs 5 5ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 10 total trash cards costs 4 4ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 20 total trash cards costs 3 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the public attack intent for the once-per-turn Megidramon evolution 10ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > leaves the top card unchanged when a public attack has no eligible evolution target 4ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the attack evolution only once per turn 4ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > keeps WarGrowlmon on top across two public attacks after Cyclonic Kick unsuspends it 20ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > inherited deletion trashes the opponent's top security 3ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > trashes the opponent's security after a public battle deletes a legal inherited stack 8ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the Growlmon alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > keeps the Delay payload separate from the placement watcher 1ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > preserves the same-turn Option after a public Mind Link source placement 6ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reacts only to a later public Canoweissmon placement and free-evolves a legal host 41ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > lets the aged public Delay opportunity be declined without trashing the Option 16ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reveals three cards, adds a Gammamon-text card, and places itself 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Q4733 waives the color requirement for a Gammamon-text card in breeding 3ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not waive the color requirement without a Gammamon-text card on the field 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not use an opponent's Gammamon-text card for the color waiver 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself 7ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may choose the hand source for its cost-4-or-less Gammamon-text play 6ms
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > proves Once Per Turn through two public links on the same Gatchmon
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > encodes every Digivolve, Link, linked Raid, and linked-trigger clause 0ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > digivolves for zero from Appmon and rejects a non-Appmon/non-Hero level 2 2ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers 7ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers 7ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack 6ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not play Haru with two Tamers or when another Digimon gets linked 2ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not activate the inherited trigger during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > may decline and plays at most one Haru across repeated link events 4ms
+ × src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > proves Once Per Turn through two public links on the same Gatchmon 11ms
+   → expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > links to an Appmon for 1 memory, adds 2000 DP, and grants Raid 2ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > uses Raid from the linked host to redirect a player attack 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > proves Once Per Turn through two public links on the same Gatchmon
+AssertionError: expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "illegal-target",
+  }
+
+ ❯ src/cards/BT21/BT21-009.test.ts:287:9
+    285|           targetPermanentId: s.perm("appmonEgg").permanentId,
+    286|         }),
+    287|       ).toEqual({ ok: true });
+       |         ^
+    288|       await settle(() => s.perm("appmonEgg").linked.some((card) => car…
+    289|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 33 passed (34)
+   Start at  19:11:38
+   Duration  8.04s (transform 83%, import 14%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-009.test.ts src/cards/BT21/BT21-076.test.ts src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

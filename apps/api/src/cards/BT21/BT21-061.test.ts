@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-061.js";
@@ -85,20 +83,55 @@ describe("BT21-061 MetalGreymon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-061", as: "metalgreymon" },
+            { card: "BT21-057", as: "base" },
             { card: "AD1-019", as: "dualTamerA" },
             { card: "AD1-020", as: "tricolorTamer" },
           ],
+          hand: [{ card: "BT21-061", as: "metalgreymon" }],
+          deck: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("metalgreymon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metalgreymon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("opponent").topCard.cardId === "BT21-042");
 
     expect(s.perm("opponent").stack).toHaveLength(0);
+  });
+
+  it("counts distinct Tamer colors rather than Tamer quantity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-061", as: "metalgreymon" }],
+          battleArea: [
+            { card: "BT1-085", as: "redA" },
+            { card: "BT1-085", as: "redB" },
+            { card: "BT1-086", as: "blueA" },
+            { card: "BT1-086", as: "blueB" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
+    expect(s.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
   });
 
   it("Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined", async () => {
@@ -106,7 +139,7 @@ describe("BT21-061 MetalGreymon", () => {
       {
         0: {
           battleArea: [{ card: "BT21-061", as: "metalgreymon" }],
-          hand: [{ card: "BT21-040", as: "adventure" }],
+          hand: [{ card: "ST20-10", as: "adventure" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -141,19 +174,85 @@ describe("BT21-061 MetalGreymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAdventure").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
 
     expect(
       s.state.players[0]!.battleArea.some((permanent) => observe(s.engine).hasKeyword(permanent, "Alliance")),
     ).toBe(false);
   });
 
+  it("triggers from a public ADVENTURE digivolution and separates Alliance choice from attack choice", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-061", as: "source" },
+            { card: "ST21-07", as: "base" },
+            { card: "BT1-010", as: "ally" },
+          ],
+          hand: [{ card: "ST21-08", as: "evolved" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST21-08" && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(true);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ally").isSuspended && s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("ally").isSuspended).toBe(true);
+  });
+
   it("grants inherited Alliance to a realistic higher evolution", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-062", as: "host", under: [{ card: "BT21-061", as: "source" }] }] },
+      0: {
+        battleArea: [{ card: "BT21-057", as: "source" }],
+        hand: [
+          { card: "BT21-061", as: "metalgreymon" },
+          { card: "ST15-12", as: "host" },
+        ],
+      },
     });
+    s.state.memory = 10;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("metalgreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-061");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "ST15-12");
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(true);
   });
 });

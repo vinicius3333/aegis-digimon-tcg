@@ -334,6 +334,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
     case "WhenDigivolving":
       return whenDigivolving;
     case "WhenAttacking":
+    case "EndOfAttack":
       return whenAttacking;
     case "WhenMoving":
       return whenMoving;
