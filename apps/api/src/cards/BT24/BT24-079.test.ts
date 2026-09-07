@@ -287,6 +287,80 @@ describe("BT24-079 Hadesmon", () => {
     ).toBe(true);
   });
 
+  it("resets its deletion reactivation on the next turn through public plays", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-076", as: "ownerDeleter" }],
+          battleArea: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "BT1-009", as: "ownerVictim" },
+          ],
+          trash: [
+            { card: "BT24-071", as: "firstSystem" },
+            { card: "BT24-071", as: "secondSystem" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-013", "BT1-014"],
+        },
+        1: {
+          hand: [{ card: "BT24-076", as: "opponentDeleter" }],
+          battleArea: [
+            { card: "BT3-089", as: "purpleSource" },
+            { card: "BT1-009", as: "opponentVictim" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentDeleter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) =>
+        [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
+      ),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("ownerVictim").instanceId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    const firstPlayed = s.state.players[0]!.battleArea.find((permanent) =>
+      [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
+    )!.topCard.instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ownerDeleter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.filter((permanent) =>
+          [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
+        ).length === 2,
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("opponentVictim").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea
+        .filter((permanent) =>
+          [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
+        )
+        .map((permanent) => permanent.topCard.instanceId),
+    ).toEqual(expect.arrayContaining([firstPlayed, firstPlayed === s.inst("firstSystem").instanceId ? s.inst("secondSystem").instanceId : s.inst("firstSystem").instanceId]));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+  });
+
   it("exposes Overclock, Link +1, and the exact Revivemon-Biomon App Fusion", async () => {
     expect(BT24_079.appFusionRequirement).toEqual([{ names: ["Revivemon", "Biomon"], cost: 0 }]);
     const s = setupEngine({ 0: { battleArea: [{ card: "BT24-079", as: "hadesmon" }] } });
