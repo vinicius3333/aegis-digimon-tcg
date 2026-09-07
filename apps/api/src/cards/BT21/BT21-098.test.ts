@@ -113,6 +113,66 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
+  it("publicly ages a placed Option before Galacticmon activates its Delay", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT11-111", as: "galacticmon" }],
+          hand: [{ card: "BT21-098", as: "option" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "mainVictim" },
+            { card: "BT1-010", as: "low" },
+            { card: "BT1-018", as: "high" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.state.memory).toBe(4);
+
+    // A public turn boundary ages the Option; no field-turn metadata is injected.
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("galacticmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
   it("Q4624 trashes security to one when the Delay deletion is prevented", async () => {
     const s = setup(
       {
