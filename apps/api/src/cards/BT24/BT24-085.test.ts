@@ -58,7 +58,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -84,7 +84,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -108,7 +108,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -130,18 +130,20 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
             { card: "BT24-024", as: "attacker" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const source = s.perm("source");
+    const attacker = s.perm("attacker");
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    await settle(() => observe(s.engine).hasAttackedThisTurn(attacker));
+    expect(source.isSuspended).toBe(true);
+    expect(observe(s.engine).hasAttackedThisTurn(attacker)).toBe(true);
     await turn;
-    expect(s.perm("source").isSuspended).toBe(true);
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 
   it("plays itself from security without paying the cost", async () => {
