@@ -112,6 +112,46 @@ describe("BT21-041 compiled implementation", () => {
     expect(observe(s.engine).securityDp(0)).toBe(0);
   });
 
+  it("makes a real Security Digimon battle survivable only with the linked reduction", async () => {
+    for (const linked of [true, false]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-018", as: "host" }],
+            hand: [{ card: "BT21-041", as: "calendamon" }],
+          },
+          1: { security: [{ card: "BT1-059", as: "securityDigimon" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 2;
+      const hostId = s.perm("host").permanentId;
+      await s.ready();
+      if (linked) {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "linkCard",
+            instanceId: s.inst("calendamon").instanceId,
+            targetPermanentId: hostId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("host").linked.length === 1 && s.state.pendingDecision === undefined);
+      }
+      expect(s.perm("host").currentDP).toBe(linked ? 8000 : 6000);
+      expect(observe(s.engine).securityDp(1)).toBe(linked ? -3000 : 0);
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
+      );
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-059");
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(linked);
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-018")).toBe(!linked);
+    }
+  });
+
   it("resolves a non-Digimon Security effect while the linked DP modifier is active", async () => {
     const s = setupEngine(
       {
