@@ -83,4 +83,32 @@ describe("BT24-004 Wanyamon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
+
+  it("reaches Wanyamon through a legal egg-to-Iliad evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT24-004", as: "egg" },
+        hand: [
+          { card: "BT24-043", as: "tapirmon" },
+          { card: "BT24-022", as: "playedIliad" },
+        ],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    const eggId = s.perm("egg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("tapirmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-043");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-004"]);
+  });
 });
