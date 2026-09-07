@@ -178,8 +178,8 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-087", as: "rei" }],
-        hand: ["BT1-001"],
-        deck: ["BT1-002"],
+        hand: ["BT1-009"],
+        deck: ["BT1-010"],
       },
       1: { battleArea: [{ card: "BT21-009", as: "opponent" }] },
     });
@@ -204,9 +204,9 @@ describe("BT24-087 Rei Katsura public behavior", () => {
           ],
           hand: [
             { card: "BT24-032", as: "link" },
-            { card: "BT1-001", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
-          deck: [{ card: "BT1-002", as: "drawn" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -233,8 +233,8 @@ describe("BT24-087 Rei Katsura public behavior", () => {
             { card: "BT24-087", as: "rei", suspended: true },
             { card: DOCMON, as: "fuser", linked: [MEDICMON] },
           ],
-          hand: ["BT1-001"],
-          deck: ["BT1-002"],
+          hand: ["BT1-009"],
+          deck: ["BT1-010"],
           trash: [{ card: TARGET, as: "fusion" }],
         },
       },
