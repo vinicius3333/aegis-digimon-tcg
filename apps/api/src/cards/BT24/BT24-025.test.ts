@@ -153,4 +153,13 @@ describe("BT24-025 Shellmon", () => {
     expect(s.perm("tsTarget").isSuspended).toBe(false);
     expect(s.perm("nonTs").isSuspended).toBe(true);
   });
+
+  it("reaches Shellmon through a legal blue level-3 evolution", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-021", as: "base" }], hand: [{ card: "BT24-025", as: "shellmon" }] } });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("shellmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("shellmon").instanceId);
+    expect(s.state.memory).toBe(3);
+  });
 });
