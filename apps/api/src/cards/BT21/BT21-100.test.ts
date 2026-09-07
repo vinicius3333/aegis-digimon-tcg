@@ -138,7 +138,7 @@ describe("BT21-100 The Digimon I Designed", () => {
           deck: [{ card: "BT1-010", as: "drawn" }, "BT1-009", "BT1-009", "BT1-009"],
           trash: [{ card: "BT21-079", as: "megidramon" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 4000 }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT1-014", as: "victim" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -176,6 +176,113 @@ describe("BT21-100 The Digimon I Designed", () => {
     }
   });
 
+  it.each([
+    ["wrong host family", "BT1-023", "BT21-079"],
+    ["wrong destination family", "BT21-076", "BT1-025"],
+  ] as const)(
+    "does not free-evolve for an aged deletion when the %s is invalid",
+    async (_case, hostCard, destinationCard) => {
+      const preferred: string[] = [];
+      const s = setup(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-089", as: "takato" },
+              { card: hostCard, as: "host" },
+            ],
+            hand: [
+              { card: "BT21-100", as: "option" },
+              { card: "BT21-015", as: "cyclonemon" },
+              { card: "BT1-009", as: "filler" },
+            ],
+            deck: ["BT1-010", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+            trash: [{ card: destinationCard, as: "destination" }],
+          },
+          1: { battleArea: [{ card: "BT1-014", as: "victim" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("filler").instanceId);
+      s.state.memory = 10;
+      const optionId = s.inst("option").instanceId;
+      const destinationId = s.inst("destination").instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+      await advance(s.engine).runTurn(0);
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      await advance(s.engine).runTurn(1);
+      s.state.turnSeat = 0;
+      s.state.memory = 10;
+      const ownTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclonemon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.battleArea.length === 0);
+      expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("host").topCard.cardId).toBe(hostCard);
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === destinationId)).toBe(true);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await ownTurn;
+    },
+  );
+
+  it("does not arm the owner's aged Delay from an opponent's public effect deletion", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "takato" },
+            { card: "BT21-076", as: "host" },
+            { card: "BT1-014", as: "victim" },
+          ],
+          hand: [{ card: "BT21-100", as: "option" }],
+          deck: ["BT1-010", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          trash: [{ card: "BT21-079", as: "destination" }],
+        },
+        1: {
+          hand: [{ card: "BT21-015", as: "cyclonemon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const optionId = s.inst("option").instanceId;
+    const victimId = s.perm("victim").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cyclonemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === victimId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-076");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("destination").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
   it("publicly declines an eligible aged Delay evolution without paying or changing the host", async () => {
     const preferred: string[] = [];
     const s = setup(
@@ -193,7 +300,7 @@ describe("BT21-100 The Digimon I Designed", () => {
           deck: ["BT1-010", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           trash: [{ card: "BT21-079", as: "megidramon" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 4000 }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        1: { battleArea: [{ card: "BT1-014", as: "victim" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
