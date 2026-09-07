@@ -198,4 +198,36 @@ describe("BT21-081 Owen Dreadnought", () => {
     expect(s.perm("owen").isSuspended).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("dragonkin"))).toBe(false);
   });
+
+  it("Q4594 permits only one attack when two Owen effects trigger together", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-081", as: "owenA" },
+            { card: "BT21-081", as: "owenB" },
+            { card: "BT21-069", as: "dragonkin" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await ownTurn;
+
+    const attacks = s.events.filter(
+      (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("dragonkin").permanentId,
+    );
+    expect(attacks).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("owenA").isSuspended).toBe(true);
+    expect(s.perm("owenB").isSuspended).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
 });
