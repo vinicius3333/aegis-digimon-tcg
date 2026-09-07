@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-017.js";
@@ -58,6 +58,35 @@ describe("BT22-017 Gabumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("hatches and legally evolves through a CS stack before rejecting an invalid route", async () => {
+    const s = setupEngine({
+      0: {
+        eggDeck: [{ card: "BT22-017", as: "egg" }],
+        hand: [
+          { card: "BT22-022", as: "veedramon" },
+          { card: "BT22-008", as: "invalidAgumon" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-017");
+    s.state.phase = Phase.Main;
+    const permanentId = s.state.players[0]!.breeding!.permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("veedramon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-022");
+    expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(["BT22-017"]);
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("invalidAgumon").instanceId }).ok,
+    ).toBe(false);
+  });
+
   it("DNA digivolves a realistic blue host carrying Gabumon with a green level-4 partner", async () => {
     const s = setupEngine(
       {
@@ -71,14 +100,17 @@ describe("BT22-017 Gabumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     s.state.memory = 3;
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-028"));
 
     const dna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT12-028");
     expect(dna?.stack.some((card) => card.cardId === "BT22-017")).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    await loop;
   });
 });

@@ -69,6 +69,22 @@ describe("BT22-022 Veedramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("invalidTamer").instanceId]);
   });
 
+  it("rejects the alternate evolution route from a non-CS level-3 Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT22-022", as: "veedramon" }] },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("veedramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("veedramon").instanceId);
+  });
+
   it("does not play the Tamer with two Tamers already in the battle area", async () => {
     const s = setupEngine(
       {

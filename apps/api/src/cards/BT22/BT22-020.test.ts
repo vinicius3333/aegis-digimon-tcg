@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-020.js";
 
@@ -57,14 +55,27 @@ describe("BT22-020 KausGammamon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("kaus"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kaus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kaus").stack.some((card) => card.instanceId === s.inst("placed").instanceId));
     expect(s.perm("kaus").stack.at(-1)?.instanceId).toBe(s.inst("placed").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("hiro").instanceId, s.inst("drawn").instanceId]),
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-086")).toBe(false);
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("kaus"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kaus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("hiro").instanceId, s.inst("drawn").instanceId]),
     );

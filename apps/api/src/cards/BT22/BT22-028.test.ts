@@ -85,7 +85,9 @@ describe("BT22-028 Ariemon", () => {
             {
               card: "BT22-028",
               as: "ariemon",
-              under: ["BT22-018", "BT22-021", "BT22-024", "BT22-027"],
+              // Gizamon supplies the level-3 Sea Animal bucket without an On Play effect
+              // that immediately moves the newly played Digimon back under Ariemon.
+              under: ["BT14-008", "BT22-021", "BT22-024", "BT22-027"],
             },
           ],
         },
@@ -98,7 +100,7 @@ describe("BT22-028 Ariemon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 4);
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
-      "BT22-018",
+      "BT14-008",
       "BT22-021",
       "BT22-024",
       "BT22-028",
