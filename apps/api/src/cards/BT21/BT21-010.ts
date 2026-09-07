@@ -6,10 +6,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      // This is a player-chosen digivolution permission during the main phase. Routing the
-      // action through the activated window makes it observable and selectable instead of
-      // treating the Digivolve action as an inert continuous modifier.
-      trigger: "Main",
+      // The continuous permission also participates in normal and effect-driven evolution
+      // through the shared base-granted matcher; the activated view remains selectable.
+      trigger: "YourTurn",
       actions: [
         {
           kind: "Digivolve",

@@ -1330,7 +1330,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // original card's Tamer/name/trait identity here would incorrectly admit alternate
         // paths in addition to the stated virtual level and colors.
         const baseGranted =
-          opts.virtualBase === undefined ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
+          opts.virtualBase === undefined && sourceZone === Zone.Hand
+            ? engine.baseGrantedDigivolve?.(seat, permanent, definition)
+            : undefined;
         const alternate =
           opts.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
@@ -1384,7 +1386,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // only gate a base that carries a level — a level-less base (Q4242) satisfies no level-gated
       // requirement, so the check is meaningless and is skipped rather than rejecting the digivolve.
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
-      const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
+      const baseGranted =
+        sourceZone === Zone.Hand ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
       if (
         baseDef.level !== undefined &&
         !canDigivolveOntoWithAlternates(definition, baseDef) &&

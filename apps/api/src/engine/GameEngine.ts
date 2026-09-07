@@ -1898,7 +1898,8 @@ export class GameEngine {
     base: Permanent,
     evolving: CardDefinition,
   ): { cost: number } | undefined {
-    if (base.inBreeding) return undefined;
+    if (base.inBreeding || base.controllerSeat !== seat || this.state.turnSeat !== seat) return undefined;
+    if (this.continuous.cannotIgnoreDigivolution(seat)) return undefined;
     const grants = baseGrantedDigivolveFor(base.topCard.cardId);
     if (grants === undefined) return undefined;
     for (const grant of grants) {
@@ -1922,6 +1923,9 @@ export class GameEngine {
   private baseGrantConditionHolds(seat: Seat, condition: NonNullable<BaseGrantedDigivolve["condition"]>): boolean {
     if (condition.kind === "anyOf") {
       return condition.conditions.some((nested) => this.baseGrantConditionHolds(seat, nested));
+    }
+    if (condition.kind === "securityAtMost") {
+      return this.access.player(seat).security.length <= condition.count;
     }
     if (condition.kind === "opponentHasDigimonLevelAtLeast") {
       const opponentSeat = this.access.opponentOf(seat);

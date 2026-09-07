@@ -71028,7 +71028,7 @@
   "BT21-010": {
     "effects": [
       {
-        "trigger": "Main",
+        "trigger": "YourTurn",
         "actions": [
           {
             "kind": "Digivolve",
