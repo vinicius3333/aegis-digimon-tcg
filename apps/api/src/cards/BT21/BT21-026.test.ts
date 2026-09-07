@@ -237,6 +237,75 @@ describe("BT21-026 WarGreymon", () => {
     ).toBe(false);
   });
 
+  it("uses two public opponent Digimon deletions for one once-per-turn unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "wargreymon", suspended: true },
+            { card: "BT21-062", as: "firstAttacker" },
+            { card: "BT21-062", as: "secondAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstVictim", suspended: true },
+            { card: "BT1-010", as: "secondVictim", suspended: true },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstVictimId = s.perm("firstVictim").permanentId;
+    const secondVictimId = s.perm("secondVictim").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: firstVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("wargreymon").isSuspended);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstVictimId)).toBe(false);
+    expect(s.perm("wargreymon").isSuspended).toBe(false);
+
+    // Spend the newly gained unsuspended state through a real player attack. The second
+    // opponent Digimon deletion then occurs in the same turn and must not unsuspend again.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wargreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 2 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: secondVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondVictimId),
+    );
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+  });
+
   it("stays suspended when its controller's Digimon is deleted or the optional effect is declined", async () => {
     for (const [deletedSeat, options] of [
       [0, { autoAcceptOptional: true }],
