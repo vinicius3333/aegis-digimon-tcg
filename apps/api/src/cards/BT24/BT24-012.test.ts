@@ -152,4 +152,39 @@ describe("BT24-012 Dimetromon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-012"]);
     expect(s.state.memory).toBe(1);
   });
+
+  it("publicly declares BT24-012 as Blocker and switches the attack into a legal battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010"] },
+      1: { battleArea: [{ card: "BT24-012", as: "blocker", under: ["BT24-021"] }], security: ["BT1-011"] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("blocker").permanentId],
+    });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("attacker").instanceId)).toBe(true);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+  });
+
+  it("publicly declines the Blocker window and preserves the original security target", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }], deck: ["BT1-010"] },
+      1: { battleArea: [{ card: "BT24-012", as: "blocker" }], security: [{ card: "BT1-011", as: "checked" }] },
+    });
+    const checkedId = s.inst("checked").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === checkedId));
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(checkedId);
+  });
 });
