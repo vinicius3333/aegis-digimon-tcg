@@ -175,6 +175,7 @@ describe("BT24-076 WarGrowlmon", () => {
   });
 
   it("public opponent play deletes the inherited host", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -183,12 +184,14 @@ describe("BT24-076 WarGrowlmon", () => {
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
-          hand: [{ card: "BT24-076", as: "opponentWargrowlmon" }],
+          hand: [{ card: "BT24-096", as: "opponentRemoval" }],
+          battleArea: [{ card: "BT3-089", as: "purpleSource" }],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("revive").instanceId);
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
@@ -196,9 +199,10 @@ describe("BT24-076 WarGrowlmon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     const deletedHostInstanceId = s.perm("host").stack[0]!.instanceId;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentWargrowlmon").instanceId })).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === deletedHostInstanceId));
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemoval").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === deletedHostInstanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId)).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
   });
@@ -219,5 +223,29 @@ describe("BT24-076 WarGrowlmon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("level5").instanceId);
+  });
+
+  it("may refuse the inherited revival after a public opponent deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-076"] }],
+          trash: [{ card: "BT24-070", as: "revive" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          hand: [{ card: "BT24-096", as: "opponentRemoval" }],
+          battleArea: [{ card: "BT3-089", as: "purpleSource" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemoval").instanceId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("host").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("revive").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("revive").instanceId)).toBe(false);
   });
 });
