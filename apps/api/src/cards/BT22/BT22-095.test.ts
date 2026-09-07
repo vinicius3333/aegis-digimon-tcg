@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-095.js";
 
@@ -36,7 +37,7 @@ describe("BT22-095 Akemi Suedou", () => {
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       underFilter: {
         controller: "mine",
-        kind: ["Digimon"],
+        zone: "breeding",
         nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
       },
       position: "bottom",
@@ -98,4 +99,36 @@ describe("BT22-095 Akemi Suedou", () => {
     expect(s.state.memory).toBe(3); // 5 - 3 play + 1 trigger; the hand remains <= 7 so Draw 1 also resolves.
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
+
+  it("publicly places this Tamer under the Mother Eater in breeding", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-007", under: [{ card: "BT22-079", as: "existing" }], as: "mother" },
+          battleArea: [{ card: "BT22-095", as: "akemi" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("akemi").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-095/"),
+    )!.effectKey;
+    const akemiId = s.inst("akemi").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: akemiId, effectKey })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([
+      akemiId,
+      s.inst("existing").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
 });
