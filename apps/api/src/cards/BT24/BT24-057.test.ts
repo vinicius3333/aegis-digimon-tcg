@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,23 @@ import { compiled as BT24_057 } from "./BT24-057.js";
 import "../index.js";
 
 describe("BT24-057 Docmon", () => {
+  it("matches the immutable catalog identity and link route", () => {
+    expect(getCardDefinition("BT24-057")).toMatchObject({
+      cardId: "BT24-057",
+      nameEn: "Docmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Sup.", "Appmon"],
+      attributes: ["Life"],
+      types: ["Doctor"],
+      evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }],
+    });
+    expect(BT24_057.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
+  });
+
   it("plays from security at battle end and restricts one opposing Digimon", () => {
     const security = BT24_057.effects?.find((entry) => entry.trigger === "Security");
     expect(security?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", payCost: false });
