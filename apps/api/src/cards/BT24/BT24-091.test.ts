@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_091 } from "./BT24-091.js";
 import "../index.js";
 
@@ -112,7 +113,7 @@ describe("BT24-091 Tidal Stream", () => {
     );
   });
 
-  it("returns one lowest-level opponent when its linked host attacks", async () => {
+  it("returns one lowest-level opponent from a public linked-host attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-014", as: "host", linked: ["BT24-091"] }] },
@@ -122,13 +123,21 @@ describe("BT24-091 Tidal Stream", () => {
             { card: "BT1-046", as: "low2" },
             { card: "BT1-051", as: "high" },
           ],
+          security: ["BT1-012"],
         },
       },
       { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.hand).toHaveLength(1);
     expect([s.inst("low1").instanceId, s.inst("low2").instanceId]).toContain(s.state.players[1]!.hand[0]!.instanceId);
