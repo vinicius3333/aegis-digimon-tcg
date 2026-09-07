@@ -1,8 +1,21 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-065.js";
 import "../index.js";
+import "../BT23/BT23-065.js";
+
+function phantomonMainEffectKey(s: EngineSetup): string {
+  const source = (
+    s.engine as unknown as { cardSourceOf(instance: ReturnType<EngineSetup["inst"]>): CardSource }
+  ).cardSourceOf(s.inst("phantomon"));
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-065/"))!
+    .effectKey;
+}
 
 describe("BT21-065 Ghostmon", () => {
   it("preserves complete residual-free coverage", () => {
@@ -50,6 +63,37 @@ describe("BT21-065 Ghostmon", () => {
     await settle(() => s.perm("ghostmon").topCard.instanceId === s.inst("bakemon").instanceId);
 
     expect(s.state.memory).toBe(2);
+  });
+
+  it("combines Ghostmon's reduction with BT23-065's public Hand/Main evolution for cost 2 (Q5334)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-065", as: "ghostmon" },
+            { card: "BT23-087", as: "violetInboots" },
+          ],
+          hand: [{ card: "BT23-065", as: "phantomon" }],
+          trash: [{ card: "BT23-064", as: "bakemon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("phantomon").instanceId,
+        effectKey: phantomonMainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ghostmon").topCard.instanceId === s.inst("phantomon").instanceId);
+
+    expect(s.perm("ghostmon").stack.map((card) => card.cardId)).toEqual(["BT23-064", "BT21-065"]);
+    expect(s.perm("ghostmon").topCard.cardId).toBe("BT23-065");
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not reduce an evolution into a non-Ghost card", async () => {
@@ -172,7 +216,9 @@ describe("BT21-065 Ghostmon", () => {
         target: { kind: "permanent", permanentId: s.perm("host").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.memory === 4);
+    await settle(
+      () => s.state.players[0]!.battleArea.length === 0 && s.state.memory === 4 && !observe(s.engine).isAttacking(),
+    );
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(4);
   });
