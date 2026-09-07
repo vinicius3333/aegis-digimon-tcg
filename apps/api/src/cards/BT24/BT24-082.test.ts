@@ -139,7 +139,7 @@ describe("BT24-082 Owen Dreadnought", () => {
             { card: "BT1-010", as: "reptile" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -165,7 +165,7 @@ describe("BT24-082 Owen Dreadnought", () => {
             { card: "BT1-010", as: "reptile" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
