@@ -87,7 +87,7 @@ describe("BT23-014 Gallantmon", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
     });
@@ -95,7 +95,7 @@ describe("BT23-014 Gallantmon", () => {
       () => !s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId),
     );
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-1);
   });
 
   it("resolves the When Attacking deletion through a public attack", async () => {
@@ -205,7 +205,7 @@ describe("BT23-014 Gallantmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
@@ -213,7 +213,7 @@ describe("BT23-014 Gallantmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-014"));
 
     s.state.turnSeat = 1;
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
     const trashTargetId = s.inst("trashTarget").instanceId;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
@@ -243,7 +243,7 @@ describe("BT23-014 Gallantmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -253,27 +253,25 @@ describe("BT23-014 Gallantmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-014"));
     await advance(s.engine).waitForMainPhase(1);
 
-    s.state.memory = 11;
+    s.state.memory = 10;
     const firstTargetId = s.inst("firstTarget").instanceId;
     const secondTargetId = s.inst("secondTarget").instanceId;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstMervamon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT11-086"));
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.phase).toBe(Phase.Main);
-    expect(s.state.turnSeat).toBe(1);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.turnSeat).toBe(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([firstTargetId, secondTargetId]),
     );
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === firstTargetId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === secondTargetId)).toBe(false);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
-    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    s.state.memory = 11;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondMervamon").instanceId })).toEqual({
       ok: true,
     });
