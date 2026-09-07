@@ -1638,7 +1638,11 @@ function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "
 function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
   if (def.isToken === true && match.allowTokens !== true) return false;
   if (match.kinds !== undefined && match.kinds.length > 0) {
-    if (!match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
+    // Mother Eater is catalogued as a Digi-Egg because it begins in that deck, but its
+    // own effect can play it into the battle area as a Digimon. Play prohibitions that
+    // name Digimon therefore apply to that effect play (BT22-007 Q4861).
+    const motherEaterAsDigimon = def.cardId === "BT22-007" && match.kinds.includes(CardKind.Digimon);
+    if (!motherEaterAsDigimon && !match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
   }
   if (match.dpAtMost !== undefined && def.dp > match.dpAtMost) return false;
   return true;

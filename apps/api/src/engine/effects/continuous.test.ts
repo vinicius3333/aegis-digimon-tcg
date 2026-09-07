@@ -10,9 +10,9 @@ import {
 } from "./continuous.js";
 
 /** Minimal CardDefinition for the play-prohibition matcher (only kinds/dp/isToken read). */
-function def(opts: { kinds: CardKind[]; dp?: number; isToken?: boolean }): CardDefinition {
+function def(opts: { kinds: CardKind[]; dp?: number; isToken?: boolean; cardId?: string }): CardDefinition {
   return {
-    cardId: "X",
+    cardId: opts.cardId ?? "X",
     set: "X",
     nameEn: "X",
     kinds: opts.kinds,
@@ -359,6 +359,20 @@ describe("ContinuousEffectLedger", () => {
       expect(ledger.isPlayBlocked(1 as Seat, optionDef, "play")).toBe(true);
       // A Digimon is not an Option => not blocked.
       expect(ledger.isPlayBlocked(1 as Seat, digimon5000, "play")).toBe(false);
+    });
+
+    it("treats an effect-played Mother Eater as a Digimon for play prohibitions (BT22-007 Q4861)", () => {
+      const ledger = new ContinuousEffectLedger();
+      const motherEater = def({ cardId: "BT22-007", kinds: [CardKind.DigiEgg], dp: 0 });
+      ledger.addPlayProhibition(
+        1 as Seat,
+        0 as Seat,
+        { kinds: ["Digimon"] },
+        "play",
+        EffectDuration.UntilOpponentTurnEnd,
+      );
+
+      expect(ledger.isPlayBlocked(1 as Seat, motherEater, "play", true, "breeding")).toBe(true);
     });
 
     it("does NOT block the source seat's own play (Q4675 seat scoping)", () => {
