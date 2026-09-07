@@ -80,7 +80,11 @@ describe("BT21-034 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.perm("kiwimon").isSuspended).toBe(true);
   });
@@ -111,7 +115,7 @@ describe("BT21-034 compiled implementation", () => {
 
   it("grants Jamming only as an inherited effect", async () => {
     const inherited = setupEngine({
-      0: { battleArea: [{ card: "BT21-035", as: "host", under: ["BT21-034"] }] },
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: ["BT21-034"] }] },
     });
     const isolated = setupEngine({ 0: { battleArea: [{ card: "BT21-034", as: "kiwimon" }] } });
     await inherited.ready();
@@ -122,17 +126,104 @@ describe("BT21-034 compiled implementation", () => {
   });
   it("publicly proves inherited Jamming survives a losing security battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-035", as: "host", under: ["BT21-034"] }] },
-      1: { security: ["BT1-069"], deck: ["BT1-009"] },
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: ["BT21-034"] }] },
+      1: { security: [{ card: "BT1-024", as: "security" }], deck: ["BT1-009"] },
     });
     await s.ready();
     const hostId = s.perm("host").permanentId;
+    const hostTopInstanceId = s.perm("host").topCard.instanceId;
+    const securityId = s.inst("security").instanceId;
     expect(observe(s.engine).hasKeyword(hostId, "Jamming")).toBe(true);
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked" || event.kind === "combatResolved"));
+    await settle(() => !observe(s.engine).isAttacking() && s.events.some((event) => event.kind === "securityChecked"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === hostTopInstanceId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityId)).toBe(true);
+  });
+
+  it("does not draw when another Digimon suspends through a public attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-034", as: "kiwimon" },
+          { card: "BT1-009", as: "other" },
+        ],
+        deck: [
+          { card: "BT1-001", as: "firstDraw" },
+          { card: "BT1-002", as: "secondDraw" },
+        ],
+      },
+      1: { security: ["BT1-003"], deck: ["BT1-004", "BT1-005"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.perm("kiwimon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("draws again after a public printed blue unsuspend between two attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-034", as: "kiwimon" }],
+          hand: [{ card: "ST8-11", as: "victorySword" }],
+          deck: [
+            { card: "BT1-001", as: "firstDraw" },
+            { card: "BT1-002", as: "secondDraw" },
+          ],
+        },
+        1: { security: ["BT1-003", "BT1-004"], deck: ["BT1-005", "BT1-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kiwimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId),
+    );
+    expect(s.perm("kiwimon").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("victorySword").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("kiwimon").isSuspended);
+    expect(s.state.memory).toBe(7);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kiwimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondDraw").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstDraw").instanceId, s.inst("secondDraw").instanceId]),
+    );
   });
 
   it("refuses the alternate evolution from a level-3 without the WG trait", async () => {
