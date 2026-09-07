@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-013.js";
 import "../index.js";
 
@@ -184,6 +185,35 @@ describe("BT24-013 Fugamon", () => {
 
     expect(s.perm("host").topCard.cardId).toBe("P-209");
     expect(s.state.memory).toBe(3);
+  });
+
+  it("does not retroactively open Alliance when attack-time hand trash evolves a legal Titan host (Q5582)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-013", "ST16-03"] }],
+          hand: [{ card: "BT1-009", as: "drawnTrash" }, { card: "BT1-010", as: "attackCost" }],
+          trash: [{ card: "P-209", as: "titamon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }],
+          security: ["BT1-013"],
+          deck: ["BT1-015", "BT1-016", "BT1-017"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").topCard.cardId).toBe("P-209");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("attackCost").instanceId);
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("does not inherited-evolve an ineligible level 4 host during a public attack", async () => {
