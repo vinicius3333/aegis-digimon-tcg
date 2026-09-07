@@ -194,6 +194,72 @@ describe("BT21-077 Regulusmon", () => {
     );
   });
 
+  it("publicly deletes Regulusmon in battle and plays Canoweissmon from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-077", as: "regulusmon" }],
+          trash: [{ card: "BT21-078", as: "canoweissmon" }],
+        },
+        1: { battleArea: [{ card: "AD1-002", as: "blocker", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const attackerId = s.perm("regulusmon").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "combatResolved") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-078") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-077")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-078")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-078")).toBe(false);
+  });
+
+  it("publicly deletes a host and resolves the inherited Gammamon-text recovery", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-078", as: "host", under: [{ card: "BT21-077", as: "source" }] }],
+          trash: [{ card: "BT21-069", as: "gammamonText" }],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "blocker", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "combatResolved") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-069") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-069")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-069")).toBe(false);
+  });
+
   it("inherited deletion plays level-4 Gammamon text but not Canoweissmon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
