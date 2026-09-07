@@ -454,6 +454,53 @@ describe("BT21-021 OmniShoutmon", () => {
     expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
   });
 
+  it("Q4727: publicly declares BT19-014 DigiXros using the attacking OmniShoutmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [
+            { card: "BT19-014", as: "ex6" },
+            { card: "BT19-026", as: "zeig" },
+            { card: "BT19-051", as: "atlur" },
+            { card: "BT19-038", as: "jaeger" },
+            { card: "BT19-061", as: "raptor" },
+          ],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const omniId = s.inst("omni").instanceId;
+    const ex6Id = s.inst("ex6").instanceId;
+    const materialIds = ["zeig", "atlur", "jaeger", "raptor", "omni"].map((as) => s.inst(as).instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ex6Id) &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const ex6 = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === ex6Id);
+    expect(ex6).toBeDefined();
+    expect(ex6?.stack.map((card) => card.instanceId)).toEqual([...materialIds].reverse());
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omniId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === ex6Id)).toBe(false);
+    // Eleven printed cost minus five from OmniShoutmon and ten from five materials floors at zero.
+    expect(s.state.memory).toBe(6);
+  });
+
   it("publicly pays the reduced cost above five before deleting itself after a successful play", async () => {
     const s = setupEngine(
       {

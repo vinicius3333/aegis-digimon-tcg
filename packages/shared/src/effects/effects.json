@@ -71666,6 +71666,7 @@
             },
             "from": ["hand"],
             "payCost": true,
+            "allowDigiXros": true,
             "optional": true,
             "costReduction": 5
           },

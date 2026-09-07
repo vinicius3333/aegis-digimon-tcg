@@ -269,6 +269,7 @@ export async function runActivateForeignEffect(
     const definition = ctx.game.definitionOf({ cardId: chosen.cardId } as never);
     runCtx = {
       ...ctx,
+      sourcePermanentIdAtCreation: permanentId,
       source: {
         instanceId: chosen.instanceId,
         cardId: chosen.cardId,

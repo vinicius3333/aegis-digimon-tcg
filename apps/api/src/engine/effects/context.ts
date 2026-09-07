@@ -243,6 +243,7 @@ export function createEffectContext(parts: {
 }): EffectContext {
   return {
     source: parts.source,
+    sourcePermanentIdAtCreation: parts.source.permanent?.()?.permanentId,
     trigger: parts.trigger,
     game: parts.game,
     fx: parts.fx,

@@ -1900,6 +1900,9 @@ export interface SeatScopedDecisionApi {
  */
 export interface EffectContext {
   source: CardSource;
+  /** Original host for "this Digimon" targets; moving its source into a different
+   * permanent during resolution must not transfer those targets (BT21-021 Q4727). */
+  sourcePermanentIdAtCreation?: string;
   /** Placement proof for an inherited source discarded from its live host during this event. */
   discardedStackSourceProof?: DiscardedStackSourceProof;
   /**
