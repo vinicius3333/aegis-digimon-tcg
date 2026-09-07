@@ -118,7 +118,7 @@ describe("BT24-099 Super Hacking", () => {
     expect(s.state.players[0]!.battleArea).toContain(s.perm("option"));
   });
 
-  it("arms after a deletion and links an Appmon from trash without activating its On Deletion effect (Q5712)", async () => {
+  it("arms after a public opponent attack deletes a Digimon and links an Appmon (Q5712)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -126,21 +126,42 @@ describe("BT24-099 Super Hacking", () => {
           battleArea: [
             { card: "BT24-099", as: "option" },
             { card: "BT21-009", as: "host" },
-            { card: "BT1-009", as: "deletedTarget" },
+            { card: "BT1-009", as: "deletedTarget", dp: 1000 },
           ],
           trash: [
             { card: "BT24-071", as: "deletedAppmon" },
             { card: "BT21-009", as: "onDeletionPlayTarget" },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          hand: [{ card: "BT24-076", as: "opponentDeleter" }],
+          security: ["BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("deletedAppmon").instanceId);
+    preferred.push(s.perm("deletedTarget").topCard.instanceId, s.inst("deletedAppmon").instanceId);
     await s.ready();
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
     s.perm("option").placedByEffect = true;
-    await advance(s.engine).verb.deletePermanent([s.perm("deletedTarget").permanentId]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const deletedTargetId = s.perm("deletedTarget").permanentId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentDeleter").instanceId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deletedTargetId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deletedTargetId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -159,6 +180,8 @@ describe("BT24-099 Super Hacking", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
       s.inst("onDeletionPlayTarget").instanceId,
     );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 
   it("pays the Appmon hand-trash cost atomically before draw and battle-area placement (Q5711)", async () => {
