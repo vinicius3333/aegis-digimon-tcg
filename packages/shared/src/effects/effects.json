@@ -106367,7 +106367,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "cost": 0, "isAlternate": true, "traits": ["Appmon"] }],
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Green"], "cost": 0, "isAlternate": false },
+      { "level": 2, "cost": 0, "isAlternate": true, "traits": ["Appmon"] }
+    ],
     "linkRequirement": [{ "cost": 1, "traits": ["Appmon"] }]
   },
   "BT25-046": {
@@ -106758,6 +106761,10 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Green"], "cost": 3, "isAlternate": false },
+      { "level": 3, "colors": ["Red"], "cost": 3, "isAlternate": false }
+    ],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }],
     "appFusionRequirement": [{ "names": ["Onmon", "Gatchmon"], "cost": 0 }]
   },
@@ -106914,7 +106921,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Aegiomon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Red"], "cost": 4, "isAlternate": false },
+      { "names": ["Aegiomon"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-054": {
     "effects": [
@@ -106983,7 +106994,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-055": {
     "effects": [
@@ -107083,7 +107098,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Green"], "cost": 3, "isAlternate": false },
+      { "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-056": {
     "effects": [
@@ -107194,6 +107212,10 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Yellow"], "cost": 4, "isAlternate": false }
+    ],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 3 }],
     "appFusionRequirement": [{ "names": ["Logimon", "Craftmon"], "cost": 0 }]
   },
@@ -107308,7 +107330,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["Glowing Dawn"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 4, "traits": ["Glowing Dawn"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-058": {
     "effects": [
@@ -107437,7 +107463,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["TS"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 5, "colors": ["Green"], "cost": 5, "isAlternate": false },
+      { "level": 5, "colors": ["Black"], "cost": 5, "isAlternate": false },
+      { "level": 5, "traits": ["TS"], "cost": 4, "isAlternate": true }
+    ]
   },
   "BT25-059": {
     "effects": [
@@ -107532,7 +107562,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["Vegetation", "TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 5, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 5, "colors": ["Yellow"], "cost": 4, "isAlternate": false },
+      { "level": 5, "traits": ["Vegetation", "TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-060": {
     "effects": [
@@ -107664,6 +107698,7 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "colors": ["Green"], "cost": 4, "isAlternate": false }],
     "appFusionRequirement": [{ "names": ["Bootmon", "Shutmon"], "cost": 0 }]
   },
   "BT25-061": {
@@ -107715,7 +107750,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["Appmon"], "cost": 0, "isAlternate": true }],
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Black"], "cost": 0, "isAlternate": false },
+      { "level": 2, "traits": ["Appmon"], "cost": 0, "isAlternate": true }
+    ],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 1 }]
   },
   "BT25-062": {
@@ -107754,7 +107792,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["TS"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Black"], "cost": 0, "isAlternate": false },
+      { "level": 2, "traits": ["TS"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT25-063": {
     "effects": [
@@ -107991,7 +108032,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["D-Brigade", "ACCEL"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": false },
+      { "level": 3, "colors": ["Purple"], "cost": 3, "isAlternate": false },
+      { "level": 3, "traits": ["D-Brigade", "ACCEL"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT25-068": {
     "effects": [
@@ -108030,7 +108075,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 2, "isAlternate": false },
+      { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT25-069": {
     "effects": [
@@ -108090,7 +108138,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 2, "isAlternate": false },
+      { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT25-070": {
     "effects": [
@@ -108165,6 +108216,10 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": false },
+      { "level": 3, "colors": ["Purple"], "cost": 3, "isAlternate": false }
+    ],
     "appFusionRequirement": [{ "names": ["Offmon", "Hackmon"], "cost": 0 }],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }]
   },
@@ -108258,7 +108313,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Black"], "cost": 3, "isAlternate": false },
+      { "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-072": {
     "effects": [
@@ -108397,6 +108455,10 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Purple"], "cost": 4, "isAlternate": false }
+    ],
     "appFusionRequirement": [{ "names": ["Logamon", "Timemon"], "cost": 0 }],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 3 }]
   },
@@ -108520,7 +108582,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Black"], "cost": 3, "isAlternate": false },
+      { "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-074": {
     "effects": [
@@ -108641,7 +108706,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["D-Brigade", "ACCEL"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Purple"], "cost": 4, "isAlternate": false },
+      { "level": 4, "traits": ["D-Brigade", "ACCEL"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-075": {
     "effects": [
@@ -108761,7 +108830,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 5, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 5, "colors": ["Red"], "cost": 4, "isAlternate": false },
+      { "level": 5, "traits": ["TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-076": {
     "effects": [
@@ -108859,7 +108932,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "colors": ["Black"], "cost": 3, "isAlternate": false }]
   },
   "BT25-077": {
     "effects": [
@@ -108980,7 +109054,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 5, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 5, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 5, "traits": ["TS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT25-078": {
     "effects": [
@@ -109048,6 +109126,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 2, "colors": ["Purple"], "cost": 0, "isAlternate": false },
       { "level": 2, "texts": ["Three Musketeers"], "cost": 0, "isAlternate": true },
       { "traits": ["TS"], "cost": 0, "isAlternate": true, "level": 2 }
     ]
@@ -109068,7 +109147,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 2, "colors": ["Purple"], "cost": 0, "isAlternate": false }]
   },
   "BT25-080": {
     "effects": [
@@ -109191,7 +109271,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Purple"], "cost": 2, "isAlternate": false },
+      { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT25-081": {
     "effects": [
@@ -109239,7 +109322,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "colors": ["Purple"], "cost": 2, "isAlternate": false }]
   },
   "BT25-082": {
     "effects": [
@@ -109352,6 +109436,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 3, "colors": ["Purple"], "cost": 3, "isAlternate": false },
+      { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": false },
       { "level": 3, "texts": ["Three Musketeers"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
     ]
@@ -109620,6 +109706,9 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 5, "colors": ["Purple"], "cost": 5, "isAlternate": false },
+      { "level": 5, "colors": ["Red"], "cost": 5, "isAlternate": false },
+      { "level": 5, "colors": ["Green"], "cost": 5, "isAlternate": false },
       { "namesExact": ["Titamon"], "baseColorCountMax": 2, "cost": 2, "isAlternate": true },
       { "level": 5, "traits": ["TS"], "cost": 4, "isAlternate": true }
     ]
@@ -109649,6 +109738,15 @@
         "actions": [
           {
             "kind": "UseOptionWithoutCost",
+            "filter": {
+              "controller": "mine",
+              "kind": ["Option"],
+              "playCostLte": 99,
+              "nameOrTrait": [
+                { "tokens": ["Three Musketeers"], "match": "trait" },
+                { "tokens": ["TS"], "match": "trait" }
+              ]
+            },
             "target": {
               "filter": {
                 "controller": "mine",
@@ -109676,6 +109774,15 @@
         "actions": [
           {
             "kind": "UseOptionWithoutCost",
+            "filter": {
+              "controller": "mine",
+              "kind": ["Option"],
+              "playCostLte": 99,
+              "nameOrTrait": [
+                { "tokens": ["Three Musketeers"], "match": "trait" },
+                { "tokens": ["TS"], "match": "trait" }
+              ]
+            },
             "target": {
               "filter": {
                 "controller": "mine",
@@ -109788,6 +109895,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 5, "colors": ["Purple"], "cost": 4, "isAlternate": false },
+      { "level": 5, "colors": ["Black"], "cost": 4, "isAlternate": false },
       { "level": 5, "texts": ["Three Musketeers"], "cost": 3, "isAlternate": true },
       { "traits": ["TS"], "cost": 3, "isAlternate": true, "level": 5 }
     ]
