@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-003.js";
 import "../index.js";
 
@@ -205,5 +206,90 @@ describe("BT24-003 Tsunomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("level4").instanceId);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-003", "BT24-019"]);
+  });
+
+  it("activates while its inherited source is deeper in the evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-014", as: "host", under: ["P-194", "BT24-003"] }],
+          hand: [{ card: "BT24-101", as: "jupitermon" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    await settle(() => s.perm("host").topCard.cardId === "BT24-101");
+
+    expect(s.perm("host").topCard.cardId).toBe("BT24-101");
+  });
+
+  it("suppresses a second public security-removal attack and re-arms on the later owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-194", as: "host", under: ["BT24-003"] },
+            { card: "BT24-022", as: "attacker1", under: ["BT24-031"] },
+            { card: "BT24-022", as: "attacker2", under: ["BT24-031"] },
+            { card: "BT24-022", as: "attacker3", under: ["BT24-031"] },
+          ],
+          hand: [
+            { card: "BT24-014", as: "aegiochusmon" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker1").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT24-014");
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker2").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("jupitermon").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker3").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT24-101");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-003", "P-194", "BT24-014"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("jupitermon").instanceId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
   });
 });
