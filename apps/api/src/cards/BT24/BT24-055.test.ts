@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,21 @@ import { compiled as BT24_055 } from "./BT24-055.js";
 import "../index.js";
 
 describe("BT24-055 Ginryumon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-055")).toMatchObject({
+      cardId: "BT24-055",
+      nameEn: "Ginryumon",
+      colors: ["Black", "Green"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Beast Dragon", "X Antibody", "DigiPolice", "SEEKERS"],
+    });
+  });
+
   it("limits the inherited suspension target to the source's play cost", () => {
     const inherited = BT24_055.effects?.find((entry) => entry.isInherited);
     const action = inherited?.actions?.[0] as any;
