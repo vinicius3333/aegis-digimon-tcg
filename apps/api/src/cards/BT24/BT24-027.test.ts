@@ -60,7 +60,7 @@ describe("BT24-027 Lanamon", () => {
         0: {
           battleArea: [
             { card: "BT24-027", as: "lanamon" },
-            { card: "BT24-020", as: "protected" },
+            { card: "BT24-021", as: "protected" },
           ],
           hand: [{ card: "BT24-022", as: "placed" }],
         },
@@ -90,6 +90,69 @@ describe("BT24-027 Lanamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lanamon"));
 
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "beDeletedInBattle")).toBe(false);
+  });
+
+  it("resolves placement and battle protection from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-027", as: "lanamon" },
+            { card: "BT24-022", as: "placed" },
+          ],
+          battleArea: [{ card: "BT24-020", as: "protected" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("placed").instanceId, s.perm("protected").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("lanamon").stack.some((card) => card.instanceId === s.inst("placed").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("placed").instanceId);
+    expect(s.perm("lanamon").stack.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle")).toBe(true);
+  });
+
+  it("resolves the same placement and protection from public digivolution", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-020", as: "base" }],
+          hand: [
+            { card: "BT24-027", as: "lanamon" },
+            { card: "BT24-022", as: "placed" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("lanamon").instanceId, s.inst("placed").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lanamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("lanamon").instanceId);
+    await settle(() => observe(s.engine).isRestricted(s.perm("base"), "beDeletedInBattle"));
+
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("placed").instanceId,
+      s.inst("base").instanceId,
+    ]);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "beDeletedInBattle")).toBe(true);
   });
 
   it("Decodes Calmaramon only on non-battle removal", async () => {
@@ -171,6 +234,8 @@ describe("BT24-027 Lanamon", () => {
       await settle(() => s.perm("base").topCard.instanceId === s.inst("lanamon").instanceId);
 
       expect(s.state.memory).toBe(5 - cost);
+      expect(s.perm("base").topCard.instanceId).toBe(s.inst("lanamon").instanceId);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
     },
   );
 });
