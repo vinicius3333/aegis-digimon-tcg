@@ -121,6 +121,42 @@ describe("BT24-001 Gigimon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("resolves a public Security deletion before the pending inherited trigger (Q5574)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT24-001"] }],
+          security: [{ card: "BT1-014", as: "ownSecurity" }],
+        },
+        1: {
+          // BT12-099's public Security effect deletes an opposing Digimon at 6000 DP or less.
+          // If BT24-001's pending security-removal trigger ran first, this 3000-DP target
+          // would also be deleted. Its survival proves the Security effect resolved first.
+          security: [
+            { card: "BT12-099", as: "securityOption" },
+            { card: "BT1-014", as: "opponentSecurity" },
+          ],
+          battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const attackerId = s.perm("attacker").permanentId;
+    const targetId = s.perm("target").permanentId;
+    const securityOptionId = s.inst("securityOption").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !s.state.players[0]!.battleArea.length);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityOptionId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
   it("is reached through a legal two-step breeding stack before attacking", async () => {
     const s = setupEngine(
       {
