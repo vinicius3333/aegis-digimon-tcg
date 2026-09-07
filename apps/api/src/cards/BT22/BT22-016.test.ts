@@ -21,7 +21,7 @@ describe("BT22-016 Mcmon", () => {
               expect.objectContaining({
                 filter: {
                   controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Entertainment", "Awakening (App Name)"], match: "trait" }],
+                  nameOrTrait: [{ tokens: ["Entertainment", "Awakening"], match: "trait" }],
                 },
                 count: 1,
               }),
@@ -73,6 +73,52 @@ describe("BT22-016 Mcmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
+  it("selects an Appmon and an Awakening App Name card as independent additions", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT22-016", as: "mcmon" }],
+          deck: [
+            { card: "BT22-016", as: "appmon" },
+            { card: "BT22-039", as: "awakening" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mcmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("appmon").instanceId, s.inst("awakening").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+  });
+
+  it("accepts an Awakening App Name card independently of Entertainment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT22-016", as: "mcmon" }],
+          deck: [
+            { card: "BT22-016", as: "appmon" },
+            { card: "BT22-039", as: "awakening" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mcmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT22-016", "BT22-039"]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
   it("trashes one chosen digivolution card when linked", async () => {
     const s = setupEngine(
       {
@@ -90,5 +136,24 @@ describe("BT22-016 Mcmon", () => {
 
     expect(s.perm("opponent").stack).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+
+  it("links from hand for the printed cost 1 and resolves the linked trash effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-009", as: "host" }], hand: [{ card: "BT22-016", as: "mcmon" }] },
+      1: { battleArea: [{ card: "BT22-010", under: ["BT22-003", "BT22-008"], as: "opponent" }] },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("mcmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("mcmon").instanceId));
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

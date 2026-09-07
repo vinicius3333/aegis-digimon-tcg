@@ -34,6 +34,14 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                playCostLte: 5,
+                nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+              },
+            ],
             count: 1,
           },
           from: ["trash"],

@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
                 controllerDefault: "mine",
                 nameOrTrait: [
                   {
-                    tokens: ["Entertainment", "Awakening (App Name)"],
+                    tokens: ["Entertainment", "Awakening"],
                     match: "trait",
                   },
                 ],
@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
   digivolutionRequirement: [
     {
       level: 2,

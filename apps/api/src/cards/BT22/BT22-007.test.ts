@@ -280,7 +280,13 @@ describe("BT22-007 battle-area clauses", () => {
   it("deletes exactly one opposing Digimon on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT22-007", as: "mother" }] },
+        0: {
+          breeding: {
+            card: "BT22-007",
+            as: "mother",
+            under: ["BT22-007", "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008", "BT1-009"],
+          },
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
@@ -288,11 +294,10 @@ describe("BT22-007 battle-area clauses", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mother"));
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

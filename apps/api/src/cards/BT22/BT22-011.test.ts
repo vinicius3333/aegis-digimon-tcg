@@ -53,8 +53,10 @@ describe("BT22-011 BlueMeramon", () => {
           trash: [
             { card: "BT22-010", as: "eligible" },
             { card: "BT1-009", as: "nonmatch" },
+            { card: "BT8-014", as: "tooExpensiveFlame" },
           ],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -74,7 +76,35 @@ describe("BT22-011 BlueMeramon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-010")).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("nonmatch").instanceId,
+      s.inst("tooExpensiveFlame").instanceId,
+    ]);
+    expect(s.perm("blueMeramon").isSuspended).toBe(true);
+  });
+
+  it("plays a CS-only Digimon from trash while rejecting cost-6 and neither-trait peers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-011", as: "blueMeramon" }],
+          trash: [
+            { card: "BT22-008", as: "csOnly" },
+            { card: "BT8-014", as: "cost6Flame" },
+            { card: "BT1-009", as: "neither" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(s.perm("blueMeramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-011/"))!.effectKey;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("csOnly").instanceId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("csOnly").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("cost6Flame").instanceId, s.inst("neither").instanceId]);
   });
 
   it("grants Alliance to a CS inherited host only during its controller's turn", async () => {
@@ -85,5 +115,37 @@ describe("BT22-011 BlueMeramon", () => {
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(false);
+  });
+
+  it("declines the optional paid trash-play clause without paying or attacking", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-011", as: "blueMeramon" }], trash: [{ card: "BT22-010", as: "candidate" }] } }, { autoDeclineOptional: true });
+    await s.ready();
+    const source = (s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }).cardSourceOf(s.perm("blueMeramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-011/"))!.effectKey;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 5);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
+  });
+
+  it("does not grant inherited Alliance to a host with neither Flame nor CS", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", under: ["BT22-011"], as: "ordinaryHost" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("ordinaryHost"), "Alliance")).toBe(false);
+  });
+
+  it("grants inherited Alliance to a Flame host while leaving a separate neither-trait host unchanged", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-085", under: ["BT22-011"], as: "flameHost" },
+          { card: "BT1-009", under: ["BT22-011"], as: "ordinaryHost" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("flameHost"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ordinaryHost"), "Alliance")).toBe(false);
   });
 });
