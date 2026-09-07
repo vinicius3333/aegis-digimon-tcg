@@ -352,22 +352,6 @@ export function GameScreen({
   const [decisionAsDialog, setDecisionAsDialog] = useState(false);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
-  useEffect(() => {
-    const syncFullscreen = () => setFullscreen(document.fullscreenElement !== null);
-    document.addEventListener("fullscreenchange", syncFullscreen);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
-  }, []);
-  // The browser's own bars are what keep a phone match short of the screen; the
-  // request can be refused (an iframe, an unsupported browser), which just leaves
-  // the page as it was.
-  function toggleFullscreen() {
-    if (document.fullscreenElement) {
-      void document.exitFullscreen().catch(() => undefined);
-    } else {
-      void document.documentElement.requestFullscreen?.().catch(() => undefined);
-    }
-  }
   // A card name clicked in the play log opens the card itself, without closing the log.
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
@@ -1546,7 +1530,6 @@ export function GameScreen({
 
   // ----- log + game over -----
   const log: LogLine[] = buildMatchLog(events, viewerSeat, instanceIndex, t);
-  const latestOwnLogLine = [...log].reverse().find((line) => line.kind === "you");
   const gameOverReason = (() => {
     for (let i = events.length - 1; i >= 0; i -= 1) {
       const e = events[i]!;
@@ -2305,8 +2288,17 @@ export function GameScreen({
             </div>
             {narrowGameLayout ? (
               <>
-                {/* Touch layout: the sidebar footer is out of reach mid-match, so both match-level
-                    controls live in the header instead. */}
+                {/* Touch layout: the sidebar footer is out of reach mid-match, so the
+                    match-level controls live in the header instead. */}
+                <button
+                  type="button"
+                  className="game-mobile-log"
+                  onClick={() => setHistoryOpen(true)}
+                  aria-label={t("game.matchLog")}
+                  data-testid="log-strip"
+                >
+                  <Icons.ScrollText size={16} />
+                </button>
                 <button
                   className="game-mobile-bug"
                   onClick={() => setBugReportOpen(true)}
@@ -2315,31 +2307,11 @@ export function GameScreen({
                   <Icons.Bug size={16} />
                 </button>
                 <button
-                  className="game-mobile-fullscreen"
-                  onClick={toggleFullscreen}
-                  aria-label={t(fullscreen ? "game.exitFullscreen" : "game.fullscreen")}
-                  aria-pressed={fullscreen}
-                >
-                  {fullscreen ? <Icons.Minimize size={16} /> : <Icons.Maximize size={16} />}
-                </button>
-                <button
                   className="game-mobile-surrender"
                   onClick={() => room && intents.surrender(room)}
                   aria-label={t("game.surrender")}
                 >
                   <Icons.LogOut size={16} />
-                </button>
-                {/* The viewer's latest move, where the phone has no sidebar log to show it;
-                    the opponent's moves already run in their own feed under the header. */}
-                <button
-                  type="button"
-                  className="game-log-strip"
-                  onClick={() => setHistoryOpen(true)}
-                  aria-label={t("game.matchLog")}
-                  data-testid="log-strip"
-                >
-                  <Icons.ScrollText size={14} aria-hidden="true" />
-                  <span>{latestOwnLogLine?.text ?? t("game.noActions")}</span>
                 </button>
               </>
             ) : (

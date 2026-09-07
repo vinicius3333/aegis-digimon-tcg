@@ -491,18 +491,14 @@ describe("the mulligan sheet keeps the opening hand next to its copy", () => {
 });
 
 describe("the viewer's own moves on a phone", () => {
-  it("gives the header a fullscreen control next to the other two", () => {
+  it("puts the match log control on the header row with the bug and surrender ones", () => {
     expect(portraitRules).toMatch(
       /\.game-opponent-bar \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto auto auto auto/,
     );
-    expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-fullscreen,\s*\.game-mobile-bug \{/);
-    expect(gameScreenSource).toMatch(/className="game-mobile-fullscreen"/);
-  });
-
-  it("runs the latest own log line as a strip across the header on touch layouts", () => {
-    expect(portraitRules).toMatch(/\.game-log-strip \{[^}]*grid-column:\s*1 \/ -1/);
-    expect(portraitRules).toMatch(/\.game-log-strip > span \{[^}]*text-overflow:\s*ellipsis/);
-    expect(gameScreenSource).toMatch(/className="game-log-strip"[\s\S]*?onClick=\{\(\) => setHistoryOpen\(true\)\}/);
+    expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-log,\s*\.game-mobile-bug \{/);
+    expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{\(\) => setHistoryOpen\(true\)\}/);
+    expect(gameScreenSource).not.toMatch(/game-mobile-fullscreen|game-log-strip/);
+    expect(portraitRules).not.toMatch(/game-log-strip/);
   });
 });
 

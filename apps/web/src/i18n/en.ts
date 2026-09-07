@@ -326,8 +326,6 @@ export const en = {
   "game.dragIntent.breeding": "BREEDING",
   "game.dragIntent.use": "USE",
   "game.dragIntent.attack": "ATTACK",
-  "game.fullscreen": "Full screen",
-  "game.exitFullscreen": "Exit full screen",
   "game.matchLog": "Match log",
   "game.noActions": "No actions yet.",
   "game.surrender": "Surrender",

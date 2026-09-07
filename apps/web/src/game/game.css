@@ -31,7 +31,7 @@
 
 .game-mobile-turn,
 .game-mobile-surrender,
-.game-mobile-fullscreen,
+.game-mobile-log,
 .game-mobile-bug {
   display: none;
 }
@@ -3987,34 +3987,6 @@ button.side-panel__name:focus-visible {
     grid-template-columns: minmax(0, 1fr) auto auto auto auto;
     gap: var(--ds-space-2);
   }
-  /* The viewer's latest move, as one line under the header's controls. The phone
-     has no sidebar log, and the opponent's feed narrates only their side. */
-  .game-log-strip {
-    display: flex;
-    grid-column: 1 / -1;
-    align-items: center;
-    gap: var(--ds-space-2);
-    min-width: 0;
-    min-height: 32px;
-    margin: 0;
-    padding: 0 var(--ds-space-2);
-    color: var(--ds-brand-on-ink);
-    font-size: var(--ds-text-xs);
-    text-align: left;
-    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 22%, transparent);
-    border-radius: var(--ds-radius-sm);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
-  }
-  .game-log-strip > svg {
-    flex-shrink: 0;
-    opacity: 0.7;
-  }
-  .game-log-strip > span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
   .game-opponent-identity > div:last-child > div:first-child {
     color: var(--ds-brand-on-ink) !important;
   }
@@ -4043,7 +4015,7 @@ button.side-panel__name:focus-visible {
   /* Both match controls are square icons: the surrender label was as wide as the
      word it happened to be translated into, and the header shifted around it. */
   .game-mobile-surrender,
-  .game-mobile-fullscreen,
+  .game-mobile-log,
   .game-mobile-bug {
     display: grid;
     place-items: center;
@@ -5280,7 +5252,7 @@ button.side-panel__name:focus-visible {
     font-weight: 700;
   }
   .game-mobile-surrender,
-  .game-mobile-fullscreen,
+  .game-mobile-log,
   .game-mobile-bug {
     display: grid;
     place-items: center;
