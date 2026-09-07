@@ -52,7 +52,10 @@ describe("BT24-017 Q6027 source-removal continuation", () => {
         },
         1: {
           battleArea: [{ card: REPLACEMENT_CARD_ID, as: "replacementTarget", dp: 1000 }],
-          trash: [{ card: "BT1-010", as: "trashA" }, { card: "BT1-011", as: "trashB" }],
+          trash: [
+            { card: "BT1-010", as: "trashA" },
+            { card: "BT1-011", as: "trashB" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -70,22 +73,17 @@ describe("BT24-017 Q6027 source-removal continuation", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("medusamon").instanceId));
     await settle(
       () =>
-        s.state.players[1]!.battleArea.filter(
-          (permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token",
-        ).length === 2,
+        s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token")
+          .length === 2,
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-017")).toBe(false);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
-      s.inst("replacementTarget").instanceId,
-    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("replacementTarget").instanceId]);
     expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("trashA").instanceId, s.inst("trashB").instanceId]),
     );
     expect(
-      s.state.players[1]!.battleArea.filter(
-        (permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token",
-      ),
+      s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Petrification-Token"),
     ).toHaveLength(2);
   });
 });

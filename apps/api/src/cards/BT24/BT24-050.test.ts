@@ -202,7 +202,9 @@ describe("BT24-050 WereGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstIliad").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstIliad").instanceId),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondIliad").instanceId);
 
     s.state.turnSeat = 1;
@@ -220,7 +222,9 @@ describe("BT24-050 WereGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondIliad").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondIliad").instanceId),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("secondIliad").instanceId);
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT24-019")).toHaveLength(2);
     advance(s.engine).endMainPhaseIfOpen(0);

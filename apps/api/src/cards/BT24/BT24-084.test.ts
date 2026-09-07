@@ -124,21 +124,33 @@ describe("BT24-084 Inori Misono", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-084", as: "inori" }, { card: "P-194", as: "host" }],
+          battleArea: [
+            { card: "BT24-084", as: "inori" },
+            { card: "P-194", as: "host" },
+          ],
           hand: [{ card: "BT24-014", as: "aegiochusmon" }],
           security: [{ card: "BT1-009", as: "barrierCost" }],
         },
-        1: { security: [{ card: "ST1-10", as: "strong" }, { card: "BT1-014", as: "second" }] },
+        1: {
+          security: [
+            { card: "ST1-10", as: "strong" },
+            { card: "BT1-014", as: "second" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("aegiochusmon").instanceId);
     await s.ready();
     const hostId = s.perm("host").permanentId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
     expect(s.events).toContainEqual({ kind: "barrierPrompt", permanentId: hostId });
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("aegiochusmon").instanceId);
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
     expect(s.perm("inori").isSuspended).toBe(true);

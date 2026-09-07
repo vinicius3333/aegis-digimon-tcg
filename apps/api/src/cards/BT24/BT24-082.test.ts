@@ -160,7 +160,10 @@ describe("BT24-082 Owen Dreadnought", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-082", as: "owen" }, { card: "BT1-010", as: "reptile" }],
+          battleArea: [
+            { card: "BT24-082", as: "owen" },
+            { card: "BT1-010", as: "reptile" },
+          ],
           hand: [{ card: "BT24-012", as: "evolved" }],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },

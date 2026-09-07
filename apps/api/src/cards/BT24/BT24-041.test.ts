@@ -125,7 +125,10 @@ describe("BT24-041 Minervamon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT24-041", as: "minervamon" }, { card: "BT24-011", as: "iliad" }],
+          hand: [
+            { card: "BT24-041", as: "minervamon" },
+            { card: "BT24-011", as: "iliad" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-074", "BT1-077"] }] },
       },
@@ -134,10 +137,14 @@ describe("BT24-041 Minervamon", () => {
     s.state.memory = 12;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-011"));
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(s.inst("iliad").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("iliad").instanceId,
+    );
     expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

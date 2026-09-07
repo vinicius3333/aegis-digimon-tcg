@@ -178,9 +178,24 @@ describe("BT24-007 Tsunomon", () => {
     s.state.memory = 10;
     await s.ready();
     const eggId = s.perm("egg").permanentId;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: eggId, instanceId: s.inst("shaman").instanceId, useAlternateCost: true, alternateRequirementIndex: 1 })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("shaman").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT24-009");
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: eggId, instanceId: s.inst("greymon").instanceId, useAlternateCost: true })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT24-010");
     const setupTurn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Breeding);
@@ -200,8 +215,12 @@ describe("BT24-007 Tsunomon", () => {
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggId })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => true);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("demon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("demon").instanceId),
+    );
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-007", "BT24-009"]);
     expect(s.perm("egg").topCard.cardId).toBe("BT24-010");
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("demon").instanceId)).toBe(true);
@@ -211,17 +230,30 @@ describe("BT24-007 Tsunomon", () => {
   });
 
   it("rejects the same hand-trash event on the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-010", as: "host", under: ["BT24-007", "BT24-009"] }] },
-      1: { hand: [{ card: "BT24-026", as: "discarder" }, { card: "BT1-069", as: "demon" }], deck: ["BT1-009", "BT1-010"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-010", as: "host", under: ["BT24-007", "BT24-009"] }] },
+        1: {
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT1-069", as: "demon" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("demon").instanceId));
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("demon").instanceId);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("demon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("demon").instanceId)).toBe(
+      false,
+    );
   });
 
   it.each([
@@ -229,43 +261,68 @@ describe("BT24-007 Tsunomon", () => {
     ["Titan-only", "BT24-010", true],
     ["near-trait level 4", "BT24-046", false],
   ] as const)("enforces the exact Demon/Titan boundary for %s", async (_label, candidate, qualifies) => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
-        hand: [{ card: "BT24-026", as: "discarder" }, { card: candidate, as: "candidate" }],
-        deck: ["BT1-009", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: candidate, as: "candidate" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId) || s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId)).toBe(qualifies);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(!qualifies);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId) ||
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId)).toBe(
+      qualifies,
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(
+      !qualifies,
+    );
   });
 
   it("resets the inherited once-per-turn play on the next actual owner turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-010", as: "host", under: ["BT24-007", "BT24-009"] }],
-        hand: [
-          { card: "BT24-026", as: "firstDiscarder" },
-          { card: "BT1-069", as: "firstDemon" },
-          { card: "BT24-026", as: "secondDiscarder" },
-          { card: "BT1-069", as: "secondDemon" },
-        ],
-        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-010", as: "host", under: ["BT24-007", "BT24-009"] }],
+          hand: [
+            { card: "BT24-026", as: "firstDiscarder" },
+            { card: "BT1-069", as: "firstDemon" },
+            { card: "BT24-026", as: "secondDiscarder" },
+            { card: "BT1-069", as: "secondDemon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"] },
       },
-      1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 0;
     await s.ready();
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstDiscarder").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstDemon").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstDemon").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstDiscarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstDemon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstDemon").instanceId)).toBe(
+      true,
+    );
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
     s.state.turnSeat = 1;
@@ -276,9 +333,15 @@ describe("BT24-007 Tsunomon", () => {
     const secondTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDiscarder").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondDemon").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondDemon").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDiscarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondDemon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondDemon").instanceId)).toBe(
+      true,
+    );
     advance(s.engine).endMainPhaseIfOpen(0);
     await secondTurn;
   });

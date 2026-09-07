@@ -108,11 +108,13 @@ describe("BT24-024 Submarimon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("submarimon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("submarimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-084"));
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
@@ -151,12 +153,16 @@ describe("BT24-024 Submarimon", () => {
     const armorInstanceId = s.perm("submarimon").topCard.instanceId;
     const sourceInstanceId = s.perm("submarimon").stack[0]!.instanceId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: hostPermanentId },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === sourceInstanceId));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === sourceInstanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([sourceInstanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(armorInstanceId);

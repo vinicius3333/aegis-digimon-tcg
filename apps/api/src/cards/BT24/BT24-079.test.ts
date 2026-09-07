@@ -97,7 +97,13 @@ describe("BT24-079 Hadesmon", () => {
     );
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("hadesmon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hadesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("hadesmon").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("system").instanceId);
     expect(s.perm("base").linked).toHaveLength(0);
@@ -264,11 +270,13 @@ describe("BT24-079 Hadesmon", () => {
 
     const deletedId = s.perm("deleted").permanentId;
     const deletedCardId = s.inst("deleted").instanceId;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("hadesmon").permanentId,
-      target: { kind: "permanent", permanentId: deletedId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hadesmon").permanentId,
+        target: { kind: "permanent", permanentId: deletedId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== deletedId));
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(deletedCardId);
     await settle(() =>
@@ -329,7 +337,11 @@ describe("BT24-079 Hadesmon", () => {
         [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
       ),
     );
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("ownerVictim").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("ownerVictim").instanceId,
+      ),
+    ).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
@@ -349,14 +361,23 @@ describe("BT24-079 Hadesmon", () => {
           [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
         ).length === 2,
     );
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("opponentVictim").instanceId)).toBe(false);
     expect(
-      s.state.players[0]!.battleArea
-        .filter((permanent) =>
-          [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
-        )
-        .map((permanent) => permanent.topCard.instanceId),
-    ).toEqual(expect.arrayContaining([firstPlayed, firstPlayed === s.inst("firstSystem").instanceId ? s.inst("secondSystem").instanceId : s.inst("firstSystem").instanceId]));
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("opponentVictim").instanceId,
+      ),
+    ).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) =>
+        [s.inst("firstSystem").instanceId, s.inst("secondSystem").instanceId].includes(permanent.topCard.instanceId),
+      ).map((permanent) => permanent.topCard.instanceId),
+    ).toEqual(
+      expect.arrayContaining([
+        firstPlayed,
+        firstPlayed === s.inst("firstSystem").instanceId
+          ? s.inst("secondSystem").instanceId
+          : s.inst("firstSystem").instanceId,
+      ]),
+    );
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
   });

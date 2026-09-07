@@ -166,7 +166,10 @@ describe("BT24-067 Hackmon", () => {
             { card: "BT1-085", as: "firstTamer" },
             { card: "BT1-086", as: "secondTamer" },
           ],
-          hand: [{ card: "BT24-053", as: "link" }, { card: "BT24-087", as: "rei" }],
+          hand: [
+            { card: "BT24-053", as: "link" },
+            { card: "BT24-087", as: "rei" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -174,11 +177,13 @@ describe("BT24-067 Hackmon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "linkCard",
-      instanceId: s.inst("link").instanceId,
-      targetPermanentId: s.perm("hackmon").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("hackmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("hackmon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("rei").instanceId);

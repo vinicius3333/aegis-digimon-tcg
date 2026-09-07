@@ -96,7 +96,9 @@ describe("BT24-032 Pipomon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pipomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pipomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("system").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(

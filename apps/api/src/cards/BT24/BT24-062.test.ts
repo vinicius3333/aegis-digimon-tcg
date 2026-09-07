@@ -124,16 +124,23 @@ describe("BT24-062 MasterBlimpmon", () => {
   });
 
   it("plays its stacked card at the end of a real opponent turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-062", as: "master", under: [{ card: "BT24-058", as: "stacked" }] }] },
-      1: { security: ["BT1-013"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-062", as: "master", under: [{ card: "BT24-058", as: "stacked" }] }] },
+        1: { security: ["BT1-013"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
 
     const opponentTurn = s.engine.runOneTurn();
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("stacked").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("stacked").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("stacked").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("stacked").instanceId)).toBe(
+      true,
+    );
     expect(s.perm("master").stack.map((card) => card.instanceId)).not.toContain(s.inst("stacked").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("stacked").instanceId);
     await opponentTurn;

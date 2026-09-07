@@ -78,7 +78,9 @@ describe("BT24-043 Tapirmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tapirmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tapirmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(

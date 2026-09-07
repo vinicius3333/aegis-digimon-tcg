@@ -257,17 +257,21 @@ describe("BT24-003 Tsunomon", () => {
 
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker1").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker1").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT24-014");
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker2").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker2").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("host").topCard.cardId).toBe("BT24-014");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("jupitermon").instanceId)).toBe(true);
@@ -281,11 +285,13 @@ describe("BT24-003 Tsunomon", () => {
     s.state.memory = 10;
     const laterTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker3").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker3").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT24-101");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-003", "P-194", "BT24-014"]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("jupitermon").instanceId)).toBe(false);

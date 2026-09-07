@@ -107,11 +107,12 @@ describe("BT24-046 Garurumon", () => {
   it("inherited suspension resets on the owner's next public attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-047", as: "host", under: ["BT24-046"] }], deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"] },
+        0: {
+          battleArea: [{ card: "BT24-047", as: "host", under: ["BT24-046"] }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
         1: {
-          battleArea: [
-            { card: "BT1-009", as: "target" },
-          ],
+          battleArea: [{ card: "BT1-009", as: "target" }],
           security: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           deck: ["BT1-015", "BT1-016", "BT1-017", "BT1-018"],
         },
@@ -124,7 +125,13 @@ describe("BT24-046 Garurumon", () => {
     await s.ready();
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -137,7 +144,13 @@ describe("BT24-046 Garurumon", () => {
     s.state.memory = 3;
     const laterTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
 
     expect(s.perm("target").isSuspended).toBe(true);
@@ -153,7 +166,13 @@ describe("BT24-046 Garurumon", () => {
     const targetId = s.perm("target").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
   });

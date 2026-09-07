@@ -131,7 +131,7 @@ describe("BT24-075 SkullBaluchimon", () => {
         {
           0: {
             battleArea: [{ card: "BT24-075", as: "skullbaluchimon" }],
-          hand: [{ card: "BT1-009", as: "cost" }],
+            hand: [{ card: "BT1-009", as: "cost" }],
           },
           1: {
             battleArea: [

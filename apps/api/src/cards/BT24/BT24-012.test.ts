@@ -159,12 +159,20 @@ describe("BT24-012 Dimetromon", () => {
       1: { battleArea: [{ card: "BT24-012", as: "blocker", under: ["BT24-021"] }], security: ["BT1-011"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
       eligibleBlockerIds: [s.perm("blocker").permanentId],
     });
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
     expect(s.perm("blocker").isSuspended).toBe(true);
@@ -180,7 +188,13 @@ describe("BT24-012 Dimetromon", () => {
     });
     const checkedId = s.inst("checked").instanceId;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === checkedId));

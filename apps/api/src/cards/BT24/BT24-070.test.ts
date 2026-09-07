@@ -102,10 +102,14 @@ describe("BT24-070 Growlmon", () => {
     });
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-070"));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("expensiveTamer").instanceId);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("expensiveTamer").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("expensiveTamer").instanceId),
+    ).toBe(false);
   });
 
   it("public attack uses the inherited effect to delete only a level-3 opponent", async () => {
@@ -146,7 +150,10 @@ describe("BT24-070 Growlmon", () => {
       {
         0: { battleArea: [{ card: "BT1-032", as: "host", under: ["BT24-070"] }], deck: ["BT1-009", "BT1-009"] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }],
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
           security: ["BT1-012", "BT1-012"],
           deck: ["BT1-009", "BT1-009"],
         },
@@ -157,8 +164,16 @@ describe("BT24-070 Growlmon", () => {
     await s.ready();
     const firstTurn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("first").instanceId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("first").instanceId),
+    );
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
     s.state.turnSeat = 1;
@@ -168,9 +183,19 @@ describe("BT24-070 Growlmon", () => {
     s.state.memory = 3;
     const secondTurn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("second").instanceId));
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("second").instanceId),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
     advance(s.engine).endMainPhaseIfOpen(0);
     await secondTurn;
   });

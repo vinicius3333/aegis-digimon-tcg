@@ -110,7 +110,9 @@ describe("BT24-027 Lanamon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("lanamon").stack.some((card) => card.instanceId === s.inst("placed").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("placed").instanceId);
@@ -159,7 +161,10 @@ describe("BT24-027 Lanamon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT24-027", as: "lanamon" }, { card: "BT24-022", as: "placed" }],
+          hand: [
+            { card: "BT24-027", as: "lanamon" },
+            { card: "BT24-022", as: "placed" },
+          ],
           battleArea: [{ card: "BT24-020", as: "protected" }],
         },
         1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
@@ -168,7 +173,9 @@ describe("BT24-027 Lanamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle"));
     expect(observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle")).toBe(true);
 
@@ -180,11 +187,13 @@ describe("BT24-027 Lanamon", () => {
     expect(s.perm("attacker").isSuspended).toBe(false);
     s.perm("protected").isSuspended = true;
     expect(s.perm("protected").isSuspended).toBe(true);
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("protected").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("protected").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(s.perm("protected").permanentId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("protected").instanceId);

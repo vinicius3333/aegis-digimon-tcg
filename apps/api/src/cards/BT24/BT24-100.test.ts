@@ -102,14 +102,20 @@ describe("BT24-100 In-Between Theater", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("checkedOption").instanceId));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("checkedOption").instanceId),
+    );
 
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(s.inst("checkedOption").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(
+      s.inst("checkedOption").instanceId,
+    );
   });
 });

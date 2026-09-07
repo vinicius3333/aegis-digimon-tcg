@@ -180,11 +180,13 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     await s.ready();
     s.perm("option").placedByEffect = true;
     const removedId = s.inst("removed").instanceId;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.state.players[0]!.security).toHaveLength(0);

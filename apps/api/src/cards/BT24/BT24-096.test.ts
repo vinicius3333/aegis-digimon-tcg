@@ -57,9 +57,15 @@ describe("BT24-096 Seventh Graviton", () => {
     });
     positive.state.memory = 7;
     await positive.ready();
-    expect(positive.engine.applyIntent(0, { type: "playCard", instanceId: positive.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => positive.state.players[1]!.trash.some((card) => card.instanceId === positive.inst("level7").instanceId));
-    expect(positive.state.players[1]!.trash.map((card) => card.instanceId)).toContain(positive.inst("level7").instanceId);
+    expect(
+      positive.engine.applyIntent(0, { type: "playCard", instanceId: positive.inst("option").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      positive.state.players[1]!.trash.some((card) => card.instanceId === positive.inst("level7").instanceId),
+    );
+    expect(positive.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
+      positive.inst("level7").instanceId,
+    );
 
     const negative = setupEngine({
       0: { hand: [{ card: "BT24-096", as: "option" }], battleArea: [{ card: "BT3-089", as: "purple" }] },
@@ -67,9 +73,13 @@ describe("BT24-096 Seventh Graviton", () => {
     });
     negative.state.memory = 7;
     await negative.ready();
-    expect(negative.engine.applyIntent(0, { type: "playCard", instanceId: negative.inst("option").instanceId })).toEqual({ ok: true });
+    expect(
+      negative.engine.applyIntent(0, { type: "playCard", instanceId: negative.inst("option").instanceId }),
+    ).toEqual({ ok: true });
     await settle(() => negative.state.players[1]!.trash.length === 3);
-    expect(negative.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === negative.inst("level5").instanceId)).toBe(true);
+    expect(
+      negative.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === negative.inst("level5").instanceId),
+    ).toBe(true);
   });
 
   it("mills the opponent's top 3 only when deletion fails, preserving deck order boundary", async () => {
@@ -156,12 +166,21 @@ describe("BT24-096 Seventh Graviton", () => {
       {
         0: {
           trash: [{ card: "BT24-096", as: "firstGraviton" }],
-          battleArea: [{ card: "BT8-111", as: "firstBase" }, { card: "BT8-111", as: "secondBase" }],
-          hand: [{ card: "BT24-078", as: "firstX" }, { card: "BT24-078", as: "secondX" }],
+          battleArea: [
+            { card: "BT8-111", as: "firstBase" },
+            { card: "BT8-111", as: "secondBase" },
+          ],
+          hand: [
+            { card: "BT24-078", as: "firstX" },
+            { card: "BT24-078", as: "secondX" },
+          ],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
-          battleArea: [{ card: "BT19-074", as: "firstTarget" }, { card: "BT19-074", as: "secondTarget" }],
+          battleArea: [
+            { card: "BT19-074", as: "firstTarget" },
+            { card: "BT19-074", as: "secondTarget" },
+          ],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
@@ -170,7 +189,13 @@ describe("BT24-096 Seventh Graviton", () => {
     s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("firstBase").permanentId, instanceId: s.inst("firstX").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstBase").permanentId,
+        instanceId: s.inst("firstX").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("firstGraviton").instanceId));
     const secondGraviton = s.give(0, Zone.Trash, { card: "BT24-096", as: "secondGraviton" });
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(secondGraviton.instanceId);
@@ -182,8 +207,16 @@ describe("BT24-096 Seventh Graviton", () => {
     s.state.memory = 10;
     const ownerTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("secondBase").permanentId, instanceId: s.inst("secondX").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("secondGraviton").instanceId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondBase").permanentId,
+        instanceId: s.inst("secondX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("secondGraviton").instanceId),
+    );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("secondGraviton").instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;

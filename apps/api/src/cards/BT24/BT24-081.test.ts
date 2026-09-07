@@ -85,11 +85,13 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     const lowAId = s.perm("lowA").permanentId;
     const lowBId = s.perm("lowB").permanentId;
     const highId = s.perm("high").permanentId;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("titamon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("titamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowAId));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);

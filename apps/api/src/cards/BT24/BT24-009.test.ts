@@ -175,7 +175,13 @@ describe("BT24-009 Shamanmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
 
     expect(s.perm("host").topCard.cardId).toBe("P-209");
@@ -202,7 +208,9 @@ describe("BT24-009 Shamanmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discarded").instanceId));
 
     expect(s.perm("host").topCard.cardId).toBe("BT24-072");
@@ -214,7 +222,10 @@ describe("BT24-009 Shamanmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-009"] }],
-        hand: [{ card: "BT24-026", as: "discarder" }, { card: "BT24-009", as: "discarded" }],
+        hand: [
+          { card: "BT24-026", as: "discarder" },
+          { card: "BT24-009", as: "discarded" },
+        ],
         trash: [{ card: "P-209", as: "titamon" }],
       },
     });

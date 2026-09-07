@@ -99,18 +99,21 @@ describe("BT24-006 Tapmon", () => {
   });
 
   it("reaches Tapmon through a legal purple egg-to-Appmon evolution stack", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: { card: "BT24-006", as: "egg" },
-        hand: [
-          { card: "BT24-067", as: "hackmon" },
-          { card: "BT24-053", as: "link" },
-          { card: "BT4-022", as: "startingHand" },
-        ],
-        deck: [{ card: "BT4-022", as: "drawn" }, "BT4-022", "BT4-022", "BT4-022", "BT4-022"],
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT24-006", as: "egg" },
+          hand: [
+            { card: "BT24-067", as: "hackmon" },
+            { card: "BT24-053", as: "link" },
+            { card: "BT4-022", as: "startingHand" },
+          ],
+          deck: [{ card: "BT4-022", as: "drawn" }, "BT4-022", "BT4-022", "BT4-022", "BT4-022"],
+        },
+        1: { deck: ["BT4-022", "BT4-022", "BT4-022", "BT4-022", "BT4-022"] },
       },
-      1: { deck: ["BT4-022", "BT4-022", "BT4-022", "BT4-022", "BT4-022"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
 
@@ -141,11 +144,13 @@ describe("BT24-006 Tapmon", () => {
     await settle(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggId })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, {
-      type: "linkCard",
-      instanceId: s.inst("link").instanceId,
-      targetPermanentId: s.perm("egg").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("egg").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("startingHand").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     await settle(() => s.decisions.length === 0, 1000);

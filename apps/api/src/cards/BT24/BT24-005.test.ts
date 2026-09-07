@@ -110,7 +110,13 @@ describe("BT24-005 Kyokyomon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: false, preferOptionIndex: 1 },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: false,
+        preferOptionIndex: 1,
+      },
     );
     s.state.memory = 10;
     await s.ready();
@@ -263,15 +269,23 @@ describe("BT24-005 Kyokyomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT24-054", as: "host", under: ["BT24-005", { card: "BT24-086", as: "mindLinker" }] },
+          battleArea: [{ card: "BT24-054", as: "host", under: ["BT24-005", { card: "BT24-086", as: "mindLinker" }] }],
+          hand: [
+            { card: "BT24-054", as: "firstPlay" },
+            { card: "BT24-011", as: "secondPlay" },
+            { card: "BT24-019", as: "thirdPlay" },
           ],
-          hand: [{ card: "BT24-054", as: "firstPlay" }, { card: "BT24-011", as: "secondPlay" }, { card: "BT24-019", as: "thirdPlay" }],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
         },
         1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true, preferOptionIndex: 1 },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferOptionIndex: 1,
+      },
     );
     s.state.turnSeat = 0;
     s.state.memory = 10;

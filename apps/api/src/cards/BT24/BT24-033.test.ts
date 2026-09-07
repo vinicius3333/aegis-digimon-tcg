@@ -23,9 +23,7 @@ describe("BT24-033 Salamon", () => {
         { color: "Red", level: 2, memoryCost: 0 },
       ],
     });
-    expect(BT24_033.digivolutionRequirement).toEqual([
-      { level: 2, traits: ["TS"], cost: 0, isAlternate: true },
-    ]);
+    expect(BT24_033.digivolutionRequirement).toEqual([{ level: 2, traits: ["TS"], cost: 0, isAlternate: true }]);
   });
 
   it("reduces your-turn Iliad digivolution costs by one", () => {

@@ -103,7 +103,9 @@ describe("BT24-061 Vademon", () => {
     s.state.memory = 6;
     await s.ready();
     const targetId = s.perm("target").topCard.instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vademon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vademon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 0);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === targetId)).toBe(true);
     expect(s.state.players[1]!.deck.some((c) => c.instanceId === targetId)).toBe(false);
@@ -166,7 +168,13 @@ describe("BT24-061 Vademon", () => {
 
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("first").topCard.cardId === "BT24-050");
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
@@ -179,7 +187,13 @@ describe("BT24-061 Vademon", () => {
     s.state.memory = 3;
     const laterTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("second").topCard.cardId === "BT24-050");
     expect(s.perm("second").topCard.cardId).toBe("BT24-050");
     advance(s.engine).endMainPhaseIfOpen(0);

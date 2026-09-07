@@ -98,7 +98,9 @@ describe("BT24-069 Vilemon", () => {
     await s.ready();
     const turn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Breeding);
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("vilemon").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("vilemon").permanentId })).toEqual({
+      ok: true,
+    });
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);

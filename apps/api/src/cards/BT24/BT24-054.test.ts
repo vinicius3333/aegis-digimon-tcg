@@ -166,7 +166,13 @@ describe("BT24-054 Ryudamon", () => {
 
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("first").isSuspended);
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
@@ -181,7 +187,13 @@ describe("BT24-054 Ryudamon", () => {
     const nextTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     preferred.splice(0, preferred.length, s.perm("second").permanentId);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("second").isSuspended);
     expect(s.perm("second").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -196,7 +208,13 @@ describe("BT24-054 Ryudamon", () => {
     const targetId = s.perm("target").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
   });

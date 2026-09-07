@@ -91,7 +91,9 @@ describe("BT24-047 Kokatorimon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kokatorimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kokatorimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").isSuspended);
 
     expect(s.perm("target").isSuspended).toBe(true);

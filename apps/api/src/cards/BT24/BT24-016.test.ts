@@ -69,11 +69,13 @@ describe("BT24-016 Lamiamon", () => {
 
     const effectKey = handMainEffectKey(s, s.inst("lamiamon").instanceId);
     expect(effectKey).toBeDefined();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.inst("lamiamon").instanceId,
-      effectKey: effectKey!,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("lamiamon").instanceId,
+        effectKey: effectKey!,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("elizamon").topCard.instanceId === s.inst("lamiamon").instanceId);
 
     expect(s.perm("elizamon").stack.map((card) => card.instanceId)).toContain(s.inst("dimetromon").instanceId);
@@ -232,9 +234,7 @@ describe("BT24-016 Lamiamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId));
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityId);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);

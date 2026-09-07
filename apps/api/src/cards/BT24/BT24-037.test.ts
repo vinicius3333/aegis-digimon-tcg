@@ -97,7 +97,9 @@ describe("BT24-037 Silphymon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("silphymon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("silphymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 2000);
 
     expect(s.perm("target").currentDP).toBe(2000);
@@ -158,7 +160,10 @@ describe("BT24-037 Silphymon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 1000 }],
-          security: [{ card: "BT1-013", as: "security" }, { card: "BT1-015", as: "security2" }],
+          security: [
+            { card: "BT1-013", as: "security" },
+            { card: "BT1-015", as: "security2" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
@@ -167,11 +172,13 @@ describe("BT24-037 Silphymon", () => {
     await s.ready();
     const targetId = s.perm("target").permanentId;
     const targetCardId = s.inst("target").instanceId;
-    expect(s.engine.applyIntent(0, {
-      type: "dnaDigivolve",
-      materialPermanentIds: [s.perm("yellow").permanentId, s.perm("red").permanentId],
-      instanceId: s.inst("silphymon").instanceId,
-    } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("yellow").permanentId, s.perm("red").permanentId],
+        instanceId: s.inst("silphymon").instanceId,
+      } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(targetCardId);

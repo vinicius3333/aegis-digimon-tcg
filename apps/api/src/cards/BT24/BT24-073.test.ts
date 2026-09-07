@@ -81,12 +81,24 @@ describe("BT24-073 SkullSatamon", () => {
       expect(s.state.players[0]!.deck).toHaveLength(0);
       expect(s.state.players[1]!.deck).toHaveLength(0);
       expect(s.state.players[1]!.trash).toHaveLength(11);
-      expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+      expect(
+        milledInstanceIds(s, [
+          s.inst("ownMillFirst").instanceId,
+          s.inst("ownMillSecond").instanceId,
+          s.inst("ownMillThird").instanceId,
+        ]),
+      ).toEqual([
         s.inst("ownMillFirst").instanceId,
         s.inst("ownMillSecond").instanceId,
         s.inst("ownMillThird").instanceId,
       ]);
-      expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+      expect(
+        milledInstanceIds(s, [
+          s.inst("opponentMillFirst").instanceId,
+          s.inst("opponentMillSecond").instanceId,
+          s.inst("opponentMillThird").instanceId,
+        ]),
+      ).toEqual([
         s.inst("opponentMillFirst").instanceId,
         s.inst("opponentMillSecond").instanceId,
         s.inst("opponentMillThird").instanceId,
@@ -136,12 +148,24 @@ describe("BT24-073 SkullSatamon", () => {
     expect(s.state.memory).toBe(2);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
     expect(s.state.players[1]!.trash).toHaveLength(11);
-    expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+    expect(
+      milledInstanceIds(s, [
+        s.inst("ownMillFirst").instanceId,
+        s.inst("ownMillSecond").instanceId,
+        s.inst("ownMillThird").instanceId,
+      ]),
+    ).toEqual([
       s.inst("ownMillFirst").instanceId,
       s.inst("ownMillSecond").instanceId,
       s.inst("ownMillThird").instanceId,
     ]);
-    expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+    expect(
+      milledInstanceIds(s, [
+        s.inst("opponentMillFirst").instanceId,
+        s.inst("opponentMillSecond").instanceId,
+        s.inst("opponentMillThird").instanceId,
+      ]),
+    ).toEqual([
       s.inst("opponentMillFirst").instanceId,
       s.inst("opponentMillSecond").instanceId,
       s.inst("opponentMillThird").instanceId,
@@ -179,12 +203,24 @@ describe("BT24-073 SkullSatamon", () => {
     );
 
     expect(s.state.players[1]!.trash).toHaveLength(11);
-    expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+    expect(
+      milledInstanceIds(s, [
+        s.inst("ownMillFirst").instanceId,
+        s.inst("ownMillSecond").instanceId,
+        s.inst("ownMillThird").instanceId,
+      ]),
+    ).toEqual([
       s.inst("ownMillFirst").instanceId,
       s.inst("ownMillSecond").instanceId,
       s.inst("ownMillThird").instanceId,
     ]);
-    expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+    expect(
+      milledInstanceIds(s, [
+        s.inst("opponentMillFirst").instanceId,
+        s.inst("opponentMillSecond").instanceId,
+        s.inst("opponentMillThird").instanceId,
+      ]),
+    ).toEqual([
       s.inst("opponentMillFirst").instanceId,
       s.inst("opponentMillSecond").instanceId,
       s.inst("opponentMillThird").instanceId,
@@ -223,12 +259,24 @@ describe("BT24-073 SkullSatamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(11);
-    expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+    expect(
+      milledInstanceIds(s, [
+        s.inst("ownMillFirst").instanceId,
+        s.inst("ownMillSecond").instanceId,
+        s.inst("ownMillThird").instanceId,
+      ]),
+    ).toEqual([
       s.inst("ownMillFirst").instanceId,
       s.inst("ownMillSecond").instanceId,
       s.inst("ownMillThird").instanceId,
     ]);
-    expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+    expect(
+      milledInstanceIds(s, [
+        s.inst("opponentMillFirst").instanceId,
+        s.inst("opponentMillSecond").instanceId,
+        s.inst("opponentMillThird").instanceId,
+      ]),
+    ).toEqual([
       s.inst("opponentMillFirst").instanceId,
       s.inst("opponentMillSecond").instanceId,
       s.inst("opponentMillThird").instanceId,
@@ -318,7 +366,13 @@ describe("BT24-073 SkullSatamon", () => {
     const firstTargetId = s.perm("firstTarget").permanentId;
     const firstOwnerDeck = s.state.players[0]!.deck.length;
     const firstOpponentDeck = s.state.players[1]!.deck.length;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.deck).toHaveLength(firstOwnerDeck - 2);
     expect(s.state.players[1]!.deck).toHaveLength(firstOpponentDeck - 2);
@@ -336,7 +390,13 @@ describe("BT24-073 SkullSatamon", () => {
     await advance(s.engine).waitForMainPhase(0);
     const secondOwnerDeck = s.state.players[0]!.deck.length;
     const secondOpponentDeck = s.state.players[1]!.deck.length;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.deck).toHaveLength(secondOwnerDeck - 2);
     expect(s.state.players[1]!.deck).toHaveLength(secondOpponentDeck - 2);

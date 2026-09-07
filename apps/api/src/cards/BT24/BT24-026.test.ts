@@ -113,16 +113,27 @@ describe("BT24-026 Hyogamon", () => {
 
   it("runs the hand cost and same-target keyword grants from a public play", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT24-026", as: "hyogamon" }, { card: "BT1-009", as: "cost" }],
-        battleArea: [{ card: "BT24-042", as: "eligible" }, { card: "BT1-009", as: "ineligible" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-026", as: "hyogamon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+          battleArea: [
+            { card: "BT24-042", as: "eligible" },
+            { card: "BT1-009", as: "ineligible" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("eligible").permanentId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker"));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Jamming")).toBe(true);
@@ -153,20 +164,33 @@ describe("BT24-026 Hyogamon", () => {
   });
 
   it("resets the shared public trigger on the owner's later turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-026", as: "hyogamon" }, { card: "BT24-042", as: "eligible" }],
-        hand: [{ card: "BT1-009", as: "firstCost" }, { card: "BT1-010", as: "secondCost" }],
-        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-026", as: "hyogamon" },
+            { card: "BT24-042", as: "eligible" },
+          ],
+          hand: [
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-010", as: "secondCost" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"] },
       },
-      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    const attackerId = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === s.inst("hyogamon").instanceId)!.permanentId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    const attackerId = s.state.players[0]!.battleArea.find(
+      (p) => p.topCard?.instanceId === s.inst("hyogamon").instanceId,
+    )!.permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("firstCost").instanceId));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstCost").instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -179,7 +203,9 @@ describe("BT24-026 Hyogamon", () => {
     s.state.memory = 3;
     const laterTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondCost").instanceId));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondCost").instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -226,7 +252,13 @@ describe("BT24-026 Hyogamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
 
     expect(s.perm("host").topCard.cardId).toBe("P-209");

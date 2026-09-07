@@ -199,16 +199,20 @@ describe("BT24-071 Raidramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     const raidramonId = s.perm("raidramon").permanentId;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: raidramonId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: raidramonId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === raidramonId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === raidramonId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("appmon").instanceId);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("appmon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("appmon").instanceId)).toBe(
+      false,
+    );
   });
 
   it("links for cost 2, adds 3000 DP, and revives a level 3 Appmon when the host is deleted", async () => {

@@ -254,34 +254,54 @@ describe("BT24-056 Dezipmon", () => {
   });
 
   it("publicly refuses an opponent's hand return while allowing the own effect", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-056", as: "dezipmon" }, { card: "BT24-038", as: "life" }] },
-      1: { battleArea: [{ card: "BT12-032", as: "blue" }], hand: [{ card: "ST2-16", as: "option" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-056", as: "dezipmon" },
+            { card: "BT24-038", as: "life" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT12-032", as: "blue" }], hand: [{ card: "ST2-16", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 5;
     await s.ready();
     const lifeId = s.perm("life").topCard.instanceId;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dezipmon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("life"), "beReturned"));
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === lifeId)).toBe(true);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === lifeId)).toBe(false);
   });
 
   it("publicly refuses an opponent's deck return while the duration is active", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-056", as: "dezipmon" }, { card: "BT24-038", as: "life" }] },
-      1: { battleArea: [{ card: "BT12-032", as: "blue" }], hand: [{ card: "BT12-102", as: "option" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-056", as: "dezipmon" },
+            { card: "BT24-038", as: "life" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT12-032", as: "blue" }], hand: [{ card: "BT12-102", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 5;
     await s.ready();
     const lifeId = s.perm("life").topCard.instanceId;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dezipmon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("life"), "beReturned"));
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === lifeId)).toBe(true);
     expect(s.state.players[0]!.deck.some((c) => c.instanceId === lifeId)).toBe(false);
@@ -294,9 +314,17 @@ describe("BT24-056 Dezipmon", () => {
     });
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blocked"));
     expect(s.perm("blocker").isSuspended).toBe(true);
 
@@ -306,7 +334,13 @@ describe("BT24-056 Dezipmon", () => {
     });
     refusal.state.turnSeat = 1;
     await refusal.ready();
-    expect(refusal.engine.applyIntent(1, { type: "attack", attackerPermanentId: refusal.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      refusal.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: refusal.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => refusal.events.some((event) => event.kind === "blockWindowOpened"));
     expect(refusal.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => refusal.events.some((event) => event.kind === "securityChecked"));
@@ -358,11 +392,13 @@ describe("BT24-056 Dezipmon", () => {
     });
     s.state.memory = 1;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "linkCard",
-      instanceId: s.inst("dezipmon").instanceId,
-      targetPermanentId: s.perm("host").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dezipmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("dezipmon").instanceId));
     expect(s.state.memory).toBe(-1);
   });

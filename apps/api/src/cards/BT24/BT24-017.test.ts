@@ -60,21 +60,35 @@ describe("BT24-017 Medusamon", () => {
   });
 
   it("resolves the complete clause chain through public digivolution", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-016", as: "base" }], hand: [{ card: "BT24-017", as: "medusamon" }] },
-      1: {
-        battleArea: [{ card: "BT1-009", as: "lowest", dp: 3000 }, { card: "BT1-010", as: "higher", dp: 5000 }],
-        trash: ["BT1-009", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-016", as: "base" }], hand: [{ card: "BT24-017", as: "medusamon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest", dp: 3000 },
+            { card: "BT1-010", as: "higher", dp: 5000 },
+          ],
+          trash: ["BT1-009", "BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const lowestId = s.perm("lowest").permanentId;
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("medusamon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medusamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT24-017");
     expect(s.perm("base").topCard.cardId).toBe("BT24-017");
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowestId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-Petrification-Token")).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-Petrification-Token")).toHaveLength(
+      2,
+    );
     expect(s.state.memory).toBe(2);
   });
 
@@ -85,7 +99,10 @@ describe("BT24-017 Medusamon", () => {
         0: { battleArea: [{ card: "BT24-016", as: "base" }], hand: [{ card: "BT24-017", as: "medusamon" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "lowest", dp: 3000 }],
-          trash: [{ card: "BT1-010", as: "first" }, { card: "BT1-011", as: "second" }],
+          trash: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+          ],
           deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015"],
         },
       },
@@ -94,7 +111,13 @@ describe("BT24-017 Medusamon", () => {
     preferred.push(s.inst("second").instanceId, s.inst("first").instanceId);
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("medusamon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medusamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT24-017");
     // The engine appends each selected card at the physical deck bottom; its
     // tail therefore reads reverse insertion order while preserving the

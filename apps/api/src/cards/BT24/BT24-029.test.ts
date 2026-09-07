@@ -122,7 +122,9 @@ describe("BT24-029 Whamon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029")).toBe(true);
@@ -166,13 +168,19 @@ describe("BT24-029 Whamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId)).toBe(
+      true,
+    );
     expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("ownTarget").instanceId);
   });
 
@@ -185,11 +193,7 @@ describe("BT24-029 Whamon", () => {
             {
               card: "BT24-030",
               as: "host",
-              under: [
-                { card: "BT24-027", as: "firstTarget" },
-                { card: "BT24-027", as: "secondTarget" },
-                "BT24-029",
-              ],
+              under: [{ card: "BT24-027", as: "firstTarget" }, { card: "BT24-027", as: "secondTarget" }, "BT24-029"],
             },
           ],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
@@ -251,13 +255,19 @@ describe("BT24-029 Whamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("whamon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("whamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ownTarget").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
@@ -315,7 +325,10 @@ describe("BT24-029 Whamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-010", as: "base" }],
-          hand: [{ card: "BT24-029", as: "whamon" }, { card: "BT24-102", as: "placed" }],
+          hand: [
+            { card: "BT24-029", as: "whamon" },
+            { card: "BT24-102", as: "placed" },
+          ],
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },

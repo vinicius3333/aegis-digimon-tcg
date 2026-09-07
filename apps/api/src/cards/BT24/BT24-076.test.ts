@@ -199,10 +199,18 @@ describe("BT24-076 WarGrowlmon", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     const deletedHostInstanceId = s.perm("host").stack[0]!.instanceId;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemoval").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === deletedHostInstanceId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemoval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === deletedHostInstanceId),
+    ).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
+    ).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
   });
@@ -243,9 +251,13 @@ describe("BT24-076 WarGrowlmon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemoval").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemoval").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("host").instanceId));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("revive").instanceId);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("revive").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("revive").instanceId)).toBe(
+      false,
+    );
   });
 });

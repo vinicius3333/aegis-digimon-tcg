@@ -24,9 +24,7 @@ describe("BT24-040 Venusmon", () => {
         { color: "Blue", level: 5, memoryCost: 4 },
       ],
     });
-    expect(BT24_040.digivolutionRequirement).toEqual([
-      { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
-    ]);
+    expect(BT24_040.digivolutionRequirement).toEqual([{ level: 5, traits: ["TS"], cost: 3, isAlternate: true }]);
   });
 
   it("trashes one opponent stack and applies the two shared restrictions", () => {
@@ -146,7 +144,9 @@ describe("BT24-040 Venusmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-040"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-040")).toBe(true);
@@ -202,7 +202,9 @@ describe("BT24-040 Venusmon", () => {
     s.state.turnSeat = 0;
     s.state.memory = 20;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-040"));
     expect(observe(s.engine).isRestricted(s.perm("stacked"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "cannotActivateWhenDigivolving")).toBe(true);

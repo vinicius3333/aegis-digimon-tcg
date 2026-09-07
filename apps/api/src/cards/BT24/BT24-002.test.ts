@@ -55,16 +55,21 @@ describe("BT24-002 Bukamon", () => {
   });
 
   it("enters a legal host through public egg evolution and then unsuspends it", async () => {
-    const s = setupEngine({
-      0: { breeding: { card: "BT24-002", as: "egg" }, hand: [{ card: "BT24-020", as: "host" }] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { breeding: { card: "BT24-002", as: "egg" }, hand: [{ card: "BT24-020", as: "host" }] },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("egg").permanentId,
-      instanceId: s.inst("host").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("host").instanceId);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toContain("BT24-002");
     const turn = s.engine.runOneTurn();

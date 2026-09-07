@@ -94,32 +94,50 @@ describe("BT24-023 Calmaramon", () => {
 
   it("runs the return without effect-play restriction from a public play", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: { hand: [{ card: "BT24-023", as: "calmaramon" }] },
-      1: {
-        battleArea: [{ card: "BT24-022", as: "returned" }, { card: "BT24-083", as: "restricted" }],
-        deck: ["BT1-009", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-023", as: "calmaramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-022", as: "returned" },
+            { card: "BT24-083", as: "restricted" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("returned").permanentId, s.perm("restricted").permanentId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("calmaramon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("calmaramon").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("calmaramon").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("calmaramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("calmaramon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("calmaramon").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[1]!.deck).toContain(s.inst("returned"));
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(false);
   });
 
   it("expires the effect-play suspension restriction at the real opponent turn end", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: { hand: [{ card: "BT24-023", as: "calmaramon" }] },
-      1: {
-        battleArea: [{ card: "BT24-022", as: "returned" }, { card: "BT24-083", as: "restricted" }],
-        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-023", as: "calmaramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-022", as: "returned" },
+            { card: "BT24-083", as: "restricted" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("returned").topCard.instanceId, s.perm("restricted").topCard.instanceId);
     await s.ready();
     await advance(s.engine).verb.playInstances([s.inst("calmaramon").instanceId], "BT24-016");
@@ -155,10 +173,19 @@ describe("BT24-023 Calmaramon", () => {
   });
 
   it("keeps a public Lanamon evolution stack through Decode and leaves the host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-027", as: "lanamon" }], hand: [{ card: "BT24-023", as: "calmaramon" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT24-027", as: "lanamon" }], hand: [{ card: "BT24-023", as: "calmaramon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("lanamon").permanentId, instanceId: s.inst("calmaramon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lanamon").permanentId,
+        instanceId: s.inst("calmaramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("lanamon").topCard.cardId === "BT24-023");
     expect(s.perm("lanamon").stack.map((card) => card.cardId)).toEqual(["BT24-027"]);
     expect(await advance(s.engine).verb.deletePermanent([s.perm("lanamon").permanentId], "byEffect")).toBe(1);

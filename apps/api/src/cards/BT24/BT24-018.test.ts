@@ -89,13 +89,15 @@ describe("BT24-018 Styracomon", () => {
     s.state.memory = 7;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("lamiamon").permanentId,
-      instanceId: s.inst("styracomon").instanceId,
-      useAlternateCost: true,
-      alternateRequirementIndex: 0,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lamiamon").permanentId,
+        instanceId: s.inst("styracomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.perm("lamiamon").topCard.instanceId === s.inst("styracomon").instanceId &&

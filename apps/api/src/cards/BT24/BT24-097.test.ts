@@ -130,7 +130,10 @@ describe("BT24-097 Soul Fear", () => {
           breeding: { card: "BT24-009", as: "breedingHost" },
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "attacker" }, { card: "BT1-080", as: "level6" }],
+          battleArea: [
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-080", as: "level6" },
+          ],
           deck: ["BT1-010", "BT1-011"],
         },
       },
@@ -138,11 +141,13 @@ describe("BT24-097 Soul Fear", () => {
     );
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("breedingHost").linked.some((card) => card.cardId === "BT24-097"));
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-080")).toBe(true);
     expect(s.perm("breedingHost").inBreeding).toBe(true);
@@ -168,16 +173,21 @@ describe("BT24-097 Soul Fear", () => {
     const firstId = s.perm("firstLevel5").permanentId;
     const secondId = s.perm("secondLevel5").permanentId;
     const highId = s.perm("level6").permanentId;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.length === 1);
     expect(s.state.players[1]!.trash[0]?.cardId).toBe("BT1-020");
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-080")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId) !== s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId) !==
+        s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId),
+    ).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 

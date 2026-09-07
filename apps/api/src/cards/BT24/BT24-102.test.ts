@@ -190,7 +190,10 @@ describe("BT24-102 Homeros", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-102", as: "source" }, { card: "BT24-101", as: "jupitermon" }],
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
           security: ["BT4-022", "BT4-023", "BT4-024", "BT4-025", "BT4-026"],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },

@@ -77,12 +77,20 @@ describe("BT24-063 Locomon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: false, preferOptionIndex: 1 },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: false,
+        preferOptionIndex: 1,
+      },
     );
     s.state.memory = 7;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const orderDecision = s.decisions.at(-1)!.req;
     expect(orderDecision.kind).toBe("orderCards");
@@ -105,7 +113,11 @@ describe("BT24-063 Locomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 3);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("matchingTamer").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("matchingTamer").instanceId,
+      ),
+    ).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("restSecond").instanceId,
       s.inst("restFirst").instanceId,
@@ -123,7 +135,9 @@ describe("BT24-063 Locomon", () => {
     s.state.memory = 7;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-063"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

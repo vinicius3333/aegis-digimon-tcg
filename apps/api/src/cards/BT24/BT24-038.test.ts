@@ -58,7 +58,10 @@ describe("BT24-038 Biomon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT24-038", as: "biomon" }, { card: "BT24-036", as: "linkedAppmon" }],
+          hand: [
+            { card: "BT24-038", as: "biomon" },
+            { card: "BT24-036", as: "linkedAppmon" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 10000 }] },
       },
@@ -67,11 +70,15 @@ describe("BT24-038 Biomon", () => {
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("biomon").linked.some((card) => card.instanceId === s.inst("linkedAppmon").instanceId));
 
     expect(s.perm("biomon").linked.map((card) => card.instanceId)).toEqual([s.inst("linkedAppmon").instanceId]);
-    expect(s.state.players[1]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT1-010")!.currentDP).toBe(3000);
+    expect(s.state.players[1]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT1-010")!.currentDP).toBe(
+      3000,
+    );
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 

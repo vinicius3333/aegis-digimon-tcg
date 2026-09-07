@@ -92,51 +92,66 @@ describe("BT24-064 Ouryumon", () => {
   it.each([
     ["deck top", 0, ["restFirst", "restSecond"]],
     ["deck bottom", 1, ["restFirst", "restSecond"]],
-  ])("public digivolution explicitly orders remaining revealed cards to the %s", async (_label, optionIndex, expectedOrder) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT10-064", as: "base" }],
-          hand: [{ card: "BT24-064", as: "ouryumon" }],
-          deck: [
-            { card: "BT24-060", as: "played" },
-            { card: "BT1-013", as: "restFirst" },
-            { card: "BT1-015", as: "restSecond" },
-          ],
+  ])(
+    "public digivolution explicitly orders remaining revealed cards to the %s",
+    async (_label, optionIndex, expectedOrder) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT10-064", as: "base" }],
+            hand: [{ card: "BT24-064", as: "ouryumon" }],
+            deck: [
+              { card: "BT24-060", as: "played" },
+              { card: "BT1-013", as: "restFirst" },
+              { card: "BT1-015", as: "restSecond" },
+            ],
+          },
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: false, preferOptionIndex: optionIndex },
-    );
-    s.state.memory = 5;
-    await s.ready();
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          autoOrderCards: false,
+          preferOptionIndex: optionIndex,
+        },
+      );
+      s.state.memory = 5;
+      await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("ouryumon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "orderCards");
-    const orderDecision = s.decisions.at(-1)!.req;
-    expect(orderDecision.kind).toBe("orderCards");
-    expect(orderDecision.options?.orderDestination).toBe(optionIndex === 0 ? "deckTop" : "deckBottom");
-    expect(orderDecision.options?.visibleCards).toEqual(expect.arrayContaining([
-      { instanceId: s.inst("restFirst").instanceId, cardId: "BT1-013" },
-      { instanceId: s.inst("restSecond").instanceId, cardId: "BT1-015" },
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: orderDecision.decisionId,
-      response: {
-        kind: "orderCards",
-        order: [s.inst("restFirst").instanceId, s.inst("restSecond").instanceId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.deck.length === 2);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("ouryumon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderCards");
+      const orderDecision = s.decisions.at(-1)!.req;
+      expect(orderDecision.kind).toBe("orderCards");
+      expect(orderDecision.options?.orderDestination).toBe(optionIndex === 0 ? "deckTop" : "deckBottom");
+      expect(orderDecision.options?.visibleCards).toEqual(
+        expect.arrayContaining([
+          { instanceId: s.inst("restFirst").instanceId, cardId: "BT1-013" },
+          { instanceId: s.inst("restSecond").instanceId, cardId: "BT1-015" },
+        ]),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: orderDecision.decisionId,
+          response: {
+            kind: "orderCards",
+            order: [s.inst("restFirst").instanceId, s.inst("restSecond").instanceId],
+          },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.deck.length === 2);
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
-      expectedOrder.map((label) => s.inst(label).instanceId),
-    );
-  });
+      expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+        expectedOrder.map((label) => s.inst(label).instanceId),
+      );
+    },
+  );
 
   it("De-Digivolves 2 after either player's Tamer suspends, only once per turn", async () => {
     const preferred: string[] = [];
@@ -156,11 +171,13 @@ describe("BT24-064 Ouryumon", () => {
     preferred.push(s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId);
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ouryumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("first").topCard.cardId === "BT24-050");
     expect(s.perm("first").topCard.cardId).toBe("BT24-050");
 
@@ -170,32 +187,40 @@ describe("BT24-064 Ouryumon", () => {
 
   it("resets the suspension trigger on the owner's later turn after a public attack", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-064", as: "ouryumon" }],
-        security: ["BT1-009", "BT1-010"],
-        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-064", as: "ouryumon" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-051", as: "first", under: ["BT24-050", "BT24-046"] },
+            { card: "BT24-051", as: "second", under: ["BT24-050", "BT24-046"] },
+          ],
+          security: [
+            { card: "BT1-013", as: "security1" },
+            { card: "BT1-015", as: "security2" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT24-051", as: "first", under: ["BT24-050", "BT24-046"] },
-          { card: "BT24-051", as: "second", under: ["BT24-050", "BT24-046"] },
-        ],
-        security: [{ card: "BT1-013", as: "security1" }, { card: "BT1-015", as: "security2" }],
-        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("first").topCard.instanceId);
     s.state.memory = 3;
     await s.ready();
 
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ouryumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("first").topCard.cardId === "BT24-050");
     expect(s.perm("first").topCard.cardId).toBe("BT24-050");
     expect(s.perm("second").topCard.cardId).toBe("BT24-051");
@@ -211,11 +236,13 @@ describe("BT24-064 Ouryumon", () => {
 
     const laterTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ouryumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("second").topCard.cardId === "BT24-050");
     expect(s.perm("second").topCard.cardId).toBe("BT24-050");
     expect(s.state.players[1]!.security).toHaveLength(0);

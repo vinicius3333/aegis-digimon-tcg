@@ -136,7 +136,10 @@ describe("BT24-057 Docmon", () => {
       {
         0: { battleArea: [{ card: "BT24-057", as: "docmon" }] },
         1: {
-          battleArea: [{ card: "BT10-064", as: "base" }, { card: "BT1-009", as: "target" }],
+          battleArea: [
+            { card: "BT10-064", as: "base" },
+            { card: "BT1-009", as: "target" },
+          ],
           hand: [{ card: "ST15-13", as: "hiandromon" }],
         },
       },

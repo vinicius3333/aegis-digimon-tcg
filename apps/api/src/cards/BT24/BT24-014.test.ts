@@ -157,7 +157,9 @@ describe("BT24-014 Aegiochusmon", () => {
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([hostCardId, sourceId]));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hostCardId, sourceId]),
+    );
   });
 
   it("digivolves from Aegiomon for cost 3", async () => {

@@ -24,9 +24,7 @@ describe("BT24-035 Gatomon", () => {
         { color: "Red", level: 3, memoryCost: 2 },
       ],
     });
-    expect(BT24_035.digivolutionRequirement).toEqual([
-      { level: 3, traits: ["TS"], cost: 2, isAlternate: true },
-    ]);
+    expect(BT24_035.digivolutionRequirement).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
   });
 
   it("applies -3000 DP and conditionally offers Silphymon DNA digivolution", () => {
@@ -48,7 +46,10 @@ describe("BT24-035 Gatomon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT24-035", as: "gatomon" }, { card: "BT16-012", as: "silphymon" }],
+          hand: [
+            { card: "BT24-035", as: "gatomon" },
+            { card: "BT16-012", as: "silphymon" },
+          ],
           battleArea: [{ card: "BT24-011", as: "redMaterial" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "zeroDp", dp: 3000 }] },
@@ -57,7 +58,9 @@ describe("BT24-035 Gatomon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-012"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

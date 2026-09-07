@@ -120,10 +120,16 @@ describe("BT24-059 Sharkmon", () => {
         instanceId: s.inst("hiandromon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId)).toBe(false);
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId)).toBe(
+      false,
+    );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ts").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("ts").instanceId)?.isSuspended).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("ts").instanceId)?.isSuspended,
+    ).toBe(true);
   });
 
   it.each([

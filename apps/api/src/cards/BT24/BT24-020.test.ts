@@ -57,17 +57,30 @@ describe("BT24-020 Gomamon", () => {
   });
 
   it("resolves the top-three search from a public play", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT24-020", as: "gomamon" }],
-        deck: [{ card: "BT24-022", as: "seaBeast" }, { card: "BT24-083", as: "tsTamer" }, { card: "BT1-009", as: "miss" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-020", as: "gomamon" }],
+          deck: [
+            { card: "BT24-022", as: "seaBeast" },
+            { card: "BT24-083", as: "tsTamer" },
+            { card: "BT1-009", as: "miss" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoOrderCards: true });
+      { autoSelectCards: true, autoOrderCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gomamon").instanceId));
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("seaBeast").instanceId, s.inst("tsTamer").instanceId]));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gomamon").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("seaBeast").instanceId, s.inst("tsTamer").instanceId]),
+    );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
@@ -137,11 +150,13 @@ describe("BT24-020 Gomamon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(7);
     expect(s.state.players[0]!.deck).toHaveLength(4);
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").isSuspended);
     expect(s.perm("host").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);

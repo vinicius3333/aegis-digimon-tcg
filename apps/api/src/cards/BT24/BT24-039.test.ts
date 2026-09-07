@@ -69,14 +69,20 @@ describe("BT24-039 Piximon", () => {
     await s.ready();
     const attackerId = s.perm("attacker").permanentId;
 
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.security.length === 0 &&
-        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("piximon").instanceId),
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("piximon").instanceId,
+        ),
     );
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(s.inst("piximon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("piximon").instanceId,
+    );
     expect(s.perm("attacker").isSuspended).toBe(true);
   });
 

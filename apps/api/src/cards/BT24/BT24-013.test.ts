@@ -192,7 +192,10 @@ describe("BT24-013 Fugamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-013", "ST16-03"] }],
-          hand: [{ card: "BT1-009", as: "drawnTrash" }, { card: "BT1-010", as: "attackCost" }],
+          hand: [
+            { card: "BT1-009", as: "drawnTrash" },
+            { card: "BT1-010", as: "attackCost" },
+          ],
           trash: [{ card: "P-209", as: "titamon" }],
           deck: ["BT1-011", "BT1-012", "BT1-014"],
         },
@@ -207,7 +210,13 @@ describe("BT24-013 Fugamon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
 
     expect(s.perm("host").topCard.cardId).toBe("P-209");
@@ -291,7 +300,9 @@ describe("BT24-013 Fugamon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT24-013").length === 2);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT24-013")).toHaveLength(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawOne").instanceId);

@@ -49,7 +49,11 @@ describe("BT24-044 Muchomon", () => {
       {
         0: {
           hand: [{ card: "BT24-044", as: "source" }],
-          deck: [{ card: "P-133", as: "shoto" }, { card: "BT1-022", as: "birdkin" }, { card: "BT1-009", as: "rest" }],
+          deck: [
+            { card: "P-133", as: "shoto" },
+            { card: "BT1-022", as: "birdkin" },
+            { card: "BT1-009", as: "rest" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
@@ -57,7 +61,9 @@ describe("BT24-044 Muchomon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shoto").instanceId));
 
     expect(s.perm("source").isSuspended).toBe(true);

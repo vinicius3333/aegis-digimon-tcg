@@ -241,13 +241,15 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("creepymonX").instanceId,
-      useAlternateCost: true,
-      alternateRequirementIndex: 0,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("creepymonX").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some(

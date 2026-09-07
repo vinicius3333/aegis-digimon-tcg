@@ -158,7 +158,10 @@ describe("BT24-091 Tidal Stream", () => {
             { card: "BT1-045", as: "low" },
             { card: "BT1-051", as: "high" },
           ],
-          security: [{ card: "BT1-013", as: "security" }, { card: "BT1-015", as: "security2" }],
+          security: [
+            { card: "BT1-013", as: "security" },
+            { card: "BT1-015", as: "security2" },
+          ],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
@@ -174,7 +177,9 @@ describe("BT24-091 Tidal Stream", () => {
 
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("low").instanceId);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("high").instanceId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("high").instanceId),
+    ).toBe(true);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
     expect(s.state.players[1]!.security).toHaveLength(0);
