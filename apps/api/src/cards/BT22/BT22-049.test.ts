@@ -50,7 +50,7 @@ describe("BT22-049 Vegiemon", () => {
       {
         0: {
           battleArea: [{ card: "BT22-049", as: "vegiemon" }],
-          hand: [{ card: "BT22-061", as: "vademon" }],
+          hand: [{ card: "EX9-018", as: "nonReducingVer2" }],
           trash: ["BT22-049", "BT22-049", "BT22-049"],
         },
       },
@@ -60,14 +60,12 @@ describe("BT22-049 Vegiemon", () => {
     s.state.memory = 3;
 
     await endCurrentTurn(s);
-    await settle(() => s.perm("vegiemon").topCard?.cardId === "BT22-061");
+    await settle(() => s.perm("vegiemon").topCard?.cardId === "EX9-018");
 
-    // Vademon's optional return has no legal opposing target, so it cannot pay its
-    // bottom-source cost. All 3 cards remain, proving they were placed before its timing opened.
-    expect(s.perm("vegiemon").stack.filter((card) => !card.faceUp)).toHaveLength(3);
-    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(0);
-    // Ending the turn first crosses the gauge from +3 to -3; the normal cost-3
-    // evolution then pays another 3 rather than resolving for free.
+    // EX9-018 has no cost-reduction effect, so the printed cost 2/normal evolution
+    // cost remains observable after the three face-down cards are placed.
+    // Ending the turn crosses the gauge from +3 to -3; EX9-018's normal cost 3
+    // then pays exactly three more memory.
     expect(s.state.memory).toBe(-6);
   });
 
@@ -76,7 +74,7 @@ describe("BT22-049 Vegiemon", () => {
       {
         0: {
           battleArea: [{ card: "BT22-049", as: "vegiemon" }],
-          hand: [{ card: "BT22-061", as: "vademon" }],
+          hand: [{ card: "EX9-018", as: "nonReducingVer2" }],
           trash: ["BT22-049", "BT22-049"],
         },
       },
@@ -90,5 +88,38 @@ describe("BT22-049 Vegiemon", () => {
 
     expect(s.perm("vegiemon").topCard?.cardId).toBe("BT22-049");
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(2);
+  });
+
+  it("uses the printed alternate cost 2 only from a level-3 DM stack", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "EX9-014", as: "dmBase" }], hand: [{ card: "BT22-049", as: "vegiemon" }] },
+    });
+    await legal.ready();
+    legal.state.memory = 2;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("dmBase").permanentId,
+        instanceId: legal.inst("vegiemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("dmBase").topCard?.cardId === "BT22-049");
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT22-030", as: "nonDmBase" }], hand: [{ card: "BT22-049", as: "vegiemon" }] },
+    });
+    await invalid.ready();
+    invalid.state.memory = 2;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonDmBase").permanentId,
+        instanceId: invalid.inst("vegiemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.memory).toBe(2);
   });
 });

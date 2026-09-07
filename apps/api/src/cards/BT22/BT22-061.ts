@@ -176,6 +176,7 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    { level: 4, colors: ["Black"], cost: 4, isAlternate: false },
     {
       names: ["Vegiemon"],
       cost: 3,

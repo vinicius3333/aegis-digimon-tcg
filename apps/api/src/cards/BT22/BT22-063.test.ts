@@ -5,6 +5,17 @@ import { compiled } from "./BT22-063.js";
 
 describe("BT22-063 Alphamon", () => {
   it("has Reboot and Blocker and reduces one opposing Digimon on all three timings", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Black"], cost: 4, isAlternate: false },
+      { level: 5, colors: ["Yellow"], cost: 4, isAlternate: false },
+      { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+      {
+        names: ["Kyoko Kuremi"],
+        cost: 5,
+        whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3, raw: "while you have 3 or fewer security cards" },
+        isAlternate: true,
+      },
+    ]);
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
         { trigger: "Static", actions: [], keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }] },

@@ -85,6 +85,8 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    { level: 4, colors: ["Black"], cost: 4, isAlternate: false },
+    { level: 4, colors: ["Green"], cost: 4, isAlternate: false },
     {
       level: 5,
       names: ["Tyrannomon"],

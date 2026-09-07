@@ -61,4 +61,22 @@ describe("BT22-068 Agumon (X Antibody)", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === dinosaurId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === dinosaurId)).toBe(false);
   });
+
+  it("gains inherited memory once when its host deletes an opponent in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-051", under: ["BT22-068"], as: "host", dp: 12000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true, dp: 1000 }] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.memory).toBe(1);
+  });
 });

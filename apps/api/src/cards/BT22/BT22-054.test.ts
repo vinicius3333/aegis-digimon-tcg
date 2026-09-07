@@ -7,6 +7,11 @@ import "./index.js";
 
 describe("BT22-054 Hagurumon", () => {
   it("reduces any opposing Digimon only when a CS card is added to this Digimon's stack", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Black"], cost: 1, isAlternate: false },
+      { level: 2, colors: ["Yellow"], cost: 1, isAlternate: false },
+      { level: 2, traits: ["CS"], cost: 0, isAlternate: true },
+    ]);
     const watcher = compiled.effects.find((entry) => entry.trigger === "YourTurn");
 
     expect(watcher).toMatchObject({

@@ -6,6 +6,11 @@ import "./index.js";
 
 describe("BT22-056 Guardromon", () => {
   it("reduces one opponent Digimon and conditionally De-Digivolves another", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, colors: ["Black"], cost: 3, isAlternate: false },
+      { level: 3, colors: ["Yellow"], cost: 3, isAlternate: false },
+      { level: 3, traits: ["CS"], cost: 2, isAlternate: true },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions[0]).toMatchObject({
@@ -34,7 +39,7 @@ describe("BT22-056 Guardromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT22-053", as: "base" }],
+          battleArea: [{ card: "BT22-069", as: "base" }],
           hand: [
             { card: "BT22-053", as: "sameLevel" },
             { card: "BT22-056", as: "guardromon" },

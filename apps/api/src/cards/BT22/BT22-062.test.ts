@@ -5,14 +5,18 @@ import { compiled } from "./BT22-062.js";
 
 describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
   it("requires a non-X Antibody Tyrannomon and gates the digivolving restriction on the stack", () => {
-    expect(compiled.digivolutionRequirement).toMatchObject([
-      {
-        level: 5,
-        names: ["Tyrannomon"],
-        excludeTraits: ["X Antibody"],
-        cost: 1,
-      },
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, colors: ["Black"], cost: 4, isAlternate: false },
+      { level: 4, colors: ["Green"], cost: 4, isAlternate: false },
+      { level: 5, names: ["Tyrannomon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true },
     ]);
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      level: 5,
+      names: ["Tyrannomon"],
+      excludeTraits: ["X Antibody"],
+      cost: 1,
+      isAlternate: true,
+    });
 
     const whenDigivolving = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
     expect(whenDigivolving?.actions[0]).toMatchObject({
