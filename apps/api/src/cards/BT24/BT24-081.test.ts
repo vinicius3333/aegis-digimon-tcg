@@ -31,7 +31,7 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     });
   });
 
-  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving, EffectTiming.OnUseAttack])(
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
     "pays one hand card to delete every lowest-level Digimon on %s",
     async (timing) => {
       const s = setupEngine(
@@ -62,6 +62,41 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
       expect(s.state.players[1]!.battleArea).toHaveLength(1);
     },
   );
+
+  it("resolves the printed When Attacking deletion from a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-081", as: "titamon" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT1-010", as: "lowB" },
+            { card: "BT1-014", as: "high" },
+          ],
+          security: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const lowAId = s.perm("lowA").permanentId;
+    const lowBId = s.perm("lowB").permanentId;
+    const highId = s.perm("high").permanentId;
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("titamon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowAId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).not.toContain(lowAId);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).not.toContain(lowBId);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toContain(highId);
+  });
 
   it("deletes nothing when the hand-trash cost cannot be paid", async () => {
     const s = setupEngine(
