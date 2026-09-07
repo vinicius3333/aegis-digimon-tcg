@@ -47,6 +47,32 @@ describe("BT24-031 Elecmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("resolves the Iliad/TS search through a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-031", as: "elecmon" }],
+          deck: [
+            { card: "BT24-102", as: "iliad" },
+            { card: "BT24-083", as: "ts" },
+            { card: "BT1-009", as: "miss" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("iliad").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("iliad").instanceId, s.inst("ts").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
   it("may recover from the deck while starting at zero security (Q5611)", async () => {
     const s = setupEngine(
       {
@@ -85,6 +111,31 @@ describe("BT24-031 Elecmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("added").instanceId]);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("recovered").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("unused").instanceId]);
+  });
+
+  it("resolves inherited security manipulation through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-032", as: "host", under: ["BT24-031"] }],
+          security: [{ card: "BT1-009", as: "added" }],
+          deck: [{ card: "BT1-010", as: "recovered" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("added").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("recovered").instanceId]);
   });
 
   it("recovers at zero security even when the optional add-to-hand action is declined (Q5611)", async () => {
