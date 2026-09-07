@@ -251,18 +251,26 @@ describe("BT24-079 Hadesmon", () => {
           battleArea: [
             { card: "BT24-079", as: "hadesmon" },
             { card: "BT21-009", as: "recipient" },
-            { card: "BT1-009", as: "deleted" },
           ],
           hand: [{ card: "BT24-036", as: "link" }],
           trash: [{ card: "BT24-071", as: "system" }],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "deleted", suspended: true, dp: 3000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("system").instanceId, s.perm("recipient").topCard.instanceId, s.inst("link").instanceId);
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId], "byEffect")).toBe(1);
+    const deletedId = s.perm("deleted").permanentId;
+    const deletedCardId = s.inst("deleted").instanceId;
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("hadesmon").permanentId,
+      target: { kind: "permanent", permanentId: deletedId },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== deletedId));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(deletedCardId);
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("system").instanceId),
     );
