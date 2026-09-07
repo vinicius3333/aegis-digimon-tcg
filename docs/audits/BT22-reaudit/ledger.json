@@ -63,7 +63,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -126,7 +126,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -188,7 +188,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -251,7 +251,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -314,7 +314,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -377,7 +377,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -439,7 +439,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -513,7 +513,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -584,7 +584,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -662,7 +662,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -740,7 +740,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -818,7 +818,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -896,7 +896,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -974,7 +974,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1053,7 +1053,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1126,7 +1126,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1204,7 +1204,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1277,7 +1277,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1348,7 +1348,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1419,7 +1419,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1492,7 +1492,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1562,7 +1562,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1633,7 +1633,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1705,7 +1705,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1776,7 +1776,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1852,7 +1852,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1924,7 +1924,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -1994,7 +1994,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2065,7 +2065,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2134,7 +2134,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2211,7 +2211,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2283,7 +2283,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2357,7 +2357,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2431,7 +2431,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2506,7 +2506,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2580,7 +2580,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2650,7 +2650,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2722,7 +2722,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2792,7 +2792,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2866,7 +2866,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -2937,7 +2937,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3008,7 +3008,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3084,7 +3084,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3161,7 +3161,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3232,7 +3232,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3308,7 +3308,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3380,7 +3380,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3456,7 +3456,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3529,7 +3529,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3599,7 +3599,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3671,7 +3671,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3743,7 +3743,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3814,7 +3814,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3890,7 +3890,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -3961,7 +3961,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4038,7 +4038,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4110,7 +4110,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4180,7 +4180,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4252,7 +4252,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4324,7 +4324,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4396,7 +4396,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4473,7 +4473,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4552,7 +4552,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4624,7 +4624,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4700,7 +4700,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4778,7 +4778,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4856,7 +4856,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -4933,7 +4933,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5011,7 +5011,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5088,7 +5088,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5165,7 +5165,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5243,7 +5243,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5321,7 +5321,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5398,7 +5398,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5474,7 +5474,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5554,7 +5554,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5633,7 +5633,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5710,7 +5710,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5775,7 +5775,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5836,7 +5836,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5899,7 +5899,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -5962,7 +5962,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6025,7 +6025,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6087,7 +6087,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6149,7 +6149,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6210,7 +6210,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6272,7 +6272,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6333,7 +6333,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6394,7 +6394,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6456,7 +6456,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6517,7 +6517,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6578,7 +6578,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6639,7 +6639,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6700,7 +6700,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6761,7 +6761,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6822,7 +6822,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6883,7 +6883,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -6944,7 +6944,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -7005,7 +7005,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -7067,7 +7067,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -7128,7 +7128,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -7191,7 +7191,7 @@
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
           "result": "passed",
-          "purpose": "Collection integration: 103 files and 647 tests passed."
+          "purpose": "Collection integration: 103 files and 652 tests passed."
         }
       ],
       "gaps": [],
@@ -7227,5 +7227,34 @@
       "BT22-049 expected -6 memory, observed -3; inspect Vademon cost reduction"
     ]
   },
-  "catalogCheckpoint": "58b1a5ba5"
+  "catalogCheckpoint": "58b1a5ba5",
+  "finalRun": {
+    "collection": {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+      "result": "passed",
+      "files": 103,
+      "tests": 652
+    },
+    "mechanisms": {
+      "result": "passed",
+      "files": 7,
+      "tests": 102
+    },
+    "typecheck": {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "passed"
+    },
+    "effectsSync": {
+      "command": "pnpm effects:check:set -- --set BT22 --base a924de971",
+      "result": "passed",
+      "records": 102,
+      "outsideSetChanges": 0
+    },
+    "quality": {
+      "result": "passed",
+      "lint": "exit 0 with warnings",
+      "format": "212 files checked",
+      "diffCheck": "clean"
+    }
+  }
 }
