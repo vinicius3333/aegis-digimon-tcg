@@ -41,9 +41,9 @@ describe("BT24-018 Styracomon", () => {
         0: { battleArea: [{ card: "BT24-018", as: "styracomon", suspended: true }] },
         1: {
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "chosen" },
-            { card: "BT1-003", as: "bottom" },
+            { card: "BT1-013", as: "top" },
+            { card: "BT1-015", as: "chosen" },
+            { card: "BT1-045", as: "bottom" },
           ],
         },
       },
@@ -70,6 +70,42 @@ describe("BT24-018 Styracomon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("styracomon"));
 
     expect(s.perm("styracomon").isSuspended).toBe(false);
+  });
+
+  it("resolves security trash and unsuspend through the public Owen/Lamiamon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-016", as: "lamiamon" },
+            { card: "BT24-082", as: "owen" },
+          ],
+          hand: [{ card: "BT24-018", as: "styracomon" }],
+        },
+        1: { security: [{ card: "BT1-013", as: "securityCard" }, "BT1-015"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("lamiamon").permanentId,
+      instanceId: s.inst("styracomon").instanceId,
+      useAlternateCost: true,
+      alternateRequirementIndex: 0,
+    })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("lamiamon").topCard.instanceId === s.inst("styracomon").instanceId &&
+        s.state.players[1]!.security.length === 0,
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityCard").instanceId);
+    expect(s.perm("lamiamon").stack.map((card) => card.cardId)).toEqual(["BT24-016"]);
+    expect(s.state.memory).toBe(1);
   });
 
   it("may delete one opposing Digimon only when opposing security is removed, once per turn", async () => {
