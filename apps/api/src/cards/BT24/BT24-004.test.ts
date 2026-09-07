@@ -37,8 +37,8 @@ describe("BT24-004 Wanyamon", () => {
           { card: "BT1-029", as: "ownNonIliad" },
         ],
         deck: [
-          { card: "BT1-001", as: "firstDraw" },
-          { card: "BT1-002", as: "secondDraw" },
+          { card: "BT1-009", as: "firstDraw" },
+          { card: "BT1-010", as: "secondDraw" },
         ],
       },
       1: { battleArea: [{ card: "BT24-022", as: "opposingIliad" }] },
@@ -70,7 +70,7 @@ describe("BT24-004 Wanyamon", () => {
       0: {
         battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }],
         hand: [{ card: "BT24-022", as: "playedIliad" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     s.state.memory = 10;
@@ -84,6 +84,55 @@ describe("BT24-004 Wanyamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
+  it("rejects an opposing Iliad play during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      1: { hand: [{ card: "BT24-022", as: "opposingIliad" }], deck: ["BT1-009", "BT1-010"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opposingIliad").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("opposingIliad").instanceId));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("resets the inherited draw on the next actual owner turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }],
+        hand: [{ card: "BT24-022", as: "first" }, { card: "BT24-022", as: "second" }],
+        deck: [
+          { card: "BT1-009", as: "initialDraw" },
+          { card: "BT1-010", as: "effectDraw1" },
+          { card: "BT1-011", as: "effectDraw2" },
+          { card: "BT1-012", as: "extra" },
+        ],
+      },
+      1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("initialDraw").instanceId));
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("initialDraw").instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("effectDraw1").instanceId));
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("effectDraw1").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+  });
+
   it("reaches Wanyamon through a legal egg-to-Iliad evolution stack", async () => {
     const s = setupEngine({
       0: {
@@ -92,7 +141,7 @@ describe("BT24-004 Wanyamon", () => {
           { card: "BT24-043", as: "tapirmon" },
           { card: "BT24-022", as: "playedIliad" },
         ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     s.state.memory = 10;
