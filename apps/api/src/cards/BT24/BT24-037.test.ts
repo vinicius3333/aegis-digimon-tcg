@@ -145,6 +145,41 @@ describe("BT24-037 Silphymon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("buffed"), "SecurityAttack")).toBe(1);
   });
 
+  it("accepts the DNA follow-up attack and resolves the exact target deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-035", as: "yellow" },
+            { card: "BT24-011", as: "red" },
+            { card: "BT24-034", as: "buffed" },
+          ],
+          hand: [{ card: "BT24-037", as: "silphymon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 1000 }],
+          security: [{ card: "BT1-013", as: "security" }, { card: "BT1-015", as: "security2" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const targetCardId = s.inst("target").instanceId;
+    expect(s.engine.applyIntent(0, {
+      type: "dnaDigivolve",
+      materialPermanentIds: [s.perm("yellow").permanentId, s.perm("red").permanentId],
+      instanceId: s.inst("silphymon").instanceId,
+    } as never)).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(targetCardId);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+  });
+
   it("plays only a qualifying level-4 card from its own stack on opponent-effect removal (Q5618)", async () => {
     const s = setupEngine(
       {
