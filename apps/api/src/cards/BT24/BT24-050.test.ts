@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -172,6 +172,59 @@ describe("BT24-050 WereGarurumon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("iliad").instanceId),
     ).toBe(true);
+  });
+
+  it("resets the inherited hand-play limit on its owner's later turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-051", as: "host", under: ["BT24-050"] }],
+          hand: [
+            { card: "BT24-019", as: "firstIliad" },
+            { card: "BT24-019", as: "secondIliad" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          security: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstIliad").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondIliad").instanceId);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondIliad").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("secondIliad").instanceId);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT24-019")).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 
   it("uses Evade to suspend itself and prevent deletion", async () => {
