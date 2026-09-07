@@ -830,6 +830,7 @@ export class GameEngine {
         this.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
+      trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
@@ -937,6 +938,7 @@ export class GameEngine {
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
       resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
+      trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         // A selected security card can still be face down in its origin zone.
@@ -2322,7 +2324,7 @@ export class GameEngine {
         ...payload,
       };
     }
-    if (this.ruleProcessing) {
+    if (this.ruleProcessing && !this.resolvingBarrierSecurityCost) {
       const subscriptions = this.subTriggers.subscriptionsFor(event);
       const contexts = new Map<number, EffectContext>();
       for (const sub of subscriptions) {
@@ -2356,6 +2358,7 @@ export class GameEngine {
     if (
       event === "whenSecurityRemoved" &&
       this.activeWindowToken !== undefined &&
+      !this.resolvingBarrierSecurityCost &&
       !this.flushingDeferredSecurityRemovalTriggers
     ) {
       const pending = [...this.subTriggers.subscriptionsFor(event)];
@@ -2368,7 +2371,7 @@ export class GameEngine {
       this.deferredSecurityRemovalTriggers.push({ payload: boundPayload, subscriptions: pending, contexts });
       return;
     }
-    if (this.shouldDeferNestedTiming()) {
+    if (this.shouldDeferNestedTiming() && !this.resolvingBarrierSecurityCost) {
       // The event subject can leave the board before the causing effect finishes. Bind each
       // context now, at trigger time, so the pending activation keeps the subject snapshot
       // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
@@ -4368,6 +4371,17 @@ export class GameEngine {
    * (a deletion can fire an [On Deletion] effect that itself drives `resolveTiming`, which
    */
   private ruleProcessing = false;
+  /** Barrier costs trigger security-removal effects before the current security battle continues. */
+  private resolvingBarrierSecurityCost = false;
+
+  private async payBarrierSecurityCost(seat: Seat): Promise<void> {
+    this.resolvingBarrierSecurityCost = true;
+    try {
+      await this.primitives.trashFromSecurity(seat, 1, { fromTop: true, cause: "barrierCost" });
+    } finally {
+      this.resolvingBarrierSecurityCost = false;
+    }
+  }
 
   /**
    * Triggered watcher events produced while a rule check is still reaching its fixpoint.

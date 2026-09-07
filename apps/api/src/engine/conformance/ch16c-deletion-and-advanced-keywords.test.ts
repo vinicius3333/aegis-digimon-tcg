@@ -4,6 +4,7 @@ import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { canAttackerDeclare, canAttackTarget, hasCollision } from "../combat/legality.js";
 import { GameStateAccess } from "../state/access.js";
+import { advance } from "../testkit/advance.js";
 import {
   setupEngine as setup,
   makeInstance as instance,
@@ -237,6 +238,16 @@ describe("§16-25 <Barrier> (comprehensive-0244)", () => {
     p0.security.push(instance(NON_KEYWORD_CARD, 0, false));
     await s.engine.recomputeContinuousEffects();
     s.state.turnSeat = 1; // seat 1 is declaring the attack
+    let securityRemoved = 0;
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "whenSecurityRemoved",
+      sourcePermanentId: barriered.permanentId,
+      once: false,
+      description: "Barrier cost reaches the shared security-removal event",
+      run: async () => {
+        securityRemoved += 1;
+      },
+    });
 
     expect(
       s.engine.applyIntent(1, {
@@ -258,6 +269,7 @@ describe("§16-25 <Barrier> (comprehensive-0244)", () => {
 
     expect(p0.battleArea.some((p) => p.permanentId === barriered.permanentId)).toBe(true); // spared
     expect(p0.security.length).toBe(0); // paid by trashing the top security card
+    expect(securityRemoved).toBe(1); // the cost is observable by printed security-removal effects
   });
 });
 

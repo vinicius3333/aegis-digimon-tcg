@@ -154,6 +154,8 @@ export interface PrimitivesEngine {
     event: import("./EffectContext.js").SubTriggerEventName,
     payload?: import("./EffectContext.js").TriggerInfo,
   ) => Promise<void>;
+  /** Pay Barrier's security cost through the generic removal bus before deletion continues. */
+  trashTopSecurityForBarrier?(seat: Seat): Promise<void>;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
   /**
@@ -2939,7 +2941,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const trashFromSecurity = async (
     seat: Seat,
     n: number,
-    opts?: { fromTop?: boolean; instanceIds?: string[] },
+    opts?: { fromTop?: boolean; instanceIds?: string[]; cause?: "effect" | "barrierCost" },
   ): Promise<CardInstance[]> => {
     const p = player(seat);
     const fromTop = opts?.fromTop ?? false;
@@ -2973,13 +2975,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // attack-driven security check, which routes through its own seam. The payload names
       // the affected seat so a "when an effect removes from YOUR security" watcher (BT15-084)
       // gates on its own stack.
-      await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: seat });
+      const removedByEffect = opts?.cause !== "barrierCost";
+      if (removedByEffect) {
+        await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: seat });
+      }
       // Generic removal watchers (BT4-088) care that a card left security regardless of
       // whether it was checked or removed by an effect. Security checks already fire this
       // event at their own movement seam; effect-driven trash must reach the same bus too.
       await engine.fireSubTrigger?.("whenSecurityRemoved", {
         removedFromSecuritySeat: seat,
-        securityRemovedByEffect: true,
+        ...(removedByEffect ? { securityRemovedByEffect: true } : {}),
       });
       await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
         removedFromSecuritySeat: seat,
@@ -2988,10 +2993,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // Effect-only counterpart for cards whose wording says "trashed from your security
       // stack by an effect" (BT17-036). Unlike whenCardTrashedFromSecurity, this event does
       // not fire for an ordinary security check, which also sends its checked card to trash.
-      await engine.fireSubTrigger?.("whenEffectTrashesFromSecurity", {
-        removedFromSecuritySeat: seat,
-        trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
-      });
+      if (removedByEffect) {
+        await engine.fireSubTrigger?.("whenEffectTrashesFromSecurity", {
+          removedFromSecuritySeat: seat,
+          trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
+        });
+      }
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }
@@ -3132,7 +3139,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!engine.combat) continue; // no prompt facility available; deletion proceeds
         const accepted = await engine.combat.runBarrierDecision(perm.controllerSeat, permanentId);
         if (!accepted) continue;
-        access.flipTopSecurityToTrash(perm.controllerSeat);
+        if (engine.trashTopSecurityForBarrier !== undefined) {
+          await engine.trashTopSecurityForBarrier(perm.controllerSeat);
+        } else {
+          access.flipTopSecurityToTrash(perm.controllerSeat);
+        }
         engine.markBarrierFired?.(barrierKey);
         barriered.add(permanentId);
       }

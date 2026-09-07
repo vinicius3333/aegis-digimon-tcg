@@ -1006,7 +1006,7 @@ export interface Primitives {
   trashFromSecurity(
     seat: Seat,
     n: number,
-    opts?: { fromTop?: boolean; instanceIds?: string[] },
+    opts?: { fromTop?: boolean; instanceIds?: string[]; cause?: "effect" | "barrierCost" },
   ): Promise<CardInstance[]>;
   /**
    * "By trashing the top security card of 1 player with the most security cards, ...".
