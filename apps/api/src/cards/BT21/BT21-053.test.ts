@@ -105,6 +105,7 @@ describe("BT21-053 Watchmon", () => {
         target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
   });
 
   it("links for 1, grants 2000 DP, and applies the same attack restriction", async () => {
@@ -135,6 +136,56 @@ describe("BT21-053 Watchmon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("expires the public linked restriction after the opponent's turn ends", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT21-053", as: "watchmon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("watchmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(false);
   });
 
   it("expires the public On Play restriction when the opponent's turn ends", async () => {
@@ -178,7 +229,7 @@ describe("BT21-053 Watchmon", () => {
   it("zero-cost digivolves from a level-2 Appmon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
+        breeding: { card: "BT21-005", as: "appmonEgg" },
         hand: [{ card: "BT21-053", as: "watchmon" }],
       },
     });
