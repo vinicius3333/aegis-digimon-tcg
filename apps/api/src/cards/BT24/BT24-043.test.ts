@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,21 @@ import { compiled as BT24_043 } from "./BT24-043.js";
 import "../index.js";
 
 describe("BT24-043 Tapirmon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-043")).toMatchObject({
+      cardId: "BT24-043",
+      nameEn: "Tapirmon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast", "Iliad", "TS"],
+    });
+  });
+
   it("reveals three and searches the two printed pools", () => {
     const onPlay = BT24_043.effects?.find((entry) => entry.trigger === "OnPlay");
     const reveal = onPlay?.actions?.[0] as any;
@@ -42,6 +57,35 @@ describe("BT24-043 Tapirmon", () => {
       expect.arrayContaining([s.inst("beast").instanceId, s.inst("ts").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("seaAnimalMiss").instanceId]);
+  });
+
+  it("resolves both searches from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-043", as: "tapirmon" }],
+          deck: [
+            { card: "BT1-046", as: "beast" },
+            { card: "BT24-083", as: "ts" },
+            { card: "BT1-033", as: "seaAnimalMiss" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("beast").instanceId, s.inst("ts").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tapirmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("beast").instanceId, s.inst("ts").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("seaAnimalMiss").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("seaAnimalMiss").instanceId);
   });
 
   it("inherited suspension affects one opponent Digimon only once per turn", async () => {
