@@ -174,7 +174,7 @@ describe("BT21-061 MetalGreymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAdventure").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
 
     expect(
       s.state.players[0]!.battleArea.some((permanent) => observe(s.engine).hasKeyword(permanent, "Alliance")),
