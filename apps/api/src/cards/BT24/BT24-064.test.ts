@@ -89,6 +89,55 @@ describe("BT24-064 Ouryumon", () => {
     },
   );
 
+  it.each([
+    ["deck top", 0, ["restFirst", "restSecond"]],
+    ["deck bottom", 1, ["restFirst", "restSecond"]],
+  ])("public digivolution explicitly orders remaining revealed cards to the %s", async (_label, optionIndex, expectedOrder) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: "BT24-064", as: "ouryumon" }],
+          deck: [
+            { card: "BT24-060", as: "played" },
+            { card: "BT1-013", as: "restFirst" },
+            { card: "BT1-015", as: "restSecond" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: false, preferOptionIndex: optionIndex },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("ouryumon").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.decisions.at(-1)!.req;
+    expect(orderDecision.kind).toBe("orderCards");
+    expect(orderDecision.options?.orderDestination).toBe(optionIndex === 0 ? "deckTop" : "deckBottom");
+    expect(orderDecision.options?.visibleCards).toEqual(expect.arrayContaining([
+      { instanceId: s.inst("restFirst").instanceId, cardId: "BT1-013" },
+      { instanceId: s.inst("restSecond").instanceId, cardId: "BT1-015" },
+    ]));
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: orderDecision.decisionId,
+      response: {
+        kind: "orderCards",
+        order: [s.inst("restFirst").instanceId, s.inst("restSecond").instanceId],
+      },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expectedOrder.map((label) => s.inst(label).instanceId),
+    );
+  });
+
   it("De-Digivolves 2 after either player's Tamer suspends, only once per turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
