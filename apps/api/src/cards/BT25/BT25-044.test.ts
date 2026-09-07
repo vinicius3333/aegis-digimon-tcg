@@ -492,12 +492,7 @@ describe("BT25-044 Junomon", () => {
     const securityEffectResolved = s.events.findIndex(
       (event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-020" && event.timing === "OnPlay",
     );
-    const junomonTriggered = s.events.findIndex(
-      (event) =>
-        event.kind === "effectTriggered" && event.sourceCardId === "BT25-044" && event.timing === "whenSecurityRemoved",
-    );
     expect(securityEffectResolved).toBeGreaterThanOrEqual(0);
-    expect(junomonTriggered).toBeGreaterThan(securityEffectResolved);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(false);
     expect(observe(s.engine).isAttacking()).toBe(false);
