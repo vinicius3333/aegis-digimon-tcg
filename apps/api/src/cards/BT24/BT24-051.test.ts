@@ -108,7 +108,7 @@ describe("BT24-051 Merukimon", () => {
       {
         0: { battleArea: [{ card: "BT24-051", as: "merukimon" }] },
         1: {
-          security: ["BT1-001"],
+          security: ["BT1-009"],
           battleArea: [
             { card: "BT1-009", as: "first", dp: 2000 },
             { card: "BT1-010", as: "second", dp: 3000 },
