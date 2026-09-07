@@ -107,6 +107,90 @@ describe("BT21-038 compiled implementation", () => {
     expect(s.perm("wg").isSuspended).toBe(true);
   });
 
+  it("publicly accepts Evade against Gaia Force by suspending an unsuspended Deramon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-038", as: "deramon" }] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const deramonId = s.perm("deramon").permanentId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: deramonId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("deramon").isSuspended && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deramonId)).toBe(true);
+    expect(s.perm("deramon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "ST1-16")).toBe(true);
+  });
+
+  it.each([false, true])(
+    "allows Gaia Force deletion when Evade is declined or unpayable (already suspended=%s)",
+    async (suspended) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT21-038", as: "deramon", suspended }] },
+          1: {
+            battleArea: [{ card: "BT1-010", as: "redSource" }],
+            hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await s.ready();
+      const deramonId = s.perm("deramon").permanentId;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+        ok: true,
+      });
+      if (!suspended) {
+        await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+        expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: deramonId, accept: false })).toEqual({
+          ok: true,
+        });
+      }
+      await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deramonId));
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-038")).toBe(true);
+    },
+  );
+
+  it("publicly unsuspends exactly one of two eligible own WG Digimon", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-034", as: "firstWG", suspended: true },
+            { card: "BT21-033", as: "secondWG", suspended: true },
+          ],
+          hand: [{ card: "BT21-038", as: "deramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("firstWG").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-038"));
+    expect(s.perm("firstWG").isSuspended).toBe(false);
+    expect(s.perm("secondWG").isSuspended).toBe(true);
+  });
+
   it("unsuspends a WG Digimon from the public play action", async () => {
     const s = setupEngine(
       {
