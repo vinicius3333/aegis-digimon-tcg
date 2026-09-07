@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,6 +7,29 @@ import { compiled as BT24_059 } from "./BT24-059.js";
 import "../index.js";
 
 describe("BT24-059 Sharkmon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-059")).toMatchObject({
+      cardId: "BT24-059",
+      nameEn: "Sharkmon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "Titan", "TS", "Aquatic"],
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+    });
+    expect(BT24_059.digivolutionRequirement).toEqual([
+      { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
+      { traits: ["TS"], cost: 3, isAlternate: true, level: 4 },
+    ]);
+  });
+
   it("models the inherited placement-and-unsuspend as an optional paid activation", () => {
     const inherited = BT24_059.effects?.find((entry) => entry.isInherited);
     const action = inherited?.actions?.[0] as any;
@@ -42,8 +66,8 @@ describe("BT24-059 Sharkmon", () => {
           battleArea: [{ card: "BT24-059", as: "sharkmon" }],
           deck: [
             { card: "BT24-046", as: "ts" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
           ],
         },
       },
@@ -108,11 +132,11 @@ describe("BT24-059 Sharkmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: ["BT24-059"] },
+            { card: "BT1-032", as: "host", under: ["BT24-059"] },
             { card: "BT1-010", as: "cost" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
