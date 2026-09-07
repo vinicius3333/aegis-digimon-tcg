@@ -77,7 +77,7 @@ describe("BT21-045 compiled implementation", () => {
 
   it("enters through the public play intent with its Once Per Turn attack clauses registered", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT21-045", as: "shinegreymon" }] } });
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shinegreymon").instanceId })).toEqual({
       ok: true,
@@ -135,34 +135,60 @@ describe("BT21-045 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tamer").isSuspended && s.state.players[1]!.security.length === 1);
+    await settle(
+      () =>
+        s.perm("tamer").isSuspended && s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking(),
+    );
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("shine").currentDP).toBe(15000);
     await advance(s.engine).runTurn(0);
     expect(s.perm("shine").currentDP).toBe(12000);
+    expect(observe(s.engine).hasKeyword(s.perm("shine"), "SecurityAttack")).toBe(false);
   });
 
-  it("deletes at the 9000 DP boundary and shares the budget with When Attacking", async () => {
+  it("publicly evolves, spends its deletion budget, and preserves the second legal attack target", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-045", as: "shine" }] },
+        0: { battleArea: [{ card: "BT21-044", as: "rize" }], hand: [{ card: "BT21-045", as: "shine" }] },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "atBoundary", dp: 9000 },
-            { card: "BT1-010", as: "second", dp: 8000 },
-            { card: "BT1-011", as: "tooLarge", dp: 10000 },
+            { card: "BT1-059", as: "atBoundary" },
+            { card: "AD1-002", as: "second", suspended: true },
+            { card: "BT1-024", as: "tooLarge", suspended: true },
           ],
+          security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("atBoundary").topCard.instanceId, s.perm("second").topCard.instanceId);
+    const boundaryId = s.perm("atBoundary").permanentId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shine"));
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("atBoundary").instanceId));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("shine"));
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rize").permanentId,
+        instanceId: s.inst("shine").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === boundaryId));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("atBoundary").instanceId)).toBe(true);
+
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rize").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
       s.perm("second").permanentId,
@@ -172,7 +198,45 @@ describe("BT21-045 compiled implementation", () => {
     );
   });
 
-  it("deletes the lowest-DP opponent naturally on a public RizeGreymon evolution", async () => {
+  it("publicly declines the eligible Tamer cost and leaves both attack bonuses absent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-045", as: "shine" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    const baseDp = s.perm("shine").currentDP;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("shine").currentDP).toBe(baseDp);
+    expect(observe(s.engine).hasKeyword(s.perm("shine"), "SecurityAttack")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("deletes one selected opponent naturally on a public RizeGreymon evolution", async () => {
     const s = setupEngine(
       {
         0: {
@@ -277,7 +341,7 @@ describe("BT21-045 compiled implementation", () => {
       {
         0: { battleArea: [{ card: "BT21-045", as: "shine" }] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "raidTarget", dp: 13000 }],
+          battleArea: [{ card: "AD1-006", as: "raidTarget" }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
@@ -292,7 +356,11 @@ describe("BT21-045 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shine").instanceId));
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shine").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(
