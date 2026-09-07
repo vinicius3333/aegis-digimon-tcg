@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT21-083.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 // A3 for BT21-083 (Taiki Kudo) — [Start of Your Main Phase]:
@@ -158,7 +159,7 @@ describe("BT21-083 module registration", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
 
     expect(s.perm("taiki").isSuspended).toBe(true);
     expect(s.perm("shoutmon").isSuspended).toBe(true);
@@ -175,7 +176,13 @@ describe("BT21-083 module registration", () => {
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plain").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("plain").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
     expect(s.perm("taiki").isSuspended).toBe(false);
+    expect(s.perm("plain").isSuspended).toBe(false);
   });
 
   it("does not react when the opponent plays a qualifying Xros Heart Digimon", async () => {
@@ -219,7 +226,7 @@ describe("BT21-083 module registration", () => {
         instanceId: s.inst("arrester").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
 
     expect(s.perm("taiki").isSuspended).toBe(true);
     expect(s.perm("gumdramon").isSuspended).toBe(true);
@@ -239,17 +246,35 @@ describe("BT21-083 module registration", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
       ok: true,
     });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("shoutmon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
     expect(s.perm("taiki").isSuspended).toBe(false);
     expect(s.perm("shoutmon").isSuspended).toBe(false);
   });
 
-  it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: TAIKI, as: "taiki" }] } });
+  it("plays itself from security through a completed public attack without paying cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: TAIKI, as: "taiki" }] },
+      1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
+    });
     s.state.memory = 0;
+    s.state.turnSeat = 1;
     await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("taiki"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    const taikiId = s.inst("taiki").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === taikiId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 });
