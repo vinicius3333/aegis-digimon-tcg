@@ -69,6 +69,15 @@ describe("BT24-019 Kamemon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not reduce a blue Digimon without the TS trait", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-019", as: "kamemon" }], hand: [{ card: "BT1-032", as: "frigimon" }] } });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("kamemon").permanentId, instanceId: s.inst("frigimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("kamemon").topCard.instanceId === s.inst("frigimon").instanceId);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("digivolves from a non-blue level 2 TS Digi-Egg for cost 0 and grants inherited Jamming", async () => {
     const s = setupEngine({
       0: {
