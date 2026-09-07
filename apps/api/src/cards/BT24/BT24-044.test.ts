@@ -44,6 +44,29 @@ describe("BT24-044 Muchomon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
+  it("resolves the suspend-gated search through a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-044", as: "source" }],
+          deck: [{ card: "P-133", as: "shoto" }, { card: "BT1-022", as: "birdkin" }, { card: "BT1-009", as: "rest" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shoto").instanceId));
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("shoto").instanceId, s.inst("birdkin").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+  });
+
   it("does not reveal when it suspends an opponent Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
