@@ -98,7 +98,13 @@ describe("BT21-079 Megidramon", () => {
         target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 0 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.events.some((event) => event.kind === "combatResolved") &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("megidramon").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("ownOther").instanceId)).toBe(true);
