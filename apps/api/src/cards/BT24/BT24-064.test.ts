@@ -118,4 +118,62 @@ describe("BT24-064 Ouryumon", () => {
     await advance(s.engine).verb.suspend([s.perm("ouryumon").permanentId]);
     expect(s.perm("second").topCard.cardId).toBe("BT24-051");
   });
+
+  it("resets the suspension trigger on the owner's later turn after a public attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-064", as: "ouryumon" }],
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT24-051", as: "first", under: ["BT24-050", "BT24-046"] },
+          { card: "BT24-051", as: "second", under: ["BT24-050", "BT24-046"] },
+        ],
+        security: [{ card: "BT1-013", as: "security1" }, { card: "BT1-015", as: "security2" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("first").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("ouryumon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("first").topCard.cardId === "BT24-050");
+    expect(s.perm("first").topCard.cardId).toBe("BT24-050");
+    expect(s.perm("second").topCard.cardId).toBe("BT24-051");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    preferred.splice(0, preferred.length, s.perm("second").topCard.instanceId);
+
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("ouryumon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("second").topCard.cardId === "BT24-050");
+    expect(s.perm("second").topCard.cardId).toBe("BT24-050");
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("security1").instanceId, s.inst("security2").instanceId]),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
+  });
 });
