@@ -183,6 +183,143 @@ describe("BT21-080 Hiro Amanokawa", () => {
     expect(s.perm("heroHost").stack.some((card) => card.instanceId === s.inst("placedA").instanceId)).toBe(true);
   });
 
+  it("triggers from the same public placement producer under a Gammamon-text-only host", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-080", as: "hiro" },
+            { card: "BT21-069", as: "gammamonHost" },
+            { card: "BT21-056", as: "evolutionBase" },
+          ],
+          hand: [{ card: "BT21-058", as: "snatchmon" }],
+          trash: [
+            { card: "BT21-056", as: "placedA" },
+            { card: "BT21-056", as: "placedB" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", { card: "BT1-001", as: "hiroDraw" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("gammamonHost").topCard.instanceId);
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("evolutionBase").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("evolutionBase").topCard.instanceId === s.inst("snatchmon").instanceId);
+    await settle(() => s.perm("hiro").isSuspended);
+    expect(s.perm("hiro").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hiroDraw").instanceId)).toBe(true);
+    expect(s.perm("gammamonHost").stack.some((card) => card.instanceId === s.inst("placedA").instanceId)).toBe(true);
+  });
+
+  it("does not trigger when that public placement targets a nonmatching host", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-080", as: "hiro" },
+            { card: "BT21-068", as: "nonmatchingHost" },
+            { card: "BT21-056", as: "evolutionBase" },
+          ],
+          hand: [{ card: "BT21-058", as: "snatchmon" }],
+          trash: [
+            { card: "BT21-056", as: "placedA" },
+            { card: "BT21-056", as: "placedB" },
+          ],
+          deck: [{ card: "BT1-009", as: "evolutionDraw" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("nonmatchingHost").topCard.instanceId);
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("evolutionBase").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("evolutionBase").topCard.cardId === "BT21-058");
+    await settle(() =>
+      s.perm("nonmatchingHost").stack.some((card) => card.instanceId === s.inst("placedA").instanceId),
+    );
+
+    expect(s.perm("hiro").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("nonmatchingHost").stack.some((card) => card.instanceId === s.inst("placedA").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("accepts public Snatchmon placement but declines eligible Hiro reward", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-080", as: "hiro" },
+            { card: "BT21-066", as: "heroHost" },
+            { card: "BT21-056", as: "evolutionBase" },
+          ],
+          hand: [{ card: "BT21-058", as: "snatchmon" }],
+          trash: [
+            { card: "BT21-056", as: "placedA" },
+            { card: "BT21-056", as: "placedB" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "evolutionDraw" },
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            { card: "BT1-013", as: "noHiroDraw" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("heroHost").topCard.instanceId, s.inst("placedA").instanceId, s.inst("placedB").instanceId);
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("evolutionBase").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    for (let step = 0; step < 2; step += 1) {
+      await settle(() => s.state.pendingDecision !== undefined);
+      const pending = s.state.pendingDecision;
+      expect(pending?.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending!.decisionId,
+          response: { kind: "optional", accept: step === 0 },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.decisionId !== pending!.decisionId);
+    }
+    await settle(() => s.perm("evolutionBase").topCard.cardId === "BT21-058");
+    expect(s.perm("heroHost").stack.some((card) => card.instanceId === s.inst("placedA").instanceId)).toBe(true);
+    expect(s.perm("hiro").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("noHiroDraw").instanceId]);
+    expect(s.state.memory).toBe(5);
+  });
+
   it("declining does not suspend, draw, or gain memory", async () => {
     const s = setupEngine(
       {
