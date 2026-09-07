@@ -65,6 +65,42 @@ describe("BT24-035 Gatomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("resolves When Digivolving from a public TS alternate digivolution (Q5614)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-020", as: "tsBase" },
+            { card: "BT24-011", as: "redMaterial" },
+          ],
+          hand: [
+            { card: "BT24-035", as: "gatomon" },
+            { card: "BT16-012", as: "silphymon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("gatomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-012"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("silphymon").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("applies the DP loss but does not offer DNA on the opponent's turn", async () => {
     const s = setupEngine(
       {
