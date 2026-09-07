@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,6 +7,21 @@ import { compiled as BT24_060 } from "./BT24-060.js";
 import "../index.js";
 
 describe("BT24-060 Hisyaryumon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-060")).toMatchObject({
+      cardId: "BT24-060",
+      nameEn: "Hisyaryumon",
+      colors: ["Black", "Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Beast Dragon", "X Antibody", "DigiPolice", "SEEKERS"],
+    });
+  });
+
   it("captures the printed reveal, suspension, attack, and replacement structure", () => {
     const attack = BT24_060.effects?.find((entry) => entry.trigger === "WhenAttacking");
     // The digivolve rides on the reveal as `digivolveOption` (the shape runRevealAdd consumes),
