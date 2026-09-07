@@ -64,6 +64,23 @@ describe("BT24-063 Locomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("does not play when the three revealed cards contain no qualifying card", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-063", as: "locomon" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-063"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
   it.each([
     ["normal black level-4 requirement", "BT10-062", false],
     ["alternate TS level-4 requirement", "BT24-046", true],
