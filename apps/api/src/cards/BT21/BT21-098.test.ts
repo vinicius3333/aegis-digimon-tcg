@@ -301,4 +301,75 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.memory).toBe(0);
   });
+
+  it("does not offer a cost-7-or-more Vemmon-text Digimon from Security", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-098", as: "option" }],
+          trash: [{ card: "BT21-060", as: "tooExpensive" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.some((c) => c.cardId === "BT21-098"),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("declines an eligible Security Vemmon-text play and preserves the candidate", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-098", as: "option" }],
+          trash: [{ card: "BT11-065", as: "vemmon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision;
+    expect(decision?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.some((c) => c.cardId === "BT21-098"),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
 });
