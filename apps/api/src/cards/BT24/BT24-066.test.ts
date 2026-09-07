@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-066.js";
@@ -111,19 +112,21 @@ describe("BT24-066 Guilmon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-066"] }] },
+        0: { battleArea: [{ card: "BT1-032", as: "host", under: ["BT24-066"] }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "level3" },
+            { card: "BT1-010", as: "level3Other" },
             { card: "BT24-046", as: "level4" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("level4").topCard.instanceId, s.perm("level3").topCard.instanceId);
     const level3Id = s.perm("level3").permanentId;
+    const level3OtherId = s.perm("level3Other").permanentId;
     const level4Id = s.perm("level4").permanentId;
     await s.ready();
 
@@ -137,6 +140,18 @@ describe("BT24-066 Guilmon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level3Id));
     await settle(() => !observe(s.engine).isAttacking());
 
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level3Id)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level4Id)).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level3OtherId)).toBe(true);
   });
 });
