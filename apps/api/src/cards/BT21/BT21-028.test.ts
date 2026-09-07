@@ -63,7 +63,7 @@ describe("BT21-028 compiled implementation", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "low", dp: 3000 },
-            { card: "BT1-010", as: "high", dp: 4000 },
+            { card: "BT11-075", as: "high" },
           ],
         },
       },
@@ -116,7 +116,7 @@ describe("BT21-028 compiled implementation", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "lowA", dp: 3000 },
-            { card: "BT1-010", as: "lowB", dp: 3000 },
+            { card: "BT1-009", as: "lowB" },
           ],
           security: ["BT1-001"],
         },
@@ -142,7 +142,7 @@ describe("BT21-028 compiled implementation", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "low", dp: 3000 },
-            { card: "BT1-010", as: "high", dp: 6000 },
+            { card: "BT1-019", as: "high" },
           ],
           security: ["BT1-001"],
         },
@@ -165,14 +165,52 @@ describe("BT21-028 compiled implementation", () => {
     expect(s.perm("siriusmon").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
   });
 
+  it.each([
+    { card: "BT10-011", label: "a non-Hero card with Gammamon in its effect text" },
+    { card: "BT21-021", label: "a Hero-only card" },
+  ] as const)("publicly places $label as the bottom source before deleting the target", async ({ card }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-028", as: "siriusmon", enteredThisTurn: false }],
+          hand: [{ card, as: "material" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const materialId = s.inst("material").instanceId;
+    const targetId = s.perm("target").permanentId;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId) &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("siriusmon").stack.map((source) => source.instanceId)).toEqual([materialId]);
+    expect(s.state.players[0]!.hand.some((source) => source.instanceId === materialId)).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("uses Raid to redirect a public attack to the opponent's highest-DP unsuspended Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-028", as: "siriusmon", dp: 13000 }] },
+        0: { battleArea: [{ card: "BT21-028", as: "siriusmon" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "low", dp: 3000 },
-            { card: "BT1-010", as: "high", dp: 6000 },
+            { card: "BT1-019", as: "high" },
           ],
           security: ["BT1-001"],
         },
@@ -255,14 +293,26 @@ describe("BT21-028 compiled implementation", () => {
           battleArea: [{ card: "BT21-028", as: "siriusmon" }],
           hand: [{ card: "BT1-009", as: "nonmatching" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 4000 }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }], security: ["BT1-001", "BT1-002"] },
       },
       { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("siriusmon"));
-    await settle(() => s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
 
     expect(s.perm("siriusmon").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonmatching").instanceId);
@@ -281,7 +331,7 @@ describe("BT21-028 compiled implementation", () => {
             { card: "BT21-010", as: "material" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 4000 }] },
+        1: { battleArea: [{ card: "BT11-075", as: "target" }] },
       },
       { autoDeclineOptional: true },
     );
