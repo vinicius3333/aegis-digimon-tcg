@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch
+[WinCheck] seat 0 wins (reason: security) — turn 1, phase Main, memory 4
+
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Your Turn permission, and inherited DP 1ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > qualifying permission digivolves into Siriusmon for exactly 4 with two security cards 23ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-002 2ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-004 3ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security 15ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the qualified security branch 6ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Offense Training combines with the three-distinct-Hero branch 14ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training target a differently named red Digimon when Siriusmon is absent 1ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not let Training activate the Siriusmon permission when neither gate is true 1ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not qualify with three security and only two distinct Hero Tamer names 1ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > may decline the permission and inherited +2000 DP expires on the opponent's turn 2ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: uses the real base grant for a hand ShineGreymon on the owner's turn 7ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its hand-only grant for the same card in trash (payCost=true) 1ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its hand-only grant for the same card in trash (payCost=false) 1ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its Your Turn grant while the opponent owns the turn (payCost=true) 1ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: does not use its Your Turn grant while the opponent owns the turn (payCost=false) 1ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: BT8-059 blocks the base-granted ignore-requirements permission (payCost=true) 1ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT21-040: BT8-059 blocks the base-granted ignore-requirements permission (payCost=false) 1ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > ST7-03: [Gallantmon] digivolves onto this Guilmon while opponent has a Lv.6+ Digimon 7ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > ST7-03: rejected when the opponent has NO Lv.6+ Digimon (activation condition fails) 0ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > ST7-03: rejected for a near-name [Gallantmon: Crimson Mode] (exact-name target gate) 0ms
+ ✓ src/engine/baseGrantedDigivolve.test.ts > base-granted digivolution (ST7-03 / BT6-060) > BT6-060: a [Three Musketeers] Digimon digivolves onto this for 6 (no opponent condition) 4ms
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  21:20:45
+   Duration  7.33s (transform 84%, import 15%, tests 1%)
+

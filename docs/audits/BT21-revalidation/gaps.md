@@ -88,3 +88,9 @@ A public End of Your Turn regression shows the leading SelectBind incorrectly su
 The previous primitive-only App Fusion limitation is replaced by an explicit public digivolve declaration. Independent rule comparison also exposed incorrect partner placement and a skipped opponent cost increase; see [mechanism evidence](app-fusion.md). Current reports for018/023/059/073/101 supersede any assertion that fusion leaves the selected partner linked. BT22-039 Q4892 remains a prohibition on relinking source cards without Link, not a missing Link engine capability.
 
 Fresh public refusal and lifecycle tests close the recorded022,024and044gaps, subject to final synchronized gates. 021 still requires Q4727's material-consumption boundary. 025 and 026 have fresh public positive/refusal/negative cases; independent repeated public trigger opportunities remain to be reviewed. The ledger remains authoritative for all 102 cards and no final 10/10 is awarded by this checkpoint.
+
+## Current permission and stack integration
+
+Q4727 required effect-play DigiXros and stable self-target permanent identity. Q4540–Q4542 required top-down stacked-card trashing instead of source-only removal; the official BT21-030 alternate cost is5, correcting the prior catalog3. Repeated public Links exposed stale new-Link markers between quiet rule-check cycles. Focused mechanism evidence is recorded in the current card reports.
+
+Gammamon's Q5210 Training integration exposed a missing base-granted path. Agumon's actual Arts window remains correct, but generic effect evolution incorrectly accepted its hand-only permission from trash and during the opponent's turn, and bypassed the cannot-ignore lock. Root fixes share the existing matcher and hand-zone candidate/commit guards; focused and final collection execution are pending.

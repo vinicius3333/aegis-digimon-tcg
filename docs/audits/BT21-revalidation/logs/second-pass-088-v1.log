@@ -1,0 +1,91 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > draws after the Save/Hero hand placement and pays the digivolution reduction with both costs 1ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > places a Save Digimon under itself and gains memory at start of main phase 18ms
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Save text and places only the eligible hand Digimon at its bottom 13ms
+   → expected false to be true // Object.is equality
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digimon and places only the eligible hand Digimon at its bottom 4ms
+   → expected false to be true // Object.is equality
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks nonmatching Digimon and places only the eligible hand Digimon at its bottom 4ms
+   → expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Tamer and places only the eligible hand Digimon at its bottom 3ms
+   → expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digi-Egg and places only the eligible hand Digimon at its bottom 5ms
+   → expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+ × src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > declining the start-of-main cost does not place, draw, or gain memory 3ms
+   → expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > reduces a Save/Hero digivolution by 1 and moves an under-Tamer card to the true bottom 7ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > plays itself from a public Security attack without paying cost 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Save text and places only the eligible hand Digimon at its bottom
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digimon and places only the eligible hand Digimon at its bottom
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-088.test.ts:111:108
+    109|       );
+    110|       expect(s.perm("otherTamer").stack).toHaveLength(0);
+    111|       expect(s.state.players[0]!.hand.some((card) => card.instanceId =…
+       |                                                                                                            ^
+    112|         eligible,
+    113|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks nonmatching Digimon and places only the eligible hand Digimon at its bottom
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Tamer and places only the eligible hand Digimon at its bottom
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > public Start Main checks Hero Digi-Egg and places only the eligible hand Digimon at its bottom
+AssertionError: expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/cards/BT21/BT21-088.test.ts:118:40
+    116|       );
+    117|       // EndPhase sets the gauge for turn passing; observe the gain by…
+    118|       expect(s.state.players[0]!.deck).toHaveLength(eligible ? 0 : 1);
+       |                                        ^
+    119|     },
+    120|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > declining the start-of-main cost does not place, draw, or gain memory
+AssertionError: expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/cards/BT21/BT21-088.test.ts:141:38
+    139|     expect(s.perm("tagiru").stack).toHaveLength(0);
+    140|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+    141|     expect(s.state.players[0]!.deck).toHaveLength(1);
+       |                                      ^
+    142|     expect(s.state.memory).toBe(0);
+    143|     advance(s.engine).endMainPhaseIfOpen(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 4 passed (10)
+   Start at  18:35:53
+   Duration  7.49s (transform 84%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

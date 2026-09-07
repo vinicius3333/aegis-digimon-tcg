@@ -1,0 +1,84 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > preserves Evade and the WG alternate Digivolution cost 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends one of your WG Digimon on play and when digivolving 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > prevents this Digimon's attack target from changing during your turn when inherited 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends exactly one WG Digimon at 6 17ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends exactly one WG Digimon at 7 3ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > may decline the unsuspend 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > publicly accepts Evade against Gaia Force by suspending an unsuspended Deramon 6ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > allows Gaia Force deletion when Evade is declined or unpayable (already suspended=false) 4ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > allows Gaia Force deletion when Evade is declined or unpayable (already suspended=true) 3ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > publicly unsuspends exactly one of two eligible own WG Digimon 5ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > unsuspends a WG Digimon from the public play action 2ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > evolves from a level-3 WG Digimon for 2 and can unsuspend itself 3ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > rejects the alternate evolution from a non-WG level-3 base without paying 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > does not unsuspend an opponent WG or a non-WG own Digimon 2ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > applies the inherited attack-target lock only on its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > blocks a public Raid redirect when BT21-038 is inherited 18ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > publicly redirects Raid to the highest unsuspended Digimon without the inherited lock 9ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > does not use its DigiXros-only alias for an alternate digivolution 2ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > requires OmniShoutmon and ZeigGreymon as the two DigiXros materials 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publishes both alternate evolution routes and its additional DigiXros names 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > accepts the printed alias in a later public DigiXros recipe 6ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes exactly the lowest-DP opponent on play 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes one selected lowest-DP tie and preserves the other tie and higher target 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material 5ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from AD1-013 for cost 2 and deletes the lowest DP Digimon 7ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from BT21-021 for cost 3 and deletes the lowest DP Digimon 5ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly performs two Security checks after DigiXrosing with an inherited Rush source 18ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > rejects both alternate routes from a nonmatching level-3 base without paying 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > places only Xros Heart and Blue Flare Digimon sources under a Tamer, then still leaves 7ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > may decline moving sources and leaves without offering the effect when no Tamer exists 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly evolves into Charismon and resolves its When Digivolving Link 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants BT1-019 the attack effect and respects its immunity at start of main 16ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants BT19-101 the attack effect and respects its immunity at start of main 15ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > resolves the public evolution Link choice at capacity (accept=true) 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > resolves the public evolution Link choice at capacity (accept=false) 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > limits the grant across two public Links in the same turn 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 8ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > public Gaia Force leaves a legal Link+1 host once, then deletes it on the second opportunity 5ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly links Charismon to an Appmon for exactly 3 memory 2ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 0ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly blocks a weaker Digimon and protects its player's security 11ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly pays or refuses Charismon itself as the Link prevention cost (accept=true) 4ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > publicly pays or refuses Charismon itself as the Link prevention cost (accept=false) 3ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 2ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves Blocker and Armor Purge 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > unsuspends itself and reduces one opposing Digimon by 2000 per Armor Form card in trash 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves both alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > evolves from Veemon for 3 reduced to 2 by the realistic source stack 3ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > evolves from level-3 Hero for 3 reduced to 2 by the realistic source stack 2ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > rejects both alternate requirements from a legal non-Veemon, non-Hero Lv3 1ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > uses Blocker in a public attack battle 13ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > uses Armor Purge in a public battle and leaves the underlying source 15ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > unsuspends and gives one target -2000 DP per Armor Form card in trash 12ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > does not reduce DP when no Armor Form card is in trash 4ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > preserves a promoted Digi-Egg's printed DP when it has DP 2ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > trashes from the current top and promotes at most the requested number 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > crosses the level-3 floor and promotes a bottom Digi-Egg unlike De-Digivolve 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > respects an opponent stack-trash lock while ignoring cantBeDeDigivolved 1ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > does not emit OnDeletion when a Digimon top is peeled 2ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > applies Overflow when an ACE is peeled 2ms
+ ✓ src/engine/effects/trashStackTops.test.ts > trashStackTops primitive > marks an invalid promoted Option for rule trash rather than deletion 2ms
+
+ Test Files  5 passed (5)
+      Tests  75 passed (75)
+   Start at  21:00:16
+   Duration  17.71s (transform 86%, import 12%, tests 2%)
+

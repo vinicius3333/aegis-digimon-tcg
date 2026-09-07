@@ -1,0 +1,42 @@
+
+> aegis@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna
+> pnpm --filter @aegis/shared build && pnpm -r typecheck
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+
+> @aegis/shared@1.1.0 copy:data /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+> node scripts/copy-data.mjs
+
+copy-data: cards/data/cards.json -> dist
+copy-data: effects/effects.json -> dist
+copy-data: effects/generated-digivolve-overrides.json -> dist
+Scope: 3 of 4 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/web typecheck$ tsc --noEmit -p tsconfig.json
+apps/web typecheck: Done
+apps/api typecheck: src/cards/BT21/BT21-029.test.ts(253,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-029.test.ts(280,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-079.test.ts(135,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-079.test.ts(139,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-079.test.ts(173,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-079.test.ts(177,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-079.test.ts(211,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/cards/BT21/BT21-079.test.ts(215,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(37,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(39,21): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(70,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(72,21): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(107,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(109,21): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(131,18): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: src/engine/effects/endOfAttackScope.test.ts(133,21): error TS2341: Property 'combat' is private and only accessible within class 'GameEngine'.
+apps/api typecheck: Failed
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @aegis/api@1.1.0 typecheck: `tsc --noEmit -p tsconfig.json`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.
