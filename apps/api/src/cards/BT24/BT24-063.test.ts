@@ -64,6 +64,55 @@ describe("BT24-063 Locomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("accepts an explicit bottom-order decision after selecting the matching reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-063", as: "locomon" }],
+          deck: [
+            { card: "BT1-012", as: "openingFiller" },
+            { card: "BT24-083", as: "matchingTamer" },
+            { card: "BT1-009", as: "restFirst" },
+            { card: "BT1-010", as: "restSecond" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: false, preferOptionIndex: 1 },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.decisions.at(-1)!.req;
+    expect(orderDecision.kind).toBe("orderCards");
+    expect(orderDecision.options?.orderDestination).toBe("deckBottom");
+    expect(orderDecision.options?.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("openingFiller").instanceId, cardId: "BT1-012" },
+        { instanceId: s.inst("restFirst").instanceId, cardId: "BT1-009" },
+      ]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: {
+          kind: "orderCards",
+          order: [s.inst("restFirst").instanceId, s.inst("openingFiller").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 3);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("matchingTamer").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("restSecond").instanceId,
+      s.inst("restFirst").instanceId,
+      s.inst("openingFiller").instanceId,
+    ]);
+  });
+
   it("does not play when the three revealed cards contain no qualifying card", async () => {
     const s = setupEngine({
       0: {
