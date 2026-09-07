@@ -34,6 +34,38 @@ describe("BT21-099 Xros Up", () => {
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
+  it("places the Save card only under one of its controller's Tamers", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "ownTamer" },
+            { card: "BT21-063", as: "host" },
+          ],
+          hand: [
+            { card: "BT21-099", as: "option" },
+            { card: "BT14-057", as: "save" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT21-083", as: "opponentTamer", under: [{ card: "BT1-009", as: "opponentSource" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ownTamer").stack.some((card) => card.instanceId === s.inst("save").instanceId));
+
+    expect(s.perm("ownTamer").stack.map((card) => card.instanceId)).toEqual([s.inst("save").instanceId]);
+    expect(s.perm("opponentTamer").stack.map((card) => card.instanceId)).toEqual([s.inst("opponentSource").instanceId]);
+    expect(s.state.memory).toBe(9);
+  });
+
   it("places Save from hand/trash under a Tamer and offers Save digivolution from trash", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     const place = main?.actions[0];
