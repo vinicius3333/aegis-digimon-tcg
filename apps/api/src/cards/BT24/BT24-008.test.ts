@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -188,5 +188,58 @@ describe("BT24-008 Elizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("elizamon").instanceId);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-001"]);
+  });
+
+  it("resets the inherited security-removal gain on its owner's later turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }],
+          deck: ["BT1-013", "BT1-015", "BT1-045", "BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          security: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    const firstBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 3);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.state.memory).toBe(firstBefore + 1);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    await advance(s.engine).waitForMainPhase(0);
+    const secondBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.memory).toBe(secondBefore + 1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });
