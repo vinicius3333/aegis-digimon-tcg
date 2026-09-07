@@ -127,7 +127,7 @@ describe("BT24-079 Hadesmon", () => {
             { card: "BT24-032", as: "fodder" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
