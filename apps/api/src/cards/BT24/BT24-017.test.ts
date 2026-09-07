@@ -36,7 +36,7 @@ describe("BT24-017 Medusamon", () => {
             { card: "BT1-009", as: "lowest", dp: 3000 },
             { card: "BT1-009", as: "higher", dp: 5000 },
           ],
-          trash: ["BT1-001", "BT1-001"],
+          trash: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -57,13 +57,32 @@ describe("BT24-017 Medusamon", () => {
     expect(s.perm("source").currentDP).toBe(17000);
   });
 
+  it("resolves the complete clause chain through public digivolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-016", as: "base" }], hand: [{ card: "BT24-017", as: "medusamon" }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "lowest", dp: 3000 }, { card: "BT1-010", as: "higher", dp: 5000 }],
+        trash: ["BT1-009", "BT1-010"],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const lowestId = s.perm("lowest").permanentId;
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("medusamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT24-017");
+    expect(s.perm("base").topCard.cardId).toBe("BT24-017");
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowestId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-Petrification-Token")).toHaveLength(2);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("does not play tokens or gain DP when the two-card return cost is declined", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-017", as: "source", dp: 11000 }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }],
-          trash: ["BT1-001", "BT1-002"],
+          trash: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -81,7 +100,7 @@ describe("BT24-017 Medusamon", () => {
       {
         0: { battleArea: [{ card: "BT24-017", as: "source", dp: 11000 }] },
         1: {
-          trash: ["BT1-001"],
+          trash: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -100,8 +119,8 @@ describe("BT24-017 Medusamon", () => {
         0: { battleArea: [{ card: "BT24-017", as: "source" }] },
         1: {
           battleArea: [{ card: "BT1-009", dp: 3000 }],
-          trash: ["BT1-001", "BT1-002"],
-          security: ["BT1-003", "BT1-004"],
+          trash: ["BT1-009", "BT1-010"],
+          security: ["BT1-014", "BT1-015"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
