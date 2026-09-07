@@ -111,9 +111,11 @@ describe("BT21-037 compiled implementation", () => {
         target: { kind: "permanent", permanentId: defenderId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => !observe(s.engine).isAttacking() && s.events.some((event) => event.kind === "securityChecked"));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === defenderId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-037")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("defender").instanceId)).toBe(true);
   });
 
   it("uses Armor Purge in a public battle and leaves its Veemon source", async () => {
@@ -182,5 +184,36 @@ describe("BT21-037 compiled implementation", () => {
     expect(s.perm("lighdramon").currentDP).toBe(8000);
     expect(observe(s.engine).hasPierce(s.perm("lighdramon"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("lighdramon"), "Armor Purge")).toBe(true);
+  });
+
+  it("publicly applies DP with no suspension target and expires it after the opponent turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST8-04", as: "veemon", under: ["BT12-002"] }],
+        hand: [{ card: "BT21-037", as: "lighdramon" }],
+      },
+      1: { deck: ["BT1-001", "BT1-002"] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("lighdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-037");
+    expect(s.perm("veemon").currentDP).toBe(8000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("veemon").currentDP).toBe(8000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("veemon").currentDP).toBe(6000);
   });
 });
