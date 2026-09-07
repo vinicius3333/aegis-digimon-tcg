@@ -76,6 +76,34 @@ describe("BT24-021 SnowGoblimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("resolves the top-three search through a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-021", as: "snowGoblimon" }],
+          deck: [
+            { card: "BT24-014", as: "shaman" },
+            { card: "BT24-015", as: "titan" },
+            { card: "BT1-009", as: "miss" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("snowGoblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shaman").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("shaman").instanceId, s.inst("titan").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
   it("digivolves its Titan host into Titamon from trash with cost reduced by one, once per turn", async () => {
     const s = setupEngine(
       {
