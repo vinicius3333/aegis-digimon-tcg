@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-061.js";
@@ -222,6 +223,107 @@ describe("BT21-061 MetalGreymon", () => {
     });
     await settle(() => s.perm("ally").isSuspended && s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("ally").isSuspended).toBe(true);
+  });
+
+  it("independently chooses the Alliance recipient and effect attacker", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-061", as: "source" },
+            { card: "ST21-07", as: "base" },
+            { card: "BT1-010", as: "recipient" },
+          ],
+          hand: [{ card: "ST21-08", as: "adventure" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-001"], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("recipient").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("adventure").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance") && s.state.pendingDecision?.kind === "optional",
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(false);
+
+    const decision = s.state.pendingDecision;
+    expect(decision?.kind).toBe("optional");
+    preferred.splice(0, preferred.length, s.perm("source").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("recipient").isSuspended).toBe(false);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: s.perm("source").permanentId }),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance")).toBe(false);
+  });
+
+  it("consumes the Your Turn watcher once across two public ADVENTURE plays", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-061", as: "source" },
+            { card: "BT1-009", as: "firstRecipient" },
+            { card: "BT1-010", as: "secondRecipient" },
+          ],
+          hand: [
+            { card: "ST20-10", as: "firstAdventure" },
+            { card: "ST20-10", as: "secondAdventure" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("firstRecipient").permanentId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("firstRecipient"), "Alliance"));
+
+    preferred.splice(0, preferred.length, s.perm("secondRecipient").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondAdventure").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("firstRecipient"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("secondRecipient"), "Alliance")).toBe(false);
+    expect(s.perm("firstRecipient").isSuspended).toBe(false);
+    expect(s.perm("secondRecipient").isSuspended).toBe(false);
   });
 
   it("grants inherited Alliance to a realistic higher evolution", async () => {
