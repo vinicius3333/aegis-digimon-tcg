@@ -214,11 +214,12 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  it("deletes every lowest-level Digimon and plays 8 total cost at 10 opposing trash cards", async () => {
+  it("publicly digivolves, deletes every lowest-level Digimon, and plays 8 total cost at 10 opposing trash cards", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-078", as: "creepymonX" }],
+          battleArea: [{ card: "EX10-009", as: "base" }],
+          hand: [{ card: "BT24-078", as: "creepymonX" }],
           trash: [
             { card: "BT12-073", as: "firstPlay" },
             { card: "BT15-072", as: "secondPlay" },
@@ -237,9 +238,16 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     );
     const lowAId = s.perm("lowA").permanentId;
     const lowBId = s.perm("lowB").permanentId;
+    s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("creepymonX"));
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("creepymonX").instanceId,
+      useAlternateCost: true,
+      alternateRequirementIndex: 0,
+    })).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some(
@@ -253,5 +261,7 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowBId);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("creepymonX").instanceId);
+    expect(s.state.memory).toBe(3);
   });
 });
