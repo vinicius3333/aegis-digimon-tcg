@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,29 @@ import { compiled as BT24_050 } from "./BT24-050.js";
 import "../index.js";
 
 describe("BT24-050 WereGarurumon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-050")).toMatchObject({
+      cardId: "BT24-050",
+      nameEn: "WereGarurumon",
+      colors: ["Green", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "Iliad", "TS"],
+      evoCosts: [
+        { color: "Green", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+    });
+    expect(BT24_050.digivolutionRequirement).toEqual([
+      { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
+      { traits: ["TS"], cost: 3, isAlternate: true, level: 4 },
+    ]);
+  });
+
   it("unsuspends your Digimon and restricts an opposing Digimon or Tamer", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = BT24_050.effects?.find((entry) => entry.trigger === trigger);
