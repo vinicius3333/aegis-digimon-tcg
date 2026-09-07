@@ -83,7 +83,7 @@ describe("BT21-043 compiled implementation", () => {
   it("plays through the public intent and reduces an opponent Digimon by 2000 DP", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT21-043", as: "sociamon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -104,8 +104,8 @@ describe("BT21-043 compiled implementation", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "target", dp: 5000 },
-            { card: "BT1-010", as: "other", dp: 6000 },
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-010", as: "other" },
           ],
         },
       },
@@ -128,16 +128,16 @@ describe("BT21-043 compiled implementation", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000);
-    expect(s.perm("target").currentDP).toBe(3000);
-    expect(s.perm("other").currentDP).toBe(6000);
+    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.perm("other").currentDP).toBe(2000);
   });
 
   it("plays after a real Security battle and resolves its On Play debuff", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }] },
+        0: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
         1: {
-          battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }],
+          battleArea: [{ card: "BT1-010", as: "target" }],
           security: [{ card: "BT21-043", as: "sociamon" }],
         },
       },
@@ -152,7 +152,11 @@ describe("BT21-043 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-043"));
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-043") &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("attacker").currentDP).toBe(3000);
@@ -166,7 +170,7 @@ describe("BT21-043 compiled implementation", () => {
   it("expires the play and digivolution debuff at the opponent's turn end", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-041", as: "base" }], hand: [{ card: "BT21-043", as: "sociamon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     });
     s.state.memory = 3;
     await s.ready();
@@ -177,13 +181,13 @@ describe("BT21-043 compiled implementation", () => {
         instanceId: s.inst("sociamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").currentDP === 3000);
+    await settle(() => s.perm("target").currentDP === 1000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("target").currentDP).toBe(1000);
     s.give(1, Zone.Deck, "BT1-001");
     await advance(s.engine).runTurn(1);
-    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 
   it("digivolves normally and applies the same -2000 DP boundary", async () => {
@@ -195,8 +199,8 @@ describe("BT21-043 compiled implementation", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "target", dp: 5000 },
-            { card: "BT1-010", as: "other", dp: 6000 },
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-010", as: "other" },
           ],
         },
       },
@@ -215,7 +219,28 @@ describe("BT21-043 compiled implementation", () => {
     await settle(() => s.perm("calendamon").topCard.cardId === "BT21-043");
 
     expect(s.state.memory).toBe(1);
-    expect(s.perm("target").currentDP).toBe(3000);
-    expect(s.perm("other").currentDP).toBe(6000);
+    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.perm("other").currentDP).toBe(2000);
+  });
+
+  it("refuses the public Link onto a non-Appmon host without paying", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonAppmon" }],
+        hand: [{ card: "BT21-043", as: "sociamon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("sociamon").instanceId,
+        targetPermanentId: s.perm("nonAppmon").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("sociamon").instanceId);
+    expect(s.perm("nonAppmon").linked).toHaveLength(0);
   });
 });
