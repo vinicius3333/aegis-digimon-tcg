@@ -258,4 +258,50 @@ describe("BT24-005 Kyokyomon", () => {
     await settle(() => s.perm("egg").topCard.cardId === "BT24-054");
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-005"]);
   });
+
+  it("resets Mind Link reveal Once Per Turn on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-054", as: "host", under: ["BT24-005", { card: "BT24-086", as: "mindLinker" }] },
+          ],
+          hand: [{ card: "BT24-054", as: "firstPlay" }, { card: "BT24-011", as: "secondPlay" }, { card: "BT24-019", as: "thirdPlay" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true, preferOptionIndex: 1 },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("mindLinker").instanceId],
+    });
+    await settle(() => s.events.filter((event) => event.kind === "cardRevealed").length === 3);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("mindLinker").instanceId],
+    });
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("mindLinker").instanceId],
+    });
+    await settle(() => s.events.filter((event) => event.kind === "cardRevealed").length === 6);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
 });
