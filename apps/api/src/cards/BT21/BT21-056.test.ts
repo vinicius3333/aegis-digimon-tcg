@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -181,22 +180,29 @@ describe("BT21-056 Vemmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  it("declining the recovery leaves the hand cost and trash target in place", async () => {
+  it("declining recovery after public play leaves the hand cost and trash target in place", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-056", as: "vemmon" }],
-          hand: [{ card: "BT11-061", as: "cost" }],
+          hand: [
+            { card: "BT21-056", as: "vemmon" },
+            { card: "BT11-061", as: "cost" },
+          ],
           trash: [{ card: "BT21-058", as: "target" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("vemmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vemmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-056"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(7);
   });
 
   it("reduces only the first Vemmon-text evolution each turn", async () => {
