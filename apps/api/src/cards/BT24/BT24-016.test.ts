@@ -1,9 +1,19 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { effectsOf } from "../../engine/effects/collect.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-016.js";
 import "../index.js";
+
+function handMainEffectKey(s: ReturnType<typeof setupEngine>, instanceId: string): string | undefined {
+  const card = s.state.players[0]!.hand.find((entry) => entry.instanceId === instanceId);
+  if (!card) return undefined;
+  const source = (s.engine as unknown as { cardSourceOf(card: typeof card): CardSource }).cardSourceOf(card);
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-016/"))
+    ?.effectKey;
+}
 
 describe("BT24-016 Lamiamon", () => {
   it("uses the Dimetromon placement cost to digivolve an Elizamon host", () => {
@@ -57,7 +67,13 @@ describe("BT24-016 Lamiamon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("lamiamon"));
+    const effectKey = handMainEffectKey(s, s.inst("lamiamon").instanceId);
+    expect(effectKey).toBeDefined();
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.inst("lamiamon").instanceId,
+      effectKey: effectKey!,
+    })).toEqual({ ok: true });
     await settle(() => s.perm("elizamon").topCard.instanceId === s.inst("lamiamon").instanceId);
 
     expect(s.perm("elizamon").stack.map((card) => card.instanceId)).toContain(s.inst("dimetromon").instanceId);
