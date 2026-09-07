@@ -1,4 +1,4 @@
-import { EffectTiming, type CardInstance } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -10,6 +10,18 @@ import { compiled } from "./BT25-092.js";
 const CARD_ID = "BT25-092";
 
 describe("BT25-092 Asuna Shiroki", () => {
+  it("matches the catalog identity and has no evolution routes", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      cardId: CARD_ID,
+      nameEn: "Asuna Shiroki",
+      colors: ["Purple"],
+      kinds: ["Tamer"],
+      types: ["TS"],
+      playCost: 4,
+      evoCosts: [],
+    });
+  });
+
   it("keeps the suspend-and-trash processing condition atomic when Asuna is already suspended", async () => {
     const main = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
     expect(main).toMatchObject({
@@ -196,5 +208,37 @@ describe("BT25-092 Asuna Shiroki", () => {
     expect(s.perm("asuna").isSuspended).toBe(false);
     expect(s.perm("host").topCard.cardId).toBe("BT24-009");
     expect(s.perm("tamer").stack.map((c) => c.instanceId)).toContain(s.inst("underOption").instanceId);
+  });
+
+  it("only offers own Digimon as the Main evolution target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "asuna" },
+            { card: "BT24-009", as: "ownHost", under: [{ card: "BT25-100", as: "option" }] },
+          ],
+          trash: [{ card: "BT24-010", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT24-009", as: "opponentHost" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const source = (s.engine as unknown as { cardSourceOf(instance: CardInstance): CardSource }).cardSourceOf(
+      s.inst("asuna"),
+    );
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith(`${CARD_ID}/`),
+    )!.effectKey;
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.inst("asuna").instanceId,
+      effectKey,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("ownHost").topCard?.cardId === "BT24-010");
+    expect(s.perm("ownHost").topCard?.cardId).toBe("BT24-010");
+    expect(s.perm("opponentHost").topCard?.cardId).toBe("BT24-009");
   });
 });

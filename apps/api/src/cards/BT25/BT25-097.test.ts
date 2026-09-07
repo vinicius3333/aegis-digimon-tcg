@@ -40,7 +40,7 @@ describe("BT25-097 Guardian Palace", () => {
         battleArea: [
           { card: "BT25-033", as: "eligible" },
           { card: "BT25-007", as: "wrongTrait" },
-          { card: "BT25-044", as: "junomon", under: [{ card: "BT25-033" }] },
+          { card: "BT25-044", as: "junomon", under: [{ card: "BT25-039" }] },
         ],
       },
     });
@@ -140,5 +140,37 @@ describe("BT25-097 Guardian Palace", () => {
       instanceId: palaceId,
       faceUp: true,
     });
+  });
+
+  it("publicly declines the reduced play after moving the bottom security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-097", as: "palace" }, { card: "BT25-034", as: "candidate" }],
+          security: [{ card: "BT25-001" }, { card: "BT25-002", as: "bottom" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("palace").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: s.inst("palace").instanceId, faceUp: true });
+  });
+
+  it("does not waive color when a security card is already face up", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT25-097", as: "palace" }], security: [{ card: "BT25-095", faceUp: true }] } });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("palace").instanceId, useAs: "option" } as never)).toEqual(
+      expect.objectContaining({ ok: false }),
+    );
   });
 });

@@ -17,6 +17,18 @@ describe("BT25-091 Monica Simmons", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("sets memory at the real start of its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT25-091", as: "monica" }] } });
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("returns one TS Option on play and does not draw when the return succeeds", async () => {
     const s = setupEngine(
       {
@@ -102,6 +114,33 @@ describe("BT25-091 Monica Simmons", () => {
     expect(s.perm("monica").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("tsOption").instanceId)).toBe(true);
+  });
+
+  it("keeps the attack restriction through the opponent turn and expires at its end", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-094", as: "tsOption" }], battleArea: [{ card: "BT25-091", as: "monica" }], security: ["BT1-001"], deck: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { battleArea: [{ card: "AD1-001", as: "target" }], deck: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("tsOption").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("target"), "attack"));
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
   });
 
   it("does not react when Security merely activates an Option effect (Q6433)", async () => {

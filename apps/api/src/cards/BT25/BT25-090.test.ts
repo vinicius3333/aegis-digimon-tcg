@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,18 @@ import { compiled } from "./BT25-090.js";
 import "../index.js";
 
 describe("BT25-090 Tomoro Tenma", () => {
+  it("matches the catalog identity and no-evolution Tamer shape", () => {
+    expect(getCardDefinition("BT25-090")).toMatchObject({
+      cardId: "BT25-090",
+      nameEn: "Tomoro Tenma",
+      colors: ["Green"],
+      kinds: ["Tamer"],
+      types: ["Glowing Dawn", "BEATBREAK"],
+      playCost: 4,
+      evoCosts: [],
+    });
+  });
+
   it("keeps the Glowing Dawn reduction in the Your Turn window", () => {
     const reduction = compiled.effects.find((effect) =>
       effect.actions?.some((action) => action.kind === "Replacement" && action.event === "wouldBePlayed"),

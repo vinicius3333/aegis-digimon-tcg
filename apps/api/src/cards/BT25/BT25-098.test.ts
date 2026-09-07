@@ -55,6 +55,27 @@ describe("BT25-098 Cyber Engage", () => {
     );
   });
 
+  it("places itself and trashes all three revealed cards when no Appmon is revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-098", as: "option" }],
+          battleArea: [{ card: "BT25-089", as: "appmon" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-098"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002", "BT1-003"]),
+    );
+  });
+
   it("requires an Appmon Digimon or Tamer on the field for Use Req.", async () => {
     const s = setupEngine({
       0: {
@@ -96,6 +117,71 @@ describe("BT25-098 Cyber Engage", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-061")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098")).toBe(true);
     expect(s.state.memory).toBe(10);
+  });
+
+  it("applies the Delay reduction exactly to an Appmon Tamer's play cost", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-098", as: "delay" }], hand: [{ card: "BT25-089", as: "target" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("delay").enterFieldTurnCount = s.state.turnCount - 1;
+    s.state.memory = 10;
+    await s.ready();
+    const [entry] = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+    expect(entry).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("delay").topCard.instanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-089"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-089")).toBe(true);
+    expect(s.state.memory).toBe(9);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098")).toBe(true);
+  });
+
+  it("does not allow both copies' card-playing Delays to resolve concurrently (Q6464)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-098", as: "first" },
+            { card: "BT25-098", as: "second" },
+          ],
+          hand: [{ card: "BT25-089", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    s.perm("first").enterFieldTurnCount = s.state.turnCount - 1;
+    s.perm("second").enterFieldTurnCount = s.state.turnCount - 1;
+    s.state.memory = 10;
+    await s.ready();
+    const first = JSON.parse(s.perm("first").activatableEffectsJson)[0] as { effectKey: string };
+    const second = JSON.parse(s.perm("second").activatableEffectsJson)[0] as { effectKey: string };
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("first").topCard.instanceId,
+      effectKey: first.effectKey,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards" || s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.state.pendingDecision).toBeDefined();
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("second").topCard.instanceId,
+      effectKey: second.effectKey,
+    })).toEqual({ ok: false, reason: "decision-pending" });
+    const pending = s.state.pendingDecision!;
+    const payload = JSON.parse(pending.payloadJson) as { candidateInstanceIds?: string[] };
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: pending.kind, instanceIds: payload.candidateInstanceIds?.slice(0, 1) ?? [] },
+    } as never)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-089"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-089")).toBe(true);
   });
 
   it("cannot consume Delay on the turn it entered the battle area", async () => {

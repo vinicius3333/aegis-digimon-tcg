@@ -4,6 +4,21 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
+interface ActivatableEntry {
+  instanceId: string;
+  effectKey: string;
+}
+
+function activatableEffects(
+  s: ReturnType<typeof setupEngine>,
+  permanent: { activatableEffectsJson?: string },
+): ActivatableEntry[] {
+  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
+  return permanent.activatableEffectsJson
+    ? (JSON.parse(permanent.activatableEffectsJson) as ActivatableEntry[])
+    : [];
+}
+
 describe("BT25-089 Kazuki & Itsuki", () => {
   it("gains exactly 1 memory at start main only when the opponent has a battle-area Digimon", async () => {
     const s = setupEngine({
@@ -13,6 +28,11 @@ describe("BT25-089 Kazuki & Itsuki", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
     expect(s.state.memory).toBe(1);
+
+    const noOpponent = setupEngine({ 0: { battleArea: [{ card: "BT25-089", as: "tamer" }] } });
+    await noOpponent.ready();
+    await advance(noOpponent.engine).fire(EffectTiming.OnStartMainPhase, noOpponent.perm("tamer"));
+    expect(noOpponent.state.memory).toBe(0);
   });
 
   it("suspends itself, pays link cost reduced by 2, and links an Appmon from hand", async () => {
@@ -35,6 +55,58 @@ describe("BT25-089 Kazuki & Itsuki", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("Q6423 rejects a second copy's Main activation while the first link activation is pending", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "first" },
+            { card: "BT25-089", as: "second" },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT26-010", as: "link" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const first = activatableEffects(s, s.perm("first"))[0]!;
+    const second = activatableEffects(s, s.perm("second"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: first.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: second.instanceId,
+        effectKey: second.effectKey,
+      }),
+    ).toEqual({ ok: false, reason: "decision-pending" });
+    expect(s.perm("second").isSuspended).toBe(false);
+
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(false);
     expect(s.state.memory).toBe(2);
   });
 

@@ -1,11 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT25-094 Cosmic Area", () => {
+  it("matches the committed catalog identity and has no evolution route", () => {
+    expect(getCardDefinition("BT25-094")).toMatchObject({
+      cardId: "BT25-094",
+      nameEn: "Cosmic Area",
+      colors: ["Red", "Blue"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["Iliad", "TS"],
+      evoCosts: [],
+    });
+  });
+
   it("places itself face up at the bottom security", async () => {
     const s = setupEngine(
       {
@@ -62,6 +74,30 @@ describe("BT25-094 Cosmic Area", () => {
       instanceId: s.inst("area").instanceId,
       faceUp: true,
     });
+  });
+
+  it("keeps the mandatory security movement when the reduced hand play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-094", as: "area" },
+            { card: "BT25-008", as: "declined" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const areaId = s.inst("area").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: areaId, useAs: "option" } as never)).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: areaId, faceUp: true });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("declined").instanceId);
+    expect(s.state.memory).toBe(7);
   });
 
   it("takes exactly the bottom security card and does not waive color with a face-up card", async () => {
@@ -183,5 +219,35 @@ describe("BT25-094 Cosmic Area", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("area"));
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+  });
+
+  it("triggers the face-up Security effect from a real attack and leaves the revealed card face up", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-094", faceUp: true, as: "area" }],
+          trash: [{ card: "BT25-009", as: "eligible" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const areaId = s.inst("area").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "BT25-094")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(areaId);
+    expect(s.state.players[0]!.trash.find((card) => card.instanceId === areaId)).toMatchObject({ faceUp: true });
   });
 });
