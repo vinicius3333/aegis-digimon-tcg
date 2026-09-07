@@ -113,6 +113,7 @@ describe("BT21-077 Regulusmon", () => {
             { card: "BT21-077", as: "regulusmon" },
             { card: "BT21-010", as: "gammamon-cost" },
           ],
+          battleArea: [{ card: "BT21-059", as: "blocker" }],
           security: ["BT1-001", "BT1-002"],
           deck: ["BT1-003", "BT1-004", "BT1-005"],
         },
@@ -126,6 +127,8 @@ describe("BT21-077 Regulusmon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const blockerId = s.perm("blocker").permanentId;
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     preferred.push(s.inst("gammamon-cost").instanceId, s.perm("target").permanentId);
@@ -133,6 +136,7 @@ describe("BT21-077 Regulusmon", () => {
       ok: true,
     });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    const regulusmonId = s.perm("regulusmon").permanentId;
     // Resolve Collision through its public block decision on the opponent turn.
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
@@ -141,14 +145,13 @@ describe("BT21-077 Regulusmon", () => {
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
+    expect(observe(s.engine).hasKeyword(targetId, "Collision")).toBe(true);
     // Collision grants every defending Digimon Blocker and requires blocking if possible.
-    expect(
-      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("regulusmon").permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("regulusmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("blocker").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === regulusmonId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
