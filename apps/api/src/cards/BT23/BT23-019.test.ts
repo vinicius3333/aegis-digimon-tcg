@@ -127,7 +127,7 @@ describe("BT23-019 Gekomon", () => {
     ).toMatchObject({ ok: false });
   });
   it("publicly triggers the When Digivolving trash across two opposing hosts", async () => {
-    const sourceIds = ["BT23-017", "BT23-017"];
+    const sourceIds: [string, string] = ["BT23-017", "BT23-017"];
     const s = setupEngine(
       {
         0: {
@@ -211,7 +211,7 @@ describe("BT23-019 Gekomon", () => {
         deck: ["BT1-010"],
       },
     });
-    const sourceIds = [
+    const sourceIds: [string, string, string] = [
       s.perm("targetA").stack[0]!.instanceId,
       s.perm("targetA").stack[1]!.instanceId,
       s.perm("targetB").stack[0]!.instanceId,

@@ -2,11 +2,12 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../BT24/BT24-016.js";
 import { compiled } from "./BT23-005.js";
 
 function lamiamonMainEffectKey(s: ReturnType<typeof setupEngine>): string {
-  const source = s.engine.cardSourceOf(s.inst("lamiamon"));
+  const source = observe(s.engine).cardSource(s.inst("lamiamon"));
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-016/"))!
     .effectKey;
 }
