@@ -165,6 +165,75 @@ describe("BT21-060 Destromon", () => {
     expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual(protectedStack);
   });
 
+  it("expires the public stacked-card lock after the opponent turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-056", as: "source" }],
+          hand: [{ card: "BT21-060", as: "destromon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          hand: [
+            { card: "BT21-061", as: "firstOpponentEffect" },
+            { card: "BT21-061", as: "secondOpponentEffect" },
+          ],
+          battleArea: [
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT1-086", as: "blueTamer" },
+          ],
+          deck: ["BT1-003", "BT1-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("destromon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-060");
+
+    // Public opponent play during the protected opponent turn cannot trash the Vemmon source.
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstOpponentEffect").instanceId })).toEqual(
+      {
+        ok: true,
+      },
+    );
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT21-061"));
+    expect(s.perm("source").topCard.cardId).toBe("BT21-060");
+
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    // On the next opponent turn the until-opponent-turn-end lock has expired.
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondOpponentEffect").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-056");
+    expect(s.perm("source").topCard.cardId).toBe("BT21-056");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
+  });
+
   it("publicly places two Vemmon before the exact-name evolution and applies one De-Digivolve", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
