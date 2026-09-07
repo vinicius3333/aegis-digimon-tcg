@@ -169,6 +169,7 @@ export function permanentMatchesFilter(
   permanent: Permanent,
   filter: Filter,
   source: CardSource,
+  opts?: { allowPendingRotationHost?: boolean },
 ): boolean {
   if (permanent.topCard === undefined) return false;
   // Controller is a live permanent property, not part of the card definition. Keep
@@ -763,7 +764,11 @@ export function permanentMatchesFilter(
           // supplies DP (EX2-007 Mother D-Reaper). Do not let synthetic/invalid battle-area
           // fixtures turn an ordinary no-DP level-2 egg such as BT1-001 into an effect target.
           (def.kinds.includes(CardKind.DigiEgg) && typeof def.dp === "number" && def.dp > 0));
-      if (!tokenAsDigimon && !liveDigimon && !wanted.some((k) => effective.includes(k))) return false;
+      const pendingEgg =
+        opts?.allowPendingRotationHost === true &&
+        def.kinds.includes(CardKind.DigiEgg) &&
+        permanent.permanentId === ctx.pendingRotationHostPermanentId;
+      if (!tokenAsDigimon && !liveDigimon && !pendingEgg && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       filter = rest;

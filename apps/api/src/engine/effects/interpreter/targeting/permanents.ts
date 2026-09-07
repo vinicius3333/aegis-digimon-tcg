@@ -21,7 +21,7 @@ import type { Condition, Filter, Permanent, Seat, Target } from "@aegis/shared";
 export function candidatePermanents(
   ctx: EffectContext,
   target: Target,
-  opts?: { includeUnaffectable?: boolean },
+  opts?: { includeUnaffectable?: boolean; allowPendingRotationHost?: boolean },
 ): Permanent[] {
   const source = ctx.source;
   // A target that IS a prior binding ("place [the chosen Digimon] under ..."): resolve to the
@@ -125,7 +125,15 @@ export function candidatePermanents(
       }
     }
     for (const permanent of p.battleArea) {
-      if (!allFilters.some((f) => isBattleAreaFilter(f) && permanentMatchesFilter(ctx, permanent, f, source))) continue;
+      const allowPendingRotationHost =
+        opts?.allowPendingRotationHost === true && permanent.permanentId === ctx.pendingRotationHostPermanentId;
+      if (
+        !allFilters.some(
+          (f) =>
+            isBattleAreaFilter(f) && permanentMatchesFilter(ctx, permanent, f, source, { allowPendingRotationHost }),
+        )
+      )
+        continue;
       if (!opts?.includeUnaffectable && isPermanentUnaffectable(ctx, source, permanent, relevantSourceKinds)) continue;
       result.push(permanent);
     }
@@ -361,6 +369,7 @@ export async function resolvePermanentTargets(
     /** Keep an immune chosen permanent in the result when the action grants an effect that
      * is checked only when its later trigger activates (Q7060-Q7066). */
     preserveUnaffectableSelection?: boolean;
+    allowPendingRotationHost?: boolean;
   },
 ): Promise<string[]> {
   // SourceRef: resolve to the permanent that triggered this SubTrigger event.
@@ -428,7 +437,10 @@ export async function resolvePermanentTargets(
   const eligible = opts?.eligible;
   const finalize = (ids: readonly string[]): string[] =>
     opts?.preserveUnaffectableSelection === true ? [...ids] : filterAffectable(ctx, ids);
-  const visibleCandidates = candidatePermanents(ctx, target, { includeUnaffectable: true });
+  const visibleCandidates = candidatePermanents(ctx, target, {
+    includeUnaffectable: true,
+    allowPendingRotationHost: opts?.allowPendingRotationHost,
+  });
   const candidates =
     eligible === undefined ? visibleCandidates : visibleCandidates.filter((p) => eligible(p.permanentId));
   if (candidates.length === 0) {

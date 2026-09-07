@@ -1633,7 +1633,8 @@ export async function payCost(
       if (candidates.length === 0) return false;
       const selected =
         candidates.length === 1 ? candidates[0] : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
-      if (selected === undefined || !ctx.fx.placeOwnTopAtStackBottom(selected)) return false;
+      if (selected === undefined || !(await ctx.fx.placeOwnTopAtStackBottom(selected))) return false;
+      ctx.pendingRotationHostPermanentId = selected;
       if (out) out.paidCount = 1;
       return true;
     }

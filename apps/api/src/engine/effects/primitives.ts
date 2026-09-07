@@ -1399,6 +1399,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const priorTop = permanent.topCard;
     pushOnStack(permanent, priorTop);
     setTopCard(permanent, instance);
+    // A prior stack rotation may have marked the promoted no-DP top for rule trash.
+    // A successful digivolution replaces that top with a new card, so the stale marker
+    // must not trash the newly evolved permanent during the post-effect rule pass.
+    permanent.invalidNoDpStackTop = false;
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.kinds.includes(CardKind.Digimon) ? definition.dp : 0;
     permanent.baseDP = dp;

@@ -11,7 +11,28 @@ import { scaleFactor } from "../scaling.js";
 import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
-import type { Action, CardColor, Filter, Target, ZoneRef } from "@aegis/shared";
+import type { Action, CardColor, CardDefinition, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
+
+type ProjectedBase = { permanent: Permanent; definition: CardDefinition };
+
+function projectedRotationBase(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Digivolve" }>,
+  permanentId: string,
+): ProjectedBase | undefined {
+  const costs = action.cost?.kind === "compound" ? action.cost.costs : undefined;
+  const rotation = costs?.find((nested) => nested.kind === "placeOwnTopAtStackBottom");
+  if (rotation?.target === undefined) return undefined;
+  const host = ctx.game.permanentById(permanentId);
+  const oldTop = host?.topCard;
+  const promoted = host?.stack.at(-1);
+  if (host === undefined || oldTop === undefined || promoted === undefined) return undefined;
+  if (!candidatePermanents(ctx, rotation.target).some((candidate) => candidate.permanentId === permanentId))
+    return undefined;
+  const stack = [oldTop, ...host.stack.slice(0, -1)];
+  const permanent = { ...host, topCard: promoted, stack } as Permanent;
+  return { permanent, definition: ctx.game.definitionOf(promoted) };
+}
 
 /**
  * Effect-driven digivolve ("this Digimon may digivolve into [X] in the hand without
@@ -54,13 +75,16 @@ function legalIntoCandidates(
   digivolutionCostMax?: number,
   ignoreLevel = false,
   virtualBase?: { level: number; colors: CardColor[] },
+  projectedBase?: ProjectedBase,
 ): LooseCandidate[] {
-  const base = ctx.game.permanentById(basePermanentId);
+  const base = projectedBase?.permanent ?? ctx.game.permanentById(basePermanentId);
   const actualBaseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
   const baseDef =
-    actualBaseDef === undefined || virtualBase === undefined
-      ? actualBaseDef
-      : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
+    projectedBase !== undefined
+      ? projectedBase.definition
+      : actualBaseDef === undefined || virtualBase === undefined
+        ? actualBaseDef
+        : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
   if (baseDef === undefined) return [];
   return pool.filter((c) => {
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
@@ -172,7 +196,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
         return baseColors.some((color) => intoColors.includes(color));
       });
     }
-    return (
+    const legalAgainst = (projectedBase?: ProjectedBase): boolean =>
       legalIntoCandidates(
         ctx,
         permanentId,
@@ -181,8 +205,23 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
         intoTarget.filter.digivolutionCostMax,
         ignoreLevel,
         action.virtualBase,
-      ).length > 0
-    );
+        projectedBase,
+      ).length > 0;
+    const projected = projectedRotationBase(ctx, action, permanentId);
+    if (projected === undefined) return legalAgainst();
+    if (legalAgainst(projected)) return true;
+
+    // The rotation cost and the evolution target are chosen independently
+    // (EX5-064 Q3668). If another legal stack can pay the rotation, this
+    // permanent remains unchanged and its current top is authoritative.
+    const rotation =
+      action.cost?.kind === "compound"
+      ? action.cost.costs?.find((nested) => nested.kind === "placeOwnTopAtStackBottom")
+        : undefined;
+    const hasDistinctRotationHost =
+      rotation?.target !== undefined &&
+      candidatePermanents(ctx, rotation.target).some((candidate) => candidate.permanentId !== permanentId);
+    return hasDistinctRotationHost && legalAgainst();
   };
 
   if (action.target.targetBreeding === true) {
@@ -384,6 +423,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   // filtered against — so the offer and the resolution agree.
   const availableIntoPool = intoPool();
   const permanentIds = await resolvePermanentTargets(ctx, action.target, {
+    allowPendingRotationHost: ctx.pendingRotationHostPermanentId !== undefined,
     eligible: (pid) => intoTarget === undefined || legalIntoForBase(pid, availableIntoPool).length > 0,
   });
   if (permanentIds.length === 0) return;

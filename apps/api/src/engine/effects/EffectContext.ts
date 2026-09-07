@@ -1892,6 +1892,8 @@ export interface SeatScopedDecisionApi {
  * (card-module contract).
  */
 export interface EffectContext {
+  /** Exact permanent rotated by a compound cost still resolving. */
+  pendingRotationHostPermanentId?: string;
   source: CardSource;
   /** Placement proof for an inherited source discarded from its live host during this event. */
   discardedStackSourceProof?: DiscardedStackSourceProof;
