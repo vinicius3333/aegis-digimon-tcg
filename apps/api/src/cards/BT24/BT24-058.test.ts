@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,21 @@ import { compiled as BT24_058 } from "./BT24-058.js";
 import "../index.js";
 
 describe("BT24-058 Blimpmon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-058")).toMatchObject({
+      cardId: "BT24-058",
+      nameEn: "Blimpmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Machine", "Iliad", "TS"],
+    });
+  });
+
   it("searches the two printed destination branches on play and digivolving", () => {
     const effects = BT24_058.effects?.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger));
     expect(effects).toHaveLength(2);
