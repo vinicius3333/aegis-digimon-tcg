@@ -44,12 +44,12 @@ describe("BT24-073 SkullSatamon", () => {
         {
           0: {
             battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
-            deck: ["BT1-001", "BT1-002", "BT1-003"],
-            trash: [{ card: "BT1-069", as: "revive" }],
+            deck: ["BT1-013", "BT1-015", "BT1-045"],
+            trash: [{ card: "BT11-080", as: "revive" }],
           },
           1: {
-            deck: ["BT1-004", "BT1-005", "BT1-006"],
-            trash: Array.from({ length: 8 }, () => "BT1-007"),
+            deck: ["BT1-009", "BT1-011", "BT1-014"],
+            trash: Array.from({ length: 8 }, () => "BT1-013"),
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
@@ -75,12 +75,12 @@ describe("BT24-073 SkullSatamon", () => {
         0: {
           battleArea: [{ card: "BT24-070", as: "base" }],
           hand: [{ card: "BT24-073", as: "skullsatamon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-          trash: [{ card: "BT1-069", as: "revive" }],
+          deck: ["BT1-013", "BT1-015", "BT1-045"],
+          trash: [{ card: "BT11-080", as: "revive" }],
         },
         1: {
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
-          trash: Array.from({ length: 8 }, () => "BT1-007"),
+          deck: ["BT1-009", "BT1-011", "BT1-014"],
+          trash: Array.from({ length: 8 }, () => "BT1-013"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -109,12 +109,12 @@ describe("BT24-073 SkullSatamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-          trash: [{ card: "BT1-069", as: "revive" }],
+          deck: ["BT1-013", "BT1-015", "BT1-045"],
+          trash: [{ card: "BT11-080", as: "revive" }],
         },
         1: {
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
-          trash: Array.from({ length: 8 }, () => "BT1-007"),
+          deck: ["BT1-009", "BT1-011", "BT1-014"],
+          trash: Array.from({ length: 8 }, () => "BT1-013"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -133,11 +133,11 @@ describe("BT24-073 SkullSatamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-074", as: "host", under: ["BT24-073"] }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
-        security: ["BT1-004", "BT1-005", "BT1-006"],
+        deck: ["BT1-013", "BT1-015", "BT1-045"],
+        security: ["BT1-009", "BT1-011", "BT1-014"],
       },
       1: {
-        deck: ["BT1-007", "BT1-008", "BT1-009"],
+        deck: ["BT1-013", "BT1-015", "BT1-009"],
         security: ["BT1-010", "BT1-011", "BT1-012"],
         trash: Array.from({ length: 10 }, () => "BT1-013"),
       },
@@ -164,12 +164,12 @@ describe("BT24-073 SkullSatamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-074", as: "host", under: ["BT24-073"] }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-013", "BT1-015"],
       },
       1: {
-        deck: ["BT1-003", "BT1-004"],
-        security: ["BT1-006", "BT1-007", "BT1-008"],
-        trash: Array.from({ length: 11 }, () => "BT1-005"),
+        deck: ["BT1-045", "BT1-009"],
+        security: ["BT1-014", "BT1-013", "BT1-015"],
+        trash: Array.from({ length: 11 }, () => "BT1-011"),
       },
     });
     await s.ready();
