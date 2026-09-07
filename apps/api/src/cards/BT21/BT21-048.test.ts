@@ -135,10 +135,10 @@ describe("BT21-048 compiled implementation", () => {
     expect(declined.perm("target").isSuspended).toBe(false);
   });
 
-  it("zero-cost digivolves from a level-2 WG card", async () => {
+  it("zero-cost digivolves from a level-2 WG egg in the breeding area", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-003", as: "wgEgg" }],
+        breeding: { card: "BT21-003", as: "wgEgg" },
         hand: [{ card: "BT21-048", as: "mushroomon" }],
       },
     });
@@ -224,7 +224,8 @@ describe("BT21-048 compiled implementation", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
