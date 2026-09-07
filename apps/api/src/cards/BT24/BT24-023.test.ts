@@ -92,6 +92,25 @@ describe("BT24-023 Calmaramon", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
   });
 
+  it("runs the return without effect-play restriction from a public play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-023", as: "calmaramon" }] },
+      1: {
+        battleArea: [{ card: "BT24-022", as: "returned" }, { card: "BT24-083", as: "restricted" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("returned").permanentId, s.perm("restricted").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("calmaramon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("calmaramon").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("calmaramon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.deck).toContain(s.inst("returned"));
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(false);
+  });
+
   it("Decodes Lanamon from its stack on non-battle removal and still leaves", async () => {
     const s = setupEngine(
       {
