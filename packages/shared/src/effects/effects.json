@@ -77294,7 +77294,7 @@
             "triggerFilter": { "isSelfRef": true },
             "addedDigivolutionCardFilter": {
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
             },
             "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
@@ -77646,7 +77646,12 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Red"], "cost": 2, "isAlternate": false },
+      { "level": 3, "traits": ["Stnd."], "cost": 2, "isAlternate": true }
+    ],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }]
   },
   "BT22-010": {
     "effects": [
@@ -77708,6 +77713,14 @@
                 "playCostLte": 5,
                 "nameOrTrait": [{ "tokens": ["Flame"], "match": "trait" }]
               },
+              "orFilters": [
+                {
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "playCostLte": 5,
+                  "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
+                }
+              ],
               "count": 1
             },
             "from": ["trash"],
@@ -77808,7 +77821,7 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -77891,6 +77904,17 @@
   },
   "BT22-014": {
     "effects": [
+      {
+        "trigger": "Rule",
+        "actions": [
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "grant": "name",
+            "tokens": ["Greymon"]
+          }
+        ]
+      },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Raid", "raw": "＜Raid＞" }] },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Reboot", "raw": "＜Reboot＞" }] },
       {
@@ -78045,7 +78069,17 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["CS"], "cost": 5, "isAlternate": true }],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "level": 6, "names": ["Greymon"] },
+          { "level": 6, "names": ["Garurumon"] }
+        ]
+      }
+    ]
   },
   "BT22-016": {
     "effects": [
@@ -78064,7 +78098,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Entertainment", "Awakening (App Name)"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Entertainment", "Awakening"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -78091,6 +78125,7 @@
     ],
     "coverage": "full",
     "residual": [],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 1 }],
     "digivolutionRequirement": [{ "level": 2, "traits": ["Appmon"], "cost": 0, "isAlternate": true }]
   },
   "BT22-017": {
@@ -78168,7 +78203,7 @@
                 "controller": "mine",
                 "excludeSelf": true,
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
               },
               "destination": "digivolutionStack",
               "position": "bottom",
@@ -78537,7 +78572,10 @@
         "isFromHand": true,
         "condition": {
           "kind": "youHave",
-          "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Yao Qinglan"], "match": "name" }] },
+          "filter": {
+            "controllerDefault": "mine",
+            "nameOrTrait": [{ "tokens": ["Yao Qinglan"], "match": "nameExact" }]
+          },
           "raw": "you have [Yao Qinglan]"
         },
         "actions": [
@@ -78547,12 +78585,12 @@
               "filter": {
                 "controller": "mine",
                 "zone": "trash",
-                "nameOrTrait": [{ "tokens": ["Shellmon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Shellmon"], "match": "nameExact" }]
               },
               "count": 1,
               "from": ["trash"]
             },
-            "underFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Sangomon"], "match": "name" }] },
+            "underFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Sangomon"], "match": "nameExact" }] },
             "position": "bottom",
             "optional": true,
             "abortOnDecline": true,
@@ -78565,7 +78603,7 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Sangomon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Sangomon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -79431,7 +79469,13 @@
     ],
     "coverage": "full",
     "residual": [],
-    "appFusionRequirement": [{ "names": ["Musimon", "Recomon", "Mcmon"], "cost": 0 }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Yellow"], "cost": 3, "isAlternate": false },
+      { "level": 3, "colors": ["Blue"], "cost": 3, "isAlternate": false },
+      { "level": 3, "traits": ["Stnd."], "cost": 3, "isAlternate": true }
+    ],
+    "appFusionRequirement": [{ "names": ["Musimon", "Recomon", "Mcmon"], "cost": 0 }],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }]
   },
   "BT22-034": {
     "effects": [
@@ -79522,7 +79566,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["CS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Yellow"], "cost": 2, "isAlternate": false },
+      { "level": 3, "traits": ["CS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT22-035": {
     "effects": [
@@ -79620,7 +79667,13 @@
     ],
     "coverage": "full",
     "residual": [],
-    "appFusionRequirement": [{ "names": ["Mediamon", "Dreammon"], "cost": 0 }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Yellow"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 4, "traits": ["Sup."], "cost": 4, "isAlternate": true }
+    ],
+    "appFusionRequirement": [{ "names": ["Mediamon", "Dreammon"], "cost": 0 }],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 3 }]
   },
   "BT22-036": {
     "effects": [
@@ -79711,7 +79764,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "colors": ["Yellow"], "cost": 3, "isAlternate": false }]
   },
   "BT22-037": {
     "effects": [
@@ -80624,7 +80678,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["DM"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "level": 3, "traits": ["DM"], "cost": 2, "isAlternate": true }]
   },
   "BT22-050": {
     "effects": [
@@ -80865,7 +80919,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["CS"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Black"], "cost": 0, "isAlternate": false },
+      { "level": 2, "traits": ["CS"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT22-054": {
     "effects": [
@@ -80922,7 +80979,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["CS"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Black"], "cost": 1, "isAlternate": false },
+      { "level": 2, "colors": ["Yellow"], "cost": 1, "isAlternate": false },
+      { "level": 2, "traits": ["CS"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT22-055": {
     "effects": [
@@ -80960,7 +81021,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["Appmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Black"], "cost": 0, "isAlternate": false },
+      { "level": 2, "traits": ["Appmon"], "cost": 0, "isAlternate": true }
+    ],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }]
   },
   "BT22-056": {
     "effects": [
@@ -81021,7 +81086,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["CS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": false },
+      { "level": 3, "colors": ["Yellow"], "cost": 3, "isAlternate": false },
+      { "level": 3, "traits": ["CS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT22-057": {
     "effects": [
@@ -81125,7 +81194,9 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["Stnd."], "cost": 2, "isAlternate": true }],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 2 }]
   },
   "BT22-059": {
     "effects": [
@@ -81382,6 +81453,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
       { "names": ["Vegiemon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["DM"], "cost": 4, "isAlternate": true }
     ]
@@ -81437,6 +81509,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Green"], "cost": 4, "isAlternate": false },
       { "level": 5, "names": ["Tyrannomon"], "excludeTraits": ["X Antibody"], "cost": 1, "isAlternate": true }
     ]
   },
@@ -81517,6 +81591,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 5, "colors": ["Black"], "cost": 4, "isAlternate": false },
+      { "level": 5, "colors": ["Yellow"], "cost": 4, "isAlternate": false },
       { "level": 5, "traits": ["CS"], "cost": 3, "isAlternate": true },
       {
         "names": ["Kyoko Kuremi"],
@@ -81573,6 +81649,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 5, "colors": ["Black"], "cost": 4, "isAlternate": false },
       { "names": ["Infermon"], "cost": 3, "isAlternate": true },
       { "level": 5, "traits": ["CS"], "cost": 3, "isAlternate": true }
     ]
@@ -82149,6 +82226,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
+      { "level": 4, "colors": ["Purple"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Blue"], "cost": 4, "isAlternate": false },
       { "level": 4, "traits": ["Night Claw", "Light Fang", "CS"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -82221,7 +82300,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["Flame", "CS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Purple"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Red"], "cost": 4, "isAlternate": false },
+      { "level": 4, "traits": ["Flame", "CS"], "cost": 3, "isAlternate": true }
+    ]
   },
   "BT22-075": {
     "effects": [
@@ -82297,7 +82380,13 @@
     ],
     "coverage": "full",
     "residual": [],
-    "appFusionRequirement": [{ "names": ["Roamon", "Effecmon"], "cost": 0 }]
+    "digivolutionRequirement": [
+      { "level": 4, "colors": ["Purple"], "cost": 4, "isAlternate": false },
+      { "level": 4, "colors": ["Green"], "cost": 4, "isAlternate": false },
+      { "level": 4, "traits": ["Sup."], "cost": 4, "isAlternate": true }
+    ],
+    "appFusionRequirement": [{ "names": ["Roamon", "Effecmon"], "cost": 0 }],
+    "linkRequirement": [{ "traits": ["Appmon"], "cost": 3 }]
   },
   "BT22-076": {
     "effects": [
@@ -82394,7 +82483,11 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["DM"], "cost": 5, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 5, "colors": ["Purple"], "cost": 5, "isAlternate": false },
+      { "level": 5, "colors": ["Yellow"], "cost": 5, "isAlternate": false },
+      { "level": 5, "traits": ["DM"], "cost": 5, "isAlternate": true }
+    ]
   },
   "BT22-077": {
     "effects": [
@@ -83770,7 +83863,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": {
               "controller": "mine",
-              "kind": ["Digimon"],
+              "zone": "breeding",
               "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
             },
             "position": "bottom"
