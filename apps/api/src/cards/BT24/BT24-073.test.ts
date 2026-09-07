@@ -129,6 +129,32 @@ describe("BT24-073 SkullSatamon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(11);
   });
 
+  it("may refuse the optional revival after a public deletion timing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
+          deck: ["BT1-013", "BT1-015", "BT1-045"],
+          trash: [{ card: "BT11-080", as: "revive" }],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-011", "BT1-014"],
+          trash: Array.from({ length: 8 }, () => "BT1-013"),
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("skullsatamon"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT24-073");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("revive").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(11);
+  });
+
   it("inherited attack mills both decks instead of security at 10 opposing trash cards", async () => {
     const s = setupEngine({
       0: {
@@ -187,5 +213,56 @@ describe("BT24-073 SkullSatamon", () => {
     expect(s.state.players[1]!.deck).toHaveLength(2);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+  });
+
+  it("resets inherited attack milling on the owner's later public attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-074", as: "host", under: ["BT24-073"] }],
+        deck: ["BT1-013", "BT1-015", "BT1-045", "BT1-009", "BT1-010", "BT1-011"],
+      },
+      1: {
+        deck: ["BT1-013", "BT1-015", "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        battleArea: [
+          { card: "BT1-009", as: "firstTarget", suspended: true, dp: 1000 },
+          { card: "BT1-010", as: "secondTarget", suspended: true, dp: 1000 },
+        ],
+        security: ["BT1-014"],
+        trash: Array.from({ length: 7 }, () => "BT1-013"),
+      },
+    });
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    const firstOwnerDeck = s.state.players[0]!.deck.length;
+    const firstOpponentDeck = s.state.players[1]!.deck.length;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId } })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.deck).toHaveLength(firstOwnerDeck - 2);
+    expect(s.state.players[1]!.deck).toHaveLength(firstOpponentDeck - 2);
+    expect(s.state.players[1]!.trash).toHaveLength(10);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstTargetId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const secondOwnerDeck = s.state.players[0]!.deck.length;
+    const secondOpponentDeck = s.state.players[1]!.deck.length;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.deck).toHaveLength(secondOwnerDeck - 2);
+    expect(s.state.players[1]!.deck).toHaveLength(secondOpponentDeck - 2);
+    expect(s.state.players[1]!.trash).toHaveLength(13);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
   });
 });
