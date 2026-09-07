@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,22 @@ import { compiled as BT24_092 } from "./BT24-092.js";
 import "../index.js";
 
 describe("BT24-092 Shock Plasma", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-092")).toMatchObject({
+      cardId: "BT24-092",
+      nameEn: "Shock Plasma",
+      colors: ["Yellow"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["TS"],
+      linkDp: 2000,
+      linkRequirement: "[Link] [TS]\u00a0trait: Cost 3",
+    });
+  });
+
   it("reduces an opponent Digimon and optionally links to your Digimon", async () => {
     const s = setupEngine(
       {
