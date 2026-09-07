@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -9,6 +9,17 @@ import { compiled } from "./BT24-094.js";
 import "../index.js";
 
 describe("BT24-094 Central Town: Throne Room", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-094")).toMatchObject({
+      cardId: "BT24-094",
+      nameEn: "Central Town: Throne Room",
+      colors: ["Green", "Yellow"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["Iliad", "TS"],
+    });
+  });
+
   it("encodes color waiver, face-up security static effects, main security exchange, and Security play", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects[0]).toMatchObject({
@@ -98,7 +109,7 @@ describe("BT24-094 Central Town: Throne Room", () => {
             { card: "BT24-094", as: "source" },
             { card: "BT24-024", as: "digimon" },
           ],
-          security: [{ card: "BT1-001", as: "bottom" }],
+          security: [{ card: "BT1-009", as: "bottom" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -110,7 +121,7 @@ describe("BT24-094 Central Town: Throne Room", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceCard.instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-024"));
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(
       true,
     );
