@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -48,6 +48,28 @@ describe("BT24-096 Seventh Graviton", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-020")).toBe(true);
     expect(s.state.players[1]!.deck).toHaveLength(4);
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(0);
+  });
+
+  it("deletes level 7 and refuses level 5 through the public Main intent", async () => {
+    const positive = setupEngine({
+      0: { hand: [{ card: "BT24-096", as: "option" }], battleArea: [{ card: "BT3-089", as: "purple" }] },
+      1: { battleArea: [{ card: "BT19-074", as: "level7" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+    });
+    positive.state.memory = 7;
+    await positive.ready();
+    expect(positive.engine.applyIntent(0, { type: "playCard", instanceId: positive.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => positive.state.players[1]!.trash.some((card) => card.instanceId === positive.inst("level7").instanceId));
+    expect(positive.state.players[1]!.trash.map((card) => card.instanceId)).toContain(positive.inst("level7").instanceId);
+
+    const negative = setupEngine({
+      0: { hand: [{ card: "BT24-096", as: "option" }], battleArea: [{ card: "BT3-089", as: "purple" }] },
+      1: { battleArea: [{ card: "BT1-020", as: "level5" }], deck: ["BT1-009", "BT1-045", "AD1-001", "BT1-080"] },
+    });
+    negative.state.memory = 7;
+    await negative.ready();
+    expect(negative.engine.applyIntent(0, { type: "playCard", instanceId: negative.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => negative.state.players[1]!.trash.length === 3);
+    expect(negative.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === negative.inst("level5").instanceId)).toBe(true);
   });
 
   it("mills the opponent's top 3 only when deletion fails, preserving deck order boundary", async () => {
@@ -127,6 +149,44 @@ describe("BT24-096 Seventh Graviton", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT24-096")).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT24-096");
     expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+
+  it("repeats the trash trigger after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT24-096", as: "firstGraviton" }],
+          battleArea: [{ card: "BT8-111", as: "firstBase" }, { card: "BT8-111", as: "secondBase" }],
+          hand: [{ card: "BT24-078", as: "firstX" }, { card: "BT24-078", as: "secondX" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT19-074", as: "firstTarget" }, { card: "BT19-074", as: "secondTarget" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("firstBase").permanentId, instanceId: s.inst("firstX").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("firstGraviton").instanceId));
+    const secondGraviton = s.give(0, Zone.Trash, { card: "BT24-096", as: "secondGraviton" });
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(secondGraviton.instanceId);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("secondBase").permanentId, instanceId: s.inst("secondX").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("secondGraviton").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("secondGraviton").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 
   it("may decline the trash activation: no return cost and no Main effect", async () => {
