@@ -186,6 +186,34 @@ describe("BT24-013 Fugamon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not inherited-evolve an ineligible level 4 host during a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-026", as: "host", under: ["BT24-013"] }],
+          hand: [{ card: "BT1-009", as: "attackCost" }],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("attackCost").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT24-026");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("titamon").instanceId);
+    expect(s.state.memory).toBe(5);
+  });
+
   it("digivolves from a level 3 Demon or TS Digimon for cost 2", async () => {
     const s = setupEngine({
       0: {
