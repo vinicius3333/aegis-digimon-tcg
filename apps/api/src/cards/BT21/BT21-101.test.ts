@@ -135,8 +135,64 @@ describe("BT21-101 Gaiamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    await settle(
+      () =>
+        s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
     expect(s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("uses two public Link producers on one Gaiamon but pays its linked security effect once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-101", as: "gaiamon", suspended: true }],
+          hand: [
+            { card: "BT21-009", as: "firstLink" },
+            { card: "BT21-009", as: "secondLink" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim", suspended: true }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("firstLink").instanceId,
+        targetPermanentId: s.perm("gaiamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaiamon").linked.length === 1);
+    expect(s.perm("gaiamon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaiamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaiamon").linked.length === 2 && !observe(s.engine).isAttacking());
+    expect(
+      s
+        .perm("gaiamon")
+        .linked.map((card) => card.instanceId)
+        .sort(),
+    ).toEqual([s.inst("firstLink").instanceId, s.inst("secondLink").instanceId].sort());
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("gaiamon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("accepts the public attack but declines an eligible attack-time link", async () => {
