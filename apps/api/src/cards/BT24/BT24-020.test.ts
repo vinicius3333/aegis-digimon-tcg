@@ -117,6 +117,52 @@ describe("BT24-020 Gomamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it("resets the inherited draw on the owner's later turn after a public attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-022", as: "host", suspended: true, under: ["BT24-020"] }],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: {
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand).toHaveLength(9);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
+  });
+
   it("digivolves from a non-blue level 2 TS Digi-Egg for cost 0", async () => {
     const s = setupEngine({
       0: {
