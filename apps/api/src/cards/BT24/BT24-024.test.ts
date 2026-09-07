@@ -94,6 +94,33 @@ describe("BT24-024 Submarimon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tamer").instanceId);
   });
 
+  it("plays a TS Tamer from a public player attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-024", as: "submarimon" }],
+          hand: [{ card: "BT24-084", as: "tamer" }],
+        },
+        1: { security: ["BT1-013", "BT1-015"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("submarimon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-084"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("tamer").instanceId,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
   it("uses Armor Purge to survive deletion by trashing its top card", async () => {
     const s = setupEngine(
       {
@@ -108,6 +135,31 @@ describe("BT24-024 Submarimon", () => {
 
     expect(s.perm("submarimon").topCard.cardId).toBe("BT24-020");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-024");
+  });
+
+  it("uses Armor Purge during a public attack deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-024", as: "submarimon", suspended: true, under: ["BT24-020"] }] },
+        1: { battleArea: [{ card: "BT24-017", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostPermanentId = s.perm("submarimon").permanentId;
+    const armorInstanceId = s.perm("submarimon").topCard.instanceId;
+    const sourceInstanceId = s.perm("submarimon").stack[0].instanceId;
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: hostPermanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === sourceInstanceId));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([sourceInstanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(armorInstanceId);
   });
 
   it.each([
