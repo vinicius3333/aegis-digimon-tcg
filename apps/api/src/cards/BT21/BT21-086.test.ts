@@ -45,6 +45,8 @@ describe("BT21-086 Marcus Damon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    await setup.ready();
+
     expect(
       setup.engine.applyIntent(0, {
         type: "playCard",
@@ -86,11 +88,12 @@ describe("BT21-086 Marcus Damon", () => {
             { card: "BT1-009", as: "ally" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 4000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     setup.state.memory = 10;
+    await setup.ready();
 
     expect(
       setup.engine.applyIntent(0, {
@@ -102,12 +105,13 @@ describe("BT21-086 Marcus Damon", () => {
       () =>
         observe(setup.engine).hasPierce(setup.perm("ally")) &&
         setup.perm("ally").currentDP === 6000 &&
-        setup.perm("opponent").currentDP === 1000,
+        setup.state.players[1]!.trash.some((card) => card.instanceId === setup.inst("opponent").instanceId),
     );
 
     expect(observe(setup.engine).hasPierce(setup.perm("ally"))).toBe(true);
     expect(setup.perm("ally").currentDP).toBe(6000);
-    expect(setup.perm("opponent").currentDP).toBe(1000);
+    expect(setup.state.players[1]!.battleArea).toHaveLength(0);
+    expect(setup.state.players[1]!.trash.map((card) => card.instanceId)).toContain(setup.inst("opponent").instanceId);
   });
 
   it("declining the On Play suspension leaves every Marcus unsuspended and grants no modifiers", async () => {
@@ -120,7 +124,7 @@ describe("BT21-086 Marcus Damon", () => {
             { card: "BT1-009", as: "ally" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 4000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -134,7 +138,7 @@ describe("BT21-086 Marcus Damon", () => {
     expect(setup.perm("existingMarcus").isSuspended).toBe(false);
     expect(setup.perm("ally").currentDP).toBe(3000);
     expect(observe(setup.engine).hasPierce(setup.perm("ally"))).toBe(false);
-    expect(setup.perm("opponent").currentDP).toBe(4000);
+    expect(setup.perm("opponent").currentDP).toBe(3000);
   });
 
   it("triggers only for this Marcus and only once per turn", async () => {
@@ -147,7 +151,7 @@ describe("BT21-086 Marcus Damon", () => {
             { card: "BT1-009", as: "ally", dp: 3000 },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
+        1: { battleArea: [{ card: "BT10-055", as: "opponent" }] },
       },
       { autoSelectCards: true },
     );
@@ -166,13 +170,13 @@ describe("BT21-086 Marcus Damon", () => {
       subjectPermanentId: setup.perm("marcus").permanentId,
     });
     expect(setup.perm("ally").currentDP).toBe(6000);
-    expect(setup.perm("opponent").currentDP).toBe(7000);
+    expect(setup.perm("opponent").currentDP).toBe(10000);
   });
 
   it("plays itself from Security without paying cost", async () => {
     const setup = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        0: { battleArea: [{ card: "BT21-032", as: "attacker" }] },
         1: { security: [{ card: "BT21-086", as: "marcus" }] },
       },
       { autoDeclineOptional: true },
