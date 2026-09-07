@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-059.js";
@@ -247,5 +246,24 @@ describe("BT21-059 Timemon", () => {
     expect(s.perm("watchmonHost").topCard.cardId).toBe("BT21-053");
     expect(s.perm("watchmonHost").stack).toHaveLength(0);
     expect(s.perm("watchmonHost").linked.map((card) => card.instanceId)).toEqual([duplicateId]);
+  });
+  it("uses printed Blocker to intercept and win a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT21-059", as: "timemon" }], security: ["BT1-001"] },
+    });
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("timemon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
+    expect(s.perm("timemon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
