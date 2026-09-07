@@ -155,11 +155,25 @@ describe("BT21-035 compiled implementation", () => {
 
   it("expires the When Digivolving bonus after the opponent's production turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-035", as: "flame" }], deck: ["BT1-001"] },
-      1: { deck: ["BT1-002"] },
+      0: {
+        battleArea: [{ card: "ST8-04", as: "veemon", under: ["BT12-002"] }],
+        hand: [{ card: "BT21-035", as: "flame" }],
+        deck: ["BT1-001", "BT1-001"],
+      },
+      1: { deck: ["BT1-002", "BT1-002"] },
     });
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("flame"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("flame").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-035");
+    expect(s.state.memory).toBe(1);
     expect(s.perm("flame").currentDP).toBe(8000);
     await advance(s.engine).runTurn(0);
     expect(s.perm("flame").currentDP).toBe(8000);
@@ -176,7 +190,13 @@ describe("BT21-035 compiled implementation", () => {
           battleArea: [{ card: "BT21-035", as: "flame" }],
           hand: [{ card: "BT21-075", as: "skull" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "blocker", dp: 5000 }], security: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "blocker" },
+            { card: "BT1-011", as: "blocker2" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -191,7 +211,27 @@ describe("BT21-035 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 1 &&
+        s.state.pendingDecision === undefined,
+    );
     expect(s.perm("flame").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("flame").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("flame").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
