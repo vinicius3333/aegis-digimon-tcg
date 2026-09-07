@@ -141,6 +141,35 @@ describe("BT21-095 Wind Guardians", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("public Security resolution rejects an over-level WG hand candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT21-095", as: "option" }],
+          hand: [{ card: "BT21-039", as: "tooLarge" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("Security rejects an over-level hand target (direct timing supplement)", async () => {
     const s = setupEngine(
       {
