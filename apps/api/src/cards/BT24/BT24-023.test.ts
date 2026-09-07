@@ -111,6 +111,26 @@ describe("BT24-023 Calmaramon", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(false);
   });
 
+  it("expires the effect-play suspension restriction at the real opponent turn end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-023", as: "calmaramon" }] },
+      1: {
+        battleArea: [{ card: "BT24-022", as: "returned" }, { card: "BT24-083", as: "restricted" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("returned").topCard.instanceId, s.perm("restricted").topCard.instanceId);
+    await s.ready();
+    await advance(s.engine).verb.playInstances([s.inst("calmaramon").instanceId], "BT24-016");
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "suspend"));
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(false);
+  });
+
   it("Decodes Lanamon from its stack on non-battle removal and still leaves", async () => {
     const s = setupEngine(
       {
@@ -131,6 +151,19 @@ describe("BT24-023 Calmaramon", () => {
       s.inst("lanamon").instanceId,
     );
     expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherLanamon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-023");
+  });
+
+  it("keeps a public Lanamon evolution stack through Decode and leaves the host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-027", as: "lanamon" }], hand: [{ card: "BT24-023", as: "calmaramon" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("lanamon").permanentId, instanceId: s.inst("calmaramon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("lanamon").topCard.cardId === "BT24-023");
+    expect(s.perm("lanamon").stack.map((card) => card.cardId)).toEqual(["BT24-027"]);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("lanamon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-027"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-027")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-023");
   });
 
