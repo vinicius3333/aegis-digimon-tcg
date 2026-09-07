@@ -158,6 +158,47 @@ describe("BT24-009 Shamanmon", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("may decline the inherited evolution after a public hand discard", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-009"] }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT24-009", as: "discarded" },
+          ],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discarded").instanceId));
+
+    expect(s.perm("host").topCard.cardId).toBe("BT24-072");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discarded").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("rejects a public play by the non-active opponent instead of opening this owner's trigger", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-009"] }],
+        hand: [{ card: "BT24-026", as: "discarder" }, { card: "BT24-009", as: "discarded" }],
+        trash: [{ card: "P-209", as: "titamon" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId }).ok).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("discarder").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-072");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("titamon").instanceId);
+  });
+
   it("does not inherited-evolve a host lacking Demon or Titan", async () => {
     const s = setupEngine(
       {
