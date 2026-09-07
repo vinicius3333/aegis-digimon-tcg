@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-018.js";
 
@@ -187,6 +188,118 @@ describe("BT23-018 Garurumon", () => {
       true,
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("xAgumon").instanceId);
+  });
+
+  it("keeps Jamming Garurumon after a larger security battle but loses in an ordinary larger battle", async () => {
+    const securityBattle = setupEngine({
+      0: { battleArea: [{ card: "BT23-018", as: "garurumon" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      1: { security: ["BT1-021"], deck: ["BT1-012", "BT1-013", "BT1-014"] },
+    });
+    expect(
+      securityBattle.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: securityBattle.perm("garurumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => securityBattle.state.players[1]!.security.length === 0 && !observe(securityBattle.engine).isAttacking(),
+    );
+    expect(securityBattle.state.players[1]!.security).toHaveLength(0);
+    expect(securityBattle.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-018")).toBe(true);
+    expect(securityBattle.state.players[0]!.trash.some((card) => card.cardId === "BT23-018")).toBe(false);
+
+    const ordinaryBattle = setupEngine({
+      0: { battleArea: [{ card: "BT23-018", as: "garurumon" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      1: { battleArea: [{ card: "BT1-021", as: "larger", suspended: true }], deck: ["BT1-012", "BT1-013", "BT1-014"] },
+    });
+    const targetId = ordinaryBattle.perm("larger").permanentId;
+    expect(
+      ordinaryBattle.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ordinaryBattle.perm("garurumon").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !ordinaryBattle.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-018"));
+    expect(ordinaryBattle.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-018")).toBe(false);
+    expect(ordinaryBattle.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+  });
+
+  it("publicly evolves from exact off-color Gabumon and CS, while rejecting wrong level and trait", async () => {
+    const exact = setupEngine({
+      0: {
+        battleArea: [{ card: "ST16-03", as: "gabumon" }],
+        hand: [{ card: "BT23-018", as: "garurumon" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    exact.state.memory = 5;
+    const exactSource = exact.inst("gabumon").instanceId;
+    const exactTop = exact.inst("garurumon").instanceId;
+    const exactHandBefore = exact.state.players[0]!.hand.length;
+    expect(
+      exact.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: exact.perm("gabumon").permanentId,
+        instanceId: exactTop,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => exact.perm("gabumon").topCard.instanceId === exactTop);
+    expect(exact.perm("gabumon").stack[0]!.instanceId).toBe(exactSource);
+    expect(exact.state.memory).toBe(3);
+    expect(exact.state.players[0]!.hand.length).toBe(exactHandBefore);
+
+    const cs = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-037", as: "csSource" }],
+        hand: [{ card: "BT23-018", as: "garurumon" }],
+        deck: ["BT1-011", "BT1-012"],
+      },
+    });
+    cs.state.memory = 5;
+    const csSource = cs.inst("csSource").instanceId;
+    const csTop = cs.inst("garurumon").instanceId;
+    const csHandBefore = cs.state.players[0]!.hand.length;
+    expect(
+      cs.engine.applyIntent(0, { type: "digivolve", permanentId: cs.perm("csSource").permanentId, instanceId: csTop }),
+    ).toEqual({ ok: true });
+    await settle(() => cs.perm("csSource").topCard.instanceId === csTop);
+    expect(cs.perm("csSource").stack[0]!.instanceId).toBe(csSource);
+    expect(cs.state.memory).toBe(3);
+    expect(cs.state.players[0]!.hand.length).toBe(csHandBefore);
+
+    const wrongLevel = setupEngine({
+      0: { battleArea: [{ card: "BT23-020", as: "level4" }], hand: [{ card: "BT23-018", as: "candidate" }] },
+    });
+    wrongLevel.state.memory = 5;
+    const wrongLevelHand = wrongLevel.state.players[0]!.hand.length;
+    expect(
+      wrongLevel.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongLevel.perm("level4").permanentId,
+        instanceId: wrongLevel.inst("candidate").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(wrongLevel.state.players[0]!.hand.length).toBe(wrongLevelHand);
+    expect(wrongLevel.state.memory).toBe(5);
+    expect(wrongLevel.perm("level4").topCard.cardId).toBe("BT23-020");
+
+    const wrongTrait = setupEngine({
+      0: { battleArea: [{ card: "BT1-064", as: "nonCS" }], hand: [{ card: "BT23-018", as: "candidate" }] },
+    });
+    wrongTrait.state.memory = 5;
+    const wrongTraitHand = wrongTrait.state.players[0]!.hand.length;
+    expect(
+      wrongTrait.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongTrait.perm("nonCS").permanentId,
+        instanceId: wrongTrait.inst("candidate").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(wrongTrait.state.players[0]!.hand.length).toBe(wrongTraitHand);
+    expect(wrongTrait.state.memory).toBe(5);
+    expect(wrongTrait.perm("nonCS").topCard.cardId).toBe("BT1-064");
   });
 
   it("grants inherited +2000 DP only during the opponent's turn", async () => {
