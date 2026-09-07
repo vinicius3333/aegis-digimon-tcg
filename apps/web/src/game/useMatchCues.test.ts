@@ -18,6 +18,7 @@ import {
   SECURITY_DESTROY_OUTCOME_AT_MS,
   SECURITY_DESTROY_TOTAL_MS,
   SECURITY_DOCK_CLOSE_MS,
+  PLAY_LEAD_IN_BUDGET_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
   COMBAT_IMPACT_TOTAL_MS,
@@ -1199,6 +1200,26 @@ describe("notices", () => {
     expect(result.current.notices).toEqual([]);
   });
 
+  it("stops a notice's clock while the viewer's decision waits, then gives the wait back", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+
+    rerender({ events: [EFFECT], decisionPending: false });
+    await advance(0);
+    expect(result.current.notices).toHaveLength(1);
+
+    await advance(TIMINGS.noticeLifetime / 2);
+    rerender({ events: [EFFECT], decisionPending: true });
+    await advance(TIMINGS.noticeLifetime * 3);
+    expect(result.current.notices).toHaveLength(1);
+
+    rerender({ events: [EFFECT], decisionPending: false });
+    await advance(TIMINGS.noticeLifetime / 2 - 1);
+    expect(result.current.notices).toHaveLength(1);
+    await advance(2);
+    expect(result.current.notices).toEqual([]);
+  });
+
   it("mirrors an effect the security check raised", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
@@ -1680,5 +1701,95 @@ describe("security gains", () => {
     await advance(0);
     expect(result.current.securityFlights.size).toBe(0);
     expect(result.current.notices).toEqual([]);
+  });
+});
+
+describe("a DigiXros play whose [On Play] deletes, and the question it raises", () => {
+  /* BT19-070 Kimeramon: DigiXrosed onto the opponent's board, its [On Play] deletes one of
+     the viewer's Digimon, and the deletion arms a trigger the viewer must answer. Every
+     event of it arrives in ONE batch, which is why the beats have to be sequenced here. */
+  const KIMERAMON = "BT19-070";
+  const XROS_PLAY: ServerEvent = {
+    kind: "cardPlayed",
+    seat: 1,
+    cardId: KIMERAMON,
+    permanentId: "perm-kimera",
+    mechanic: "digiXros",
+  };
+  const XROS_MATERIALS: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["mat-1", "mat-2"],
+    from: "battleArea",
+    to: "digivolutionCards",
+  };
+  const KIMERA_ON_PLAY: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId: KIMERAMON,
+    effectKey: "onPlay",
+    description: "Delete 1 of your opponent's Digimon.",
+    timing: "On Play",
+  };
+  /** The viewer's Digimon leaving the field. `perm-dead` is the only anchor the test board measures. */
+  const VIEWER_DELETED: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["perm-dead"],
+    from: "battleArea",
+    to: "trash",
+  };
+  const XROS_BATCH: readonly ServerEvent[] = [XROS_PLAY, XROS_MATERIALS, KIMERA_ON_PLAY, VIEWER_DELETED];
+
+  /** When the [On Play] clause is read out: once the card has had the screen to itself. */
+  const CLAUSE_AT_MS = SHOWCASE_TOTAL_MS;
+  /** When what the clause did reaches the board. */
+  const DELETION_AT_MS = CLAUSE_AT_MS + TIMINGS.effectAnnounce;
+  /** When the viewer's own prompt may finally open. */
+  const PROMPT_AT_MS = DELETION_AT_MS + TIMINGS.cardShatter;
+
+  it("plays the call-out, the clause and the deletion as three beats before the prompt opens", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+
+    // The server asks the moment it has resolved: the question arrives with the batch.
+    rerender({ events: XROS_BATCH, decisionPending: true });
+    await advance(0);
+
+    // Beat one: the card centre-stage, and "DigiXros!" beside it — and nothing else.
+    expect(result.current.zoneShowcase?.cardId).toBe(KIMERAMON);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword"]);
+    expect(result.current.deleteBursts).toEqual([]);
+    expect(result.current.decisionHeldForPlay).toBe(true);
+
+    // Beat two: the clause, labelled with its timing, once the showcase is over.
+    await advance(CLAUSE_AT_MS);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword", "effect"]);
+    expect(result.current.notices.at(-1)?.body).toMatchObject({ cardId: KIMERAMON, timing: "On Play" });
+    expect(result.current.deleteBursts).toEqual([]);
+    expect(result.current.decisionHeldForPlay).toBe(true);
+
+    // Beat three: the consequence, with the shatter drawn from the card that stood there.
+    await advance(DELETION_AT_MS - CLAUSE_AT_MS);
+    expect(result.current.deleteBursts).toHaveLength(1);
+    expect(result.current.decisionHeldForPlay).toBe(true);
+
+    // Only then is the viewer asked about it.
+    await advance(PROMPT_AT_MS - DELETION_AT_MS);
+    expect(result.current.decisionHeldForPlay).toBe(false);
+  });
+
+  it("never holds the prompt longer than the budget, whatever the beats do", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+
+    rerender({ events: XROS_BATCH, decisionPending: true });
+    await advance(0);
+    expect(result.current.decisionHeldForPlay).toBe(true);
+    expect(PROMPT_AT_MS).toBeLessThanOrEqual(PLAY_LEAD_IN_BUDGET_MS);
+
+    // The hold is a wall clock, not a queued step, so a queue that never reaches those
+    // steps still hands the board back.
+    await advance(PLAY_LEAD_IN_BUDGET_MS);
+    expect(result.current.decisionHeldForPlay).toBe(false);
   });
 });

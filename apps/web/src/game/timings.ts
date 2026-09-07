@@ -15,8 +15,12 @@ import type { CutInTier } from "./cutIn";
 export const TIMINGS = {
   /** Card back flying from a deck pile to the hand that just grew. */
   drawFlight: 340,
+  /** The same trip on a phone, where a 340ms flicker across the screen went unnoticed. */
+  drawFlightTouch: 520,
   /** The drawn card dropping into its hand slot. */
   handDraw: 120,
+  /** The accent ring left on the new hand card on touch, so the eye can find it in the strip. */
+  handDrawRing: 900,
   /** A card arriving in the battle area. */
   cardEnter: 320,
   /** The stars that pop over a card that just landed. */
@@ -202,6 +206,13 @@ export const TIMINGS = {
   cardMagnify: 120,
   /** The glow a field permanent holds while its effect activates. */
   effectSourceHold: 480,
+  /**
+   * How long a triggered-effect notice — an [On Play], a [When Digivolving] — reads on its
+   * own before what it did is played out. The same beat `attackAnnounce` gives an attack
+   * call-out, and for the same reason: long enough to read the timing and the card name,
+   * and no longer.
+   */
+  effectAnnounce: 800,
   /** A card flying up out of the trash pile as its effect activates. */
   effectTrashRise: 320,
   /** An Option rising out of the hand fan as it activates. */
@@ -273,6 +284,20 @@ export const SECURITY_BRANCH_TOTAL_MS =
 /** The centre-screen showcase, end to end: how long it stays mounted. */
 export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIMINGS.showcaseOut;
 
+/**
+ * The ceiling on how long the beats that explain a play may hold back what the play
+ * caused: the deletions it dealt out, and the viewer's own prompt.
+ *
+ * A cut-in, a showcase and an [On Play] clause add up past what anyone will sit through,
+ * and each thing held back pays for the wait differently. The deletion cue is drawn where
+ * the permanent used to stand — the board drops it with the server's patch, not with the
+ * cue — so the longer the cue waits, the further it drifts from the card leaving. The
+ * prompt has the harder requirement: it must open even when a beat never runs at all (a
+ * replaced track, an event that never arrived), which is why its hold is a wall clock
+ * rather than a queued step, and why that clock needs a ceiling.
+ */
+export const PLAY_LEAD_IN_BUDGET_MS = 3500;
+
 /** When the showcase starts clearing out, which is also when the field may reveal. */
 export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
 
@@ -320,6 +345,7 @@ export function dpPulseTotalMs(fatal: boolean): number {
 export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-draw-flight": TIMINGS.drawFlight,
   "--t-hand-draw": TIMINGS.handDraw,
+  "--t-hand-draw-ring": TIMINGS.handDrawRing,
   "--t-card-enter": TIMINGS.cardEnter,
   "--t-card-sparkle": TIMINGS.cardSparkle,
   "--t-memory-marker-pop": TIMINGS.memoryMarkerPop,
