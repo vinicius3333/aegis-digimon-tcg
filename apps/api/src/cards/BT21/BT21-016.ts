@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Notes:
 // - Digivolution traits list is OR-match (standard Digimon TCG / notation).
-// - <Save> after "Then," is mandatory (not optional).
+// - <Save> after "Then," remains an independent optional process (CR 16-20-3).
 // - DigiXros count:1 = reduce cost by 1 per placed material (ir.ts DigiXrosRequirement.count).
 
 export const compiled: CompiledCard = {
@@ -76,6 +76,7 @@ export const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
+          optional: true,
         },
       ],
     },
