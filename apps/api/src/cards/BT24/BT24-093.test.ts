@@ -164,4 +164,30 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     expect(s.perm("host").topCard.cardId).toBe("BT24-014");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
+
+  it("does not use Delay when no named Aegiochusmon or Jupitermon stack exists", async () => {
+    const s = setup({
+      0: {
+        battleArea: [
+          { card: "BT24-093", as: "option" },
+          { card: "BT24-014", as: "host", under: [{ card: "BT1-009", as: "nonMatching" }] },
+        ],
+        security: [{ card: "BT1-013", as: "removed" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010", "BT1-011"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("removed").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("nonMatching").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("nonMatching").instanceId);
+  });
 });
