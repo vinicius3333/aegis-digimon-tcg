@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -78,6 +78,34 @@ describe("BT24-069 Vilemon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);
     expect(s.state.players[1]!.deck).toHaveLength(2);
+  });
+
+  it("resolves When Moving from a public breeding promotion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT24-069", as: "vilemon" },
+          hand: [{ card: "BT1-009", as: "ownCard" }],
+        },
+        1: {
+          hand: [{ card: "BT1-010", as: "opponentCard" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("vilemon").permanentId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);
+    expect(s.state.players[1]!.deck).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("mills two opposing cards when the opponent declines the discard", async () => {
