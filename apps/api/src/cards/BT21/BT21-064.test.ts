@@ -183,7 +183,7 @@ describe("BT21-064 Guilmon", () => {
   ] as const)("zero-cost evolves through alternate route %#", async (base, requirementIndex) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: base, as: "base" }],
+        breeding: { card: base, as: "base" },
         hand: [{ card: "BT21-064", as: "guilmon" }],
       },
     });
