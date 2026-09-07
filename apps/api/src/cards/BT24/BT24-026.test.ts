@@ -111,6 +111,25 @@ describe("BT24-026 Hyogamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ineligible"), "Blocker")).toBe(false);
   });
 
+  it("runs the hand cost and same-target keyword grants from a public play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-026", as: "hyogamon" }, { card: "BT1-009", as: "cost" }],
+        battleArea: [{ card: "BT24-042", as: "eligible" }, { card: "BT1-009", as: "ineligible" }],
+      },
+    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("eligible").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Jamming")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ineligible"), "Blocker")).toBe(false);
+  });
+
   it("shares one use between its on-play and when-attacking timings", async () => {
     const s = setupEngine(
       {
