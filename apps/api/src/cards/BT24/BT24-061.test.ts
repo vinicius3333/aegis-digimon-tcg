@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_061 } from "./BT24-061.js";
@@ -43,7 +44,7 @@ describe("BT24-061 Vademon", () => {
         0: { hand: [{ card: "BT24-061", as: "vademon" }] },
         1: {
           battleArea: [
-            { card: "BT1-088", as: "low" },
+            { card: "BT1-009", as: "low" },
             { card: "BT24-102", as: "high" },
           ],
         },
@@ -138,5 +139,50 @@ describe("BT24-061 Vademon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("first").topCard.cardId).toBe("BT24-050");
     expect(s.perm("second").topCard.cardId).toBe("BT24-051");
+  });
+
+  it("resets inherited De-Digivolve on the owner's later turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-061"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-051", as: "first", under: ["BT24-050"] },
+            { card: "BT24-051", as: "second", under: ["BT24-050"] },
+          ],
+          security: ["BT1-013", "BT1-015", "BT1-016"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("first").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("first").topCard.cardId === "BT24-050");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    preferred.splice(0, preferred.length, s.perm("second").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("second").topCard.cardId === "BT24-050");
+    expect(s.perm("second").topCard.cardId).toBe("BT24-050");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
   });
 });
