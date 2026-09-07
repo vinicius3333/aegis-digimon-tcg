@@ -76,7 +76,7 @@ describe("BT23-020 Seadramon", () => {
         ],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
       },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003"], deck: ["BT1-009", "BT1-010"] },
+      1: { security: ["BT1-009", "BT1-013", "BT1-027"], deck: ["BT1-009", "BT1-010"] },
     });
     const host = s.perm("seadramon");
     const ally = s.perm("ally");
@@ -105,7 +105,7 @@ describe("BT23-020 Seadramon", () => {
         ],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
       },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003"], deck: ["BT1-009", "BT1-010"] },
+      1: { security: ["BT1-009", "BT1-013", "BT1-027"], deck: ["BT1-009", "BT1-010"] },
     });
     const host = s.perm("seadramon");
     const ally = s.perm("ally");
@@ -128,12 +128,12 @@ describe("BT23-020 Seadramon", () => {
         battleArea: [{ card: "BT1-064", as: "greenDigimon" }],
         hand: [{ card: "BT1-110", as: "flowerCannon" }],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-013"],
       },
       1: {
         battleArea: [{ card: "BT23-020", as: "opponentSeadramon" }],
         deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
-        security: ["BT1-003", "BT1-004"],
+        security: ["BT1-027", "BT1-028"],
       },
     });
     s.state.memory = 10;
@@ -202,12 +202,12 @@ describe("BT23-020 Seadramon", () => {
   it("resets the suspend draw on the next own turn through the production loop", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT23-020", as: "seadramon" }],
+        battleArea: [{ card: "BT23-020", as: "seadramon", dp: 20_000 }],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
       },
       1: {
         deck: ["BT1-017", "BT1-018", "BT1-019", "BT1-020", "BT1-021", "BT1-022", "BT1-023", "BT1-024"],
-        security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        security: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
       },
     });
     const loop = s.engine.startTurnLoop();

@@ -40,7 +40,7 @@ describe("BT23-033 Beautymon", () => {
             { card: "BT23-039", as: "linkCapable" },
             { card: "BT1-009", as: "noLink" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           deck: [{ card: "BT23-100", as: "mustRemainInDeck" }],
         },
         1: { battleArea: [{ card: "BT1-024", as: "target" }] },
@@ -146,7 +146,7 @@ describe("BT23-033 Beautymon", () => {
         0: {
           battleArea: [{ card: "BT23-033", as: "beautymon" }],
           trash: [{ card: "BT23-039", as: "link" }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
           deck: [{ card: "BT23-100", as: "recovery" }],
         },
         1: { battleArea: [{ card: "BT1-024", as: "target" }] },
@@ -206,5 +206,180 @@ describe("BT23-033 Beautymon", () => {
     expect(s.perm("base").linked.map((card) => card.instanceId)).toContain(s.inst("ownLink").instanceId);
     expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toContain(s.inst("otherLink").instanceId);
     expect(s.perm("otherHost").linked.map((card) => card.instanceId)).not.toContain(s.inst("otherLink").instanceId);
+  });
+
+  it.each([
+    ["accepts", true],
+    ["refuses", false],
+  ] as const)("public Barrier combat %s the deletion", async (_label, accept) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-033", as: "beautymon" }],
+        security: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-024", as: "attacker" }],
+        deck: ["BT1-011", "BT1-012"],
+      },
+    });
+    await s.ready();
+    s.perm("beautymon").isSuspended = true;
+    s.state.turnSeat = 1;
+    const attack = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("beautymon").permanentId },
+    });
+    expect(attack).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondBarrier",
+        permanentId: s.perm("beautymon").permanentId,
+        accept,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked" || event.kind === "combatResolved"));
+    if (accept) {
+      expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("beautymon").permanentId)).toBe(true);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    } else {
+      expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("beautymon").permanentId)).toBe(false);
+    }
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("places the exact deck top card onto the top of the security stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-033", as: "beautymon" }],
+          hand: [{ card: "BT23-039", as: "link" }],
+          security: [{ card: "BT1-009", as: "oldTop" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: [
+            { card: "BT1-014", as: "recovery" },
+            { card: "BT23-100", as: "stayInDeck" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("beautymon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 6 && s.state.pendingDecision === undefined);
+
+    const security = s.state.players[0]!.security;
+    expect(security[0]!.instanceId).toBe(s.inst("recovery").instanceId);
+    expect(security[0]!.faceUp).not.toBe(true);
+    expect(security[1]!.instanceId).toBe(s.inst("oldTop").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("stayInDeck").instanceId]);
+    expect(s.perm("target").currentDP).toBe(4000);
+  });
+
+  it("resets the once-per-turn link effect on the next own turn through the real turn loop", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-033", as: "beautymon" }],
+          hand: [
+            { card: "BT23-039", as: "firstLink" },
+            { card: "BT23-039", as: "secondLink" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "target" }], deck: Array(10).fill("BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 6;
+    const baseDp = s.perm("target").currentDP;
+    expect(baseDp).toBe(10000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("firstLink").instanceId,
+        targetPermanentId: s.perm("beautymon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000 && s.state.pendingDecision === undefined);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.players[0]!.security).toHaveLength(6);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("target").currentDP).toBe(4000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("target").currentDP).toBe(baseDp);
+
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("secondLink").instanceId,
+        targetPermanentId: s.perm("beautymon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000 && s.state.pendingDecision === undefined);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.players[0]!.security).toHaveLength(6);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("publicly triggers its linked Your Turn effect once, with security scaling and a second-link cap", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-033", as: "beautymon" }],
+          hand: [
+            { card: "BT23-039", as: "firstLink" },
+            { card: "BT23-039", as: "secondLink" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-014"],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const first = s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("firstLink").instanceId,
+      targetPermanentId: s.perm("beautymon").permanentId,
+    });
+    expect(first).toEqual({ ok: true });
+    await settle(() => s.perm("beautymon").linked.some((card) => card.instanceId === s.inst("firstLink").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(6);
+    expect(s.perm("target").currentDP).toBe(4000);
+    const second = s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("secondLink").instanceId,
+      targetPermanentId: s.perm("beautymon").permanentId,
+    });
+    expect(second).toEqual({ ok: true });
+    await settle(() => s.perm("beautymon").linked.some((card) => card.instanceId === s.inst("secondLink").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(6);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

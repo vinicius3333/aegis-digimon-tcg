@@ -29,8 +29,11 @@ export const compiled: CompiledCard = {
                   controllerDefault: "mine",
                   nameOrTrait: [
                     {
+                      // Bracket-only card references match the printed name exactly
+                      // (comprehensive rules 2-3-1-2), so "LadyDevimon (X Antibody)"
+                      // must not satisfy [LadyDevimon].
                       tokens: ["LadyDevimon", "Mirei Mikagura"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Violet Inboots"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -46,7 +45,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Ghostmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -59,6 +58,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              zone: "battleArea",
             },
             raw: "you don't have a Digimon",
           },
@@ -75,6 +75,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
+            zone: "battleArea",
             nameOrTrait: [
               {
                 tokens: ["Ghost"],
@@ -95,7 +96,7 @@ export const compiled: CompiledCard = {
                 keyword: "Rush",
                 raw: "＜Rush＞",
               },
-              duration: "untilTurnEnd",
+              duration: "forTheTurn",
             },
           ],
           cost: {

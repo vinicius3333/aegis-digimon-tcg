@@ -9,8 +9,9 @@ import type {
   SubTriggerInstall,
 } from "../../engine/effects/EffectContext.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled as bt23069 } from "./BT23-069.js";
 
 /**
@@ -317,5 +318,308 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     expect(ctx.lastDeleteCount).toBe(0);
     // The gate is TRUE (nothing was deleted) => the optional EndAttack runs (ask.optional => yes).
     expect(recorder.endAttacks).toBe(1);
+  });
+});
+
+/**
+ * Answer `optional` decisions one prompt at a time, so a single flow can accept the
+ * self-deletion cost and still decline the trailing "end that attack" choice. The harness's
+ * `autoAcceptOptional` / `autoDeclineOptional` flags answer every prompt the same way, which
+ * cannot separate the two branches of this card.
+ */
+async function answerOptionals(
+  s: EngineSetup,
+  decide: (promptText: string) => boolean,
+  done: () => boolean,
+): Promise<void> {
+  const answered = new Set<string>();
+  for (let tick = 0; tick < 2000; tick += 1) {
+    await Promise.resolve();
+    for (const { seat, req } of s.decisions) {
+      if (req.kind !== "optional" || answered.has(req.decisionId)) continue;
+      answered.add(req.decisionId);
+      s.engine.applyIntent(seat, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: decide(req.promptText) },
+      });
+    }
+    if (done()) break;
+  }
+  await settle(done);
+}
+
+const SELF_DELETE_PROMPT = "by deleting this Digimon";
+
+describe("BT23-069 Necromon — printed clauses through public intents", () => {
+  it("plays a level 5 or lower [Ghost] Digimon from the trash on play without paying its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-069", as: "necromon" }],
+          trash: [
+            { card: "BT23-064", as: "ghost" },
+            { card: "BT1-028", as: "notGhost" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 11;
+    const necromonId = s.inst("necromon").instanceId;
+    const ghostId = s.inst("ghost").instanceId;
+    const notGhostId = s.inst("notGhost").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: necromonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === ghostId));
+
+    // The Ghost arrived from the trash and only Necromon's own play cost was paid.
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual(
+      expect.arrayContaining([necromonId, ghostId]),
+    );
+    expect(s.state.memory).toBe(0);
+    // BT1-028 is level 3 but has no [Ghost] trait, so it stays in the trash.
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([notGhostId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
+  it("leaves the Ghost in the trash when the On Play optional is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-069", as: "necromon" }],
+          trash: [{ card: "BT23-064", as: "ghost" }],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 11;
+    const necromonId = s.inst("necromon").instanceId;
+    const ghostId = s.inst("ghost").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: necromonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === necromonId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([ghostId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("plays nothing when the trash holds no level 5 or lower [Ghost] Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-069", as: "necromon" }],
+          // A second Necromon has the [Ghost] trait but is level 6 (fails the level test), and
+          // BT1-028 is level 3 with the [Mammal] trait (fails the trait test).
+          trash: [
+            { card: "BT23-069", as: "tooHigh" },
+            { card: "BT1-028", as: "notGhost" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 11;
+    const necromonId = s.inst("necromon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: necromonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === necromonId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not fire on its own attack — the clause reads 'another Digimon'", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-069", as: "necromon" }] },
+        1: {
+          battleArea: [{ card: "BT23-068", as: "target" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const necromonPermanentId = s.perm("necromon").permanentId;
+    const targetPermanentId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: necromonPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // Necromon did not delete itself and did not delete the opponent's Digimon.
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetPermanentId)).toBe(true);
+    // The attack ran normally: one security card was checked.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("fires on the opponent's attack too and deletes the attacking Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-069", as: "necromon" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT23-068", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const necromonPermanentId = s.perm("necromon").permanentId;
+    const attackerPermanentId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    // Necromon paid itself and deleted the only level 6 or lower opponent Digimon: the attacker.
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerPermanentId)).toBe(false);
+    // The attacker is gone, so no security card of mine was ever checked.
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("never offers to skip the opponent deletion when an eligible target exists (Q5337)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-069", as: "necromon" },
+            { card: "BT23-061", as: "attacker" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT23-068", as: "target" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetPermanentId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetPermanentId)).toBe(false);
+    // The only optional prompt raised by Necromon is the "by deleting this Digimon" cost. The
+    // opponent deletion is mandatory, so it never asks — a player cannot decline into the
+    // "didn't delete" branch (Q5337).
+    const necromonPrompts = s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-069");
+    expect(necromonPrompts.map(({ req }) => req.promptText)).toEqual([SELF_DELETE_PROMPT]);
+  });
+
+  it("ends the attack when the only eligible target is immune to the deletion (Q5338, Q5339, Q5340)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-069", as: "necromon" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        // BT14-062: "[All Turns] This Digimon can't be deleted by your opponent's effects."
+        // It is level 5, so it IS the mandatory choice, and it attacks while unaffected by my
+        // effects — the attack still ends, because ending an attack changes the timing, not the
+        // Digimon (Q5340).
+        1: { battleArea: [{ card: "BT14-062", as: "immuneAttacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const necromonPermanentId = s.perm("necromon").permanentId;
+    const attackerPermanentId = s.perm("immuneAttacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // The self-deletion cost was paid, the chosen target survived, so nothing was deleted.
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerPermanentId)).toBe(true);
+    // Q5339: the timing jumped straight to end-of-attack — no security check, no block window.
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("may decline to end the attack, letting it check security instead", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-069", as: "necromon" },
+            { card: "BT23-061", as: "attacker" },
+          ],
+        },
+        // No opponent Digimon at all, so the gate is TRUE and the optional EndAttack is offered.
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const necromonPermanentId = s.perm("necromon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    // Accept the self-deletion cost; decline the trailing "end that attack".
+    await answerOptionals(
+      s,
+      (promptText) => promptText === SELF_DELETE_PROMPT,
+      () => s.state.players[1]!.security.length === 1,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
+    // The attack was NOT ended: it checked security.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    // The gate did open the choice — the attack continued because it was declined, not
+    // because the branch was never reached.
+    expect(
+      s.decisions.some(
+        ({ req }) =>
+          req.kind === "optional" && req.sourceCardId === "BT23-069" && req.promptText !== SELF_DELETE_PROMPT,
+      ),
+    ).toBe(true);
   });
 });

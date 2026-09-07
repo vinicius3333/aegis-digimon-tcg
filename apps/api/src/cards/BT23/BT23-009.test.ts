@@ -125,7 +125,7 @@ describe("BT23-009 Coachmon", () => {
           battleArea: [{ card: "BT23-009", as: "host" }],
           hand: [{ card: "BT23-009", as: "coach" }],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -152,7 +152,7 @@ describe("BT23-009 Coachmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-009", linked: ["BT23-009"], as: "host" }] },
-        1: { security: 1 },
+        1: { security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -247,7 +247,7 @@ describe("BT23-009 Coachmon", () => {
         ],
         deck,
       },
-      1: { deck, security: ["BT1-001", "BT1-002", "BT1-003"] },
+      1: { deck, security: ["BT1-009", "BT1-013", "BT1-027"] },
     });
     s.state.memory = 10;
     const loop = s.engine.startTurnLoop();

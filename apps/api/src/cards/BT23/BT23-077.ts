@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -55,6 +54,38 @@ export const compiled: CompiledCard = {
               amount: 1,
             },
           ],
+        },
+      ],
+    },
+    // (Rule) Also has Name:[Sistermon Noir] and Trait: [Virus]. The rule line is on the
+    // official card but missing from the catalog effect text, so it is carried here. Same
+    // shape as the other printings of this card (BT6-084).
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "name",
+          tokens: ["Sistermon Noir"],
+        },
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Virus"],
         },
       ],
     },

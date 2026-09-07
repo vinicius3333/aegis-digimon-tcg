@@ -173,7 +173,7 @@ describe("BT23-019 Gekomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
-        1: { battleArea: [{ card: "BT1-041", under: ["BT23-019"], as: "blocker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-041", under: ["BT23-019"], as: "blocker" }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );

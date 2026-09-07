@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -7,6 +6,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // regardless of which of the controller's effects or attacks removed the card.
 // The [Once Per Turn] frequency on the outer effect gates the whole trigger.
 export const compiled: CompiledCard = {
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+  ],
+  digivolutionRequirement: [{ level: 6, traits: ["CS"], cost: 5, isAlternate: true }],
   effects: [
     {
       trigger: "Static",
@@ -62,7 +71,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "unsuspend",
-          duration: "untilTheirNextUnsuspendPhase",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
         {
           kind: "Attack",
@@ -101,7 +110,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "unsuspend",
-          duration: "untilTheirNextUnsuspendPhase",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
         {
           kind: "Attack",

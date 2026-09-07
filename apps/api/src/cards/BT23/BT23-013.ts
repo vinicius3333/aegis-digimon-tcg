@@ -174,7 +174,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["SaviorHuckmon"],
+      namesExact: ["SaviorHuckmon"],
       level: 5,
       cost: 3,
       isAlternate: true,
@@ -186,7 +186,7 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
     {
-      names: ["Huckmon"],
+      namesExact: ["Huckmon"],
       cost: 5,
       isAlternate: true,
       opponentDigimonDpMin: 10000,

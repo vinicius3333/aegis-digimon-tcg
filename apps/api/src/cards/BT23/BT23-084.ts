@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -35,6 +34,10 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              // Comprehensive rules 3-4-5-8: information on cards in the breeding area
+              // can't be referenced, so a [CS] Digimon in breeding must not satisfy this
+              // condition. `youHave` counts breeding when the filter carries no zone.
+              zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [
                 {

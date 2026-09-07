@@ -1,5 +1,6 @@
 import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -61,14 +62,34 @@ describe("BT23-013 Jesmon", () => {
     });
     expect(compiled).toMatchObject({
       digivolutionRequirement: [
-        { names: ["SaviorHuckmon"], level: 5, cost: 3, isAlternate: true },
+        { namesExact: ["SaviorHuckmon"], level: 5, cost: 3, isAlternate: true },
         { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
-        { names: ["Huckmon"], cost: 5, isAlternate: true, opponentDigimonDpMin: 10000 },
+        { namesExact: ["Huckmon"], cost: 5, isAlternate: true, opponentDigimonDpMin: 10000 },
       ],
       coverage: "full",
       residual: [],
     });
+  });
+
+  // Exact-name sweep (session 2).
+  // Both printed routes bracket the base name ("[SaviorHuckmon]/Lv.5 w/[CS] trait" and
+  // "[Huckmon]"), so they are equality gates. `names` is a SUBSTRING gate in
+  // engine/cards/cardData.ts matchGatedRequirement (~line 481), which let BaoHuckmon — a level 4
+  // whose name merely CONTAINS "Huckmon" — take the cost-5 [Huckmon] route. Both the module and
+  // the hand-authored ALTERNATE_DIGIVOLUTION_OVERRIDES["BT23-013"] entry in
+  // packages/shared/src/effects/data.ts (which `digivolutionRequirementsFor` prefers) now use
+  // `namesExact`.
+  it("gates both printed routes on the exact base name, not a substring", () => {
     expect(digivolutionRequirementsFor("BT23-013")).toEqual(compiled.digivolutionRequirement);
+    expect(matchingAlternateDigivolutionRequirement("BT23-013", "BT23-006")).toMatchObject({
+      namesExact: ["Huckmon"],
+      cost: 5,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT23-013", "BT6-015")).toMatchObject({
+      namesExact: ["SaviorHuckmon"],
+      cost: 3,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT23-013", "BT6-011")).toBeUndefined();
   });
 
   it("plays the exact 6000-DP token with Reboot, Blocker, and red/black Decoy", async () => {
@@ -222,7 +243,7 @@ describe("BT23-013 Jesmon", () => {
 
   it("lets the newly played token pay Alliance but does not nest Jesmon's watcher attack, per Q5222-Q5223", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-013", as: "jesmon" }] }, 1: { security: 3 } },
+      { 0: { battleArea: [{ card: "BT23-013", as: "jesmon" }] }, 1: { security: ["BT1-009", "BT1-013", "BT1-027"] } },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
@@ -271,7 +292,7 @@ describe("BT23-013 Jesmon", () => {
           ],
         },
         1: {
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045", "BT1-047"],
           deck: [
             "BT1-021",
             "BT1-022",
@@ -370,7 +391,7 @@ describe("BT23-013 Jesmon", () => {
         0: {
           battleArea: [{ card: "BT23-013", as: "jesmon" }],
           deck: Array(10).fill("BT1-009"),
-          security: Array(12).fill("BT1-001"),
+          security: Array(12).fill("BT1-009"),
         },
         1: {
           battleArea: [
@@ -446,7 +467,7 @@ describe("BT23-013 Jesmon", () => {
             { card: "BT23-013", as: "jesmon" },
             { card, as: "redTarget" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
           deck: Array(10).fill("BT1-009"),
         },
         1: {
@@ -529,7 +550,7 @@ describe("BT23-013 Jesmon", () => {
         1: {
           battleArea: [{ card: "BT1-024", as: "large" }],
           deck: Array(10).fill("BT1-010"),
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
         },
       },
       { autoDeclineOptional: true, autoChooseOption: true },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,6 +14,9 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              // Comprehensive rules 3-4-5-8: information on breeding-area cards can't be
+              // referenced, so a lone breeding [CS] Digimon must not satisfy this gate.
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["CS"],
@@ -36,6 +38,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Hudie"],
@@ -55,6 +58,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Hudie"],
@@ -77,6 +81,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Hudie"],
@@ -104,6 +109,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
+            zone: "battleArea",
             nameOrTrait: [
               {
                 tokens: ["Hudie"],

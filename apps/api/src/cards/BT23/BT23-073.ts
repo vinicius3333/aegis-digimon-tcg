@@ -29,7 +29,10 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          leaveCause: "otherThanYourEffect",
+          // The printed text has no cause qualifier ("...would leave the battle area"), so the
+          // prevention must also answer the controller's own effects. BT22-007 [Mother Eater]
+          // prints "other than by your effects"; this card does not (KB Q5349, BT23-037 Q5565,
+          // BT23-048 Q5567). Leaving `leaveCause` unset keeps `causeAllows` at "any".
           sourceFilter: {
             controller: "mine",
             excludeSelf: true,

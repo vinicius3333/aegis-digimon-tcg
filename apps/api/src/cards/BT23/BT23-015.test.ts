@@ -134,7 +134,7 @@ describe("BT23-015 Phoenixmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT23-015", as: "phoenix" }] },
-        1: { battleArea: [{ card: "BT23-012", as: "target", dp: 9000 }], security: 1 },
+        1: { battleArea: [{ card: "BT23-012", as: "target", dp: 9000 }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -155,9 +155,9 @@ describe("BT23-015 Phoenixmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT23-015", as: "phoenix", suspended: true }],
-        security: [{ card: "BT1-001", as: "existing" }],
+        security: [{ card: "BT1-009", as: "existing" }],
       },
-      1: { battleArea: [{ card: "BT1-080", as: "attacker" }], deck: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker" }], deck: ["BT1-013"] },
     });
     await s.ready();
     s.state.turnSeat = 1;
@@ -256,14 +256,14 @@ describe("BT23-015 Phoenixmon", () => {
   it("resets the shared public attack effect on the next own turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }], deck: ["BT1-001", "BT1-002"] },
+        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }], deck: ["BT1-009", "BT1-013"] },
         1: {
           battleArea: [
             { card: "BT1-080", as: "firstTarget", dp: 9000 },
             { card: "BT1-080", as: "secondTarget", dp: 9000 },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
+          deck: ["BT1-028", "BT1-045"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -280,6 +280,7 @@ describe("BT23-015 Phoenixmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
@@ -302,15 +303,15 @@ describe("BT23-015 Phoenixmon", () => {
         0: {
           battleArea: [{ card: "BT22-023", as: "base" }],
           hand: [{ card: "BT23-015", as: "phoenix" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
         },
         1: {
           battleArea: [
             { card: "BT1-080", as: "firstTarget", dp: 9000 },
             { card: "BT1-080", as: "secondTarget", dp: 9000 },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
+          deck: ["BT1-028", "BT1-045"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -342,6 +343,7 @@ describe("BT23-015 Phoenixmon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
@@ -396,7 +398,7 @@ describe("BT23-015 Phoenixmon", () => {
         0: {
           battleArea: [{ card: "BT1-087", as: "tk" }],
           security: [
-            { card: "BT1-001", as: "selected" },
+            { card: "BT1-009", as: "selected" },
             { card: "BT23-015", as: "phoenix", faceUp: true },
           ],
         },

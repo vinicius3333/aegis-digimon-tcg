@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Ghostmon", "Violet Inboots"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -41,7 +40,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Violet Inboots"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -65,6 +64,9 @@ export const compiled: CompiledCard = {
                 ],
               },
               from: ["hand"],
+              // "with the digivolution cost reduced by 3" still charges the remainder:
+              // without payCost the interpreter treats the digivolution as free.
+              payCost: true,
               reduceCost: 3,
               optional: true,
             },

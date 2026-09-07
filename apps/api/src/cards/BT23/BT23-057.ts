@@ -15,6 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes vs AUTO-GENERATED:
 //   - Return cost: target filter includes zone:"trash"; raw clarifies "top or bottom"
 //   - Delete: optional:false — text says "Then, delete 1..." (mandatory)
+//   - Ceiling filter scoped to zone:"battleArea" so a breeding Digimon does not raise it
 //   - CostModifier: retained as closest model for "add 3 to play cost maximum per other Digimon";
 //     moves BEFORE Delete so the ceiling is computed before target resolution
 export const compiled: CompiledCard = {
@@ -83,6 +84,10 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
+              // "your other Digimon" means the battle area: breeding-area cards can't be
+              // referenced (comprehensive rules 3-4-5-8). Without the zone the scaling scan
+              // also counted the breeding permanent and over-raised the ceiling.
+              zone: "battleArea",
               excludeSelf: true,
               kind: ["Digimon"],
             },
@@ -123,6 +128,10 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
+              // "your other Digimon" means the battle area: breeding-area cards can't be
+              // referenced (comprehensive rules 3-4-5-8). Without the zone the scaling scan
+              // also counted the breeding permanent and over-raised the ceiling.
+              zone: "battleArea",
               excludeSelf: true,
               kind: ["Digimon"],
             },

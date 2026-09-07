@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,6 +11,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   ・Delete 1 of your opponent's Digimon with the lowest DP.
 //   [Security] Delete 1 of your opponent's Digimon with the lowest DP. Then, place this
 //   card in the battle area.
+// KB Q5364 reads "on the field" as battle area or breeding area in general, but CR 3-4-5-8
+// overrides that for a TRAIT reference: information on breeding-area cards can't be referenced
+// unless the effect names the breeding area, and its worked example is this very waiver shape.
+// So the [CS] check is scoped to the battle area.
 // The attack-triggered ＜Delay＞ is intrinsic to that timing window: accepting it trashes
 // this option and immediately resolves the lowest-DP deletion.
 export const compiled: CompiledCard = {
@@ -31,7 +34,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              zone: "field",
+              zone: "battleArea",
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
               nameOrTrait: [
@@ -41,7 +44,7 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
-            raw: "you have a Digimon or Tamer with the [CS] trait on the field (battle area or breeding area, per KB Q5364)",
+            raw: "you have a Digimon or Tamer with the [CS] trait on the field",
           },
         },
       ],

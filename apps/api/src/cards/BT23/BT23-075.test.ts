@@ -1,7 +1,8 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-075.js";
 
@@ -21,140 +22,546 @@ describe("BT23-075 Eater EDEN", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Eater Legion"], cost: 3, isAlternate: true }]);
   });
 
-  it("returns exactly an opposing cost-6-or-lower Digimon or Tamer to deck bottom", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-075", as: "eden" }] },
-      1: {
-        battleArea: [
-          { card: "BT23-081", as: "lowTamer" },
-          { card: "BT23-101", as: "highDigimon" },
-        ],
-      },
-    });
-    const lowId = s.perm("lowTamer").permanentId;
-    const highId = s.perm("highDigimon").permanentId;
-    await (
-      s.engine as unknown as {
-        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("eden").permanentId });
-
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
-    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT23-081");
+  it("models the printed [Eater Legion] route as an exact name, not a substring", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Eater Legion"], cost: 3, isAlternate: true }]);
   });
 
-  it("raises the live return ceiling by each Mother Eater digivolution card", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: {
-          card: "BT22-007",
-          as: "mother",
-          under: ["BT23-073", "BT23-073"],
-        },
-        battleArea: [{ card: "BT23-075", as: "eden" }],
-      },
-      1: { battleArea: [{ card: "BT23-074", as: "cost8" }] },
-    });
-    const targetId = s.perm("cost8").permanentId;
-    await (
-      s.engine as unknown as {
-        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.WhenDigivolving, { subjectPermanentId: s.perm("eden").permanentId });
-
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
-    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT23-074");
-  });
-
-  it("plays an Eater for free before leaving through an opponent effect", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-075", as: "eden" }],
-          hand: [{ card: "BT23-073", as: "eater" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    const edenId = s.perm("eden").permanentId;
-    const eaterId = s.inst("eater").instanceId;
-    await advance(s.engine).verb.deletePermanent([edenId], "byEffect");
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === eaterId)).toBe(true);
-  });
-
-  it("may refuse the Eater play and still leaves the battle area", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-075", as: "eden" }],
-          hand: [{ card: "BT23-073", as: "eater" }],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    const edenId = s.perm("eden").permanentId;
-    const eaterId = s.inst("eater").instanceId;
-    await advance(s.engine).verb.deletePermanent([edenId], "byEffect");
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenId)).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === eaterId)).toBe(true);
-  });
-
-  it("deletes exactly one opposing lowest-play-cost Digimon at the opponent turn end", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-075", as: "eden" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "lowest" },
-          { card: "BT23-074", as: "higher" },
-        ],
-      },
-    });
-    s.state.turnSeat = 1;
-    const lowestId = s.perm("lowest").permanentId;
-    const higherId = s.perm("higher").permanentId;
-    await (
-      s.engine as unknown as {
-        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnEndTurn, {});
-
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherId)).toBe(true);
-  });
-
-  it("raises the return ceiling for Mother Eater cards in the breeding area", () => {
+  it("raises the return ceiling for the digivolution cards of a breeding [Mother Eater]", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const action = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions[0];
-      expect(action).toMatchObject({ kind: "Return", to: "deckBottom", target: { count: 1 } });
-      expect(action.playCostCeiling).toMatchObject({
-        base: 6,
-        raise: 1,
-        per: 1,
-        unit: "digivolutionCardsOfFiltered",
-        filter: { zone: "breeding", nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }] },
+      const action = compiled.effects.find((entry) => entry.trigger === trigger)?.actions[0];
+      expect(action).toMatchObject({
+        kind: "Return",
+        to: "deckBottom",
+        target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], playCostLte: 6 }, count: 1 },
+        playCostCeiling: {
+          base: 6,
+          raise: 1,
+          per: 1,
+          unit: "digivolutionCardsOfFiltered",
+          filter: {
+            controller: "mine",
+            zone: "breeding",
+            nameOrTrait: [{ tokens: ["Mother Eater"], match: "nameExact" }],
+          },
+        },
       });
     }
   });
 
-  it("limits the leave replacement and end-of-opponent-turn deletion correctly", () => {
-    const replacement = (compiled.effects.find((entry) => entry.trigger === "AllTurns") as any).actions[0];
+  it("limits the leave replacement and the end-of-opponent-turn deletion correctly", () => {
+    const replacement = compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions[0];
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
       leaveCause: "otherThanYourEffect",
       sourceFilter: { isSelfRef: true },
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          target: {
+            count: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Eater"], match: "trait" }],
+            },
+          },
+        },
+      ],
     });
-    const end = compiled.effects.find((entry) => entry.trigger === "EndOfOpponentsTurn") as any;
-    expect(end.frequency).toBe("OncePerTurn");
-    expect(end.actions[0].target.filter.superlative).toBe("lowestPlayCost");
+    const end = compiled.effects.find((entry) => entry.trigger === "EndOfOpponentsTurn");
+    expect(end?.frequency).toBe("OncePerTurn");
+    expect(end?.actions[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: 1 },
+    });
+  });
+
+  it("publicly digivolves from [Eater Legion] for 3, draws, and returns an opposing cost-6 Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-074", as: "legion" }],
+          hand: [{ card: "BT23-075", as: "eden" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT23-081", as: "tamer" },
+            { card: "BT23-074", as: "costEight" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoDeclineOptional: false },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const drawnInstanceId = s.state.players[0]!.deck[0]!.instanceId;
+    const legionInstanceId = s.perm("legion").topCard!.instanceId;
+    const edenInstanceId = s.inst("eden").instanceId;
+    const tamerPermanentId = s.perm("tamer").permanentId;
+    const tamerInstanceId = s.perm("tamer").topCard!.instanceId;
+    const costEightPermanentId = s.perm("costEight").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("legion").permanentId,
+        instanceId: edenInstanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("legion").topCard?.cardId === "BT23-075" &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === tamerPermanentId),
+    );
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("legion").topCard?.instanceId).toBe(edenInstanceId);
+    expect(s.perm("legion").stack.map((card) => card.instanceId)).toContain(legionInstanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawnInstanceId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === tamerPermanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === costEightPermanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(tamerInstanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  // Eater EDEN prints no normal digivolve cost, so the name-gated route is the only route.
+  // Both intent branches must therefore charge the same printed 3 memory.
+  it("charges the printed 3 whether or not the intent asks for the alternate cost", async () => {
+    for (const useAlternateCost of [true, false]) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT23-074", as: "legion" }],
+          hand: [{ card: "BT23-075", as: "eden" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      });
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("legion").permanentId,
+          instanceId: s.inst("eden").instanceId,
+          ...(useAlternateCost ? { useAlternateCost: true } : {}),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("legion").topCard?.cardId === "BT23-075");
+      expect(s.state.memory).toBe(2);
+    }
+  });
+
+  it("refuses a near-name [Eater] source that is not [Eater Legion]", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT22-082", as: "adam" }],
+        hand: [{ card: "BT23-075", as: "eden" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-011", "BT1-012"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("adam").permanentId,
+        instanceId: s.inst("eden").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("adam").topCard?.cardId).toBe("BT22-082");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("eden").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("cannot reach a play cost 8 Digimon with no [Mother Eater] in breeding", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-075", as: "eden" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT23-074", as: "costEight" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const edenInstanceId = s.inst("eden").instanceId;
+    const costEightPermanentId = s.perm("costEight").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: edenInstanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === edenInstanceId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === costEightPermanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).not.toBe("BT23-074");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("raises the ceiling by each digivolution card of a breeding [Mother Eater]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-007", as: "mother", under: ["BT22-007", "BT22-007"] },
+          hand: [{ card: "BT23-075", as: "eden" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT23-074", as: "costEight" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const edenInstanceId = s.inst("eden").instanceId;
+    const costEightPermanentId = s.perm("costEight").permanentId;
+    const costEightInstanceId = s.perm("costEight").topCard!.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: edenInstanceId })).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === costEightPermanentId),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === costEightPermanentId)).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(costEightInstanceId);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === edenInstanceId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("plays a free [Eater] from hand when battle deletion takes it off the board", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-075", as: "eden", dp: 3000 }],
+          hand: [{ card: "BT23-073", as: "bit" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: 3,
+        },
+        1: {
+          battleArea: [{ card: "BT23-074", as: "attacker", dp: 8000 }],
+          hand: [{ card: "ST1-02", as: "neutral" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: 3,
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    // The Active phase unsuspended the board; only a suspended Digimon is a legal attack target.
+    s.perm("eden").isSuspended = true;
+    await advance(s.engine).recompute();
+    const edenPermanentId = s.perm("eden").permanentId;
+    const edenInstanceId = s.perm("eden").topCard!.instanceId;
+    const bitInstanceId = s.inst("bit").instanceId;
+    const memoryBefore = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: edenPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === edenInstanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bitInstanceId)).toBe(false);
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("may decline the free [Eater] play and still leaves the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-075", as: "eden", dp: 3000 }],
+          hand: [{ card: "BT23-073", as: "bit" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: 3,
+        },
+        1: {
+          battleArea: [{ card: "BT23-074", as: "attacker", dp: 8000 }],
+          deck: ["BT1-011", "BT1-012"],
+          security: 3,
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    // The Active phase unsuspended the board; only a suspended Digimon is a legal attack target.
+    s.perm("eden").isSuspended = true;
+    await advance(s.engine).recompute();
+    const edenPermanentId = s.perm("eden").permanentId;
+    const edenInstanceId = s.perm("eden").topCard!.instanceId;
+    const bitInstanceId = s.inst("bit").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: edenPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === edenInstanceId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === edenInstanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bitInstanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId)).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not trigger the free [Eater] play when your own effect removes it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-075", as: "eden" }],
+          hand: [{ card: "BT23-073", as: "bit" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    const edenPermanentId = s.perm("eden").permanentId;
+    const bitInstanceId = s.inst("bit").instanceId;
+
+    // No printed card in this pool deletes your own Eater EDEN, so the owner-effect cause is
+    // driven through the production removal verb inside seat 0's own effect resolution.
+    advance(s.engine).verb.enterEffectResolution(0 as Seat, ["Digimon"]);
+    try {
+      await advance(s.engine).verb.deletePermanent([edenPermanentId], "byEffect");
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenPermanentId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bitInstanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId)).toBe(false);
+  });
+
+  it("deletes the opponent's lowest play cost Digimon once per opponent turn and resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-075", as: "eden" }],
+          hand: [{ card: "ST1-02", as: "neutral" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: 3,
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest" },
+            { card: "BT23-074", as: "higher" },
+          ],
+          hand: [{ card: "ST1-02", as: "opponentNeutral" }],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+          security: 3,
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    const lowestPermanentId = s.perm("lowest").permanentId;
+    const lowestInstanceId = s.perm("lowest").topCard!.instanceId;
+    const higherPermanentId = s.perm("higher").permanentId;
+    const loop = s.engine.startTurnLoop();
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestPermanentId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestPermanentId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestPermanentId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === lowestInstanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherPermanentId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    const higherInstanceId = s.perm("higher").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherPermanentId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherPermanentId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === higherInstanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  // RETAINED RED (engine seam). Q5352: with BT22-007 [Mother Eater] in a breeding Digimon's digivolution cards, its
+  // inherited "place them as this Digimon's bottom digivolution cards" replacement and Eater
+  // EDEN's own [All Turns] replacement answer the same leave event. The ruling says you may
+  // not chain them: EDEN cannot be placed under the breeding host AND then play a free
+  // [Eater]. No printed card in this pool deletes an opposing Digimon by an opponent effect
+  // at will, so the opponent-effect leave cause is driven through the production removal
+  // verb, the same seam BT22-007's own suite uses.
+  // Seam: apps/api/src/engine/effects/leavePrevention.ts. Exactly one of the two replacements
+  // applies (the Q5352 stacking defect, fixed in engine lane 5), and WHICH one is the affected
+  // player's choice — Q5352 answers only "may I do both?" with "No". Engine lane 6 extended
+  // `orderReplacements` to every multi-eligible set, so the controller is now genuinely asked;
+  // `preferTriggerKeys` answers that prompt with BT22-007's placement, the branch this fixture
+  // asserts. Without the preference the engine's offered order would pick EDEN's own clause,
+  // which is equally legal.
+  it("does not stack the breeding [Mother Eater] placement with its own leave effect (Q5352)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-079", as: "breeder", under: ["BT22-007"] },
+          battleArea: [{ card: "BT23-075", as: "eden" }],
+          hand: [{ card: "BT23-073", as: "bit" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferTriggerKeys: ["BT22-007"] },
+    );
+    await s.ready();
+    const edenPermanentId = s.perm("eden").permanentId;
+    const edenInstanceId = s.perm("eden").topCard!.instanceId;
+    const bitInstanceId = s.inst("bit").instanceId;
+
+    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
+    try {
+      await advance(s.engine).verb.deletePermanent([edenPermanentId], "byEffect");
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenPermanentId)).toBe(false);
+    const placedUnderBreeder = s.perm("breeder").stack.some((card) => card.instanceId === edenInstanceId);
+    const playedFreeEater = s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId);
+    expect(placedUnderBreeder).toBe(true);
+    expect(playedFreeEater).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bitInstanceId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  // Coordinator probe for BT23-074's Q6706/Q6707. Erika Mishima (BT23-084) is a Tamer whose
+  // LOWER text grants ＜Alliance＞ while the Digimon is [Hudiemon], [Eater Legion] or
+  // [Eater EDEN]. Eater EDEN prints no ＜Alliance＞, so a stack that reaches EDEN through
+  // Erika discriminates the inherited-effect ruling (Q6707: yes) from the security-effect
+  // ruling (Q6706: no). Route: play Erika, digivolve BT23-074 off the Tamer, then BT23-075.
+  it("gains inherited ＜Alliance＞ on Eater EDEN through an Erika Mishima source (Q6707)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-084", as: "stack" }],
+          hand: [
+            { card: "BT23-074", as: "legion" },
+            { card: "BT23-075", as: "eden" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const erikaInstanceId = s.perm("stack").topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("stack").permanentId,
+        instanceId: s.inst("legion").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("stack").topCard?.cardId === "BT23-074");
+    expect(observe(s.engine).hasKeyword(s.perm("stack"), "Alliance")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("stack").permanentId,
+        instanceId: s.inst("eden").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("stack").topCard?.cardId === "BT23-075");
+
+    expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT23-084", "BT23-074"]);
+    expect(s.perm("stack").stack.map((card) => card.instanceId)).toContain(erikaInstanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("stack"), "Alliance")).toBe(true);
+  });
+
+  it("has no ＜Alliance＞ on an Eater EDEN stack without Erika Mishima", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-074", as: "stack" }],
+          hand: [{ card: "BT23-075", as: "eden" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("stack"), "Alliance")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("stack").permanentId,
+        instanceId: s.inst("eden").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("stack").topCard?.cardId === "BT23-075");
+
+    expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT23-074"]);
+    expect(observe(s.engine).hasKeyword(s.perm("stack"), "Alliance")).toBe(false);
   });
 });

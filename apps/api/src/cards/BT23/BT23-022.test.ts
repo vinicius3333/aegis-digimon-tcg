@@ -64,7 +64,7 @@ describe("BT23-022 Oujamon", () => {
   it("links onto an Appmon for 3, adds 4000 DP, and grants Security Attack +1", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT23-022", as: "oujamon" }] },
-      1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     s.state.memory = 5;
     const baseDp = s.perm("host").currentDP;
@@ -100,7 +100,7 @@ describe("BT23-022 Oujamon", () => {
             { card: "BT1-009", as: "low", dp: 4000 },
             { card: "BT1-010", as: "high", dp: 8000 },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -128,12 +128,12 @@ describe("BT23-022 Oujamon", () => {
             { card: "BT23-007", as: "firstLink" },
             { card: "BT23-007", as: "secondLink" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-013", "BT1-027"],
         },
         1: {
           hand: [{ card: "ST1-02", as: "neutralPlay" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
+          deck: ["BT1-028", "BT1-045", "BT1-047"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },

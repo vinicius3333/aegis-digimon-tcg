@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Shakkoumon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -86,7 +86,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Shakkoumon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -116,7 +116,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Armadillomon"],
+      namesExact: ["Armadillomon"],
       cost: 2,
       isAlternate: true,
     },

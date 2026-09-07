@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -54,6 +53,7 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
+              zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [
                 {
@@ -104,6 +104,7 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
+              zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [
                 {

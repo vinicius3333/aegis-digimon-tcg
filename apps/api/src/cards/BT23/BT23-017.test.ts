@@ -270,7 +270,7 @@ describe("BT23-017 Betamon", () => {
         },
         1: {
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

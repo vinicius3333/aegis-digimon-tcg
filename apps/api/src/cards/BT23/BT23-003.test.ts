@@ -62,7 +62,7 @@ describe("BT23-003 Motimon", () => {
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045"],
           battleArea: [
             { card: "BT1-009", as: "firstTarget", suspended: true },
             { card: "BT1-010", as: "secondTarget", suspended: true },
@@ -114,7 +114,7 @@ describe("BT23-003 Motimon", () => {
           battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }],
           hand: [{ card: "ST20-14", as: "nonCsOption" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -131,13 +131,13 @@ describe("BT23-003 Motimon", () => {
       {
         0: {
           deck,
-          battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "host" }],
+          battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "host", dp: 20_000 }],
           hand: [
             { card: "BT23-100", as: "first" },
             { card: "BT23-100", as: "second" },
           ],
         },
-        1: { deck, security: 5 },
+        1: { deck, security: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -163,7 +163,7 @@ describe("BT23-003 Motimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }] },
-        1: { hand: [{ card: "BT23-100", as: "opponentCsOption" }], security: ["BT1-001"] },
+        1: { hand: [{ card: "BT23-100", as: "opponentCsOption" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -182,7 +182,7 @@ describe("BT23-003 Motimon", () => {
           hand: [{ card: "BT23-100", as: "csOption" }],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -221,7 +221,7 @@ describe("BT23-003 Motimon", () => {
         1: {
           battleArea: [{ card: "BT1-010", as: "opponentAttacker" }],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -255,7 +255,7 @@ describe("BT23-003 Motimon", () => {
         },
         1: {
           deck,
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045"],
           battleArea: [
             { card: "BT1-009", as: "firstTarget", suspended: true },
             { card: "BT1-010", as: "secondTarget", suspended: true },

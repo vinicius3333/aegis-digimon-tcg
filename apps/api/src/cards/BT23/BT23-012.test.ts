@@ -52,7 +52,7 @@ describe("BT23-012 Garudamon", () => {
             or: [
               { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
               {
-                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
+                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
                 excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
               },
             ],
@@ -118,6 +118,43 @@ describe("BT23-012 Garudamon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("garuda").permanentId]);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId));
     expect(s.state.memory).toBe(2);
+  });
+
+  it("reads [Giant Bird] as [Bird] per CR 2-3-2-4 and plays it from hand", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT23-012", as: "garuda" }], hand: [{ card: "BT1-014", as: "giantBird" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await advance(s.engine).verb.deletePermanent([s.perm("garuda").permanentId]);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("giantBird").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("giantBird").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("giantBird").instanceId);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("matches every compound trait spelling and still rejects a card-level [Sea Animal]", () => {
+    const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
+    const filter = deletion.actions.find((action) => action.kind === "PlayWithoutCost")!.target.filter;
+    const base = { ...getCardDefinition("BT1-014")!, level: 4 };
+    for (const trait of ["Giant Bird", "Holy Beast", "Dark Animal", "Bird Dragon", "Four Sovereign"]) {
+      expect(definitionMatches(filter, { ...base, types: [trait] })).toBe(true);
+    }
+    expect(definitionMatches(filter, { ...base, types: ["Sea Animal"] })).toBe(false);
+    expect(definitionMatches(filter, { ...base, types: ["Sea Animal", "Beast"] })).toBe(false);
+    expect(definitionMatches(filter, { ...base, types: ["Machine"] })).toBe(false);
+  });
+
+  it("keeps the [CS] branch on exact CR 2-3-2-3 matching", () => {
+    const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
+    const filter = deletion.actions.find((action) => action.kind === "PlayWithoutCost")!.target.filter;
+    const base = { ...getCardDefinition("BT1-014")!, level: 4 };
+    expect(definitionMatches(filter, { ...base, types: ["CS"] })).toBe(true);
+    expect(definitionMatches(filter, { ...base, types: ["CSX"] })).toBe(false);
   });
 
   it("plays an off-color CS level-4-or-lower card for inherited On Deletion, per Q5221", async () => {

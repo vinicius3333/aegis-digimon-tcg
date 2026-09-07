@@ -77,7 +77,7 @@ describe("BT23-001 Flickmon", () => {
   it("does not draw when the carrier lacks the Appmon trait", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-010", under: ["BT23-001"], as: "attacker" }], deck: ["BT1-009"] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
 
     expect(
@@ -154,12 +154,12 @@ describe("BT23-001 Flickmon", () => {
   it("resets the inherited draw on the next own turn through the public turn flow", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT23-007", under: ["BT23-001"], as: "attacker" }],
+        battleArea: [{ card: "BT23-007", under: ["BT23-001"], as: "attacker", dp: 20_000 }],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
       },
       1: {
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
-        security: ["BT1-001", "BT1-002", "BT1-003"],
+        security: ["BT1-009", "BT1-013", "BT1-027"],
       },
     });
     const attackPlayer = () =>
