@@ -119,6 +119,39 @@ describe("BT24-084 Inori Misono", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("uses Barrier in a public security battle, then Inori evolves the surviving Aegiomon (Q5670)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-084", as: "inori" }, { card: "P-194", as: "host" }],
+          hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+          security: [{ card: "BT1-009", as: "barrierCost" }],
+        },
+        1: { security: [{ card: "ST1-10", as: "strong" }, { card: "BT1-014", as: "second" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("aegiochusmon").instanceId);
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.events).toContainEqual({ kind: "barrierPrompt", permanentId: hostId });
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("aegiochusmon").instanceId);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.perm("inori").isSuspended).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("barrierCost").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("strong").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked").map((event) => event.revealedCardId)).toEqual([
+      "ST1-10",
+      "BT1-014",
+    ]);
+  });
+
   it("does not trigger when the opponent's security is removed", async () => {
     const s = setupEngine(
       {
