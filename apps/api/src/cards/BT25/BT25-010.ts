@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -14,8 +13,8 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+            nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
+            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
           },
           actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
         },

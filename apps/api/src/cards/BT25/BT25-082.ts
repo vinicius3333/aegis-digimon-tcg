@@ -1,33 +1,34 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const playTamerEffects: CompiledCard["effects"] = (["OnPlay", "WhenDigivolving"] as const).map((trigger) => ({
+  trigger,
+  actions: [
+    {
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Tamer"],
+          nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }],
+        },
+        count: 1,
+      },
+      from: ["hand"],
+      payCost: false,
+      condition: {
+        kind: "youHave",
+        filter: { controllerDefault: "mine", kind: ["Tamer"], countMax: 1 },
+        countMax: 1,
+      },
+      optional: true,
+    },
+  ],
+}));
+
 export const compiled: CompiledCard = {
   effects: [
-    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
-      trigger,
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          condition: {
-            kind: "youHave",
-            filter: { controllerDefault: "mine", kind: ["Tamer"], countMax: 1 },
-            countMax: 1,
-          },
-          optional: true,
-        },
-      ],
-    })),
+    ...playTamerEffects,
     {
       trigger: "AllTurns",
       actions: [
@@ -86,6 +87,8 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    { level: 3, colors: ["Purple"], cost: 3, isAlternate: false },
+    { level: 3, colors: ["Black"], cost: 3, isAlternate: false },
     { level: 3, texts: ["Three Musketeers"], cost: 2, isAlternate: true },
     { level: 3, traits: ["TS"], cost: 2, isAlternate: true },
   ],

@@ -41,6 +41,8 @@ ui-review/
 docs/audits/*
 !docs/audits/*AUDIT*.md
 !docs/audits/*QUEUE*.md
+!docs/audits/BT25/
+!docs/audits/BT25/**
 docs/audits/EX12-strict-card-audit.md
 internal-docs/audits/
 internal-docs/card-audits/

@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -7,22 +7,47 @@ import { compiled as BT25_024 } from "./BT25-024.js";
 import "../index.js";
 
 describe("BT25-024 Lekismon", () => {
-  it.each(["OnPlay", "WhenDigivolving"] as const)("draws one on %s", async (trigger) => {
+  it("draws one on an actual On Play", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT25-024", as: "lekismon" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      0: { hand: [{ card: "BT25-024", as: "lekismon" }], deck: [{ card: "BT1-009", as: "drawn" }] },
     });
+    s.state.memory = 4;
     await s.ready();
-
-    await advance(s.engine).fire(
-      trigger === "OnPlay" ? EffectTiming.OnPlay : EffectTiming.WhenDigivolving,
-      s.perm("lekismon"),
-    );
-
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lekismon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
-  it("offers Crescemon from hand only for red own Digimon events", () => {
+  it("draws one on an actual When Digivolving", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-019", as: "base" }],
+        hand: [{ card: "BT25-024", as: "lekismon" }],
+        deck: [{ card: "BT1-009", as: "bonus" }, { card: "BT1-010", as: "drawn" }, "BT1-011"],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lekismon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("bonus").instanceId,
+      s.inst("drawn").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
+  });
+
+  it("offers Crescemon from trash only for red own Digimon events", () => {
     const effect = BT25_024.effects?.find((entry) => entry.trigger === "YourTurn");
     for (const event of ["whenPlayed", "whenOneOfYoursDigivolves"] as const) {
       const watcher = effect?.actions?.find((action) => action.kind === "SubTrigger" && action.event === event);
@@ -34,7 +59,7 @@ describe("BT25-024 Lekismon", () => {
       expect(subTrigger?.actions?.[0]).toMatchObject({
         kind: "Digivolve",
         into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Crescemon"], match: "name" }] },
-        from: ["hand"],
+        from: ["trash"],
         reduceCost: 1,
         payCost: true,
         optional: true,
@@ -50,11 +75,25 @@ describe("BT25-024 Lekismon", () => {
     );
   });
 
-  it("grants inherited Jamming to a realistic evolution stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", under: ["BT25-024"], as: "host" }] } });
+  it("grants inherited Jamming to a realistic evolution stack and survives higher-DP security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", under: ["BT25-024"], as: "host" }] },
+      1: { security: ["BT25-027"] },
+    });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT25-024"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toContain("BT1-038");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT25-024"]);
   });
 
   it.each(["whenPlayed", "whenOneOfYoursDigivolves"] as const)(
@@ -67,7 +106,7 @@ describe("BT25-024 Lekismon", () => {
               { card: "BT25-024", as: "lekismon" },
               { card: "BT1-010", as: "redSubject" },
             ],
-            hand: [{ card: "BT25-026", as: "crescemon" }],
+            trash: [{ card: "BT25-026", as: "crescemon" }],
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
@@ -80,31 +119,31 @@ describe("BT25-024 Lekismon", () => {
 
       expect(s.perm("lekismon").topCard.cardId).toBe("BT25-026");
       expect(s.state.memory).toBe(0);
-      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("crescemon").instanceId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("crescemon").instanceId);
     },
   );
 
-  it("does not activate the Crescemon option for a non-red own-Digimon event", async () => {
+  it("uses Crescemon from trash after an actual red Digimon play", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT25-024", as: "lekismon" },
-            { card: "BT25-021", as: "blueSubject" },
-          ],
-          hand: [{ card: "BT25-026", as: "crescemon" }],
+          battleArea: [{ card: "BT25-024", as: "lekismon" }],
+          hand: [{ card: "BT1-009", as: "redSubject" }],
+          trash: [{ card: "BT25-026", as: "crescemon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("blueSubject").permanentId });
-
-    expect(s.perm("lekismon").topCard.cardId).toBe("BT25-024");
-    expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("crescemon").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("redSubject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("lekismon").topCard.cardId === "BT25-026");
+    expect(s.perm("lekismon").topCard.cardId).toBe("BT25-026");
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("crescemon").instanceId);
   });
 
   it("checks the post-digivolution color for a real own-Digimon evolution event", async () => {
@@ -113,12 +152,10 @@ describe("BT25-024 Lekismon", () => {
         0: {
           battleArea: [
             { card: "BT25-024", as: "lekismon" },
-            { card: "BT1-010", as: "redBase" },
+            { card: "BT24-019", as: "blueBase" },
           ],
-          hand: [
-            { card: "AD1-001", as: "redEvo" },
-            { card: "BT25-026", as: "crescemon" },
-          ],
+          hand: [{ card: "BT24-011", as: "redEvo" }],
+          trash: [{ card: "BT25-026", as: "crescemon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
@@ -129,15 +166,118 @@ describe("BT25-024 Lekismon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("redBase").permanentId,
+        permanentId: s.perm("blueBase").permanentId,
         instanceId: s.inst("redEvo").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("lekismon").topCard.cardId === "BT25-026");
 
-    expect(s.perm("redBase").topCard.cardId).toBe("AD1-001");
+    expect(s.perm("blueBase").topCard.cardId).toBe("BT24-011");
     expect(s.perm("lekismon").topCard.cardId).toBe("BT25-026");
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("crescemon").instanceId);
+  });
+
+  it("uses a Crescemon in the trash for the optional digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-024", as: "lekismon" },
+            { card: "BT1-010", as: "redSubject" },
+          ],
+          trash: [{ card: "BT25-026", as: "trashedCrescemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("redSubject").permanentId });
+    await settle(() => s.perm("lekismon").topCard.cardId === "BT25-026");
+    expect(s.perm("lekismon").topCard.cardId).toBe("BT25-026");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(
+      s.inst("trashedCrescemon").instanceId,
+    );
+  });
+
+  it("does not activate when the resulting Digimon is blue", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-024", as: "lekismon" },
+            { card: "BT25-008", as: "redBase" },
+          ],
+          hand: [{ card: "BT25-024", as: "blueResult" }],
+          trash: [{ card: "BT25-026", as: "crescemon" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("blueResult").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.perm("redBase").topCard.cardId).toBe("BT25-024");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("crescemon").instanceId);
+  });
+
+  it("does not trigger from a blue played Digimon even when a legal Crescemon is in the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-024", as: "lekismon" },
+            { card: "BT25-021", as: "blueSubject" },
+          ],
+          trash: [{ card: "BT25-026", as: "crescemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("blueSubject").permanentId });
+    expect(s.perm("lekismon").topCard.cardId).toBe("BT25-024");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("crescemon").instanceId);
+  });
+
+  it("does not use a Crescemon in hand for the printed trash-source effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-024", as: "lekismon" },
+            { card: "BT1-010", as: "redSubject" },
+          ],
+          hand: [{ card: "BT25-026", as: "crescemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("redSubject").permanentId });
+    expect(s.perm("lekismon").topCard.cardId).toBe("BT25-024");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("crescemon").instanceId);
   });
 
   it("allows declining the optional Crescemon digivolution", async () => {
@@ -148,7 +288,7 @@ describe("BT25-024 Lekismon", () => {
             { card: "BT25-024", as: "lekismon" },
             { card: "BT1-010", as: "redSubject" },
           ],
-          hand: [{ card: "BT25-026", as: "crescemon" }],
+          trash: [{ card: "BT25-026", as: "crescemon" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -160,7 +300,7 @@ describe("BT25-024 Lekismon", () => {
 
     expect(s.perm("lekismon").topCard.cardId).toBe("BT25-024");
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("crescemon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("crescemon").instanceId);
   });
 
   it("keeps the printed TS alternate evolution requirement", () => {

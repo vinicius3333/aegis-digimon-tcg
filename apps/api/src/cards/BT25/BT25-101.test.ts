@@ -150,6 +150,41 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     expect(s.perm("vulcanus").linked).toHaveLength(0);
   });
 
+  it("publicly declines the hand-trash cost and therefore skips both draw and link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-075", as: "vulcanus" }],
+          hand: [
+            { card: CARD_ID, as: "option" },
+            { card: "BT25-020", as: "handCost" },
+          ],
+          trash: [{ card: "BT25-100", as: "linkableTs" }],
+          deck: ["AD1-001", "AD1-002"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["AD1-001", "AD1-002"]);
+    expect(s.perm("vulcanus").linked).toHaveLength(0);
+  });
+
   it("activates the same Main body from Security", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

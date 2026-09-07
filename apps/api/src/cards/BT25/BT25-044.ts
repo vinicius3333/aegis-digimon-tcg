@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -42,6 +41,7 @@ export const compiled: CompiledCard = {
           op: "trashTop",
           controller: "mine",
           amount: 1,
+          optional: true,
           abortOnDecline: true,
           cost: {
             kind: "place",
@@ -77,6 +77,7 @@ export const compiled: CompiledCard = {
           op: "trashTop",
           controller: "mine",
           amount: 1,
+          optional: true,
           abortOnDecline: true,
           cost: {
             kind: "place",
@@ -116,6 +117,7 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
+                  kind: ["Digimon"],
                   playCostLte: 8,
                   nameOrTrait: [
                     {
@@ -129,6 +131,7 @@ export const compiled: CompiledCard = {
               from: ["hand", "trash"],
               payCost: false,
               optional: true,
+              preserveOncePerTurnOnDecline: true,
             },
           ],
         },

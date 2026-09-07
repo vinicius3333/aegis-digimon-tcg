@@ -87,6 +87,16 @@ export function pushDigivolution(permanent: Permanent, newTop: CardInstance): Ca
   return priorTop;
 }
 
+/** Place the selected App Fusion link above the prior top, preserving all other links. */
+export function moveLinkOntoStack(permanent: Permanent, instanceId: string): CardInstance | undefined {
+  const index = permanent.linked.findIndex((card) => card.instanceId === instanceId);
+  if (index < 0) return undefined;
+  const card = permanent.linked.splice(index, 1)[0]!;
+  card.faceUp = true;
+  pushOnStack(permanent, card);
+  return card;
+}
+
 /**
  * Remove and return the hand instance at `index` (the digivolving card leaving the
  * hand to become the new top). Splicing keeps the ArraySchema indices consistent

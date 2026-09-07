@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -6,6 +5,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
+      optional: true,
       actions: [
         {
           kind: "Return",
@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      optional: true,
       actions: [
         {
           kind: "Return",

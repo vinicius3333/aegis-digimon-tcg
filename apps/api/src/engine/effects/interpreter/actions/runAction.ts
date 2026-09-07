@@ -759,7 +759,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         // optional action acted zero times, so clear any success receipt left by an earlier
         // action in the same effect before its "if they didn't" continuation is evaluated.
         ctx.lastEffectActed = false;
-        if ((action as Action & { preserveOncePerTurnOnDecline?: boolean }).preserveOncePerTurnOnDecline === true) {
+        if (action.preserveOncePerTurnOnDecline === true) {
           ctx.oncePerTurnActivationDeclined = true;
         }
         return action.abortOnDecline === true;

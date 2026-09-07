@@ -16,6 +16,58 @@ describe("BT25-082 BlackGatomon", () => {
     );
   });
 
+  it("supports ordinary Purple and Black Lv.3 routes at cost 3 and rejects a wrong color", async () => {
+    for (const [source, as] of [
+      ["BT10-071", "purpleBase"],
+      ["BT10-058", "blackBase"],
+    ] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: source, as }], hand: [{ card: CARD_ID, as: "cat" }] } });
+      s.state.memory = 4;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(as).permanentId,
+          instanceId: s.inst("cat").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm(as).topCard?.cardId === CARD_ID);
+      expect(s.state.memory).toBe(1);
+    }
+    const wrong = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: CARD_ID, as: "cat" }] },
+    });
+    wrong.state.memory = 4;
+    expect(
+      wrong.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrong.perm("redBase").permanentId,
+        instanceId: wrong.inst("cat").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it.each([
+    ["Three Musketeers text", "BT21-054", 2],
+    ["TS trait", "BT24-009", 3],
+  ] as const)("uses the %s alternate route at cost 2", async (_branch, source, requirementIndex) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: CARD_ID, as: "cat" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cat").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: requirementIndex,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("On Play plays a full-text matching Tamer free at the exact <=1 boundary, and may be declined", async () => {
     const positive = setupEngine(
       {
@@ -134,10 +186,7 @@ describe("BT25-082 BlackGatomon", () => {
             {
               card: "BT25-083",
               as: "host",
-              under: [
-                { card: CARD_ID, as: "source" },
-                { card: "AD1-001", as: "old" },
-              ],
+              under: [{ card: CARD_ID, as: "source" }],
             },
           ],
           trash: [{ card: "BT25-085", as: "cost" }],
@@ -154,10 +203,7 @@ describe("BT25-082 BlackGatomon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
-    expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([
-      s.inst("source").instanceId,
-      s.inst("old").instanceId,
-    ]);
+    expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([s.inst("source").instanceId]);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(s.inst("drawn").instanceId);
     await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,

@@ -1,5 +1,10 @@
 # BT25 Card Implementation Audit
 
+Current campaign (2026-09-06): **INCOMPLETE; 0/104 independently approved 10/10**.
+See [the current evidence ledger](./BT25/REAUDIT-LEDGER.md) and
+[collection plan](../plans/2026-09-06-bt25-reaudit-plan.md). The reports below
+are historical claims under independent revalidation, not current completion.
+
 This ledger records evidence in ascending card-ID order. A card receives 10/10 only after its complete catalog contract and local knowledge-base record are inspected, every clause is traced through its direct compiled-IR module and relevant shared primitives, and existing observable behavioral proof passes. In accordance with the requested audit policy, an already-correct card does not receive newly created tests; tests are added or strengthened when the audit finds a defect.
 
 ## Collection completion

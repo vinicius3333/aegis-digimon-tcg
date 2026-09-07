@@ -145,6 +145,18 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
+      colors: ["Green"],
+      cost: 4,
+      isAlternate: false,
+    },
+    {
+      level: 4,
+      colors: ["Black"],
+      cost: 4,
+      isAlternate: false,
+    },
+    {
+      level: 4,
       traits: ["Glowing Dawn"],
       cost: 3,
       isAlternate: true,
