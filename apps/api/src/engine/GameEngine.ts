@@ -624,8 +624,8 @@ export class GameEngine {
    * Cards linked since the last over-limit rule check (fed by the link verb through
    * `PrimitivesEngine.noteLinked`). Comprehensive Rules §4-9-5 trashes EXISTING link cards
    * "at the same time as the newly linked cards", so {@link chooseExcessLinkCards} keeps
-   * these out of the candidate pool. Cleared by that sweep, which is the moment the rule is
-   * applied.
+   * these out of the candidate pool. Cleared after every completed rule-check fixpoint,
+   * including quiet checks with no excess.
    */
   private readonly justLinked = new Set<string>();
   /** Last resolved continuous DP contribution, used only to preserve dependency inputs between passes. */
@@ -4551,6 +4551,10 @@ export class GameEngine {
         this.ruleProcessing = false;
       }
     }
+    // Even a quiet check establishes the current Link cards as existing cards for
+    // the next Link operation. Keep the markers through this whole fixpoint, then
+    // retire them before its deferred reactions can create a fresh batch of Links.
+    this.justLinked.clear();
   }
 
   /**
@@ -4780,7 +4784,6 @@ export class GameEngine {
       const excess = permanent.linked.length - this.linkMaxOf(permanent);
       if (excess > 0) toTrash.push(...(await this.chooseExcessLinkCards(permanent, excess)));
     }
-    this.justLinked.clear();
     if (toTrash.length > 0) await this.primitives.trash(toTrash, { byRule: true });
   }
 
