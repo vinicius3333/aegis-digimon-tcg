@@ -26,9 +26,10 @@ export interface BuilderOptions {
   /**
    * Attack-event subject for `whenAttacking`: `self` means the Digimon carrying
    * this effect; `ally` is for observers such as Tamers whose text says "one of
-   * your Digimon attacks". Defaults to the overwhelmingly common self scope.
+   * your Digimon attacks"; `any` fires on every attack regardless of attacker (LM-007's
+   * `[End of Attack]`, KB Q3997). Defaults to the overwhelmingly common self scope.
    */
-  attackScope?: "self" | "ally" | "opponent";
+  attackScope?: "self" | "ally" | "opponent" | "any";
   when?: (ctx: EffectContext) => boolean; // EXTRA trigger condition (ANDed with the timing guard)
   canActivate?: (ctx: EffectContext) => boolean; // optional extra activation guard
   /**
@@ -160,7 +161,7 @@ export const whenAttacking = (opts: BuilderOptions): Effect =>
       const attackerId = ctx.trigger?.attackerPermanentId;
       // Direct card tests and legacy timing drives may omit the combat payload;
       // production combat always supplies it. Card-specific gates still apply.
-      if (attackerId === undefined) return true;
+      if (attackerId === undefined || opts.attackScope === "any") return true;
       if (opts.attackScope === "ally") {
         const attacker = ctx.game.permanentById(attackerId);
         return attacker?.controllerSeat === opts.source.ownerSeat;
@@ -240,6 +241,24 @@ export const whenBlocked = (opts: BuilderOptions): Effect =>
       if (attackerId === undefined) return false;
       const self = ctx.source.permanent();
       return self !== undefined && self.permanentId === attackerId;
+    },
+  });
+
+/**
+ * "[End of Attack]" (Comprehensive Rules §15-16-15-1: triggers when the end of the attack
+ * arrives "after an attack is performed using the card with that effect"). OnEndAttack is
+ * broadcast board-wide by the combat controller, so — exactly like `whenAttacking` — the
+ * builder binds the event attacker to the permanent carrying the effect; otherwise every
+ * printed/inherited [End of Attack] on both sides would fire at the end of ANY attack,
+ * including the opponent's. Direct test drives that omit the combat payload stay permissive.
+ */
+export const endOfAttack = (opts: BuilderOptions): Effect =>
+  build(opts, {
+    baseGuard: (ctx) => {
+      if (!onField(ctx)) return false;
+      const attackerId = ctx.trigger?.attackerPermanentId;
+      if (attackerId === undefined || opts.attackScope === "any") return true;
+      return ctx.source.permanent()?.permanentId === attackerId;
     },
   });
 

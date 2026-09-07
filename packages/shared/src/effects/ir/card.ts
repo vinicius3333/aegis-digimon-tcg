@@ -45,8 +45,12 @@ export interface CardEffect {
   isFromTrash?: boolean;
   /** A `[Hand]` tag alongside a timing trigger: it activates only from the hand. */
   isFromHand?: boolean;
-  /** Attack-event subject scope for observer effects such as Tamers watching an ally attack. */
-  attackScope?: "self" | "ally" | "opponent";
+  /**
+   * Attack-event subject scope for observer effects such as Tamers watching an ally attack.
+   * `any` opts a `[End of Attack]` effect out of the §15-16-15-1 own-attack binding: it fires
+   * at the end of ANY attack while the card is in the battle area (LM-007 Publimon, KB Q3997).
+   */
+  attackScope?: "self" | "ally" | "opponent" | "any";
   frequency?: EffectFrequency;
   /**
    * Turn-owner gate for triggers that do not encode the turn direction. BT19-095's
