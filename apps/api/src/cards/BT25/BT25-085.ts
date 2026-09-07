@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -47,6 +46,15 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 99,
+            nameOrTrait: [
+              { tokens: ["Three Musketeers"], match: "trait" },
+              { tokens: ["TS"], match: "trait" },
+            ],
+          },
           target: {
             filter: {
               controller: "mine",
@@ -80,6 +88,15 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 99,
+            nameOrTrait: [
+              { tokens: ["Three Musketeers"], match: "trait" },
+              { tokens: ["TS"], match: "trait" },
+            ],
+          },
           target: {
             filter: {
               controller: "mine",
@@ -244,6 +261,8 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    { level: 5, colors: ["Purple"], cost: 4, isAlternate: false },
+    { level: 5, colors: ["Black"], cost: 4, isAlternate: false },
     {
       level: 5,
       texts: ["Three Musketeers"],

@@ -5,7 +5,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // LM-007 Publimon
 // [Security] At the end of the battle, play this card without paying the cost.
 // [End of Attack] Place this Digimon on top of your security stack.
-// Q3997: the [End of Attack] effect is mandatory if this Digimon is in the battle area.
+// Q3997: the [End of Attack] effect is mandatory if this Digimon is in the battle area at the
+// end of ANY attack — including the opponent's attack that checked it out of security — so
+// it opts out of the default own-attack binding with attackScope "any".
 // IR structure: Security trigger plays this card; separate EndOfAttack trigger places it on top of security.
 // No [Main] trigger exists in the text; the earlier review misread the Security clause.
 const compiled: CompiledCard = {
@@ -28,6 +30,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfAttack",
+      attackScope: "any",
       actions: [
         {
           kind: "SecurityManipulation",

@@ -92,4 +92,32 @@ describe("BT22-087 Torajiro Asuka", () => {
     expect(s.perm("torajiro").isSuspended).toBe(true);
     expect(s.perm("opponent").currentDP).toBe(1000);
   });
+
+  it("app fuses Entermon into Ouranosmon after a public link trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-087", as: "torajiro" },
+            { card: "BT22-035", as: "entermon", linked: [{ card: "BT22-075", as: "fakemon" }] },
+          ],
+          hand: [
+            { card: "BT22-058", as: "link" },
+            { card: "BT22-039", as: "ouranosmon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("entermon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("entermon").topCard?.cardId === "BT22-039");
+    expect(s.perm("entermon").topCard?.cardId).toBe("BT22-039");
+  });
 });

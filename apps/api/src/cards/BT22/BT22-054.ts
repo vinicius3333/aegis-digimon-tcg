@@ -68,6 +68,8 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    { level: 2, colors: ["Black"], cost: 1, isAlternate: false },
+    { level: 2, colors: ["Yellow"], cost: 1, isAlternate: false },
     {
       level: 2,
       traits: ["CS"],

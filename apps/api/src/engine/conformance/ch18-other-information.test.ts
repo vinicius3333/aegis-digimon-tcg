@@ -19,6 +19,7 @@ import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
+import { advance } from "../testkit/advance.js";
 // Boot side-effect: self-registers every compiled-IR card module.
 import "../../cards/index.js";
 
@@ -104,9 +105,10 @@ function fullTurnHarness(firstSeat: Seat = 0): Harness {
 
 async function driveTurn(h: Harness, seat: Seat, duringMain?: () => void | Promise<void>): Promise<void> {
   const turn = h.engine.runOneTurn();
-  const mainPhase = (h.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-  for (let i = 0; i < 500 && !mainPhase.isOpen; i += 1) await Promise.resolve();
-  expect(mainPhase.isOpen, "Main phase opened by the real loop").toBe(true);
+  // The Main controller opens BEFORE the start-of-main timing window finishes, and
+  // `applyIntent` rejects Main verbs while any effect window is still active. Wait for
+  // the authoritative readiness the seam exposes, not merely for `isOpen`.
+  await advance(h.engine).waitForMainPhase(seat);
   if (duringMain) await duringMain();
   expect(h.engine.applyIntent(seat, { type: "endPhase" })).toEqual({ ok: true });
   await turn;

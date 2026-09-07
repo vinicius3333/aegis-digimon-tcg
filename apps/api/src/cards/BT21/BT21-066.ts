@@ -108,6 +108,7 @@ export const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
+          optional: true,
         },
       ],
       keywords: [{ keyword: "Save", raw: "＜Save＞" }],

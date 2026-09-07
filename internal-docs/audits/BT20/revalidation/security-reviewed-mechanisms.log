@@ -1,0 +1,8 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+
+ Test Files  17 passed (17)
+      Tests  313 passed (313)
+   Start at  10:07:05
+   Duration  4.02s (transform 63%, import 29%, tests 9%)

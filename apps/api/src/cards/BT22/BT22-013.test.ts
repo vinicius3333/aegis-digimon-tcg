@@ -15,7 +15,7 @@ describe("BT22-013 WarGreymon", () => {
         filter: {
           controller: "mine",
           kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Agumon"], match: "name" }],
+          nameOrTrait: [{ tokens: ["Agumon"], match: "nameExact" }],
         },
       },
       costOverride: 6,
@@ -67,6 +67,50 @@ describe("BT22-013 WarGreymon", () => {
     expect(s.perm("agumon").topCard?.cardId).toBe("BT22-013");
     expect(s.perm("agumon").stack.map((card) => card.cardId)).toContain("BT22-008");
     expect(s.state.memory).toBe(4);
+  });
+
+  it("refuses the hand digivolution when Nokia is absent", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-008", as: "agumon" }], hand: [{ card: "BT22-013", as: "warGreymon" }] } },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("warGreymon"));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-013/"),
+    )!.effectKey;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }).ok).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("warGreymon").instanceId)).toBe(true);
+  });
+
+  it("requires the exact Agumon name and does not accept Agumon X Antibody", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT9-008", as: "agumonX" },
+          { card: "BT22-084", as: "nokia" },
+        ],
+        hand: [{ card: "BT22-013", as: "warGreymon" }],
+      },
+    });
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("warGreymon"));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-013/"),
+    )!.effectKey;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }).ok).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("warGreymon").instanceId)).toBe(true);
   });
 
   it("deletes exactly one lowest-DP opponent through the second When Digivolving mode", async () => {

@@ -9,6 +9,7 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
+import { unsupported } from "../errors.js";
 import { extractCardById, insertCard } from "../../../state/access.js";
 import { Zone } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
@@ -223,6 +224,28 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       return false;
     }
     case "DisableTimingEffect": {
+      if (action.whileMatchesTargetFilter === true) {
+        if (
+          action.target.count !== "all" ||
+          action.target.filter === undefined ||
+          ctx.fx.disableTimingEffectsForPlayer === undefined
+        ) {
+          unsupported(
+            ctx,
+            action,
+            "Overall timing disable requires all targets, a filter, and the player-scoped primitive",
+          );
+          return false;
+        }
+        const filter = action.target.filter;
+        for (const seat of seatsForController(ctx, filter)) {
+          ctx.fx.disableTimingEffectsForPlayer(seat, action.timings, toDuration(action.duration), (permanentId) => {
+            const permanent = ctx.game.permanentById(permanentId);
+            return permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+          });
+        }
+        return false;
+      }
       // The disable suppresses the masked timing effects of the resolved (opponent) permanents.
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);

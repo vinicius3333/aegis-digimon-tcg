@@ -55,6 +55,119 @@ it("uses authoritative trigger card ids for order-trigger labels and art", () =>
   expect(screen.getByRole("img", { name: "Garurumon" })).toBeTruthy();
 });
 
+describe("order-trigger chooser identity", () => {
+  /**
+   * One Megadramon (EX12-064) played onto a base fires its [On Play] and its
+   * [When Digivolving] at once. Both entries carry the same permanent, so the
+   * chooser once numbered them "copy 1"/"copy 2" and claimed a second Megadramon
+   * that was never on the board.
+   */
+  it("names two effects of ONE permanent by their firing window, never as copies", () => {
+    renderDecision({
+      decisionId: "megadramon-two-timings",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: {
+        triggerKeys: [
+          buildTriggerKey("megadramon-permanent", "EX12-064/on-play"),
+          buildTriggerKey("megadramon-permanent", "EX12-064/when-digivolving"),
+        ],
+        triggerCardIds: ["EX12-064", "EX12-064"],
+        triggerTimings: ["OnPlay", "WhenDigivolving"],
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "[On Play], Megadramon" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "[When Digivolving], Megadramon" })).toBeTruthy();
+    expect(screen.queryByText(/copy/i)).toBeNull();
+  });
+
+  it("still numbers two DIFFERENT permanents of the same card", () => {
+    renderDecision({
+      decisionId: "two-megadramon",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: {
+        triggerKeys: [
+          buildTriggerKey("megadramon-a", "EX12-064/on-play"),
+          buildTriggerKey("megadramon-b", "EX12-064/on-play"),
+        ],
+        triggerCardIds: ["EX12-064", "EX12-064"],
+        triggerTimings: ["OnPlay", "OnPlay"],
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 1)" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 2)" })).toBeTruthy();
+  });
+
+  it("drops a per-option clause that every option repeats", () => {
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "identical-summaries",
+            seat: 0,
+            kind: "orderTriggers",
+            promptText: "Choose the next pending effect to resolve.",
+            options: {
+              triggerKeys: [
+                buildTriggerKey("megadramon-permanent", "EX12-064/on-play"),
+                buildTriggerKey("megadramon-permanent", "EX12-064/when-digivolving"),
+              ],
+              triggerCardIds: ["EX12-064", "EX12-064"],
+              triggerTimings: ["OnPlay", "WhenDigivolving"],
+            },
+          }}
+          candidates={[]}
+          picks={[]}
+          triggerDetails={[
+            { sourceLabel: "Field: 1", summary: "Delete 1 of your opponent's level 4 or lower Digimon…" },
+            { sourceLabel: "Field: 1", summary: "Delete 1 of your opponent's level 4 or lower Digimon…" },
+          ]}
+          onTogglePick={vi.fn()}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByText(/Delete 1 of your opponent/)).toBeNull();
+    expect(screen.getAllByText("Field: 1")).toHaveLength(2);
+  });
+
+  it("keeps a per-option clause when the options say different things", () => {
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "differing-summaries",
+            seat: 0,
+            kind: "orderTriggers",
+            promptText: "Choose the next pending effect to resolve.",
+            options: {
+              triggerKeys: [
+                buildTriggerKey("permanent-a", "EX12-064/on-play"),
+                buildTriggerKey("permanent-b", "P-008/ir-6-0"),
+              ],
+              triggerCardIds: ["EX12-064", "P-007"],
+            },
+          }}
+          candidates={[]}
+          picks={[]}
+          triggerDetails={[{ summary: "Delete 1 Digimon" }, { summary: "Draw 1 card" }]}
+          onTogglePick={vi.fn()}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByText("Delete 1 Digimon")).toBeTruthy();
+    expect(screen.getByText("Draw 1 card")).toBeTruthy();
+  });
+});
+
 it("distinguishes duplicate card candidates accessibly while preserving unique names", () => {
   render(
     <I18nProvider>
@@ -1847,6 +1960,25 @@ describe("digivolution cost choice", () => {
     expect(screen.getByRole("button", { name: "Blue Lv.2 · 1 memory" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Bebydomon · 0 memory" }));
     expect(onConfirm).toHaveBeenCalledWith(true);
+  });
+
+  it("shows the digivolving card's art beside the title instead of a bare sigil", () => {
+    const { container } = render(
+      <I18nProvider>
+        <EvoCostChoiceOverlay
+          evolvingCardId="EX3-037"
+          baseName="Bebydomon"
+          options={[{ type: "normal", label: "Blue Lv.2", cost: 1 }]}
+          onConfirm={vi.fn<(useAlternate: boolean) => void>()}
+          onCancel={vi.fn<() => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    // Either the art or its sigil fallback, but always at a size a thumb can read.
+    const art = container.querySelector<HTMLElement>(".evo-cost-prompt > div > :first-child");
+    expect(art).not.toBeNull();
+    expect(art?.style.width).toBe("56px");
   });
 });
 

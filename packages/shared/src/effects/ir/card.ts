@@ -3,7 +3,7 @@
 import type { Action } from "./actions/action.js";
 import type { KeywordRef } from "./keywords.js";
 import type { Condition } from "./predicates/conditions.js";
-import type { DigivolutionRequirement } from "./requirements/digivolve.js";
+import type { BaseGrantedDigivolve, DigivolutionRequirement } from "./requirements/digivolve.js";
 import type { AppFusionRequirement, AssemblyRequirement, DnaDigivolveRequirement } from "./requirements/fusion.js";
 import type { DigiXrosRequirement, LinkRequirement, MindLinkRequirement } from "./requirements/xrosLink.js";
 import type { EffectFrequency, EffectTrigger } from "./triggers.js";
@@ -45,8 +45,12 @@ export interface CardEffect {
   isFromTrash?: boolean;
   /** A `[Hand]` tag alongside a timing trigger: it activates only from the hand. */
   isFromHand?: boolean;
-  /** Attack-event subject scope for observer effects such as Tamers watching an ally attack. */
-  attackScope?: "self" | "ally" | "opponent";
+  /**
+   * Attack-event subject scope for observer effects such as Tamers watching an ally attack.
+   * `any` opts a `[End of Attack]` effect out of the §15-16-15-1 own-attack binding: it fires
+   * at the end of ANY attack while the card is in the battle area (LM-007 Publimon, KB Q3997).
+   */
+  attackScope?: "self" | "ally" | "opponent" | "any";
   frequency?: EffectFrequency;
   /**
    * Turn-owner gate for triggers that do not encode the turn direction. BT19-095's
@@ -91,6 +95,8 @@ export interface CompiledCard {
    * lists several paths.
    */
   digivolutionRequirement?: DigivolutionRequirement[];
+  /** Base-granted digivolution paths offered by this card while it is in the battle area. */
+  baseGrantedDigivolve?: BaseGrantedDigivolve[];
   dnaDigivolveRequirement?: DnaDigivolveRequirement[];
   appFusionRequirement?: AppFusionRequirement[];
   /** What the card may be linked to, and at what cost. */

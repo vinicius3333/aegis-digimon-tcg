@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-038.js";
 import "./index.js";
+import "../BT17/BT17-034.js";
 
 describe("BT20-038 Falcomon", () => {
   it("reduces qualifying ACCEL digivolution only from the battle area", () => {
@@ -50,14 +52,33 @@ describe("BT20-038 Falcomon", () => {
     }
   });
 
+  it("does not reduce a legal non-ACCEL evolution from the battle area", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-038", as: "falcomon" }], hand: [{ card: "BT17-034", as: "nonAccel" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("falcomon").permanentId,
+        instanceId: s.inst("nonAccel").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("falcomon").topCard.cardId === "BT17-034" && s.state.pendingDecision === undefined);
+    expect(s.perm("falcomon").topCard.cardId).toBe("BT17-034");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("grants Piercing from the inherited source stack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-039", dp: 5000, under: ["BT20-038"], as: "host" }] },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }],
-        security: ["BT20-001"],
+        security: ["BT1-010"],
       },
     });
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -65,6 +86,27 @@ describe("BT20-038 Falcomon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("reaches Falcomon from a legal Pinamon egg through a public zero-cost evolution", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT20-004", as: "pinamon" }, hand: [{ card: "BT20-038", as: "falcomon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pinamon").permanentId,
+        instanceId: s.inst("falcomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pinamon").topCard.cardId === "BT20-038");
+    expect(s.perm("pinamon").stack.map((card) => card.cardId)).toEqual(["BT20-004"]);
+    expect(s.state.memory).toBe(5);
   });
 });

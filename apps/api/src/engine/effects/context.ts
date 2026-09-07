@@ -1,3 +1,4 @@
+import { isTimingActivationDisabled } from "./timingActivation.js";
 import {
   CardKind,
   EffectTiming,
@@ -135,7 +136,12 @@ export function createGameAccess(
     permanentId: string,
     printedKinds: readonly import("@aegis/shared").CardKind[],
   ) => import("@aegis/shared").CardKind[],
-  baseGrantedDigivolve?: (seat: Seat, base: Permanent, evolving: CardDefinition) => { cost: number } | undefined,
+  baseGrantedDigivolve?: (
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: import("@aegis/shared").ZoneRef,
+  ) => { cost: number } | undefined,
   effectiveDP?: (permanentId: string) => number,
   linkCostReductionGrant?: (
     recipientId: string,
@@ -243,6 +249,7 @@ export function createEffectContext(parts: {
 }): EffectContext {
   return {
     source: parts.source,
+    sourcePermanentIdAtCreation: parts.source.permanent?.()?.permanentId,
     trigger: parts.trigger,
     game: parts.game,
     fx: parts.fx,
@@ -281,6 +288,7 @@ export function unimplementedPrimitives(): Primitives {
     disableSecurityEffect: () => refuse("static-continuous-effects", "disableSecurityEffect"),
     disableSecurityEffectsForSeat: () => refuse("static-continuous-effects", "disableSecurityEffectsForSeat"),
     disableTimingEffect: () => refuse("static-continuous-effects", "disableTimingEffect"),
+    disableTimingEffectsForPlayer: () => refuse("static-continuous-effects", "disableTimingEffectsForPlayer"),
     declareWinner: () => refuse("effect-primitives", "declareWinner"),
     setMemory: () => refuse("effect-primitives", "setMemory"),
     modifyDP: () => refuse("effect-primitives", "modifyDP"),
@@ -326,6 +334,7 @@ export function unimplementedPrimitives(): Primitives {
     returnToHand: () => refuse("effect-primitives", "returnToHand"),
     returnToDeck: () => refuse("effect-primitives", "returnToDeck"),
     returnStackTopsToDeck: () => refuse("effect-primitives", "returnStackTopsToDeck"),
+    trashStackTops: () => refuse("effect-primitives", "trashStackTops"),
     reveal: () => refuse("effect-primitives", "reveal"),
     searchDeck: () => refuse("effect-primitives", "searchDeck"),
     addSecurity: () => refuse("effect-primitives", "addSecurity"),
@@ -616,24 +625,6 @@ function applyTimingEffectDisable(
   return collected.filter((c) => {
     const permanent = c.source.permanent();
     if (permanent === undefined) return true;
-    // `cannotActivateWhenDigivolving` restriction (BT19-038 KB Q5541–Q5545): the targeted
-    // permanent cannot activate any [When Digivolving] effects while this restriction is active.
-    // Checked before the isTimingEffectDisabled path; no beAffected bypass per the KB ruling.
-    if (
-      timing === EffectTiming.WhenDigivolving &&
-      env.continuous.hasRestriction(permanent.permanentId, "cannotActivateWhenDigivolving")
-    ) {
-      return false;
-    }
-    if (timing === EffectTiming.OnPlay && env.continuous.hasRestriction(permanent.permanentId, "activateOnPlay")) {
-      return false;
-    }
-    if (!env.continuous.isTimingEffectDisabled(permanent.permanentId, mask)) return true;
-    // Effect-immunity bypass: an immune source's timing effect still fires.
-    // Unqualified call (no sourceKind): we are checking the SOURCE permanent's own
-    // immunity, not filtering an incoming opponent effect by source kind. Any beAffected
-    // entry on this permanent — qualified or not — grants the bypass, because the bypass
-    // applies to the timing-disable suppressor's action, not to a specific card kind.
-    return env.continuous.hasRestriction(permanent.permanentId, "beAffected");
+    return !isTimingActivationDisabled(env.continuous, permanent.permanentId, mask);
   });
 }

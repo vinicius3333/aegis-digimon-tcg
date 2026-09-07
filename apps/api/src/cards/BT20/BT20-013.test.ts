@@ -70,6 +70,63 @@ describe("BT20-013 BaoHuckmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(second.instanceId);
   });
 
+  it("resets the once-per-turn activation after a real opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-013", as: "bao" }],
+          hand: [
+            { card: "BT20-084", as: "first" },
+            { card: "BT20-084", as: "second" },
+          ],
+          deck: ["BT20-001", "BT20-002", "BT20-003"],
+        },
+        1: { deck: ["BT20-004", "BT20-005", "BT20-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const firstEffect = (observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[])[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard.instanceId,
+        effectKey: firstEffect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("second").instanceId);
+    expect(s.state.memory).toBe(2);
+
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("bao").isSuspended).toBe(false);
+    const nextTurnEffects = observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[];
+    expect(nextTurnEffects).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard.instanceId,
+        effectKey: nextTurnEffects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT20-084").length === 2,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("second").instanceId);
+    expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
   it("observably grants +1000 DP to all allies only during its controller's turn", async () => {
     const s = setupEngine({
       0: {
@@ -88,5 +145,47 @@ describe("BT20-013 BaoHuckmon", () => {
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(7000);
     expect(s.perm("ally").currentDP).toBe(1000);
+  });
+  it("allows refusal and matches the alternate Gankoomon name branch", async () => {
+    const refused = setupEngine(
+      { 0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-084", as: "candidate" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    refused.state.memory = 5;
+    await refused.ready();
+    const effect = (observe(refused.engine).activatableEffects(refused.perm("bao")) as { effectKey: string }[])[0]!;
+    expect(
+      refused.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: refused.perm("bao").topCard.instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+    expect(
+      refused.state.players[0]!.hand.some((card) => card.instanceId === refused.inst("candidate").instanceId),
+    ).toBe(true);
+    expect(refused.state.memory).toBe(5);
+
+    const gankoomon = setupEngine(
+      { 0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-057", as: "gankoomon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    gankoomon.state.memory = 10;
+    await gankoomon.ready();
+    const gankEffect = (
+      observe(gankoomon.engine).activatableEffects(gankoomon.perm("bao")) as { effectKey: string }[]
+    )[0]!;
+    expect(
+      gankoomon.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: gankoomon.perm("bao").topCard.instanceId,
+        effectKey: gankEffect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      gankoomon.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-057"),
+    );
+    expect(gankoomon.state.memory).toBe(4); // BaoHuckmon -2 plus Gankoomon's printed -4 reduction (Q4294)
   });
 });

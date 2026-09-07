@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-017.js";
 import "../index.js";
 
@@ -142,7 +143,7 @@ describe("BT21-017 Dimetromon", () => {
 
   it("gains memory once only for opponent security removal", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-015", as: "host", under: ["BT21-017"] }] },
+      0: { battleArea: [{ card: "BT21-024", as: "host", under: ["BT21-017"] }] },
     });
     s.state.memory = 0;
     await s.ready();
@@ -150,6 +151,96 @@ describe("BT21-017 Dimetromon", () => {
     expect(s.state.memory).toBe(0);
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not gain memory when an opponent attacks and removes this player's security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-024", as: "host", under: ["BT21-017"] }],
+          security: ["BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT21-011", as: "opponentAttacker" }],
+          security: ["BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("gains inherited memory only once across two public opponent-security removals in one turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-024", as: "host", under: ["BT21-017"] },
+            { card: "BT21-011", as: "firstAttacker" },
+            { card: "BT21-011", as: "secondAttacker" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-001", "BT1-002"], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    for (const alias of ["firstAttacker", "secondAttacker"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(alias).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[1]!.security.length < (alias === "firstAttacker" ? 2 : 1) && !observe(s.engine).isAttacking(),
+      );
+      expect(s.state.memory).toBe(1);
+    }
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains memory from a public attack that removes the opponent's security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-024", as: "host", under: ["BT21-017"] },
+          { card: "BT21-011", as: "attacker" },
+        ],
+      },
+      1: { security: ["BT1-001"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[1]!.security.length === 0 && s.state.memory === 1 && !observe(s.engine).isAttacking(),
+    );
     expect(s.state.memory).toBe(1);
   });
 });

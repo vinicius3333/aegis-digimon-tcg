@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-005.test.ts (5 tests | 1 failed) 55ms
+   ❯ BT20-005 Kapurimon (5)
+     × Q4284: resolves a face-up Security effect decision before the inherited Jamming trigger 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-005.test.ts > BT20-005 Kapurimon > Q4284: resolves a face-up Security effect decision before the inherited Jamming trigger
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT20/BT20-005.test.ts:101:73
+     99|     const first = s.decisions[0]!;
+    100|     expect({ seat: first.seat, kind: first.req.kind }).toEqual({ seat:…
+    101|     expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Jamming")…
+       |                                                                         ^
+    102|     expect(s.engine.applyIntent(1, { type: "respondDecision", decision…
+    103|     await settle(() => observe(s.engine).hasKeyword(s.perm("attacker")…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  01:08:27
+   Duration  529ms (import 53%, transform 35%, tests 12%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-005.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

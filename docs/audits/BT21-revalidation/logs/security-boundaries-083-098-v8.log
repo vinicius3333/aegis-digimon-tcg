@@ -1,0 +1,131 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 19ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 1ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 12ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > publicly ages a placed Option before Galacticmon activates its Delay 25ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 13ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 4ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 8ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security also plays a cost-6-or-less Vemmon-text card from hand 6ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > does not offer a cost-7-or-more Vemmon-text Digimon from Security 4ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > declines an eligible Security Vemmon-text play and preserves the candidate 4ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > keeps the face-up-security color waiver and security/Main branches faithful 0ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > returns the bottom security card and places itself face-up as security 2ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Q4609/Q4610 works with zero security: it only places itself face-up 2ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > waives its color only for its controller's face-up-security condition 2ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Security plays a level-5 WG Digimon from hand without paying cost 6ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > public Security resolution rejects an over-level WG hand candidate 3ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Security rejects an over-level hand target (direct timing supplement) 8ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > publicly declines an eligible level-5 WG Security play and leaves the card in hand 5ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > publicly grants Vortex to existing and newly played own WG Digimon while face-up in Security 5ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > loses the Security Vortex grant when the face-up source is checked 7ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 4ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > does not treat a non-Armor hand card as a valid Delay destination 27ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 0ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 6ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 57ms
+stdout | src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > declines an eligible aged Delay link after a public turn boundary
+[WinCheck] seat 0 lost (cause: deckOut) — turn 3, phase Draw
+[WinCheck] seat 1 wins (reason: deckOut) — turn 3, phase Draw, memory 10
+
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > verifies the Appmon waiver, reveal-and-place Main, Delay Link, and Security placement 0ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > reveals an Appmon/App Driver card, trashes the rest, and places itself 4ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Q4734 waives color for an Appmon Digimon in breeding 1ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > ages a publicly played Option before activating Delay at a later own turn 18ms
+ × src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > declines an eligible aged Delay link after a public turn boundary 20ms
+   → Seat 0's Main phase did not become ready
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > publicly places itself from Security without changing memory 5ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > turns a Marcus Damon into a 12000 DP Rush Digimon and starts its Digimon attack 5ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > targets the chosen Marcus permanent and carries the temporary Digimon grants 0ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > retains the temporary Digimon treatment when no opponent Digimon is eligible 3ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > publicly declines the optional attack against an unsuspended opponent Digimon 3ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > expires every temporary Marcus property after the activating turn ends 6ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security plays Marcus from trash for free, then adds itself to hand 7ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security also plays an eligible Marcus from hand and returns the Option 26ms
+stdout | src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+stdout | src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > honors a public reverse source-order choice and places the selected cards at the bottom
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > encodes stack transfer, counted reduction, color waiver, and Security play 0ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count 10ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > honors a public reverse source-order choice and places the selected cards at the bottom 10ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > plays an eligible Xros Heart card at its unreduced cost when no source cards are available 3ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > keeps the mandatory placed source but preserves an eligible hand card when the optional play is declined 3ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > waives color with a Xros Heart Digimon and rejects the option without one 1ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > does not borrow an opponent's Xros Heart trait for the color waiver 0ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > Security plays a cost-5 Xros Heart Tamer from trash without paying cost 8ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > publicly plays an eligible Xros Heart card from hand during Security 8ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > publicly declines an eligible Xros Heart card during Security and preserves its source 6ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > does not play a Xros Heart card above the Security play-cost ceiling 4ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 [Main] on-play body fires on a real playCard (not dead) > deletes the opponent's highest-DP Digimon and lands in the battle area 4ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > models the conditional use reduction, highest-DP deletion, and Delay digivolution 0ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms reactive Delay from two public security attacks and free-evolves a legal host 42ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 3 opposing security pays a use cost of 4 3ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 4 opposing security pays a use cost of 8 1ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > Security deletes only one opposing highest-DP Digimon 1ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > deletes the highest-DP Digimon from a public Security attack 5ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > declines an eligible aged Delay evolution after a public security attack 17ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > registers the three printed timing windows and a real On Play suspension effect 0ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main without an opposing Digimon (opponent present: false) gains 0 memory 1ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main with an opposing Digimon (opponent present: true) gains 1 memory 1ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > gains conditional memory through the public Start-of-Main lifecycle 4ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > suspends a Marcus Damon on the field when played 3ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > does not suspend an opponent's Marcus Damon 2ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > grants Piercing and +3000 DP to the same Digimon, then gives an opponent -3000 DP 6ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > applies Piercing in a public battle and expires the modifiers at turn end 19ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > declining the On Play suspension leaves every Marcus unsuspended and grants no modifiers 2ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > triggers only for this Marcus and only once per turn 4ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > does not repeat one Marcus watcher across public same-turn suspensions 26ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > plays itself from Security without paying cost 10ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 0ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 2ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives red color for an own non-red Tamer with printed inherited effects 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not waive color from an opponent inherited-effect Tamer 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not waive color from an unrelated own Tamer without inherited effects 0ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 3ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > publicly resolves Security by attacking into Spirit Evolution! 6ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > publicly plays an eligible inherited-effect Tamer from hand during Security 8ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > publicly declines the eligible inherited-effect Tamer Security play 4ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not resolve a same-turn Delay trigger from a public inherited-effect Tamer play 4ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declines an aged public Delay trigger without disposing the Option or Hybrid 23ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > accepts an aged public Delay trigger as free evolution over the inherited Tamer 23ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > places Xros Heart Digimon under Tamer, draws 1, gains 1 memory 2ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > does NOT draw when no qualifying Digimon is in hand (canActivate gate) 1ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > runs the Start of Your Main Phase placement through the public turn lifecycle 6ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > registers the played/digivolved attack watcher and security skill 0ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly played Xros Heart Digimon attack 7ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not suspend for a newly played nonmatching Digimon 1ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not react when the opponent plays a qualifying Xros Heart Digimon 2ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly digivolved Hero attack 9ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > declining the watcher leaves Taiki and the arrived Digimon unsuspended 2ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > plays itself from security through a completed public attack without paying cost 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > declines an eligible aged Delay link after a public turn boundary
+Error: Seat 0's Main phase did not become ready
+ ❯ Object.waitForMainPhase src/engine/testkit/advance.ts:31:15
+     29|       }
+     30|       if (internals.mainPhase.seat !== seat || internals.state.phase !…
+     31|         throw new Error(`Seat ${seat}'s Main phase did not become read…
+       |               ^
+     32|       }
+     33|       // TurnStateMachine deliberately opens Main before its asynchron…
+ ❯ src/cards/BT21/BT21-097.test.ts:176:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 9 passed (10)
+      Tests  1 failed | 91 passed (92)
+   Start at  23:07:56
+   Duration  8.97s (transform 79%, import 14%, tests 7%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-083.test.ts src/cards/BT21/BT21-086.test.ts src/cards/BT21/BT21-091.test.ts src/cards/BT21/BT21-092.test.ts src/cards/BT21/BT21-093.test.ts src/cards/BT21/BT21-094.test.ts src/cards/BT21/BT21-095.test.ts src/cards/BT21/BT21-096.test.ts src/cards/BT21/BT21-097.test.ts src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

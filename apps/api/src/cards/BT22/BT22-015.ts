@@ -166,6 +166,16 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 6, traits: ["CS"], cost: 5, isAlternate: true }],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { level: 6, names: ["Greymon"] },
+        { level: 6, names: ["Garurumon"] },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT22-015", compiled);

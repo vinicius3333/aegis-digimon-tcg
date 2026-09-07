@@ -40,6 +40,9 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
         // source does not tear the pending effect down with the permanent's ledgers.
         activationContext: ctx,
         once: true,
+        // Pending processing from an effect that already activated: the turn player orders the
+        // simultaneous set it lands in (KB Q5564/Q5566/Q5568).
+        orderedByTurnPlayer: true,
         expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
         matches: (subCtx) => !subCtx.source.isOwnersTurn(),
         description: action.raw ?? "DelayedEffect(nextEndOfOpponentTurn)",

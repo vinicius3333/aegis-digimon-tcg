@@ -7,6 +7,8 @@ import { compiled } from "./BT22-058.js";
 
 describe("BT22-058 Dreammon", () => {
   it("carries its Appmon Link requirement and When Linking De-Digivolve", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Stnd."], cost: 2, isAlternate: true }]);
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
     expect(getCardDefinition("BT22-058")).toMatchObject({
       linkDp: 3000,
       linkRequirement: "[Link] [Appmon] trait: Cost 2",
@@ -17,6 +19,25 @@ describe("BT22-058 Dreammon", () => {
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     });
     expect(getEffectModule("BT22-058")?.effectsForTiming(EffectTiming.OnLinking, {} as never)).toHaveLength(1);
+  });
+
+  it("accepts the official Stnd. level-2 alternate route and rejects a non-Stnd. base", async () => {
+    for (const [base, legal] of [
+      ["BT22-030", true],
+      ["BT22-019", false],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-058", as: "dreammon" }] },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("dreammon").instanceId,
+        }).ok,
+      ).toBe(legal);
+    }
   });
 
   it("protects one own Digimon from opponent return effects after this card is linked", () => {

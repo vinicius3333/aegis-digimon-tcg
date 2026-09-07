@@ -3,10 +3,11 @@ import { Encoder } from "@colyseus/schema";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import type { Client } from "colyseus";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
-import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../db/snapshotFixture.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { AegisRoom, type AegisJoinOptions } from "../rooms/AegisRoom.js";
 import { ArbitrationService } from "./arbitration/index.js";
@@ -136,8 +137,18 @@ function seatOfClient(room: TestRoom, client: Client): Seat {
   return seat;
 }
 
+/**
+ * One express server and one database for the file, restored to its just-started state before each
+ * test. Standing the server up and re-migrating per test cost far more than the event under test.
+ */
+const harnessFor = snapshotFixtures<Harness>();
+
 async function startHarness(): Promise<Harness> {
-  const accounts = new AccountStore(createMemoryPool());
+  return harnessFor("default", buildHarness);
+}
+
+async function buildHarness(pool: Pool): Promise<Harness> {
+  const accounts = new AccountStore(pool);
   const participants = new ParticipantStore(accounts);
   const series = new SeriesStore(accounts);
   const swiss = new SwissProgram(accounts, series);
@@ -277,7 +288,9 @@ beforeEach(async () => {
   rooms = [];
   harness = await startHarness();
 });
-afterEach(async () => {
+// The server and its database are shared for the file (see `harnessFor` above), so they are torn
+// down once at the end rather than after each test.
+afterAll(async () => {
   await harness.close();
   await harness.accounts.close();
 });

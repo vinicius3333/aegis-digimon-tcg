@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-067.js";
 import "./index.js";
@@ -117,5 +118,73 @@ describe("BT20-067 Soulmon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
       expect.arrayContaining(["BT20-071", "BT20-076"]),
     );
+  });
+
+  it("may decline the inherited deletion with payable fodder, preserving the level 4 target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-072", under: ["BT20-067"], suspended: true, as: "host" }],
+          hand: [{ card: "BT20-047", as: "cost" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-066", as: "level4" },
+            { card: "BT20-076", as: "attacker" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const targetId = s.perm("level4").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && !s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
+  it("expires the gained Retaliation at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-061", as: "ally" }],
+          hand: [{ card: "BT20-067", as: "soulmon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { deck: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("soulmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation"));
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(false);
   });
 });

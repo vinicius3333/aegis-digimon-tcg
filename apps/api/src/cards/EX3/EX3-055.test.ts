@@ -281,14 +281,17 @@ describe("EX3-055 Wormmon", () => {
   });
 
   it("Free-family battle: a red Dinobeemon carrying Wormmon gains Retaliation and deletes the winner", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX3-061", under: ["EX3-055"], as: "dinobeemon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-061", under: ["EX3-055"], as: "dinobeemon" }],
+        },
+        1: {
+          battleArea: [{ card: "EX3-060", suspended: true, as: "stronger" }],
+        },
       },
-      1: {
-        battleArea: [{ card: "EX3-060", suspended: true, as: "stronger" }],
-      },
-    });
+      { autoDeclineOptional: true },
+    );
     s.state.turnCount = 1;
     await s.ready();
     await s.engine.recomputeContinuousEffects();

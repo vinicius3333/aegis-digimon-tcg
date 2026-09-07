@@ -1,5 +1,7 @@
 # BT23 Card Implementation Audit
 
+> Historical completion claims. The independent audit started 2026-09-06 is INCOMPLETE; current scores and evidence are in [BT23-REAUDIT-LEDGER.md](BT23-REAUDIT-LEDGER.md). The results below must be independently revalidated.
+
 This ledger records the evidence gathered in ascending card ID order. A card is marked 10/10 only when its catalog text and local knowledge-base evidence map completely to compiled IR, the shared primitives have been traced, and focused observable-state tests cover every applicable contract boundary.
 
 ## BT23-001 — Flickmon — 10/10

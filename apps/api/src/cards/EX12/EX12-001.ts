@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
                 match: "trait",
               },
             ],
+            hasDnaDigivolutionRequirement: true,
           },
           payCost: true,
           optional: true,

@@ -66,6 +66,17 @@ async function returnDigivolutionCardsFirst(
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
+    case "TrashTopStackedCards": {
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      const moved = [];
+      for (const permanentId of targetIds) {
+        moved.push(
+          ...(await ctx.fx.trashStackTops(permanentId, action.amount, { byEffectSeat: ctx.source.ownerSeat })),
+        );
+      }
+      ctx.lastEffectActed = moved.length > 0;
+      return false;
+    }
     case "ReturnTopDigivolutionCards": {
       const targetIds = await resolvePermanentTargets(ctx, action.target);
       const cards = targetIds.flatMap((id) => {
@@ -922,14 +933,22 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         for (const permanentId of playedIds)
           ctx.fx.delayedDeletePlayed?.(
             permanentId,
-            action.timing === "endOfOpponentTurn" ? "endOfOpponentTurn" : "endOfOwnerTurn",
+            action.timing === "endOfCurrentTurn"
+              ? "endOfCurrentTurn"
+              : action.timing === "endOfOpponentTurn"
+                ? "endOfOpponentTurn"
+                : "endOfOwnerTurn",
           );
       } else {
         const self = ctx.source.permanent();
         if (self !== undefined)
           ctx.fx.delayedDeletePlayed?.(
             self.permanentId,
-            action.timing === "endOfOpponentTurn" ? "endOfOpponentTurn" : "endOfOwnerTurn",
+            action.timing === "endOfCurrentTurn"
+              ? "endOfCurrentTurn"
+              : action.timing === "endOfOpponentTurn"
+                ? "endOfOpponentTurn"
+                : "endOfOwnerTurn",
           );
       }
       return false;

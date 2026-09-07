@@ -48,8 +48,8 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
             card: "BT21-072",
             as: "superior",
             under: [
-              { card: "BT1-009", as: "sourceA" },
-              { card: "BT1-010", as: "sourceB" },
+              { card: "BT21-011", as: "sourceA" },
+              { card: "BT21-066", as: "sourceB" },
             ],
           },
         ],
@@ -57,25 +57,71 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
     });
     await s.ready();
 
-    expect(s.perm("superior").currentDP).toBe(12000);
+    expect(s.perm("superior").currentDP).toBe(14000);
     expect(observe(s.engine).hasKeyword(s.perm("superior"), "Raid")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("superior"))).toBe(true);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("superior").currentDP).toBe(12000);
   });
 
   it("Q4580 attacks while already suspended without suspending again", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-072", as: "superior", suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT21-066", as: "base", suspended: true }],
+          hand: [{ card: "BT21-072", as: "superior" }],
+        },
         1: { security: [{ card: "BT1-009", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("superior"));
-    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("superior").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
 
-    expect(s.perm("superior").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("uses Raid to redirect to the highest unsuspended opponent and Piercing to check security", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-072", as: "superior" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "highest" },
+            { card: "BT1-010", as: "lower" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const highestId = s.perm("highest").permanentId;
+    preferred.push(highestId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("superior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === highestId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("lower").permanentId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("declining the optional evolution attack leaves security untouched", async () => {
@@ -95,14 +141,14 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
 
   it("gives its evolution host +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-075", as: "host", under: [{ card: "BT21-072", as: "source" }] }] },
+      0: { battleArea: [{ card: "BT21-045", as: "host", under: [{ card: "BT21-072", as: "source" }] }] },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(9000);
+    expect(s.perm("host").currentDP).toBe(14000);
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(7000);
+    expect(s.perm("host").currentDP).toBe(12000);
   });
 
   it.each([
@@ -128,5 +174,49 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("superior").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("refuses both alternate routes from a neutral Lv4 without Save text or Hero", async () => {
+    for (const alternateRequirementIndex of [0, 1] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-016", as: "ineligible" }],
+          hand: [{ card: "BT21-072", as: "superior" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      const handId = s.inst("superior").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("ineligible").permanentId,
+          instanceId: handId,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+      expect(s.perm("ineligible").topCard.cardId).toBe("BT1-016");
+      expect(s.state.memory).toBe(4);
+    }
+  });
+
+  it("combines its stack scaling with Arresterdramon inherited DP after public evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-066", as: "base" }], hand: [{ card: "BT21-072", as: "superior" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("superior").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-072");
+    expect(s.perm("base").currentDP).toBe(13000);
   });
 });

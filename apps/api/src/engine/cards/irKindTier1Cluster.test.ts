@@ -3,6 +3,7 @@ import { PlayerState, CardInstance, EffectTiming, type Seat, getCompiledCard } f
 import { getEffectModule } from "../effects/registry.js";
 import type { EffectContext } from "../effects/EffectContext.js";
 import { setupEngine, settle, assertNoLoudGap, type EngineSetup } from "../testkit/harness.js";
+import { advance } from "../testkit/advance.js";
 // Boot side-effect: self-register every compiled-IR card module so the engine resolves
 // each vehicle's effects through the real interpreter by card id.
 import "../../cards/index.js";
@@ -75,9 +76,11 @@ describe("IR-02 Tier-1 — SetMemory (BT1-086 [Start of Your Turn] set memory to
     s.state.memory = 1; // below the memoryAtMost(2) gate
 
     // Drive ONE real turn: runOneTurn opens OnStartTurn, then blocks in Main until endPhase.
+    // Wait for real Main readiness: the Main input controller opens BEFORE the [Start of Your
+    // Main Phase] window fires, so a bare `mainPhase.isOpen` spin lets `endPhase` race the
+    // still-resolving window and be rejected as `wrong-phase`.
     const turn = s.engine.runOneTurn();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    for (let i = 0; i < 500 && !mainPhase.isOpen; i++) await Promise.resolve();
+    await advance(s.engine).waitForMainPhase(0);
     // BT1-086's SetMemory fired at OnStartTurn: memory raised to its fixed value 3.
     expect(s.state.memory).toBe(3);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });

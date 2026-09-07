@@ -10,9 +10,9 @@ import {
 } from "./continuous.js";
 
 /** Minimal CardDefinition for the play-prohibition matcher (only kinds/dp/isToken read). */
-function def(opts: { kinds: CardKind[]; dp?: number; isToken?: boolean }): CardDefinition {
+function def(opts: { kinds: CardKind[]; dp?: number; isToken?: boolean; cardId?: string }): CardDefinition {
   return {
-    cardId: "X",
+    cardId: opts.cardId ?? "X",
     set: "X",
     nameEn: "X",
     kinds: opts.kinds,
@@ -146,6 +146,54 @@ describe("ContinuousEffectLedger", () => {
     expect(ledger.hasRestriction("LATE", "attack")).toBe(true);
     ledger.sweep(state, "ownerTurnEnd", 1 as Seat);
     expect(ledger.hasRestriction("LATE", "attack")).toBe(false);
+  });
+
+  it("keeps overall timing masks live across entrants, controller changes, recomputes and source departure until expiry", () => {
+    const controllers = new Map<string, Seat>([
+      ["EXISTING", 1 as Seat],
+      ["OWN", 0 as Seat],
+    ]);
+    const matches = new Set(["EXISTING", "LATE_TAMER", "OWN"]);
+    const ledger = new ContinuousEffectLedger(undefined, undefined, (id) => controllers.get(id));
+    const { state } = boardWithOnePermanent();
+    ledger.addPlayerEffectTimingDisable(1 as Seat, 0 as Seat, ["onPlay"], EffectDuration.UntilOpponentTurnEnd, (id) =>
+      matches.has(id),
+    );
+    expect(ledger.isTimingEffectDisabled("EXISTING", "onPlay")).toBe(true);
+    expect(ledger.isTimingEffectDisabled("OWN", "onPlay")).toBe(false);
+    expect(ledger.isTimingEffectDisabled("EXISTING", "whenAttacking")).toBe(false);
+    controllers.set("LATE_TAMER", 1 as Seat);
+    expect(ledger.isTimingEffectDisabled("LATE_TAMER", "onPlay")).toBe(true);
+    matches.delete("EXISTING");
+    expect(ledger.isTimingEffectDisabled("EXISTING", "onPlay")).toBe(false);
+    controllers.set("LATE_TAMER", 0 as Seat);
+    expect(ledger.isTimingEffectDisabled("LATE_TAMER", "onPlay")).toBe(false);
+    controllers.set("LATE_TAMER", 1 as Seat);
+    ledger.dropPermanent("SOURCE");
+    ledger.clearContinuous();
+    ledger.sweep(state, "ownerTurnEnd", 0 as Seat);
+    expect(ledger.isTimingEffectDisabled("LATE_TAMER", "onPlay")).toBe(true);
+    ledger.sweep(state, "ownerTurnEnd", 1 as Seat);
+    expect(ledger.isTimingEffectDisabled("LATE_TAMER", "onPlay")).toBe(false);
+    ledger.addPlayerEffectTimingDisable(
+      1 as Seat,
+      0 as Seat,
+      ["onPlay"],
+      EffectDuration.UntilOpponentTurnEnd,
+      () => true,
+      { continuous: true },
+    );
+    ledger.clearContinuous();
+    expect(ledger.isTimingEffectDisabled("LATE_TAMER", "onPlay")).toBe(false);
+    ledger.addPlayerEffectTimingDisable(
+      1 as Seat,
+      0 as Seat,
+      ["onPlay"],
+      EffectDuration.UntilOpponentTurnEnd,
+      () => true,
+    );
+    ledger.reset();
+    expect(ledger.isTimingEffectDisabled("LATE_TAMER", "onPlay")).toBe(false);
   });
 
   it("keeps an unsuspended-digivolve prohibition through recomputes and clears it at the source opponent's turn end", () => {
@@ -359,6 +407,20 @@ describe("ContinuousEffectLedger", () => {
       expect(ledger.isPlayBlocked(1 as Seat, optionDef, "play")).toBe(true);
       // A Digimon is not an Option => not blocked.
       expect(ledger.isPlayBlocked(1 as Seat, digimon5000, "play")).toBe(false);
+    });
+
+    it("treats an effect-played Mother Eater as a Digimon for play prohibitions (BT22-007 Q4861)", () => {
+      const ledger = new ContinuousEffectLedger();
+      const motherEater = def({ cardId: "BT22-007", kinds: [CardKind.DigiEgg], dp: 0 });
+      ledger.addPlayProhibition(
+        1 as Seat,
+        0 as Seat,
+        { kinds: ["Digimon"] },
+        "play",
+        EffectDuration.UntilOpponentTurnEnd,
+      );
+
+      expect(ledger.isPlayBlocked(1 as Seat, motherEater, "play", true, "breeding")).toBe(true);
     });
 
     it("does NOT block the source seat's own play (Q4675 seat scoping)", () => {

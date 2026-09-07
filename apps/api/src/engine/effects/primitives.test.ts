@@ -1296,7 +1296,7 @@ describe("primitives: digivolveFromInstance (effect-driven digivolve)", () => {
 });
 
 describe("primitives: deDigivolve", () => {
-  it("moves the top card to the trash and promotes the card beneath", () => {
+  it("moves the top card to the trash and promotes the card beneath", async () => {
     // the under card becomes the new top after de-digivolve
     const h = harness({
       board: {
@@ -1307,22 +1307,22 @@ describe("primitives: deDigivolve", () => {
     const oldTopId = p.topCard.instanceId;
     const underId = h.s.inst("under").instanceId;
 
-    const moved = h.fx.deDigivolve(p.permanentId, 1);
+    const moved = await h.fx.deDigivolve(p.permanentId, 1);
     expect(moved.map((c) => c.instanceId)).toEqual([oldTopId]);
     expect(p.topCard.instanceId).toBe(underId);
     expect(p.stack).toHaveLength(0);
     expect(h.state.players[0]!.trash.at(-1)!.instanceId).toBe(oldTopId);
   });
 
-  it("is a no-op when the Digimon has no digivolution cards", () => {
+  it("is a no-op when the Digimon has no digivolution cards", async () => {
     const h = harness({ board: { 0: { battleArea: [battleDigimon("p1", 5000)] } } });
     const p = h.s.perm("p1");
-    const moved = h.fx.deDigivolve(p.permanentId, 3);
+    const moved = await h.fx.deDigivolve(p.permanentId, 3);
     expect(moved).toHaveLength(0);
     expect(p.stack).toHaveLength(0);
   });
 
-  it("stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921)", () => {
+  it("stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921)", async () => {
     const h = harness({
       board: {
         0: {
@@ -1342,7 +1342,7 @@ describe("primitives: deDigivolve", () => {
     const p = h.s.perm("host");
     const oldTopId = p.topCard.instanceId;
 
-    const moved = h.fx.deDigivolve(p.permanentId, 3);
+    const moved = await h.fx.deDigivolve(p.permanentId, 3);
 
     expect(moved.map(({ instanceId }) => instanceId)).toEqual([oldTopId]);
     expect(p.topCard.instanceId).toBe(h.s.inst("xAntibody").instanceId);
@@ -1799,15 +1799,24 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
     expect(before - h.state.memory).toBe(PRINTED_COST);
   });
 
+  // The DNA path prices off a matching printed DNA requirement only — there is no
+  // ordinary-digivolve fallback — so this case needs a card printing a nonzero DNA cost.
+  // BT13-059 Examon is the one: [Slayerdramon] + [Breakdramon] for cost 4.
+  const DNA_INTO = "BT13-059";
+  const DNA_PRINTED_COST = 4;
+  const DNA_REDUCED_COST = DNA_PRINTED_COST - REDUCTION;
+
   it("DNA dnaDigivolveInto pays the REDUCED cost off the memory gauge", async () => {
     const h = harness({
       turnSeat: 0,
       memory: 5,
       board: {
-        // a's top is AD1-001 (Red Lv.4) — the chosen material; INTO has printed DNA cost 3 against it
         0: {
-          battleArea: [battleDigimon("a", 4000), battleDigimon("b", 3000)],
-          hand: [{ card: INTO, as: "result" }],
+          battleArea: [
+            { card: "EX3-024", as: "a", dp: 4000 },
+            { card: "EX3-044", as: "b", dp: 3000 },
+          ],
+          hand: [{ card: DNA_INTO, as: "result" }],
         },
       },
     });
@@ -1815,7 +1824,7 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
     const b = h.s.perm("b");
     const resultId = h.s.inst("result").instanceId;
 
-    // Continuous reduction keyed to the chosen material (the one whose top yields the min cost).
+    // Continuous reduction keyed to the material the DNA path charges against (the first).
     h.ledger.addEvoCostAdjustment((m) => m.target.permanentId === a.permanentId, -REDUCTION, false, {
       continuous: true,
     });
@@ -1825,8 +1834,8 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
 
     expect(perm).toBeDefined();
     expect(perm!.topCard.instanceId).toBe(resultId);
-    // FAILS-WHEN-REVERTED: reverting Task 1's DNA routing pays the full printed cost (3) -> RED.
-    expect(before - h.state.memory).toBe(REDUCED_COST);
+    // FAILS-WHEN-REVERTED: reverting Task 1's DNA routing pays the full printed cost (4) -> RED.
+    expect(before - h.state.memory).toBe(DNA_REDUCED_COST);
   });
 });
 
@@ -2430,18 +2439,18 @@ describe("primitives: deDigivolve stopAtLevel (can't trash past level N)", () =>
     };
   }
 
-  it("promotes to the floor, then stops before trashing past it (stopAtLevel:3)", () => {
+  it("promotes to the floor, then stops before trashing past it (stopAtLevel:3)", async () => {
     const h = harness({ turnSeat: 0, board: { 1: { battleArea: [stacked("P1")] } } });
     const p = h.s.perm("P1");
     const l3Id = h.s.inst("P1-l3").instanceId;
     // De-Digivolve reaches the L3, then the floor prevents any further peel.
-    const moved = h.fx.deDigivolve(p.permanentId, 4, { byEffectSeat: 0, stopAtLevel: 3 });
+    const moved = await h.fx.deDigivolve(p.permanentId, 4, { byEffectSeat: 0, stopAtLevel: 3 });
     expect(moved).toHaveLength(4); // L7, L6, L5, L4 trashed; L3 promoted to top
     expect(p.topCard?.instanceId).toBe(l3Id);
     expect(p.stack).toHaveLength(0);
   });
 
-  it("applies the standard level-3 floor even when no explicit stopAtLevel is encoded", () => {
+  it("applies the standard level-3 floor even when no explicit stopAtLevel is encoded", async () => {
     const h = harness({
       turnSeat: 0,
       board: {
@@ -2465,7 +2474,7 @@ describe("primitives: deDigivolve stopAtLevel (can't trash past level N)", () =>
     const p = h.s.perm("P2");
     const l3Id = h.s.inst("P2-l3").instanceId;
     const eggId = h.s.inst("P2-egg").instanceId;
-    const moved = h.fx.deDigivolve(p.permanentId, 8, { byEffectSeat: 0 });
+    const moved = await h.fx.deDigivolve(p.permanentId, 8, { byEffectSeat: 0 });
     expect(moved).toHaveLength(4);
     expect(p.topCard?.instanceId).toBe(l3Id);
     expect(p.stack.map((card) => card.instanceId)).toEqual([eggId]);
@@ -2579,6 +2588,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     disableSecurityEffect: true,
     disableSecurityEffectsForSeat: true,
     disableTimingEffect: true,
+    disableTimingEffectsForPlayer: true,
     dnaDigivolveInto: true,
     dpDeleteBudgetBonus: true,
     draw: true,
@@ -2662,6 +2672,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     restrictUnsuspendedDigivolve: true,
     returnToDeck: true,
     returnStackTopsToDeck: true,
+    trashStackTops: true,
     returnToEggDeck: true,
     returnToHand: true,
     reveal: true,

@@ -6,6 +6,11 @@ import "./index.js";
 
 describe("BT22-055 Recomon", () => {
   it("trashes an Appmon Digimon from hand to draw two", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Black"], cost: 0, isAlternate: false },
+      { level: 2, traits: ["Appmon"], cost: 0, isAlternate: true },
+    ]);
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
     const onPlay = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions[0]).toMatchObject({
       kind: "Draw",

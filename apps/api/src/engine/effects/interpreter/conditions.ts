@@ -25,10 +25,9 @@ import { CardColor, CardKind, getCardDefinition, isDigimon, requireCardDefinitio
 import type { Condition, Filter, Seat } from "@aegis/shared";
 
 /**
- * A checked Security card remains physically in the security stack while its [Security]
- * effect resolves, but the printed security count has already decreased by that check
- * (CR 15-14-5; EX1-027 Q3211). Keep the physical card present for play-from-security and
- * other source lookups, while excluding it from count predicates during the Security skill.
+ * A checked card has already left security in the real check flow (CR 13-1-6;
+ * EX1-027 Q3211). Direct SecuritySkill probes can still stage their source in security;
+ * exclude that source so their count predicates observe the same rules state.
  */
 function securityCardsForCondition(ctx: EffectContext, seat: Seat) {
   const security = ctx.game.player(seat).security;

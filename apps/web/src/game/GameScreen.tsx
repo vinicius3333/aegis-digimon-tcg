@@ -30,6 +30,7 @@ import type { AegisJoinOptions } from "../net/types";
 import { Avatar, Badge, Button, Logo, type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import { CardFull } from "../design/cards";
+import { AppFusionChoiceOverlay } from "./AppFusionChoiceOverlay";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
 import type { ColorName } from "../design/theme";
@@ -83,6 +84,7 @@ import {
   findPermanentInState,
   getDigivolveCostOptions,
   handCardEvolutionRoute,
+  appFusionRoutesForHost,
   parseActivatable,
   decisionEffectSource,
   otherSeat,
@@ -153,6 +155,7 @@ import {
   sourcePermanentIdOf,
   triggerClauseSummary,
   triggerSource,
+  type TriggerSource,
 } from "./decisionPresentation";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
@@ -370,6 +373,10 @@ export function GameScreen({
     lockedCandidates: DigiXrosCandidate[];
     eligibleExpanders: DigiXrosEligibleExpander[];
     intrinsicTrashMax: number;
+  } | null>(null);
+  const [appFusionChoice, setAppFusionChoice] = useState<{
+    handInstanceId: string;
+    hostPermanentId: string;
   } | null>(null);
   const [actionConfirm, setActionConfirm] = useState<
     | { kind: "play"; instanceId: string; cardId: string }
@@ -925,6 +932,11 @@ export function GameScreen({
     playableFromHand: ci.playableFromHand,
     projectedPlayCost: ci.projectedPlayCost,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
+    appFusionRoutes: [...(ci.appFusionRoutes ?? [])].map((route) => ({
+      hostPermanentId: route.hostPermanentId,
+      linkedInstanceId: route.linkedInstanceId,
+      projectedCost: route.projectedCost,
+    })),
   }));
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
@@ -1173,8 +1185,16 @@ export function GameScreen({
     (instanceId
       ? handEntries.find((entry) => entry.instanceId === instanceId)?.digivolveTargetPermanentIds
       : undefined) ?? [];
+  const appFusionHostIdsOf = (instanceId: string | undefined): readonly string[] => {
+    const entry = instanceId ? handEntries.find((candidate) => candidate.instanceId === instanceId) : undefined;
+    if (!entry) return [];
+    return you.battleArea
+      .filter((host) => appFusionRoutesForHost(entry.appFusionRoutes ?? [], host).length > 0)
+      .map((host) => host.permanentId);
+  };
   const eligibleBase = (perm: Permanent): boolean =>
-    digivolveTargetsOf(handSel ?? undefined).includes(perm.permanentId);
+    digivolveTargetsOf(handSel ?? undefined).includes(perm.permanentId) ||
+    appFusionHostIdsOf(handSel ?? undefined).includes(perm.permanentId);
   const dragCardId = drag && drag.started ? drag.cardId : undefined;
   const dragIsPlay = drag?.kind === "play" && drag.started;
   const dragIsAttack = drag?.kind === "attack" && drag.started;
@@ -1205,10 +1225,16 @@ export function GameScreen({
     const route = base
       ? handCardEvolutionRoute(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId).includes(hit.id ?? ""))
       : undefined;
+    const appFusion = base
+      ? appFusionRoutesForHost(
+          handEntries.find((entry) => entry.instanceId === drag.instanceId)?.appFusionRoutes ?? [],
+          base,
+        ).length > 0
+      : false;
     return dragIntentFor({
       drag: held,
       target: hit.target,
-      evolutionRoute: route?.kind,
+      evolutionRoute: appFusion ? "normal" : route?.kind,
       digivolvable: !!you.breeding && digivolveTargetsOf(drag.instanceId).includes(you.breeding.permanentId),
     });
   };
@@ -1226,7 +1252,10 @@ export function GameScreen({
   // these permanents mark themselves — a Tamer never among them.
   const dragBasePermanentIds = new Set(
     dragIsPlay && drag
-      ? digivolveBasePermanentIds(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId))
+      ? [
+          ...digivolveBasePermanentIds(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId)),
+          ...appFusionHostIdsOf(drag.instanceId),
+        ]
       : [],
   );
 
@@ -1333,6 +1362,13 @@ export function GameScreen({
         const perm =
           you.battleArea.find((p) => p.permanentId === id) ??
           (you.breeding?.permanentId === id ? you.breeding : undefined);
+        const appFusionRoute = handEntries
+          .find((entry) => entry.instanceId === d.instanceId)
+          ?.appFusionRoutes?.some((route) => {
+            const host = you.battleArea.find((candidate) => candidate.permanentId === id);
+            return host !== undefined && appFusionRoutesForHost([route], host).length > 0;
+          });
+        if (perm && appFusionRoute) return openAppFusionChoice(d.instanceId, id);
         const evolutionRoute =
           perm && !perm.inBreeding
             ? handCardEvolutionRoute(
@@ -1402,6 +1438,19 @@ export function GameScreen({
     }
     return undefined;
   };
+
+  const openAppFusionChoice = (handInstanceId: string, hostPermanentId: string) => {
+    if (!appFusionActionAvailable()) return;
+    const entry = handEntries.find((candidate) => candidate.instanceId === handInstanceId);
+    const host = you.battleArea.find((candidate) => candidate.permanentId === hostPermanentId);
+    if (!entry || !host) return;
+    setAppFusionChoice({ handInstanceId, hostPermanentId });
+  };
+
+  const appFusionActionAvailable = () =>
+    Boolean(
+      !state.gameOver && !boardLocked && !decision && !state.pendingDecision && isMyTurn && state.phase === Phase.Main,
+    );
 
   /** Open the action menu anchored above a field card. */
   const showCardMenu = (permanentId: string, side: "you" | "opp") => {
@@ -1484,6 +1533,9 @@ export function GameScreen({
   // ----- click routing -----
   const onYourPerm = (perm: Permanent): (() => void) | undefined => {
     if (selCardId && handSel) {
+      if (appFusionHostIdsOf(handSel).includes(perm.permanentId)) {
+        return () => openAppFusionChoice(handSel, perm.permanentId);
+      }
       const route = handCardEvolutionRoute(selCardId, you.battleArea, eligibleBase(perm));
       if (route?.kind === "both")
         return () =>
@@ -1570,7 +1622,10 @@ export function GameScreen({
   // for a card the viewer never saw, so the prompt waits for the reveal (spec §4b step
   // 10b). Only the presentation waits — the decision itself is untouched, and the hold
   // is released by the scene it belongs to.
-  const viewerDecision = decision && decision.seat === viewerSeat && !securityRevealPending ? decision : undefined;
+  const viewerDecision =
+    decision && decision.seat === viewerSeat && !securityRevealPending && !cues.decisionHeldForPlay
+      ? decision
+      : undefined;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
@@ -1584,6 +1639,8 @@ export function GameScreen({
       })
     : "dialog";
   const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
+  // The notices explain what raised the decision, so their clocks stop while it waits.
+  const decisionHoldsNotices = decision?.seat === viewerSeat && decision.kind !== "mulligan";
   const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
 
   const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
@@ -1687,16 +1744,21 @@ export function GameScreen({
   const triggerDetails =
     viewerDecision?.kind === "orderTriggers"
       ? (viewerDecision.options?.triggerKeys ?? []).map((key, index) => {
-          const slots = fieldSlots(allPermanents);
-          const source = triggerSource(parseTriggerKey(key).instanceId, {
-            fieldSlots: slots,
-            handInstanceIds,
-          });
+          // Positions count inside the owner's own battle area: numbering across both
+          // players' fields printed "Field: 3" for the first Digimon a player had out.
+          const instanceId = parseTriggerKey(key).instanceId;
+          const source = ((): TriggerSource => {
+            const mine = triggerSource(instanceId, { fieldSlots: fieldSlots(you.battleArea), handInstanceIds });
+            if (mine.zone !== "unknown") return mine;
+            return triggerSource(instanceId, { fieldSlots: fieldSlots(opp.battleArea), handInstanceIds });
+          })();
           const cardId = viewerDecision.options?.triggerCardIds?.[index] ?? triggerCardId(key);
           const clause =
             playerFacingEffectClause({
               cardId,
-              timing: viewerDecision.options?.timing,
+              // Per-trigger truth: one permanent can queue an [On Play] and a [When
+              // Digivolving] at once, and each row must read its own clause.
+              timing: viewerDecision.options?.triggerTimings?.[index] || viewerDecision.options?.timing,
               description: undefined,
             }) ?? getCardDefinition(cardId)?.effectText;
           return {
@@ -1712,6 +1774,21 @@ export function GameScreen({
       : [];
 
   // ----- overlays -----
+  // The overlay stays mounted when its routes go stale so the player sees why the
+  // action disappeared; an empty route list disables confirmation.
+  const appFusionLive = appFusionChoice
+    ? (() => {
+        const entry = handEntries.find((candidate) => candidate.instanceId === appFusionChoice.handInstanceId);
+        const host = you.battleArea.find((candidate) => candidate.permanentId === appFusionChoice.hostPermanentId);
+        const usable = entry !== undefined && host !== undefined && appFusionActionAvailable();
+        return {
+          entry,
+          host,
+          routes: usable ? appFusionRoutesForHost(entry.appFusionRoutes ?? [], host) : [],
+          normalEvolutionLegal: usable && entry.digivolveTargetPermanentIds.includes(host.permanentId),
+        };
+      })()
+    : undefined;
   const stageEl = typeof document !== "undefined" ? document.getElementById("aegis-stage") : null;
   const overlays = (
     <>
@@ -1729,7 +1806,10 @@ export function GameScreen({
           cardId={handPreviewEntry.cardId}
           activatableEffects={parseActivatable(handPreviewEntry.activatableEffectsJson)}
           canPlay={handPreviewEntry.playableFromHand}
-          canDigivolve={handPreviewEntry.digivolveTargetPermanentIds.length > 0}
+          canDigivolve={
+            handPreviewEntry.digivolveTargetPermanentIds.length > 0 ||
+            appFusionHostIdsOf(handPreviewEntry.instanceId).length > 0
+          }
           onPlay={() => {
             if (handSel) playCard(handSel);
             setHandPreview(null);
@@ -1979,6 +2059,46 @@ export function GameScreen({
           }
           onCancel={() => {
             setActionConfirm(null);
+            clearSel();
+          }}
+        />
+      ) : null}
+
+      {appFusionChoice && appFusionLive ? (
+        <AppFusionChoiceOverlay
+          resultCardId={appFusionLive.entry?.cardId ?? ""}
+          hostCardId={appFusionLive.host?.topCard?.cardId ?? ""}
+          routes={appFusionLive.routes}
+          onConfirm={(linkedInstanceId) => {
+            const liveEntry = handEntries.find((entry) => entry.instanceId === appFusionChoice.handInstanceId);
+            const liveHost = you.battleArea.find(
+              (candidate) => candidate.permanentId === appFusionChoice.hostPermanentId,
+            );
+            const liveRoute =
+              liveEntry && liveHost
+                ? appFusionRoutesForHost(liveEntry.appFusionRoutes ?? [], liveHost).find(
+                    (route) => route.linkedInstanceId === linkedInstanceId,
+                  )
+                : undefined;
+            if (room && appFusionActionAvailable() && liveEntry && liveHost && liveRoute) {
+              intents.appFusion(room, liveHost.permanentId, liveEntry.instanceId, liveRoute.linkedInstanceId);
+              playGameCue("digivolve");
+            }
+            setAppFusionChoice(null);
+            clearSel();
+          }}
+          onNormalEvolution={
+            appFusionLive.normalEvolutionLegal
+              ? () => {
+                  const { entry, host } = appFusionLive;
+                  if (!entry || !host || !appFusionActionAvailable()) return;
+                  setAppFusionChoice(null);
+                  digivolveWithChoice(host.permanentId, entry.instanceId, entry.cardId, host);
+                }
+              : undefined
+          }
+          onCancel={() => {
+            setAppFusionChoice(null);
             clearSel();
           }}
         />
@@ -2277,8 +2397,17 @@ export function GameScreen({
             </div>
             {narrowGameLayout ? (
               <>
-                {/* Touch layout: the sidebar footer is out of reach mid-match, so both match-level
-                    controls live in the header instead. */}
+                {/* Touch layout: the sidebar footer is out of reach mid-match, so the
+                    match-level controls live in the header instead. */}
+                <button
+                  type="button"
+                  className="game-mobile-log"
+                  onClick={() => setHistoryOpen(true)}
+                  aria-label={t("game.matchLog")}
+                  data-testid="log-strip"
+                >
+                  <Icons.ScrollText size={16} />
+                </button>
                 <button
                   className="game-mobile-bug"
                   onClick={() => setBugReportOpen(true)}
@@ -2326,25 +2455,42 @@ export function GameScreen({
           {/* A security card's notice follows the opponent's panels down their column,
               under the cards it revealed; on the portrait phone every notice folds into
               the one top band instead, so the column carries nothing there. */}
+          {/* A security card's notice follows the opponent's panels down their column,
+              under the cards it revealed. On the portrait phone every panel and every
+              notice folds into one top band instead — two anchored blocks there
+              landed on each other — so the column carries all of the notices. */}
           {!state.gameOver ? (
             <SidePanelStack
               panels={sidePanels}
+              collapse={collapseNotices}
+              held={decisionHoldsNotices}
+              underSheet={collapseNotices && answerOnBoard && viewerDecision !== undefined}
               onDismiss={cues.dismissPanel}
               oppColumnTail={
-                !collapseNotices && cues.notices.some((notice) => notice.fromSecurity) ? (
+                collapseNotices ? (
+                  cues.notices.length ? (
+                    <NoticeStack
+                      notices={cues.notices}
+                      family="all"
+                      collapse
+                      held={decisionHoldsNotices}
+                      onDismiss={cues.dismissNotice}
+                    />
+                  ) : undefined
+                ) : cues.notices.some((notice) => notice.fromSecurity) ? (
                   <NoticeStack notices={cues.notices} family="security" onDismiss={cues.dismissNotice} />
                 ) : undefined
               }
             />
           ) : null}
 
-          {/* Collapsed on a portrait phone only: the landscape phone keeps its
-              right-anchored corners, where the short viewport has no top band. */}
-          {!state.gameOver ? (
+          {/* The landscape phone keeps its right-anchored corners, where the short
+              viewport has no top band. */}
+          {!state.gameOver && !collapseNotices ? (
             <NoticeStack
               notices={cues.notices}
-              family={collapseNotices ? "all" : "corners"}
-              collapse={collapseNotices}
+              family="corners"
+              held={decisionHoldsNotices}
               onDismiss={cues.dismissNotice}
             />
           ) : null}
@@ -2618,7 +2764,7 @@ export function GameScreen({
                         "data-id": p.permanentId,
                         ...baseDropIntentAttrs(p.permanentId),
                       }}
-                      onClick={draggable ? undefined : onYourPerm(p)}
+                      onClick={handSel ? onYourPerm(p) : draggable ? undefined : onYourPerm(p)}
                       onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
                       // Drag-only permanents still need a pointer-free path: Enter or
                       // Space selects them like a tap would.
@@ -2816,7 +2962,10 @@ export function GameScreen({
                 canAttackSecurity={canAttackSecurity}
                 vortexMode={vortexMode}
                 canPlay={selEntry?.playableFromHand === true}
-                hasBase={(selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0}
+                hasBase={
+                  (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+                  appFusionHostIdsOf(selEntry?.instanceId).length > 0
+                }
                 onPlay={() => handSel && playCard(handSel)}
                 onAttackSec={() => selPerm && attack(selPerm, { kind: "player" }, vortexMode)}
                 onAttackPerm={(pid) => selPerm && attack(selPerm, { kind: "permanent", permanentId: pid }, vortexMode)}
@@ -2938,6 +3087,9 @@ export function GameScreen({
                 {
                   left: flight.x,
                   top: flight.y,
+                  // The cue queue waits on this same number, so the card back is
+                  // never unmounted part-way across the board.
+                  "--t-draw-flight": `${flight.duration}ms`,
                   "--battle-flight-dx": `${flight.dx}px`,
                   "--battle-flight-dy": `${flight.dy}px`,
                 } as CSSProperties

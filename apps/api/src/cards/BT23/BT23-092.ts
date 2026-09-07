@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -22,7 +21,10 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              zone: "field",
+              // Printed "on the field" spans the battle area and the breeding area (Q5365).
+              // Spelled as the two real zones: "field" is not a `ZoneRef`, so it only reached
+              // the same behaviour through `countMatching`'s unknown-zone fallback.
+              zone: ["battleArea", "breeding"],
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
               nameOrTrait: [

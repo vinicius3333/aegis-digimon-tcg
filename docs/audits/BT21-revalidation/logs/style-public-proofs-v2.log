@@ -1,0 +1,2 @@
+Finished in 10ms on 24 files using 10 threads.
+apps/api/src/cards/BT21/BT21-065.test.ts:12:31: warning typescript(no-explicit-any): Unexpected `any`. Specify a different type. help: Use `unknown` instead, this will force you to explicitly, and safely, assert the type is correct.

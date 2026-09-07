@@ -10,16 +10,32 @@ export type Intent =
   | { type: "mulligan"; keep: boolean } // answer opening-hand mulligan
 
   // --- Main-phase verbs ---
-  | { type: "playCard"; instanceId: string; targetSlot?: number; digiXros?: DigiXrosPlan; assembly?: AssemblyPlan } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
+  | {
+      type: "playCard";
+      instanceId: string;
+      /** Choose the Digimon or Option side of a DUAL card. */
+      useAs?: "digimon" | "option";
+      targetSlot?: number;
+      digiXros?: DigiXrosPlan;
+      assembly?: AssemblyPlan;
+    } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
+  // Public App Fusion declaration (CR 8-4-1): host permanent, result hand card and the
+  // selected linked material. Kept alongside the digivolve intent's App Fusion fields, which
+  // remain the effect-driven route.
+  | { type: "appFusion"; permanentId: string; instanceId: string; linkedInstanceId: string }
   | {
       type: "digivolve";
       permanentId: string;
       instanceId: string;
       useAlternateCost?: boolean;
+      /** Declare App Fusion using this linked partner instead of a normal evolution requirement. */
+      appFusionLinkedInstanceId?: string;
       /** Explicit index in digivolutionRequirementsFor(cardId); server revalidates every gate. */
       alternateRequirementIndex?: number;
       /** Explicitly use the card's Blast Digivolve waiver; omitted for a normal evolution. */
       useBlastDigivolve?: boolean;
+      /** Declare App Fusion using this linked card on the chosen battle-area Digimon. */
+      appFusionLinkInstanceId?: string;
     } // stack hand card onto a permanent; boolean remains the first-match compatibility path
   | { type: "hatchEgg" } // breeding: move top egg to raising area
   | { type: "moveFromBreeding"; permanentId: string } // move raised Digimon to battle area

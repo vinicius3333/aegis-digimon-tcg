@@ -213,6 +213,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // targets and must not inherit the outer action's fate.
   const outerFate = ctx.activeTargetFate;
   const outerDelayArmedConsumed = ctx.delayArmedConsumed;
+  const outerPendingRotationHostPermanentId = ctx.pendingRotationHostPermanentId;
   ctx.activeTargetFate = targetFateOf(action);
   try {
     return await runActionInner(ctx, action);
@@ -222,6 +223,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // contexts are intentionally reused across timing windows; leaking the
     // consumed flag would let the same payload run again without a new grant.
     ctx.delayArmedConsumed = outerDelayArmedConsumed;
+    // A rotation receipt belongs to the action that paid it. Preserve an outer
+    // receipt across nested actions and clear a receipt created by this action.
+    ctx.pendingRotationHostPermanentId = outerPendingRotationHostPermanentId;
   }
 }
 
@@ -759,7 +763,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         // optional action acted zero times, so clear any success receipt left by an earlier
         // action in the same effect before its "if they didn't" continuation is evaluated.
         ctx.lastEffectActed = false;
-        if ((action as Action & { preserveOncePerTurnOnDecline?: boolean }).preserveOncePerTurnOnDecline === true) {
+        if (action.preserveOncePerTurnOnDecline === true) {
           ctx.oncePerTurnActivationDeclined = true;
         }
         return action.abortOnDecline === true;
@@ -952,6 +956,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     case "ReturnToEggDeck":
     case "Return":
     case "ReturnTopDigivolutionCards":
+    case "TrashTopStackedCards":
     case "DeletionMaxDpModifier":
     case "DelayedDelete":
     case "DelayedDeletePlayed":

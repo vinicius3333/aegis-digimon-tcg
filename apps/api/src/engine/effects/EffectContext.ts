@@ -105,6 +105,7 @@ export type SubTriggerEventName =
   | "whenLinked"
   | "whenLinkTrashed"
   | "whenDigivolutionTrashed"
+  | "whenDigimonTopTrashed"
   | "onDigivolutionCardDiscarded"
   | "onDigivolutionCardsDiscardedBatch"
   | "onDigiBurstCardDiscarded"
@@ -364,6 +365,8 @@ export interface TriggerInfo {
   byEffectSeat?: Seat;
   /** Printed card ID of the effect that produced the event, when known. */
   byEffectCardId?: string;
+  /** Printed identity before a Digimon top is trashed and its next source promoted. */
+  trashedDigimonTop?: { permanentId: string; controllerSeat: Seat; cardId: string };
   /** Whether the trashed digivolution card was the top card of its stack. */
   trashedDigivolutionCardWasTop?: boolean;
   /** True only when a digivolution card was trashed to pay a ＜Digi-Burst＞ cost. */
@@ -407,6 +410,14 @@ export interface TriggerInfo {
    * distinguish "this digivolved from the trash" (BT17-065).
    */
   digivolvedFromZone?: ZoneRef;
+  /**
+   * True when the card the WhenDigivolving window's subject digivolved FROM is a Tamer
+   * (BT23-101's "digivolve from a Tamer" requirement). Per KB Q6708 the base digivolves as a
+   * Tamer, so no Digimon digivolved: the engine withholds `whenOneOfYoursDigivolves` /
+   * `whenAnyDigivolves` entirely for such an entry, and this flag lets an effect that DOES want
+   * to know read the distinction from inside the subject's own [When Digivolving] window.
+   */
+  digivolvedFromTamer?: boolean;
   /**
    * The rules-relevant use cost of the Option whose use fired this event: after card-level
    * changes, but before payment-only reductions (BT10-032 Q1956/Q1957).
@@ -579,7 +590,12 @@ export interface GameAccess {
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
   /** A live battle-area base-granted evolution path, usable by effect-driven digivolution. */
-  baseGrantedDigivolve?(seat: Seat, base: Permanent, evolving: CardDefinition): { cost: number } | undefined;
+  baseGrantedDigivolve?(
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: ZoneRef,
+  ): { cost: number } | undefined;
   /** Whether the permanent is currently prevented from activating this timing. */
   isTimingEffectDisabled?(permanentId: string, timing: "whenDigivolving" | "whenAttacking" | "onPlay"): boolean;
 }
@@ -645,6 +661,13 @@ export interface Primitives {
    * honoring the `beAffected` effect-immunity exception.
    */
   disableTimingEffect(permanentId: string, timings: DisableTiming[], duration: EffectDuration): void;
+  /** Overall timing prohibition, including matching permanents entering later. */
+  disableTimingEffectsForPlayer?(
+    seat: Seat,
+    timings: DisableTiming[],
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void;
   /** Read the effective timing-disable state from the authoritative continuous ledger. */
   isTimingEffectDisabled?(permanentId: string, timing: DisableTiming): boolean;
   declareWinner(seat: Seat): void;
@@ -776,7 +799,7 @@ export interface Primitives {
   dnaDigivolveInto(
     materialPermanentIds: string[],
     resultInstanceId: string,
-    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[] },
+    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[]; extraMaterialsOnBottom?: boolean },
   ): Promise<Permanent | undefined>;
   /**
    * App Fusion: play the fusion-target card `resultInstanceId` (a loose card in trash/hand)
@@ -787,7 +810,13 @@ export interface Primitives {
    * card being one of them). Returns the fused permanent, or undefined when the source/result
    * is missing, the fusion is illegal, or the app-fusion cost is unaffordable.
    */
-  appFuseInto(sourcePermanentId: string, resultInstanceId: string): Promise<Permanent | undefined>;
+  appFuseInto(
+    sourcePermanentId: string,
+    resultInstanceId: string,
+    requestedLinkedInstanceId?: string,
+    costOverride?: number,
+    opts?: { publicEntry?: boolean },
+  ): Promise<Permanent | undefined>;
   /**
    * De-Digivolve `n`: for a target permanent, up to `n` times move the current top
    * card to the BOTTOM of its owner's deck and promote the card directly beneath it
@@ -795,7 +824,11 @@ export interface Primitives {
    * digivolution stack is empty (a Digimon with no sources is unaffected). Recomputes
    * DP from the new top each step. Returns the instances moved to deck.
    */
-  deDigivolve(permanentId: string, n: number, opts?: { byEffectSeat?: Seat; stopAtLevel?: number }): CardInstance[];
+  deDigivolve(
+    permanentId: string,
+    n: number,
+    opts?: { byEffectSeat?: Seat; stopAtLevel?: number },
+  ): CardInstance[] | Promise<CardInstance[]>;
   /**
    * Place loose card instances under `targetPermanentId` as digivolution cards
    * (beneath its current top — i.e. at the bottom of the stack by default, or just
@@ -1069,6 +1102,9 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { byEffectSeat?: Seat; byEffectCardId?: string; position?: "top" | "bottom" },
   ): Promise<CardInstance[]>;
+  /** Trash up to n current top cards, promoting sources and leaving the bottom card.
+   * This is not De-Digivolve: no level-3 floor or De-Digivolve immunity applies. */
+  trashStackTops(permanentId: string, n: number, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
   reveal(seat: Seat, n: number): Promise<CardInstance[]>;
@@ -1204,8 +1240,11 @@ export interface Primitives {
    */
   stackCardTrashLock?(instanceId: string, ownerSeat: Seat, duration: EffectDuration): void;
   securityAttackInvert?(permanentId: string, duration: EffectDuration): void;
-  /** Install an owner- or opponent-turn-end delete on one played permanent. */
-  delayedDeletePlayed?(playedPermanentId: string, timing?: "endOfOwnerTurn" | "endOfOpponentTurn"): void;
+  /** Install a deletion at the owner, opponent, or current turn end on one played permanent. */
+  delayedDeletePlayed?(
+    playedPermanentId: string,
+    timing?: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn",
+  ): void;
   /**
    * Install a one-shot end-of-turn memory change for `seat` ("Gain 3 memory. At the end of
    * your turn, lose 3 memory" — BT1-021). Anchor-less: the delayed change fires at the
@@ -1615,6 +1654,13 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /**
+   * Pending processing left over from an effect that already resolved (a delayed deletion, a
+   * delayed memory change, a delayed body) rather than an effect activating now. The turn
+   * player orders the whole simultaneous set it lands in, whoever controls its source
+   * (KB Q5564/Q5566/Q5568). See `SubTriggerSubscription.orderedByTurnPlayer`.
+   */
+  orderedByTurnPlayer?: boolean;
   /** Stable action identity used to avoid duplicate installs while preserving distinct clauses. */
   dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */
@@ -1892,7 +1938,12 @@ export interface SeatScopedDecisionApi {
  * (card-module contract).
  */
 export interface EffectContext {
+  /** Exact permanent rotated by a compound cost still resolving. */
+  pendingRotationHostPermanentId?: string;
   source: CardSource;
+  /** Original host for "this Digimon" targets; moving its source into a different
+   * permanent during resolution must not transfer those targets (BT21-021 Q4727). */
+  sourcePermanentIdAtCreation?: string;
   /** Placement proof for an inherited source discarded from its live host during this event. */
   discardedStackSourceProof?: DiscardedStackSourceProof;
   /**

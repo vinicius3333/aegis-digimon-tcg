@@ -8,15 +8,21 @@ import { compiled } from "./BT22-024.js";
 describe("BT22-024 MarineBullmon", () => {
   it("uses the Shellmon placement into Sangomon, fixed-cost hand digivolution, and self-stack inherited play", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
-    expect(main).toMatchObject({ isFromHand: true, condition: { kind: "youHave" } });
+    expect(main).toMatchObject({
+      isFromHand: true,
+      condition: {
+        kind: "youHave",
+        filter: { nameOrTrait: [{ tokens: ["Yao Qinglan"], match: "nameExact" }] },
+      },
+    });
     expect(main?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       target: {
-        filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Shellmon"], match: "name" }] },
+        filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Shellmon"], match: "nameExact" }] },
         from: ["trash"],
         count: 1,
       },
-      underFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Sangomon"], match: "name" }] },
+      underFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Sangomon"], match: "nameExact" }] },
       position: "bottom",
       optional: true,
       bindHostAs: "marineBullmonHost",
@@ -28,7 +34,7 @@ describe("BT22-024 MarineBullmon", () => {
         filter: {
           controller: "mine",
           kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Sangomon"], match: "name" }],
+          nameOrTrait: [{ tokens: ["Sangomon"], match: "nameExact" }],
         },
         count: 1,
       },
@@ -144,6 +150,35 @@ describe("BT22-024 MarineBullmon", () => {
     ).toEqual({ ok: false, reason: "illegal-target" });
     await settle();
     expect(s.perm("sangomon").topCard?.cardId).toBe("BT21-031");
+  });
+
+  it("requires an exact Sangomon host and does not accept MoriShellmon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT5-051", as: "moriShellmon" },
+          { card: "BT22-086", as: "yao" },
+        ],
+        hand: [{ card: "BT22-024", as: "marineBullmon" }],
+        trash: ["BT22-021"],
+      },
+    });
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("marineBullmon"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("BT22-024/"),
+    );
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT22-024");
   });
 
   it("plays one eligible level-4 Aquatic source at end of attack only once", async () => {

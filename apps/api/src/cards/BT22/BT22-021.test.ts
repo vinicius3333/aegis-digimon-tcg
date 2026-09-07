@@ -93,6 +93,50 @@ describe("BT22-021 Shellmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
   });
 
+  it("places a Sea Animal level-3 peer through the public On Play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT22-021", as: "shellmon" },
+            { card: "BT14-008", as: "gizamon" },
+          ],
+          battleArea: [{ card: "BT1-033", as: "host" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shellmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("gizamon").instanceId));
+    expect(s.perm("host").stack.at(-1)?.cardId).toBe("BT14-008");
+  });
+
+  it("does not place a level-4 non-Aqua/non-Sea-Animal card from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT22-021", as: "shellmon" },
+            { card: "BT22-022", as: "veedramon" },
+          ],
+          battleArea: [{ card: "BT1-033", as: "host" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shellmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("veedramon").instanceId);
+  });
+
   it("grants inherited Jamming from an evolution stack", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-033", under: ["BT22-021"], as: "host" }] } });
     await s.ready();
@@ -102,14 +146,25 @@ describe("BT22-021 Shellmon", () => {
 
   it("executes Decode from its own stack on a non-battle leave", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT22-021", under: ["BT22-018"], as: "host" }] } },
+      { 0: { battleArea: [{ card: "BT22-021", under: ["BT14-008"], as: "host" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-018"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-008"));
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-018"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT14-008"]);
+  });
+
+  it("does not Decode a level-4 source when the printed Decode gate is level 3", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-021", under: ["BT22-021"], as: "host" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

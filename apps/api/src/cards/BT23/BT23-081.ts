@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,6 +17,10 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              // Comprehensive rules 3-4-5-8: an effect that does not name the breeding
+              // area does not reference cards there. Without this the shared counter
+              // (interpreter/scaling.ts) also scans breeding.
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["CS"],

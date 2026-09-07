@@ -43,7 +43,7 @@ describe("BT22-098 Unique Emblem: Fable Waltz", () => {
           battleArea: ["BT22-029"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const emblemId = s.inst("emblem").instanceId;
     const shoemonId = s.inst("shoemon").instanceId;
@@ -68,7 +68,7 @@ describe("BT22-098 Unique Emblem: Fable Waltz", () => {
           hand: [{ card: "BT22-036", as: "evolution" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 3;
     await s.ready();

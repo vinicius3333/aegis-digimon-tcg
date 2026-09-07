@@ -151,6 +151,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 4, colors: ["Yellow"], cost: 3, isAlternate: false }],
 };
 
 registerIrCard("BT22-036", compiled);

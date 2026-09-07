@@ -85,6 +85,7 @@ describe("BT23-011 Birdramon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === eligibleId));
 
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === eligibleId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === tooLargeId)).toBe(true);
     expect(s.state.memory).toBe(1);
   });
@@ -112,7 +113,9 @@ describe("BT23-011 Birdramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
     expect(s.state.memory).toBe(1);
+    expect(s.perm("csBase").stack[0]!.instanceId).toBe(s.inst("csBase").instanceId);
   });
 
   it.each([
@@ -176,5 +179,32 @@ describe("BT23-011 Birdramon", () => {
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("redTamer").instanceId);
     expect(s.state.memory).toBe(2);
+  });
+
+  it("fires the inherited play after a natural battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-012", under: ["BT23-011"], dp: 3000, suspended: true, as: "host" }],
+          hand: [{ card: "BT1-085", as: "tamer" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", dp: 5000, as: "attacker" }], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(true);
   });
 });

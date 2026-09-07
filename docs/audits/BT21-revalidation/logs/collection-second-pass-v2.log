@@ -1,0 +1,1335 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > exposes complete effect coverage with no residual clauses 3ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > reduces its play cost by two per opposing Digimon and preserves all three keywords 2ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 11 with 0 opposing Digimon 44ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 7 with 2 opposing Digimon 17ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 0 with 6 opposing Digimon 13ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > attacks immediately after a public reduced-cost play because of Rush 34ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Raid to attack the highest-DP unsuspended opponent instead of checking security 22ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > uses Blocker to redirect an opponent's public player attack 32ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > retains Rush, Raid, and Blocker after evolving from a legal red level 5 11ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > may unsuspend when an opposing Digimon is deleted, only once per turn 21ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > unsuspends from a public attack that deletes an opposing Digimon 31ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > stays suspended when its controller's Digimon is deleted or the optional effect is declined 15ms
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not use its DigiXros-only alias for an alternate digivolution 6ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 20ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 35ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > uses DigiXros with exactly one Shoutmon material through the public play intent 8ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > inherits Rush from BT21-021 under a legal public BT21-027 DigiXros host 38ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not grant Rush when BT21-021 is under a non-Xros Heart public DigiXros host 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > rejects a DigiXros intent offering two materials for the one-material recipe 4ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 37ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > publicly pays the reduced cost above five before deleting itself after a successful play 36ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 12ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 4ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > shares one once-per-turn delete budget and places Petrification for either opponent event 1ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes Security Attack +1 and Progress 2ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > evolves from a red level 5, may delete exactly one lowest-DP Digimon, and pays 4 21ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > may decline the deletion and preserves every opposing Digimon 4ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > uses one shared delete activation across digivolution and end of attack 17ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays a token from a real opponent Digimon deletion 26ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for onDeletionOf and observes the once-per-turn limit 18ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for whenSecurityRemoved and observes the once-per-turn limit 12ms
+ × src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly performs its Security Attack +1 check and creates one opponent token from security removal 45ms
+   → expected undefined to be defined
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > public player attack resolves End of Attack lowest-DP deletion with printed boundaries 44ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly refuses the optional lowest-DP deletion and preserves targets 10ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > preserves Alliance 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > optionally plays a level 4 or lower WG Digimon from hand when digivolving 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > once per turn lets another Digimon digivolve from hand into a WG Digimon for free 0ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > enters through the public play intent with Alliance and WG evolution hooks registered 3ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > plays exactly one level-4-or-lower WG Digimon for free when digivolving 7ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > publicly digivolves from the legal level-5 WG route and resolves its free play 11ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > may decline the free WG play 2ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > digivolves another Digimon into a WG card for free and only once per turn 16ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > uses the public attack origin to free-digivolve another WG Digimon 9ms
+ ✓ src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > does not free-digivolve a non-WG base when no legal target exists 35ms
+ × src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > uses the public When Attacking evolution only once per turn 85ms
+   → expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > does not use its DigiXros-only alias for an alternate digivolution 2ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > requires OmniShoutmon and ZeigGreymon as the two DigiXros materials 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publishes both alternate evolution routes and its additional DigiXros names 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > accepts the printed alias in a later public DigiXros recipe 8ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes exactly the lowest-DP opponent on play 14ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes one selected lowest-DP tie and preserves the other tie and higher target 14ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material 11ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from AD1-013 for cost 2 and deletes the lowest DP Digimon 12ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from BT21-021 for cost 3 and deletes the lowest DP Digimon 14ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > rejects both alternate routes from a nonmatching level-3 base without paying 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > places only Xros Heart and Blue Flare Digimon sources under a Tamer, then still leaves 17ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > may decline moving sources and leaves without offering the effect when no Tamer exists 17ms
+stdout | src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > plays Marcus Damon and digivolves into a yellow RizeGreymon for free
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > preserves the Agumon Dinosaur alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > once per turn offers a free yellow RizeGreymon evolution when a Marcus Damon is played 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > preserves the inherited +2000 DP Your Turn modifier 0ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > plays through the public intent and exposes the +2000 DP Your Turn modifier 2ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > evolves from a level-3 Dinosaur with Agumon in its name for 2 8ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > plays Marcus Damon and digivolves into a yellow RizeGreymon for free 23ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > ignores a public Marcus Damon played by the opponent 10ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > does not trigger from a combined Marcus Damon card name 4ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > ignores an opponent's Marcus Damon and an unrelated own Tamer 9ms
+ ✓ src/cards/BT21/BT21-042.test.ts > BT21-042 compiled implementation > grants inherited +2000 DP only during its controller's turn 3ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > preserves Armor Purge and grants +2000 DP until the opponent's turn ends 1ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > unsuspends itself once per turn when its attack target changes 0ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > preserves the Veemon alternate Digivolution cost 0ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > refuses the alternate evolution from a level-3 that is not named Veemon 1ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > stacks Veemon's reduction and inherited DP with its own evolution bonus 7ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > unsuspends only for its own changed attack target and only once per turn 11ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > does not unsuspend from the target-switch trigger during the opponent's turn 2ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > applies its DP modifier only on the When Digivolving timing 3ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > expires the When Digivolving bonus after the opponent's production turn 25ms
+ ✓ src/cards/BT21/BT21-035.test.ts > BT21-035 compiled implementation > naturally unsuspends after Raid switches its public attack target 35ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > preserves Piercing and Armor Purge 1ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > suspends one opposing Digimon and grants itself +2000 DP until the opponent's turn ends 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > preserves the Veemon alternate Digivolution cost 0ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > evolves from Veemon for 2 reduced to 1 and retains the realistic stack 35ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > uses Piercing in a public battle to delete a Digimon and check security 30ms
+ × src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > uses Armor Purge in a public battle and leaves its Veemon source 13ms
+   → expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > suspends exactly one opponent and gives itself +2000 DP 6ms
+ ✓ src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > gains its DP even with no suspension target and exposes both keywords 3ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > preserves the Appmon link requirement and linked Security Digimon DP reduction 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > defers the free Security play through the battle-ended event 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > marks the Security play at the printed end-of-battle timing 0ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > plays from Security after the battle finishes in a real security check 25ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > links to an Appmon for 1, grants 2000 DP, and reduces only opposing Security Digimon 8ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > resolves a non-Digimon Security effect while the linked DP modifier is active 38ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > does not reduce Security Digimon on the opponent's turn 2ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > rejects linking to a non-Appmon 2ms
+ ✓ src/cards/BT21/BT21-041.test.ts > BT21-041 compiled implementation > evolves from a level-2 Appmon for 0 8ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > costs a Gammamon card to grant Collision and recurs on deletion 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > trashes a Gammamon-text card and grants both effects to the same opponent 118ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > resolves the printed grant through a public play intent 123ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is declined 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is nonmatching 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays Canoweissmon from trash 18ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays level-4 Gammamon-text from trash 11ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > inherited deletion plays level-4 Gammamon text but not Canoweissmon 16ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > uses the level-4 Gammamon-text alternate evolution route for 3 13ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses the engine's stacked-card trash lock for the Digivolving protection 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > uses this stack's Vemmon cards for the inherited attack-prevention cost 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scopes the leaving-play revival to this stack's exact Vemmon cards 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > scales De-Digivolve by Vemmon cards in this Digimon's stack 0ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > de-digivolves two cards when four Vemmon are in its stack 10ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4563 blocks opponent-effect stack trash while allowing the controller's own effect 7ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > plays one Vemmon from its stack without cost when leaving the battle area 12ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > returns exactly two Vemmon to end an opponent's attack before the security check 101ms
+ ✓ src/cards/BT21/BT21-060.test.ts > BT21-060 Destromon > Q4564 cannot pay with only one Vemmon, so the attack continues 27ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > preserves the Appmon link requirement and linked recovery 2ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays from security and recovers Appmon 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > returns an Appmon from trash through its public On Play effect 8ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > links to an Appmon for 2 and recovers an Appmon from trash 74ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > recovers through the When Digivolving branch 83ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > does not recover a non-Appmon Digimon 3ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays itself from security without paying cost 26ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > preserves the Appmon link requirement and linked Piercing keyword 0ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > reveals three cards, adds one Appmon and one App Driver, then bottoms the rest 0ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > preserves the zero-cost Appmon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > resolves the public On Play reveal by adding App Driver and Appmon cards 15ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > zero-cost digivolves from a level-2 Appmon 7ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > publicly leaves all revealed cards in deck when neither search bucket matches 4ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > refuses linking onto a non-Appmon host and preserves the paid card 2ms
+ ✓ src/cards/BT21/BT21-047.test.ts > BT21-047 compiled implementation > links for 1, grants 2000 DP, and gives its Appmon host observable Piercing 49ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > encodes the inherited Gammamon-text or Hero condition once per turn 0ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Hero trait 14ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Gammamon in text 17ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > builds the Gammamon-text branch through public evolution 16ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > does not draw for a near-match-free non-Hero host 83ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws only once across repeated attacks in the same turn 55ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > reveals three, adds one Reptile/Dragonkin and one LIBERATOR, then bottoms the rest 1ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > plays for 3, adds separate Reptile and LIBERATOR cards, and bottoms the rest 11ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > accepts a Dragonkin card for the first search bucket 9ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > does not reuse one dual-trait card for both search buckets 9ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > evolves through the legal red level-2 route 8ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > gains inherited memory from a public attack that removes opponent security 112ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > does not gain memory when a public attack removes this player's security 21ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > leaves all three cards in the deck when neither search bucket matches 7ms
+ ✓ src/cards/BT21/BT21-008.test.ts > BT21-008 Elizamon > gains memory once per turn only when the opponent's security is removed 12ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > reduces the hand digivolution cost only when the source stack contains Agunimon or BurningGreymon 1ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays a red Tamer with inherited effects when deleted 10ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with Agunimon in its evolution cards 13ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with BurningGreymon in its evolution cards 14ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with no matching source in its evolution cards 13ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > may decline the deletion play and rejects ineligible Tamers 16ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > applies the same deletion effect when Aldamon is inherited 14ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > performs two security checks with Security Attack +1 24ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays its deletion Tamer from a real battle deletion 22ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > fires inherited deletion from a legal level-6 host after battle deletion 17ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > preserves the GeoGreymon alternate Digivolution requirement 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > grants one Marcus Damon the temporary Digimon, DP, restriction, and keyword effects 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > shares one once-per-turn budget between the main and inherited deletion watchers 1ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > enters through the public play intent with Marcus and attack hooks registered 7ms
+ × src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly lets the selected Marcus Damon attack after On Play 17ms
+   → expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of +0 but got 1
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not treat a combined Marcus Damon card name as exact 12ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > observably turns exactly one Marcus into a 3000 DP Digimon with both keywords and no digivolution 6ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > alternate-digivolves from GeoGreymon for 3 and resolves the optional attack 41ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > places Marcus from trash on top of security after a yellow Tamer is deleted 14ms
+ ✓ src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > does not trigger the security recovery for a non-red, non-yellow Tamer deletion 8ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > binds one qualifying Digimon so Blocker and conditional DP share the target 1ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main without an opposing Digimon gains NaN memory 5ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main with an opposing Digimon gains NaN memory 6ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenPlayed suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 9ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenOneOfYoursDigivolves suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 9ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the when-played watcher from a qualifying Digimon play 20ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > at 9 total trash grants Blocker but not the conditional +2000 DP 7ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > accepts any own Digimon as the event subject, while declining pays no cost 10ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > plays itself from Security without paying cost 34ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > preserves the registered effect triggers and action boundaries 2ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > preserves the WG alternate Digivolution requirement and inherited Piercing 1ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > optionally suspends one Digimon of either side on play 1ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > enters through the public play intent with its On Play optional effect registered 4ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > suspends an opponent Digimon on play while leaving another target unsuspended 7ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > may suspend an own Digimon and may decline without suspending anything 15ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > zero-cost digivolves from a level-2 WG card 5ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > rejects the zero-cost alternate evolution from a non-WG level-2 base 2ms
+ ✓ src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > publicly declines On Play suspension and leaves both players' Digimon ready 7ms
+ × src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > grants observable Piercing to a realistic WG evolution stack 6ms
+   → observe is not defined
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory at the start of turn, draws on linking, and fuses from hand 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > app fuses only from the linked-trigger window 29ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 2 to 3 at start of turn 6ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 3 to 3 at start of turn 2ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 4 to 4 at start of turn 4ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > public linking suspends Haru, draws, and app fuses the linked Digimon 46ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > declining the watcher leaves Haru unsuspended and does not draw or fuse 3ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > does not trigger for an opponent's linked Digimon 2ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > plays itself from security without paying cost 8ms
+stdout | src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > encodes stack transfer, counted reduction, color waiver, and Security play 1ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count 35ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > waives color with a Xros Heart Digimon and rejects the option without one 3ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > Security plays a cost-5 Xros Heart Tamer from trash without paying cost 33ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > has Raid/Piercing, optional unsuspended attack, stack scaling, and inherited DP 1ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > gets +1000 DP for each digivolution card and exposes Raid and Piercing 2ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > Q4580 attacks while already suspended without suspending again 37ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > declining the optional evolution attack leaves security untouched 4ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > uses the Save-text alternate evolution route for 3 8ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > uses the Hero alternate evolution route for 3 7ms
+ ✓ src/cards/BT21/BT21-072.test.ts > BT21-072 Arresterdramon Superior Mode > proves inherited +2000 DP on a legal Lv4-to-Lv5 evolution stack 7ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces Xros Heart/Hero digivolution costs and grants Rush only while this Digimon has Xros Heart 1ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > grants inherited Rush to a Xros Heart Digimon 6ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces a matching Xros Heart evolution cost by exactly 1 13ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces a matching Hero evolution cost by exactly 1 8ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > lets a newly played and evolved Xros Heart host attack with Rush 74ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not let a newly played and evolved non-Xros Hero host attack without Rush 13ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not reduce a near-matching non-Xros-Heart/non-Hero evolution 10ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > grants inherited Rush only to an Xros Heart host and only on your turn 4ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not expose inherited Rush from breeding or during the opponent's turn 5ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > saves the deleted Shoutmon under one of its Tamers 22ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > preserves both alternate Digivolution requirements and the Appmon link requirement 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > requires trashing an Appmon or Three Musketeers card from a digivolution stack 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > deletes one opposing play-cost-3-or-less Digimon when linked 1ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes a qualifying own stack card to de-digivolve an opponent 8ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > does not pay the stack-trash cost or de-digivolve when the effect is declined 10ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > links for 1 and deletes only the play-cost-3 boundary target 13ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > trashes its link card at rule check after Tankmon makes the host ineligible 11ms
+ ✓ src/cards/BT21/BT21-054.test.ts > BT21-054 Shotmon > zero-cost evolves through both the Three Musketeers-text and Appmon routes 13ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > preserves full coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card 1ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > restricts inherited cost reduction to this Digimon and Vemmon-text Digimon 2ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card 11ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > offers the effect with an empty trash because the trashed cost card becomes the target 10ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > declining the recovery leaves the hand cost and trash target in place 5ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > reduces only the first Vemmon-text evolution each turn 31ms
+ ✓ src/cards/BT21/BT21-056.test.ts > BT21-056 Vemmon > carries the inherited reduction through a legal public egg-to-Vemmon stack 34ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the zero-cost Dracomon alternate Digivolution requirement 1ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > optionally digivolves itself into a Coredramon from hand for free at both timings 1ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > does not treat Dracomon (X Antibody) as the standalone Dracomon alternate 2ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > preserves the inherited end-of-turn DNA Digivolution from two of your Digimon 2ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > enters through the public play intent before its start-main/evolution hooks resolve 6ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > zero-cost digivolves from Dracomon and immediately free-digivolves into Coredramon 18ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > free-digivolves into Coredramon at the start of the main phase 9ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > uses its inherited end-of-turn effect for a real Examon DNA digivolution 39ms
+ ✓ src/cards/BT21/BT21-046.test.ts > BT21-046 compiled implementation > resolves inherited DNA through the production turn lifecycle 74ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > encodes the Gammamon evolution, bounded Hiro play, and inherited turn DP 1ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > plays Hiro free after a Gammamon evolution with zero existing Tamers 28ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > plays Hiro free after a Gammamon evolution with one existing Tamers 26ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > does not play Hiro with two Tamers and permits declining with one 28ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > grants inherited +2000 DP only during its controller's turn 3ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > builds a legal Gammamon to BetelGammamon to Aldamon stack before checking inheritance 58ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays from security and deletes one opposing Digimon at 4000 DP or less on play or digivolution 2ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays for 5 and deletes exactly one opposing Digimon at the 4000 DP boundary 9ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > deletes an eligible Digimon after a real digivolution 18ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > plays itself free from Security and resolves its On Play deletion 29ms
+ ✓ src/cards/BT21/BT21-015.test.ts > BT21-015 Cyclonemon > grants inherited +2000 DP only during its controller's turn 4ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > preserves the Examon alternate Digivolution requirement 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > models the printed keywords and When Digivolving sequence 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > keeps the once-per-turn suspension watcher scoped to its own trigger 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > suspends every opposing Digimon and Tamer, then deletes exactly one suspended target 25ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > unsuspends itself, trashes top security with an Examon source, and spends the once-per-turn budget 36ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > still unsuspends without an Examon or X Antibody digivolution card but does not trash security 10ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > alternate-digivolves from Examon for 2 and exposes all three live keywords 25ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves Rush, Raid, and the once-per-turn attack after linking 1ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > links to an Appmon for 2, grants 3000 DP, and lets the host attack 9ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links DoGatchmon and resolves its When Linking attack 23ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks immediately after a public play because of Rush 53ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > uses Raid to redirect an attack to the opponent's highest-DP unsuspended Digimon 39ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links onto DoGatchmon and resolves only one self-linked attack 61ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > fuses the printed Gatchmon plus Navimon pair through the production App Fusion verb 22ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Navimon App Fusion pair 33ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Tweetmon App Fusion pair 23ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Gatchmon App Fusion pair 22ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Tweetmon App Fusion pair 23ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Gatchmon App Fusion pair 18ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Navimon App Fusion pair 21ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the same-name App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the non-recipe App Fusion pair 9ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks once when its own stack gets linked and ignores another stack 64ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > may decline both link-granted attack paths 8ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > gets a second public linked attack after the next real turn unsuspends it 222ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > preserves the WG alternate Digivolution requirement 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > models optional suspension on play and digivolving 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > keeps the suspended WG attack redirect once-per-turn and the inherited play watcher 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon 30ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4556 observably permits an own Digimon suspension 4ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > inherited watcher suspends an opponent only when an own WG Digimon is played 29ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > alternate-digivolves from a level-4 WG Digimon for 3 5ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > registers all three printed timings and the Snatchmon evolution route 2ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > deletes one of the opponent's Digimon on start of main phase 8ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > does NOT delete when it is the opponent's turn ([Your Turn] gate) 4ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > places exactly 4 Vemmon-text cards and uses Ragnarok Cannon for free 25ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > pays the four-card Vemmon-text placement cost even with no legal Ragnarok target 12ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: true 187ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > publicly evolves without any Ragnarok Cannon and may pay the four-card cost: false 191ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > returns exactly 4 stacked Vemmon to deck bottom to prevent leaving 21ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4570 cannot partially place only three Vemmon-text cards to use Ragnarok Cannon 8ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > Q4571 cannot prevent leaving with only three stacked Vemmon 23ms
+ ✓ src/cards/BT21/BT21-062.test.ts > BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon > alternate-digivolves from Snatchmon for 9 3ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > suspends this Tamer, grants Piercing to a Reptile/Dragonkin, and makes that same Digimon attack 2ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main without an opposing Digimon gains NaN memory 5ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main with an opposing Digimon gains NaN memory 5ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > Q4593 suspends Owen, grants Piercing, and forces the selected Digimon to attack 21ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > declining does not suspend Owen or attack 5ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > cannot pay the suspend cost without an eligible Reptile or Dragonkin 4ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > plays itself from security without paying cost 27ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > models the printed optional bottom-material cost before each lowest-DP deletion 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > publishes Security Attack +1, Raid, and both alternate level-5 evolution routes 3ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > places a qualifying hand card under itself before deleting the lowest-DP opponent 20ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > still pays the optional hand placement when a public attack has no deletion target 63ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > deletes exactly one lowest-DP tie through the effect window 21ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > pays the hand cost during a natural attack after Raid resolves 80ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > uses Raid to redirect a public attack to the opponent's highest-DP unsuspended Digimon 46ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > performs two security checks from Security Attack +1 70ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-077 alternate route and pays a qualifying bottom-material cost 32ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-021 alternate route and pays a qualifying bottom-material cost 28ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > does not pay or delete with only a nonmatching hand card 12ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > permits declining a payable bottom-material cost without deleting 19ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 2ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 2ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 21ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 20ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 26ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses the two available distinct recipe names through the production verb 20ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > registers the three printed timing windows and a real On Play suspension effect 1ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main without an opposing Digimon gains NaN memory 7ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > start of main with an opposing Digimon gains NaN memory 9ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > suspends a Marcus Damon on the field when played 27ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > grants Piercing and +3000 DP to the same Digimon, then gives an opponent -3000 DP 30ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > declining the On Play suspension leaves every Marcus unsuspended and grants no modifiers 14ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > triggers only for this Marcus and only once per turn 23ms
+ ✓ src/cards/BT21/BT21-086.test.ts > BT21-086 Marcus Damon > plays itself from Security without paying cost 51ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > optionally returns one Reptile or Dragonkin Digimon from trash and grants +2000 DP on your turn 3ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > optionally returns one Reptile Digimon from trash through a real play 17ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > optionally returns one Dragonkin Digimon from trash through a real play 15ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > may decline the trash return and does not take an opponent's matching card 10ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > does not offer the optional return when only the opponent has an eligible trash card 7ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > gains inherited DP after a public legal evolution into level 4 33ms
+ ✓ src/cards/BT21/BT21-007.test.ts > BT21-007 Agumon > grants the inherited +2000 DP only during its controller's turn 6ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > turns a Marcus Damon into a 12000 DP Rush Digimon and starts its Digimon attack 33ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > targets the chosen Marcus permanent and carries the temporary Digimon grants 1ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Q4620 may decline the attack while retaining the temporary Digimon treatment 17ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security plays Marcus from trash for free, then adds itself to hand 13ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > registers an optional, paid hand digivolution only for opponent security removal 1ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves a realistic Dragonkin stack from hand and pays the cost reduced by one 18ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves from a public attack that removes the opponent's security 74ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves into a printed Reptile destination after public opponent security removal 56ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > builds the inherited source through public level-3 and level-4 evolution 24ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger when the controller's own security is removed 9ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger on the opponent's turn when their own security is removed 210ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger when a public effect removes this player's own security 243ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn 255ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > preserves both alternate Digivolution requirements, DigiXros, and complete coverage 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > DigiXroses with exactly one Save-text Digimon for a 2-memory reduction 31ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays Hunter/Hero Tamers and saves a qualifying Digimon 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hunter Tamer from hand without cost on play 19ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hero Tamer from hand without cost on play 24ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > does not play a nonmatching Tamer 12ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly uses the Hero alternate evolution route at its printed cost 24ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Save-text trash card and itself under an own Tamer on deletion 51ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Hero hand card and itself under an own Tamer on deletion 55ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > still performs mandatory Save when the optional first placement is declined 35ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > gives its evolution host +2000 DP only during its controller's turn 5ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > implements the main-phase memory, digivolution-card trigger, and security play 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main without an opposing Digimon gains NaN memory 9ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main with an opposing Digimon gains NaN memory 9ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Gammamon text host 22ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Hero trait host 17ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > does not trigger for a nonmatching host 7ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > declining does not suspend, draw, or gain memory 7ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from security without paying cost 13ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > grants +3000 DP only with at least four Vemmon digivolution cards 1ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > applies the inherited DP bonus at exactly four named Vemmon sources 13ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > counts card names rather than near matches that merely contain Vemmon in their text 7ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > keeps the +3000 DP bonus during the opponent's turn 3ms
+ ✓ src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > proves the four-Vemmon state through a legal public evolution chain 121ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > models Blast Digivolve, Reboot, Blocker, and the shared On Play/When Digivolving sequence 2ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > keeps the alternate WG level-5 evolution requirement at cost 3 1ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > de-digivolves one target by 2, then bottom-decks a different suspended Digimon 20ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > resolves the de-digivolve and bottom-deck sequence from a public play 22ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > alternate-digivolves from a level-5 WG Digimon for 3 28ms
+ ✓ src/cards/BT21/BT21-051.test.ts > BT21-051 Puppetmon > exposes Reboot and Blocker through the live keyword surface 4ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect from a nonattacking own host 86ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve a BT21-079 host's End of Attack effect for an opponent's attack 89ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > does not resolve BT21-079's End of Attack effect when it is the defender against Armor Purge 56ms
+ ✓ src/engine/effects/endOfAttackScope.test.ts > EndOfAttack source scope > resolves BT21-079's own End of Attack deletion after its public attack 119ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > preserves the Appmon evolution and link requirements 2ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts one opponent Digimon from attacking players until opponent turn end 2ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > applies the same restriction when linked 2ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > restricts the selected opponent Digimon through the public On Play effect 11ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > blocks only player attacks while still allowing the affected Digimon to attack a Digimon 15ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > links for 1, grants 2000 DP, and applies the same attack restriction 25ms
+ ✓ src/cards/BT21/BT21-053.test.ts > BT21-053 Watchmon > zero-cost digivolves from a level-2 Appmon 17ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > verifies the Appmon waiver, reveal-and-place Main, Delay Link, and Security placement 4ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > reveals an Appmon/App Driver card, trashes the rest, and places itself 14ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Q4734 waives color for an Appmon in breeding 4ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Q4621 uses public end-of-turn Delay to link only a Link-capable card to one of your Digimon 53ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Security places itself without changing memory 11ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > preserves Raid and both alternate Digivolution requirements 1ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > shares one once-per-turn deletion budget between digivolving and attacking 2ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > requires one suspended red or yellow Tamer for the combined Security Attack and DP gain 2ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > enters through the public play intent with its Once Per Turn attack clauses registered 19ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > gains Security Attack and 3000 DP by suspending a red Tamer 17ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > naturally pays the Tamer suspension cost during a public security attack 169ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > deletes at the 9000 DP boundary and shares the budget with When Attacking 26ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > deletes the lowest-DP opponent naturally on a public RizeGreymon evolution 28ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > uses the alternate Hero evolution route for 3 and rejects a non-Hero level-5 base 31ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > does not pay the attack cost or grant bonuses without an eligible Tamer 9ms
+ ✓ src/cards/BT21/BT21-045.test.ts > BT21-045 compiled implementation > uses Raid to redirect a player attack to the opponent's highest-DP unsuspended Digimon 35ms
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > preserves the WG alternate Digivolution and inherited Piercing 2ms
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > optionally suspends one Digimon on play and when digivolving 1ms
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > once per turn suspends an opposing Digimon when an opposing Digimon is played while this is suspended 1ms
+ × src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > enters through the public play intent with its optional On Play effect registered 436ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > retains complete compiled coverage and Piercing as a keyword surface 2ms
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > Q4553 triggers after Dokugumon suspends Woodmon during the opponent's play 48ms
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > publicly declines the optional On Play suspension and preserves the target 24ms
+ × src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > publicly suspends a Digimon through the alternate WG evolution 515ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > does not suspend an opposing Digimon after a play while Woodmon is unsuspended 21ms
+ ✓ src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > alternate-digivolves from a level-3 WG Digimon for 2 11ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves Blocker and Armor Purge 1ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > unsuspends itself and reduces one opposing Digimon by 2000 per Armor Form card in trash 2ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > preserves both alternate Digivolution requirements 2ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > evolves from Veemon for 3 reduced to 2 by the realistic source stack 31ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > evolves from level-3 Hero for 3 reduced to 2 by the realistic source stack 28ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > uses Blocker in a public attack battle 146ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > uses Armor Purge in a public battle and leaves the underlying source 127ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > unsuspends and gives one target -2000 DP per Armor Form card in trash 83ms
+ ✓ src/cards/BT21/BT21-036.test.ts > BT21-036 compiled implementation > does not reduce DP when no Armor Form card is in trash 33ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces eligible digivolution costs and deletes after its stack card is trashed 4ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > deletes an opposing low-play-cost Digimon when the inherited card is trashed 30ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > does not trigger when the inherited source is trashed as a non-effect cost 11ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > reduces a Mineral evolution by 1 in the battle area 23ms
+ ✓ src/cards/BT21/BT21-055.test.ts > BT21-055 Sunarizamon > Q4559 does not reduce the same evolution in the breeding area 11ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 33ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 40ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 23ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 6ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 8ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay the cost when there is only a level 5 target 7ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 355ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 92ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > gains memory after placing an Appmon or Three Musketeers card 2ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > draws 2 and trashes 2 when linked 1ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > keeps the evolution requirement and complete coverage metadata 3ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > places an Appmon under an own Digimon and gains memory on play 53ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > places a Three Musketeers card from trash at the true bottom and gains memory 16ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > does not place a card or gain memory when the cost is declined 12ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > does not place a card or gain memory when the cost is nonmatching 19ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > links for 2, draws two, and trashes exactly two selected hand cards 17ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > uses the Three Musketeers-text alternate evolution route for 2 15ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > resolves the placement-and-memory branch from a public alternate evolution 39ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > preserves both zero-cost alternate Digivolution requirements 1ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > draws two after the printed Guilmon-family or Hero hand-trash cost 8ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Guilmon-family card and draws exactly two 23ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Hero card and draws exactly two 23ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > declining the hand-trash cost does not draw 13ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > gains 1 memory when a realistic host carrying Guilmon is deleted 26ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 0 18ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 1 8ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > exposes complete effect coverage with no residual clauses 3ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > plays a red Tamer with inherited effects by suspending this Digimon, then places it under that Tamer 7ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > suspends Flamemon, plays an eligible red Tamer for free, then places Flamemon under it 29ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > places Flamemon under the Tamer played by this effect, not an existing Tamer 40ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays suspension cost even when play fails for a red Tamer without inherited effects 21ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays suspension cost even when play fails for a non-red Tamer with inherited effects 14ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > may decline the inner play after paying suspension, leaving Flamemon suspended 18ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays the mandatory suspension cost even when no eligible Tamer exists 14ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > rejects activation when Flamemon is already suspended 4ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > grants inherited +2000 DP only during its controller's turn 14ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > gets inherited DP only after a legal public evolution carries Flamemon under a level 4 host 56ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves the registered effect triggers and action boundaries 1ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros 4ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing 34ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base 29ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > rejects a second DigiXros material and preserves hand, board, and memory 4ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > performs a security check after deleting a suspended Digimon by battle with Piercing 208ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > public Raid redirects to the highest-DP unsuspended target, then Piercing checks security 127ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > on deletion places an eligible card and then itself under a Tamer 60ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and Save after battle deletion 210ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > declining the optional first placement still offers the Save continuation 79ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > grants inherited +2000 DP only during its controller's turn 20ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > preserves both zero-cost alternate Digivolution requirements and inherited DP gain 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > requires trashing a Save-text or Hero card to draw two 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Save-text card and draws exactly two 19ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Hero card and draws exactly two 24ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > does not draw or trash a nonmatching hand card 20ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > publicly uses the zero-cost Hero alternate evolution route 12ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > executes Save by placing itself under an own Tamer on deletion 23ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > gives its evolution host +2000 DP only during its controller's turn 7ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes level 4 or lower and triggers Alliance plus an attack 3ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes the correct level cap without two Tamer colors 38ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes the correct level cap with two Tamer colors 61ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > Q4588/Q4590 mandates Alliance for an ADVENTURE event but allows declining the attack 26ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > Q4732 still allows an attack when the played Digimon is not ADVENTURE 63ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > grants inherited Alliance on a realistic evolution stack 47ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > uses the Garurumon-name alternate evolution route for 3 24ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > uses the ADVENTURE alternate evolution route for 3 31ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > places Xros Heart Digimon under Tamer, draws 1, gains 1 memory 26ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > does NOT draw when no qualifying Digimon is in hand (canActivate gate) 21ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > registers the played/digivolved attack watcher and security skill 3ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly played Xros Heart Digimon attack 94ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not suspend for a newly played nonmatching Digimon 6ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly digivolved Hero attack 151ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > declining the watcher leaves Taiki and the arrived Digimon unsuspended 9ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > plays itself from security without paying cost 55ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > exposes complete effect coverage with no residual clauses 3ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > preserves the registered effect triggers and action boundaries 3ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > places a Gammamon-text Digimon as bottom material for either removal trigger and saves once from an opponent effect 3ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > pays the Gammamon-text hand cost, places it at the bottom, and deletes exactly a 7000 DP target 45ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > publicly uses the alternate Gammamon-text Lv4 route and still pays placement with no deletion target 80ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > rejects the alternate evolution when the Lv4 has no Gammamon text 9ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > does not pay with a nonmatching card and permits declining the placement cost 38ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > prevents one opponent-effect deletion only after trashing exactly 3 Digimon sources 510ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > naturally proves once-per-turn prevention with two public Gaia Force deletions 501ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > audits every BT21 card in the committed printed catalog 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-001 exclusively through its compiled IR 7ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-002 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-003 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-004 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-005 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-006 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-007 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-008 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-009 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-010 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-011 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-012 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-013 exclusively through its compiled IR 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-014 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-015 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-016 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-017 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-018 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-019 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-020 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-021 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-022 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-023 exclusively through its compiled IR 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-024 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-025 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-026 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-027 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-028 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-029 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-030 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-031 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-032 exclusively through its compiled IR 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-033 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-034 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-035 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-036 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-037 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-038 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-039 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-040 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-041 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-042 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-043 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-044 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-045 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-046 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-047 exclusively through its compiled IR 7ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-048 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-049 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-050 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-051 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-052 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-053 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-054 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-055 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-056 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-057 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-058 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-059 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-060 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-061 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-062 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-063 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-064 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-065 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-066 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-067 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-068 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-069 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-070 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-071 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-072 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-073 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-074 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-075 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-076 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-077 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-078 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-079 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-080 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-081 exclusively through its compiled IR 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-082 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-083 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-084 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-085 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-086 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-087 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-088 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-089 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-090 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-091 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-092 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-093 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-094 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-095 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-096 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-097 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-098 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-099 exclusively through its compiled IR 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-100 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-101 exclusively through its compiled IR 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-102 exclusively through its compiled IR 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > contains exactly the authoritative BT21 card keys 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps every record synchronized with its authoritative module 5ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-001 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-002 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-003 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-004 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-005 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-006 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-007 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-008 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-009 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-010 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-011 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-012 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-013 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-014 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-015 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-016 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-017 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-018 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-019 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-020 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-021 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-022 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-023 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-024 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-025 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-026 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-027 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-028 at full coverage with no residual prose 8ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-029 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-030 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-031 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-032 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-033 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-034 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-035 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-036 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-037 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-038 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-039 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-040 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-041 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-042 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-043 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-044 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-045 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-046 at full coverage with no residual prose 16ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-047 at full coverage with no residual prose 5ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-048 at full coverage with no residual prose 5ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-049 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-050 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-051 at full coverage with no residual prose 8ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-052 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-053 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-054 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-055 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-056 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-057 at full coverage with no residual prose 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-058 at full coverage with no residual prose 10ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-059 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-060 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-061 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-062 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-063 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-064 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-065 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-066 at full coverage with no residual prose 6ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-067 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-068 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-069 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-070 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-071 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-072 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-073 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-074 at full coverage with no residual prose 5ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-075 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-076 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-077 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-078 at full coverage with no residual prose 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-079 at full coverage with no residual prose 18ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-080 at full coverage with no residual prose 5ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-081 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-082 at full coverage with no residual prose 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-083 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-084 at full coverage with no residual prose 12ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-085 at full coverage with no residual prose 8ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-086 at full coverage with no residual prose 5ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-087 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-088 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-089 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-090 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-091 at full coverage with no residual prose 10ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-092 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-093 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-094 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-095 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-096 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-097 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-098 at full coverage with no residual prose 3ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-099 at full coverage with no residual prose 2ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-100 at full coverage with no residual prose 4ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-101 at full coverage with no residual prose 1ms
+ ✓ src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > keeps BT21-102 at full coverage with no residual prose 4ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 29ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 1ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 590ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 343ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 14ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 90ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 71ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 3ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 95ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 1028ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > preserves both alternate Digivolution requirements and residual-free coverage 3ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > supports security play, ADVENTURE recovery, and inherited draw-trash 3ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > returns an ADVENTURE Digimon from the trash when played 20ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > plays itself from security at end of battle without paying cost 145ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > does not return a non-ADVENTURE Digimon from trash 5ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > alternate-digivolves from a non-Gabumon ADVENTURE rookie for the printed cost 22ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > draws and trashes exactly once per turn from a realistic evolution stack 31ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > retains inherited draw-trash through a legal Ghostmon-to-Garurumon stack 49ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > preserves the registered effect triggers and action boundaries 4ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > verifies the Shoutmon cost replacement, trash DigiXros expansion, stack trash, and attack return 4ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > pays 14 and places its Shoutmon cost under the played card 33ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > accepts a qualifying trash card as DigiXros material after paying the Shoutmon cost 35ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > publicly accepts variable distinct-number Xros Heart materials and rejects duplicate or near-invalid cards 76ms
+stdout | src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > trashes only stacked cards from the top and leaves the opponent's top card 20ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > evolves from a Hero level 6 for 3 and trashes all available sources 37ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns only a source-less opposing Digimon to deck bottom and may decline 28ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack 39ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack plus one, wipes opposing Digimon, and recurs Guilmon family 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack +1 and deletes every Digimon on both sides at end of attack 36ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > wipes both battle areas after a real public attack resolves 86ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks 78ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks 94ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it 102ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > base cost 3 33ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 9 total trash keeps cap 3 21ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 10 total trash raises cap to 5 32ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 20 total trash raises cap to 7 33ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > counts both players' trashes for the cost-5 ceiling 26ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not play a non-Guilmon-family card even below the cost ceiling 15ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > uses the level-5 Growlmon-name alternate evolution route for 4 16ms
+stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > encodes both alternate requirements, the Arts Digivolve gate, and inherited DP 2ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Arts Digivolves into Siriusmon for exactly 4 with two security cards 44ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-002 18ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > uses the zero-cost Hero alternate route from BT21-004 23ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies with three differently named Hero Tamers at three security 129ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > does not qualify with three security and only two distinct Hero Tamer names 8ms
+ ✓ src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > may decline Arts Digivolve and inherited +2000 DP expires on the opponent's turn 7ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > draws after the Save/Hero hand placement and pays the digivolution reduction with both costs 2ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > places a Save Digimon under itself and gains memory at start of main phase 20ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > Q4603 places the hand cost at the bottom under this Tamer, then draws and gains memory 21ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > declining the start-of-main cost does not place, draw, or gain memory 13ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > reduces a Save/Hero digivolution by 1 and moves an under-Tamer card to the true bottom 43ms
+ ✓ src/cards/BT21/BT21-088.test.ts > BT21-088 Tagiru Akashi > plays itself from Security without paying cost 12ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > encodes the inherited once-per-turn trigger for one of your red or yellow Tamers 4ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your red Tamer suspends 21ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your yellow Tamer suspends 17ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when your red/yellow Tamer suspends 17ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws through the natural Haru suspension caused by a public link 177ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws when public Marcus play suspends a yellow/red Tamer 44ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw from a public opponent suspension of a blue Tamer or red Digimon 62ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > refuses the public suspension cost when the only target is a blue Tamer 121ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > refuses the public suspension cost when the only target is a red Digimon 111ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for your blue Tamer 13ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for your red Digimon 10ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > does not draw for an opponent red Tamer 12ms
+ ✓ src/cards/BT21/BT21-004.test.ts > BT21-004 Koromon > draws only once when multiple matching Tamers suspend in the same turn 27ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > preserves the registered effect triggers and action boundaries 4ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > plays Owen Dreadnought when digivolving with at most one Tamer and gains memory once per turn on security removal 3ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > plays Owen free after digivolving with zero existing Tamers 31ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > plays Owen free after digivolving with one existing Tamers 33ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > does not play Owen with two Tamers and may decline with one 54ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > gains memory once only for opponent security removal 25ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > does not gain memory when an opponent attacks and removes this player's security 80ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > gains inherited memory only once across two public opponent-security removals in one turn 243ms
+ ✓ src/cards/BT21/BT21-017.test.ts > BT21-017 Dimetromon > gains memory from a public attack that removes the opponent's security 86ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > exposes complete effect coverage with no residual clauses 4ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > preserves the registered effect triggers and action boundaries 2ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > reveals three, adds one Avian/Bird and one WG card, then bottoms the rest 2ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > preserves the zero-cost WG digivolution requirement and inherited Jamming 2ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > adds distinct Avian/Bird and WG matches and bottoms the nonmatch 19ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > adds only the available matching category and bottoms every other revealed card 10ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > declines both additions when all three revealed cards miss both traits 15ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > evolves from a level-2 WG egg for 0 and preserves the stack 16ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > rejects the zero-cost alternate route from a non-WG level-2 base 2ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > publicly proves inherited Jamming prevents deletion in a losing security battle 140ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > carries Jamming through a public Floramon-to-Kiwimon evolution 30ms
+ ✓ src/cards/BT21/BT21-033.test.ts > BT21-033 compiled implementation > grants Jamming only while Floramon is in the evolution stack 4ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays from security, enables paid Hybrid/Hero digivolution, and gates the inherited trigger to opponent security 6ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > Q4595 counts itself and evolves into a Hybrid for 1 less 23ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > resolves the reduced Hybrid evolution at the public start of main phase 55ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > counts different red Tamer names once each 29ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not evolve into a non-Hybrid non-Hero card 9ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > inherited watcher plays one red Tamer only for opponent security removal 80ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > triggers the inherited Tamer play from a public opponent security check 97ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays itself from security without paying cost 11ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > preserves full coverage and identical On Play/When Digivolving action sequences 2ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > adds the Vemmon card to hand and trashes the non-Vemmon cards 14ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > does NOT add to hand when no [Vemmon]-in-text card is in the revealed 3 10ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > recognizes a card whose printed effect text mentions [Vemmon] 7ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > places up to two Vemmon from trash under one chosen Digimon 25ms
+ ✓ src/cards/BT21/BT21-058.test.ts > BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand > deletes only an opposing play-cost-4-or-less Digimon when this stack returns Vemmon 50ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 1
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > exposes complete effect coverage with no residual clauses 4ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > preserves the registered effect triggers and action boundaries 2ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a level 4 or lower Digimon from the default hand/stack zones and deletes an equal-or-lower DP opponent once per turn 3ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play 68ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > evolves publicly through a legal level-3/4/5 stack and links a free level-4 card 135ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon 66ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > rejects linkless and level-5 cards and permits declining a legal link 60ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > deletes only an equal-or-lower DP target once when its own stack is linked 52ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly links twice, deleting one eligible victim first and none on the second link 81ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > fires Globemon's public When Linking deletion when linked onto another Appmon host 79ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > uses Globemon's printed 10000 DP ceiling on a public link while leaving a 12000 DP target 101ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > performs two real security checks with printed Security Attack +1 182ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card 107ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > uses an exact Digimon name matcher for the standalone [ShineGreymon] reference 2ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > preserves the two zero-cost alternate Digivolution requirements 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > preserves the inherited +2000 DP effect for your turn 1ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > opens the ShineGreymon path when the opponent has a level 6 Digimon 74ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > opens it on three distinct [Hero] Tamers alone, with no level 6 opposite 94ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > keeps the optional ShineGreymon evolution closed during the opponent's turn 9ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > keeps it shut when neither alternative holds 3ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > does not treat a near-name ShineGreymon card as the standalone target 5ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > requires three distinct Hero Tamer names rather than three copies 4ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > may decline the qualified ShineGreymon evolution without paying memory 11ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > evolves from Koromon for 0 23ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > evolves from level-2 Hero for 0 25ms
+ ✓ src/cards/BT21/BT21-040.test.ts > BT21-040 Agumon > grants inherited +2000 DP only during its controller's turn 19ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > exposes complete effect coverage with no residual clauses 4ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > preserves the registered effect triggers and action boundaries 3ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws one for its controller whenever this Digimon suspends 3ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > preserves the WG alternate Digivolution and inherited Jamming 2ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws exactly one when Kiwimon suspends and ignores another Digimon suspending 63ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > draws from a public attack that naturally suspends Kiwimon 117ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > evolves from a level-3 WG Digimon for 2 44ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > grants Jamming only as an inherited effect 17ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > publicly proves inherited Jamming survives a losing security battle 205ms
+ ✓ src/cards/BT21/BT21-034.test.ts > BT21-034 compiled implementation > refuses the alternate evolution from a level-3 without the WG trait 4ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > preserves the registered effect triggers and action boundaries 2ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > reduces Mollusk or Aquatic digivolution costs and gains memory once per turn at End of Attack 3ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > reduces a Mollusk evolution by exactly 1 and keeps its inherited effect 53ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > reduces a Aquatic evolution by exactly 1 and keeps its inherited effect 52ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > does not reduce a near-matching blue evolution without Mollusk or Aquatic 29ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > does not apply its evolution reduction from the breeding area 22ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > gains 1 memory at end of attack only once per turn from a realistic evolution stack 246ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > verifies memory setting, attack draw cost, scalable Main play, and Security play 4ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > start of turn changes 2 memory to 3 18ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > start of turn changes 4 memory to 4 20ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > suspends when an own Digimon attacks and draws exactly one 51ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > uses the public attack intent to trigger Tai's draw and suspension cost 117ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > counts its white color, plays a cost-3 Hero, then returns itself to deck bottom 597ms
+ ✓ src/cards/BT21/BT21-102.test.ts > BT21-102 Tai Kamiya > plays itself from Security without paying cost 21ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > preserves the registered effect triggers and action boundaries 4ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security card when an eligible attack target changes 3ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only for a controller's Reptile or Dragonkin target change and only once per turn 58ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > Progress protects the attacking card from an opponent effect, but not outside its attack 148ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security from a public Raid target switch 251ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays a qualifying inherited Digimon from a public security attack 468ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free 103ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > does not play for the controller's security removal and permits declining the optional play 47ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > preserves the Guilmon alternate Digivolution requirement and inherited deletion memory 4ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an opposing Digimon and conditionally mills two 4ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > must delete an eligible 4000 DP Digimon and does not mill 28ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an eligible printed opponent through the public play intent 32ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two after the public When Digivolving trigger has no eligible target 58ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 4001 DP Digimon 17ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 9000 DP Digimon 17ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains 1 memory when a realistic host carrying Growlmon is deleted 27ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > uses the Guilmon alternate evolution route for exactly 2 24ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement 36ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload 3ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > gains 1 memory and enters the battle area from a real security check 81ms
+ ✓ src/cards/BT21/BT21-100.test.ts > BT21-100 The Digimon I Designed > arms and activates Delay after a public effect deletes a Digimon 642ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links from trash or stack and grants the once-per-turn attack token 6ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible Appmon from trash when played 44ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > links an eligible card from its own digivolution stack on evolution 35ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not link a card from another Digimon's stack 26ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a card without Link 27ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q4581 does not link a level 5 Link card 24ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > grants a selected opponent the forced start-of-main attack effect when linked 218ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > does not react when another Digimon gets linked 42ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 trashes one link card to prevent leaving only once per turn 96ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > Q5000 may trash Charismon itself when it is the only Link card 18ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > has executable Blocker 7ms
+ ✓ src/cards/BT21/BT21-073.test.ts > BT21-073 Charismon > supports the printed zero-cost Sociamon plus Gossipmon App Fusion route 42ms
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > encodes every Digivolve, Link, linked Raid, and linked-trigger clause 3ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > digivolves for zero from Appmon and rejects a non-Appmon/non-Hero level 2 32ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers 114ms
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers 158ms
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack 134ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not play Haru with two Tamers or when another Digimon gets linked 41ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not activate the inherited trigger during the opponent's turn 13ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > may decline and plays at most one Haru across repeated link events 96ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > links to an Appmon for 1 memory, adds 2000 DP, and grants Raid 40ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > uses Raid from the linked host to redirect a player attack 191ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > keeps the face-up-security color waiver and security/Main branches faithful 3ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > returns the top security card and places itself face-up as security 30ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Q4609/Q4610 works with zero security: it only places itself face-up 19ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Security plays a level-5 WG Digimon from hand without paying cost 35ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Security grants Vortex to own WG Digimon and declines an absent play target 654ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > preserves the registered effect triggers and action boundaries 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > places an opponent hand card as bottom security only at five or fewer, then trashes the top card 3ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > on play makes the opponent bottom-deck a hand card into security, then trashes the prior top card 31ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > lets the opponent choose one of two hand cards and retains the other 30ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with zero opponent security, trashes the card it first places from hand 22ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at six security skips the hand placement but still trashes the top security card 24ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at exactly five security places a hand card at the bottom, then trashes the prior top 26ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with an empty opponent hand still trashes the top security card 27ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host 480ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 [Main] on-play body fires on a real playCard (not dead) > deletes the opponent's highest-DP Digimon and lands in the battle area 121ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > models the conditional use reduction, highest-DP deletion, and Delay digivolution 2ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms and publicly activates Delay for a Reptile or Dragonkin host only 390ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 3 opposing security pays a use cost of 4 22ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 4 opposing security pays a use cost of 8 25ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > Security deletes only one opposing highest-DP Digimon 31ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > encodes the inherited once-per-turn trigger only for this Digimon getting linked 2ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the realistic Swipemon evolution stack gets linked 221ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the stack gets linked through the public link action 106ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > ignores a public link onto another legal Appmon host 136ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > rejects a public link attempt for this card during the opponent's turn 6ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > ignores another Digimon getting linked and draws only once for its own stack 68ms
+ ✓ src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > does not draw when its stack gets linked during the opponent's turn 16ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > preserves both alternate Digivolution requirements and complete coverage 3ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants the opponent's Digimon the printed conditional start-of-main attack 3ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > with Tai, grants a selected opponent Digimon a forced start-of-main attack 166ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > keeps the grant on an attack-capable unaffected opponent Digimon but does not trigger it 410ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer 18ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from Agumon for 2 31ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > alternate-digivolves from a non-Agumon ADVENTURE rookie for the same printed cost 29ms
+ ✓ src/cards/BT21/BT21-057.test.ts > BT21-057 Greymon > grants Reboot to a realistic evolution host 51ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > exposes complete effect coverage with no residual clauses 5ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > preserves the registered effect triggers and action boundaries 2ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > preserves Evade and the WG alternate Digivolution cost 2ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends one of your WG Digimon on play and when digivolving 5ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > prevents this Digimon's attack target from changing during your turn when inherited 3ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends exactly one WG Digimon at 6 32ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends exactly one WG Digimon at 7 29ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > may decline the unsuspend 33ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > unsuspends a WG Digimon from the public play action 32ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > evolves from a level-3 WG Digimon for 2 and can unsuspend itself 42ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > rejects the alternate evolution from a non-WG level-3 base without paying 4ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > does not unsuspend an opponent WG or a non-WG own Digimon 30ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > applies the inherited attack-target lock only on its controller's turn 8ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > preserves both alternate Digivolution requirements and inherited Alliance 3ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > keeps the conditional Alliance and optional attack inside each trigger 3ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > de-digivolves one opponent for each two Tamer colors on play 72ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4568 performs two separate De-Digivolve 1 processes for four Tamer colors 46ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined 78ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > Q4731 still offers and resolves the attack after a non-ADVENTURE Digimon is played 142ms
+ ✓ src/cards/BT21/BT21-061.test.ts > BT21-061 MetalGreymon > grants inherited Alliance to a realistic higher evolution 162ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 4ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 63ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 22ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives color while a Tamer with an inherited-effect source is on the field 8ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 45ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > triggers Delay from a public inherited-effect Tamer play and evolves it into a Hybrid 581ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > exposes complete effect coverage with no residual clauses 5ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > preserves the registered effect triggers and action boundaries 4ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > grants Piercing and +3000 DP on play or digivolution, and may evolve into a reduced-cost level 5 Hybrid 27ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > plays for 6 and gains observable +3000 DP and Piercing for the turn 49ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > digivolves from Agunimon for 1 and receives the same temporary bonuses 59ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > uses public Agunimon evolution for Piercing combat, then expires the bonuses at turn end 380ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > pays 3 to evolve into a level-5 Hybrid only after opponent security removal 203ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > may decline the security-removal evolution without paying memory 11ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > does not evolve after public security removal when the hand destination is not a Hybrid 367ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > grants inherited +2000 DP only during its controller's turn 24ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > encodes the inherited once-per-turn trigger for one of your played WG Digimon 2ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played beside a realistic Yokomon evolution stack 34ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > builds the WG stack through public evolution 84ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played through the public play action 68ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw when a non-WG Digimon is publicly played 38ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw when an opponent WG Digimon is publicly played during your turn 365ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw when a WG Option is publicly played 131ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws only once when multiple WG Digimon are played in the same turn 104ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > mills two, grants keywords, and offers once-per-turn evolution 4ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > trashes two cards and gains Raid and Retaliation on play 25ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 0 total trash cards costs 5 23ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 9 total trash cards costs 5 76ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 10 total trash cards costs 4 72ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > attack evolution with 20 total trash cards costs 3 31ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the public attack intent for the once-per-turn Megidramon evolution 183ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the attack evolution only once per turn 91ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > inherited deletion trashes the opponent's top security 62ms
+ ✓ src/cards/BT21/BT21-076.test.ts > BT21-076 WarGrowlmon > uses the Growlmon alternate evolution route for 3 23ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > executes the Main placement by moving a Save Digimon from hand under an own Tamer 62ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > places Save from hand/trash under a Tamer and offers Save digivolution from trash 4ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > Security plays a cost-5-or-less Save Digimon from trash and adds itself to hand 28ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly performs the optional placement and free Save digivolution in sequence 127ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > leaves both optional Main actions inert when no Save cards are available 926ms
+ ✓ src/engine/effects/grantedEffectImmunity.test.ts > granted start-of-main attack and effect immunity > gives an unaffected BT19-101 the grant publicly but does not trigger it 406ms
+ ✓ src/engine/effects/grantedEffectImmunity.test.ts > granted start-of-main attack and effect immunity > keeps the same public grant path attacking with an affected Digimon 225ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > verifies Blocker/Link +1, Appmon link windows, and the once-per-turn linked security cost 3ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > fires from a natural own-Digimon Link and ignores an opponent Digimon Link 239ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > exposes Blocker and Link +1 through the live keyword surface 7ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > once per turn unsuspends after linking and trashes exactly one top security 124ms
+stdout | src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > public attack links an Appmon from hand without paying its link cost 156ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > declines the optional attack-time link and rejects a non-Link candidate 38ms
+ ✓ src/cards/BT21/BT21-101.test.ts > BT21-101 Gaiamon > legally App Fuses Globemon and Charismon into Gaiamon at zero cost 111ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > protects a Digimon and shares once-per-turn De-Digivolve 5ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > places an Appmon under a Digimon and protects that Digimon 49ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > shares the once-per-turn De-Digivolve budget across evolution and attack 45ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not pay the stack-trash cost when the effect is declined 36ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the public attack intent to De-Digivolve an opposing stack 104ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > links for 3 and deletes only the level-4 boundary target 49ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the Three Musketeers-text alternate evolution route for 3 21ms
+ ✓ src/engine/effects/progressMutationImmunity.test.ts > Progress mutation immunity (BT21-025) > protects the attacking Progress Digimon from a public Gaia Force Security effect 273ms
+ ✓ src/engine/effects/progressMutationImmunity.test.ts > Progress mutation immunity (BT21-025) > does not extend Progress immunity to a non-Progress attacking Digimon 140ms
+ ✓ src/engine/effects/progressMutationImmunity.test.ts > Progress mutation immunity (BT21-025) > allows an opponent effect to delete Progress outside an attack 65ms
+ ✓ src/engine/effects/progressMutationImmunity.test.ts > Progress mutation immunity (BT21-025) > does not protect Progress from losing a public security Digimon battle 275ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from a red Tamer for cost 2 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from BurningGreymon for cost 0 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may NOT digivolve from a non-red Tamer 36ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > is registered 11ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > places the card under THIS Digimon when no red Tamer is in play 10ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > offers the red Tamer with inherited effects alongside this Digimon 7ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > digivolves from BurningGreymon for 0 and bottoms a selected Hero card from hand 159ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly digivolves from a red Tamer through the printed cost-2 alternate route 137ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly places a Hero under a qualifying red inherited-effect Tamer 81ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly places an eligible Hero from trash under the qualifying red Tamer only 101ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > when attacking, pays the matching red Hero evolution cost reduced by 1 197ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > does not offer a non-Hybrid/non-Hero attack evolution 134ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > grants inherited +2000 DP only during its controller's turn 36ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation and recurs ADVENTURE 6ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays a qualifying ADVENTURE Digimon from trash when deleted 29ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > grants Raid and Retaliation to the same selected Digimon 12ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > naturally uses granted Raid to redirect a public player attack 145ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > plays an ADVENTURE Tamer at the play-cost-4 boundary 79ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > does not play an ADVENTURE card above play cost 4 32ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > executes the inherited deletion play from a realistic stack 170ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the Greymon-name alternate evolution route for 3 58ms
+ ✓ src/cards/BT21/BT21-075.test.ts > BT21-075 SkullGreymon > uses the ADVENTURE alternate evolution route for 3 41ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > exposes complete effect coverage with no residual clauses 4ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > preserves the registered effect triggers and action boundaries 4ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > reduces Armor Form/Hero evolution costs and grants inherited +2000 DP 7ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > evolves from the DemiVeemon alternate requirement for 0 38ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > evolves from the level-2 Hero alternate requirement for 0 33ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > reduces a Armor Form evolution by exactly 1 99ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > reduces a Hero evolution by exactly 1 125ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > rejects both zero-cost alternate routes from a non-DemiVeemon, non-Hero base 10ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > does not reduce a near-matching evolution or apply the reduction in breeding 136ms
+ ✓ src/cards/BT21/BT21-032.test.ts > BT21-032 compiled implementation > grants inherited +2000 DP only during its controller's turn 27ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > preserves the registered effect triggers and action boundaries 4ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > preserves the Appmon link requirement and linked -2000 DP effect 4ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > plays itself without cost at the end of the Security battle 6ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > applies the same -2000 DP effect on play and when digivolving 4ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > plays through the public intent and reduces an opponent Digimon by 2000 DP 51ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > links to an Appmon for 2, grants 3000 DP, and applies the linking debuff 53ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > plays after a real Security battle and resolves its On Play debuff 144ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > expires the play and digivolution debuff at the opponent's turn end 162ms
+ ✓ src/cards/BT21/BT21-043.test.ts > BT21-043 compiled implementation > digivolves normally and applies the same -2000 DP boundary 71ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > models one Vemmon-text selection with the alternative free-play destination 2ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > adds a card that mentions Vemmon and trashes every revealed remainder 23ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > resolves the reveal through a public play intent 55ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > names every revealed card in the prompt that offers them 27ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > sets memory to 3 only when it is 2 or less 42ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > sets memory to 3 through the public start-of-turn lifecycle 81ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > trashes all three revealed cards when none contain Vemmon in their text 38ms
+ ✓ src/cards/BT21/BT21-087.test.ts > BT21-087 Zenith > plays itself from Security without paying cost and resolves its On Play reveal 60ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > keeps the Delay payload separate from the placement watcher 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > naturally gains Delay when an effect places a card under an own Digimon 62ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reveals three cards, adds a Gammamon-text card, and places itself 93ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Q4733 waives the color requirement for a Gammamon-text card in breeding 58ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not waive the color requirement without a Gammamon-text card on the field 58ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself 72ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > encodes the conditional memory, paid optional Main effect, and Security play 5ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > start of main without an opposing Digimon gains NaN memory 17ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > start of main with an opposing Digimon gains NaN memory 28ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > gains the conditional memory through the public start-of-main lifecycle 104ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > suspends, trashes only the top Armor Form source, draws, and gains memory 116ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > declining pays neither cost and resolves neither reward 24ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > cannot pay the Main effect without a stacked Armor Form Digimon 8ms
+ ✓ src/cards/BT21/BT21-085.test.ts > BT21-085 Davis Motomiya > plays itself from Security without paying cost 38ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > preserves complete residual-free coverage 5ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces Ghost digivolution cost on your turn and gains memory on deletion 4ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces a Ghost evolution by exactly 1 through the public intent 79ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce an evolution into a non-Ghost card 125ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce a Ghost evolution from the breeding area (Q4573) 42ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a realistic host carrying Ghostmon is deleted 93ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a public battle deletes a legal Ghost host stack 185ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits the pre-purge Armor Form identity and preserves the promoted host 160ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > emits each De-Digivolve top snapshot, including the promoted host 152ms
+ ✓ src/engine/effects/digimonTopTrashEvents.test.ts > whenDigimonTopTrashed generic event > does not confuse ordinary source-card trash or another controller's top identity 21ms
+ ✓ src/engine/digiXrosExactNames.test.ts > exact names in DigiXros recipes > accepts the printed name but rejects a name-containing variant 5ms
+ ✓ src/engine/digiXrosExactNames.test.ts > exact names in DigiXros recipes > uses the same exact-name contract for Material Save eligibility 3ms
+ ✓ src/engine/digiXrosExactNames.test.ts > exact names in DigiXros recipes > exposes unconditional Rule name aliases while the card is outside the battle area 4ms
+ ✓ src/engine/digiXrosExactNames.test.ts > exact names in DigiXros recipes > matches a token contained within a compound trait 5ms
+ ✓ src/engine/digiXrosExactNames.test.ts > exact names in DigiXros recipes > enforces distinct printed names independently of card numbers 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > publicly performs its Security Attack +1 check and creates one opponent token from security removal
+AssertionError: expected undefined to be defined
+ ❯ src/cards/BT21/BT21-029.test.ts:246:31
+    244|         s.state.players[1]!.battleArea.some((permanent) => permanent.t…
+    245|     );
+    246|     const tokenDuringAttack = s.state.players[1]!.battleArea.find((per…
+       |                               ^
+    247|       permanent.topCard.cardId.startsWith("TOKEN-Petrification"),
+    248|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/cards/BT21/BT21-037.test.ts > BT21-037 compiled implementation > uses Armor Purge in a public battle and leaves its Veemon source
+AssertionError: expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "illegal-target",
+  }
+
+ ❯ src/cards/BT21/BT21-037.test.ts:119:166
+    121|       {
+    122|         0: {
+    123|           battleArea: [{ card: "BT21-032", as: "source", suspended: tr…
+       |                               ^
+    124|           hand: [{ card: "BT21-037", as: "lighdramon" }],
+    125|           security: ["BT1-001"],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/cards/BT21/BT21-039.test.ts > BT21-039 compiled implementation > uses the public When Attacking evolution only once per turn
+AssertionError: expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "wrong-phase",
+  }
+
+ ❯ src/cards/BT21/BT21-039.test.ts:265:9
+    263|             { card: "BT21-033", as: "secondBase" },
+    264|           ],
+    265|           hand: [
+       |         ^
+    266|             { card: "BT21-034", as: "firstEvolution" },
+    267|             { card: "BT21-034", as: "secondEvolution" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/cards/BT21/BT21-044.test.ts > BT21-044 compiled implementation > publicly lets the selected Marcus Damon attack after On Play
+AssertionError: expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/cards/BT21/BT21-044.test.ts:128:42
+    127|       ),
+    128|     );
+    129|     expect(s.perm("marcus").currentDP).toBe(3000);
+       |                                   ^
+    130|     expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toB…
+    131|     expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance"))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/cards/BT21/BT21-048.test.ts > BT21-048 compiled implementation > grants observable Piercing to a realistic WG evolution stack
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-048.test.ts:209:5
+    207|     s.state.memory = 3;
+    208|     await s.ready();
+    209|     expect(
+       |     ^
+    210|       s.engine.applyIntent(0, {
+    211|         type: "digivolve",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > enters through the public play intent with its optional On Play effect registered
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-049.test.ts:63:42
+     62|         s.perm("target").isSuspended,
+     63|     );
+     64|     expect(s.perm("target").isSuspended).toBe(true);
+       |                                   ^
+     65|   });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/cards/BT21/BT21-049.test.ts > BT21-049 Woodmon > publicly suspends a Digimon through the alternate WG evolution
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-049.test.ts:126:42
+    125|         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    126|       },
+    127|       { autoAcceptOptional: true, autoSelectCards: true },
+       |                                 ^
+    128|     );
+    129|     s.state.memory = 3;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  6 failed | 102 passed (108)
+      Tests  7 failed | 1142 passed (1149)
+   Start at  11:33:03
+   Duration  77.73s (tests 56%, transform 35%, import 8%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21 src/engine/effects/endOfAttackScope.test.ts src/engine/effects/progressMutationImmunity.test.ts src/engine/effects/grantedEffectImmunity.test.ts src/engine/effects/digimonTopTrashEvents.test.ts src/engine/digiXrosExactNames.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

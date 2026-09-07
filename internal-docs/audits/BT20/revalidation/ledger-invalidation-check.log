@@ -1,0 +1,1 @@
+PASS: changing an accepted report (including a draft delivery score of 2) invalidates its accepted score to 0. Restoring exact accepted bytes restores 8/10. All 102 rows recalculated; no delivery gate inherited from a draft.

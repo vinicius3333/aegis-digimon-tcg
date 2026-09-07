@@ -30,6 +30,11 @@ export interface EngineInternals {
   readonly mainPhase: MainPhaseController;
   readonly primitives: Primitives;
   readonly securityDp: SecurityDpLedger;
+  readonly activeWindowToken: number | undefined;
+  readonly effectResolutionDepth: number;
+  readonly optionResolutionDepth: number;
+  /** Main is open but its start-of-main timing has not finished handing over the turn yet. */
+  readonly mainEntryPending: boolean;
   recomputeContinuousEffects(): Promise<void>;
   syncActivatableEffects(): void;
   fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;

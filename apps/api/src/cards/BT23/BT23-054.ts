@@ -90,7 +90,10 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Veemon"],
+      // Printed "[Veemon]" is a bracketed card name, so it is an EXACT-name gate. `names` is
+      // matched as a SUBSTRING in cardData.matchGatedRequirement, which let ExVeemon and
+      // DemiVeemon take this route.
+      namesExact: ["Veemon"],
       cost: 3,
       isAlternate: true,
     },

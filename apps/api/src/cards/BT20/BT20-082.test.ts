@@ -104,4 +104,71 @@ describe("BT20-082 DeathXmon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-082"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("reaches DeathXmon through its legal purple level-6 evolution route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-073", as: "purpleMega" }], hand: [{ card: "BT20-082", as: "deathx" }] },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleMega").permanentId,
+        instanceId: s.inst("deathx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("purpleMega").topCard.cardId === "BT20-082" && s.state.pendingDecision === undefined);
+    expect(s.perm("purpleMega").stack.map((card) => card.cardId)).toEqual(["BT17-073"]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("publicly reboots and blocks during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-082", suspended: true, as: "deathx" }], security: ["BT1-010"] },
+      1: { battleArea: [{ card: "BT20-047", as: "attacker" }], security: ["BT1-010", "BT1-010"], deck: ["BT1-010"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("deathx").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "block" || s.events.some((event) => event.kind === "blockWindowOpened"),
+    );
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("deathx").permanentId }),
+    ).toMatchObject({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
+  it("performs two security checks from Security Attack +1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-082", as: "deathx" }], security: ["BT1-010"], deck: ["BT1-010"] },
+      1: { security: ["BT1-010", "BT1-010"], deck: ["BT1-010", "BT1-010"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("deathx").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 &&
+        s.events.some((event) => event.kind === "combatResolved"),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
 });

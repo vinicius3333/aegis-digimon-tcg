@@ -32,3 +32,11 @@ export const WIDE_DIALOG_QUERY = "(width >= 1100px) and (height >= 760px)";
  * instead of guessing from the viewport, because a touchscreen laptop is wide.
  */
 export const COARSE_POINTER_QUERY = "(pointer: coarse)";
+
+/**
+ * The touch board layout: a phone in portrait, plus a phone on its side. It is the
+ * same condition the stylesheet's phone block carries, so chrome that only exists
+ * there — the hand strip's scroll cues, for one — is mounted on exactly the
+ * viewports whose CSS lays it out.
+ */
+export const TOUCH_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";

@@ -1,0 +1,29 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > encodes the inherited once-per-turn trigger for one of your played WG Digimon 1ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played beside a realistic Yokomon evolution stack 21ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws when a WG Digimon is played through the public play action 10ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw for a non-WG Digimon 3ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw for an opponent WG Digimon 2ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > does not draw for a WG Option 5ms
+ ✓ src/cards/BT21/BT21-003.test.ts > BT21-003 Yokomon > draws only once when multiple WG Digimon are played in the same turn 14ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > registers an optional, paid hand digivolution only for opponent security removal 0ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves a realistic Dragonkin stack from hand and pays the cost reduced by one 11ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves from a public attack that removes the opponent's security 11ms
+stdout | src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 8
+
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > builds the inherited source through public level-3 and level-4 evolution 6ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > does not trigger when the controller's own security is removed 2ms
+ ✓ src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn 22ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > encodes the inherited Gammamon-text or Hero condition once per turn 0ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Hero trait 6ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws when the attacking host qualifies by Gammamon in text 3ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > does not draw for a near-match-free non-Hero host 10ms
+ ✓ src/cards/BT21/BT21-002.test.ts > BT21-002 Gurimon > draws only once across repeated attacks in the same turn 15ms
+
+ Test Files  3 passed (3)
+      Tests  18 passed (18)
+   Start at  00:52:29
+   Duration  12.70s (transform 85%, import 14%, tests 1%)

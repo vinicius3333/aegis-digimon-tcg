@@ -5,6 +5,11 @@ import { compiled } from "./BT22-061.js";
 
 describe("BT22-061 Vademon", () => {
   it("reduces only Ver.2 digivolutions into Vademon by its face-down stack count", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, colors: ["Black"], cost: 4, isAlternate: false },
+      { names: ["Vegiemon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["DM"], cost: 4, isAlternate: true },
+    ]);
     const replacement = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0] as any;
     expect(replacement).toMatchObject({
       kind: "Replacement",

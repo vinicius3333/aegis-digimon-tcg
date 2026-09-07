@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored: KB Q5363 — compound cost (suspend + return Hudie to hand).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

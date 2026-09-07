@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -7,6 +6,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Your Turn] SubTrigger whenAttacking (CS trait Digimon): grant <Delay> to self.
 // [Main]+Delay keyword: delayed payoff — give 1 opponent Digimon SecurityAttack -1 + disable WD/WA.
 // [Security]: same effect as [Main] + place self.
+// The DisableTimingEffect targets carry a filter only to satisfy `Target`; `fromSelectionRef`
+// short-circuits target resolution (targeting/permanents.ts ~29) so the bound Digimon is reused.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -62,6 +63,10 @@ export const compiled: CompiledCard = {
         {
           kind: "DisableTimingEffect",
           target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
             fromSelectionRef: "BT23094MainTarget",
             count: 1,
           },
@@ -109,7 +114,14 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "DisableTimingEffect",
-              target: { fromSelectionRef: "BT23094DelayTarget", count: 1 },
+              target: {
+                filter: {
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
+                },
+                fromSelectionRef: "BT23094DelayTarget",
+                count: 1,
+              },
               timings: ["whenDigivolving", "whenAttacking"],
               duration: "untilOpponentTurnEnd",
             },
@@ -141,6 +153,10 @@ export const compiled: CompiledCard = {
         {
           kind: "DisableTimingEffect",
           target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
             fromSelectionRef: "BT23094SecTarget",
             count: 1,
           },

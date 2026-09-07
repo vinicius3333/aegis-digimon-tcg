@@ -135,4 +135,25 @@ describe("BT20-100 The Last Guardian", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-100")).toBe(true);
   });
+
+  it("plays from Security through a public attack and places itself afterward", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+        1: { security: [{ card: "BT20-100", as: "securityOption" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-100"));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-100")).toBe(true);
+  });
 });

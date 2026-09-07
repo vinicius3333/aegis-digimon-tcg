@@ -123,7 +123,11 @@ export function applyPlayCostCeiling(
   const zone = (filter as { zone?: string }).zone;
   const controller = (filter as { controller?: string }).controller;
   const seats: Seat[] =
-    controller === "both" || controller === undefined ? [mine, opp] : controller === "opponent" ? [opp] : [mine];
+    controller === "any" || controller === "both" || controller === undefined
+      ? [mine, opp]
+      : controller === "opponent"
+        ? [opp]
+        : [mine];
   let totalCards = 0;
   if (ceiling.unit === "digivolutionCards") {
     for (const seat of seats) {
@@ -357,7 +361,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             : requiredNamesExactUpTo.length > 0
               ? namedSelection(requiredNamesExactUpTo, false)
               : undefined;
-        const chosenOwn = (selectedNamed ?? matching.slice(0, cap)).slice(0, cap).map((c) => c.instanceId);
+        const chosenOwn =
+          selectedNamed !== undefined
+            ? selectedNamed.slice(0, cap).map((card) => card.instanceId)
+            : matching.length > cap || action.target.upTo === true
+              ? await ctx.ask.selectCards(ctx, {
+                  candidates: matching.map((card) => card.instanceId),
+                  min: action.target.upTo === true ? 0 : cap,
+                  max: cap,
+                })
+              : matching.map((card) => card.instanceId);
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,

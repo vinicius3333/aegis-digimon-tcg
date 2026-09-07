@@ -87,6 +87,21 @@ describe("BT22-023 AeroVeedramon", () => {
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT22-022");
   });
 
+  it("rejects evolution from a non-CS level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "base" }], hand: [{ card: "BT22-023", as: "aero" }] },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aero").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("optionally unsuspends only a blue Digimon or Tamer at end of turn", async () => {
     const s = setupEngine(
       {
@@ -105,6 +120,23 @@ describe("BT22-023 AeroVeedramon", () => {
 
     expect(s.perm("aero").isSuspended).toBe(false);
     expect(s.perm("red").isSuspended).toBe(true);
+  });
+
+  it("allows the end-of-turn unsuspend to be refused", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-023", as: "aero", suspended: true }] } });
+    await s.ready();
+    const resolution = advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("aero"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.pendingDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+    expect(s.perm("aero").isSuspended).toBe(true);
   });
 
   it("unsuspends a Veedramon inherited host with a blue Tamer only once per turn", async () => {

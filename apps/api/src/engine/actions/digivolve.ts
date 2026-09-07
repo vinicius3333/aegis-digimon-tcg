@@ -1,4 +1,5 @@
 import {
+  appFusionCostFor,
   CardKind,
   EffectTiming,
   Phase,
@@ -13,6 +14,7 @@ import {
   type Permanent,
   type Seat,
   type ServerEvent,
+  type ZoneRef,
 } from "@aegis/shared";
 import {
   cardHasTrait,
@@ -28,6 +30,7 @@ import {
   findInHand,
   playerAt,
   pushDigivolution,
+  moveLinkOntoStack,
   takeFromHand,
   zoneOfInstance,
 } from "./digivolveState.js";
@@ -66,10 +69,14 @@ export interface DigivolveIntent {
    * match, use the alternate requirement's cost instead of the printed one. When only
    * one path matches, that path is always used regardless of this flag. */
   useAlternateCost?: boolean;
+  /** @deprecated Use `appFusionLinkInstanceId`. Retained for existing clients and recorded replays. */
+  appFusionLinkedInstanceId?: string;
   /** Explicit server-validated alternate path. Indexes `digivolutionRequirementsFor(cardId)`. */
   alternateRequirementIndex?: number;
   /** Explicitly activate the card's ＜Blast Digivolve＞ cost waiver. Omitted for normal evolution. */
   useBlastDigivolve?: boolean;
+  /** Explicit App Fusion material; must be linked to this battle-area Digimon. */
+  appFusionLinkInstanceId?: string;
 }
 
 /** Stable rejection reasons (subset of the API-CONTRACT intent-validation vocabulary). */
@@ -102,6 +109,7 @@ export type DigivolveRejection =
  * report `alternate` rather than a guess.
  */
 export function digivolveMechanicOf(check: Extract<DigivolveCheck, { ok: true }>): DigivolveMechanic {
+  if (check.appFusionLink !== undefined) return "appFusion";
   if (check.usedAlternate && check.altRequirement?.burstDigivolve) return "burst";
   if (check.blastWaived) return "blast";
   if (check.usedBaseGranted) return "baseGranted";
@@ -119,6 +127,8 @@ export type DigivolveCheck =
       /** The hand instance becoming the new top, and its hand index. */
       evolving: CardInstance;
       evolvingIndex: number;
+      /** The chosen linked material when declaring the App Fusion procedure. */
+      appFusionLink?: CardInstance;
       /** Static definition of the evolving card. */
       definition: CardDefinition;
       /** The EvoCost entry satisfied by the base permanent's top card (printed color+level path). */
@@ -202,6 +212,8 @@ export interface DigivolveDeps {
    * `effectiveColorsOf(permanent)`.
    */
   derivedBaseColors?(state: GameState, permanent: Permanent): readonly CardColor[];
+  /** Effective kinds before evolution, including effects that treat a Tamer as a Digimon. */
+  effectiveBaseKinds?(state: GameState, permanent: Permanent): readonly CardKind[];
   /**
    * Whether `evolving` is an ALLOWED digivolve target for the base `permanent` under every active
    * positive "can only digivolve into [X]" constraint (EX10-035 digivolveExceptInto). Optional:
@@ -259,6 +271,7 @@ export interface DigivolveDeps {
     seat: Seat,
     base: Permanent,
     evolving: CardDefinition,
+    sourceZone?: ZoneRef,
   ): { cost: number } | undefined;
   /**
    * Whether `evolving`'s printed keyword waives this digivolve's memory cost entirely
@@ -305,7 +318,13 @@ export interface DigivolveDeps {
    * effect stack (subsystem: effect-stack-resolution). Async because resolution may
    * await player decisions (ARCHITECTURE.md section 5).
    */
-  fireWhenDigivolving(state: GameState, seat: Seat, permanent: Permanent, previousLevel?: number): Promise<void>;
+  fireWhenDigivolving(
+    state: GameState,
+    seat: Seat,
+    permanent: Permanent,
+    previousLevel?: number,
+    baseWasDigimon?: boolean,
+  ): Promise<void>;
   /** Optional narration hook (server -> client event log). */
   emit?: (event: DigivolveEvent) => void;
 }
@@ -451,18 +470,45 @@ export function validateDigivolve(
   //    flag picks which path to use when both match; when only one matches it is always
   //    used regardless of the flag.
   const baseDef = definitionOf(permanent.topCard.cardId);
+  const appFusionLinkInstanceId = intent.appFusionLinkInstanceId ?? intent.appFusionLinkedInstanceId;
+  const appFusionRequested = appFusionLinkInstanceId !== undefined;
+  const appFusionLink = appFusionRequested
+    ? permanent.linked.find((card) => card.instanceId === appFusionLinkInstanceId)
+    : undefined;
+  const appFusionCost =
+    appFusionLink === undefined
+      ? undefined
+      : appFusionCostFor(definition.cardId, {
+          topName: baseDef.nameEn,
+          linkedNames: [definitionOf(appFusionLink.cardId).nameEn],
+        });
+  // An explicit fusion declaration must never fall back to a normal evolution.
+  if (
+    appFusionRequested &&
+    (permanent.inBreeding ||
+      !isDigimon(baseDef) ||
+      appFusionCost === undefined ||
+      intent.useAlternateCost === true ||
+      intent.alternateRequirementIndex !== undefined ||
+      blastRequested)
+  ) {
+    return { ok: false, reason: "invalid-evolution" };
+  }
   // The base permanent's EFFECTIVE colors gate the EvoCost color test: its printed colors
   // plus any continuously-derived "also treated as <color>" grant (static-continuous-effects,
   // LOCKED Q4 — KB BT3-040 Q1075). The waiver path drops the color test entirely.
   const derivedBaseColors = deps.derivedBaseColors?.(state, permanent);
-  const evoCost = deps.colorWaived?.(state, found.instance)
-    ? matchingEvoCostIgnoringColor(definition, baseDef)
-    : matchingEvoCost(definition, baseDef, derivedBaseColors);
+  const evoCost = appFusionRequested
+    ? undefined
+    : deps.colorWaived?.(state, found.instance)
+      ? matchingEvoCostIgnoringColor(definition, baseDef)
+      : matchingEvoCost(definition, baseDef, derivedBaseColors);
   const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef, {
     ...(intent.alternateRequirementIndex === undefined ? {} : { requirementIndex: intent.alternateRequirementIndex }),
     isBlastDigivolve: intent.useBlastDigivolve === true,
   });
   const altRequirement =
+    !appFusionRequested &&
     matchedAlternateRequirement !== undefined &&
     alternateRequirementAvailable(state, seat, permanent, matchedAlternateRequirement)
       ? matchedAlternateRequirement
@@ -475,9 +521,16 @@ export function validateDigivolve(
   // Base-GRANTED path (ST7-03/BT6-060): a static on the BASE permanent lets this specific card
   // digivolve onto it for a fixed cost, ignoring the printed color/level requirement. An
   // independent third path — legal even when neither the EvoCost nor an alternate requirement match.
-  const baseGranted = deps.baseGrantedDigivolve?.(state, seat, permanent, definition);
+  const baseGranted = appFusionRequested
+    ? undefined
+    : deps.baseGrantedDigivolve?.(state, seat, permanent, definition, "hand");
 
-  if (evoCost === undefined && altRequirement === undefined && baseGranted === undefined) {
+  if (
+    evoCost === undefined &&
+    altRequirement === undefined &&
+    baseGranted === undefined &&
+    appFusionCost === undefined
+  ) {
     return { ok: false, reason: "invalid-evolution" };
   }
 
@@ -496,16 +549,18 @@ export function validateDigivolve(
     altRequirement !== undefined;
   // The path actually used is the alternate requirement when it is the only match, or when
   // both match and the intent selected it.
-  const usedAlternate = altRequirement !== undefined && (evoCost === undefined || useAlt);
+  const usedAlternate = !appFusionRequested && altRequirement !== undefined && (evoCost === undefined || useAlt);
   // The base-granted path is used only when it is the sole match (no printed EvoCost or alternate
   // requirement applies) — those normal paths take precedence when present.
-  const usedBaseGranted = evoCost === undefined && altRequirement === undefined && baseGranted !== undefined;
+  const usedBaseGranted =
+    !appFusionRequested && evoCost === undefined && altRequirement === undefined && baseGranted !== undefined;
   if (usedAlternate && altRequirement!.battleAreaOnly === true && permanent.inBreeding) {
     return { ok: false, reason: "invalid-evolution" };
   }
   // One of evoCost / altRequirement / baseGranted is guaranteed defined (we rejected the
   // all-undefined case above). `useAlt` only activates when altRequirement is non-null.
   const printed: number = (() => {
+    if (appFusionCost !== undefined) return appFusionCost;
     if (useAlt) return altRequirement!.cost;
     if (evoCost) return evoCost.memoryCost;
     if (altRequirement) return altRequirement.cost; // only alternate matched
@@ -637,6 +692,7 @@ export function validateDigivolve(
     evolving: found.instance,
     evolvingIndex: found.index,
     definition,
+    ...(appFusionLink === undefined ? {} : { appFusionLink }),
     evoCost: evoCost ?? undefined,
     altRequirement: altRequirement ?? undefined,
     usedAlternate,
@@ -736,18 +792,39 @@ export async function applyDigivolve(
 
   // (1) Capture suspended state of the base before any mutation.
   const carriedSuspended = permanent.isSuspended;
-  const previousLevel = definitionOf(permanent.topCard)?.level;
+  const previousDefinition = definitionOf(permanent.topCard);
+  const previousLevel = previousDefinition?.level;
+  const baseWasDigimon = (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(
+    CardKind.Digimon,
+  );
 
   // (2) Take the evolving card out of hand and stack it on. The prior top becomes
   //     the immediate digivolution source beneath the new top. Re-find by instanceId in case
   //     the placement-cost payment above reindexed the hand.
   const refound = findInHand(player, intent.instanceId);
+  if (
+    check.appFusionLink !== undefined &&
+    !permanent.linked.some((card) => card.instanceId === check.appFusionLink!.instanceId)
+  ) {
+    return { ok: false, reason: "invalid-evolution" };
+  }
+  if (refound === undefined) return { ok: false, reason: "card-not-in-zone" };
+  const finalCost = Math.max(0, cost - digisorptionReduction);
+  const payCost = () => {
+    if (finalCost <= 0) return;
+    const memoryBefore = state.memory;
+    deps.payMemory(state, seat, finalCost);
+    deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "digivolve" });
+  };
+  // CR 8-4-3-2 pays before either App Fusion material becomes a source.
+  if (check.appFusionLink !== undefined) payCost();
   const evolving = refound !== undefined ? takeFromHand(player, refound.index) : undefined;
   if (evolving === undefined) {
     // Should be unreachable after validation; treated as a card-not-in-zone race.
     return { ok: false, reason: "card-not-in-zone" };
   }
   const priorTop = pushDigivolution(permanent, evolving);
+  if (check.appFusionLink !== undefined) moveLinkOntoStack(permanent, check.appFusionLink.instanceId);
   deps.reanchorGrantedEffects?.(priorTop.instanceId, evolving.instanceId);
   // A manually declared digivolution replaces the current top's entry provenance; an
   // effect-driven digivolution uses the separate primitive seam and marks it afterward.
@@ -790,14 +867,8 @@ export async function applyDigivolve(
 
   // (4b) Apply the Digisorption reduction paid at (0c) to the memory cost. Declining the
   //      immediate effect produced 0, so the full cost is paid here.
-  const finalCost = Math.max(0, cost - digisorptionReduction);
-
   // (5) Pay the digivolve cost (shared memory gauge moves toward the opponent).
-  const memoryBefore = state.memory;
-  if (finalCost > 0) {
-    deps.payMemory(state, seat, finalCost);
-    deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "digivolve" });
-  }
+  if (check.appFusionLink === undefined) payCost();
 
   // (6) Draw 1 on digivolve.
   const drawn = await deps.draw(state, seat, 1);
@@ -812,7 +883,7 @@ export async function applyDigivolve(
 
   // (7) Fire When Digivolving (and the inherited-stack ESS markers) through the
   //     effect stack. Anything optional pauses for a decision inside resolution.
-  await deps.fireWhenDigivolving(state, seat, permanent, previousLevel);
+  await deps.fireWhenDigivolving(state, seat, permanent, previousLevel, baseWasDigimon);
 
   return {
     ok: true,

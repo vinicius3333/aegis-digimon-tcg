@@ -97,6 +97,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenLinked: "whenLinked",
   whenLinkTrashed: "whenLinkTrashed",
   whenDigivolutionTrashed: "whenDigivolutionTrashed",
+  whenDigimonTopTrashed: "whenDigimonTopTrashed",
   onDigivolutionCardDiscarded: "onDigivolutionCardDiscarded",
   onDigivolutionCardsDiscardedBatch: "onDigivolutionCardsDiscardedBatch",
   onDigiBurstCardDiscarded: "onDigiBurstCardDiscarded",

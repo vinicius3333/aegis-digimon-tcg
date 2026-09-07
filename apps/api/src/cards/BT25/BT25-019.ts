@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CardEffect, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }] },
-    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
+    ...(["OnPlay", "WhenDigivolving"] as const).map<CardEffect>((trigger) => ({
       trigger,
       actions: [
         {

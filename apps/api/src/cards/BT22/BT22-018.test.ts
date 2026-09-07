@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-018.js";
 
@@ -62,5 +62,27 @@ describe("BT22-018 Sangomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("seaAnimal"), "Jamming")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("seaAnimal"), "beDeletedInBattle")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("nonmatch"), "Blocker")).toBe(false);
+  });
+
+  it("places under a natural Aquabeast peer, while rejecting an opponent's eligible host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT22-018", as: "sangomon" }],
+          battleArea: [{ card: "BT10-023", as: "aquabeast" }],
+        },
+        1: { battleArea: [{ card: "BT10-023", as: "opponentAquabeast" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sangomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("aquabeast").stack.some((card) => card.instanceId === s.inst("sangomon").instanceId));
+    expect(s.perm("aquabeast").stack.some((card) => card.instanceId === s.inst("sangomon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea[0]!.stack.some((card) => card.cardId === "BT22-018")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("aquabeast"), "Blocker")).toBe(true);
   });
 });

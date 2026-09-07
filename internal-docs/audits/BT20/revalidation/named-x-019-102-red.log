@@ -1,0 +1,162 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-019.test.ts (11 tests | 2 failed) 95ms
+   ❯ BT20-019 Jesmon (X Antibody) (11)
+     × keeps the post-condition attack independent and gates only the temporary immunity 8ms
+     × uses exact bracket-name semantics for trait-only X Antibody Digimon in the stack 5ms
+ ❯ src/cards/BT20/BT20-102.test.ts (9 tests | 3 failed) 37ms
+   ❯ BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) (9)
+     × checks exact Omnimon or X Antibody trait in both entry timings and the alternate route 1ms
+     × does not fire the entry mass-delete from an X Antibody trait-only Digimon in the stack 8ms
+     × uses exact bracket-name semantics for trait-only X Antibody Digimon in the stack 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-019.test.ts > BT20-019 Jesmon (X Antibody) > keeps the post-condition attack independent and gates only the temporary immunity
+AssertionError: expected { kind: 'GrantStatic', …(4) } to match object { kind: 'GrantStatic', …(3) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "condition": {
+      "filter": {
+        "nameOrTrait": [
+          {
+-           "match": "nameExact",
++           "match": "name",
+            "tokens": [
+              "Jesmon",
+            ],
+          },
+          {
+-           "match": "nameExact",
++           "match": "trait",
+            "tokens": [
+              "X Antibody",
+            ],
+          },
+        ],
+      },
+-     "kind": "selfDigivolutionStackMatchesFilter",
++     "kind": "selfDigivolutionStackHasTrait",
+    },
+    "duration": "forTheTurn",
+    "grant": "immuneToOpponentEffects",
+    "kind": "GrantStatic",
+  }
+
+ ❯ src/cards/BT20/BT20-019.test.ts:12:41
+     10|   it("keeps the post-condition attack independent and gates only the t…
+     11|     const whenDigivolving = compiled.effects.find((entry) => entry.tri…
+     12|     expect(whenDigivolving?.actions[0]).toMatchObject({
+       |                                         ^
+     13|       kind: "GrantStatic",
+     14|       grant: "immuneToOpponentEffects",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT20/BT20-019.test.ts > BT20-019 Jesmon (X Antibody) > uses exact bracket-name semantics for trait-only X Antibody Digimon in the stack
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT20/BT20-019.test.ts:107:95
+    105|     ).toEqual({ ok: true });
+    106|     await settle(() => s.perm("jesmon").topCard.cardId === "BT20-019");
+    107|     expect(observe(s.engine).isRestrictedByEffect(s.perm("jesmon"), "b…
+       |                                                                                               ^
+    108|   });
+    109|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT20/BT20-102.test.ts > BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) > checks exact Omnimon or X Antibody trait in both entry timings and the alternate route
+AssertionError: expected { kind: 'Delete', …(2) } to match object { condition: { …(2) } }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,15 +7,15 @@
+            "tokens": [
+              "Omnimon",
+            ],
+          },
+          {
+-           "match": "nameExact",
++           "match": "trait",
+            "tokens": [
+              "X Antibody",
+            ],
+          },
+        ],
+      },
+-     "kind": "selfDigivolutionStackMatchesFilter",
++     "kind": "selfDigivolutionStackHasTrait",
+    },
+  }
+
+ ❯ src/cards/BT20/BT20-102.test.ts:57:39
+     55|       const entryEffect = compiled.effects.find((entry) => entry.trigg…
+     56|
+     57|       expect(entryEffect?.actions[0]).toMatchObject({
+       |                                       ^
+     58|         condition: {
+     59|           kind: "selfDigivolutionStackMatchesFilter",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT20/BT20-102.test.ts > BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) > does not fire the entry mass-delete from an X Antibody trait-only Digimon in the stack
+AssertionError: expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/cards/BT20/BT20-102.test.ts:136:44
+    134|     await settle(() => s.state.players[0]!.battleArea.length === 2 && …
+    135|
+    136|     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+       |                                            ^
+    137|     expect(s.state.players[0]!.battleArea.map((permanent) => permanent…
+    138|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT20/BT20-102.test.ts > BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except) > uses exact bracket-name semantics for trait-only X Antibody Digimon in the stack
+AssertionError: expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/cards/BT20/BT20-102.test.ts:175:46
+    173|       expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    174|     } else {
+    175|       expect(s.state.players[0]!.battleArea).toHaveLength(2);
+       |                                              ^
+    176|       expect(s.state.players[0]!.battleArea.some((p) => p.permanentId …
+    177|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 15 passed (20)
+   Start at  13:02:09
+   Duration  718ms (import 45%, transform 34%, tests 21%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-102.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

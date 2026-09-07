@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-015.js";
 
@@ -129,6 +130,52 @@ describe("BT23-015 Phoenixmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("resolves the shared deletion effect from a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }] },
+        1: { battleArea: [{ card: "BT23-012", as: "target", dp: 9000 }], security: ["BT1-009"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it("publicly places itself face up at security bottom when deleted in battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-015", as: "phoenix", suspended: true }],
+        security: [{ card: "BT1-009", as: "existing" }],
+      },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker" }], deck: ["BT1-013"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    const phoenixId = s.inst("phoenix").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === phoenixId));
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: phoenixId, faceUp: true });
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
   it("returns at most 3 non-Digi-Egg cards to deck bottom even when no deletion occurs", async () => {
     const s = setupEngine(
       {
@@ -206,6 +253,114 @@ describe("BT23-015 Phoenixmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("resets the shared public attack effect on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }], deck: ["BT1-009", "BT1-013"] },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "firstTarget", dp: 9000 },
+            { card: "BT1-080", as: "secondTarget", dp: 9000 },
+          ],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
+          deck: ["BT1-028", "BT1-045"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("shares the public deletion use across evolution and attack, then resets next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-023", as: "base" }],
+          hand: [{ card: "BT23-015", as: "phoenix" }],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "firstTarget", dp: 9000 },
+            { card: "BT1-080", as: "secondTarget", dp: 9000 },
+          ],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
+          deck: ["BT1-028", "BT1-045"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const baseId = s.inst("base").instanceId;
+    const phoenixId = s.inst("phoenix").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: phoenixId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === phoenixId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("places itself face up at security bottom, checks while revealed, and shuffles face down, per Q5231-Q5234", async () => {
     const checked = setupEngine({
       0: {
@@ -243,7 +398,7 @@ describe("BT23-015 Phoenixmon", () => {
         0: {
           battleArea: [{ card: "BT1-087", as: "tk" }],
           security: [
-            { card: "BT1-001", as: "selected" },
+            { card: "BT1-009", as: "selected" },
             { card: "BT23-015", as: "phoenix", faceUp: true },
           ],
         },
@@ -267,15 +422,19 @@ describe("BT23-015 Phoenixmon", () => {
     });
     legal.state.memory = 3;
     await legal.ready();
+    const baseId = legal.inst("base").instanceId;
+    const phoenixId = legal.inst("phoenix").instanceId;
     expect(
       legal.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: legal.perm("base").permanentId,
-        instanceId: legal.inst("phoenix").instanceId,
+        instanceId: phoenixId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.perm("base").topCard.instanceId === legal.inst("phoenix").instanceId);
+    await settle(() => legal.perm("base").topCard.instanceId === phoenixId);
     expect(legal.state.memory).toBe(0);
+    expect(legal.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
+    expect(legal.perm("base").topCard?.instanceId).toBe(phoenixId);
 
     const illegal = setupEngine({
       0: { battleArea: [{ card: "BT1-041", as: "base" }], hand: [{ card: "BT23-015", as: "phoenix" }] },

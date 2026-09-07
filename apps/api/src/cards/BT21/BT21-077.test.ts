@@ -70,6 +70,95 @@ describe("BT21-077 Regulusmon", () => {
     expect(observe(s.engine).customEffectGrants(s.perm("other"))).toHaveLength(0);
   });
 
+  it("resolves the printed grant through a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-077", as: "regulusmon" },
+            { card: "BT21-010", as: "gammamon-cost" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("gammamon-cost").instanceId, s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gammamon-cost").instanceId)).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
+    expect(observe(s.engine).customEffectGrants(s.perm("other"))).toHaveLength(0);
+  });
+
+  it("publicly triggers the selected opponent's gained attack at their next main phase", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-077", as: "regulusmon" },
+            { card: "BT21-010", as: "gammamon-cost" },
+          ],
+          battleArea: [{ card: "BT21-059", as: "blocker" }],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003", "BT1-004", "BT1-005"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target" }],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003", "BT1-004", "BT1-005"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const blockerId = s.perm("blocker").permanentId;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(s.inst("gammamon-cost").instanceId, s.perm("target").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    const regulusmonId = s.perm("regulusmon").permanentId;
+    // Resolve Collision through its public block decision on the opponent turn.
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(observe(s.engine).hasKeyword(targetId, "Collision")).toBe(true);
+    // Collision grants every defending Digimon Blocker and requires blocking if possible.
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("blocker").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === regulusmonId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(false);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
+  });
+
   it.each([
     ["declined", "BT21-010", true],
     ["nonmatching", "BT1-009", false],
@@ -106,6 +195,72 @@ describe("BT21-077 Regulusmon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId),
     );
+  });
+
+  it("publicly deletes Regulusmon in battle and plays Canoweissmon from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-077", as: "regulusmon" }],
+          trash: [{ card: "BT21-078", as: "canoweissmon" }],
+        },
+        1: { battleArea: [{ card: "AD1-002", as: "blocker", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const attackerId = s.perm("regulusmon").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "combatResolved") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-078") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-077")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-078")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-078")).toBe(false);
+  });
+
+  it("publicly deletes a host and resolves the inherited Gammamon-text recovery", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-078", as: "host", under: [{ card: "BT21-077", as: "source" }] }],
+          trash: [{ card: "BT21-069", as: "gammamonText" }],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "blocker", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "combatResolved") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-069") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-069")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-069")).toBe(false);
   });
 
   it("inherited deletion plays level-4 Gammamon text but not Canoweissmon", async () => {
@@ -153,4 +308,41 @@ describe("BT21-077 Regulusmon", () => {
     await settle(() => s.perm("gulus").topCard.instanceId === s.inst("regulusmon").instanceId);
     expect(s.state.memory).toBe(1);
   });
+  it.each(["play", "digivolve"] as const)(
+    "pays the optional trash cost through public %s without an opponent Digimon",
+    async (route) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: route === "digivolve" ? [{ card: "BT21-069", as: "base" }] : [],
+            hand: [
+              { card: "BT21-077", as: "regulus" },
+              { card: "BT21-010", as: "cost" },
+            ],
+            deck: ["BT1-001"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(
+          0,
+          route === "play"
+            ? { type: "playCard", instanceId: s.inst("regulus").instanceId }
+            : {
+                type: "digivolve",
+                permanentId: s.perm("base").permanentId,
+                instanceId: s.inst("regulus").instanceId,
+                alternateRequirementIndex: 0,
+              },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    },
+  );
 });

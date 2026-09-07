@@ -1,0 +1,47 @@
+{
+  "cardId": "BT20-003",
+  "status": "verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 2
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-003.test.ts",
+    "003-public-opt-reset.log",
+    "003-public-opt-mutation-red.log",
+    "final-clause-followups-green.log",
+    "003-public-opt-mutation-red.log",
+    "collection-after-return-fix-results.json",
+    "immediate-return-affected-results.json",
+    "immediate-return-typecheck.log",
+    "early-final-lint.log",
+    "early-final-format.log"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-003.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "PASS:6 tests;003-public-opt-reset.log"
+    },
+    {
+      "command": "Temporarily remove only frequency OncePerTurn from BT20-003.ts, run the public memory-gain test, restore original module in finally",
+      "result": "EXPECTED FAIL: Eiji is incorrectly placed a second time;003-public-opt-mutation-red.log"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "6 cases for BT20-003; 800/800 collection and named-source/DNA/return mechanism cases passed."
+    },
+    {
+      "command": "Remove only BT20-003 OncePerTurn temporarily and run the public same-turn/reset case; restore in finally.",
+      "result": "Meaningful observable assertion fails with behavior disabled; production restored and green. See 003-public-opt-mutation-red.log."
+    },
+    {
+      "command": "pnpm typecheck; pnpm effects:check:set -- --set BT20; pnpm exec oxlint <BT20-001\u2013013 modules/tests>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed workspace typecheck, prior scoped effects check (no card IR changed after named-source sync), early-card style and diff checks."
+    }
+  ],
+  "gaps": [],
+  "reviewStatus": "Lead independently accepted every printed clause and realistic-stack risk; all current validation and delivery gates passed. Whole collection remains incomplete."
+}

@@ -4,6 +4,11 @@ import { compiled } from "./BT22-064.js";
 
 describe("BT22-064 Diaboromon", () => {
   it("keeps Alliance and the two optional Diaboromon Token play timings", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Black"], cost: 4, isAlternate: false },
+      { names: ["Infermon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+    ]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "Static",
@@ -47,6 +52,7 @@ describe("BT22-064 Diaboromon", () => {
 
   it("requires Infermon or a level 5 CS Digimon for 3 memory", () => {
     expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Black"], cost: 4, isAlternate: false },
       { names: ["Infermon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
     ]);

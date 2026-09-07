@@ -28,18 +28,18 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Gabumon", "Nokia Shiramine"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
             count: 1,
+            upTo: true,
           },
           from: ["hand"],
           payCost: true,
           reduceCostBy: 2,
           cost: {
             kind: "place",
-            optional: true,
             target: {
               filter: {
                 isSelfRef: true,
@@ -49,7 +49,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By placing this Digimon's top stacked card as its bottom digivolution card",
           },
-          optional: true,
+          optional: false,
           abortOnDecline: true,
         },
       ],

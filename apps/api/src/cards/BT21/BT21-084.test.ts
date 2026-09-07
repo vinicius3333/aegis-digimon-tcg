@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-084.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT21-084 Haru Shinkai", () => {
@@ -75,6 +76,29 @@ describe("BT21-084 Haru Shinkai", () => {
     expect(s.state.memory).toBe(after);
   });
 
+  it("runs the conditional Start of Your Turn memory setting through the public lifecycle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-084", as: "haru" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-004"],
+        },
+        1: { deck: ["BT1-005", "BT1-006", "BT1-007"], security: ["BT1-008"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("public linking suspends Haru, draws, and app fuses the linked Digimon", async () => {
     const s = setupEngine(
       {
@@ -115,21 +139,30 @@ describe("BT21-084 Haru Shinkai", () => {
         0: {
           battleArea: [
             { card: "BT21-084", as: "haru" },
-            { card: "BT21-043", as: "sociamon", linked: [{ card: "BT21-070", as: "gossipmon" }] },
+            { card: "BT21-043", as: "sociamon" },
           ],
-          hand: [{ card: "BT21-073", as: "charismon" }],
+          hand: [
+            { card: "BT21-073", as: "charismon" },
+            { card: "BT21-070", as: "gossipmon" },
+          ],
           deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("sociamon").permanentId,
-      linkedCardInstanceIds: [s.inst("gossipmon").instanceId],
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("gossipmon").instanceId,
+        targetPermanentId: s.perm("sociamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
 
+    await settle(() => s.perm("sociamon").linked.some((card) => card.instanceId === s.inst("gossipmon").instanceId));
+    expect(s.perm("sociamon").linked).toHaveLength(1);
     expect(s.perm("haru").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.perm("sociamon").topCard.cardId).toBe("BT21-043");
@@ -139,27 +172,62 @@ describe("BT21-084 Haru Shinkai", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-084", as: "haru" }], deck: ["BT1-009"] },
-        1: { battleArea: [{ card: "BT21-043", as: "opponent", linked: [{ card: "BT21-070", as: "link" }] }] },
+        1: {
+          battleArea: [{ card: "BT21-043", as: "opponent" }],
+          hand: [{ card: "BT21-070", as: "link" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("opponent").permanentId,
-      linkedCardInstanceIds: [s.inst("link").instanceId],
-    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("opponent").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").linked.length === 1);
     expect(s.perm("haru").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
-  it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-084", as: "haru" }] } });
+  it("plays itself from security through a public attack without paying cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT21-084", as: "haru" }] },
+      1: { battleArea: [{ card: "BT1-019", as: "attacker" }], security: ["BT1-001"] },
+    });
     s.state.memory = 0;
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("haru"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    const haruId = s.inst("haru").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === haruId),
+    );
+
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === haruId)).toBe(true);
+    const securityChecked = s.events.findIndex((event) => event.kind === "securityChecked");
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-084");
+    expect(securityChecked).toBeGreaterThanOrEqual(0);
+    // securityChecked is emitted after the Security effect has resolved.
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(played).toBeLessThan(securityChecked);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 });

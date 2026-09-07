@@ -4,6 +4,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT11/BT11-070.js";
 import "./BT18-065.js";
+import "./BT18-060.js";
 import { compiled } from "./BT18-065.js";
 
 describe("BT18-065 Snatchmon", () => {
@@ -137,7 +138,8 @@ describe("BT18-065 Snatchmon", () => {
     ).toEqual({ ok: true });
     await s.ready();
 
-    expect(s.perm("base").stack.filter(({ cardId }) => cardId === "BT18-060")).toHaveLength(0);
+    // The original base becomes a source; refusal must not add the opposing Vemmon.
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT18-060"]);
     assertNoLoudGap(s);
@@ -157,9 +159,9 @@ describe("BT18-065 Snatchmon", () => {
     await accepted.ready();
     await advance(accepted.engine).runTurn(0);
     expect(accepted.perm("qualified").topCard?.instanceId).toBe(accepted.inst("destromon").instanceId);
-    // runTurn closes the turn after the effect resolves: the outgoing gauge is reframed
-    // for the next player, so the post-payment +3 is observed as -8 here.
-    expect(accepted.state.memory).toBe(-8);
+    // Passing sets memory to -3. Four inherited Vemmon reductions lower the 5-cost
+    // evolution to 1, so the outgoing gauge finishes at -4.
+    expect(accepted.state.memory).toBe(-4);
 
     const refused = setupEngine(
       {

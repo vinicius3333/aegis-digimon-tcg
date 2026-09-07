@@ -17,7 +17,7 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
       // legacy ActivateMain shape so older audit tooling can see a non-empty action.
       // This is not the security "activate this card's [Main] effect" operation, so it
       // must not call runActivateMain or emit a loud missing-[Main] gap.
-      if ((action as any).turnEndCondition !== undefined) return false;
+      if ("turnEndCondition" in action && action.turnEndCondition !== undefined) return false;
       await runActivateMain(ctx);
       return false;
     }
@@ -41,7 +41,9 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
         const targetIds = await resolvePermanentTargets(ctx, action.target);
         ctx.lastEffectActed = false;
         for (const permanentId of targetIds) {
-          ctx.lastEffectActed = (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing], chooseOne: false })) === true || ctx.lastEffectActed;
+          ctx.lastEffectActed =
+            (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing], chooseOne: false })) === true ||
+            ctx.lastEffectActed;
         }
         return false;
       }
@@ -66,7 +68,19 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
       const reps = action.count * factor;
       const toRun = compiled.effects.filter((e) => e.trigger === action.fromTrigger).slice(0, action.count);
       for (let i = 0; i < reps; i++) {
-        for (const eff of toRun) await runEffect(ctx, eff);
+        for (const eff of toRun) {
+          const timing =
+            eff.trigger === "WhenDigivolving" ? "whenDigivolving" : eff.trigger === "OnPlay" ? "onPlay" : undefined;
+          const sourcePermanentId = ctx.source.permanent()?.permanentId;
+          if (
+            timing !== undefined &&
+            sourcePermanentId !== undefined &&
+            ctx.game.isTimingEffectDisabled?.(sourcePermanentId, timing)
+          ) {
+            continue;
+          }
+          await runEffect({ ...ctx, activeTiming: eff.trigger }, eff);
+        }
       }
       return false;
     }

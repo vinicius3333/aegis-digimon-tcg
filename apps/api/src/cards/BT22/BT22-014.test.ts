@@ -8,6 +8,12 @@ import { compiled } from "./BT22-014.js";
 describe("BT22-014 Gaiomon", () => {
   it("keeps Raid/Reboot, the optional unsuspend-then-attack, and target-switch reaction", () => {
     expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Rule",
+        actions: [expect.objectContaining({ kind: "GrantStatic", grant: "name", tokens: ["Greymon"] })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
       expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Raid", raw: "＜Raid＞" }] }),
     );
     expect(compiled.effects).toContainEqual(
@@ -102,5 +108,35 @@ describe("BT22-014 Gaiomon", () => {
 
     expect(observe(s.engine).hasPierce(s.perm("gaiomon"))).toBe(true);
     expect(s.perm("gaiomon").currentDP).toBe(18000);
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).hasPierce(s.perm("gaiomon"))).toBe(false);
+    expect(s.perm("gaiomon").currentDP).toBe(13000);
+  });
+
+  it("accepts the CS level-5 evolution route and rejects a level-4 source", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT22-011", as: "base" }], hand: [{ card: "BT22-014", as: "gaiomon" }] },
+    });
+    await legal.ready();
+    legal.state.memory = 5;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("gaiomon").instanceId,
+      }).ok,
+    ).toBe(true);
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT22-010", as: "base" }], hand: [{ card: "BT22-014", as: "gaiomon" }] },
+    });
+    await invalid.ready();
+    invalid.state.memory = 5;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("gaiomon").instanceId,
+      }).ok,
+    ).toBe(false);
   });
 });

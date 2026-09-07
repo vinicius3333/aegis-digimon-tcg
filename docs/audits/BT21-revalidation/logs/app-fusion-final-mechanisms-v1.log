@@ -1,0 +1,57 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > uses an explicit linked partner to App Fuse Gatchmon into DoGatchmon at cost 0 20ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion intent when the linked partner is the wrong name 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects duplicate-name App Fusion materials instead of treating them as distinct names 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on an opponent-controlled host 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion attempt on a breeding-area host 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > rejects an App Fusion result that is not in hand 1ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps the ordinary printed cost and linked card when App Fusion is not declared 6ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=false 5ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > applies the source-less host cost increase with effect-driven=true 15ms
+ ✓ src/engine/actions/appFusion.test.ts > public App Fusion digivolve intent > keeps App Fusion at printed cost 0 with a legal Lv2 Appmon source under Gatchmon 3ms
+ ✓ src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Navimon above Gatchmon into the DoGatchmon stack through Haru 7ms
+ ✓ src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves the linked Gatchmon above Navimon into the same App Fusion stack 6ms
+ ✓ src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > leaves App Fusion hand and link zones unchanged when digivolution is restricted 1ms
+ ✓ src/engine/effects/appFusionStack.test.ts > App Fusion stack placement > moves only the chosen partner when a mechanism grant permits two links 3ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > allows AD1-002 to digivolve from AD1-020 when the Tamer has 2+ Hybrid cards under it 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects AD1-002 from AD1-020 with fewer than 2 Hybrid cards under the Tamer 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > accepts a legal evolution and reports the EvoCost memory 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects a wrong-color base (invalid-evolution) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects a base above the required level (invalid-evolution) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects digivolving onto a base under a can't-digivolve restriction (invalid-evolution) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects a non-Digimon evolving card (not-a-digimon) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects when the evolving card is not in hand (card-not-in-zone) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects an unknown / wrong-controller permanent 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > enforces turn / phase / decision / game-over gates 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > rejects when the cost exceeds payable memory (insufficient-memory) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > accepts an alternate digivolution requirement (trait match) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — validation (EvoCost color+level, memory, gates) > matches a '[Name]/Lv.N w/[trait]' alternate via the trait path on a non-named base 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > fires wouldDigivolve after declaration and before paying memory or replacing the base top 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > stacks the prior top under the new top, recomputes DP, pays cost, draws 1, fires When Digivolving 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > rejects App Fusion if an awaited prepayment hook removes the declared partner 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > flips the evolving card face-up so the permanent stays a recognised Digimon 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > reapplies an existing duration-scoped DP modifier after changing the printed base DP 1ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > carries a SUSPENDED base onto the new top 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > carries an UNSUSPENDED base onto the new top (stays unsuspended) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > pays Digisorption before stacking and carries a base suspended by that payment 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > does not mutate state when validation fails 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > a second digivolve grows the stack to two (the chain is preserved bottom..below-top) 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — apply (stack, DP, cost, draw, suspended carry, timing) > uses the canonical WhenDigivolving timing 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > validates a legal digivolve onto a breeding-area permanent and reports the correct cost 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > rejects a breeding-area digivolve when memory is insufficient 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > pays the digivolve cost when applying onto a breeding-area permanent 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > emits cardsMoved with Zone.Breeding (not BattleArea) for the evolving card 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > names the mechanic on the digivolved event, so the client never guesses a tier 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolve — breeding area (cost payment, affordability, emit zone) > names the alternate path when the digivolution rode an alternate requirement 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a plain printed EvoCost path as normal 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a gateless alternate requirement as alternate 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a base-granted digivolve ahead of the generic alternate 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads a Blast cost waiver as blast 0ms
+ ✓ src/engine/actions/digivolve.test.ts > digivolveMechanicOf > reads Burst ahead of an accompanying Blast waiver 0ms
+
+ Test Files  3 passed (3)
+      Tests  49 passed (49)
+   Start at  20:22:58
+   Duration  7.64s (transform 84%, import 15%, tests 1%)

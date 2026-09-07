@@ -6,6 +6,7 @@ import { printedKeywordsOf } from "../../../combat/keywords.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
+import { selfTargetPermanent } from "./selfTarget.js";
 import { CardKind } from "@aegis/shared";
 import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
@@ -169,6 +170,7 @@ export function permanentMatchesFilter(
   permanent: Permanent,
   filter: Filter,
   source: CardSource,
+  opts?: { allowPendingRotationHost?: boolean },
 ): boolean {
   if (permanent.topCard === undefined) return false;
   // Controller is a live permanent property, not part of the card definition. Keep
@@ -199,7 +201,7 @@ export function permanentMatchesFilter(
     filter = withoutStackKeywords;
   }
   if (filter.excludeSelf || filter.isSelfRef === false) {
-    const self = source.permanent();
+    const self = selfTargetPermanent(ctx, source);
     if (self !== undefined && self.permanentId === permanent.permanentId) {
       if (filter.excludeSelf) return false;
     }
@@ -209,7 +211,7 @@ export function permanentMatchesFilter(
   // (`orFilters`) where "this Digimon" is one alternative among several (BT21-013: place the
   // card under this Digimon OR under a red Tamer with inherited effects).
   if (filter.isSelfRef === true) {
-    const self = source.permanent();
+    const self = selfTargetPermanent(ctx, source);
     if (self === undefined || self.permanentId !== permanent.permanentId) return false;
   }
   // boundRef: restrict to permanents in the named effect-result binding (written by PlayPerLevel
@@ -763,7 +765,11 @@ export function permanentMatchesFilter(
           // supplies DP (EX2-007 Mother D-Reaper). Do not let synthetic/invalid battle-area
           // fixtures turn an ordinary no-DP level-2 egg such as BT1-001 into an effect target.
           (def.kinds.includes(CardKind.DigiEgg) && typeof def.dp === "number" && def.dp > 0));
-      if (!tokenAsDigimon && !liveDigimon && !wanted.some((k) => effective.includes(k))) return false;
+      const pendingEgg =
+        opts?.allowPendingRotationHost === true &&
+        def.kinds.includes(CardKind.DigiEgg) &&
+        permanent.permanentId === ctx.pendingRotationHostPermanentId;
+      if (!tokenAsDigimon && !liveDigimon && !pendingEgg && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       filter = rest;

@@ -14,6 +14,12 @@ export interface AttackAction extends ActionBase {
   vortex?: boolean;
   /** The attack may target the player directly. */
   attackPlayer?: boolean;
+  /**
+   * The attack may target ONLY the player: printed "may attack a player" (BT23-086), as opposed
+   * to the unqualified "may attack". `attackPlayer` merely ADDS the player to the candidate
+   * list; this narrows it to the player alone, so a suspended opposing Digimon is never offered.
+   */
+  attackPlayerOnly?: boolean;
   /** Name of the keyword mechanic that declared this attack. */
   attackMechanic?: string;
   subject?: Target;

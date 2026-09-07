@@ -5,6 +5,17 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT25-086 Dan Yuki", () => {
+  it("matches the catalog identity and TS trait", () => {
+    expect(getCardDefinition("BT25-086")).toMatchObject({
+      cardId: "BT25-086",
+      nameEn: "Dan Yuki",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      types: ["ADAMAS", "TS"],
+      playCost: 3,
+    });
+  });
+
   it("gains 1 at start main at exactly 4 memory, but not above the boundary (Q6405)", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT25-086", as: "dan" }] } });
     s.state.memory = 4;
@@ -95,5 +106,31 @@ describe("BT25-086 Dan Yuki", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("dan").instanceId),
     ).toBe(true);
+  });
+
+  it("allows only one of two simultaneous Dan end-turn effects to launch an attack (Q6408)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-086", as: "firstDan" },
+            { card: "BT25-086", as: "secondDan" },
+            { card: "BT25-008", as: "attacker" },
+          ],
+          deck: ["BT1-001"],
+        },
+        1: { security: ["BT1-001", "BT1-002"], deck: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.perm("firstDan").isSuspended).toBe(true);
+    expect(s.perm("secondDan").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

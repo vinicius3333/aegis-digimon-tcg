@@ -5,6 +5,10 @@ import "./index.js";
 
 describe("BT22-053 Keramon", () => {
   it("reveals three cards and adds Arata plus an Unidentified or CS card", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Black"], cost: 0, isAlternate: false },
+      { level: 2, traits: ["CS"], cost: 0, isAlternate: true },
+    ]);
     const onPlay = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions[0]).toMatchObject({
       kind: "RevealAdd",

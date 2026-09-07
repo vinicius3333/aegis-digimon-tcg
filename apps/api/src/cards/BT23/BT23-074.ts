@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -104,7 +103,10 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Erika Mishima"],
+      // Printed "[Digivolve] [Erika Mishima]: Cost 3" — a bracketed card name is an EXACT
+      // identity, and the base is a Tamer, not a Digimon (KB Q6703).
+      namesExact: ["Erika Mishima"],
+      baseIsTamer: true,
       cost: 3,
       isAlternate: true,
     },

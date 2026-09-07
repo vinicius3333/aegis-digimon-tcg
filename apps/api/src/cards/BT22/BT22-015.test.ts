@@ -4,9 +4,20 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-015.js";
+import "../index.js";
 
 describe("BT22-015 Omnimon", () => {
   it("keeps Blocker, both Decode modes, lowest-DP deletion, stack-local scaling, and optional attack", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 6, traits: ["CS"], cost: 5, isAlternate: true }]);
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { level: 6, names: ["Greymon"] },
+          { level: 6, names: ["Garurumon"] },
+        ],
+      },
+    ]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] }),
     );
@@ -114,6 +125,85 @@ describe("BT22-015 Omnimon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("higher").permanentId,
     ]);
+  });
+
+  it("DNA digivolves the exact level-6 Greymon and Garurumon pair for 0 memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-013", as: "greymon" },
+            { card: "BT22-026", as: "garurumon" },
+          ],
+          hand: [{ card: "BT22-015", as: "omnimon" }],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("greymon").permanentId, s.perm("garurumon").permanentId],
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-015"));
+
+    const omnimon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT22-015");
+    expect(omnimon?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT22-013", "BT22-026"]));
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("rejects DNA material pairs that do not match both level-6 name clauses", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT22-013", as: "greymon" },
+          { card: "BT22-011", as: "wrongLevel" },
+        ],
+        hand: [{ card: "BT22-015", as: "omnimon" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("greymon").permanentId, s.perm("wrongLevel").permanentId],
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT22-015");
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("uses BT22-014's Rule Name Greymon alias as the DNA Greymon material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-014", as: "gaiomon" },
+            { card: "BT22-026", as: "garurumon" },
+          ],
+          hand: [{ card: "BT22-015", as: "omnimon" }],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("gaiomon").permanentId, s.perm("garurumon").permanentId],
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-015"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   it("decodes only from Omnimon's own stack when a public effect removes it", async () => {

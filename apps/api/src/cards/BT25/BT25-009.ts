@@ -1,10 +1,5 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -20,23 +15,14 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           into: {
-            excludeNameOrTrait: [
-              {
-                tokens: ["Sea Animal"],
-                match: "trait",
-              },
-            ],
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [
+            or: [
               {
-                tokens: ["Beast", "Animal", "Sovereign"],
-                match: "trait",
+                excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
+                nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }],
               },
-              {
-                tokens: ["TS"],
-                match: "trait",
-              },
+              { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
             ],
           },
           payCost: false,

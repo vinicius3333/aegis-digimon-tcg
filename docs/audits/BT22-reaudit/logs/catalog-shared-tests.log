@@ -1,0 +1,8 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt22-astra-luna/packages/shared
+
+
+ Test Files  4 passed (4)
+      Tests  19 passed (19)
+   Start at  01:22:41
+   Duration  532ms (import 58%, transform 35%, tests 4%, worker 3%)

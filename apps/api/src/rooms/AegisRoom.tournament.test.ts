@@ -3,7 +3,8 @@ import type { Client } from "colyseus";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
-import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../db/snapshotFixture.js";
 import { inProcessTournamentLock } from "../tournaments/participants/index.js";
 import { SeriesStore, type SeriesRecord } from "../tournaments/series/index.js";
 import { BLUE_DECK, RED_DECK } from "../engine/testDecks.js";
@@ -125,8 +126,24 @@ function won(winnerSeat: Seat): ServerEvent & { kind: "gameOver" } {
   return { kind: "gameOver", result: { outcome: "win", winnerSeat }, reason: "security" };
 }
 
-beforeEach(async () => {
-  accounts = new AccountStore(createMemoryPool());
+type Fixture = {
+  accounts: AccountStore;
+  store: SeriesStore;
+  alice: string;
+  bob: string;
+  tournamentId: string;
+  matchId: string;
+};
+
+/** One arrangement, built once and restored before each test. */
+const fixtureFor = snapshotFixtures<Fixture>();
+
+/**
+ * Assigns the file's module-level bindings rather than shadowing them: the helpers below
+ * (`createTournament`, `addHuman`, ...) read those bindings directly.
+ */
+async function buildFixture(pool: Pool): Promise<Fixture> {
+  accounts = new AccountStore(pool);
   store = new SeriesStore(accounts, inProcessTournamentLock());
   alice = (await accounts.accountForIdentity("discord", "alice", "Alice")).id;
   bob = (await accounts.accountForIdentity("discord", "bob", "Bob")).id;
@@ -152,6 +169,11 @@ beforeEach(async () => {
        VALUES ($1,$2,'human',$3,$4,'active',$5,1)`,
       [randomUUID(), tournamentId, accountId, displayName, JSON.stringify(FROZEN_DECK)],
     );
+  return { accounts, store, alice, bob, tournamentId, matchId };
+}
+
+beforeEach(async () => {
+  ({ accounts, store, alice, bob, tournamentId, matchId } = await fixtureFor("default", buildFixture));
 });
 
 describe("entering a Tournament Game room", () => {

@@ -63,6 +63,7 @@ describe("BT20-064 Loogamon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT20-064");
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
       expect(s.state.memory).toBe(0);
     }
   });
@@ -102,5 +103,24 @@ describe("BT20-064 Loogamon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(6000);
+  });
+
+  it("returns all revealed cards to the bottom when neither printed target exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-064", as: "loogamon" }],
+          deck: ["BT20-047", "BT20-057", "BT20-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loogamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 0 && s.state.players[0]!.deck.length === 3);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT20-047", "BT20-057", "BT20-009"]);
   });
 });

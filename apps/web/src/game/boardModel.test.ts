@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { CardKind, Phase } from "@aegis/shared";
+import { CardKind, Phase, PlayerState, Permanent, CardInstance } from "@aegis/shared";
 import { buildTriggerKey } from "@aegis/shared";
-import type { Permanent, ServerEvent } from "@aegis/shared";
+import type { ServerEvent } from "@aegis/shared";
 import { translator } from "../i18n";
 import {
   activeBlockWindow,
@@ -22,6 +22,7 @@ import {
   buildInstanceIndex,
   getDigivolveCostOptions,
   handCardEvolutionRoute,
+  appFusionRoutesForHost,
   findDnaMaterialCombination,
   linkCardSlots,
   playButtonLabel,
@@ -29,6 +30,45 @@ import {
   triggerLabel,
   triggerLabels,
 } from "./boardModel";
+
+describe("appFusionRoutesForHost", () => {
+  const host = (permanentId: string, linked: { instanceId: string; cardId: string }[]) =>
+    ({ permanentId, linked }) as unknown as Permanent;
+
+  it("joins two current linked physical cards with server costs", () => {
+    expect(
+      appFusionRoutesForHost(
+        [
+          { hostPermanentId: "host", linkedInstanceId: "a", projectedCost: 0 },
+          { hostPermanentId: "host", linkedInstanceId: "b", projectedCost: 2 },
+        ],
+        host("host", [
+          { instanceId: "a", cardId: "BT23-007" },
+          { instanceId: "b", cardId: "BT23-021" },
+        ]),
+      ),
+    ).toEqual([
+      { linkedInstanceId: "a", linkedCardId: "BT23-007", projectedCost: 0 },
+      { linkedInstanceId: "b", linkedCardId: "BT23-021", projectedCost: 2 },
+    ]);
+  });
+
+  it("rejects routes for another host, removed links, and an empty host", () => {
+    const current = host("host", [{ instanceId: "a", cardId: "BT23-007" }]);
+    expect(
+      appFusionRoutesForHost(
+        [
+          { hostPermanentId: "other", linkedInstanceId: "a", projectedCost: 0 },
+          { hostPermanentId: "host", linkedInstanceId: "removed", projectedCost: 1 },
+        ],
+        current,
+      ),
+    ).toEqual([]);
+    expect(
+      appFusionRoutesForHost([{ hostPermanentId: "host", linkedInstanceId: "a", projectedCost: 0 }], undefined),
+    ).toEqual([]);
+  });
+});
 
 describe("buildInstanceIndex", () => {
   it("keeps rendering when a transient state patch omits a permanent card list", () => {
@@ -530,6 +570,31 @@ describe("BT22-061 intrinsic face-down-source digivolution reduction", () => {
   });
 });
 
+describe("Lopmon base-granted evolution pricing", () => {
+  it.each([
+    ["own Makiko", ["BT23-082"], [], true],
+    ["missing Makiko", [], [], false],
+    ["opponent Makiko", [], ["BT23-082"], false],
+    ["card naming Makiko in its text", ["BT23-026"], [], false],
+  ] as const)("offers Antylamon at cost 3 only with %s", (_label, ownCards, opponentCards, eligible) => {
+    const owner = new PlayerState();
+    const opponent = new PlayerState();
+    for (const [player, cards] of [
+      [owner, ownCards],
+      [opponent, opponentCards],
+    ] as const) {
+      for (const cardId of cards) {
+        const permanent = new Permanent();
+        permanent.topCard = new CardInstance();
+        permanent.topCard.cardId = cardId;
+        player.battleArea.push(permanent);
+      }
+    }
+    const options = getDigivolveCostOptions("BT23-029", permOf("BT23-026"), owner, opponent);
+    expect(options.map(({ type, cost }) => ({ type, cost }))).toEqual(eligible ? [{ type: "alternate", cost: 3 }] : []);
+  });
+});
+
 describe("Tamer-onto digivolution cost paths (BT17-012 family)", () => {
   // Bug: BT17-012 prints SPECIFIC named requirements ([Takuya Kanbara]: Cost 2,
   // [Agunimon]: Cost 1) alongside a generic "onto any red Tamer as level 3" effect.
@@ -740,6 +805,22 @@ describe("triggerLabel / triggerLabels", () => {
     expect(labelA).not.toBe(labelB);
     expect(labelA).toContain("copy 1");
     expect(labelB).toContain("copy 2");
+  });
+
+  it("never numbers two effects of ONE permanent as copies", () => {
+    const onPlay = buildTriggerKey("perm-A", "AD1-001/on-play");
+    const whenDigivolving = buildTriggerKey("perm-A", "AD1-001/when-digivolving");
+    expect(triggerLabels([onPlay, whenDigivolving], t)).toEqual(["Greymon", "Greymon"]);
+  });
+
+  it("numbers copies per permanent, so a permanent's two effects share one number", () => {
+    const first = buildTriggerKey("perm-A", "AD1-001/on-play");
+    const firstAgain = buildTriggerKey("perm-A", "AD1-001/when-digivolving");
+    const second = buildTriggerKey("perm-B", "AD1-001/on-play");
+    const [a, b, c] = triggerLabels([first, firstAgain, second], t);
+    expect(a).toContain("copy 1");
+    expect(b).toContain("copy 1");
+    expect(c).toContain("copy 2");
   });
 
   it("leaves a single trigger's label undecorated", () => {

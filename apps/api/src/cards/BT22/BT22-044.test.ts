@@ -88,6 +88,24 @@ describe("BT22-044 Palmon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
-    expect(host.stack[0]!.cardId).toBe("BT22-046");
+    expect(host.topCard?.cardId).toBe("BT22-044");
+    expect(host.stack.map((card) => card.cardId)).toEqual(["BT22-046", "BT22-043"]);
+  });
+
+  it("does not gain memory from a CS placement during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT22-019", as: "csCard" }],
+        battleArea: [{ card: "BT22-046", as: "host", under: ["BT22-044"] }],
+      },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    const initialMemory = s.state.memory;
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("csCard").instanceId]);
+    await settle();
+
+    expect(s.state.memory).toBe(initialMemory);
   });
 });

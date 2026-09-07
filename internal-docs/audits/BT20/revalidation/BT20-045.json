@@ -1,0 +1,101 @@
+{
+  "cardId": "BT20-045",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-045.ts",
+    "apps/api/src/cards/BT20/BT20-045.test.ts",
+    "node tools/kb/query.mjs card BT20-045",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-045-runtime-disabled.json",
+    "round5-gates.json",
+    "merge-main-collection.json",
+    "merge-main-gates.json",
+    "MERGE-MAIN.md"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-collection.json",
+      "result": "PASS: 13 colocated cases; 969/969 full collection tests after merging main."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-045",
+      "result": "PASS: meaningful state assertions fail when registered behavior is disabled; production restored. Per-card JSON/log retained."
+    },
+    {
+      "command": "See merge-main-gates.json for exact mechanism, shared DNA, typecheck, scoped catalog, style and diff commands",
+      "result": "Integration validation recorded in merge-main-gates.json."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-045 Examon ACE keeps Blast DNA Digivolve in hand and returns highest-DP opposing Digimon only on DNA digivolving",
+    "BT20-045 Examon ACE may unsuspend this battle-area Digimon when any Digimon suspends, once per turn",
+    "BT20-045 Examon ACE carries ACE metadata and all four battle keywords",
+    "BT20-045 Examon ACE charges printed Overflow -5 when Examon leaves the battle area in a public battle",
+    "BT20-045 Examon ACE publicly accepts the printed ordinary DNA route and returns all tied highest-DP opponents",
+    "BT20-045 Examon ACE rejects ordinary DNA when a material misses the printed level/color boundary",
+    "BT20-045 Examon ACE public Counter Blast DNA uses one field Breakdramon and one named hand Slayerdramon",
+    "BT20-045 Examon ACE does not treat ordinary evolution as DNA: highest-DP opponents stay in play",
+    "BT20-045 Examon ACE does not offer Blast DNA when a field-treated name is only present on a hand card",
+    "BT20-045 Examon ACE uses the public combat lifecycle for Raid redirection and Piercing",
+    "BT20-045 Examon ACE uses public Blocker and Evade combat decisions",
+    "BT20-045 Examon ACE unsuspends once when either player's Digimon suspends",
+    "BT20-045 Examon ACE spends the public once-per-turn unsuspend, then resets after a completed turn"
+  ],
+  "historicalCommands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-045",
+      "result": "Q4314, Q4359, Q4368 retrieved"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/blastDnaCounter.test.ts src/engine/dnaDigivolve.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts src/cards/BT20/BT20-011.test.ts src/cards/BT20/BT20-012.test.ts src/cards/BT20/BT20-013.test.ts src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "70/70 passed; 11 card tests"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "12/12 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-045",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "reviewStatus": "Astra reviewed the main integration correction; pushed delivery and current hashes are recorded in acceptance.json.",
+  "integrationReview": "The official Bandai card lists an ordinary Green Lv.6 + Blue Lv.6 DNA route at cost zero, alongside named Counter Blast DNA. The prior claim that ordinary DNA was illegal is superseded. Public ordinary DNA now proves both exact material instances, zero payment, tied highest-DP bottom-decking, and lower-DP exclusion; wrong-color material rejection preserves zones and memory. Source: https://world.digimoncard.com/cards/?free=BT20-045&search=true"
+}

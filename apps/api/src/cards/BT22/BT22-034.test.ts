@@ -6,6 +6,10 @@ import { compiled } from "./BT22-034.js";
 
 describe("BT22-034 Reppamon", () => {
   it("models the instead choice as -6000 with the security cost or -3000 without stacking", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, colors: ["Yellow"], cost: 2, isAlternate: false },
+      { level: 3, traits: ["CS"], cost: 2, isAlternate: true },
+    ]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "OnDiscardSecurity",

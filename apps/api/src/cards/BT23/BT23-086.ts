@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -74,6 +73,9 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           attackPlayer: true,
+          // Printed "may attack a player": the player is the only legal target, so a suspended
+          // opposing Digimon is never offered (attackPlayer alone only WIDENS the candidates).
+          attackPlayerOnly: true,
           cost: {
             kind: "suspend",
             target: {

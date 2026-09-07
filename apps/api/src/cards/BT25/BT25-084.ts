@@ -122,6 +122,9 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    { level: 5, colors: ["Purple"], cost: 5, isAlternate: false },
+    { level: 5, colors: ["Red"], cost: 5, isAlternate: false },
+    { level: 5, colors: ["Green"], cost: 5, isAlternate: false },
     { namesExact: ["Titamon"], baseColorCountMax: 2, cost: 2, isAlternate: true },
     { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
   ],

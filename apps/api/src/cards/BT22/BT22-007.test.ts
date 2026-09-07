@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import { EffectTiming, Phase, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./BT22-007.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
+import "../BT9/BT9-047.js";
 
 /**
  * A3 for BT22-007's {Breeding}[Start of Your Main Phase] cluster (KB BT22-007; documented behavior):
@@ -264,6 +266,115 @@ describe("BT22-007 inherited leave-play replacement", () => {
 });
 
 describe("BT22-007 battle-area clauses", () => {
+  it("reveals an accepted Mother Eater as the new top card and leaves a declined card face down", async () => {
+    const accepted = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-007", as: "mother" },
+          eggDeck: [{ card: "BT22-007", as: "acceptedEgg", faceUp: false }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await accepted.ready();
+    await advance(accepted.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    await settle(() => accepted.state.players[0]!.eggDeck.length === 0);
+    expect(accepted.state.players[0]!.breeding?.stack.at(-1)?.instanceId).toBe(accepted.inst("acceptedEgg").instanceId);
+    expect(accepted.state.players[0]!.breeding?.stack.at(-1)?.faceUp).toBe(true);
+
+    const declined = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-007", as: "mother" },
+          eggDeck: [{ card: "BT22-007", as: "declinedEgg", faceUp: false }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await declined.ready();
+    await advance(declined.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    expect(declined.state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual([
+      declined.inst("declinedEgg").instanceId,
+    ]);
+    expect(declined.inst("declinedEgg").faceUp).toBe(false);
+  });
+
+  it("does not play Mother Eaters while the opponent's Pomumon blocks effect plays", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: {
+            card: "BT22-007",
+            as: "mother",
+            under: [
+              "BT22-007",
+              "BT22-007",
+              "BT22-007",
+              "BT1-001",
+              "BT1-002",
+              "BT1-003",
+              "BT1-004",
+              "BT1-005",
+              "BT1-006",
+              "BT1-007",
+            ],
+          },
+        },
+        1: { battleArea: [{ card: "BT9-047", as: "pomumon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.perm("mother").stack.filter((card) => card.cardId === "BT22-007")).toHaveLength(3);
+  });
+
+  it("does not fire On Play when Mother Eater is hatched", async () => {
+    const s = setupEngine({
+      0: { eggDeck: [{ card: "BT22-007", as: "egg" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-007");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("opponent").permanentId,
+    ]);
+  });
+
+  it("prevents Piercing when the inherited replacement prevents battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-079", under: ["BT22-007"], as: "motherHost" },
+          battleArea: [{ card: "BT22-079", as: "defender", suspended: true }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const defenderId = s.inst("defender").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("motherHost").stack.some((card) => card.instanceId === defenderId));
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === defenderId)).toBe(false);
+  });
+
   it("treats owned Mother Eaters as 16000 DP while the source is in breeding", async () => {
     const s = setupEngine({
       0: {
@@ -280,7 +391,24 @@ describe("BT22-007 battle-area clauses", () => {
   it("deletes exactly one opposing Digimon on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT22-007", as: "mother" }] },
+        0: {
+          breeding: {
+            card: "BT22-007",
+            as: "mother",
+            under: [
+              "BT22-007",
+              "BT1-001",
+              "BT1-002",
+              "BT1-003",
+              "BT1-004",
+              "BT1-005",
+              "BT1-006",
+              "BT1-007",
+              "BT1-008",
+              "BT1-009",
+            ],
+          },
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
@@ -288,11 +416,10 @@ describe("BT22-007 battle-area clauses", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mother"));
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

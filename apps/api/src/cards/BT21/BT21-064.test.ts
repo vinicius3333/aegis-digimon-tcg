@@ -1,7 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-064.js";
 import "../index.js";
 
@@ -70,25 +70,64 @@ describe("BT21-064 Guilmon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawB").instanceId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("drawA").instanceId, s.inst("drawB").instanceId]),
+    );
+  });
+
+  it("does not offer the hand-trash cost when the hand has no matching name or Hero trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-064", as: "guilmon" },
+            { card: "BT1-009", as: "invalidCost" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("guilmon").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidCost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("declining the hand-trash cost does not draw", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-064", as: "guilmon" }],
-          hand: [{ card: "BT12-007", as: "cost" }],
+          hand: [
+            { card: "BT21-064", as: "guilmon" },
+            { card: "BT12-007", as: "cost" },
+          ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("guilmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("guilmon").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
   });
 
   it("gains 1 memory when a realistic host carrying Guilmon is deleted", async () => {
@@ -103,13 +142,48 @@ describe("BT21-064 Guilmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("gains inherited memory from a public battle deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-064", as: "base" }],
+        hand: [{ card: "BT21-068", as: "growlmon" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: { battleArea: [{ card: "BT1-019", as: "opponent", suspended: true }], security: [{ card: "BT1-009" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("growlmon").instanceId);
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("base").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("growlmon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
   it.each([
     ["BT21-001", 0],
     ["BT21-002", 1],
   ] as const)("zero-cost evolves through alternate route %#", async (base, requirementIndex) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: base, as: "base" }],
+        breeding: { card: base, as: "base" },
         hand: [{ card: "BT21-064", as: "guilmon" }],
       },
     });

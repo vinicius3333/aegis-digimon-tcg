@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 import "../index.js";
 import { compiled } from "./BT23-012.js";
 
@@ -51,7 +52,7 @@ describe("BT23-012 Garudamon", () => {
             or: [
               { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
               {
-                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
+                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
                 excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
               },
             ],
@@ -119,6 +120,43 @@ describe("BT23-012 Garudamon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("reads [Giant Bird] as [Bird] per CR 2-3-2-4 and plays it from hand", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT23-012", as: "garuda" }], hand: [{ card: "BT1-014", as: "giantBird" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await advance(s.engine).verb.deletePermanent([s.perm("garuda").permanentId]);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("giantBird").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("giantBird").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("giantBird").instanceId);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("matches every compound trait spelling and still rejects a card-level [Sea Animal]", () => {
+    const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
+    const filter = deletion.actions.find((action) => action.kind === "PlayWithoutCost")!.target.filter;
+    const base = { ...getCardDefinition("BT1-014")!, level: 4 };
+    for (const trait of ["Giant Bird", "Holy Beast", "Dark Animal", "Bird Dragon", "Four Sovereign"]) {
+      expect(definitionMatches(filter, { ...base, types: [trait] })).toBe(true);
+    }
+    expect(definitionMatches(filter, { ...base, types: ["Sea Animal"] })).toBe(false);
+    expect(definitionMatches(filter, { ...base, types: ["Sea Animal", "Beast"] })).toBe(false);
+    expect(definitionMatches(filter, { ...base, types: ["Machine"] })).toBe(false);
+  });
+
+  it("keeps the [CS] branch on exact CR 2-3-2-3 matching", () => {
+    const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
+    const filter = deletion.actions.find((action) => action.kind === "PlayWithoutCost")!.target.filter;
+    const base = { ...getCardDefinition("BT1-014")!, level: 4 };
+    expect(definitionMatches(filter, { ...base, types: ["CS"] })).toBe(true);
+    expect(definitionMatches(filter, { ...base, types: ["CSX"] })).toBe(false);
+  });
+
   it("plays an off-color CS level-4-or-lower card for inherited On Deletion, per Q5221", async () => {
     const s = setupEngine(
       {
@@ -166,5 +204,69 @@ describe("BT23-012 Garudamon", () => {
     await settle();
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("bird").instanceId);
     expect(s.state.memory).toBe(2);
+  });
+
+  it("resolves top-card On Deletion after a natural battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-012", suspended: true, as: "garuda" }],
+          hand: [{ card: "BT1-012", as: "bird" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", dp: 10000, as: "attacker" }], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("garuda").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId)).toBe(true);
+  });
+
+  it("expires the public Raid grant at the opponent's turn boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-012", as: "garuda" }],
+          battleArea: [{ card: "BT1-012", as: "recipient" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013"] },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garuda").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("recipient"), "Raid"));
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("proves the synthetic CS plus Sea Animal level boundary without catalog mutation", () => {
+    const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
+    const play = deletion.actions.find((action) => action.kind === "PlayWithoutCost")!;
+    const filter = play.target.filter;
+    const realWhamon = getCardDefinition("BT23-023")!;
+    const mixedLevel4 = { ...realWhamon, level: 4 };
+    const seaOnlyLevel4 = { ...mixedLevel4, types: ["Sea Animal"] };
+    expect(definitionMatches(filter, mixedLevel4)).toBe(true);
+    expect(definitionMatches(filter, seaOnlyLevel4)).toBe(false);
+    expect(definitionMatches(filter, realWhamon)).toBe(false);
   });
 });

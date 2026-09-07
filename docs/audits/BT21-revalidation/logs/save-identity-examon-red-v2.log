@@ -1,0 +1,303 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > preserves both alternate Digivolution requirements, DigiXros, and complete coverage 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > DigiXroses with exactly one Save-text Digimon for a 2-memory reduction 23ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays Hunter/Hero Tamers and saves a qualifying Digimon 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hunter Tamer from hand without cost on play 11ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hero Tamer from hand without cost on play 5ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > does not play a nonmatching Tamer 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly uses the Hero alternate evolution route at its printed cost 7ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly plays a Hunter Tamer for free on the When Digivolving trigger 8ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Save-text trash card and itself under an own Tamer on deletion 10ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Hero hand card and itself under an own Tamer on deletion 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > can decline both optional On Deletion placement and Save 9ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines placement but accepts optional Save 12ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion accepts placement but declines optional Save 11ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > public battle deletion declines both choices and preserves source zones 8ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly triggers On Deletion after losing a battle and Saves under an own Tamer 7ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > preserves the WG alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > models optional suspension on play and digivolving 0ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > keeps the suspended WG attack redirect once-per-turn and the inherited play watcher 0ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4555 redirects the same Falcomon attack after Falcomon suspends Cherrymon 6ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > Q4556 observably permits an own Digimon suspension 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > inherited watcher suspends an opponent only when an own WG Digimon is played 9ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > suspends exactly one opponent through a public When Digivolving effect 3ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > permits declining the public optional suspension 1ms
+ ✓ src/cards/BT21/BT21-050.test.ts > BT21-050 Cherrymon > alternate-digivolves from a level-4 WG Digimon for 3 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves the registered effect triggers and action boundaries 0ms
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros 4ms
+   → expected [ { trigger: 'Static', …(2) }, …(3) ] to deep equally contain ObjectContaining{…}
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base 2ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a Hero-only level-3 base for the alternate cost 4ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > rejects a second DigiXros material and preserves hand, board, and memory 1ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > performs a security check after deleting a suspended Digimon by battle with Piercing 13ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > public Raid redirects to the highest-DP unsuspended target, then Piercing checks security 14ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > on deletion places an eligible card and then itself under a Tamer 6ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and Save after battle deletion 9ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly declines first placement but accepts the optional Save 11ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly accepts first placement but declines the optional Save 12ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly declines both optional placement and Save 9ms
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > saves the deleted copy when another BT21-016 remains on the board 13ms
+   → expected undefined to be defined
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > grants inherited +2000 DP only during its controller's turn 2ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > preserves the Examon alternate Digivolution requirement 0ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > models the printed keywords and When Digivolving sequence 0ms
+ × src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > keeps the once-per-turn suspension watcher scoped to its own trigger 3ms
+   → expected { kind: 'trashSecurityTop', …(3) } to match object { kind: 'trashSecurityTop', …(3) }
+(1 matching property omitted from actual)
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > suspends every opposing Digimon and Tamer, then deletes exactly one suspended target 5ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > unsuspends itself, trashes top security with an Examon source, and spends the once-per-turn budget 5ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly fires the watcher with an exact X Antibody Option source 25ms
+ × src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > does not fire the security-removal branch for a differently named X Antibody Digimon source 14ms
+   → expected ArraySchema{ items: [], …(5) } to have a length of 1 but got +0
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > still unsuspends without an Examon or X Antibody digivolution card but does not trash security 2ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > alternate-digivolves from Examon for 2 and exposes all three live keywords 6ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > rejects the exact Examon alternate route from a non-Examon level-6 base 1ms
+ ✓ src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > publicly unsuspends and trashes security once, then leaves the source suspended on the second attack 21ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros
+AssertionError: expected [ { trigger: 'Static', …(2) }, …(3) ] to deep equally contain ObjectContaining{…}
+
+- Expected:
+ObjectContaining {
+  "actions": [
+    ObjectContaining {
+      "kind": "PlaceUnder",
+      "optional": true,
+      "target": {
+        "count": 1,
+        "filter": {
+          "controller": "mine",
+          "kind": [
+            "Digimon",
+          ],
+          "nameOrTrait": [
+            {
+              "match": "trait",
+              "tokens": [
+                "Xros Heart",
+                "Blue Flare",
+                "Hero",
+              ],
+            },
+          ],
+        },
+        "from": [
+          "hand",
+          "trash",
+        ],
+      },
+      "underFilter": {
+        "controller": "mine",
+        "excludeToken": true,
+        "kind": [
+          "Tamer",
+        ],
+      },
+    },
+    {
+      "kind": "PlaceUnder",
+      "target": {
+        "count": 1,
+        "filter": {
+          "isSelfRef": true,
+        },
+        "isSelf": true,
+      },
+      "underFilter": {
+        "controller": "mine",
+        "excludeToken": true,
+        "kind": [
+          "Tamer",
+        ],
+      },
+    },
+  ],
+  "trigger": "OnDeletion",
+}
+
++ Received:
+[
+  {
+    "actions": [],
+    "keywords": [
+      {
+        "keyword": "Raid",
+        "raw": "＜Raid＞",
+      },
+    ],
+    "trigger": "Static",
+  },
+  {
+    "actions": [],
+    "keywords": [
+      {
+        "keyword": "Piercing",
+        "raw": "＜Piercing＞",
+      },
+    ],
+    "trigger": "Static",
+  },
+  {
+    "actions": [
+      {
+        "kind": "PlaceUnder",
+        "optional": true,
+        "target": {
+          "count": 1,
+          "filter": {
+            "controller": "mine",
+            "kind": [
+              "Digimon",
+            ],
+            "nameOrTrait": [
+              {
+                "match": "trait",
+                "tokens": [Array],
+              },
+            ],
+          },
+          "from": [
+            "hand",
+            "trash",
+          ],
+        },
+        "underFilter": {
+          "controller": "mine",
+          "excludeToken": true,
+          "kind": [
+            "Tamer",
+          ],
+        },
+      },
+      {
+        "kind": "PlaceUnder",
+        "optional": true,
+        "target": {
+          "count": 1,
+          "filter": {
+            "isSelfRef": true,
+          },
+          "isSelf": true,
+        },
+        "underFilter": {
+          "controller": "mine",
+          "excludeToken": true,
+          "kind": [
+            "Tamer",
+          ],
+        },
+      },
+    ],
+    "trigger": "OnDeletion",
+  },
+  {
+    "actions": [
+      {
+        "amount": 2000,
+        "duration": "permanent",
+        "kind": "ModifyDP",
+        "target": {
+          "count": 1,
+          "filter": {
+            "isSelfRef": true,
+          },
+          "isSelf": true,
+        },
+      },
+    ],
+    "isInherited": true,
+    "trigger": "YourTurn",
+  },
+]
+
+ ❯ src/cards/BT21/BT21-016.test.ts:30:30
+     28|       expect.objectContaining({ trigger: "Static", keywords: [{ keywor…
+     29|     );
+     30|     expect(compiled.effects).toContainEqual(
+       |                              ^
+     31|       expect.objectContaining({
+     32|         trigger: "OnDeletion",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > saves the deleted copy when another BT21-016 remains on the board
+AssertionError: expected undefined to be defined
+ ❯ src/cards/BT21/BT21-016.test.ts:457:22
+    455|
+    456|     const survivor = s.state.players[0]!.battleArea.find((permanent) =…
+    457|     expect(survivor).toBeDefined();
+       |                      ^
+    458|     expect(survivor!.stack.map((card) => card.instanceId)).toContain(s…
+    459|     expect(survivor!.stack.map((card) => card.instanceId)).not.toConta…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > keeps the once-per-turn suspension watcher scoped to its own trigger
+AssertionError: expected { kind: 'trashSecurityTop', …(3) } to match object { kind: 'trashSecurityTop', …(3) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+@@ -4,10 +4,15 @@
+        "nameOrTrait": [
+          {
+            "match": "nameExact",
+            "tokens": [
+              "Examon",
++           ],
++         },
++         {
++           "match": "trait",
++           "tokens": [
+              "X Antibody",
+            ],
+          },
+        ],
+      },
+
+ ❯ src/cards/BT21/BT21-052.test.ts:52:33
+     50|     const watcherActions = (watcher as { actions?: unknown[] } | undef…
+     51|     expect(watcherActions).toHaveLength(2);
+     52|     expect(watcherActions?.[1]).toMatchObject({
+       |                                 ^
+     53|       kind: "trashSecurityTop",
+     54|       controller: "opponent",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/cards/BT21/BT21-052.test.ts > BT21-052 Examon (X Antibody) > does not fire the security-removal branch for a differently named X Antibody Digimon source
+AssertionError: expected ArraySchema{ items: [], …(5) } to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-052.test.ts:178:42
+    176|     await settle(() => s.events.some((event) => event.kind === "securi…
+    177|     expect(s.perm("examonX").isSuspended).toBe(false);
+    178|     expect(s.state.players[1]!.security).toHaveLength(1);
+       |                                          ^
+    179|     expect(s.state.players[1]!.trash.some((card) => card.instanceId ==…
+    180|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  4 failed | 48 passed (52)
+   Start at  21:37:46
+   Duration  27.40s (transform 85%, import 13%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-016.test.ts src/cards/BT21/BT21-066.test.ts src/cards/BT21/BT21-050.test.ts src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose

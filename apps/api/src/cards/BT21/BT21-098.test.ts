@@ -1,3 +1,4 @@
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -31,6 +32,7 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
     expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT21-098")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-098")).toBe(false);
+    expect(s.state.memory).toBe(4);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
@@ -76,6 +78,147 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(security?.actions[1]).toEqual({ kind: "AddToHandSelf" });
   });
 
+  it("Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-062", as: "galacticmon" },
+            { card: "BT21-098", as: "option" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-010", as: "high" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    const optionId = s.perm("option").topCard.instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("galacticmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+
+  it("publicly ages a placed Option before Galacticmon activates its Delay", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT11-111", as: "galacticmon" }],
+          hand: [{ card: "BT21-098", as: "option" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "mainVictim" },
+            { card: "BT1-010", as: "low" },
+            { card: "BT1-018", as: "high" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.state.memory).toBe(4);
+
+    // A public turn boundary ages the Option; no field-turn metadata is injected.
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("galacticmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
+  it("Q4624 trashes security to one when the Delay deletion is prevented", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-062", as: "galacticmon" },
+            { card: "BT21-098", as: "option" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "AD1-007", as: "protected", under: ["BT21-001", "BT21-010", "BT21-069", "BT21-022"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const protectedId = s.perm("protected").permanentId;
+    const optionId = s.perm("option").topCard.instanceId;
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("galacticmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+
+    // The one-card fallback must resolve before the attack's ordinary security checks.
+    // Otherwise Galacticmon's normal checks could also explain the reduction from three
+    // security cards to one without proving the Delay branch.
+    const firstSecurityCheck = s.events.findIndex((event) => event.kind === "securityChecked");
+    const firstSecurityTrash = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.from === "security" && event.to === "trash",
+    );
+    expect(firstSecurityTrash).toBeGreaterThanOrEqual(0);
+    // The public settle point can precede the attack's eventual ordinary check. If
+    // that check is already present, its event must follow the fallback move.
+    expect(firstSecurityCheck === -1 || firstSecurityTrash < firstSecurityCheck).toBe(true);
+  });
+
   /**
    * FAILS-WHEN-REVERTED: the Security filter named no card kind, so the "play 1 card with
    * [Vemmon] in its text" prompt also offered Option cards. Only Digimon and Tamers are
@@ -106,7 +249,8 @@ describe("BT21-098 Ragnarok Cannon", () => {
   it("Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand", async () => {
     const s = setup(
       {
-        0: {
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: {
           security: [{ card: "BT21-098", as: "option" }],
           trash: [{ card: "BT11-065", as: "vemmon" }],
         },
@@ -116,9 +260,117 @@ describe("BT21-098 Ragnarok Cannon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
-    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("vemmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("vemmon").instanceId);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Security also plays a cost-6-or-less Vemmon-text card from hand", async () => {
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-098", as: "option" }],
+          hand: [{ card: "BT11-065", as: "vemmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === optionId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("vemmon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(false);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not offer a cost-7-or-more Vemmon-text Digimon from Security", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-098", as: "option" }],
+          trash: [{ card: "BT21-060", as: "tooExpensive" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.some((c) => c.cardId === "BT21-098"),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("declines an eligible Security Vemmon-text play and preserves the candidate", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-098", as: "option" }],
+          trash: [{ card: "BT11-065", as: "vemmon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision;
+    expect(decision?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.some((c) => c.cardId === "BT21-098"),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 });

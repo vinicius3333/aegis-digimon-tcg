@@ -1,5 +1,9 @@
 # BT22 Card Implementation Audit Ledger
 
+> Historical ledger. The independent audit started on 2026-09-06 is incomplete;
+> see [BT22-reaudit/PLAN.md](BT22-reaudit/PLAN.md) and
+> [BT22-reaudit/ledger.json](BT22-reaudit/ledger.json) for current evidence.
+
 Status: complete — 102/102 cards independently traceable at 10/10
 
 Baseline catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`

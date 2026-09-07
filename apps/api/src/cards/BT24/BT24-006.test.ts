@@ -1,6 +1,7 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-006.js";
 import "../index.js";
@@ -144,6 +145,7 @@ describe("BT24-006 Tapmon", () => {
     await settle(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggId })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
+    await settle(() => !internalsOf(s.engine).mainEntryPending);
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",

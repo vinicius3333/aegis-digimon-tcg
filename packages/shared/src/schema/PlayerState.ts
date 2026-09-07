@@ -2,6 +2,8 @@ import { Schema, ArraySchema, type, view } from "@colyseus/schema";
 import { CardInstance } from "./CardInstance.js";
 import { Permanent } from "./Permanent.js";
 import type { Seat } from "./enums.js";
+import { PRIVATE_VIEW_TAG } from "./viewTags.js";
+export { PRIVATE_VIEW_TAG } from "./viewTags.js";
 
 /**
  * View tag marking a PlayerState field as private to its owner. Fields tagged with
@@ -13,7 +15,6 @@ import type { Seat } from "./enums.js";
  * 1's private fields. Tag value 0 is intentional and distinct from Colyseus'
  * DEFAULT_VIEW_TAG (-1).
  */
-export const PRIVATE_VIEW_TAG = 0;
 
 /**
  * View tag for the zones NOBODY may read the contents of — not even their owner. The deck and

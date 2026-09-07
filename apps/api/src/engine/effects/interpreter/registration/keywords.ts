@@ -441,25 +441,32 @@ export function isIntrinsicDigisorptionMarker(effect: CardEffect): boolean {
   );
 }
 
-/**
- * Card ids whose compiled IR carries the ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ keyword
- * marker (see {@link isBlastDigivolveMarker}). §16-26-1/§16-31-1: digivolving into one of these
- * cards from hand, meeting the printed digivolution requirement, waives the memory cost. This is
- * the SOURCE OF TRUTH the digivolve cost path reads, since the card being digivolved into is in
- * hand (its Static/Counter effects are not active in the live ledger). Populated by `registerIrCard`.
- */
+/** Hand keyword registries: ordinary Blast and Blast DNA have distinct material procedures. */
 const BLAST_DIGIVOLVE_CARDS = new Set<string>();
+const BLAST_DNA_DIGIVOLVE_CARDS = new Set<string>();
 
-/** True when `cardId`'s compiled IR carries the ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ keyword. */
 export function hasBlastDigivolveKeyword(cardId: string): boolean {
   return BLAST_DIGIVOLVE_CARDS.has(cardId);
 }
 
+export function hasBlastDnaDigivolveKeyword(cardId: string): boolean {
+  return BLAST_DNA_DIGIVOLVE_CARDS.has(cardId);
+}
+
 export function registerBlastDigivolveFromEffects(cardId: string, effects: readonly CardEffect[]): void {
+  BLAST_DIGIVOLVE_CARDS.delete(cardId);
+  BLAST_DNA_DIGIVOLVE_CARDS.delete(cardId);
   for (const effect of effects) {
-    if (effect.trigger === "Counter" && isBlastDigivolveMarker(effect)) {
-      BLAST_DIGIVOLVE_CARDS.add(cardId);
-      return;
-    }
+    if (effect.trigger !== "Counter") continue;
+    const keywords = [
+      ...(effect.keywords ?? []).map(({ keyword }) => keyword),
+      ...(effect.actions ?? []).flatMap((action) =>
+        action.kind === "GainKeyword" && ((action as { target?: { isSelf?: boolean } }).target?.isSelf ?? false)
+          ? [(action as { keyword?: { keyword?: string } }).keyword?.keyword]
+          : [],
+      ),
+    ];
+    if (keywords.includes("BlastDigivolve")) BLAST_DIGIVOLVE_CARDS.add(cardId);
+    if (keywords.includes("BlastDNADigivolve")) BLAST_DNA_DIGIVOLVE_CARDS.add(cardId);
   }
 }

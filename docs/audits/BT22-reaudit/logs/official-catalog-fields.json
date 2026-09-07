@@ -1,0 +1,1637 @@
+{
+  "source": "https://world.digimoncard.com/cards/?category=522030&search=true",
+  "retrieved": "2026-09-06",
+  "cards": [
+    {
+      "cardId": "BT22-001",
+      "fields": {
+        "Color": "Blue",
+        "DP": "1000",
+        "Form": "In-Training",
+        "Type": "Lesser/LIBERATOR",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When effects place Digimon cards with [Aqua] or [Sea Animal] in any of their traits in this Digimon's digivolution cards, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-002",
+      "fields": {
+        "Color": "Yellow",
+        "Form": "In-Training",
+        "Type": "Lesser/LIBERATOR",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When any of your Tokens or other [Puppet] trait Digimon are deleted, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-003",
+      "fields": {
+        "Color": "Yellow",
+        "Form": "Appmon",
+        "Attribute": "Entertainment",
+        "Type": "Tap",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When this Digimon gets linked, 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-004",
+      "fields": {
+        "Color": "Green",
+        "Form": "In-Training",
+        "Type": "Lesser/CS",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When effects place [CS] trait Digimon cards in this Digimon's digivolution cards, it may digivolve into a [CS] trait Digimon card in the hand with the digivolution cost reduced by 1.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-005",
+      "fields": {
+        "Color": "Black",
+        "Form": "In-Training",
+        "Type": "Unidentified/CS",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When any of your Digimon with the [Unidentified] or [CS] trait are played, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-006",
+      "fields": {
+        "Color": "Purple",
+        "Form": "In-Training",
+        "Type": "Lesser/Night Claw",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When effects place this Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞ and trash 1 card in your hand.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If I activate EX5-064 [Koh & Sayo]'s [On Play] [Main] effect and place the top card of this card as the bottom digivolution card, then digivolve this card into a Digimon card, can I activate this card's inherited effect?": "No, you can't. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-007",
+      "fields": {
+        "Color": "White",
+        "Cost": "20",
+        "Form": "Eater",
+        "Type": "CS",
+        "[Effect]": "{Breeding} [Start of Your Main Phase] Look at your Digi-Egg deck's top card. Among them, you may place [Mother Eater]s as this Digimon's top digivolution cards. Then, if this Digimon has 10 or more digivolution cards, you may play 3 [Mother Eater]s from its digivolution cards without paying the costs. {Breeding} [All Turns] All of your [Mother Eater]s in the battle area are treated as having 16000 DP. [On Play] Delete 1 of your opponent's Digimon.",
+        "[Inherited Effect]": "{Breeding} [All Turns] [Once Per Turn] When any of your [Eater] trait Digimon would leave the battle area other than by your effects, you may place them as this Digimon's bottom digivolution cards.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What is a {Breeding} effect?": "A {Breeding} effect can be triggered/activated while its card is in the breeding area. Such effects can't be triggered or activated in areas other than the breeding area.",
+        "When I use this card's {Breeding} [Start of Your Main Phase] to look at my Digi-Egg deck's top card, do I have to reveal it?": "No, you don't have to reveal it. However, if you place a [Mother Eater] among them as this card's top digivolution card, you must reveal the card to be placed, then place it in this card's digivolution cards.",
+        "If I use this card's {Breeding} [Start of Your Main Phase] to look at my Digi-Egg deck's top card, but then choose not to place a [Mother Eater] among them in digivolution cards, what happens to that card?": "After looking at the card, you return it to the Digi-Egg deck face down.",
+        "I have no cards in my Digi-Egg deck. If this card has 10 or more digivolution cards, can I use the part of the effect after \"then\" in this card's {Breeding} [Start of Your Main Phase] effect to play 3 [Mother Eater]s from this card's digivolution cards?": "Yes, you can.",
+        "This card is in the breeding area, it has 10 or more digivolution cards, and just 2 of those are [Mother Eater]. Can I use this card's {Breeding} [Start of Your Main Phase] effect to play just those 2 [Mother Eater]s?": "Yes, you can. You play 3 or as many [Mother Eater]s from this card's digivolution cards as possible. If you have just 2, you play those 2.",
+        "This card is in the breeding area, it has 10 or more digivolution cards, and 3 of those are [Mother Eater]. Can I use this card's {Breeding} [Start of Your Main Phase] effect to play just 2 [Mother Eater]s?": "No, you can't. You play 3 [Mother Eater]s from this card's digivolution cards whenever possible. If you have 3, you play those 3.",
+        "My opponent has BT9-047 [Pomumon] in the battle area. Can I activate this card's {Breeding} [Start of Your Main Phase] effect and play [Mother Eater] from this card's digivolution cards?": "No, you can't. Related Cards",
+        "Does this card's [On Play] effect also trigger when this card is hatched in the breeding area?": "No, it doesn't trigger.",
+        "An opponent's Digimon with attacks my [Eater] trait Digimon, then when my Digimon would be deleted in battle, I activate this card's inherited effect and place my Digimon in digivolution cards. At such times, can on my opponent's attacking Digimon activate?": "No, it can't. triggers when a Digimon with that effect attacks and the opponent's Digimon is deleted in battle. Your [Eater] trait Digimon that would be deleted is placed in digivolution cards by this card's inherited effect, preventing that deletion. Therefore, on your opponent's Digimon doesn't trigger or activate.",
+        "This card is in the breeding area, and my [Mother Eater] in the battle area is treated as having 16000 DP. If my [Mother Eater] in the battle area is given -3000 DP by an effect, what happens to its DP?": "That [Mother Eater]'s DP becomes 13000.",
+        "This card is in the breeding area, and my [Mother Eater] in the battle area is treated as having 16000 DP. If my [Mother Eater] in the battle area is treated as having an original DP of 3000 by an effect, what happens to its DP?": "That [Mother Eater]'s DP becomes 3000."
+      }
+    },
+    {
+      "cardId": "BT22-008",
+      "fields": {
+        "Color": "Red",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "RedBlue 0 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Vaccine",
+        "Type": "Reptile/CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Koromon]/Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[On Play] You may return 1 Digimon card with [Greymon], [Garurumon] or [Omnimon] in its name from your trash to the hand.",
+        "[Inherited Effect]": "[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card in the hand.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-009",
+      "fields": {
+        "Color": "Red",
+        "Cost": "4",
+        "DP": "4000",
+        "Digivolve Cost 1": "Red 2 from Lv.3",
+        "Digivolve Cost 2": "Multicolor 2 from Stnd.",
+        "Form": "Sup./Appmon",
+        "Attribute": "Entertainment",
+        "Type": "Effect",
+        "[Effect]": "[Security] At the end of the battle, play this card without paying the cost. [On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 4000 DP or less.",
+        "[Link DP]": "+3000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Linking] Delete 1 of your opponent's Digimon with 4000 DP or less.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-010",
+      "fields": {
+        "Color": "Red Purple",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "RedPurple 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Data",
+        "Type": "Flame/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[Flame]/[CS] trait: Cost 2",
+        "[Effect]": "[Main] [Once Per Turn] By paying 2 cost, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn. Then, this Digimon may attack.",
+        "[Inherited Effect]": "[Your Turn] This Digimon gets +2000 DP.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I pay just 1 cost for this card's [Main] effect?": "No, you can't. A \"by\" condition can't be met if only some of the required actions are performed. The conditions for this [Main] effect require you to pay 2 cost.",
+        "Can I process the part of the effect after \"then\" in this card's [Main] effect without meeting the \"by\" condition?": "No, you can't. If you don't pay 2 cost, the part after \"then\" in this card's [Main] effect won't let this Digimon attack."
+      }
+    },
+    {
+      "cardId": "BT22-011",
+      "fields": {
+        "Color": "Red Purple",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "RedPurple 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Virus",
+        "Type": "Flame/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3",
+        "[Effect]": "＜Alliance＞ [Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] or [CS] trait from your trash without paying the cost. Then, this Digimon may attack.",
+        "[Inherited Effect]": "[Your Turn] This Digimon with the [Flame] or [CS] trait gains ＜Alliance＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I pay just 1 cost for this card's [Main] effect?": "No, you can't. A \"by\" condition can't be met if only some of the required actions are performed. The conditions for this [Main] effect require you to pay 3 cost.",
+        "Can I process the part of the effect after \"then\" in this card's [Main] effect without meeting the \"by\" condition?": "No, you can't. If you don't pay 3 cost, the part after \"then\" in this card's [Main] effect won't let this Digimon attack."
+      }
+    },
+    {
+      "cardId": "BT22-012",
+      "fields": {
+        "Color": "Red Black",
+        "Cost": "8",
+        "DP": "8000",
+        "Digivolve Cost 1": "RedBlack 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Vaccine",
+        "Type": "Cyborg/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[Greymon] in name or w/[CS] trait: Cost 3",
+        "[Effect]": "＜Raid＞ [When Digivolving] If you have 1 or fewer Tamers, from your hand and without paying the cost, you may play 1 red or black Tamer card with a play cost of 4 or less or 1 Tamer card with the [CS] trait.",
+        "[Inherited Effect]": "＜Security A. +1＞ (This Digimon checks 1 additional security card.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-013",
+      "fields": {
+        "Color": "Red",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "RedBlue 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Vaccine",
+        "Type": "Dragonkin/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 3",
+        "[Effect]": "{Hand} [Main] If you have [Nokia Shiramine], 1 of your [Agumon] digivolves into this card for a digivolution cost of 6, ignoring digivolution requirements. [When Digivolving] Activate 1 of the effects below: ・1 of your [Gabumon] may digivolve into [MetalGarurumon] in the hand, ignoring digivolution requirements and without paying the cost. ・Delete 1 of your opponent's Digimon with the lowest DP.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] If this Digimon has [Omnimon] in its name, trash your opponent's top security card.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-014",
+      "fields": {
+        "Color": "Red Black",
+        "Cost": "13",
+        "DP": "13000",
+        "Digivolve Cost 1": "RedBlack 5 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Virus",
+        "Type": "Dragonkin/X Antibody/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4",
+        "[Effect]": "＜Raid＞ ＜Reboot＞ [When Digivolving] You may unsuspend 1 of your opponent's Digimon. Then, this Digimon may attack. [All Turns] [Once Per Turn] When attack targets change, this Digimon gains ＜Piercing＞ and +5000 DP for the turn. (Rule) Name: Also treated as having [Greymon].",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-015",
+      "fields": {
+        "Color": "Red White Blue",
+        "Cost": "15",
+        "DP": "15000",
+        "Digivolve Cost 1": "RedBlue 6 from Lv.6",
+        "Form": "Mega",
+        "Attribute": "Vaccine",
+        "Type": "Holy Warrior/Royal Knight/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.6 w/[CS] trait: Cost 5 [DNA Digivolve] Lv.6 w/[Greymon] in name+Lv.6 w/[Garurumon] in name: Cost 0",
+        "[Effect]": "＜Blocker＞ ＜Decode (Red/Black Lv.3)＞ ＜Decode (Blue/Yellow Lv.3)＞ [On Play] [When Attacking] Delete 1 of your opponent's Digimon with the lowest DP. [When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may attack.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I activate this card's and to play a combination of 1 red level 3 card and 1 black level 3 card, or 1 blue level 3 card and 1 yellow level 3 card?": "No, you can't. When this card would be removed from the battle area other than by a battle, you can play a combination of 1 red or black level 3 card from and 1 blue or yellow level 3 card from .",
+        "This card has 3 level 4 cards and 3 level 5 cards in its digivolution cards. How many of my opponent's Digimon do I return to the bottom of the deck using this card's [When Digivolving] effect?": "2 Digimon. For every pair of 2 same-level cards, you choose 1 of your opponent's Digimon and return it to the bottom of the deck."
+      }
+    },
+    {
+      "cardId": "BT22-016",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "Blue 0 from Lv.2",
+        "Form": "Stnd./Appmon",
+        "Attribute": "Navi",
+        "Type": "Broadcasting",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0",
+        "[Effect]": "[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait and 1 card with the [Entertainment] or [Awakening] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "[Link DP]": "+2000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 1 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Linking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-017",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "BlueRed 0 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Data",
+        "Type": "Reptile/CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Tsunomon]/Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[On Play] Reveal the top 3 cards of your deck. Add 1 card with [Omnimon] in its text and 1 card with the [CS] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "[Inherited Effect]": "[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card in the hand.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does a card with \"X in its text\" refer to?": "It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolution requirements, DNA digivolution, DigiXros requirements, burst digivolve, App Fusion, Link, or Assembly requirements. For example, a card with [Knightmon] in its text would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects."
+      }
+    },
+    {
+      "cardId": "BT22-018",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "Blue 0 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Data",
+        "Type": "Mollusk/LIBERATOR",
+        "[Effect]": "[On Play] By placing this Digimon as the bottom digivolution card of any of your other Digimon with [Aqua] or [Sea Animal] in any of their traits, until your opponent's turn ends, that Digimon gains ＜Blocker＞ and can't be deleted in battle. (Rule) Trait: Has [Aquatic] Type.",
+        "[Inherited Effect]": "＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-019",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "Blue 0 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Free",
+        "Type": "Mini Dragon/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[Your Turn] When this Digimon would digivolve into a Digimon card with [Veedramon] in its name, reduce the digivolution cost by 1.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name would leave the battle area by your opponent's effects, by suspending this Digimon, it doesn't leave.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Does this card's [Your Turn] effect trigger when this card is in the breeding area and would digivolve into a Digimon card with [Veedramon] in its name?": "No, it doesn't trigger."
+      }
+    },
+    {
+      "cardId": "BT22-020",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "4",
+        "DP": "5000",
+        "Digivolve Cost 1": "Blue 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Data",
+        "Type": "Dragonkin",
+        "[Special Digivolution Condition]": "[Digivolve] [Gammamon]: Cost 2",
+        "[Effect]": "[When Attacking] [Once Per Turn] By placing 1 Digimon card with [Gammamon] in its name from your hand as this Digimon's bottom digivolution card, ＜Draw 1＞.",
+        "[Inherited Effect]": "＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "When this Digimon digivolves into BT10-011 [Canoweissmon], I activate this card's [When Digivolving] effect after gaining it using BT10-011 [Canoweissmon]'s [All Turns] effect, and I place a card with a [When Digivolving] effect and [Gammamon] in its name from my hand in that Digimon's digivolution cards. Can I activate the placed card's [When Digivolving] effect at such times?": "No, you can't activate it. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-021",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "Blue 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Data",
+        "Type": "Mollusk/LIBERATOR",
+        "[Effect]": "＜Decode (Lv.3 w/[Aqua]/[Sea Animal] in any trait)＞ (When this Digimon would leave the battle area other than in battle, you may play 1 level 3 Digimon card with [Aqua] or [Sea Animal] in any of its traits from this Digimon's digivolution cards without paying the cost.) [On Play] [When Digivolving] You may place 1 level 5 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from your hand as any of your Digimon's bottom digivolution card. (Rule) Trait: Has [Aquatic] Type.",
+        "[Inherited Effect]": "＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-022",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "Blue 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Vaccine",
+        "Type": "Mythical Dragon/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 Tamer card with [Veedramon] in its text from your hand without paying the cost.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name would leave the battle area by your opponent's effects, by suspending this Digimon, it doesn't leave.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does a card with \"X in its text\" refer to?": "It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolution requirements, DNA digivolution, DigiXros requirements, burst digivolve, App Fusion, Link, or Assembly requirements. For example, a card with [Knightmon] in its text would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects."
+      }
+    },
+    {
+      "cardId": "BT22-023",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "Blue 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Vaccine",
+        "Type": "Holy Dragon/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[CS] trait: Cost 3",
+        "[Effect]": "[On Play] [When Digivolving] Return 1 of your opponent's level 4 or lower Digimon to the bottom of the deck. [End of Your Turn] [Once Per Turn] 1 of your blue Digimon or Tamers may unsuspend.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name suspends, if you have a blue Tamer, this Digimon may unsuspend.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-024",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "Blue 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Data",
+        "Type": "Mollusk/LIBERATOR",
+        "[Effect]": "{Hand} [Main] If you have [Yao Qinglan], by placing 1 [Shellmon] from your trash as any of your [Sangomon]'s bottom digivolution card, it digivolves into this card for a digivolution cost of 3, ignoring digivolution requirements. ＜Decode (Lv.4 w/[Aqua]/[Sea Animal] in any trait)＞ (Rule) Trait: Has [Aquatic] Type.",
+        "[Inherited Effect]": "[End of Attack] [Once Per Turn] You may play 1 level 4 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from this Digimon's digivolution cards without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If I use this card's {Hand} [Main] effect to digivolve BT21-031 [Sangomon] into this card, ignoring digivolution requirements, does the combination with BT21-031 [Sangomon]'s effect make the digivolution cost 2?": "Yes, the digivolution cost is 2. Related Cards",
+        "Can I activate this card's {Hand} [Main] effect at the same time as an effect such as P-104 [Mental Training]'s effect that digivolves?": "No, you can't. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-025",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "7",
+        "DP": "12000",
+        "Digivolve Cost 1": "Blue 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Vaccine",
+        "Type": "Holy Warrior/Royal Knight/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[CS] trait: Cost 3",
+        "[Effect]": "{Hand} [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this card without paying the cost.) [On Play] [When Digivolving] Activate 1 of the effects below: ・Return 1 of your opponent's lowest level Digimon to the bottom of the deck. ・You may play 1 play cost 4 or lower blue Tamer card from your hand without paying the cost. [When Attacking] [Once Per Turn] This Digimon may unsuspend.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-026",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "BlueRed 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Data",
+        "Type": "Cyborg/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[Garurumon] in name or w/[CS] trait: Cost 3",
+        "[Effect]": "{Hand} [Main] If you have [Nokia Shiramine], 1 of your [Gabumon] digivolves into this card for a digivolution cost of 6, ignoring digivolution requirements. [When Digivolving] Activate 1 of the effects below: ・1 of your [Agumon] may digivolve into [WarGreymon] in the hand, ignoring digivolution requirements and without paying the cost. ・Return 1 of your opponent's Digimon with the lowest level to the hand.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] If this Digimon has [Omnimon] in its name, it unsuspends.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-027",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "11",
+        "DP": "11000",
+        "Digivolve Cost 1": "Blue 3 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Data",
+        "Type": "Mollusk/LIBERATOR",
+        "[Effect]": "＜Decode (Lv.5 w/[Aqua]/[Sea Animal] in any trait)＞ [On Play] [When Digivolving] By placing 1 level 5 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from your hand as this Digimon's bottom digivolution card, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends. [All Turns] [Once Per Turn] When effects add to this Digimon's digivolution cards, return 1 of your opponent's level 5 or lower Digimon to the bottom of the deck. (Rule) Trait: Has [Aquatic] Type.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-028",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "14",
+        "DP": "14000",
+        "Digivolve Cost 1": "Blue 4 from Lv.6",
+        "Form": "Mega",
+        "Attribute": "Data",
+        "Type": "Aquatic/LIBERATOR",
+        "[Special Digivolution Condition]": "[Digivolve] While you have [Yao Qinglan], [MarineBullmon]: Cost 6",
+        "[Effect]": "＜Decode (Lv.6 or lower w/[Aqua]/[Sea Animal] in any trait)＞ [When Digivolving] You may play 1 each of level 3, level 4 and level 5 Digimon cards with [Aqua] or [Sea Animal] in any of their traits from this Digimon's digivolution cards without paying the costs. [When Digivolving] [When Attacking] By placing 1 of your other Digimon as this Digimon's bottom digivolution card, return 1 of your opponent's Digimon to the bottom of the deck and this Digimon unsuspends.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Multiple effects trigger when this card digivolves. In what order do they activate?": "The effects trigger simultaneously, so the player can choose the activation order.",
+        "A Digimon with level 3, level 4, and level 5 Digimon cards with [Aqua] or [Sea Animal] in any of their traits in its digivolution cards digivolved into this card. If this card's [When Digivolving] effect activates at such times, can I play just one or some of level 3, level 4, and level 5 Digimon cards with [Aqua] or [Sea Animal] in any of their traits from digivolution cards?": "No, you can't. You must play 1 each of level 3, level 4, and level 5 Digimon cards with [Aqua] or [Sea Animal] in any of their traits from digivolution cards whenever possible."
+      }
+    },
+    {
+      "cardId": "BT22-029",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "Yellow 0 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Virus",
+        "Type": "Puppet/LIBERATOR",
+        "[Effect]": "[On Play] [On Deletion] 1 of your Digimon with the [Puppet] trait gains ＜Blocker＞ until your opponent's turn ends.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-030",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "3",
+        "DP": "2000",
+        "Digivolve Cost 1": "Yellow 0 from Lv.2",
+        "Form": "Stnd./Appmon",
+        "Attribute": "Entertainment",
+        "Type": "Music",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0",
+        "[Effect]": "[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Torajiro Asuka] from your hand without paying the cost.",
+        "[Link DP]": "+2000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 1 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-031",
+      "fields": {
+        "Color": "Yellow Black",
+        "Cost": "5",
+        "DP": "2000",
+        "Digivolve Cost 1": "YellowBlack 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Virus",
+        "Type": "Mutant/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[Numemon] in name or Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[On Play] [When Digivolving] Give 1 of your opponent's Digimon ＜Security A. -2＞ until their turn ends. Then, if this Digimon's stack has 2 or more same-level cards, this Digimon may digivolve into [PlatinumNumemon] in the hand for a digivolution cost of 4, ignoring digivolution requirements.",
+        "[Inherited Effect]": "[Your Turn] [Once Per Turn] When this Digimon would digivolve into a Digimon card with the [CS] trait, reduce the digivolution cost by 1.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards."
+      }
+    },
+    {
+      "cardId": "BT22-032",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "Yellow 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Virus",
+        "Type": "Puppet/LIBERATOR",
+        "[Effect]": "[On Deletion] You may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-033",
+      "fields": {
+        "Color": "Yellow Blue",
+        "Cost": "6",
+        "DP": "6000",
+        "Digivolve Cost 1": "YellowBlue 3 from Lv.3",
+        "Digivolve Cost 2": "Multicolor 3 from Stnd.",
+        "Form": "Sup./Appmon",
+        "Attribute": "Entertainment",
+        "Type": "Media Player",
+        "[Special Digivolution Condition]": "[App Fusion] [Musimon] & [Recomon] & [Mcmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve",
+        "[Effect]": "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP for the turn. [Your Turn] [Once Per Turn] When this Digimon gets linked, you may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost.",
+        "[Link DP]": "+3000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Attacking] You may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "This card has 3 different cards in its App Fusion requirements. What combinations are possible for App Fusion?": "App Fusion is possible with the following combinations. ●[Musimon] with [Recomon] link card ●[Musimon] with [Mcmon] link card ●[Recomon] with [Musimon] link card ●[Recomon] with [Mcmon] link card ●[Mcmon] with [Musimon] link card ●[Mcmon] with [Recomon] link card"
+      }
+    },
+    {
+      "cardId": "BT22-034",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "Yellow 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Vaccine",
+        "Type": "Holy Beast/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "When effects trash this card from the security stack, you may play this card without paying the cost. [On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP until their turn ends. By trashing your top security card, instead 1 of your opponent's Digimon gets -6000 DP until their turn ends.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does an \"instead\" effect mean, exactly?": "The processing shown after \"instead\" in the effect replaces the standard processing. For example, if an effect reads \"Delete your opponent's Digimon with 6000 DP or less. If you have a Digimon with [Greymon] in its name, instead delete 1 of your opponent's Digimon with the lowest DP,\" and you have a Digimon with [Greymon] in its name, you delete 1 of your opponent's Digimon with the lowest DP instead of deleting 1 of their Digimon with 6000 DP or less."
+      }
+    },
+    {
+      "cardId": "BT22-035",
+      "fields": {
+        "Color": "Yellow Black",
+        "Cost": "8",
+        "DP": "8000",
+        "Digivolve Cost 1": "YellowBlack 4 from Lv.4",
+        "Digivolve Cost 2": "Multicolor 4 from Sup.",
+        "Form": "Ult./Appmon",
+        "Attribute": "Entertainment",
+        "Type": "Entertainment",
+        "[Special Digivolution Condition]": "[App Fusion] [Mediamon] & [Dreammon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve",
+        "[Effect]": "＜Alliance＞ [On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost. [Your Turn] [Once Per Turn] When this Digimon gets linked, you may play 1 play cost 4 or lower card with the [Appmon] trait from your hand without paying the cost.",
+        "[Link DP]": "+4000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 3 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Linking] To 1 of your opponent's Digimon, give -4000 DP for the turn for each of your Digimon with the [Appmon] trait.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [On Play] [When Digivolving] effect to link a card that doesn't have ?": "No, you can't."
+      }
+    },
+    {
+      "cardId": "BT22-036",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "Yellow 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Virus",
+        "Type": "Puppet/LIBERATOR",
+        "[Effect]": "{Hand} [Main] If you have [Arisa Kinosaki], by placing 1 [ShoeShoemon] from your trash as any of your [Shoemon]'s bottom digivolution card, it digivolves into this card for a digivolution cost of 3, ignoring digivolution requirements. ＜Overclock ([Puppet] Trait)＞",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If I use this card's {Hand} [Main] effect to digivolve EX7-024 [Shoemon] into this card, ignoring digivolution requirements, does the combination with EX7-024 [Shoemon]'s effect make the digivolution cost 2?": "Yes, the digivolution cost is 2. Related Cards",
+        "Can I activate this card's {Hand} [Main] effect at the same time as an effect such as P-105 [Physical Training]'s effect that digivolves?": "No, you can't. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-037",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "Yellow 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Vaccine",
+        "Type": "Holy Beast/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[CS] trait: Cost 3",
+        "[Effect]": "When effects trash this card from the security stack, 1 of your opponent's Digimon gets -8000 DP for the turn. [When Digivolving] By trashing your top security card, this Digimon may digivolve into a Digimon card with [Kentaurosmon] or [Mitamamon] in its name or the [CS] trait in the hand with the digivolution cost reduced by 2.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-038",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "8",
+        "DP": "8000",
+        "Digivolve Cost 1": "Yellow 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Vaccine",
+        "Type": "Puppet/DM/Ver.1",
+        "[Special Digivolution Condition]": "[Digivolve] [Numemon]: Cost 3/Lv.4 w/[DM] trait: Cost 4",
+        "[Effect]": "When any of your Digimon with the [Ver.1] trait would digivolve into this card, for each of its face-down digivolution cards, reduce the digivolution cost by 1. ＜Armor Purge＞ [When Digivolving] [When Attacking] [Once Per Turn] By trashing this Digimon's bottom face-down digivolution card, until your opponent's turn ends, 1 of their Digimon can't activate [When Digivolving] effects and gets -4000 DP.",
+        "[Inherited Effect]": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "When I activate EX9-070 [Meat]'s effect and would digivolve my Digimon into this card with the digivolution cost reduced by 2, can I activate this card's 1st effect and further reduce the digivolution cost by 1 for each of that Digimon's face-down digivolution cards?": "Yes, you can. Related Cards",
+        "What does \"[When Digivolving] effects don't activate\" mean, exactly?": "This effect prevents [When Digivolving] effects on cards from activating. [When Digivolving] effects can no longer activate by triggering or when effects such as \"activate that card's [When Digivolving]\" effect\" activate.",
+        "I used a card affected by \"can't activate [When Digivolving] effects\" to attack. Can I activate that card's [When Digivolving] [When Attacking] effect at such times?": "Yes, you can. The effect can activate if it activates upon the [When Attacking] timing.",
+        "If a card is affected by \"can't activate [When Digivolving] effects,\" can other effects activate its [When Digivolving] effect?": "No, it can't be activated.",
+        "If a card is affected by \"can't activate [When Digivolving] effects,\" can I process just the \"by\" condition in its [When Digivolving] effect?": "No, you can't.",
+        "A card that was given \"can't activate [When Digivolving] effects\" digivolved into a card that has a [When Digivolving] [When Attacking] [Once Per Turn] effect. Does that count as an instance of that effect's [X Per Turn] even if that effect can't be activated upon the timing when that card digivolved?": "No, it doesn't count. The effect can't activate upon the [When Digivolving] timing, therefore it doesn't count as an instance of that effect's [X Per Turn]."
+      }
+    },
+    {
+      "cardId": "BT22-039",
+      "fields": {
+        "Color": "Yellow White",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "Yellow 4 from Lv.5",
+        "Digivolve Cost 2": "Multicolor 4 from Ult.",
+        "Form": "God/Appmon",
+        "Attribute": "God",
+        "Type": "Awakening",
+        "[Special Digivolution Condition]": "[App Fusion] [Entermon] & [Fakemon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve",
+        "[Effect]": "＜Alliance＞ ＜Link +1＞ (Add 1 to this Digimon's maximum links.) [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 level 4 or lower [Appmon] trait Digimon card from your hand without paying the cost. [All Turns] [Once Per Turn] When any of your Digimon are played, you may link 1 [Appmon] trait Digimon card from this Digimon's digivolution cards to 1 of your Digimon without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [All Turns] effect to link a card that doesn't have ?": "No, you can't.",
+        "Does this card's [All Turns] effect trigger when this card itself is played?": "Yes, it triggers."
+      }
+    },
+    {
+      "cardId": "BT22-040",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "11",
+        "DP": "11000",
+        "Digivolve Cost 1": "Yellow 3 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Virus",
+        "Type": "Puppet/LIBERATOR",
+        "[Effect]": "＜Overclock ([Puppet] Trait)＞ [On Play] [When Digivolving] You may play 1 [Familiar] Token. (Digimon/Yellow/3000 DP/\"[On Deletion] 1 of your opponent's Digimon gets -3000 DP for the turn.\") [All Turns] [Once Per Turn] When any of your other Digimon are deleted, you may activate 1 of this Digimon's [When Digivolving] effects.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-041",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "Yellow 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Vaccine",
+        "Type": "Holy Warrior/Royal Knight/CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Chirinmon]/Lv.5 w/[CS] trait: Cost 3",
+        "[Effect]": "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6. ＜Blocker＞ ＜Barrier＞ [On Play] [When Digivolving] You may place 1 yellow card from your hand as your top security card. [All Turns] [Once Per Turn] When this Digimon suspends, by trashing your top security card, it unsuspends.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-042",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "14",
+        "DP": "14000",
+        "Digivolve Cost 1": "Yellow 4 from Lv.6",
+        "Form": "Mega",
+        "Attribute": "Virus",
+        "Type": "Puppet/LIBERATOR",
+        "[Special Digivolution Condition]": "[Digivolve] While you have [Arisa Kinosaki], [Chaperomon]: Cost 6",
+        "[Effect]": "＜Overclock ([Puppet] Trait)＞ [When Digivolving] You may play 1 level 4 or lower [Puppet] trait Digimon card from your hand without paying the cost. Then, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each of your Digimon. [All Turns] [Once Per Turn] When any of your other Digimon are deleted, you may activate 1 of this Digimon's [When Digivolving] effects.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [When Digivolving] effect to reduce the DP of multiple Digimon?": "No, you can't. You choose 1 of your opponent's Digimon, then that Digimon's DP is reduced by this card's [When Digivolving] effect.",
+        "I used this card's [Start of Your Main Phase] effect to play a card with an [On Play] effect. At such times, can I activate the [On Play] effect on the played card before processing the part of this card's [When Digivolving] effect after \"then\"?": "No, you can't. Once all of the processing is resolved for this card's [When Digivolving] effect, then you can activate the [On Play] effect on the played card.",
+        "All of my Digimon get -5000 DP. I used this card's [When Digivolving] effect to play a Digimon with 5000 DP or less. At such times, is the played Digimon deleted before the part of the effect after \"then\"?": "No, it isn't deleted yet. Once all of the processing for this card's [When Digivolving] effect is resolved, then all of the Digimon with 0 DP are deleted at the same time."
+      }
+    },
+    {
+      "cardId": "BT22-043",
+      "fields": {
+        "Color": "Green Yellow",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "GreenYellow 1 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Vaccine",
+        "Type": "Beast/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[Your Turn] [Once Per Turn] When effects place Digimon cards with the [CS] trait in this Digimon's digivolution cards, if you have 1 or fewer Tamers, you may play 1 Tamer card with the [CS] trait from your hand without paying the cost.",
+        "[Inherited Effect]": "[Main] [Once Per Turn] By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "I activated this card's inherited effect and placed the top Digimon card of that Digimon as the bottom digivolution card. At such times, if that Digimon's top card becomes this card itself, does its [Your Turn] effect trigger?": "Yes, it triggers."
+      }
+    },
+    {
+      "cardId": "BT22-044",
+      "fields": {
+        "Color": "Green Red",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "GreenRed 1 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Data",
+        "Type": "Vegetation/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[Your Turn] [Once Per Turn] When effects place Digimon cards with the [CS] trait in this Digimon's digivolution cards, gain 1 memory.",
+        "[Inherited Effect]": "[Main] [Once Per Turn] By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "I activated this card's inherited effect and placed the top Digimon card of that Digimon as the bottom digivolution card. At such times, if that Digimon's top card becomes this card itself, does its [Your Turn] effect trigger?": "Yes, it triggers."
+      }
+    },
+    {
+      "cardId": "BT22-045",
+      "fields": {
+        "Color": "Green",
+        "Cost": "4",
+        "DP": "5000",
+        "Digivolve Cost 1": "Green 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Data",
+        "Type": "Ceratopsian",
+        "[Special Digivolution Condition]": "[Digivolve] [Gammamon]: Cost 2",
+        "[Effect]": "[On Play] [When Digivolving] By placing 1 Digimon card with [Gammamon] in its name from your hand as this Digimon's bottom digivolution card, it gains ＜Blocker＞ and +3000 DP until your opponent's turn ends.",
+        "[Inherited Effect]": "＜Piercing＞ (When this Digimon attacks and deletes your opponent's Digimon in battle, it checks security before the attack ends.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "When this Digimon digivolves into BT10-011 [Canoweissmon], I activate this card's [When Digivolving] effect after gaining it using BT10-011 [Canoweissmon]'s [All Turns] effect, and I place a card with a [When Digivolving] effect and [Gammamon] in its name from my hand in that Digimon's digivolution cards. Can I activate the placed card's [When Digivolving] effect at such times?": "No, you can't activate it. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-046",
+      "fields": {
+        "Color": "Green Yellow",
+        "Cost": "5",
+        "DP": "6000",
+        "Digivolve Cost 1": "GreenYellow 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Vaccine",
+        "Type": "Beastkin/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 Tamer card with the [CS] trait from your hand without paying the cost.",
+        "[Inherited Effect]": "[All Turns] This Digimon gets +1000 DP.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-047",
+      "fields": {
+        "Color": "Green",
+        "Cost": "6",
+        "DP": "6000",
+        "Digivolve Cost 1": "Green 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Virus",
+        "Type": "Insectoid/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, if this Digimon's stack has 2 or more same-level cards, 1 of your opponent's Digimon can't unsuspend until their turn ends.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards.",
+        "Can this card's [On Play] [When Digivolving] effect suspend a different card from the one that's given \"can't unsuspend until the end of their turn\"?": "Yes, it can.",
+        "Can I activate this card's inherited effect even if my opponent's Digimon and the Digimon that has this card in its digivolution cards are deleted at the same timing?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-048",
+      "fields": {
+        "Color": "Green Red",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "GreenRed 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Data",
+        "Type": "Vegetation/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP for the turn. Then, if this Digimon's stack has 2 or more same-level cards, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
+        "[Inherited Effect]": "[Your Turn] This Digimon gets +2000 DP.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards."
+      }
+    },
+    {
+      "cardId": "BT22-049",
+      "fields": {
+        "Color": "Green",
+        "Cost": "3",
+        "DP": "3000",
+        "Digivolve Cost 1": "Green 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Virus",
+        "Type": "Carnivorous Plant/DM/Ver.2",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[DM] trait: Cost 2",
+        "[Effect]": "[End of Your Turn] [Once Per Turn] By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards, it may digivolve into a Digimon card with the [Ver.2] trait in the hand or trash.",
+        "[Inherited Effect]": "＜Piercing＞ (When this Digimon attacks and deletes your opponent's Digimon in battle, it checks security before the attack ends.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I meet the conditions for this card's [End of Your Turn] effect by placing just 2 cards from my trash face down as this Digimon's bottom digivolution cards?": "No, you can't. A \"by\" condition can't be met if only some of the required actions are performed. The conditions for this [When Digivolving] effect require you to place the specified number of cards from your trash face down as this Digimon's bottom digivolution cards."
+      }
+    },
+    {
+      "cardId": "BT22-050",
+      "fields": {
+        "Color": "Green",
+        "Cost": "4",
+        "DP": "4000",
+        "Digivolve Cost 1": "Green 2 from Lv.3",
+        "Digivolve Cost 2": "Multicolor 2 from Stnd.",
+        "Form": "Sup./Appmon",
+        "Attribute": "Tool",
+        "Type": "Voice Change",
+        "[Effect]": "[Security] At the end of the battle, play this card without paying the cost. [On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
+        "[Link DP]": "+3000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Linking] Suspend 1 of your opponent's Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-051",
+      "fields": {
+        "Color": "Green",
+        "Cost": "8",
+        "DP": "7000",
+        "Digivolve Cost 1": "Green 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Virus",
+        "Type": "Insectoid/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[CS] trait: Cost 3",
+        "[Effect]": "＜Fortitude＞ [On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, if this Digimon's stack has 2 or more same-level cards, return 1 of your opponent's suspended Digimon with the lowest DP to the hand.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards.",
+        "Can I activate this card's inherited effect even if my opponent's Digimon and the Digimon that has this card in its digivolution cards are deleted at the same timing?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-052",
+      "fields": {
+        "Color": "Green",
+        "Cost": "7",
+        "DP": "12000",
+        "Digivolve Cost 1": "Green 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Data",
+        "Type": "Holy Warrior/Royal Knight/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[CS] trait: Cost 3",
+        "[Effect]": "{Hand} [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this card without paying the cost.) [On Play] [When Digivolving] You may play 1 5000 DP or lower Digimon card from your hand without paying the cost. Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends. [All Turns] [Once Per Turn] When any of your other Digimon would leave the battle area, gain 2 memory.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "I have this card, [Omnimon], and BT20-100 [The Last Guardian] in the battle area. When my [Omnimon] would leave the battle area, but it's prevented from leaving by BT20-100 [The Last Guardian]'s effect, can I then use this card's [All Turns] effect to gain 2 memory?": "Yes, you can. When your [Omnimon] would leave the battle area, this card's [All Turns] effect and BT20-100 [The Last Guardian]'s effect trigger simultaneously, therefore the player can choose the desired activation order. Even if BT20-100 [The Last Guardian]'s effect prevents [Omnimon] from leaving, you can activate this card's [All Turns] effect. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-053",
+      "fields": {
+        "Color": "Black",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "Black 0 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Unknown",
+        "Type": "Unidentified/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Arata Sanada] and 1 card with the [Unidentified] or [CS] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with [Diaboromon] in its text would leave the battle area, by deleting 1 of your other [Diaboromon], it doesn't leave.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does a card with \"X in its text\" refer to?": "It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolution requirements, DNA digivolution, DigiXros requirements, burst digivolve, App Fusion, Link, or Assembly requirements. For example, a card with [Knightmon] in its text would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects."
+      }
+    },
+    {
+      "cardId": "BT22-054",
+      "fields": {
+        "Color": "Black Yellow",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "BlackYellow 1 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Virus",
+        "Type": "Machine/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[CS] trait: Cost 0",
+        "[Effect]": "[Your Turn] [Once Per Turn] When effects place Digimon cards with the [CS] trait in this Digimon's digivolution cards, 1 of your opponent's Digimon gets -3000 DP for the turn.",
+        "[Inherited Effect]": "[Main] [Once Per Turn] By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "I activated this card's inherited effect and placed the top Digimon card of that Digimon as the bottom digivolution card. At such times, if that Digimon's top card becomes this card itself, does its [Your Turn] effect trigger?": "Yes, it triggers."
+      }
+    },
+    {
+      "cardId": "BT22-055",
+      "fields": {
+        "Color": "Black",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "Black 0 from Lv.2",
+        "Form": "Stnd./Appmon",
+        "Attribute": "Tool",
+        "Type": "Recording",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0",
+        "[Effect]": "[On Play] By trashing 1 Digimon card with the [Appmon] trait from your hand, ＜Draw 2＞.",
+        "[Link DP]": "+2000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 1 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "＜Blocker＞ (This Digimon can block in the blocker timing.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-056",
+      "fields": {
+        "Color": "Black Yellow",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "BlackYellow 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Free",
+        "Type": "Machine/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn. Then, if this Digimon's stack has 2 or more same-level cards, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "[Inherited Effect]": "[Opponent's Turn] This Digimon gets +2000 DP.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards.",
+        "This card's effect caused the DP of my opponent's Digimon to become 0. At such times, is the Digimon with a DP of zero deleted?": "No, it isn't deleted yet. Once all of the processing for the activated effect has resolved, a rule check will occur, then all of the Digimon with 0 DP are deleted at the same time."
+      }
+    },
+    {
+      "cardId": "BT22-057",
+      "fields": {
+        "Color": "Black",
+        "Cost": "5",
+        "DP": "5000",
+        "Digivolve Cost 1": "Black 2 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Unknown",
+        "Type": "Unidentified/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[CS] trait: Cost 2",
+        "[Effect]": "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Arata Sanada] from your hand without paying the cost.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with [Diaboromon] in its text would leave the battle area, by deleting 1 of your other [Diaboromon], it doesn't leave.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does a card with \"X in its text\" refer to?": "It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolution requirements, DNA digivolution, DigiXros requirements, burst digivolve, App Fusion, Link, or Assembly requirements. For example, a card with [Knightmon] in its text would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects."
+      }
+    },
+    {
+      "cardId": "BT22-058",
+      "fields": {
+        "Color": "Black",
+        "Cost": "4",
+        "DP": "4000",
+        "Digivolve Cost 1": "Black 2 from Lv.3",
+        "Digivolve Cost 2": "Multicolor 2 from Stnd.",
+        "Form": "Sup./Appmon",
+        "Attribute": "Entertainment",
+        "Type": "Dream",
+        "[Effect]": "[All Turns] [Once Per Turn] When this Digimon gets linked, your opponent's effects can't return 1 of your Digimon to hands or decks until their turn ends.",
+        "[Link DP]": "+3000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 2 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "[When Linking] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-059",
+      "fields": {
+        "Color": "Black",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "Black 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Unknown",
+        "Type": "Unidentified/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[CS] trait: Cost 3",
+        "[Effect]": "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with a play cost of 5 or less. Then, if you have [Arata Sanada] or [Eater Adam], your opponent's effects can't reduce this Digimon's DP or return it to hands or decks until their turn ends.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When any of your Digimon with the [Unidentified] trait are deleted, you may play 1 [Diaboromon] Token without paying the cost. (Digimon/Cost 14/Lv. 6/White/Mega/Unknown/Unidentified/3000 DP)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-060",
+      "fields": {
+        "Color": "Black",
+        "Cost": "6",
+        "DP": "6000",
+        "Digivolve Cost 1": "Black 3 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Virus",
+        "Type": "Machine/DM/Ver.5",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[DM] trait: Cost 3",
+        "[Effect]": "＜Blocker＞ [On Play] [When Digivolving] Until your opponent's turn ends, their ＜De-Digivolve＞ effects don't affect this Digimon, and it gets +1000 DP for each of its face-down digivolution cards.",
+        "[Inherited Effect]": "[End of Opponent's Turn] [Once Per Turn] You may choose 1 of your opponent's Digimon. Your opponent attacks with the chosen Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Do I have to choose an opponent's Digimon for this card's inherited effect?": "No, you don't have to choose an opponent's Digimon.",
+        "Does my opponent's Digimon attack even if I choose an opponent's Digimon that can't attack for this card's inherited effect?": "No, they can't attack using a Digimon that can't attack.",
+        "An opponent's Digimon is attacking using an effect at the end of their turn. If I choose an opponent's Digimon for this card's inherited effect, does that Digimon attack?": "No, your opponent can't attack using that Digimon. A new attack declaration can't be made during an attack. In such cases, even if you choose an opponent's Digimon for this card's inherited effect when there is already an attacking Digimon, your opponent can't attack with the chosen Digimon.",
+        "Can I choose a Digimon that isn't affected by effects for this card's inherited effect and have it attack?": "Yes, you can choose a Digimon that isn't affected by effects for this and have it attack. Such Digimon aren't affected by effects, but they can be chosen. In addition, \"your opponent attacks with the chosen Digimon\" in this card's inherited effect affects a player, therefore your opponent must attack with the chosen Digimon if it can attack."
+      }
+    },
+    {
+      "cardId": "BT22-061",
+      "fields": {
+        "Color": "Black",
+        "Cost": "8",
+        "DP": "8000",
+        "Digivolve Cost 1": "Black 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Virus",
+        "Type": "Alien/DM/Ver.2",
+        "[Special Digivolution Condition]": "[Digivolve] [Vegiemon]: Cost 3/Lv.4 w/[DM] trait: Cost 4",
+        "[Effect]": "When any of your [Ver.2] trait Digimon would digivolve into this card, for each of its face-down digivolution cards, reduce the digivolution cost by 1. ＜Fragment ≪3≫＞ [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, by trashing this Digimon's bottom face-down digivolution card, return 1 of your opponent's play cost 4 or lower Digimon or Tamers to the hand.",
+        "[Inherited Effect]": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "When I activate EX9-070 [Meat]'s effect and would digivolve my Digimon into this card with the digivolution cost reduced by 2, can I activate this card's 1st effect and further reduce the digivolution cost by 1 for each of that Digimon's face-down digivolution cards?": "Yes, you can. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-062",
+      "fields": {
+        "Color": "Black Green",
+        "Cost": "8",
+        "DP": "8000",
+        "Digivolve Cost 1": "BlackGreen 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Virus",
+        "Type": "Cyborg/X Antibody",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 1",
+        "[Effect]": "＜Collision＞ [When Digivolving] This Digimon gets +4000 DP until your opponent's turn ends. Then, if [MetalTyrannomon] or [X Antibody] is in this Digimon's digivolution cards, 1 of your opponent's Digimon can't digivolve until their turn ends. (Rule) Trait: Has [Dinosaur] Type.",
+        "[Inherited Effect]": "[End of Opponent's Turn] [Once Per Turn] You may choose 1 of your opponent's Digimon. Your opponent attacks with the chosen Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Do I have to choose an opponent's Digimon for this card's inherited effect?": "No, you don't have to choose an opponent's Digimon.",
+        "Does my opponent's Digimon attack even if I choose an opponent's Digimon that can't attack for this card's inherited effect?": "No, they can't attack using a Digimon that can't attack.",
+        "An opponent's Digimon is attacking using an effect at the end of their turn. If I choose an opponent's Digimon for this card's inherited effect, does that Digimon attack?": "No, your opponent can't attack using that Digimon. A new attack declaration can't be made during an attack. In such cases, even if you choose an opponent's Digimon for this card's inherited effect when there is already an attacking Digimon, your opponent can't attack with the chosen Digimon.",
+        "Can I choose a Digimon that isn't affected by effects for this card's inherited effect and have it attack?": "Yes, you can choose a Digimon that isn't affected by effects for this and have it attack. Such Digimon aren't affected by effects, but they can be chosen. In addition, \"your opponent attacks with the chosen Digimon\" in this card's inherited effect affects a player, therefore your opponent must attack with the chosen Digimon if it can attack."
+      }
+    },
+    {
+      "cardId": "BT22-063",
+      "fields": {
+        "Color": "Black Yellow",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "BlackYellow 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Vaccine",
+        "Type": "Holy Warrior/X Antibody/Royal Knight/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[CS] trait: Cost 3/While you have 3 or fewer security cards, [Kyoko Kuremi]: Cost 5",
+        "[Effect]": "＜Reboot＞ ＜Blocker＞ [On Play] [When Digivolving] [When Attacking] 1 of your opponent's Digimon gets -5000 DP for the turn. [All Turns] [Once Per Turn] When this Digimon suspends, if [Kyoko Kuremi] is in this Digimon's digivolution cards or if this Digimon's stack has 2 or more same-level cards, it gets +3000 DP until your opponent's turn ends. Then, this Digimon unsuspends.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If this card digivolves from a Tamer that was played this turn, can it attack in the same turn?": "No, it can't. Even if a card digivolves from a card that was placed on the field in the same turn, it can't attack during that turn. It can only attack in the turns after it's played.",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards.",
+        "Can I process the part of the effect after \"then\" in this card's [All Turns] effect even if the \"if\" condition in the 1st process isn't met?": "Yes, you can process it. Even if [Kyoko Kuremi] isn't in this Digimon's digivolution cards and this Digimon's stack doesn't have 2 or more same-level cards, this card's [All Turns] effect will unsuspend this Digimon.",
+        "Does the digivolution requirement that this card digivolve from a Tamer mean the Tamer that becomes a digivolution card is treated as if it is a Digimon when digivolving?": "No. Digivolve from the Tamer as such, and do not treat it as if it is a digivolving Digimon. \"When digivolving\" effects and \"when a Digimon digivolves\" effects don't trigger. Additionally, if a \"Digimon can't digivolve\" effect has activated, you can still digivolve from a Tamer with this digivolve requirement.",
+        "Do I perform a digivolution bonus draw even if I digivolve from a Tamer?": "Yes, you do. A digivolution bonus draw is performed for any kind of digivolution.",
+        "Is a Tamer card placed under a Digimon considered a digivolution card?": "Yes, it is. If the Digimon leaves the field, that Tamer is trashed like normal digivolution cards.",
+        "Does a Digimon gain the security effects in the lower text of a Tamer card in its digivolution cards?": "No, it does not.",
+        "Does a Digimon gain the inherited effects in the lower text of a Tamer card in its digivolution cards?": "Yes, it does."
+      }
+    },
+    {
+      "cardId": "BT22-064",
+      "fields": {
+        "Color": "Black",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "Black 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Unknown",
+        "Type": "Unidentified/CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Infermon]/Lv.5 w/[CS] trait: Cost 3",
+        "[Effect]": "＜Alliance＞ [When Digivolving] [When Attacking] You may play 1 [Diaboromon] Token without paying the cost. (Digimon/Cost 14/Lv. 6/White/Mega/Unknown/Unidentified/3000 DP) [All Turns] [Once Per Turn] When any of your other Digimon with the [Unidentified] trait are played, delete 1 of your opponent's Digimon with the lowest play cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-065",
+      "fields": {
+        "Color": "Black Yellow",
+        "Cost": "9",
+        "DP": "8000",
+        "Digivolve Cost 1": "BlackYellow 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Virus",
+        "Type": "Mutant/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[CS] trait: Cost 3",
+        "[Effect]": "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -8000 DP for the turn. [Your Turn] [Once Per Turn] When any of your opponent's Digimon are deleted, 1 of your other Digimon with the [CS] trait may digivolve into a Digimon card with the [CS] trait in the hand without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I activate this card's [Your Turn] effect when an opponent's Digimon and this Digimon are deleted at the same time?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-066",
+      "fields": {
+        "Color": "Black Green",
+        "Cost": "7",
+        "DP": "12000",
+        "Digivolve Cost 1": "BlackGreen 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Virus",
+        "Type": "Machine/DM/Ver.5",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[DM] trait: Cost 3",
+        "[Effect]": "{Hand} [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this card without paying the cost.) ＜Collision＞ ＜Blocker＞ [On Play] [When Digivolving] You may unsuspend 1 Digimon. Then, you may suspend 1 Digimon. [All Turns] [Once Per Turn] When any of your [Ver.5] trait Digimon suspend, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [On Play] [When Digivolving] effect to unsuspend or suspend either my Digimon or my opponent's Digimon?": "Yes, either can be unsuspended or suspended."
+      }
+    },
+    {
+      "cardId": "BT22-067",
+      "fields": {
+        "Color": "Black Red",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "BlackRed 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Virus",
+        "Type": "Holy Warrior/Royal Knight/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[CS] trait: Cost 3/While you have 3 or fewer security cards, [Rie Kishibe]: Cost 5",
+        "[Effect]": "＜Raid＞ ＜Reboot＞ [On Play] [When Digivolving] 1 of your Digimon gets +3000 DP until your opponent's turn ends. Then, 1 of your Digimon may attack a player. [All Turns] [Once Per Turn] When Digimon attack players, reveal the top 3 cards of your deck. You may play 1 play cost 4 or lower black or red card among them without paying the cost. Trash the rest.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If this card digivolves from a Tamer that was played this turn, can it attack in the same turn?": "No, it can't. Even if a card digivolves from a card that was placed on the field in the same turn, it can't attack during that turn. It can only attack in the turns after it's played.",
+        "When this card attacks a player and changes the target of attack, can I then activate this card's [All Turns] effect?": "Yes, you can.",
+        "When this card attacks a player and I activate this card's [All Turns] effect, can then be used to change the target of attack?": "Yes, it can.",
+        "Does the digivolution requirement that this card digivolve from a Tamer mean the Tamer that becomes a digivolution card is treated as if it is a Digimon when digivolving?": "No. Digivolve from the Tamer as such, and do not treat it as if it is a digivolving Digimon. \"When digivolving\" effects and \"when a Digimon digivolves\" effects don't trigger. Additionally, if a \"Digimon can't digivolve\" effect has activated, you can still digivolve from a Tamer with this digivolve requirement.",
+        "Do I perform a digivolution bonus draw even if I digivolve from a Tamer?": "Yes, you do. A digivolution bonus draw is performed for any kind of digivolution.",
+        "Is a Tamer card placed under a Digimon considered a digivolution card?": "Yes, it is. If the Digimon leaves the field, that Tamer is trashed like normal digivolution cards.",
+        "Does a Digimon gain the security effects in the lower text of a Tamer card in its digivolution cards?": "No, it does not.",
+        "Does a Digimon gain the inherited effects in the lower text of a Tamer card in its digivolution cards?": "Yes, it does."
+      }
+    },
+    {
+      "cardId": "BT22-068",
+      "fields": {
+        "Color": "Purple Green",
+        "Cost": "3",
+        "DP": "2000",
+        "Digivolve Cost 1": "PurpleGreen 1 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Virus",
+        "Type": "Reptile/X Antibody",
+        "[Special Digivolution Condition]": "[Digivolve] [Koromon]/[Agumon]: Cost 0",
+        "[Effect]": "[On Play] [When Digivolving] You may return 1 Digimon card with [Tyrannomon] in its name or the [Dinosaur] trait from your trash to the hand.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I activate this card's inherited effect even if my opponent's Digimon and the Digimon that has this card in its digivolution cards are deleted at the same timing?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-069",
+      "fields": {
+        "Color": "Purple Blue",
+        "Cost": "3",
+        "DP": "1000",
+        "Digivolve Cost 1": "PurpleBlue 1 from Lv.2",
+        "Form": "Rookie",
+        "Attribute": "Data",
+        "Type": "Mammal/Night Claw/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.2 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 0",
+        "[Effect]": "[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Night Claw] trait and 1 card with the [Light Fang] or [Galaxy] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "[Inherited Effect]": "[Main] [Once Per Turn] By placing this [Night Claw] or [Light Fang] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-070",
+      "fields": {
+        "Color": "Purple Green",
+        "Cost": "6",
+        "DP": "6000",
+        "Digivolve Cost 1": "PurpleGreen 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Virus",
+        "Type": "Dinosaur/X Antibody",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 0",
+        "[Effect]": "[When Digivolving] If [DarkTyrannomon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent's level 4 or lower Digimon. [When Attacking] This Digimon may digivolve into a Digimon card with [Tyrannomon] in its name or the [Dinosaur] trait in the hand.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I activate this card's inherited effect even if my opponent's Digimon and the Digimon that has this card in its digivolution cards are deleted at the same timing?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-071",
+      "fields": {
+        "Color": "Purple Red",
+        "Cost": "5",
+        "DP": "6000",
+        "Digivolve Cost 1": "PurpleRed 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Virus",
+        "Type": "Fallen Angel/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[Flame]/[CS] trait: Cost 2",
+        "[Effect]": "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Jimmy KEN] from your hand without paying the cost.",
+        "[Inherited Effect]": "[On Deletion] You may return 1 Digimon card with the [Flame] or [CS] trait from your trash to the hand.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-072",
+      "fields": {
+        "Color": "Purple Blue",
+        "Cost": "5",
+        "DP": "6000",
+        "Digivolve Cost 1": "PurpleBlue 3 from Lv.3",
+        "Form": "Champion",
+        "Attribute": "Data",
+        "Type": "Beastkin/Night Claw/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.3 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 2",
+        "[Effect]": "[When Digivolving] If this Digimon's stack has 2 or more same-level cards, you may play 1 Tamer card with the [Night Claw] or [Light Fang] trait from your hand without paying the cost. This effect can't play cards with the same name as any of your Tamers.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with the [Night Claw], [Light Fang] or [Galaxy] trait would be deleted, by trashing 2 same-level cards from its digivolution cards, it isn't deleted.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards.",
+        "I have EX5-064 [Koh & Sayo] in the battle area. Can I use this card's [When Digivolving] effect to play BT22-102 [Sayo]?": "Yes, you can. Related Cards"
+      }
+    },
+    {
+      "cardId": "BT22-073",
+      "fields": {
+        "Color": "Purple Blue",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "PurpleBlue 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Data",
+        "Type": "Wizard/Night Claw/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 3",
+        "[Effect]": "＜Jamming＞ [When Digivolving] ＜Draw 1＞ and trash 1 card in your hand. Then, if this Digimon's stack has 2 or more same-level cards, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When this Digimon with the [Night Claw], [Light Fang] or [Galaxy] trait would be deleted, by trashing 2 same-level cards from its digivolution cards, it isn't deleted.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards."
+      }
+    },
+    {
+      "cardId": "BT22-074",
+      "fields": {
+        "Color": "Purple Red",
+        "Cost": "7",
+        "DP": "7000",
+        "Digivolve Cost 1": "PurpleRed 4 from Lv.4",
+        "Form": "Ultimate",
+        "Attribute": "Data",
+        "Type": "Flame/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3",
+        "[Effect]": "[Main] [Once Per Turn] By paying 3 cost, delete 1 of your opponent's level 5 or lower Digimon. If this effect didn't delete, this Digimon gains ＜Security A. +1＞ for the turn. Then, this Digimon may attack. [On Deletion] ＜Draw 2＞ and trash 1 card in your hand.",
+        "[Inherited Effect]": "[On Deletion] You may play 1 level 4 or lower Digimon card with the [Flame] or [CS] trait from your trash without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If I don't delete an opponent's Digimon for this card's [Main] effect, can I use the part of the effect after \"then\" to have this Digimon attack?": "Yes, it can attack.",
+        "Can I pay just 1 cost for this card's [Main] effect?": "No, you can't. A \"by\" condition can't be met if only some of the required actions are performed. The conditions for this [Main] effect require you to pay 3 cost.",
+        "Can I process the part of the effect after \"then\" in this card's [Main] effect without meeting the \"by\" condition?": "No, you can't. If you don't pay 3 cost, the part after \"then\" in this card's [Main] effect won't let this Digimon attack.",
+        "My opponent has a level 5 or lower Digimon. Can I meet the \"if this effect didn't delete\" condition in this card's [Main] effect by not choosing a card to delete?": "No, you can't. If your opponent has a level 5 or lower Digimon, you must choose that card and delete it.",
+        "My opponent has a level 5 or lower Digimon. Can I meet the \"if this effect didn't delete\" condition in this card's [Main] effect by choosing an opponent's level 5 or lower Digimon with an effect that prevents deletion?": "Yes, you can.",
+        "Can I activate this card's [Main] effect even when my opponent doesn't have any Digimon that can be deleted?": "Yes, you can."
+      }
+    },
+    {
+      "cardId": "BT22-075",
+      "fields": {
+        "Color": "Purple Green",
+        "Cost": "8",
+        "DP": "8000",
+        "Digivolve Cost 1": "PurpleGreen 4 from Lv.4",
+        "Digivolve Cost 2": "Multicolor 4 from Sup.",
+        "Form": "Ult./Appmon",
+        "Attribute": "Tool",
+        "Type": "Camouflage",
+        "[Special Digivolution Condition]": "[App Fusion] [Roamon] & [Effecmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve",
+        "[Effect]": "＜Retaliation＞ [On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your trash or this Digimon's digivolution cards to this Digimon without paying the cost. [All Turns] [Once Per Turn] When this Digimon would leave the battle area, you may play 1 of this Digimon's link cards without paying the cost.",
+        "[Link DP]": "+4000 DP",
+        "[Link Condition]": "＜Link＞ [Appmon] trait: Cost 3 (Plug this card from the hand or battle area sideways into the specified Digimon in the battle area.)",
+        "[Link Effect]": "＜Scapegoat＞ (When this Digimon would be deleted other than by your effects, by deleting 1 of your other Digimon, it isn't deleted.)",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [On Play] [When Digivolving] effect to link a card that doesn't have ?": "No, you can't."
+      }
+    },
+    {
+      "cardId": "BT22-076",
+      "fields": {
+        "Color": "Purple Yellow",
+        "Cost": "13",
+        "DP": "13000",
+        "Digivolve Cost 1": "PurpleYellow 5 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Vaccine",
+        "Type": "Puppet/DM/Ver.1",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[DM] trait: Cost 5",
+        "[Effect]": "When any of your [Ver.1] trait Digimon would digivolve into this card, reduce the digivolution cost by 2. ＜Security A. +1＞ ＜Armor Purge＞ [When Digivolving] [When Attacking] [Once Per Turn] By trashing this Digimon's bottom face-down digivolution card, place 1 Digimon with as much or less DP as this Digimon as the top security card.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "When I activate EX9-070 [Meat]'s effect and would digivolve my Digimon into this card with the digivolution cost reduced by 2, can I activate this card's 1st effect and further reduce the digivolution cost by 2?": "Yes, you can. Related Cards",
+        "Can I place either my Digimon or an opponent's Digimon as the top security card for this card's [When Digivolving] [When Attacking] effect?": "Yes, you can place either as the top security card."
+      }
+    },
+    {
+      "cardId": "BT22-077",
+      "fields": {
+        "Color": "Purple Blue",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "PurpleBlue 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Data",
+        "Type": "Shaman/Olympos XII/Night Claw/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 3",
+        "[Effect]": "＜Iceclad＞ ＜Blocker＞ [When Digivolving] If this Digimon's stack has 2 or more same-level cards, trash any 4 digivolution cards from your opponent's Digimon. Then, return 1 of your opponent's Digimon with 1 or fewer digivolution cards to the bottom of the deck. [End of Your Turn] [Once Per Turn] 1 of your Digimon may unsuspend.",
+        "[Inherited Effect]": "[End of Your Turn] [Once Per Turn] 1 of your Digimon may unsuspend.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards.",
+        "Can I process the part of the effect after \"then\" in this card's [When Digivolving] effect even if the \"if\" condition in the 1st process isn't met?": "Yes, you can process it. Even if this Digimon's stack doesn't have 2 or more same-level cards, this card's [When Digivolving] effect will return 1 of your opponent's Digimon with 1 or fewer digivolution cards to the bottom of the deck.",
+        "At the end of my turn, can I use another effect to DNA digivolve using 2 cards including this Digimon, then activate this card's inherited effect once it becomes a digivolution card?": "No, you can't. This card isn't yet a digivolution card at the End of Your Turn timing, therefore this card's inherited effect doesn't trigger."
+      }
+    },
+    {
+      "cardId": "BT22-078",
+      "fields": {
+        "Color": "Purple Red",
+        "Cost": "12",
+        "DP": "12000",
+        "Digivolve Cost 1": "PurpleRed 4 from Lv.5",
+        "Form": "Mega",
+        "Attribute": "Data",
+        "Type": "Cyborg/CS",
+        "[Special Digivolution Condition]": "[Digivolve] Lv.5 w/[Flame]/[CS] trait: Cost 3",
+        "[Effect]": "＜Rush＞ [Your Turn] This Digimon gains all [Main] effects of its digivolution cards with the [Flame] trait. [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with the lowest level.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-079",
+      "fields": {
+        "Color": "White",
+        "Cost": "3",
+        "DP": "1000",
+        "Form": "Eater",
+        "Type": "CS",
+        "[Effect]": "＜Blocker＞ [On Play] ＜Draw 1＞ (Rule) You can include up to 50 copies of cards with this card's card number in your deck.",
+        "[Inherited Effect]": "{Breeding} [Your Turn] [Once Per Turn] When any of your Digimon cards with the [Eater] trait would be played, you may reduce the play costs by 1.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "A Digimon with 2 copies of this card in its digivolution cards is in the breeding area. When an [Eater] trait card would be played, can I activate the inherited effect on just 1 copy of this card and reduce the play cost by 1?": "Yes, you can.",
+        "What is a {Breeding} effect?": "A {Breeding} effect can be triggered/activated while its card is in the breeding area. Such effects can't be triggered or activated in areas other than the breeding area."
+      }
+    },
+    {
+      "cardId": "BT22-080",
+      "fields": {
+        "Color": "White",
+        "Cost": "6",
+        "DP": "6000",
+        "Form": "Eater",
+        "Type": "CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Eater (Species Form)]: Cost 2",
+        "[Effect]": "[When Digivolving] You may place 1 [Eater (Species Form)] from this Digimon's digivolution cards as the bottom digivolution card of your [Mother Eater] in the breeding area. [Your Turn] [Once Per Turn] When this Digimon checks your opponent's security stack, you may play 1 Tamer card with the [CS] trait from your hand without paying the cost.",
+        "[Inherited Effect]": "{Breeding} [Your Turn] [Once Per Turn] When any of your Digimon cards with the [Eater] trait would be played, you may reduce the play costs by 1.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "A Digimon with 2 copies of this card in its digivolution cards is in the breeding area. When an [Eater] trait card would be played, can I activate the inherited effect on just 1 copy of this card and reduce the play cost by 1?": "Yes, you can.",
+        "What order do a [Security] effect, \"when [...] performs a security check\" effect, and \"when a card is removed from [...] security stack\" effect activate when they trigger simultaneously upon a security check?": "[Security] effects take precedence for activation. Upon a security check, a [Security] effect will immediately activate without pending activation. For other triggered effects, the turn player activates their effects first.",
+        "What is a {Breeding} effect?": "A {Breeding} effect can be triggered/activated while its card is in the breeding area. Such effects can't be triggered or activated in areas other than the breeding area."
+      }
+    },
+    {
+      "cardId": "BT22-081",
+      "fields": {
+        "Color": "White",
+        "Cost": "6",
+        "DP": "7000",
+        "Form": "Eater",
+        "Type": "CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Yuuko Kamishiro]: Cost 3",
+        "[Effect]": "＜Raid＞ [On Play][When Digivolving] Until your opponent's turn ends, 1 of their Digimon can't suspend. Then, if this Digimon has no digivolution cards, you may place 1 [Yuuko Kamishiro] from your hand or trash as this Digimon's bottom digivolution card. [All Turns] When this Digimon would leave the battle area, you may play 1 [Yuuko Kamishiro] from its digivolution cards without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If this card digivolves from a Tamer that was played this turn, can it attack in the same turn?": "No, it can't. Even if a card digivolves from a card that was placed on the field in the same turn, it can't attack during that turn. It can only attack in the turns after it's played.",
+        "Does the digivolution requirement that this card digivolve from a Tamer mean the Tamer that becomes a digivolution card is treated as if it is a Digimon when digivolving?": "No. Digivolve from the Tamer as such, and do not treat it as if it is a digivolving Digimon. \"When digivolving\" effects and \"when a Digimon digivolves\" effects don't trigger. Additionally, if a \"Digimon can't digivolve\" effect has activated, you can still digivolve from a Tamer with this digivolve requirement.",
+        "Do I perform a digivolution bonus draw even if I digivolve from a Tamer?": "Yes, you do. A digivolution bonus draw is performed for any kind of digivolution.",
+        "Is a Tamer card placed under a Digimon considered a digivolution card?": "Yes, it is. If the Digimon leaves the field, that Tamer is trashed like normal digivolution cards.",
+        "Does a Digimon gain the security effects in the lower text of a Tamer card in its digivolution cards?": "No, it does not.",
+        "Does a Digimon gain the inherited effects in the lower text of a Tamer card in its digivolution cards?": "Yes, it does."
+      }
+    },
+    {
+      "cardId": "BT22-082",
+      "fields": {
+        "Color": "White",
+        "Cost": "8",
+        "DP": "10000",
+        "Form": "Eater",
+        "Type": "CS",
+        "[Special Digivolution Condition]": "[Digivolve] [Arata Sanada]: Cost 4",
+        "[Effect]": "＜Security A. +1＞ [On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon. Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card. [All Turns] When this Digimon would leave the battle area, you may play 1 [Arata Sanada] from its digivolution cards without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If this card digivolves from a Tamer that was played this turn, can it attack in the same turn?": "No, it can't. Even if a card digivolves from a card that was placed on the field in the same turn, it can't attack during that turn. It can only attack in the turns after it's played.",
+        "Does the digivolution requirement that this card digivolve from a Tamer mean the Tamer that becomes a digivolution card is treated as if it is a Digimon when digivolving?": "No. Digivolve from the Tamer as such, and do not treat it as if it is a digivolving Digimon. \"When digivolving\" effects and \"when a Digimon digivolves\" effects don't trigger. Additionally, if a \"Digimon can't digivolve\" effect has activated, you can still digivolve from a Tamer with this digivolve requirement.",
+        "Do I perform a digivolution bonus draw even if I digivolve from a Tamer?": "Yes, you do. A digivolution bonus draw is performed for any kind of digivolution.",
+        "Is a Tamer card placed under a Digimon considered a digivolution card?": "Yes, it is. If the Digimon leaves the field, that Tamer is trashed like normal digivolution cards.",
+        "Does a Digimon gain the security effects in the lower text of a Tamer card in its digivolution cards?": "No, it does not.",
+        "Does a Digimon gain the inherited effects in the lower text of a Tamer card in its digivolution cards?": "Yes, it does."
+      }
+    },
+    {
+      "cardId": "BT22-083",
+      "fields": {
+        "Color": "Red Black",
+        "Cost": "4",
+        "Type": "CS",
+        "[Effect]": "[Security] Play this card without paying the cost. [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory. [All Turns] When attack targets change, by suspending this Tamer, for the turn, your opponent's Digimon's effects don't affect 1 of your Digimon with [Greymon] in its name or the [CS] trait and it gets +3000 DP.",
+        "[Inherited Effect]": "[All Turns] [Once Per Turn] When attack targets change, if this Digimon is [Eater Eve], 1 of your Digimon gets +3000 DP for the turn.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"effects don't affect\" mean, exactly?": "This effect prevents a card from being affected by effects. For example, your Digimon won't suspend if it's chosen for a \"suspend 1 of your opponent's Digimon\" effect, and its DP won't be reduced if it's chosen for a \"1 of your opponent's Digimon gets -3000 DP\" effect.",
+        "Can a card that has an \"effects don't affect\" effect be chosen for an effect?": "Yes, it can be chosen.",
+        "Can a card that has an \"effects don't affect\" effect be given an effect?": "Yes, it can. It won't be affected by it, but it can be given an effect. However, if an effect such as is given to a Digimon that isn't affected by effects, the Digimon won't be considered to have that effect.",
+        "If a card is affected by an effect, then it later gains an \"effects don't affect\" effect, what happens to the effect that was affecting it?": "As soon as it gains the \"effects don't affect\" effect, it will no longer be affected.",
+        "If a card has an \"effects don't affect\" effect, it gains an effect, then it later loses the \"effects don't affect\" effect, what happens to the effect that it gained?": "It will be affected by the effect as soon as it can be affected by effects.",
+        "A card that has an \"isn't affected by [...] effects\" effect was given an effect that triggers at a timing such as [When Attacking]. Will the effect trigger if that card later meets the trigger conditions?": "If the Digimon isn't affected by effects upon the trigger timing, the effect won't trigger."
+      }
+    },
+    {
+      "cardId": "BT22-084",
+      "fields": {
+        "Color": "Red Blue",
+        "Cost": "5",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Turn] If you have 2 or less memory, set it to 3. [Start of Your Main Phase] [On Play] If you have 1 or fewer Digimon, you may play 1 [Agumon] or [Gabumon] from your hand without paying the cost. [All Turns] All your Digimon with [Greymon], [Garurumon] or [Omnimon] in their names get +1000 DP.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-085",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "4",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Turn] If you have 2 or less memory, set it to 3. [On Play] 1 of your Digimon with [Veedramon] in its name gets +3000 DP until your opponent's turn ends. [Your Turn] When one of your Digimon with [Veedramon] in its name attacks, by returning this Tamer to the hand, that Digimon gains ＜Jamming＞ for the turn.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-086",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "3",
+        "Type": "LIBERATOR",
+        "[Effect]": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Yao Qinglan] from your hand without paying the cost. Then, if you don't have a Digimon, you may play 1 [Sangomon] from your trash without paying the cost. [All Turns] When effects add digivolution cards to any of your Digimon with [Aqua] or [Sea Animal] in any of their traits, by suspending this Tamer, ＜Draw 1＞.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I process the part of the effect after \"then\" in this card's [Start of Your Main Phase] effect without meeting the \"by\" condition?": "No, you can't. You can only process the part of the effect after \"then\" in this card's [Start of Your Main Phase] effect if you return this card to the bottom of the deck.",
+        "At the start of my main phase, this card's [Start of Your Main Phase] effect plays a card. Can I then activate the [Start of Your Main Phase] effect on the played card?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-087",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "3",
+        "Type": "App Driver/Appmon",
+        "[Effect]": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory. [Your Turn] When any of your Digimon get linked, by suspending this Tamer, 1 of your opponent's Digimon gets -2000 DP for the turn. Then, 1 of your Digimon may app fuse into a Digimon card in the hand.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "This card's effect caused the DP of my opponent's Digimon to become 0. At such times, is the Digimon with a DP of zero deleted?": "No, it isn't deleted yet. Once all of the processing for the activated effect has resolved, a rule check will occur, then all of the Digimon with 0 DP are deleted at the same time."
+      }
+    },
+    {
+      "cardId": "BT22-088",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "3",
+        "Type": "LIBERATOR",
+        "[Effect]": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Arisa Kinosaki] from your hand without paying the cost. Then, if you don't have a Digimon, you may play 1 [Shoemon] from your trash without paying the cost. [All Turns] When any of your Tokens or [Puppet] trait Digimon are played, by suspending this Tamer, ＜Draw 1＞.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I process the part of the effect after \"then\" in this card's [Start of Your Main Phase] effect without meeting the \"by\" condition?": "No, you can't. You can only process the part of the effect after \"then\" in this card's [Start of Your Main Phase] effect if you return this card to the bottom of the deck.",
+        "At the start of my main phase, this card's [Start of Your Main Phase] effect plays a card. Can I then activate the [Start of Your Main Phase] effect on the played card?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-089",
+      "fields": {
+        "Color": "Yellow Purple",
+        "Cost": "3",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 play cost 4 or higher [Mirei Mikagura] or play cost 4 or higher Tamer card with the [CS] trait from your hand without paying the cost. [On Play] By trashing 1 card with the [Holy Beast], [Angel], [Archangel], [Fallen Angel] or [CS] trait from your hand, ＜Draw 2＞.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "At the start of my main phase, this card's [Start of Your Main Phase] effect plays a card. Can I then activate the [Start of Your Main Phase] effect on the played card?": "No, you can't activate it."
+      }
+    },
+    {
+      "cardId": "BT22-090",
+      "fields": {
+        "Color": "Black",
+        "Cost": "3",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory. [End of Your Turn] [Once Per Turn] By deleting 1 of your other Digimon or Tamers with [Knightmon] in their texts or the [CS] trait, this Tamer may digivolve into [LordKnightmon] in the hand with the digivolution cost reduced by 3.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [End of Your Turn] effect to digivolve this card into a [LordKnightmon] that doesn't meet the digivolution requirements?": "No, you can't. The digivolution requirements have to be met.",
+        "What does a card with \"X in its text\" refer to?": "It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolution requirements, DNA digivolution, DigiXros requirements, burst digivolve, App Fusion, Link, or Assembly requirements. For example, a card with [Knightmon] in its text would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects."
+      }
+    },
+    {
+      "cardId": "BT22-091",
+      "fields": {
+        "Color": "Black",
+        "Cost": "4",
+        "Type": "CS",
+        "[Effect]": "[Security] Play this card without paying the cost. [Start of Your Turn] If you have 2 or less memory, set it to 3. [Opponent's Turn] When one of your opponent's Digimon attacks, by suspending this Tamer, change the attack target to 1 of your Digimon with the [Unidentified] or [CS] trait.",
+        "[Inherited Effect]": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, if this Digimon is [Eater Adam], you may change the attack target to 1 of your [Unidentified] or [CS] trait Digimon.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-092",
+      "fields": {
+        "Color": "Purple",
+        "Cost": "4",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Turn] If you have 2 or less memory, set it to 3. [Your Turn] When your Digimon are played or digivolve, if any of them have the [Flame] or [CS] trait, by suspending this Tamer, activate 1 of those Digimon's [Main] effects. If this activated any effect, gain 1 memory.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "When a card with a [Main] inherited effect digivolves into a card with the [Flame] or [CS] trait, can I activate this card's [Your Turn] effect and activate that [Main] effect?": "Yes, you can.",
+        "If I use this card's [Your Turn] effect to activate BT22-010 [Meramon]'s [Main] effect, when do I process the part of the effect after \"if this activated any effect\"?": "After all of BT22-010 [Meramon]'s [Main] effect has resolved, then you process the part of the effect after \"if this activated any effect.\" If you use BT22-010 [Meramon]'s effect to attack, you gain 1 memory after the attack declaration. Related Cards",
+        "I used this card's [Your Turn] effect to activate a [Main] [Once Per Turn] effect. Can I activate that [Main] [Once Per Turn] effect again during the same turn?": "No, you can't. If a [Once Per Turn] effect activates, it can't activate again during the same turn."
+      }
+    },
+    {
+      "cardId": "BT22-093",
+      "fields": {
+        "Color": "White",
+        "Cost": "4",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory. [Your Turn] When any of your Digimon digivolve into a Digimon with the [CS] trait, if it has a digivolution card with the same level as the digivolved Digimon, by suspending this Tamer, that Digimon may digivolve into a Digimon card with the [CS] trait in the hand without paying the cost.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "2 copies of this card are in the battle area. A level 4 Digimon with only a level 5 card in its digivolution cards digivolves into a level 5 [CS] trait Digimon, I activate the [Your Turn] effect on the 1st copy of this card, and digivolve that Digimon into a level 6 [CS] trait Digimon. Can I then activate the [Your Turn] effect on the 2nd copy of this card?": "No, you can't. This card's [Your Turn] effect can only be activated when a Digimon digivolves into a [CS] trait Digimon and that Digimon has a card with the same level as it in its digivolution cards. In this case, once digivolution is performed using the effect on the 1st copy of this card, there are no level 6 cards in that Digimon's digivolution cards, therefore the [Your Turn] effect on the 2nd copy of this card can't activate."
+      }
+    },
+    {
+      "cardId": "BT22-094",
+      "fields": {
+        "Color": "White",
+        "Cost": "3",
+        "Type": "CS",
+        "[Effect]": "[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [CS] trait among them to the hand. Return the rest to the bottom of the deck. [Your Turn] When any of your Digimon or Tamers with the [CS] trait would be played, by returning this Tamer to the bottom of the deck, reduce the play cost by 2.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS"
+      }
+    },
+    {
+      "cardId": "BT22-095",
+      "fields": {
+        "Color": "White",
+        "Cost": "4",
+        "Type": "CS",
+        "[Effect]": "[Security] Play this card without paying the cost. [Your Turn] When any of your Digimon with the [Eater] trait are played, by suspending this Tamer, gain 1 memory. Then, if you have 7 or fewer cards in your hand, ＜Draw 1＞. [Main] Place this Tamer as any of your [Mother Eater]s' bottom digivolution card.",
+        "[Inherited Effect]": "[All Turns] While this Digimon is [Mother Eater], it gains ＜Rush＞, ＜Alliance＞ and ＜Scapegoat＞.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I process the part of the effect after \"then\" in this card's [Your Turn] effect without meeting the \"by\" condition?": "No, you can't. If you don't suspend this card, the part after \"then\" in its [Your Turn] effect can't give you ."
+      }
+    },
+    {
+      "cardId": "BT22-096",
+      "fields": {
+        "Color": "Blue",
+        "Cost": "3",
+        "Type": "LIBERATOR",
+        "[Effect]": "[Main] You may play 1 [Sangomon] or [Yao Qinglan] from your hand or trash without paying the cost. Then, place this card in the battle area. [Your Turn] When any of your [Yao Qinglan] suspend, ＜Delay＞. ・1 of your Digimon with [Aqua] or [Sea Animal] in any of its traits may digivolve into an [Aquatic] and [LIBERATOR] trait Digimon card in the hand with the digivolution cost reduced by 3.",
+        "[Security Effect]": "[Security] Activate this card's [Main] effects.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If I would use this card's effect to digivolve my Digimon, can it digivolve into a Digimon card with the [Aquatic] or [LIBERATOR] trait?": "No, it can't. It can only digivolve into a card with both the [Aquatic] and [LIBERATOR] traits."
+      }
+    },
+    {
+      "cardId": "BT22-097",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "2",
+        "Type": "Appmon",
+        "[Effect]": "While you have an [Appmon] trait Digimon or Tamer on the field, you can ignore this card's color requirements. [Main] ＜Draw 1＞. Then, place this card in the battle area. [All Turns] When any of your [Appmon] trait Digimon are played, ＜Delay＞. ・You may link 1 [Appmon] trait Digimon card from your hand to 1 of your Digimon without paying the cost.",
+        "[Security Effect]": "[Security] Place this card in the battle area.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"while you have (the specified card) on the field\" mean, exactly?": "It refers to when you have the specified card in the battle area or breeding area.",
+        "Can I use this card's effect to link a card that doesn't have ?": "No, you can't."
+      }
+    },
+    {
+      "cardId": "BT22-098",
+      "fields": {
+        "Color": "Yellow",
+        "Cost": "3",
+        "Type": "LIBERATOR",
+        "[Effect]": "[Main] You may play 1 [Shoemon] or [Arisa Kinosaki] from your hand or trash without paying the cost. Then, place this card in the battle area. [Your Turn] When any of your [Arisa Kinosaki] suspend, ＜Delay＞. ・1 of your [Puppet] trait Digimon may digivolve into a [Puppet] and [LIBERATOR] trait Digimon card in the hand with the digivolution cost reduced by 3.",
+        "[Security Effect]": "[Security] Activate this card's [Main] effects.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "If I would use this card's effect to digivolve my Digimon, can it digivolve into a Digimon card with the [Puppet] or [LIBERATOR] trait?": "No, it can't. It can only digivolve into a card with both the [Puppet] and [LIBERATOR] traits."
+      }
+    },
+    {
+      "cardId": "BT22-099",
+      "fields": {
+        "Color": "Black Yellow",
+        "Cost": "3",
+        "Type": "CS",
+        "[Effect]": "While you have a [CS] trait Digimon or Tamer on the field, you can ignore this card's color requirements. [Main] Reveal the top 3 cards of your deck. Add 1 [CS] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area. [Main] ＜Delay＞ ・Gain 2 memory.",
+        "[Security Effect]": "[Security] Place this card in the battle area.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"while you have (the specified card) on the field\" mean, exactly?": "It refers to when you have the specified card in the battle area or breeding area."
+      }
+    },
+    {
+      "cardId": "BT22-100",
+      "fields": {
+        "Color": "Black",
+        "Cost": "2",
+        "Type": "CS",
+        "[Effect]": "While you have no face-up security cards, you can ignore this card's color requirements. {Security} [All Turns] All of your Digimon with the [CS] trait get +2000 DP. [Main] Add your bottom security card to the hand. Then, place this card face up as the bottom security card.",
+        "[Security Effect]": "[Security] You may play 1 play cost 5 or lower card with the [CS] trait from your hand without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Is the \"while you have no face-up security cards\" condition met when I have 0 cards in my security stack?": "Yes, it's met.",
+        "What happens to cards placed face up in the security stack by effects?": "They become face-up security cards that remain revealed. Other than rules that specify face-up security cards, the rules apply in the same manner as standard security cards.",
+        "What happens upon a security check for a security card that is placed face-up?": "The check is performed with the card left revealed. Other than rules for cards left revealed, the rules apply in the same manner as standard security checks.",
+        "Does a card's [Security] effect trigger upon a security check with that card placed face-up?": "Yes, it triggers.",
+        "What happens if I shuffle a security stack that includes security cards placed face-up?": "Any face-up cards are placed face down, then you shuffle the cards. After shuffling, all cards are left face-down."
+      }
+    },
+    {
+      "cardId": "BT22-101",
+      "fields": {
+        "Color": "Black Yellow",
+        "Cost": "5",
+        "Type": "CS",
+        "[Effect]": "[Start of Your Turn] If you have 2 or less memory, set it to 3. [All Turns] When any of your level 4 or higher [CS] trait Digimon are deleted, by suspending this Tamer, return 1 [CS] trait Digimon card from your trash to the hand. [Your Turn] [Once Per Turn] When this Tamer unsuspends, if you don't have [Alphamon], this Tamer may digivolve into [Alphamon] in the hand with the digivolution cost reduced by 2.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "Can I use this card's [Your Turn] effect to digivolve this card into an [Alphamon] that doesn't meet the digivolution requirements?": "No, you can't. The digivolution requirements have to be met."
+      }
+    },
+    {
+      "cardId": "BT22-102",
+      "fields": {
+        "Color": "Purple Blue",
+        "Cost": "4",
+        "Type": "Night Claw/CS",
+        "[Effect]": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory. [Your Turn] When one of your Digimon with 2 or more same-level cards in its stack attacks, by suspending this Tamer, digivolve it into a Digimon card with the [Night Claw], [Light Fang], [Galaxy] or [CS] trait in the trash with the digivolution cost reduced by 2.",
+        "[Security Effect]": "[Security] Play this card without paying the cost.",
+        "Notes": "Booster CYBER EDEN [BT-22] CARD LIST PRODUCTS",
+        "What does \"if this Digimon's stack has 2 or more same-level cards\" mean, exactly?": "It refers to when there are 2 or more cards with the same level among all of the stacked cards. Examples include when a level 5 Digimon has a level 5 digivolution card or when a level 6 Digimon has 2 level 5 digivolution cards."
+      }
+    }
+  ]
+}

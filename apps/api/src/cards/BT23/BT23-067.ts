@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,10 +26,13 @@ export const compiled: CompiledCard = {
                 kind: "youHave",
                 filter: {
                   controllerDefault: "mine",
+                  // Bracket-only references are exact names (comprehensive rules 2-3-1-2), and
+                  // breeding-area cards can't be referenced (3-4-5-8).
+                  zone: "battleArea",
                   nameOrTrait: [
                     {
                       tokens: ["Angewomon", "Mirei Mikagura"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

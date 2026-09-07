@@ -1,0 +1,83 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > preserves the Guilmon alternate Digivolution requirement and inherited deletion memory 1ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an opposing Digimon and conditionally mills two 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > must delete an eligible 4000 DP Digimon and does not mill 15ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an eligible printed opponent through the public play intent 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when an eligible target prevents deletion with printed Armor Purge 7ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two after the public When Digivolving trigger has no eligible target 7ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 4001 DP Digimon 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 9000 DP Digimon 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains 1 memory when a realistic host carrying Growlmon is deleted 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > uses the Guilmon alternate evolution route for exactly 2 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains inherited memory when a public battle deletes a legal Growlmon stack 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack plus one, wipes opposing Digimon, and recurs Guilmon family 0ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack +1 and deletes every Digimon on both sides at end of attack 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > wipes both battle areas after a real public attack resolves 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > checks two security cards from Security Attack +1 before the End of Attack wipe 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > publicly revives a qualifying Guilmon after Megidramon loses its attack 7ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > publicly declines the optional On Deletion revival and preserves the trash card 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks 6ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it 9ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > base cost 3 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 9 total trash keeps cap 3 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 10 total trash raises cap to 5 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 20 total trash raises cap to 7 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > counts both players' trashes for the cost-5 ceiling 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not play a non-Guilmon-family card even below the cost ceiling 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > uses the level-5 Growlmon-name alternate evolution route for 4 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > costs a Gammamon card to grant Collision and recurs on deletion 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > trashes a Gammamon-text card and grants both effects to the same opponent 35ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > resolves the printed grant through a public play intent 31ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly triggers the selected opponent's gained attack at their next main phase 38ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is declined 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > does not pay or grant when the cost is nonmatching 1ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays Canoweissmon from trash 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > main deletion plays level-4 Gammamon-text from trash 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly deletes Regulusmon in battle and plays Canoweissmon from trash 7ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > publicly deletes a host and resolves the inherited Gammamon-text recovery 10ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > inherited deletion plays level-4 Gammamon text but not Canoweissmon 4ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > uses the level-4 Gammamon-text alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > pays the optional trash cost through public play without an opponent Digimon 3ms
+ ✓ src/cards/BT21/BT21-077.test.ts > BT21-077 Regulusmon > pays the optional trash cost through public digivolve without an opponent Digimon 4ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > implements the main-phase memory, digivolution-card trigger, and security play 0ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main with an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > gains the conditional Start of Your Main Phase memory through the public turn lifecycle 10ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Gammamon text host 3ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Hero trait host 2ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > does not trigger for a nonmatching host 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > triggers from a public effect-driven placement under a Hero host 8ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > declining does not suspend, draw, or gain memory 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from a public security attack without paying cost 6ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes level 4 or lower and triggers Alliance plus an attack 0ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes the correct level cap without two Tamer colors 3ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > deletes the correct level cap with two Tamer colors 4ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > Q4588/Q4590 mandates Alliance for an ADVENTURE event but allows declining the attack 3ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > publicly uses different Digimon for Alliance and the optional attack 10ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > consumes the Your Turn trigger once for the same WereGarurumon source 5ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > Q4732 still allows an attack when the played Digimon is not ADVENTURE 4ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > grants inherited Alliance on a realistic evolution stack 3ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > uses the Garurumon-name alternate evolution route for 3 1ms
+ ✓ src/cards/BT21/BT21-078.test.ts > BT21-078 WereGarurumon > uses the ADVENTURE alternate evolution route for 3 2ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > protects a Digimon and shares once-per-turn De-Digivolve 0ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > places an Appmon under a Digimon and protects that Digimon 3ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not place or protect a host when the optional placement has no eligible card 1ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > publicly refuses the optional placement while preserving an eligible Appmon card 1ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > blocks an opponent's public return on the protected host but allows it on an unprotected control 23ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > blocks an opponent's public De-Digivolve on the protected host but allows it on an unprotected control 29ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > applies the same placement and protection through public When Digivolving 3ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > keeps public protection through the opponent turn and expires at its end 6ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > shares the once-per-turn De-Digivolve budget across evolution and attack 6ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > does not pay the stack-trash cost when the effect is declined 2ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the public attack intent to De-Digivolve an opposing stack 5ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > links for 3 and deletes only the level-4 boundary target 3ms
+ ✓ src/cards/BT21/BT21-074.test.ts > BT21-074 Satellamon > uses the Three Musketeers-text alternate evolution route for 3 2ms
+
+ Test Files  6 passed (6)
+      Tests  75 passed (75)
+   Start at  22:25:00
+   Duration  7.50s (transform 80%, import 14%, tests 6%)

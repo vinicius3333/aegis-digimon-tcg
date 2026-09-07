@@ -10,6 +10,7 @@ import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
+import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
@@ -35,6 +36,12 @@ function borrowedTiming(trigger: EffectTrigger): EffectTiming | undefined {
   if (trigger === "OnPlay") return EffectTiming.OnPlay;
   if (trigger === "WhenDigivolving") return EffectTiming.WhenDigivolving;
   if (trigger === "OnDeletion" || trigger === "OnDestroyedAnyone") return EffectTiming.OnDestroyedAnyone;
+  return undefined;
+}
+
+function disabledTimingForTrigger(trigger: EffectTrigger): "whenDigivolving" | "onPlay" | undefined {
+  if (trigger === "WhenDigivolving") return "whenDigivolving";
+  if (trigger === "OnPlay") return "onPlay";
   return undefined;
 }
 
@@ -69,13 +76,8 @@ function availableBorrowedEffects(
   return effects.filter((borrowed) => {
     // A stack card lends its printed effect, but the host activates it (EX9-073 Q4841).
     // Keep this timing identity separate from lender registration and usage identity.
-    const timingPermanentId = borrowed.sourcePermanentId ?? stackHostId;
-    const disabledTiming =
-      borrowed.effect.trigger === "WhenDigivolving"
-        ? "whenDigivolving"
-        : borrowed.effect.trigger === "OnPlay"
-          ? "onPlay"
-          : undefined;
+    const timingPermanentId = borrowed.sourcePermanentId ?? stackHostId ?? ctx.source.permanent()?.permanentId;
+    const disabledTiming = disabledTimingForTrigger(borrowed.effect.trigger);
     if (
       disabledTiming !== undefined &&
       timingPermanentId !== undefined &&
@@ -269,6 +271,7 @@ export async function runActivateForeignEffect(
     const definition = ctx.game.definitionOf({ cardId: chosen.cardId } as never);
     runCtx = {
       ...ctx,
+      sourcePermanentIdAtCreation: permanentId,
       source: {
         instanceId: chosen.instanceId,
         cardId: chosen.cardId,
@@ -299,6 +302,16 @@ export async function runActivateForeignEffect(
   try {
     for (const borrowed of toRun.slice(0, action.count)) {
       const eff = borrowed.effect;
+      const timing = disabledTimingForTrigger(eff.trigger);
+      const timingPermanentId = borrowed.sourcePermanentId ?? ctx.source.permanent()?.permanentId;
+      if (
+        timing !== undefined &&
+        timingPermanentId !== undefined &&
+        (runCtx.fx.isTimingEffectDisabled?.(timingPermanentId, timing) ??
+          runCtx.game.isTimingEffectDisabled?.(timingPermanentId, timing)) === true
+      ) {
+        continue;
+      }
       const borrowedEffectOverrides =
         action.borrowedEffectOverrides?.sourceCardId === borrowed.sourceCardId &&
         action.borrowedEffectOverrides.trigger === eff.trigger
@@ -460,16 +473,9 @@ function optionUseCandidates(
     (action.cost?.kind === "trashBottomFaceDownUnderTamer" || action.cost?.kind === "trashBottomFaceDownUnderDigimon")
   ) {
     const required = action.cost.count ?? 1;
-    const requiredHostKind = action.cost.kind === "trashBottomFaceDownUnderTamer" ? CardKind.Tamer : CardKind.Digimon;
-    const bottomCards = ctx.game
-      .player(seat)
-      .battleArea.filter(
-        (permanent) =>
-          permanent.topCard !== undefined &&
-          ctx.game.definitionOf(permanent.topCard).kinds.includes(requiredHostKind) &&
-          permanent.stack[0]?.faceUp === false,
-      )
-      .map((permanent) => permanent.stack[0]!);
+    // Paying N cards can expose any of the first N face-down cards of a host,
+    // including an Option behind another face-down cost card (Q6301/Q7092).
+    const bottomCards = bottomFaceDownCostStacks(ctx, action.cost).flatMap(({ cards }) => cards.slice(0, required));
     if (bottomCards.length >= required) bottomCards.forEach(addIfEligible);
   }
   // A normal digivolution-card trash cost can likewise create the requested

@@ -7,6 +7,11 @@ import "./index.js";
 
 describe("BT22-054 Hagurumon", () => {
   it("reduces any opposing Digimon only when a CS card is added to this Digimon's stack", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Black"], cost: 1, isAlternate: false },
+      { level: 2, colors: ["Yellow"], cost: 1, isAlternate: false },
+      { level: 2, traits: ["CS"], cost: 0, isAlternate: true },
+    ]);
     const watcher = compiled.effects.find((entry) => entry.trigger === "YourTurn");
 
     expect(watcher).toMatchObject({
@@ -96,5 +101,28 @@ describe("BT22-054 Hagurumon", () => {
     expect(host.topCard!.cardId).toBe("BT22-054");
     expect(host.stack[0]!.instanceId).toBe(initialTop);
     expect(s.perm("opponent").currentDP).toBe(3000);
+  });
+
+  it("does not reduce DP when a public digivolution adds a non-CS card to its host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", under: ["BT22-054"], as: "host" }],
+        hand: [{ card: "BT1-014", as: "evolution" }],
+      },
+      1: { battleArea: [{ card: "BT22-071", as: "opponent" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-014");
+
+    expect(s.perm("opponent").currentDP).toBe(6000);
   });
 });

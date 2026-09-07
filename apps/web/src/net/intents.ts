@@ -16,6 +16,8 @@ export const intents = {
     sendIntent(room, { type: "digivolve", permanentId, instanceId, useAlternateCost }),
   dnaDigivolve: (room: AegisRoom, materialPermanentIds: string[], instanceId: string) =>
     sendIntent(room, { type: "dnaDigivolve", materialPermanentIds, instanceId }),
+  appFusion: (room: AegisRoom, permanentId: string, instanceId: string, linkedInstanceId: string) =>
+    sendIntent(room, { type: "appFusion", permanentId, instanceId, linkedInstanceId }),
   hatchEgg: (room: AegisRoom) => sendIntent(room, { type: "hatchEgg" }),
   moveFromBreeding: (room: AegisRoom, permanentId: string) =>
     sendIntent(room, { type: "moveFromBreeding", permanentId }),

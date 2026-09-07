@@ -1,10 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { type Seat } from "@aegis/shared";
+import { Phase, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-019.js";
 
 describe("BT22-019 Veemon", () => {
+  it("hatches and legally evolves into Veedramon while rejecting an unrelated Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        eggDeck: [{ card: "BT22-019", as: "egg" }],
+        hand: [
+          { card: "BT22-022", as: "veedramon" },
+          { card: "BT22-008", as: "invalidAgumon" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-019");
+    s.state.phase = Phase.Main;
+    const permanentId = s.state.players[0]!.breeding!.permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("veedramon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-022");
+    expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(["BT22-019"]);
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("invalidAgumon").instanceId }).ok,
+    ).toBe(false);
+  });
+
   it("reduces Veedramon digivolution cost on your turn and only prevents opponent-effect removal", () => {
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     expect(yourTurn?.actions[0]).toMatchObject({

@@ -1,0 +1,23 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > preserves Evade and the WG alternate Digivolution cost 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends one of your WG Digimon on play and when digivolving 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > prevents this Digimon's attack target from changing during your turn when inherited 0ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends exactly one WG Digimon at 6 17ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > optionally unsuspends exactly one WG Digimon at 7 3ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > may decline the unsuspend 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > unsuspends a WG Digimon from the public play action 4ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > evolves from a level-3 WG Digimon for 2 and can unsuspend itself 5ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > rejects the alternate evolution from a non-WG level-3 base without paying 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > does not unsuspend an opponent WG or a non-WG own Digimon 2ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > applies the inherited attack-target lock only on its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > blocks a public Raid redirect when BT21-038 is inherited 17ms
+ ✓ src/cards/BT21/BT21-038.test.ts > BT21-038 compiled implementation > publicly redirects Raid to the highest unsuspended Digimon without the inherited lock 6ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  19:06:31
+   Duration  8.21s (transform 85%, import 15%, tests 1%)

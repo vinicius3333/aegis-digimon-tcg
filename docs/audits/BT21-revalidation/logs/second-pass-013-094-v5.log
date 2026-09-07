@@ -1,0 +1,108 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > places a Gammamon-text Digimon as bottom material for either removal trigger and saves once from an opponent effect 0ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > pays the Gammamon-text hand cost, places it at the bottom, and deletes exactly a 7000 DP target 24ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > publicly uses the alternate Gammamon-text Lv4 route and still pays placement with no deletion target 15ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > rejects the alternate evolution when the Lv4 has no Gammamon text 1ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > does not pay with a nonmatching card and permits declining the placement cost 6ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > prevents one opponent-effect deletion only after trashing exactly 3 Digimon sources 10ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > naturally proves once-per-turn prevention with two public Gaia Force deletions 33ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 5ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 0ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 4ms
+ × src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 30ms
+   → expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros 0ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing 3ms
+ × src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base 3ms
+   → expected { ok: true } to match object { ok: false }
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > rejects a second DigiXros material and preserves hand, board, and memory 1ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > performs a security check after deleting a suspended Digimon by battle with Piercing 6ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > public Raid redirects to the highest-DP unsuspended target, then Piercing checks security 5ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > on deletion places an eligible card and then itself under a Tamer 5ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > naturally resolves optional placement and Save after battle deletion 7ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > declining the optional first placement still offers the Save continuation 3ms
+ ✓ src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > grants inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > grants Piercing and +3000 DP on play or digivolution, and may evolve into a reduced-cost level 5 Hybrid 0ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > plays for 6 and gains observable +3000 DP and Piercing for the turn 1ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > digivolves from Agunimon for 1 and receives the same temporary bonuses 2ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > uses public Agunimon evolution for Piercing combat, then expires the bonuses at turn end 11ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > pays 3 to evolve into a level-5 Hybrid only after opponent security removal 9ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > may decline the security-removal evolution without paying memory 1ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > does not evolve after public security removal when the hand destination is not a Hybrid 6ms
+ ✓ src/cards/BT21/BT21-014.test.ts > BT21-014 BurningGreymon > grants inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from a red Tamer for cost 2 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from BurningGreymon for cost 0 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may NOT digivolve from a non-red Tamer 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > is registered 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > places the card under THIS Digimon when no red Tamer is in play 1ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > offers the red Tamer with inherited effects alongside this Digimon 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > digivolves from BurningGreymon for 0 and bottoms a selected Hero card from hand 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly digivolves from a red Tamer through the printed cost-2 alternate route 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly places a Hero under a qualifying red inherited-effect Tamer 4ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly places an eligible Hero from trash under the qualifying red Tamer only 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > when attacking, pays the matching red Hero evolution cost reduced by 1 4ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > does not offer a non-Hybrid/non-Hero attack evolution 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > grants inherited +2000 DP only during its controller's turn 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-016.test.ts > BT21-016 Shoutmon (King Version) > publicly digivolves from a level-3 Xros Heart base for the alternate cost, and rejects a nonmatching base
+AssertionError: expected { ok: true } to match object { ok: false }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
++   "ok": true,
+  }
+
+ ❯ src/cards/BT21/BT21-016.test.ts:110:9
+    108|       permanentId: illegal.perm("base").permanentId,
+    109|       instanceId: illegal.inst("king").instanceId,
+    110|     })).toMatchObject({ ok: false });
+       |         ^
+    111|     expect(illegal.state.memory).toBe(2);
+    112|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card
+AssertionError: expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "illegal-target",
+  }
+
+ ❯ src/cards/BT21/BT21-094.test.ts:183:7
+    181|         target: { kind: "permanent", permanentId: s.perm("stronger2").…
+    182|       }),
+    183|     ).toEqual({ ok: true });
+       |       ^
+    184|     await settle(() => s.state.players[0]!.trash.some((card) => card.i…
+    185|     await settle(() => s.state.players[0]!.battleArea.some((permanent)…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  2 failed | 46 passed (48)
+   Start at  11:02:46
+   Duration  7.12s (transform 82%, import 15%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-013.test.ts src/cards/BT21/BT21-014.test.ts src/cards/BT21/BT21-016.test.ts src/cards/BT21/BT21-022.test.ts src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

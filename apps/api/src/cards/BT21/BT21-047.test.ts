@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-047.js";
 import "../index.js";
@@ -82,10 +83,10 @@ describe("BT21-047 compiled implementation", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  it("zero-cost digivolves from a level-2 Appmon", async () => {
+  it("zero-cost digivolves from a level-2 Appmon egg in the breeding area", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
+        breeding: { card: "BT21-005", as: "appmonEgg" },
         hand: [{ card: "BT21-047", as: "navimon" }],
       },
     });
@@ -105,6 +106,40 @@ describe("BT21-047 compiled implementation", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("publicly leaves all revealed cards in deck when neither search bucket matches", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT21-047", as: "navimon" }], deck: ["BT1-009", "BT1-018", "BT1-026"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("navimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-047"));
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("refuses linking onto a non-Appmon host and preserves the paid card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonAppmon" }],
+        hand: [{ card: "BT21-047", as: "navimon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("navimon").instanceId,
+        targetPermanentId: s.perm("nonAppmon").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("navimon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("links for 1, grants 2000 DP, and gives its Appmon host observable Piercing", async () => {
     const s = setupEngine(
       {
@@ -113,7 +148,7 @@ describe("BT21-047 compiled implementation", () => {
           hand: [{ card: "BT21-047", as: "navimon" }],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
@@ -141,7 +176,8 @@ describe("BT21-047 compiled implementation", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

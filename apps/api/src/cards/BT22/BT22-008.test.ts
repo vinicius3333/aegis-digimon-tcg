@@ -99,4 +99,24 @@ describe("BT22-008 Agumon", () => {
     expect(dna?.stack.some((card) => card.cardId === "BT22-008")).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
+
+  it("allows its printed red route and rejects a level-3 base of the wrong color", async () => {
+    for (const [base, legal] of [
+      ["BT1-001", true],
+      ["BT1-005", false],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-008", as: "agumon" }] },
+      });
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("agumon").instanceId,
+        }).ok,
+      ).toBe(legal);
+    }
+  });
 });

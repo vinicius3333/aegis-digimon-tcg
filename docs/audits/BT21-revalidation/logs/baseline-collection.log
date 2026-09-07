@@ -1,0 +1,79 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ❯ src/cards/BT21/BT21-001.test.ts (5 tests | 2 failed) 79ms
+   ❯ BT21-001 Gigimon (5)
+     × digivolves a realistic Dragonkin stack from hand and pays the cost reduced by one 16ms
+     × may decline and can resolve only once per turn 22ms
+ ❯ src/cards/BT21/BT21-006.test.ts (5 tests | 1 failed) 93ms
+   ❯ BT21-006 Tsumemon (5)
+     × proves the four-Vemmon state through a legal public evolution chain 66ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > digivolves a realistic Dragonkin stack from hand and pays the cost reduced by one
+AssertionError: expected 4 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 4
+
+ ❯ src/cards/BT21/BT21-001.test.ts:60:28
+     58|     expect(s.perm("host").topCard.instanceId).toBe(s.inst("cyberdramon…
+     59|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(ex…
+     60|     expect(s.state.memory).toBe(3);
+       |                            ^
+     61|     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).to…
+     62|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn
+AssertionError: expected 9 to be 8 // Object.is equality
+
+- Expected
++ Received
+
+- 8
++ 9
+
+ ❯ src/cards/BT21/BT21-001.test.ts:152:31
+    150|
+    151|     expect(once.state.players[0]!.hand.filter((card) => card.cardId ==…
+    152|     expect(once.state.memory).toBe(8);
+       |                               ^
+    153|   });
+    154| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > proves the four-Vemmon state through a legal public evolution chain
+AssertionError: expected [ CardInstance{ …(17) }, …(2) ] to have a length of 4 but got 3
+
+- Expected
++ Received
+
+- 4
++ 3
+
+ ❯ src/cards/BT21/BT21-006.test.ts:139:83
+    137|     ).toEqual({ ok: true });
+    138|     await settle(() => s.perm("tsumemon").topCard.cardId === "BT21-062…
+    139|     expect(s.perm("tsumemon").stack.filter((card) => card.cardId === "…
+       |                                                                                   ^
+    140|     expect(s.perm("tsumemon").currentDP).toBe(17000);
+    141|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed | 101 passed (103)
+      Tests  3 failed | 838 passed (841)
+   Start at  00:40:28
+   Duration  33.96s (transform 71%, tests 18%, import 11%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21 --maxWorkers=1 --no-file-parallelism --pool=forks

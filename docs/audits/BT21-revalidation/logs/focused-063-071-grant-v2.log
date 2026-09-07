@@ -1,0 +1,119 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 63ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 23ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay the cost when there is only a level 5 target 3ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 21ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 20ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > preserves both alternate Digivolution requirements, DigiXros, and complete coverage 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > DigiXroses with exactly one Save-text Digimon for a 2-memory reduction 9ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays Hunter/Hero Tamers and saves a qualifying Digimon 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hunter Tamer from hand without cost on play 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hero Tamer from hand without cost on play 7ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > does not play a nonmatching Tamer 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly uses the Hero alternate evolution route at its printed cost 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Save-text trash card and itself under an own Tamer on deletion 13ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Hero hand card and itself under an own Tamer on deletion 15ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > still performs mandatory Save when the optional first placement is declined 6ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > gains memory after placing an Appmon or Three Musketeers card 0ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > draws 2 and trashes 2 when linked 0ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > keeps the evolution requirement and complete coverage metadata 0ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > places an Appmon under an own Digimon and gains memory on play 7ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > places a Three Musketeers card from trash at the true bottom and gains memory 5ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > does not place a card or gain memory when the cost is declined 3ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > does not place a card or gain memory when the cost is nonmatching 2ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > links for 2, draws two, and trashes exactly two selected hand cards 6ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > uses the Three Musketeers-text alternate evolution route for 2 2ms
+ ✓ src/cards/BT21/BT21-071.test.ts > BT21-071 Scopemon > resolves the placement-and-memory branch from a public alternate evolution 3ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > preserves the Appmon link requirement and linked recovery 0ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays from security and recovers Appmon 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > returns an Appmon from trash through its public On Play effect 5ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > links to an Appmon for 2 and recovers an Appmon from trash 25ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > recovers through the When Digivolving branch 23ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > does not recover a non-Appmon Digimon 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays itself from security without paying cost 8ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > preserves both zero-cost alternate Digivolution requirements and inherited DP gain 0ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > requires trashing a Save-text or Hero card to draw two 1ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Save-text card and draws exactly two 6ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Hero card and draws exactly two 6ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > does not draw or trash a nonmatching hand card 4ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > publicly uses the zero-cost Hero alternate evolution route 3ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > executes Save by placing itself under an own Tamer on deletion 10ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > gives its evolution host +2000 DP only during its controller's turn 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > preserves the Guilmon alternate Digivolution requirement and inherited deletion memory 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an opposing Digimon and conditionally mills two 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > must delete an eligible 4000 DP Digimon and does not mill 4ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an eligible printed opponent through the public play intent 4ms
+ × src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two after the public When Digivolving trigger has no eligible target 17ms
+   → expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of 2 but got 1
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 4001 DP Digimon 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 9000 DP Digimon 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains 1 memory when a realistic host carrying Growlmon is deleted 4ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > uses the Guilmon alternate evolution route for exactly 2 3ms
+ × src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end 21ms
+   → expected [] to have a length of 1 but got +0
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > preserves both zero-cost alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > draws two after the printed Guilmon-family or Hero hand-trash cost 1ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Guilmon-family card and draws exactly two 6ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Hero card and draws exactly two 4ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > declining the hand-trash cost does not draw 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > gains 1 memory when a realistic host carrying Guilmon is deleted 4ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 0 9ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 1 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two after the public When Digivolving trigger has no eligible target
+AssertionError: expected ArraySchema{ items: [ …(1) ], …(5) } to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/cards/BT21/BT21-068.test.ts:109:39
+    107|     await settle(() => s.state.players[0]!.deck.length === 0);
+    108|     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    109|     expect(s.state.players[0]!.trash).toHaveLength(2);
+       |                                       ^
+    110|   });
+    111|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic duration ownership > keeps BT21-057's opponent grant through the granter turn and clears at the opponent turn end
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/engine/effects/grantStaticDurationOwnership.test.ts:20:68
+     18|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.i…
+     19|     await settle(() => observe(s.engine).customEffectGrants(s.perm("vi…
+     20|     expect(observe(s.engine).customEffectGrants(s.perm("victim"))).toH…
+       |                                                                    ^
+     21|     advance(s.engine).endMainPhaseIfOpen(0);
+     22|     await advance(s.engine).waitForMainPhase(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 6 passed (8)
+      Tests  2 failed | 62 passed (64)
+   Start at  09:16:23
+   Duration  32.31s (transform 85%, import 13%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/grantStaticDurationOwnership.test.ts src/cards/BT21/BT21-063.test.ts src/cards/BT21/BT21-064.test.ts src/cards/BT21/BT21-066.test.ts src/cards/BT21/BT21-068.test.ts src/cards/BT21/BT21-069.test.ts src/cards/BT21/BT21-070.test.ts src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

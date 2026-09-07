@@ -1,0 +1,71 @@
+{
+  "014": [
+    "Public play and legal BaoHuckmon evolution delete exactly the 5000-DP target; 5001/6000 controls survive.",
+    "Real End of Your Turn pays by suspending another Digimon and evolves SaviorHuckmon into Jesmon free; feasible refusal leaves both unchanged. Main passing sets memory to -3; this evolution adds no charge.",
+    "Legal BaoHuckmon -> SaviorHuckmon -> Jesmon breeding evolution and public movement expose inherited Alliance. Non-Royal-Knight host and opponent-turn controls exclude the grant."
+  ],
+  "015": [
+    "Both entry timings use exact Dorumon/Ryudamon names, optionally play into empty breeding, and retain nonmatching hand cards. Occupied breeding and feasible refusal keep the candidate in hand.",
+    "Public Ginryumon attack evolution binds +5000 and Security Attack +1, makes two security checks, retains both grants through the opponent turn and removes them at its end. Outside-attack entry grants neither.",
+    "Legal source stacks account for inherited DP. A checked BT2-107 Option changes memory on a bare host but is suppressed with Hisyaryumon inherited; suppression is controller-turn-only."
+  ],
+  "016": [
+    "Public On Play buffs a selected ally by +4000 and Piercing while allowing this Paildramon attack to be refused.",
+    "Public ExVeemon -> Paildramon pays 4, buffs itself, defeats a suspended target, Pierces for a security check, and loses both grants at the current turn end. ExVeemon contributes its actual inherited +2000.",
+    "Public battle-deletion replacement DNA consumes Paildramon and Dinobeemon and pays Dragon Mode cost 4; feasible refusal and wrong-result hand controls allow deletion.",
+    "A legal Fighter Mode host carrying Paildramon makes an extra actual security check versus a bare host."
+  ],
+  "017": [
+    "Public Jesmon play pays 11 from memory 10 and optionally creates the white 6000-base-DP token with Reboot, Blocker and red/black Decoy. Refusal creates no token.",
+    "Legal Huckmon -> BaoHuckmon -> SaviorHuckmon -> Jesmon public evolution pays 3; token current DP includes the two actual inherited +1000 auras, and all sources remain ordered.",
+    "Other-own-Digimon play deletes an 8000-DP target, excludes 8001, and offers a real attack with acceptance and refusal. Same-turn OPT, next-own-turn reset, Tamer/self/opponent-play boundaries are covered."
+  ],
+  "018": [
+    "Public play and legal Hisyaryumon evolution apply De-Digivolve 2. A multi-level enemy stack loses exactly its top two cards and retains its legal level-4 base.",
+    "Public attack through BT20-087 pays the reduced Ouryumon evolution cost 2 and offers free breeding evolution from hand/trash; feasible refusal and non-attack entry retain legal candidates.",
+    "Wrong-trait and above-level-6 breeding candidates have otherwise legal ordinary evolution bases. The attacking base is explicitly chosen for BT20-087, and the Ouryumon trigger is asserted before exclusion.",
+    "Public security removals delete one tied-lowest enemy only once per turn and reset on a later turn. Both security-stack seats are covered.",
+    "A legal Alphamon: Ouryuken host trashes the identified security top; another legal level-7 host does not. Public Garurumon unsuspension proves inherited OPT and next-turn reset with security counts 6 -> 4 -> 3 -> 1.",
+    "P-176 is an out-of-collection peer encoding limitation: omitted payCost makes its printed paid evolution free. These proofs use correctly paid BT20-087 and do not depend on P-176."
+  ],
+  "019": [
+    "Public Jesmon -> Jesmon X -> GX evolution proves legal source transitions and costs. Exact Jesmon/X Antibody and Rule Name positives differ from X-Antibody-trait-only sources.",
+    "The qualifying stack grants opponent-effect immunity through the turn, survives actual Security deletion, then loses protection after the real turn. The post-then attack still works without that condition and may be refused.",
+    "Sistermon/Royal Knight peers gain Piercing and unsuspended-target attacks on the owner turn; nonmatching peers do not. Under exact Jesmon GX, the inherited grant extends to all own Digimon and clears off-turn."
+  ],
+  "020": [
+    "Public Dragon Mode -> Fighter Mode pays 2, trashes identified top security and provides Raid/Piercing. Ordinary level-5 evolution without Dragon Mode sources does not trash security.",
+    "Actual opponent effect plays of Digimon and exact Kota Domoto via BT20-051 are blocked through the opponent turn, while ordinary Tamer play remains legal. After actual expiry both effect-play paths succeed.",
+    "Actual opponent-security checks trigger one enemy deletion within Fighter Mode DP. Exact boundary, higher-DP survival, wrong-security-seat exclusion, same-turn OPT and next-turn reset are covered."
+  ],
+  "021": [
+    "Royal Knight hand and trash costs are placed at the exact stack bottom, removed from their prior zone, and followed by source-DP-bounded deletion. Feasible refusal pays no placement.",
+    "Public legal Jesmon X -> GX pays 6, shares entry/attack placement OPT, and resets on the next own turn; public Blast Digivolve resolves its entry payload.",
+    "Actual attacks unsuspend GX and trash security per pairs of Royal Knight sources, including a Royal Knight Option. Simultaneous trigger ordering covers Q4311 and changes scaling according to the chosen order."
+  ],
+  "022": [
+    "Public entry protects a selected allied Digimon from actual battle deletion through the opponent turn; the restriction expires at the real boundary.",
+    "Public Crabmon -> Crabmon X alternate evolution is legal and free.",
+    "A legal Seadramon X host carrying Crabmon X attacks at seven cards to draw one, is publicly unsuspended by Garurumon, and does not draw again that turn. Real next-own-turn reset and the eight-card exclusion are covered."
+  ],
+  "023": [
+    "Public green Digimon plays separately satisfy Dracomon-text and Examon-text branches, while controller/color/nonmatching comparisons are excluded. Accepted Wingdramon evolution pays the reduced cost; refusal retains Wingdramon and pays only the triggering play.",
+    "Actual security battle against a stronger Digimon proves Jamming survival. A Digi-Egg fixture was replaced because it could not prove Jamming.",
+    "Legal Dracomon -> Coredramon evolution and an evolved Wingdramon host prove inherited +2000 DP only on the owner turn. Memory stays within the legal gauge."
+  ],
+  "024": [
+    "Public play and legal Seadramon evolution bottom-deck the one eligible opposing level-3 target and retain higher levels.",
+    "Exact Seadramon/X Antibody and Rule Name stack positives gate the Tamer lock; X-Antibody-trait-only sources do not. During the real opponent turn, BT20-087 cannot suspend to evolve its attacker; after expiry it pays the suspension and reduced evolution cost.",
+    "A legal MegaSeadramon X host carrying Seadramon X draws on an actual attack at seven hand cards, not on the same-turn repeat, and draws again after a real turn cycle. A cheap public play restores the eligible hand count after the normal turn draw; eight cards is a negative control."
+  ],
+  "025": [
+    "Public play pays 7 and deletes one 6000-DP target while retaining 6001. Public Coredramon alternate evolution explicitly selects and pays cost 3.",
+    "Field-only Slayerdramon/level-6 treatment participates in actual Examon Blast DNA with a realistic source stack. Wingdramon in hand is excluded; ordinary field Slayerdramon/Breakdramon DNA is a comparison.",
+    "A legal Slayerdramon host carrying Wingdramon makes two actual security checks versus one without the source. Intervening optional unsuspend is explicitly answered so the whole attack completes."
+  ],
+  "026": [
+    "Public play pays 8 and bottom-decks exactly one of two eligible level-4 Digimon while retaining the other and a level-5 control. No source-qualified suspension lock is granted on standalone play.",
+    "Public MegaSeadramon -> MegaSeadramon X alternate evolution is free. Exact-name/Rule Name sources gate the suspension restriction; X-Antibody-trait-only sources do not. Public attack attempts prove the lock and its real opponent-turn expiry.",
+    "A legal inherited host completes an actual security attack while Blocker cannot change its target. A bare host comparison permits the change; controller-turn scope is checked."
+  ]
+}

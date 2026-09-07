@@ -1,0 +1,32 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > verifies the Appmon waiver, reveal-and-place Main, Delay Link, and Security placement 1ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > reveals an Appmon/App Driver card, trashes the rest, and places itself 19ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Q4734 waives color for an Appmon Digimon in breeding 2ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > ages a publicly played Option before activating Delay at a later own turn 28ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > publicly places itself from Security without changing memory 6ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 0ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 7ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 13ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 4ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 10ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security also plays a cost-6-or-less Vemmon-text card from hand 9ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > executes the Main placement by moving a Save Digimon from hand under an own Tamer 3ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > places Save from hand/trash under a Tamer and offers Save digivolution from trash 0ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > Security plays a cost-5-or-less Save Digimon from trash and adds itself to hand 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly performs the optional placement and free Save digivolution in sequence 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly refuses both optional Main actions while retaining eligible Save cards 8ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > leaves both optional Main actions inert when no Save cards are available 8ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly plays a cost-5-or-less Save Digimon from hand during Security 4ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > turns a Marcus Damon into a 12000 DP Rush Digimon and starts its Digimon attack 5ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > targets the chosen Marcus permanent and carries the temporary Digimon grants 0ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Q4620 may decline the attack while retaining the temporary Digimon treatment 1ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security plays Marcus from trash for free, then adds itself to hand 6ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security also plays an eligible Marcus from hand and returns the Option 6ms
+
+ Test Files  4 passed (4)
+      Tests  24 passed (24)
+   Start at  18:56:35
+   Duration  7.37s (transform 83%, import 15%, tests 2%)

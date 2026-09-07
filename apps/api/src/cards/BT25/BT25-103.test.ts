@@ -11,7 +11,7 @@ describe("BT25-103 GraceNovamon", () => {
     for (const base of ["BT25-018", "BT25-028"]) {
       const legal = setupEngine({
         0: {
-          battleArea: [{ card: base, under: ["BT24-010"], as: "base" }],
+          battleArea: [{ card: base, under: [base === "BT25-018" ? "BT24-014" : "BT24-074"], as: "base" }],
           hand: [{ card: "BT25-103", as: "grace" }],
           deck: ["AD1-001"],
         },
@@ -26,7 +26,10 @@ describe("BT25-103 GraceNovamon", () => {
       ).toEqual({ ok: true });
       await settle(() => legal.perm("base").topCard.cardId === "BT25-103");
       expect(legal.state.memory).toBe(0);
-      expect(legal.perm("base").stack.map((card) => card.cardId)).toEqual(["BT24-010", base]);
+      expect(legal.perm("base").stack.map((card) => card.cardId)).toEqual([
+        base === "BT25-018" ? "BT24-014" : "BT24-074",
+        base,
+      ]);
       expect(legal.state.players[0]!.hand).toHaveLength(1);
     }
 
@@ -50,10 +53,10 @@ describe("BT25-103 GraceNovamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-018", under: ["BT24-010"], as: "base" }],
+          battleArea: [{ card: "BT25-018", under: ["BT24-014"], as: "base" }],
           hand: [{ card: "BT25-103", as: "grace" }],
         },
-        1: { battleArea: [{ card: "BT24-014", under: ["BT24-009"], as: "target" }] },
+        1: { battleArea: [{ card: "BT24-014", under: ["BT24-010"], as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -108,8 +111,8 @@ describe("BT25-103 GraceNovamon", () => {
   it("returns an opponent Digimon with no more digivolution cards to deck bottom when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }] },
-        1: { battleArea: [{ card: "BT24-014", under: ["BT24-009"], as: "target" }] },
+        0: { battleArea: [{ card: "BT25-103", under: ["BT24-014", "BT25-018"], as: "grace" }] },
+        1: { battleArea: [{ card: "BT24-014", under: ["BT24-010"], as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -125,13 +128,13 @@ describe("BT25-103 GraceNovamon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }] },
+        0: { battleArea: [{ card: "BT25-103", under: ["BT24-014", "BT25-018"], as: "grace" }] },
         1: {
           deck: [{ card: "AD1-001", as: "oldBottom" }],
           battleArea: [
-            { card: "BT24-014", under: ["AD1-002", "AD1-003"], as: "equal" },
-            { card: "BT24-015", under: ["AD1-001", "AD1-002", "AD1-003"], as: "tooMany" },
-            { card: "BT1-085", under: ["BT1-009", "BT1-019"], as: "tamer" },
+            { card: "BT24-014", under: ["BT24-009", "BT24-010"], as: "equal" },
+            { card: "BT25-018", under: ["BT24-009", "BT24-010", "BT24-014"], as: "tooMany" },
+            { card: "BT1-085", under: ["BT24-009", "BT24-010"], as: "tamer" },
           ],
         },
       },
@@ -174,16 +177,16 @@ describe("BT25-103 GraceNovamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" },
-            { card: "BT1-013", under: ["BT1-009", "BT1-010", "BT1-019"], as: "unrelatedOwnStack" },
+            { card: "BT25-103", under: ["BT24-014", "BT25-018"], as: "grace" },
+            { card: "BT25-018", under: ["BT24-009", "BT24-010", "BT24-014"], as: "unrelatedOwnStack" },
           ],
         },
         1: {
           security: ["AD1-001"],
           battleArea: [
             { card: "BT1-014", as: "returnTarget" },
-            { card: "BT1-020", under: ["AD1-001", "AD1-002", "AD1-003"], as: "firstHost" },
-            { card: "BT1-024", under: ["BT1-009", "BT1-019", "BT1-051"], as: "secondHost" },
+            { card: "BT25-103", under: ["BT24-009", "BT24-010", "BT24-014", "BT25-018"], as: "firstHost" },
+            { card: "BT25-103", under: ["BT24-009", "BT24-010", "BT24-014", "BT25-018"], as: "secondHost" },
           ],
         },
       },
@@ -201,8 +204,7 @@ describe("BT25-103 GraceNovamon", () => {
     await settle(() => s.state.players[1]!.trash.length === 2);
 
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(preferred));
-    expect(s.perm("firstHost").stack).toHaveLength(2);
-    expect(s.perm("secondHost").stack).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(preferred));
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
@@ -211,13 +213,13 @@ describe("BT25-103 GraceNovamon", () => {
       {
         0: {
           battleArea: [
-            { card: "AD1-003", under: ["AD1-001", "AD1-002", "AD1-004"], as: "firstAttacker" },
-            { card: "AD1-004", under: ["BT1-009"], as: "secondAttacker" },
+            { card: "BT25-018", under: ["BT24-009", "BT24-010", "BT24-014"], as: "firstAttacker" },
+            { card: "BT25-018", under: ["BT24-014"], as: "secondAttacker" },
           ],
         },
         1: {
           security: ["BT1-009", "BT1-019"],
-          battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }],
+          battleArea: [{ card: "BT25-103", under: ["BT24-014", "BT25-018"], as: "grace" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

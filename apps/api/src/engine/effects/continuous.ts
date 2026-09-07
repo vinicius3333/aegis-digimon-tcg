@@ -363,7 +363,7 @@ export interface CustomEffectGrant {
    * trash). The instanceId is unique per match, so the grant cannot mis-fire on a reused id.
    */
   instanceId: string;
-  /** Seat the duration sweep is framed from (the granter's seat = the granted card's owner). */
+  /** Seat the duration sweep is framed from (the granter, which may differ from the recipient). */
   ownerSeat: Seat;
   token: string;
   duration: EffectDuration;
@@ -469,6 +469,15 @@ interface EffectTimingDisable {
   continuous?: boolean;
 }
 
+interface PlayerEffectTimingDisable {
+  seat: Seat;
+  ownerSeat: Seat;
+  timings: DisableTimingMask[];
+  duration: EffectDuration;
+  matches: (permanentId: string) => boolean;
+  continuous?: boolean;
+}
+
 interface DnaLevelOverride {
   permanentId: string;
   level: number;
@@ -508,6 +517,8 @@ function clearsAt(duration: EffectDuration, boundary: DurationBoundary, ownerSea
 
 export class ContinuousEffectLedger {
   private restrictions: RestrictionEntry[] = [];
+  /** Permanents whose `beAffected` immunity expired in the last sweep (drained by the sweep site). */
+  private readonly expiredAffectationRecipients = new Set<string>();
   private playerRestrictions: PlayerRestrictionEntry[] = [];
   private attackTargetRestrictions: AttackTargetRestriction[] = [];
   private canAttackUnsuspendedGrants: CanAttackUnsuspendedGrant[] = [];
@@ -541,6 +552,7 @@ export class ContinuousEffectLedger {
   private playProhibitions: PlayProhibition[] = [];
   private securityEffectDisables: SecurityEffectDisable[] = [];
   private effectTimingDisables: EffectTimingDisable[] = [];
+  private playerEffectTimingDisables: PlayerEffectTimingDisable[] = [];
   private dnaLevelOverrides: DnaLevelOverride[] = [];
 
   /** Record a "can't <restriction>" rule on a permanent for a duration. */
@@ -912,12 +924,27 @@ export class ContinuousEffectLedger {
     this.effectTimingDisables.push({ permanentId, timings, duration, continuous: opts?.continuous });
   }
 
+  addPlayerEffectTimingDisable(
+    seat: Seat,
+    ownerSeat: Seat,
+    timings: DisableTimingMask[],
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+    opts?: { continuous?: boolean },
+  ): void {
+    this.playerEffectTimingDisables.push({ seat, ownerSeat, timings, duration, matches, continuous: opts?.continuous });
+  }
+
   /**
    * Is `timing` masked on `permanentId` right now (so its effect at that window may not
    * activate)? Consulted by the per-effect activation gate; callers apply the `beAffected`
    */
   isTimingEffectDisabled(permanentId: string, timing: DisableTimingMask): boolean {
-    return this.effectTimingDisables.some((d) => d.permanentId === permanentId && d.timings.includes(timing));
+    if (this.effectTimingDisables.some((d) => d.permanentId === permanentId && d.timings.includes(timing))) return true;
+    const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
+    return this.playerEffectTimingDisables.some(
+      (entry) => entry.seat === controllerSeat && entry.timings.includes(timing) && entry.matches(permanentId),
+    );
   }
 
   /** Record a name/trait alias on a permanent (e.g. "also treated as [Leomon]"). */
@@ -1465,11 +1492,26 @@ export class ContinuousEffectLedger {
   }
 
   /** Expire all continuous rules whose duration clears at `boundary`. */
+  /**
+   * Drain the permanents whose `beAffected` immunity expired since the last call, so the caller
+   * can recompute the effects that now apply to them again (KB Q5328).
+   */
+  takeExpiredAffectationRecipients(): string[] {
+    const drained = [...this.expiredAffectationRecipients];
+    this.expiredAffectationRecipients.clear();
+    return drained;
+  }
+
   sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat): void {
     const ownerOf = (permanentId: string): Seat => ownerSeatOfPermanent(state, permanentId);
-    this.restrictions = this.restrictions.filter(
-      (r) => !clearsAt(r.duration, boundary, ownerOf(r.permanentId), sweepSeat),
-    );
+    this.restrictions = this.restrictions.filter((r) => {
+      if (!clearsAt(r.duration, boundary, ownerOf(r.permanentId), sweepSeat)) return true;
+      // Losing "isn't affected by effects" RE-APPLIES an effect the card was given while it was
+      // immune (KB Q5328). The DP ledger only re-reads that suppression when it recomputes, so
+      // record the recipient for the sweep site to recompute.
+      if (r.restriction === "beAffected") this.expiredAffectationRecipients.add(r.permanentId);
+      return false;
+    });
     this.playerRestrictions = this.playerRestrictions.filter(
       (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
     );
@@ -1547,6 +1589,9 @@ export class ContinuousEffectLedger {
     this.effectTimingDisables = this.effectTimingDisables.filter(
       (d) => !clearsAt(d.duration, boundary, ownerOf(d.permanentId), sweepSeat),
     );
+    this.playerEffectTimingDisables = this.playerEffectTimingDisables.filter(
+      (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
+    );
     // UntilOpponentTurnEnd is framed from the GRANTER's seat (recorded as `ownerSeat`), so this
     // clears at the end of the granter's opponent's turn (RB1-030). Anchored on the instance, the
     // grant also lingers harmlessly in trash post-deletion until this boundary sweep removes it.
@@ -1590,6 +1635,7 @@ export class ContinuousEffectLedger {
     this.playProhibitions = this.playProhibitions.filter((p) => !p.continuous);
     this.securityEffectDisables = this.securityEffectDisables.filter((d) => !d.continuous);
     this.effectTimingDisables = this.effectTimingDisables.filter((d) => !d.continuous);
+    this.playerEffectTimingDisables = this.playerEffectTimingDisables.filter((d) => !d.continuous);
     this.dnaLevelOverrides = this.dnaLevelOverrides.filter((entry) => !entry.continuous);
   }
 
@@ -1625,6 +1671,7 @@ export class ContinuousEffectLedger {
     this.playProhibitions = [];
     this.securityEffectDisables = [];
     this.effectTimingDisables = [];
+    this.playerEffectTimingDisables = [];
     this.dnaLevelOverrides = [];
   }
 }
@@ -1638,7 +1685,11 @@ function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "
 function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
   if (def.isToken === true && match.allowTokens !== true) return false;
   if (match.kinds !== undefined && match.kinds.length > 0) {
-    if (!match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
+    // Mother Eater is catalogued as a Digi-Egg because it begins in that deck, but its
+    // own effect can play it into the battle area as a Digimon. Play prohibitions that
+    // name Digimon therefore apply to that effect play (BT22-007 Q4861).
+    const motherEaterAsDigimon = def.cardId === "BT22-007" && match.kinds.includes(CardKind.Digimon);
+    if (!motherEaterAsDigimon && !match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
   }
   if (match.dpAtMost !== undefined && def.dp > match.dpAtMost) return false;
   return true;

@@ -1,6 +1,7 @@
 import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-001.js";
 import "../index.js";
@@ -198,6 +199,7 @@ describe("BT24-001 Gigimon", () => {
       ok: true,
     });
     await advance(s.engine).waitForMainPhase(0);
+    await settle(() => !internalsOf(s.engine).mainEntryPending);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

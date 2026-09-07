@@ -468,6 +468,9 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
               event: "endOfTurn",
               sourcePermanentId: match.target.permanentId,
               once: true,
+              // The reduction already resolved; this tail is pending processing the turn player
+              // orders (KB Q5564/Q5566/Q5568).
+              orderedByTurnPlayer: true,
               description: action.raw ?? "cost modifier consumed",
               run: async (subCtx) => {
                 const selections = new Map(subCtx.selections ?? []);

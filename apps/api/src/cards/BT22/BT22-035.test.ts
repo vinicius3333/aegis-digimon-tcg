@@ -6,6 +6,12 @@ import { compiled } from "./BT22-035.js";
 
 describe("BT22-035 Entermon", () => {
   it("links only qualifying level-4-or-lower Link cards to itself and keeps the linked Appmon play effect", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, colors: ["Yellow"], cost: 4, isAlternate: false },
+      { level: 4, colors: ["Black"], cost: 4, isAlternate: false },
+      { level: 4, traits: ["Sup."], cost: 4, isAlternate: true },
+    ]);
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Mediamon", "Dreammon"], cost: 0 }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
@@ -17,10 +23,7 @@ describe("BT22-035 Entermon", () => {
             kind: ["Digimon"],
             levelComparison: { op: "lte", value: 4 },
             hasLinkRequirement: true,
-            or: [
-              { zone: "hand" },
-              { zone: "digivolutionCards", hostFilter: { isSelfRef: true } },
-            ],
+            or: [{ zone: "hand" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
           },
           count: 1,
         },
@@ -79,8 +82,28 @@ describe("BT22-035 Entermon", () => {
     expect(appFusionCostFor("BT22-035", { topName: "Mediamon", linkedNames: ["Mediamon"] })).toBeUndefined();
   });
 
+  it("allows colored routes and the differently-colored Sup. route, while rejecting a non-Sup. base", async () => {
+    for (const [base, legal] of [
+      ["BT22-034", true],
+      ["BT22-058", true],
+      ["BT22-020", false],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-035", as: "entermon" }] },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("entermon").instanceId,
+        }).ok,
+      ).toBe(legal);
+    }
+  });
+
   it("implements Q4881 by linking only a qualifying Link card from its evolution stack", async () => {
-    for (const candidate of ["BT21-009", "BT22-030"]) {
+    for (const candidate of ["BT21-009", "BT22-032"]) {
       const s = setupEngine(
         { 0: { battleArea: [{ card: "BT22-035", under: [{ card: candidate, as: "candidate" }], as: "entermon" }] } },
         { autoAcceptOptional: true, autoSelectCards: true },
@@ -94,7 +117,7 @@ describe("BT22-035 Entermon", () => {
         candidate === "BT21-009",
       );
       expect(s.perm("entermon").stack.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(
-        candidate === "BT22-030",
+        candidate === "BT22-032",
       );
     }
   });
@@ -117,9 +140,7 @@ describe("BT22-035 Entermon", () => {
     await settle();
 
     expect(s.perm("entermon").linked).toHaveLength(0);
-    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(
-      true,
-    );
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(true);
   });
 
   it("plays one cost-4-or-lower Appmon only when Entermon itself gets linked", async () => {
@@ -171,5 +192,39 @@ describe("BT22-035 Entermon", () => {
     await settle(() => s.perm("opponent").currentDP === 4000);
 
     expect(s.perm("opponent").currentDP).toBe(4000);
+  });
+
+  it("charges the printed Link cost and resolves the scaled linked effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-035", as: "entermon" },
+            { card: "BT22-030", as: "appmon" },
+          ],
+          hand: [{ card: "BT22-035", as: "link" }],
+        },
+        1: { battleArea: [{ card: "BT22-024", dp: 30000, as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("entermon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("entermon").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    await advance(s.engine).fireForInstance(EffectTiming.OnLinking, s.inst("link"), {
+      linkedInstanceIds: [s.inst("link").instanceId],
+    });
+    await settle(() => s.perm("opponent").currentDP === 14000);
+    expect(s.perm("opponent").currentDP).toBe(14000);
   });
 });

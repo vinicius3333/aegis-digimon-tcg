@@ -26,6 +26,13 @@ An intent expresses a choice, never a state mutation. The engine validates the
 actor, phase, source, targets, costs, and pending-interaction ownership before
 changing state.
 
+A `digivolve` intent with `appFusionLinkedInstanceId` explicitly declares App
+Fusion using that linked partner. The result must be in the acting player's hand
+and the base must be their battle-area Digimon. The server checks the pair
+against the result's recipe, applies digivolution costs, and moves the partner
+above the former top card in the evolution stack. Omitting the field retains
+ordinary evolution; it does not automatically choose App Fusion.
+
 ## Synchronized state
 
 The shared schema exposes:

@@ -63,14 +63,57 @@ describe("BT25-062 Kokuwamon", () => {
     );
     preferred.push(s.inst("machineTarget").instanceId);
     s.state.memory = 4;
-    await advance(s.engine).runTurn(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("koku"));
     await settle(() => s.perm("koku").topCard.instanceId === s.inst("machineTarget").instanceId);
 
-    expect(s.state.memory).toBe(-3); // runTurn completes the phase transition after free digivolution.
+    expect(s.state.memory).toBe(4);
     expect(s.perm("koku").stack.map((card) => card.cardId)).toEqual(["BT25-062"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-061"]);
     expect(observe(s.engine).hasKeyword(s.perm("koku"), "Blocker")).toBe(true);
     expect(s.perm("koku").currentDP).toBe(6000); // Guardromon 5000 + inherited Kokuwamon +1000
+  });
+
+  it.each([
+    ["Machine", "BT25-066"],
+    ["Cyborg", "BT14-060"],
+    ["TS", "BT25-068"],
+  ] as const)("free-digivolves into a distinct %s trait candidate at memory 4", async (_trait, targetCard) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-062", as: "koku" }], hand: [{ card: targetCard, as: "target" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("koku"));
+    await settle(() => s.perm("koku").topCard?.instanceId === s.inst("target").instanceId);
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("koku").topCard.cardId).toBe(targetCard);
+  });
+
+  it("supports the ordinary black Lv.2 route at cost 0 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackBase" }, hand: [{ card: "BT25-062", as: "offmon" }] },
+    });
+    ordinary.state.memory = 2;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("offmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === "BT25-062");
+    expect(ordinary.state.memory).toBe(2);
+
+    const wrongColor = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redBase" }, hand: [{ card: "BT25-062", as: "offmon" }] },
+    });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("offmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("does not activate at memory 5, and declining the may effect leaves the stack and hand unchanged", async () => {
@@ -142,6 +185,7 @@ describe("BT25-062 Kokuwamon", () => {
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("koku").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("koku").instanceId);
