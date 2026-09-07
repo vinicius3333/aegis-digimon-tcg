@@ -75,6 +75,29 @@ describe("BT21-084 Haru Shinkai", () => {
     expect(s.state.memory).toBe(after);
   });
 
+  it("runs the conditional Start of Your Turn memory setting through the public lifecycle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-084", as: "haru" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-004"],
+        },
+        1: { deck: ["BT1-005", "BT1-006", "BT1-007"], security: ["BT1-008"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("public linking suspends Haru, draws, and app fuses the linked Digimon", async () => {
     const s = setupEngine(
       {
