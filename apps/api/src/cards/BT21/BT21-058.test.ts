@@ -12,24 +12,13 @@ import "../index.js";
 //    hand. Trash the rest. Then, you may place up to 2 [Vemmon] from your trash as 1 of
 //    your Digimon's bottom digivolution cards."
 //
-// FAILS-WHEN-REVERTED: with BT21-058 on the field, firing OnPlay with a deck containing
-// a [Vemmon] card draws it to hand. Without the hand-written module the RawUnparsed
-// inherited clause + the plain onPlay/WhenDigivolving actions from the IR remain
-// but the reveal-and-add logic is absent.
-//
-// We test the [On Play] path because it's the most stable to drive directly.
-
 const SNATCHMON = "BT21-058";
 const VEMMON_CARD = "BT21-056"; // BT21 Vemmon — nameEn: "Vemmon"
 const VEMMON_IN_EFFECT_TEXT = "BT11-065"; // Snatchmon — mentions [Vemmon], but name/types do not.
 const PLAIN_CARD = "BT1-009"; // Agumon-like — no "Vemmon" in text
 
 function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
-  return (
-    s.engine as unknown as {
-      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-    }
-  ).fireTiming(timing, trigger);
+  return advance(s.engine).fireGlobal(timing, trigger);
 }
 
 describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () => {
@@ -59,7 +48,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
+          battleArea: [{ card: SNATCHMON, as: "snatchmon" }],
           deck: [
             { card: VEMMON_CARD, as: "vemmon" },
             { card: PLAIN_CARD, as: "plain1" },
@@ -98,7 +87,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
+          battleArea: [{ card: SNATCHMON, as: "snatchmon" }],
           deck: [PLAIN_CARD, PLAIN_CARD, PLAIN_CARD],
         },
       },
@@ -124,7 +113,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
+          battleArea: [{ card: SNATCHMON, as: "snatchmon" }],
           deck: [{ card: VEMMON_IN_EFFECT_TEXT, as: "vemmonInText" }, PLAIN_CARD, PLAIN_CARD],
         },
       },
@@ -149,7 +138,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
         0: {
           battleArea: [
             { card: SNATCHMON, as: "snatchmon" },
-            { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "oldBottom" }] },
+            { card: SNATCHMON, as: "host", under: [{ card: VEMMON_CARD, as: "oldBottom" }] },
           ],
           trash: [
             { card: "BT21-056", as: "vemmonA" },
@@ -188,16 +177,16 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
         0: {
           battleArea: [
             {
-              card: "BT1-009",
+              card: "BT21-060",
               as: "host",
-              under: [{ card: SNATCHMON }, { card: VEMMON_CARD, as: "stackedVemmon" }],
+              under: [{ card: VEMMON_CARD, as: "stackedVemmon" }, { card: SNATCHMON }],
             },
           ],
         },
         1: {
           battleArea: [
-            { card: PLAIN_CARD, as: "eligible" },
-            { card: "BT1-010", as: "tooExpensive" },
+            { card: "BT21-043", as: "eligible" },
+            { card: "BT1-018", as: "tooExpensive" },
           ],
         },
       },
@@ -252,6 +241,8 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("placedVemmonA").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vemmonInText").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("plain1").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("plain2").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("placedVemmonA").instanceId)).toBe(true);
   });
 
