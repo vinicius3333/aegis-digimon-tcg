@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-009.js";
 import "../index.js";
 
@@ -156,6 +157,32 @@ describe("BT24-009 Shamanmon", () => {
     });
     await settle(() => s.perm("host").topCard.cardId === "P-209");
     expect(s.state.memory).toBe(4);
+  });
+
+  it("does not retroactively open Alliance when attack-time hand trash evolves a legal Titan host (Q5579)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-009", "ST16-03"] }],
+          hand: [{ card: "BT1-009", as: "drawnTrash" }],
+          trash: [{ card: "P-209", as: "titamon" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-013"], deck: ["BT1-014", "BT1-015", "BT1-016"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").topCard.cardId).toBe("P-209");
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("drawnTrash").instanceId);
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("may decline the inherited evolution after a public hand discard", async () => {
