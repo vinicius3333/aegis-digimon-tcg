@@ -6,6 +6,14 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_073 } from "./BT24-073.js";
 import "../index.js";
 
+function milledInstanceIds(s: ReturnType<typeof setupEngine>, expected: string[]): string[] {
+  const expectedSet = new Set(expected);
+  return s.events
+    .filter((event) => event.kind === "cardsMoved" && event.to === "trash")
+    .flatMap((event) => event.instanceIds)
+    .filter((instanceId) => expectedSet.has(instanceId));
+}
+
 describe("BT24-073 SkullSatamon", () => {
   it("matches the immutable catalog identity", () => {
     expect(getCardDefinition("BT24-073")).toMatchObject({
@@ -44,11 +52,19 @@ describe("BT24-073 SkullSatamon", () => {
         {
           0: {
             battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
-            deck: ["BT1-013", "BT1-015", "BT1-045"],
+            deck: [
+              { card: "BT1-013", as: "ownMillFirst" },
+              { card: "BT1-015", as: "ownMillSecond" },
+              { card: "BT1-045", as: "ownMillThird" },
+            ],
             trash: [{ card: "BT11-080", as: "revive" }],
           },
           1: {
-            deck: ["BT1-009", "BT1-011", "BT1-014"],
+            deck: [
+              { card: "BT1-009", as: "opponentMillFirst" },
+              { card: "BT1-011", as: "opponentMillSecond" },
+              { card: "BT1-014", as: "opponentMillThird" },
+            ],
             trash: Array.from({ length: 8 }, () => "BT1-013"),
           },
         },
@@ -66,6 +82,16 @@ describe("BT24-073 SkullSatamon", () => {
       expect(s.state.players[0]!.deck).toHaveLength(0);
       expect(s.state.players[1]!.deck).toHaveLength(0);
       expect(s.state.players[1]!.trash).toHaveLength(11);
+      expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+        s.inst("ownMillFirst").instanceId,
+        s.inst("ownMillSecond").instanceId,
+        s.inst("ownMillThird").instanceId,
+      ]);
+      expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+        s.inst("opponentMillFirst").instanceId,
+        s.inst("opponentMillSecond").instanceId,
+        s.inst("opponentMillThird").instanceId,
+      ]);
     },
   );
 
@@ -75,11 +101,20 @@ describe("BT24-073 SkullSatamon", () => {
         0: {
           battleArea: [{ card: "BT24-070", as: "base" }],
           hand: [{ card: "BT24-073", as: "skullsatamon" }],
-          deck: ["BT1-013", "BT1-015", "BT1-045"],
+          deck: [
+            { card: "BT1-011", as: "ownDeckFiller" },
+            { card: "BT1-013", as: "ownMillFirst" },
+            { card: "BT1-015", as: "ownMillSecond" },
+            { card: "BT1-045", as: "ownMillThird" },
+          ],
           trash: [{ card: "BT11-080", as: "revive" }],
         },
         1: {
-          deck: ["BT1-009", "BT1-011", "BT1-014"],
+          deck: [
+            { card: "BT1-009", as: "opponentMillFirst" },
+            { card: "BT1-011", as: "opponentMillSecond" },
+            { card: "BT1-014", as: "opponentMillThird" },
+          ],
           trash: Array.from({ length: 8 }, () => "BT1-013"),
         },
       },
@@ -102,6 +137,16 @@ describe("BT24-073 SkullSatamon", () => {
     expect(s.state.memory).toBe(2);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
     expect(s.state.players[1]!.trash).toHaveLength(11);
+    expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+      s.inst("ownMillFirst").instanceId,
+      s.inst("ownMillSecond").instanceId,
+      s.inst("ownMillThird").instanceId,
+    ]);
+    expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+      s.inst("opponentMillFirst").instanceId,
+      s.inst("opponentMillSecond").instanceId,
+      s.inst("opponentMillThird").instanceId,
+    ]);
   });
 
   it("public deletion mills both decks and revives an eligible Digimon", async () => {
@@ -109,11 +154,19 @@ describe("BT24-073 SkullSatamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
-          deck: ["BT1-013", "BT1-015", "BT1-045"],
+          deck: [
+            { card: "BT1-013", as: "ownMillFirst" },
+            { card: "BT1-015", as: "ownMillSecond" },
+            { card: "BT1-045", as: "ownMillThird" },
+          ],
           trash: [{ card: "BT11-080", as: "revive" }],
         },
         1: {
-          deck: ["BT1-009", "BT1-011", "BT1-014"],
+          deck: [
+            { card: "BT1-009", as: "opponentMillFirst" },
+            { card: "BT1-011", as: "opponentMillSecond" },
+            { card: "BT1-014", as: "opponentMillThird" },
+          ],
           trash: Array.from({ length: 8 }, () => "BT1-013"),
         },
       },
@@ -127,6 +180,16 @@ describe("BT24-073 SkullSatamon", () => {
     );
 
     expect(s.state.players[1]!.trash).toHaveLength(11);
+    expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+      s.inst("ownMillFirst").instanceId,
+      s.inst("ownMillSecond").instanceId,
+      s.inst("ownMillThird").instanceId,
+    ]);
+    expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+      s.inst("opponentMillFirst").instanceId,
+      s.inst("opponentMillSecond").instanceId,
+      s.inst("opponentMillThird").instanceId,
+    ]);
   });
 
   it("may refuse the optional revival after a public deletion timing", async () => {
@@ -134,11 +197,19 @@ describe("BT24-073 SkullSatamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
-          deck: ["BT1-013", "BT1-015", "BT1-045"],
+          deck: [
+            { card: "BT1-013", as: "ownMillFirst" },
+            { card: "BT1-015", as: "ownMillSecond" },
+            { card: "BT1-045", as: "ownMillThird" },
+          ],
           trash: [{ card: "BT11-080", as: "revive" }],
         },
         1: {
-          deck: ["BT1-009", "BT1-011", "BT1-014"],
+          deck: [
+            { card: "BT1-009", as: "opponentMillFirst" },
+            { card: "BT1-011", as: "opponentMillSecond" },
+            { card: "BT1-014", as: "opponentMillThird" },
+          ],
           trash: Array.from({ length: 8 }, () => "BT1-013"),
         },
       },
@@ -153,6 +224,16 @@ describe("BT24-073 SkullSatamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(11);
+    expect(milledInstanceIds(s, [s.inst("ownMillFirst").instanceId, s.inst("ownMillSecond").instanceId, s.inst("ownMillThird").instanceId])).toEqual([
+      s.inst("ownMillFirst").instanceId,
+      s.inst("ownMillSecond").instanceId,
+      s.inst("ownMillThird").instanceId,
+    ]);
+    expect(milledInstanceIds(s, [s.inst("opponentMillFirst").instanceId, s.inst("opponentMillSecond").instanceId, s.inst("opponentMillThird").instanceId])).toEqual([
+      s.inst("opponentMillFirst").instanceId,
+      s.inst("opponentMillSecond").instanceId,
+      s.inst("opponentMillThird").instanceId,
+    ]);
   });
 
   it("inherited attack mills both decks instead of security at 10 opposing trash cards", async () => {
