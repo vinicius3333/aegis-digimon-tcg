@@ -1,6 +1,6 @@
 {
   "set": "BT22",
-  "date": "2026-09-06",
+  "date": "2026-09-07",
   "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
   "status": "incomplete",
   "scoreCategories": [
@@ -11,14 +11,14 @@
     "delivery"
   ],
   "gates": {
-    "focused": "pending",
-    "mechanisms": "pending",
-    "collection": "pending",
-    "effectsSync": "pending",
-    "typecheck": "pending",
-    "lint": "pending",
-    "format": "pending",
-    "diffCheck": "pending",
+    "focused": "passed",
+    "mechanisms": "passed",
+    "collection": "passed",
+    "effectsSync": "passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "format": "passed",
+    "diffCheck": "passed",
     "pushed": "pending",
     "reviewPr": "pending"
   },
@@ -46,19 +46,45 @@
       "batch": 1,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-001.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-001.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_a"
+      "gaps": [],
+      "owner": "luna_a",
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": -1,
+      "dp": 0,
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-001&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-002",
@@ -83,19 +109,45 @@
       "batch": 1,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-002.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-002.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_a"
+      "gaps": [],
+      "owner": "luna_a",
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": -1,
+      "dp": 0,
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-002&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-003",
@@ -119,19 +171,45 @@
       "batch": 1,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-003.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-003.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_a"
+      "gaps": [],
+      "owner": "luna_a",
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": -1,
+      "dp": 0,
+      "forms": [
+        "Appmon"
+      ],
+      "attributes": [
+        "Entertainment"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-003&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-004",
@@ -156,19 +234,45 @@
       "batch": 1,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-004.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-004.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_a"
+      "gaps": [],
+      "owner": "luna_a",
+      "linkDp": null,
+      "colors": [
+        "Green"
+      ],
+      "playCost": -1,
+      "dp": 0,
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-004&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-005",
@@ -193,19 +297,45 @@
       "batch": 2,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-005.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-005.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_b"
+      "gaps": [],
+      "owner": "luna_b",
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": -1,
+      "dp": 0,
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-005&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-006",
@@ -230,19 +360,45 @@
       "batch": 2,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-006.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-006.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_b"
+      "gaps": [],
+      "owner": "luna_b",
+      "linkDp": null,
+      "colors": [
+        "Purple"
+      ],
+      "playCost": -1,
+      "dp": 0,
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-006&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-007",
@@ -266,19 +422,45 @@
       "batch": 2,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-007.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-007.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_b"
+      "gaps": [],
+      "owner": "luna_b",
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 20,
+      "dp": 0,
+      "forms": [
+        "Eater"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-007&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-008",
@@ -314,19 +496,48 @@
       "batch": 2,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-008.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-008.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_b"
+      "gaps": [],
+      "owner": "luna_b",
+      "linkDp": null,
+      "colors": [
+        "Red"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-008&search=true",
+      "printedEvolutionRequirements": [
+        "RedBlue 0 from Lv.2",
+        "[Digivolve] [Koromon]/Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-009",
@@ -349,26 +560,56 @@
         "main": "[Security] At the end of the battle, play this card without paying the cost.  [On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 4000 DP or less.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Linking] Delete 1 of your opponent's Digimon with 4000 DP or less."
       },
       "module": "apps/api/src/cards/BT22/BT22-009.ts",
       "test": "apps/api/src/cards/BT22/BT22-009.test.ts",
       "batch": 3,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-009.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-009.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_c"
+      "gaps": [],
+      "owner": "luna_c",
+      "linkDp": 3000,
+      "colors": [
+        "Red"
+      ],
+      "playCost": 4,
+      "dp": 4000,
+      "forms": [
+        "Sup.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Entertainment"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 2",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-009&search=true",
+      "printedEvolutionRequirements": [
+        "Red 2 from Lv.3",
+        "Multicolor 2 from Stnd."
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-010",
@@ -404,19 +645,49 @@
       "batch": 3,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-010.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-010.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_c"
+      "gaps": [],
+      "owner": "luna_c",
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "Purple"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-010&search=true",
+      "printedEvolutionRequirements": [
+        "RedPurple 3 from Lv.3",
+        "[Digivolve] Lv.3 w/[Flame]/[CS] trait: Cost 2"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-011",
@@ -442,7 +713,7 @@
         }
       ],
       "printedClauses": {
-        "main": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3 \n\n＜Alliance＞ \n[Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] from your trash without paying the cost. Then, this Digimon may attack.",
+        "main": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3 \n\n＜Alliance＞ \n[Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] or [CS] trait from your trash without paying the cost. Then, this Digimon may attack.",
         "inherited": "[Your Turn] This Digimon with the [Flame] or [CS] trait gains ＜Alliance＞",
         "security": "",
         "link": ""
@@ -452,19 +723,49 @@
       "batch": 3,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-011.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-011.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_c"
+      "gaps": [],
+      "owner": "luna_c",
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "Purple"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-011&search=true",
+      "printedEvolutionRequirements": [
+        "RedPurple 4 from Lv.4",
+        "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-012",
@@ -500,19 +801,49 @@
       "batch": 3,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "in-progress",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-012.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-012.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
       ],
-      "owner": "luna_c"
+      "gaps": [],
+      "owner": "luna_c",
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "playCost": 8,
+      "dp": 8000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-012&search=true",
+      "printedEvolutionRequirements": [
+        "RedBlack 4 from Lv.4",
+        "[Digivolve] Lv.4 w/[Greymon] in name or w/[CS] trait: Cost 3"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-013",
@@ -548,18 +879,48 @@
       "batch": 4,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-013.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-013.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Red"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-013&search=true",
+      "printedEvolutionRequirements": [
+        "RedBlue 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 3"
+      ],
+      "owner": "luna_c",
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-014",
@@ -586,7 +947,7 @@
         }
       ],
       "printedClauses": {
-        "main": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4 \n\n＜Raid＞ \n＜Reboot＞ \n[When Digivolving] You may unsuspend 1 of your opponent's Digimon. Then, this Digimon may attack.\n[All Turns] [Once Per Turn] When attack targets change, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.",
+        "main": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4 \n\n＜Raid＞ \n＜Reboot＞ \n[When Digivolving] You may unsuspend 1 of your opponent's Digimon. Then, this Digimon may attack.\n[All Turns] [Once Per Turn] When attack targets change, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n[Rule] Name: Also treated as having [Greymon].",
         "inherited": "",
         "security": "",
         "link": ""
@@ -596,18 +957,49 @@
       "batch": 4,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-014.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-014.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "playCost": 13,
+      "dp": 13000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-014&search=true",
+      "printedEvolutionRequirements": [
+        "RedBlack 5 from Lv.5",
+        "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4"
+      ],
+      "owner": "luna_c",
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-015",
@@ -634,7 +1026,7 @@
         }
       ],
       "printedClauses": {
-        "main": "＜Blocker＞ \n＜Decode (Red/Black Lv.3)＞ \n＜Decode (Blue/Yellow Lv.3)＞ \n[On Play] [When Attacking] Delete 1 of your opponent's Digimon with the lowest DP.\n[When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may attack.",
+        "main": "[Digivolve] Lv.6 w/[CS] trait: Cost 5\n[DNA Digivolve] Lv.6 w/[Greymon] in name+Lv.6 w/[Garurumon] in name: Cost 0\n\n＜Blocker＞ \n＜Decode (Red/Black Lv.3)＞ \n＜Decode (Blue/Yellow Lv.3)＞ \n[On Play] [When Attacking] Delete 1 of your opponent's Digimon with the lowest DP.\n[When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may attack.",
         "inherited": "",
         "security": "",
         "link": ""
@@ -644,18 +1036,50 @@
       "batch": 4,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-015.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-015.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "White",
+        "Blue"
+      ],
+      "playCost": 15,
+      "dp": 15000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-015&search=true",
+      "printedEvolutionRequirements": [
+        "RedBlue 6 from Lv.6",
+        "[Digivolve] Lv.6 w/[CS] trait: Cost 5 [DNA Digivolve] Lv.6 w/[Greymon] in name+Lv.6 w/[Garurumon] in name: Cost 0"
+      ],
+      "owner": "luna_c",
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-016",
@@ -675,28 +1099,59 @@
         }
       ],
       "printedClauses": {
-        "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait and 1 card with the [Entertainment] or [Awakening (App Name)] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait and 1 card with the [Entertainment] or [Awakening] trait among them to the hand. Return the rest to the bottom of the deck.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Linking] Trash any 1 digivolution card of 1 of your opponent's Digimon."
       },
       "module": "apps/api/src/cards/BT22/BT22-016.ts",
       "test": "apps/api/src/cards/BT22/BT22-016.test.ts",
       "batch": 4,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-016.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-016.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 2000,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Stnd.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Navi"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 1",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-016&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 0 from Lv.2",
+        "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0"
+      ],
+      "owner": "luna_c",
+      "commit": "dcb423e80fd636a38e3f7f3f8564a6a47e97d50c"
     },
     {
       "cardId": "BT22-017",
@@ -732,18 +1187,48 @@
       "batch": 5,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-017.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-017.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-017&search=true",
+      "printedEvolutionRequirements": [
+        "BlueRed 0 from Lv.2",
+        "[Digivolve] [Tsunomon]/Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "owner": "luna_a",
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-018",
@@ -775,18 +1260,47 @@
       "batch": 5,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-018.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-018.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-018&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 0 from Lv.2"
+      ],
+      "owner": "luna_a",
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-019",
@@ -817,18 +1331,48 @@
       "batch": 5,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-019.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-019.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-019&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 0 from Lv.2",
+        "[Digivolve] Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "owner": "luna_a",
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-020",
@@ -858,18 +1402,48 @@
       "batch": 5,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-020.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-020.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 4,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-020&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 2 from Lv.3",
+        "[Digivolve] [Gammamon]: Cost 2"
+      ],
+      "owner": "luna_a",
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-021",
@@ -901,18 +1475,46 @@
       "batch": 6,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-021.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-021.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-021&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 2 from Lv.3"
+      ],
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-022",
@@ -943,18 +1545,47 @@
       "batch": 6,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-022.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-022.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-022&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 2 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-023",
@@ -985,18 +1616,47 @@
       "batch": 6,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-023.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-023.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-023&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 3 from Lv.4",
+        "[Digivolve] Lv.4 w/[CS] trait: Cost 3"
+      ],
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-024",
@@ -1028,18 +1688,46 @@
       "batch": 6,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-024.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-024.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-024&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 3 from Lv.4"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-025",
@@ -1071,18 +1759,47 @@
       "batch": 7,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-025.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-025.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 7,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-025&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-026",
@@ -1118,18 +1835,47 @@
       "batch": 7,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-026.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-026.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-026&search=true",
+      "printedEvolutionRequirements": [
+        "BlueRed 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[Garurumon] in name or w/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-027",
@@ -1161,18 +1907,46 @@
       "batch": 7,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-027.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-027.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 11,
+      "dp": 11000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-027&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 3 from Lv.5"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-028",
@@ -1203,18 +1977,47 @@
       "batch": 7,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-028.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-028.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 14,
+      "dp": 14000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-028&search=true",
+      "printedEvolutionRequirements": [
+        "Blue 4 from Lv.6",
+        "[Digivolve] While you have [Yao Qinglan], [MarineBullmon]: Cost 6"
+      ],
+      "commit": "de703cd1ffc30418c62be1b12abf796241331d08"
     },
     {
       "cardId": "BT22-029",
@@ -1245,18 +2048,46 @@
       "batch": 8,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-029.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-029.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-029&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 0 from Lv.2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-030",
@@ -1279,25 +2110,55 @@
         "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Torajiro Asuka] from your hand without paying the cost.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn."
       },
       "module": "apps/api/src/cards/BT22/BT22-030.ts",
       "test": "apps/api/src/cards/BT22/BT22-030.test.ts",
       "batch": 8,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-030.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-030.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 2000,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 2000,
+      "forms": [
+        "Stnd.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Entertainment"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 1",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-030&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 0 from Lv.2",
+        "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-031",
@@ -1333,18 +2194,48 @@
       "batch": 8,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-031.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-031.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow",
+        "Black"
+      ],
+      "playCost": 5,
+      "dp": 2000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-031&search=true",
+      "printedEvolutionRequirements": [
+        "YellowBlack 3 from Lv.3",
+        "[Digivolve] Lv.4 w/[Numemon] in name or Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-032",
@@ -1375,18 +2266,46 @@
       "batch": 8,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-032.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-032.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-032&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 2 from Lv.3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-033",
@@ -1414,25 +2333,57 @@
         "main": "[App Fusion] [Musimon] & [Recomon] & [Mcmon]: Cost 0\n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP for the turn.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, you may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Attacking] You may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost."
       },
       "module": "apps/api/src/cards/BT22/BT22-033.ts",
       "test": "apps/api/src/cards/BT22/BT22-033.test.ts",
       "batch": 9,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-033.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-033.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 3000,
+      "colors": [
+        "Yellow",
+        "Blue"
+      ],
+      "playCost": 6,
+      "dp": 6000,
+      "forms": [
+        "Sup.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Entertainment"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 2",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-033&search=true",
+      "printedEvolutionRequirements": [
+        "YellowBlue 3 from Lv.3",
+        "Multicolor 3 from Stnd.",
+        "[App Fusion] [Musimon] & [Recomon] & [Mcmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-034",
@@ -1463,18 +2414,47 @@
       "batch": 9,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-034.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-034.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-034&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 2 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "427a757dadb19ac83923193e01f0d59fb742a0ee"
     },
     {
       "cardId": "BT22-035",
@@ -1502,25 +2482,57 @@
         "main": "[App Fusion] [Mediamon] & [Dreammon]: Cost 0\n\n＜Alliance＞ \n[On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, you may play 1 play cost 4 or lower card with the [Appmon] trait from your hand without paying the cost.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Linking] To 1 of your opponent's Digimon, give -4000 DP for the turn for each of your Digimon with the [Appmon] trait."
       },
       "module": "apps/api/src/cards/BT22/BT22-035.ts",
       "test": "apps/api/src/cards/BT22/BT22-035.test.ts",
       "batch": 9,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-035.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-035.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 4000,
+      "colors": [
+        "Yellow",
+        "Black"
+      ],
+      "playCost": 8,
+      "dp": 8000,
+      "forms": [
+        "Ult.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Entertainment"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 3",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-035&search=true",
+      "printedEvolutionRequirements": [
+        "YellowBlack 4 from Lv.4",
+        "Multicolor 4 from Sup.",
+        "[App Fusion] [Mediamon] & [Dreammon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-036",
@@ -1551,18 +2563,46 @@
       "batch": 9,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-036.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-036.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-036&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 3 from Lv.4"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-037",
@@ -1593,18 +2633,47 @@
       "batch": 10,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-037.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-037.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-037&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 3 from Lv.4",
+        "[Digivolve] Lv.4 w/[CS] trait: Cost 3"
+      ],
+      "commit": "d5a5acf28913d49b813ef6fefcdd4c15615cf20d"
     },
     {
       "cardId": "BT22-038",
@@ -1636,18 +2705,47 @@
       "batch": 10,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-038.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-038.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 8,
+      "dp": 8000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-038&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 4 from Lv.4",
+        "[Digivolve] [Numemon]: Cost 3/Lv.4 w/[DM] trait: Cost 4"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-039",
@@ -1677,18 +2775,50 @@
       "batch": 10,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-039.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-039.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow",
+        "White"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "God",
+        "Appmon"
+      ],
+      "attributes": [
+        "God"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-039&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 4 from Lv.5",
+        "Multicolor 4 from Ult.",
+        "[App Fusion] [Entermon] & [Fakemon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve"
+      ],
+      "commit": "427a757dadb19ac83923193e01f0d59fb742a0ee"
     },
     {
       "cardId": "BT22-040",
@@ -1719,18 +2849,46 @@
       "batch": 10,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-040.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-040.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 11,
+      "dp": 11000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-040&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 3 from Lv.5"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-041",
@@ -1762,18 +2920,47 @@
       "batch": 11,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-041.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-041.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-041&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 4 from Lv.5",
+        "[Digivolve] [Chirinmon]/Lv.5 w/[CS] trait: Cost 3"
+      ],
+      "commit": "d5a5acf28913d49b813ef6fefcdd4c15615cf20d"
     },
     {
       "cardId": "BT22-042",
@@ -1804,18 +2991,47 @@
       "batch": 11,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-042.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-042.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 14,
+      "dp": 14000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-042&search=true",
+      "printedEvolutionRequirements": [
+        "Yellow 4 from Lv.6",
+        "[Digivolve] While you have [Arisa Kinosaki], [Chaperomon]: Cost 6"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-043",
@@ -1851,18 +3067,48 @@
       "batch": 11,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-043.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-043.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-043&search=true",
+      "printedEvolutionRequirements": [
+        "GreenYellow 1 from Lv.2",
+        "[Digivolve] Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-044",
@@ -1898,18 +3144,48 @@
       "batch": 11,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-044.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-044.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green",
+        "Red"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-044&search=true",
+      "printedEvolutionRequirements": [
+        "GreenRed 1 from Lv.2",
+        "[Digivolve] Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "commit": "a27dcd977082de83be56cdf1194f9c22e5240b65"
     },
     {
       "cardId": "BT22-045",
@@ -1939,18 +3215,47 @@
       "batch": 12,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-045.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-045.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green"
+      ],
+      "playCost": 4,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-045&search=true",
+      "printedEvolutionRequirements": [
+        "Green 2 from Lv.3",
+        "[Digivolve] [Gammamon]: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-046",
@@ -1986,18 +3291,48 @@
       "batch": 12,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-046.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-046.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "playCost": 5,
+      "dp": 6000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-046&search=true",
+      "printedEvolutionRequirements": [
+        "GreenYellow 3 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-047",
@@ -2028,18 +3363,47 @@
       "batch": 12,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-047.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-047.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green"
+      ],
+      "playCost": 6,
+      "dp": 6000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-047&search=true",
+      "printedEvolutionRequirements": [
+        "Green 2 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-048",
@@ -2075,18 +3439,48 @@
       "batch": 12,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-048.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-048.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green",
+        "Red"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-048&search=true",
+      "printedEvolutionRequirements": [
+        "GreenRed 3 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-049",
@@ -2108,7 +3502,7 @@
         }
       ],
       "printedClauses": {
-        "main": "[Digivolve] Lv.3 w/[DM] trait: Cost 3 \n\n[End of Your Turn] [Once Per Turn] By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards, it may digivolve into a Digimon card with the [Ver.2] trait in the hand or trash.",
+        "main": "[Digivolve] Lv.3 w/[DM] trait: Cost 2 \n\n[End of Your Turn] [Once Per Turn] By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards, it may digivolve into a Digimon card with the [Ver.2] trait in the hand or trash.",
         "inherited": "＜Piercing＞",
         "security": "",
         "link": ""
@@ -2118,18 +3512,47 @@
       "batch": 13,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-049.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-049.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green"
+      ],
+      "playCost": 3,
+      "dp": 3000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-049&search=true",
+      "printedEvolutionRequirements": [
+        "Green 2 from Lv.3",
+        "[Digivolve] Lv.3 w/[DM] trait: Cost 2"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-050",
@@ -2152,25 +3575,55 @@
         "main": "[Security] At the end of the battle, play this card without paying the cost.  [On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Linking] Suspend 1 of your opponent's Digimon."
       },
       "module": "apps/api/src/cards/BT22/BT22-050.ts",
       "test": "apps/api/src/cards/BT22/BT22-050.test.ts",
       "batch": 13,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-050.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-050.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 3000,
+      "colors": [
+        "Green"
+      ],
+      "playCost": 4,
+      "dp": 4000,
+      "forms": [
+        "Sup.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Tool"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 2",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-050&search=true",
+      "printedEvolutionRequirements": [
+        "Green 2 from Lv.3",
+        "Multicolor 2 from Stnd."
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-051",
@@ -2201,18 +3654,47 @@
       "batch": 13,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-051.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-051.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green"
+      ],
+      "playCost": 8,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-051&search=true",
+      "printedEvolutionRequirements": [
+        "Green 3 from Lv.4",
+        "[Digivolve] Lv.4 w/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-052",
@@ -2244,18 +3726,47 @@
       "batch": 13,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-052.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-052.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Green"
+      ],
+      "playCost": 7,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-052&search=true",
+      "printedEvolutionRequirements": [
+        "Green 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-053",
@@ -2286,18 +3797,47 @@
       "batch": 14,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-053.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-053.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Unknown"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-053&search=true",
+      "printedEvolutionRequirements": [
+        "Black 0 from Lv.2",
+        "[Digivolve] Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-054",
@@ -2333,18 +3873,48 @@
       "batch": 14,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-054.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-054.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-054&search=true",
+      "printedEvolutionRequirements": [
+        "BlackYellow 1 from Lv.2",
+        "[Digivolve] Lv.2 w/[CS] trait: Cost 0"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-055",
@@ -2367,25 +3937,55 @@
         "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] By trashing 1 Digimon card with the [Appmon] trait from your hand, ＜Draw 2＞",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "＜Blocker＞"
       },
       "module": "apps/api/src/cards/BT22/BT22-055.ts",
       "test": "apps/api/src/cards/BT22/BT22-055.test.ts",
       "batch": 14,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-055.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-055.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 2000,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Stnd.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Tool"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 2",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-055&search=true",
+      "printedEvolutionRequirements": [
+        "Black 0 from Lv.2",
+        "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-056",
@@ -2421,18 +4021,48 @@
       "batch": 14,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-056.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-056.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-056&search=true",
+      "printedEvolutionRequirements": [
+        "BlackYellow 3 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-057",
@@ -2463,18 +4093,47 @@
       "batch": 15,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-057.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-057.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 5,
+      "dp": 5000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Unknown"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-057&search=true",
+      "printedEvolutionRequirements": [
+        "Black 2 from Lv.3",
+        "[Digivolve] Lv.3 w/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-058",
@@ -2497,25 +4156,55 @@
         "main": "[All Turns] [Once Per Turn] When this Digimon gets linked, your opponent's effects can't return 1 of your Digimon to hands or decks until their turn ends.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "[When Linking] ＜De-Digivolve 1＞ 1 of your opponent's Digimon."
       },
       "module": "apps/api/src/cards/BT22/BT22-058.ts",
       "test": "apps/api/src/cards/BT22/BT22-058.test.ts",
       "batch": 15,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-058.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-058.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 3000,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 4,
+      "dp": 4000,
+      "forms": [
+        "Sup.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Entertainment"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 2",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-058&search=true",
+      "printedEvolutionRequirements": [
+        "Black 2 from Lv.3",
+        "Multicolor 2 from Stnd."
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-059",
@@ -2546,18 +4235,47 @@
       "batch": 15,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-059.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-059.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Unknown"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-059&search=true",
+      "printedEvolutionRequirements": [
+        "Black 3 from Lv.4",
+        "[Digivolve] Lv.4 w/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-060",
@@ -2589,18 +4307,47 @@
       "batch": 15,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-060.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-060.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 6,
+      "dp": 6000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-060&search=true",
+      "printedEvolutionRequirements": [
+        "Black 3 from Lv.4",
+        "[Digivolve] Lv.4 w/[DM] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-061",
@@ -2632,18 +4379,47 @@
       "batch": 16,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-061.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-061.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 8,
+      "dp": 8000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-061&search=true",
+      "printedEvolutionRequirements": [
+        "Black 4 from Lv.4",
+        "[Digivolve] [Vegiemon]: Cost 3/Lv.4 w/[DM] trait: Cost 4"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-062",
@@ -2680,18 +4456,48 @@
       "batch": 16,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-062.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-062.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Green"
+      ],
+      "playCost": 8,
+      "dp": 8000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-062&search=true",
+      "printedEvolutionRequirements": [
+        "BlackGreen 4 from Lv.4",
+        "[Digivolve] Lv.5 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 1"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-063",
@@ -2729,18 +4535,48 @@
       "batch": 16,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-063.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-063.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-063&search=true",
+      "printedEvolutionRequirements": [
+        "BlackYellow 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[CS] trait: Cost 3/While you have 3 or fewer security cards, [Kyoko Kuremi]: Cost 5"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-064",
@@ -2771,18 +4607,47 @@
       "batch": 16,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-064.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-064.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Unknown"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-064&search=true",
+      "printedEvolutionRequirements": [
+        "Black 4 from Lv.5",
+        "[Digivolve] [Infermon]/Lv.5 w/[CS] trait: Cost 3"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-065",
@@ -2818,18 +4683,48 @@
       "batch": 17,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-065.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-065.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "playCost": 9,
+      "dp": 8000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-065&search=true",
+      "printedEvolutionRequirements": [
+        "BlackYellow 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-066",
@@ -2866,18 +4761,48 @@
       "batch": 17,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-066.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-066.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Green"
+      ],
+      "playCost": 7,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-066&search=true",
+      "printedEvolutionRequirements": [
+        "BlackGreen 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[DM] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-067",
@@ -2914,18 +4839,48 @@
       "batch": 17,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-067.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-067.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Red"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-067&search=true",
+      "printedEvolutionRequirements": [
+        "BlackRed 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[CS] trait: Cost 3/While you have 3 or fewer security cards, [Rie Kishibe]: Cost 5"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-068",
@@ -2961,18 +4916,48 @@
       "batch": 17,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-068.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-068.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Green"
+      ],
+      "playCost": 3,
+      "dp": 2000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-068&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleGreen 1 from Lv.2",
+        "[Digivolve] [Koromon]/[Agumon]: Cost 0"
+      ],
+      "commit": "b432b5c5b932157d3eae63be3adc9b3878e52eb9"
     },
     {
       "cardId": "BT22-069",
@@ -3009,18 +4994,48 @@
       "batch": 18,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-069.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-069.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-069&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleBlue 1 from Lv.2",
+        "[Digivolve] Lv.2 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 0"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-070",
@@ -3056,18 +5071,48 @@
       "batch": 18,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-070.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-070.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Green"
+      ],
+      "playCost": 6,
+      "dp": 6000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-070&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleGreen 3 from Lv.3",
+        "[Digivolve] Lv.4 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 0"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-071",
@@ -3103,18 +5148,48 @@
       "batch": 18,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-071.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-071.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "playCost": 5,
+      "dp": 6000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-071&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleRed 3 from Lv.3",
+        "[Digivolve] Lv.3 w/[Flame]/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-072",
@@ -3151,18 +5226,48 @@
       "batch": 18,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-072.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-072.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Blue"
+      ],
+      "playCost": 5,
+      "dp": 6000,
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-072&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleBlue 3 from Lv.3",
+        "[Digivolve] Lv.3 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 2"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-073",
@@ -3199,18 +5304,48 @@
       "batch": 19,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-073.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-073.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Blue"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-073&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleBlue 4 from Lv.4",
+        "[Digivolve] Lv.4 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 3"
+      ],
+      "commit": "454fac2c69245bcb3b2316854d5041c6fd6a80dc"
     },
     {
       "cardId": "BT22-074",
@@ -3246,18 +5381,48 @@
       "batch": 19,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-074.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-074.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "playCost": 7,
+      "dp": 7000,
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-074&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleRed 4 from Lv.4",
+        "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3"
+      ],
+      "commit": "454fac2c69245bcb3b2316854d5041c6fd6a80dc"
     },
     {
       "cardId": "BT22-075",
@@ -3285,25 +5450,57 @@
         "main": "[App Fusion] [Roamon] & [Effecmon]: Cost 0\n\n＜Retaliation＞ \n[On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your trash or this Digimon's digivolution cards to this Digimon without paying the cost.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, you may play 1 of this Digimon's link cards without paying the cost.",
         "inherited": "",
         "security": "",
-        "link": ""
+        "link": "＜Scapegoat＞"
       },
       "module": "apps/api/src/cards/BT22/BT22-075.ts",
       "test": "apps/api/src/cards/BT22/BT22-075.test.ts",
       "batch": 19,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-075.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-075.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": 4000,
+      "colors": [
+        "Purple",
+        "Green"
+      ],
+      "playCost": 8,
+      "dp": 8000,
+      "forms": [
+        "Ult.",
+        "Appmon"
+      ],
+      "attributes": [
+        "Tool"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": "[Link] [Appmon] trait: Cost 3",
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-075&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleGreen 4 from Lv.4",
+        "Multicolor 4 from Sup.",
+        "[App Fusion] [Roamon] & [Effecmon]: Cost 0 If 2 such cards are linked together, stack the link card on top and digivolve"
+      ],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-076",
@@ -3340,18 +5537,48 @@
       "batch": 19,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-076.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-076.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Yellow"
+      ],
+      "playCost": 13,
+      "dp": 13000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-076&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleYellow 5 from Lv.5",
+        "[Digivolve] Lv.5 w/[DM] trait: Cost 5"
+      ],
+      "commit": "454fac2c69245bcb3b2316854d5041c6fd6a80dc"
     },
     {
       "cardId": "BT22-077",
@@ -3389,18 +5616,48 @@
       "batch": 20,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-077.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-077.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Blue"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-077&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleBlue 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-078",
@@ -3436,18 +5693,48 @@
       "batch": 20,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-078.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-078.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "playCost": 12,
+      "dp": 12000,
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-078&search=true",
+      "printedEvolutionRequirements": [
+        "PurpleRed 4 from Lv.5",
+        "[Digivolve] Lv.5 w/[Flame]/[CS] trait: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-079",
@@ -3471,18 +5758,44 @@
       "batch": 20,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-079.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-079.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 3,
+      "dp": 1000,
+      "forms": [
+        "Eater"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 50,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-079&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "52da0b5bb7a5ad682fb24cfa38e5fb19bf91e8a4"
     },
     {
       "cardId": "BT22-080",
@@ -3506,18 +5819,46 @@
       "batch": 20,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-080.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-080.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 6,
+      "dp": 6000,
+      "forms": [
+        "Eater"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-080&search=true",
+      "printedEvolutionRequirements": [
+        "[Digivolve] [Eater (Species Form)]: Cost 2"
+      ],
+      "commit": "d5a5acf28913d49b813ef6fefcdd4c15615cf20d"
     },
     {
       "cardId": "BT22-081",
@@ -3541,18 +5882,46 @@
       "batch": 21,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-081.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-081.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 6,
+      "dp": 7000,
+      "forms": [
+        "Eater"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-081&search=true",
+      "printedEvolutionRequirements": [
+        "[Digivolve] [Yuuko Kamishiro]: Cost 3"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-082",
@@ -3576,18 +5945,46 @@
       "batch": 21,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-082.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-082.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 8,
+      "dp": 10000,
+      "forms": [
+        "Eater"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-082&search=true",
+      "printedEvolutionRequirements": [
+        "[Digivolve] [Arata Sanada]: Cost 4"
+      ],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-083",
@@ -3611,18 +6008,45 @@
       "batch": 21,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-083.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-083.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-083&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-084",
@@ -3646,18 +6070,45 @@
       "batch": 21,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-084.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-084.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Red",
+        "Blue"
+      ],
+      "playCost": 5,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-084&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-085",
@@ -3681,18 +6132,44 @@
       "batch": 22,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-085.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-085.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-085&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-086",
@@ -3716,18 +6193,44 @@
       "batch": 22,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-086.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-086.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-086&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "cea2f5b398918a4e2d8c22fa5ab991d6955ca1cb"
     },
     {
       "cardId": "BT22-087",
@@ -3752,18 +6255,44 @@
       "batch": 22,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-087.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-087.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-087&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-088",
@@ -3787,18 +6316,44 @@
       "batch": 22,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-088.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-088.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-088&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-089",
@@ -3822,18 +6377,45 @@
       "batch": 23,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-089.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-089.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow",
+        "Purple"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-089&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "d5a5acf28913d49b813ef6fefcdd4c15615cf20d"
     },
     {
       "cardId": "BT22-090",
@@ -3857,18 +6439,44 @@
       "batch": 23,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-090.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-090.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-090&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-091",
@@ -3892,18 +6500,44 @@
       "batch": 23,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-091.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-091.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-091&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-092",
@@ -3927,18 +6561,44 @@
       "batch": 23,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-092.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-092.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-092&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "d5a5acf28913d49b813ef6fefcdd4c15615cf20d"
     },
     {
       "cardId": "BT22-093",
@@ -3962,18 +6622,44 @@
       "batch": 24,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-093.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-093.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-093&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "d5a5acf28913d49b813ef6fefcdd4c15615cf20d"
     },
     {
       "cardId": "BT22-094",
@@ -3997,18 +6683,44 @@
       "batch": 24,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-094.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-094.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-094&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-095",
@@ -4032,18 +6744,44 @@
       "batch": 24,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-095.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-095.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "White"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-095&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-096",
@@ -4067,18 +6805,44 @@
       "batch": 24,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-096.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-096.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Blue"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-096&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-097",
@@ -4102,18 +6866,44 @@
       "batch": 25,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-097.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-097.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 2,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-097&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-098",
@@ -4137,18 +6927,44 @@
       "batch": 25,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-098.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-098.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-098&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-099",
@@ -4172,18 +6988,45 @@
       "batch": 25,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-099.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-099.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-099&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "707cb7fcc92ef6e3af5e30b7ba2de15732768b55"
     },
     {
       "cardId": "BT22-100",
@@ -4207,18 +7050,44 @@
       "batch": 25,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-100.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-100.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black"
+      ],
+      "playCost": 2,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-100&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-101",
@@ -4242,18 +7111,45 @@
       "batch": 26,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-101.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-101.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "playCost": 5,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-101&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     },
     {
       "cardId": "BT22-102",
@@ -4278,18 +7174,45 @@
       "batch": 26,
       "historicalScore": 10,
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavior": 0,
-        "peerStack": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peerStack": 2,
         "delivery": 0
       },
-      "status": "pending",
+      "status": "verified-pending-delivery",
       "evidence": "evidence/BT22-102.md",
-      "commands": [],
-      "gaps": [
-        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
-      ]
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22/BT22-102.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Focused behavioral audit; exact results and clause coverage are recorded in the per-card evidence file."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+          "result": "passed",
+          "purpose": "Collection integration: 103 files and 647 tests passed."
+        }
+      ],
+      "gaps": [],
+      "linkDp": null,
+      "colors": [
+        "Purple",
+        "Blue"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "maxCountInDeck": 4,
+      "linkRequirement": null,
+      "officialSource": "https://world.digimoncard.com/cards/?card_no=BT22-102&search=true",
+      "printedEvolutionRequirements": [],
+      "commit": "073e9a0f5db26eb816eb930807ef361d9b579acb"
     }
   ],
   "baselineRun": {
@@ -4303,5 +7226,6 @@
       "BT22-007 On Play deletion leaves 2 opponents instead of 1",
       "BT22-049 expected -6 memory, observed -3; inspect Vademon cost reduction"
     ]
-  }
+  },
+  "catalogCheckpoint": "58b1a5ba5"
 }

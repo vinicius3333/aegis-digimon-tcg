@@ -13,12 +13,12 @@ The lead compared all 102 unique BT22 entries against the [official English coll
 | BT22-011 | Main play effect accepts Flame or CS, not only Flame.                                               | [BlueMeramon](https://world.digimoncard.com/cards/?card_no=BT22-011&search=true) |
 | BT22-014 | Restore the rule that its name also has Greymon.                                                    | [Gaiomon](https://world.digimoncard.com/cards/?card_no=BT22-014&search=true)     |
 | BT22-015 | Restore CS level 6 evolution costing 5 and the named Greymon/Garurumon level 6 DNA route costing 0. | [Omnimon](https://world.digimoncard.com/cards/?card_no=BT22-015&search=true)     |
-| BT22-016 | Restore Appmon link costing 1 and correct the search trait to Awakening.                            | [Tubemon](https://world.digimoncard.com/cards/?card_no=BT22-016&search=true)     |
-| BT22-030 | Restore Appmon link costing 1.                                                                      | [Roamon](https://world.digimoncard.com/cards/?card_no=BT22-030&search=true)      |
-| BT22-033 | Restore Appmon link costing 2.                                                                      | [Fakemon](https://world.digimoncard.com/cards/?card_no=BT22-033&search=true)     |
+| BT22-016 | Restore Appmon link costing 1 and correct the search trait to Awakening.                            | [Mcmon](https://world.digimoncard.com/cards/?card_no=BT22-016&search=true)     |
+| BT22-030 | Restore Appmon link costing 1.                                                                      | [Musimon](https://world.digimoncard.com/cards/?card_no=BT22-030&search=true)      |
+| BT22-033 | Restore Appmon link costing 2.                                                                      | [Mediamon](https://world.digimoncard.com/cards/?card_no=BT22-033&search=true)     |
 | BT22-035 | Restore Appmon link costing 3.                                                                      | [Entermon](https://world.digimoncard.com/cards/?card_no=BT22-035&search=true)    |
 | BT22-049 | Correct the DM level 3 evolution cost from 3 to 2. The English card image independently confirms 2. | [Vegiemon](https://world.digimoncard.com/cards/?card_no=BT22-049&search=true)    |
-| BT22-075 | Restore Appmon link costing 3.                                                                      | [Scopemon](https://world.digimoncard.com/cards/?card_no=BT22-075&search=true)    |
+| BT22-075 | Restore Appmon link costing 3.                                                                      | [Fakemon](https://world.digimoncard.com/cards/?card_no=BT22-075&search=true)    |
 
 Form-based evolution routes identified for direct IR verification: BT22-009, 033, 035, 039, 050, 058, and 075. They must be expressed using exact form traits and proven with differently colored legal bases and invalid near peers. Merely preserving the ordinary color/level requirement is insufficient.
 
