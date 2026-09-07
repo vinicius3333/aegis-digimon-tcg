@@ -92,6 +92,34 @@ describe("BT21-033 compiled implementation", () => {
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
   });
 
+  it("adds at most one card for each category when one revealed card matches both", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-033", as: "floramon" }],
+          deck: [
+            { card: "BT21-038", as: "overlapAvianWG" },
+            { card: "BT1-012", as: "birdOnly" },
+            { card: "BT21-033", as: "wgOnly" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("floramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    const handIds = s.state.players[0]!.hand.map((card) => card.cardId);
+    expect(handIds).toHaveLength(2);
+    expect(handIds.some((cardId) => ["BT21-038", "BT1-012"].includes(cardId))).toBe(true);
+    expect(handIds.some((cardId) => ["BT21-038", "BT21-033"].includes(cardId))).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(["BT21-038", "BT1-012", "BT21-033"]).toContain(s.state.players[0]!.deck[0]!.cardId);
+  });
+
   it("adds only the available matching category and bottoms every other revealed card", async () => {
     const s = setupEngine(
       {
@@ -210,9 +238,10 @@ describe("BT21-033 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
     expect(s.perm("floramon").topCard.instanceId).toBe(s.inst("kiwimon").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);
   });
 
   it("carries Jamming through a public Floramon-to-Kiwimon evolution", async () => {
