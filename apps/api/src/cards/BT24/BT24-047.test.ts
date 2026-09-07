@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,21 @@ import { compiled as BT24_047 } from "./BT24-047.js";
 import "../index.js";
 
 describe("BT24-047 Kokatorimon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-047")).toMatchObject({
+      cardId: "BT24-047",
+      nameEn: "Kokatorimon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Giant Bird"],
+    });
+  });
+
   it("keeps the unsuspend and follow-up attack on the same qualifying Digimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = BT24_047.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
@@ -58,6 +73,29 @@ describe("BT24-047 Kokatorimon", () => {
 
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+  });
+
+  it("resolves opponent suspension from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-047", as: "kokatorimon" }],
+          battleArea: [{ card: "BT24-044", as: "avian", suspended: true }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kokatorimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("avian").isSuspended).toBe(true);
   });
 
   it("inherited effect gains memory only when its own host wins and survives", async () => {
