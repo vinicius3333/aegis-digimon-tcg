@@ -178,6 +178,8 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     });
     s.state.turnSeat = 1;
     await s.ready();
+    s.perm("option").placedByEffect = true;
+    const removedId = s.inst("removed").instanceId;
     expect(s.engine.applyIntent(1, {
       type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
@@ -186,8 +188,41 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("removed").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(removedId);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("nonMatching").instanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("nonMatching").instanceId);
+  });
+
+  it("uses an aged Delay option after a public security battle", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-093", as: "option" },
+            { card: "BT24-014", as: "host", under: [{ card: "BT24-034", as: "stacked" }] },
+          ],
+          security: [{ card: "BT1-013", as: "removed" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    s.perm("option").placedByEffect = true;
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stacked").instanceId);
+
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("stacked").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
   });
 });
