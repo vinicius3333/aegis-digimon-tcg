@@ -9,8 +9,7 @@ import "../index.js";
 function milledInstanceIds(s: ReturnType<typeof setupEngine>, expected: string[]): string[] {
   const expectedSet = new Set(expected);
   return s.events
-    .filter((event) => event.kind === "cardsMoved" && event.to === "trash")
-    .flatMap((event) => event.instanceIds)
+    .flatMap((event) => (event.kind === "cardsMoved" && event.to === "trash" ? event.instanceIds : []))
     .filter((instanceId) => expectedSet.has(instanceId));
 }
 

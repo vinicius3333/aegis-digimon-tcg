@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -10,7 +10,7 @@ import "../index.js";
 function handMainEffectKey(s: ReturnType<typeof setupEngine>, instanceId: string): string | undefined {
   const card = s.state.players[0]!.hand.find((entry) => entry.instanceId === instanceId);
   if (!card) return undefined;
-  const source = (s.engine as unknown as { cardSourceOf(card: typeof card): CardSource }).cardSourceOf(card);
+  const source = (s.engine as unknown as { cardSourceOf(card: CardInstance): CardSource }).cardSourceOf(card);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-016/"))
     ?.effectKey;
 }

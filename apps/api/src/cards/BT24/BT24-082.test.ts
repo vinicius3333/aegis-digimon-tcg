@@ -171,7 +171,7 @@ describe("BT24-082 Owen Dreadnought", () => {
     s.state.turnSeat = 0;
     s.state.memory = 5;
     await s.ready();
-    const evolvedBaseDp = getCardDefinition("BT24-012").dp;
+    const evolvedBaseDp = getCardDefinition("BT24-012")!.dp;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

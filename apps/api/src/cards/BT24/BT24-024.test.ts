@@ -149,7 +149,7 @@ describe("BT24-024 Submarimon", () => {
     await s.ready();
     const hostPermanentId = s.perm("submarimon").permanentId;
     const armorInstanceId = s.perm("submarimon").topCard.instanceId;
-    const sourceInstanceId = s.perm("submarimon").stack[0].instanceId;
+    const sourceInstanceId = s.perm("submarimon").stack[0]!.instanceId;
 
     expect(s.engine.applyIntent(1, {
       type: "attack",
