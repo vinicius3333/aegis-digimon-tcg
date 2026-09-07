@@ -108,8 +108,8 @@ describe("BT25-072 Shutmon", () => {
         0: {
           hand: [{ card: CARD_ID, as: "shutmon" }],
           battleArea: [
-            { card: "BT25-070", as: "base", under: [VALID_LINK] },
-            { card: "BT25-070", as: "other", under: ["BT21-009"] },
+            { card: "BT25-070", as: "base", under: ["BT21-053", VALID_LINK] },
+            { card: "BT25-070", as: "other", under: ["BT21-053", "BT21-054"] },
           ],
         },
         1: { battleArea: [{ card: "BT25-081", as: "opponent" }] },
@@ -123,9 +123,10 @@ describe("BT25-072 Shutmon", () => {
     });
     await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
 
-    expect(s.perm("base").linked.map((card) => card.cardId)).toEqual([VALID_LINK]);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-070"]);
-    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT21-009"]);
+    expect(s.perm("base").linked.map((card) => card.cardId)).toEqual(["BT21-053"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT25-070");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-041", "BT25-070"]);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT21-053", "BT21-054"]);
     expect(s.state.memory).toBe(0);
   });
 
@@ -204,6 +205,53 @@ describe("BT25-072 Shutmon", () => {
     await settle(() => s.perm("otherHost").linked.some((card) => card.cardId === CARD_ID));
 
     expect(observe(s.engine).hasRestriction(s.perm("opponent"), "digivolve")).toBe(false);
+  });
+
+  it.each([
+    ["black", "BT10-061"],
+    ["purple", "BT10-074"],
+  ] as const)("uses the ordinary %s Lv4 evolution at exact cost 4", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: CARD_ID, as: "shutmon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shutmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard?.cardId).toBe(CARD_ID);
+  });
+
+  it("App Fuses the printed Logamon and Timemon pair at zero cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-070", as: "logamon", linked: [{ card: "BT21-059", as: "timemon" }] }],
+          hand: [{ card: CARD_ID, as: "shutmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("logamon").permanentId,
+        instanceId: s.inst("shutmon").instanceId,
+        appFusionLinkInstanceId: s.inst("timemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("logamon").topCard.cardId === CARD_ID);
+    expect(s.perm("logamon").stack.map((card) => card.cardId)).toEqual(["BT21-059"]);
+    expect(s.perm("logamon").linked.map((card) => card.cardId)).toContain("BT25-070");
+    expect(s.state.memory).toBe(0);
   });
 
   it("linked Shutmon's printed When Linking effect restricts two opposing Digimon/Tamers from unsuspending", async () => {

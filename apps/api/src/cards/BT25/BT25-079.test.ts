@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CardKind, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import "./BT25-079.js";
@@ -34,6 +34,26 @@ describe("BT25-079 Hyemon", () => {
     expect(policy.canGainMemoryFromEffect(1, ["Digimon"])).toBe(false);
     expect(policy.canGainMemoryFromEffect(0, ["Tamer"])).toBe(true);
     expect(policy.canGainMemoryFromEffect(1, ["Tamer"])).toBe(true);
+  });
+
+  it("ordinary-digivolves from a purple Lv.2 source at cost 0 and rejects a wrong color", async () => {
+    const ordinary = setupEngine({ 0: { breeding: { card: "BT10-006", as: "purpleBase" }, hand: [{ card: "BT25-079", as: "hyemon" }] } });
+    ordinary.state.memory = 2;
+    expect(ordinary.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: ordinary.perm("purpleBase").permanentId,
+      instanceId: ordinary.inst("hyemon").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => ordinary.perm("purpleBase").topCard?.cardId === "BT25-079");
+    expect(ordinary.perm("purpleBase").topCard?.cardId).toBe("BT25-079");
+    expect(ordinary.state.memory).toBe(2);
+
+    const wrongColor = setupEngine({ 0: { breeding: { card: "BT1-001", as: "redBase" }, hand: [{ card: "BT25-079", as: "hyemon" }] } });
+    expect(wrongColor.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: wrongColor.perm("redBase").permanentId,
+      instanceId: wrongColor.inst("hyemon").instanceId,
+    })).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("allows a Tamer's memory effect while that Tamer is also treated as a Digimon (KB Q6381)", async () => {

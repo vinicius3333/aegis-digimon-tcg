@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT25-075 (Vulcanusmon).
 // runtime-effect fix:
 // - Link target count: 2 cards (up to 2), upTo:true; KB Q6371: must have <Link> requirement.
@@ -204,6 +203,18 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    {
+      level: 5,
+      colors: ["Black"],
+      cost: 4,
+      isAlternate: false,
+    },
+    {
+      level: 5,
+      colors: ["Red"],
+      cost: 4,
+      isAlternate: false,
+    },
     {
       level: 5,
       traits: ["TS"],

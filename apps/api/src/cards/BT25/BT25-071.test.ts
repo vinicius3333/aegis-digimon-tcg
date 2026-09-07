@@ -16,7 +16,10 @@ describe("BT25-071 Orochimon", () => {
       dp: 6000,
       types: ["Dark Dragon", "Titan", "TS"],
     });
-    expect(BT25_071.digivolutionRequirement).toEqual([{ level: 4, traits: ["TS"], cost: 3, isAlternate: true }]);
+    expect(BT25_071.digivolutionRequirement).toEqual([
+      { level: 4, colors: ["Black"], cost: 3, isAlternate: false },
+      { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(BT25_071.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({
         kind: "Restrict",
@@ -98,7 +101,7 @@ describe("BT25-071 Orochimon", () => {
         type: "digivolve",
         permanentId: s.perm("tsLv4").permanentId,
         instanceId: s.inst("orochimon").instanceId,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(
@@ -106,6 +109,26 @@ describe("BT25-071 Orochimon", () => {
         s.perm("tsLv4").topCard.cardId === "BT25-071" && observe(s.engine).isRestricted(s.perm("opponent"), "attack"),
     );
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attack")).toBe(true);
+  });
+
+  it("supports the ordinary black Lv.4 route at cost 3 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({ 0: { battleArea: [{ card: "BT10-061", as: "blackBase" }], hand: [{ card: "BT25-071", as: "orochimon" }] } });
+    ordinary.state.memory = 4;
+    expect(ordinary.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: ordinary.perm("blackBase").permanentId,
+      instanceId: ordinary.inst("orochimon").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === "BT25-071");
+    expect(ordinary.state.memory).toBe(1);
+
+    const wrongColor = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: "BT25-071", as: "orochimon" }] } });
+    wrongColor.state.memory = 4;
+    expect(wrongColor.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: wrongColor.perm("redBase").permanentId,
+      instanceId: wrongColor.inst("orochimon").instanceId,
+    })).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("reacts only when Orochimon itself suspends, plays one eligible TS card, and bottoms the rest in order", async () => {
@@ -143,7 +166,7 @@ describe("BT25-071 Orochimon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-073", as: "host", under: ["BT25-071"] },
+            { card: "BT10-068", as: "host", under: ["BT25-071"] },
             { card: "BT25-071", as: "top" },
           ],
           deck: ["BT25-013", "BT1-013", "BT25-012", "BT25-013"],

@@ -123,6 +123,14 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      colors: ["Black"],
+      cost: 3,
+      isAlternate: false,
+    },
+  ],
 };
 
 registerIrCard("BT25-076", compiled);

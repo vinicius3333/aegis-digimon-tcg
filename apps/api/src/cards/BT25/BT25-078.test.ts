@@ -24,6 +24,7 @@ describe("BT25-078 Gazimon", () => {
     });
 
     expect(compiled?.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Purple"], cost: 0, isAlternate: false },
       { level: 2, texts: ["Three Musketeers"], cost: 0, isAlternate: true },
       { level: 2, traits: ["TS"], cost: 0, isAlternate: true },
     ]);
@@ -117,6 +118,61 @@ describe("BT25-078 Gazimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT25-081", "BT25-079"]);
   });
 
+  it("publicly ordinary-digivolves from a purple level-2 source for zero and rejects the wrong color", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT10-006", as: "purpleBase" }], hand: [{ card: CARD_ID, as: "gazimon" }] },
+    });
+    legal.state.memory = 2;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("purpleBase").permanentId,
+        instanceId: legal.inst("gazimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("purpleBase").topCard?.cardId === CARD_ID);
+    expect(legal.state.memory).toBe(2);
+    expect(legal.perm("purpleBase").stack.map((card) => card.cardId)).toEqual(["BT10-006"]);
+
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "BT1-001", as: "redBase" }], hand: [{ card: CARD_ID, as: "gazimon" }] },
+    });
+    wrongColor.state.memory = 2;
+    await wrongColor.ready();
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("gazimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(wrongColor.perm("redBase").topCard.cardId).toBe("BT1-001");
+    expect(wrongColor.state.memory).toBe(2);
+  });
+
+  it.each([
+    ["Three Musketeers text", "EX7-005", 1],
+    ["TS trait", "BT24-002", 2],
+  ] as const)("uses the %s alternate route for zero", async (_branch, source, requirementIndex) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: CARD_ID, as: "gazimon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gazimon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: requirementIndex,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("does not offer the placement branch for a text-only non-trait match", async () => {
     const s = setupEngine(
       {
@@ -142,6 +198,34 @@ describe("BT25-078 Gazimon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT24-088");
     expect(battlePermanent(s).stack).toHaveLength(0);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(0);
+  });
+
+  it("returns all three revealed non-matches to the deck bottom without adding a card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gazimon" }],
+          deck: [
+            { card: "BT25-081", as: "missOne" },
+            { card: "BT25-079", as: "missTwo" },
+            { card: "BT25-080", as: "missThree" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gazimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        battlePermanent(s).topCard?.cardId === CARD_ID &&
+        s.state.players[0]!.deck.map((card) => card.cardId).join(",") === "BT25-081,BT25-079,BT25-080",
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT25-081");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT25-081", "BT25-079", "BT25-080"]);
   });
 
   it("fires the same mutually exclusive search when moving from breeding", async () => {
@@ -191,6 +275,7 @@ describe("BT25-078 Gazimon", () => {
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("gazimon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === CARD_ID);

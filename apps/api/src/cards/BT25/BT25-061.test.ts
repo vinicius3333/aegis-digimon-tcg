@@ -65,6 +65,7 @@ describe("BT25-061 Offmon", () => {
         permanentId: legal.perm("base").permanentId,
         instanceId: legal.inst("offmon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.cardId === CARD_ID);
@@ -79,6 +80,34 @@ describe("BT25-061 Offmon", () => {
         permanentId: invalid.perm("plain").permanentId,
         instanceId: invalid.inst("offmon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("supports the ordinary black Lv.2 route at cost 0 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackBase" }, hand: [{ card: CARD_ID, as: "offmon" }] },
+    });
+    ordinary.state.memory = 2;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("offmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === CARD_ID);
+    expect(ordinary.state.memory).toBe(2);
+
+    const wrongColor = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redBase" }, hand: [{ card: CARD_ID, as: "offmon" }] },
+    });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("offmon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });

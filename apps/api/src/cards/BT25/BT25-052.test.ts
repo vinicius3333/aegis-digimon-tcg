@@ -203,4 +203,43 @@ describe("BT25-052 Logimon", () => {
     expect(s.perm("onmon").linked).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-010");
   });
+
+  it.each([
+    ["green", "BT25-047"],
+    ["red", "BT25-009"],
+  ] as const)("uses the ordinary %s Lv.3 evolution at cost 3", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "source" }], hand: [{ card: "BT25-052", as: "logimon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("logimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-052");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([source]);
+  });
+
+  it("rejects an invalid level source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-001", as: "egg" }], hand: [{ card: "BT25-052", as: "logimon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("logimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("egg").topCard.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-052");
+    expect(s.state.memory).toBe(5);
+  });
 });

@@ -131,11 +131,51 @@ describe("BT25-070 Logamon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT25-081"]);
   });
 
+  it("allows a public Main-link refusal without changing the candidate, cost, or once-per-turn opportunity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-070", as: "logamon" }],
+          trash: [{ card: "BT25-061", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const beforeTrash = s.state.players[0]!.trash.map((card) => card.instanceId);
+    const beforeLinked = s.perm("logamon").linked.map((card) => card.instanceId);
+    const [effect] = observe(s.engine).activatableEffects(s.perm("logamon")) as { effectKey: string }[];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("logamon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(beforeTrash);
+    expect(s.perm("logamon").linked.map((card) => card.instanceId)).toEqual(beforeLinked);
+    expect(observe(s.engine).activatableEffects(s.perm("logamon"))).toHaveLength(0);
+  });
+
   it("accepts a valid Link card from this Logamon's stack, but never another Digimon's stack", async () => {
     const valid = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-070", as: "logamon", under: [{ card: "BT21-009", as: "stackLink" }] }],
+          battleArea: [{ card: "BT25-070", as: "logamon", under: [{ card: "BT25-061", as: "stackLink" }] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -150,7 +190,11 @@ describe("BT25-070 Logamon", () => {
         0: {
           battleArea: [
             { card: "BT25-070", as: "logamon" },
-            { card: "BT25-071", as: "other", under: [{ card: "BT21-009", as: "wrongStack" }] },
+            {
+              card: "BT25-071",
+              as: "other",
+              under: [{ card: "BT25-066", as: "wrongStack" }],
+            },
           ],
         },
       },
@@ -159,9 +203,68 @@ describe("BT25-070 Logamon", () => {
     await wrongHost.ready();
     await advance(wrongHost.engine).fire(EffectTiming.OnDeclaration, wrongHost.perm("logamon"));
     expect(wrongHost.perm("logamon").linked).toHaveLength(0);
-    expect(wrongHost.perm("other").stack.map((card) => card.instanceId)).toContain(
-      wrongHost.inst("wrongStack").instanceId,
-    );
+    expect(wrongHost.perm("other").stack.map((card) => card.cardId)).toEqual(["BT25-066"]);
+  });
+
+  it.each([
+    ["black", "BT25-062"],
+    ["purple", "BT24-009"],
+  ] as const)("publicly ordinary-digivolves from a legal %s level-3 source for 3", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "source" }], hand: [{ card: "BT25-070", as: "logamon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("logamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-070");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([source]);
+  });
+
+  it("rejects the wrong-color level-3 source without moving or charging it", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-009", as: "redSource" }], hand: [{ card: "BT25-070", as: "logamon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redSource").permanentId,
+        instanceId: s.inst("logamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redSource").topCard.cardId).toBe("BT21-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("logamon").instanceId);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("publicly App Fuses Offmon and Hackmon into Logamon at zero cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-061", as: "offmon", linked: [{ card: "BT24-067", as: "hackmon" }] }],
+        hand: [{ card: "BT25-070", as: "logamon" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("offmon").permanentId,
+        instanceId: s.inst("logamon").instanceId,
+        appFusionLinkInstanceId: s.inst("hackmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("offmon").topCard.cardId === "BT25-070");
+    expect(s.perm("offmon").stack.map((card) => card.cardId)).toEqual(["BT25-061", "BT24-067"]);
+    expect(s.perm("offmon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("logamon").instanceId);
   });
 
   it("rejects a trait-looking card without its own Link requirement (Q6367)", async () => {
@@ -215,5 +318,45 @@ describe("BT25-070 Logamon", () => {
     expect(s.state.memory).toBe(0); // printed Link cost 2
     expect(observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("otherTamer"), "unsuspend")).toBe(false);
+  });
+
+  it("keeps the linked unsuspend restriction through the opponent turn and expires at its end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT25-070", as: "logamonLink" }],
+        },
+        1: { battleArea: [{ card: "BT25-081", as: "opponentDigimon", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("logamonLink").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").linked.some((card) => card.cardId === "BT25-070") &&
+        observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend"),
+    );
+    expect(s.perm("opponentDigimon").isSuspended).toBe(true);
+
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("opponentDigimon").isSuspended).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend")).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("opponentDigimon").permanentId]);
+    expect(s.perm("opponentDigimon").isSuspended).toBe(false);
   });
 });

@@ -17,7 +17,11 @@ describe("BT25-075 Vulcanusmon", () => {
       ],
       effectText: expect.stringContaining("if you have fewer Digimon than your opponent"),
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["TS"], cost: 3, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Black"], cost: 4, isAlternate: false },
+      { level: 5, colors: ["Red"], cost: 4, isAlternate: false },
+      { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
+    ]);
 
     const playReduction = compiled.effects?.find((effect) => effect.trigger === "Static")?.actions[0];
     expect(playReduction).toMatchObject({
@@ -46,6 +50,73 @@ describe("BT25-075 Vulcanusmon", () => {
         scaling: { per: 1, unit: "linkCards", filter: { controller: "mine", kind: ["Digimon"] } },
       });
     }
+  });
+
+  it("supports ordinary Black and Red Lv.5 evolution at cost 4 and rejects a wrong color", async () => {
+    for (const [source, as] of [
+      ["BT10-064", "blackBase"],
+      ["AD1-002", "redBase"],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: source, as }], hand: [{ card: CARD_ID, as: "vulcanusmon" }] },
+      });
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(as).permanentId,
+          instanceId: s.inst("vulcanusmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm(as).topCard?.cardId === CARD_ID);
+      expect(s.state.memory).toBe(1);
+    }
+    const wrong = setupEngine({
+      0: { battleArea: [{ card: "BT10-056", as: "greenBase" }], hand: [{ card: CARD_ID, as: "vulcanusmon" }] },
+    });
+    wrong.state.memory = 5;
+    expect(
+      wrong.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrong.perm("greenBase").permanentId,
+        instanceId: wrong.inst("vulcanusmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("uses the TS Lv.5 alternate evolution for cost 3 and rejects a non-TS declaration", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-073", as: "tsBase" }], hand: [{ card: CARD_ID, as: "vulcanusmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("vulcanusmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT10-064", as: "nonTsBase" }], hand: [{ card: CARD_ID, as: "vulcanusmon" }] },
+    });
+    invalid.state.memory = 4;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonTsBase").permanentId,
+        instanceId: invalid.inst("vulcanusmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.state.memory).toBe(4);
   });
 
   it("reduces play cost only when your Digimon count is strictly lower", async () => {
@@ -107,7 +178,7 @@ describe("BT25-075 Vulcanusmon", () => {
             { card: "BT25-101", as: "secondLink" },
           ],
         },
-        1: { battleArea: [{ card: "BT25-020", as: "opponent", under: ["BT24-009", "BT24-010"] }] },
+        1: { battleArea: [{ card: "BT25-020", as: "opponent", under: ["BT24-009", "BT24-010", "BT10-013"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -126,7 +197,7 @@ describe("BT25-075 Vulcanusmon", () => {
     expect(s.perm("vulcanusmon").linked.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("firstLink").instanceId, s.inst("secondLink").instanceId]),
     );
-    // Two linked cards each apply De-Digivolve 1, removing both sources from this two-card stack.
-    expect(s.perm("opponent").stack).toHaveLength(0);
+    // Two linked cards each apply De-Digivolve 1, removing two sources while the legal Lv3 base remains.
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

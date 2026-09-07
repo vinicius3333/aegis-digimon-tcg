@@ -34,6 +34,8 @@ describe("BT25-059 Ceresmon", () => {
       ]),
     );
     expect(BT25_059.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Green"], cost: 4, isAlternate: false },
+      { level: 5, colors: ["Yellow"], cost: 4, isAlternate: false },
       { level: 5, traits: ["Vegetation", "TS"], cost: 3, isAlternate: true },
     ]);
     expect(BT25_059.effects?.flatMap((effect) => effect.keywords ?? [])).toEqual([]);
@@ -178,6 +180,67 @@ describe("BT25-059 Ceresmon", () => {
     expect(s.perm("vegetationBase").topCard.cardId).toBe("BT25-059");
     expect(s.perm("ownTs").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it.each([
+    ["green", "BT1-075"],
+    ["yellow", "BT11-041"],
+  ] as const)("uses the ordinary %s Lv.5 evolution at cost 4", async (_color, source) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: source, as: "source" }], hand: [{ card: "BT25-059", as: "ceresmon" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("ceresmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-059");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([source]);
+  });
+
+  it("uses the Vegetation/TS alternate at cost 3 and rejects a red non-trait Lv.5", async () => {
+    const alternate = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-053", as: "tsBase" }], hand: [{ card: "BT25-059", as: "ceresmon" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    alternate.state.memory = 3;
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("tsBase").permanentId,
+        instanceId: alternate.inst("ceresmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 2,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => alternate.perm("tsBase").topCard?.cardId === "BT25-059");
+    expect(alternate.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "redBase" }], hand: [{ card: "BT25-059", as: "ceresmon" }] },
+    });
+    invalid.state.memory = 4;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("redBase").permanentId,
+        instanceId: invalid.inst("ceresmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.perm("redBase").topCard.cardId).toBe("BT1-020");
+    expect(invalid.state.memory).toBe(4);
   });
 
   it("proves immunity against a real opponent Digimon effect while leaving a non-TS control affected", async () => {

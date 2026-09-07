@@ -46,7 +46,10 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }],
+  digivolutionRequirement: [
+    { level: 2, colors: ["Black"], cost: 0, isAlternate: false },
+    { level: 2, traits: ["Appmon"], cost: 0, isAlternate: true },
+  ],
   linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 

@@ -1,7 +1,7 @@
 import { CardKind, EffectTiming, digivolutionRequirementsFor, requireCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT25-085.js";
 
@@ -26,6 +26,28 @@ describe("BT25-085 BeelStarmon", () => {
     const definition = requireCardDefinition(CARD_ID);
     expect(definition.kinds).toEqual(expect.arrayContaining([CardKind.Digimon, CardKind.Option]));
     expect(definition.types).toEqual(expect.arrayContaining(["Three Musketeers", "TS"]));
+  });
+
+  it("supports ordinary Purple and Black Lv.5 routes at cost 4 and rejects a wrong color", async () => {
+    for (const [source, as] of [["BT10-064", "blackBase"], ["BT10-012", "purpleBase"]] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: source, as }], hand: [{ card: CARD_ID, as: "beel" }] } });
+      s.state.memory = 5;
+      expect(s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(as).permanentId,
+        instanceId: s.inst("beel").instanceId,
+      })).toEqual({ ok: true });
+      await settle(() => s.perm(as).topCard?.cardId === CARD_ID);
+      expect(s.perm(as).topCard?.cardId).toBe(CARD_ID);
+      expect(s.state.memory).toBe(1);
+    }
+    const wrong = setupEngine({ 0: { battleArea: [{ card: "BT10-056", as: "greenBase" }], hand: [{ card: CARD_ID, as: "beel" }] } });
+    wrong.state.memory = 5;
+    expect(wrong.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: wrong.perm("greenBase").permanentId,
+      instanceId: wrong.inst("beel").instanceId,
+    })).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("uses exactly one eligible Option from hand for free and resolves the DUAL Option face", async () => {

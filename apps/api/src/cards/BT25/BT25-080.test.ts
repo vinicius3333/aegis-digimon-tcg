@@ -59,7 +59,7 @@ describe("BT25-080 Witchmon", () => {
         type: "digivolve",
         permanentId: legal.perm("base").permanentId,
         instanceId: legal.inst("witchmon").instanceId,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard?.cardId === CARD);
@@ -78,10 +78,45 @@ describe("BT25-080 Witchmon", () => {
         type: "digivolve",
         permanentId: wrongTrait.perm("base").permanentId,
         instanceId: wrongTrait.inst("witchmon").instanceId,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(wrongTrait.state.memory).toBe(2);
+  });
+
+  it("uses the ordinary purple Lv3 evolution at exact cost 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-079", as: "base" }], hand: [{ card: CARD, as: "witchmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("witchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard?.cardId).toBe(CARD);
+  });
+
+  it("rejects a red Lv3 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-013", as: "base" }], hand: [{ card: CARD, as: "witchmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("witchmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(CARD);
   });
 
   it("returns exactly one Titan-trait card of any kind, pays one hand card, and deletes only levels 5 or lower when effect-played", async () => {
@@ -288,6 +323,32 @@ describe("BT25-080 Witchmon", () => {
     expect(alive(s.state.players[1] as PlayerState, targetId)).toBe(false);
   });
 
+  it("resolves the On Attacking cost/return clause from a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD, as: "witchmon" }],
+          hand: [{ card: "BT1-013", as: "handCost" }],
+          trash: [TITAN_DIGIMON],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("witchmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === TITAN_DIGIMON));
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(TITAN_DIGIMON);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-013");
+  });
+
   it("fires the inherited effect once only for a live Titan host, not merely a Titan card in its stack", async () => {
     const positive = setupEngine(
       {
@@ -315,7 +376,7 @@ describe("BT25-080 Witchmon", () => {
     const negative = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-114", as: "host", under: [{ card: "BT24-019" }, { card: CARD }] }],
+          battleArea: [{ card: "BT10-082", as: "host", under: [{ card: "BT24-019" }, { card: CARD }] }],
           hand: [{ card: "BT1-013", as: "handCard" }],
         },
         1: { battleArea: [{ card: "BT1-013", as: "level3" }] },

@@ -28,6 +28,18 @@ describe("BT25-087 Thomas H. Norstein", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it("publicly sets memory to 3 at the real start of its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "thomas" }] } });
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("on an effect add to the opponent's hand, suspends and may place top 2 face-down at true bottom top-first (Q6409-Q6413)", async () => {
     const s = setupEngine(
       {
@@ -78,6 +90,42 @@ describe("BT25-087 Thomas H. Norstein", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-013")).toBe(false);
     expect(s.perm("thomas").isSuspended).toBe(true);
     expect(s.perm("thomas").stack.map((card) => card.cardId)).toEqual(["AD1-002", "AD1-001"]);
+  });
+
+  it("can decline the optional top-two placement after a public hand-add effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "thomas" }],
+          hand: [{ card: "BT15-090", as: "foxFire" }],
+          deck: ["AD1-001", "AD1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "returned" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("foxFire").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("thomas").isSuspended).toBe(false);
+    expect(s.perm("thomas").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["AD1-001", "AD1-002"]);
   });
 
   it("does not react when the effect adds to its controller's hand", async () => {

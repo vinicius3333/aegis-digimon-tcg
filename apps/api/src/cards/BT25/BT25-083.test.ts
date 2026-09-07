@@ -25,11 +25,44 @@ describe("BT25-083 LadyDevimon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("publicly ordinary-digivolves from purple level 4 for 3 and rejects a blue source on that route", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT25-081", as: "purpleBase" }], hand: [{ card: CARD_ID, as: "lady" }] },
+    });
+    legal.state.memory = 3;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("purpleBase").permanentId,
+        instanceId: legal.inst("lady").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("purpleBase").topCard?.cardId === CARD_ID);
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("purpleBase").stack.map((card) => card.cardId)).toEqual(["BT25-081"]);
+
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "AD1-010", as: "blueSource" }], hand: [{ card: CARD_ID, as: "lady" }] },
+    });
+    wrongColor.state.memory = 3;
+    await wrongColor.ready();
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("blueSource").permanentId,
+        instanceId: wrongColor.inst("lady").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(wrongColor.perm("blueSource").topCard.cardId).toBe("AD1-010");
+    expect(wrongColor.state.memory).toBe(3);
+  });
+
   it("places a Three Musketeers trait card from trash at the true bottom, then draws", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "AD1-001", as: "oldBottom" }] }],
+          battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "BT25-081", as: "oldBottom" }] }],
           trash: [{ card: "BT25-085", as: "musketeer" }],
           deck: [{ card: "AD1-002", as: "drawn" }],
         },
@@ -70,14 +103,16 @@ describe("BT25-083 LadyDevimon", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "lady" },
-            { card: "BT1-009", as: "other", under: [{ card: "BT25-085", as: "option" }] },
+            { card: "BT25-081", as: "other" },
           ],
+          hand: [{ card: "BT25-085", as: "option" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("other").permanentId, [s.inst("option").instanceId]);
     // Use the attack window so this proof isolates the source-use effect. In the
     // When Digivolving window LadyDevimon's independent place-and-draw effect is
     // simultaneous and may legally put the used card back under a Digimon afterward.
@@ -94,14 +129,15 @@ describe("BT25-083 LadyDevimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "BT25-085", as: "sourceOption" }] }],
-          hand: [{ card: "BT25-085", as: "placementCard" }],
+          battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "BT25-081", as: "base" }] }],
+          hand: [{ card: "BT25-085", as: "sourceOption" }, { card: "BT25-085", as: "placementCard" }],
           deck: ["AD1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
     await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("lady").permanentId, [s.inst("sourceOption").instanceId]);
     const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lady"));
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const pending = s.state.pendingDecision!;
@@ -132,17 +168,18 @@ describe("BT25-083 LadyDevimon", () => {
               card: CARD_ID,
               as: "lady",
               under: [
-                { card: "BT25-085", as: "first" },
-                { card: "BT25-085", as: "second" },
+                { card: "BT25-081", as: "base" },
               ],
             },
           ],
+          hand: [{ card: "BT25-085", as: "first" }, { card: "BT25-085", as: "second" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("lady").permanentId, [s.inst("first").instanceId, s.inst("second").instanceId]);
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lady"));
     const sourcesAfterFirst = s.perm("lady").stack.map((card) => card.instanceId);
     const memoryAfterFirst = s.state.memory;

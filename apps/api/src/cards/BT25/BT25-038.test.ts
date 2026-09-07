@@ -344,28 +344,22 @@ describe("BT25-038 Shakkoumon", () => {
     expect(s.perm("target").currentDP).toBe(baseDp);
   });
 
-  it("triggers the inherited DP reaction from a real opponent security check", async () => {
-    const preferredInstanceIds: string[] = [];
+  it("orders the security effect before the inherited removal reaction (Q6305)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT1-062", as: "host", under: ["BT25-038"] }],
-          security: ["BT1-009"],
+          security: [{ card: "AD1-020", as: "securityTamer" }],
+          deck: ["BT1-009"],
         },
         1: {
-          battleArea: [
-            { card: "BT1-010", as: "attacker", dp: 2000 },
-            { card: "BT25-039", as: "target", dp: 10000 },
-          ],
-          deck: ["BT1-011"],
+          battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
-    const baseDp = s.perm("target").currentDP;
-    preferredInstanceIds.push(s.perm("target").permanentId);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -373,8 +367,22 @@ describe("BT25-038 Shakkoumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("securityTamer").instanceId,
+        ),
+    );
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.perm("target").currentDP).toBe(baseDp - 4000);
+    expect(s.perm("attacker").currentDP).toBe(6000);
+    const securityEffect = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-020",
+    );
+    const inheritedReaction = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-038",
+    );
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(inheritedReaction).toBeGreaterThan(securityEffect);
   });
 });

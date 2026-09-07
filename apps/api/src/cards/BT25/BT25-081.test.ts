@@ -91,9 +91,27 @@ describe("BT25-081 Fangmon", () => {
     expect(s.state.memory).toBe(1); // Fangmon's All Turns effect sees the opponent Tamer suspend.
   });
 
+  it("publicly rejects the ordinary route from a wrong-color level-3 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-009", as: "redSource" }], hand: [{ card: CARD_ID, as: "fangmon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redSource").permanentId,
+        instanceId: s.inst("fangmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redSource").topCard.cardId).toBe("BT21-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fangmon").instanceId);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("gains 1 memory for an opponent Tamer suspension, only once per turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "fangmon" }] },
+      0: { battleArea: [{ card: CARD_ID, as: "fangmon" }, { card: "BT8-093", as: "ownTamer" }] },
       1: {
         battleArea: [
           { card: "BT1-086", as: "firstTamer" },
@@ -103,6 +121,8 @@ describe("BT25-081 Fangmon", () => {
     });
     s.state.memory = 0;
 
+    await advance(s.engine).verb.suspend([s.perm("ownTamer").permanentId]);
+    expect(s.state.memory).toBe(0);
     await advance(s.engine).verb.suspend([s.perm("firstTamer").permanentId]);
     expect(s.state.memory).toBe(1);
     await advance(s.engine).verb.suspend([s.perm("secondTamer").permanentId]);
@@ -118,9 +138,9 @@ describe("BT25-081 Fangmon", () => {
   it("grants inherited Retaliation through a legal evolution stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT25-083", as: "host", dp: 3000, under: [CARD_ID] }],
+        battleArea: [{ card: "BT25-083", as: "host", under: [CARD_ID] }],
       },
-      1: { battleArea: [{ card: "AD1-001", as: "opponent", dp: 5000, suspended: true }] },
+      1: { battleArea: [{ card: "BT25-085", as: "opponent", suspended: true }] },
     });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
@@ -135,6 +155,6 @@ describe("BT25-081 Fangmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-083")).toBe(true);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "AD1-001")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT25-085")).toBe(true);
   });
 });

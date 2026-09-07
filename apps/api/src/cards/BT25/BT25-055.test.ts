@@ -100,11 +100,42 @@ describe("BT25-055 Deramon", () => {
         permanentId: s.perm("source").permanentId,
         instanceId: s.inst("evolver").instanceId,
         useAlternateCost: true,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "BT25-055");
     expect(s.state.memory).toBe(0);
+  });
+
+  it("supports the ordinary green level-4 evolution at cost 3 and rejects a wrong level", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-069", as: "source" }], hand: [{ card: "BT25-055", as: "evolver" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-055");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT1-069"]);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "wrongLevel" }], hand: [{ card: "BT25-055", as: "evolver" }] },
+    });
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongLevel").permanentId,
+        instanceId: invalid.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.perm("wrongLevel").topCard.cardId).toBe("BT1-009");
   });
 
   it("resolves the public When Digivolving threshold and unsuspends an own Digimon", async () => {
@@ -138,7 +169,7 @@ describe("BT25-055 Deramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-053", as: "host", under: ["BT25-055"], suspended: true }],
+          battleArea: [{ card: "BT25-042", as: "host", under: ["BT25-055"], suspended: true }],
           security: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
@@ -158,6 +189,33 @@ describe("BT25-055 Deramon", () => {
       () => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
     );
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-053");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-042");
+  });
+
+  it("plays a 4000-DP boundary match but leaves wrong-trait and over-4000 cards in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-055", as: "deramon" }],
+          hand: [
+            { card: "BT25-051", as: "boundary" },
+            { card: "BT25-046", as: "wrongTrait" },
+            { card: "BT25-053", as: "tooLarge" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("deramon").permanentId]);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("boundary").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongTrait").instanceId, s.inst("tooLarge").instanceId]),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("boundary").instanceId),
+    ).toBe(true);
   });
 });

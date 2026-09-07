@@ -93,6 +93,7 @@ describe("BT25-058 Callismon", () => {
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("callismon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard?.cardId === "BT25-058");
@@ -117,10 +118,50 @@ describe("BT25-058 Callismon", () => {
         permanentId: s.perm("wrongTraitBase").permanentId,
         instanceId: s.inst("callismon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-058"]);
+  });
+
+  it.each([
+    ["green", "BT1-075"],
+    ["black", "BT10-064"],
+  ] as const)("uses the ordinary %s Lv.5 evolution at cost 5", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "source" }], hand: [{ card: "BT25-058", as: "callismon" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("callismon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-058");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([source]);
+  });
+
+  it("rejects a wrong-color non-TS Lv.5 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "redBase" }], hand: [{ card: "BT25-058", as: "callismon" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("callismon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redBase").topCard.cardId).toBe("BT1-020");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-058");
+    expect(s.state.memory).toBe(6);
   });
 
   it("uses Blocker through a public opponent attack", async () => {
@@ -224,6 +265,7 @@ describe("BT25-058 Callismon", () => {
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("callismon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
@@ -387,7 +429,7 @@ describe("BT25-058 Callismon", () => {
             { card: "BT1-009", as: "triggerTwo" },
           ],
         },
-        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020", "BT1-020"] }] },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020", "BT1-019"] }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

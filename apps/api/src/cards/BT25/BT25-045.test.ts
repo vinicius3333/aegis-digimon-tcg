@@ -231,7 +231,10 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1.",
       linkEffect: "[When Linking] Suspend 1 of your opponent's Digimon.",
     });
-    expect(BT25_045.digivolutionRequirement).toEqual([{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }]);
+    expect(BT25_045.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Green"], cost: 0, isAlternate: false },
+      { level: 2, traits: ["Appmon"], cost: 0, isAlternate: true },
+    ]);
     expect(BT25_045.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
     expect(BT25_045.coverage).toBe("full");
     expect(BT25_045.residual).toEqual([]);
@@ -289,6 +292,28 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     const opponentTurn = await runLinkEffect(BT25_045, [true], 1);
     expect(opponentTurn.linkedCount).toBe(1);
     expect(opponentTurn.memoryPaid).toBe(1);
+  });
+
+  it("publicly rejects its controller's Link declaration during the opponent turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-045", as: "onmon" }],
+        hand: [{ card: "BT21-009", as: "link" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("onmon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
   });
 
   it("suspends exactly one opponent Digimon when Onmon is linked", async () => {

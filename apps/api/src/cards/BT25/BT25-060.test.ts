@@ -61,6 +61,39 @@ describe("BT25-060 Rebootmon", () => {
     expect(observe(s.engine).hasEffectiveTrait(s.perm("reboot"), "Appmon")).toBe(true);
   });
 
+  it("uses the ordinary green Lv.5 evolution for cost 4 and rejects an off-color source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-075", as: "greenBase" }], hand: [{ card: CARD_ID, as: "reboot" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("reboot").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("greenBase").stack.map((card) => card.cardId)).toEqual(["BT1-075"]);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "redBase" }], hand: [{ card: CARD_ID, as: "reboot" }] },
+    });
+    invalid.state.memory = 5;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("redBase").permanentId,
+        instanceId: invalid.inst("reboot").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.state.memory).toBe(5);
+    expect(invalid.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
+  });
+
   it("publicly App Fuses Bootmon into Rebootmon and moves the selected Shutmon link onto the stack", async () => {
     const s = setupEngine(
       {

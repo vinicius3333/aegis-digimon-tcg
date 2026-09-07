@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_005 } from "./BT25-005.js";
 import "../index.js";
@@ -236,7 +235,8 @@ describe("BT25-005 Pagumon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not offer the inherited evolution during the opponent turn for the same eligible placement", async () => {
+  it("does not offer the inherited evolution when Bagramon places a Three Musketeers card during the opponent turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -244,23 +244,35 @@ describe("BT25-005 Pagumon", () => {
             {
               card: "BT25-085",
               as: "host",
-              under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064", { card: "EX7-066", as: "placedSource" }],
+              under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064"],
             },
+            { card: "BT25-085", as: "placedSource" },
           ],
           hand: [{ card: "BT24-081", as: "target" }],
         },
+        1: {
+          battleArea: [{ card: "BT10-064", as: "bagramonBase" }],
+          hand: [{ card: "BT11-088", as: "bagramon" }],
+        },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("placedSource").instanceId);
     s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: s.perm("host").permanentId,
-      addedDigivolutionCardInstanceIds: [s.inst("placedSource").instanceId],
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("bagramonBase").permanentId,
+        instanceId: s.inst("bagramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("placedSource").instanceId));
 
     expect(s.perm("host").topCard.cardId).toBe("BT25-085");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
   });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -93,6 +92,10 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { level: 3, colors: ["Green"], cost: 3, isAlternate: false },
+    { level: 3, colors: ["Red"], cost: 3, isAlternate: false },
+  ],
   linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
   appFusionRequirement: [
     {

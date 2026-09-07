@@ -53,9 +53,30 @@ describe("BT25-054 GreatGrizzlymon", () => {
     expect(s.state.players[0]!.hand).toContainEqual(s.inst("evolver"));
   });
 
+  it("digivolves into Marsmon after winning a security battle (Q6333)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-054", as: "source" }], hand: [{ card: "BT25-020", as: "evolver" }] },
+        1: { security: [{ card: "BT1-009", as: "securityDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-020");
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("source").topCard?.cardId).toBe("BT25-020");
+  });
+
   it("supports the public TS alternate evolution from a level 4 source", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT25-051", as: "source" }], hand: [{ card: "BT25-054", as: "evolver" }] },
+      0: { battleArea: [{ card: "BT24-011", as: "source" }], hand: [{ card: "BT25-054", as: "evolver" }] },
     });
     s.state.memory = 3;
     await s.ready();
@@ -65,11 +86,41 @@ describe("BT25-054 GreatGrizzlymon", () => {
         permanentId: s.perm("source").permanentId,
         instanceId: s.inst("evolver").instanceId,
         useAlternateCost: true,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 2,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "BT25-054");
     expect(s.state.memory).toBe(0);
+  });
+
+  it("supports both ordinary color routes at cost 4 and rejects the wrong color", async () => {
+    for (const [source, as] of [
+      ["BT1-069", "greenBase"],
+      ["BT10-061", "blackBase"],
+    ] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: source, as }], hand: [{ card: "BT25-054", as: "evolver" }] } });
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(as).permanentId,
+          instanceId: s.inst("evolver").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm(as).topCard?.cardId === "BT25-054");
+      expect(s.state.memory).toBe(1);
+    }
+    const wrong = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: "BT25-054", as: "evolver" }] },
+    });
+    wrong.state.memory = 5;
+    expect(
+      wrong.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrong.perm("redBase").permanentId,
+        instanceId: wrong.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("makes the chosen opponent Digimon attack at their next main-phase start", async () => {
@@ -133,7 +184,7 @@ describe("BT25-054 GreatGrizzlymon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT25-053", as: "host", under: ["BT25-054"] },
+          { card: "BT10-068", as: "host", under: ["BT25-054"] },
           { card: "BT25-053", as: "otherWinner" },
         ],
       },
@@ -166,7 +217,7 @@ describe("BT25-054 GreatGrizzlymon", () => {
 
   it("trashes security from the inherited clause after a public battle deletion", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT25-053", as: "host", under: ["BT25-054"], dp: 12000 }] },
+      0: { battleArea: [{ card: "BT10-068", as: "host", under: ["BT25-054"], dp: 12000 }] },
       1: {
         battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
         security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
@@ -183,6 +234,32 @@ describe("BT25-054 GreatGrizzlymon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
+  });
+
+  it("does not trigger the inherited clause when both battling Digimon are deleted (Q6337)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-068", as: "host", under: ["BT25-054"], dp: 12000 }] },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 12000 }],
+        security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
+      },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("keeps the forced-attack grant through the controller's turn and expires at their turn end", async () => {

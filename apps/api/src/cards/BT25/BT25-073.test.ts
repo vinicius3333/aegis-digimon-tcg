@@ -67,6 +67,7 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
         permanentId: legal.perm("offColorTs").permanentId,
         instanceId: legal.inst("dragomonCard").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("offColorTs").topCard.cardId === DRAGOMON);
@@ -83,9 +84,38 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
         permanentId: invalid.perm("plainLv4").permanentId,
         instanceId: invalid.inst("card").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(invalid.state.memory).toBe(3);
+  });
+
+  it("ordinary-digivolves from black non-TS Lv.4 for 3 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT10-061", as: "blackBase" }], hand: [{ card: DRAGOMON, as: "dragomon" }] },
+    });
+    ordinary.state.memory = 4;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("dragomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === DRAGOMON);
+    expect(ordinary.state.memory).toBe(1);
+
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "redBase" }], hand: [{ card: DRAGOMON, as: "dragomon" }] },
+    });
+    wrongColor.state.memory = 4;
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("dragomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("On Play: trashing a friendly Digimon's link card plays a [TS] cost<=5 card free from hand", async () => {
@@ -282,7 +312,7 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
         0: {
           battleArea: [
             {
-              card: LINK_CARD,
+              card: "BT10-068",
               dp: 4000,
               as: "host",
               under: [{ card: DRAGOMON }], // the inherited source card
@@ -313,7 +343,7 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
       {
         0: {
           battleArea: [
-            { card: LINK_CARD, as: "host", under: [DRAGOMON] },
+            { card: "BT10-068", as: "host", under: [DRAGOMON] },
             { card: LINK_CARD, as: "other", linked: [{ card: LINK_CARD, as: "otherLink" }] },
           ],
         },

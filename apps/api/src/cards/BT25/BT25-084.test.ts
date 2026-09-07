@@ -120,6 +120,45 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     expect(wrongLevel.state.memory).toBe(4);
   });
 
+  it.each([
+    ["purple", "BT10-012"],
+    ["red", "AD1-002"],
+    ["green", "AD1-011"],
+  ] as const)("uses the ordinary %s Lv5 evolution at exact cost 5", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: TITAMON, as: "titamon" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("titamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === TITAMON);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard?.cardId).toBe(TITAMON);
+  });
+
+  it("rejects a blue Lv5 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", as: "base" }], hand: [{ card: TITAMON, as: "titamon" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("titamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(TITAMON);
+  });
+
   it("(a) On Play (by effect) deletes ALL of the opponent's highest-DP Digimon (every tie)", async () => {
     const s = setupEngine(
       {

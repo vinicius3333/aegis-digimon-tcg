@@ -208,6 +208,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, colors: ["Green"], cost: 4, isAlternate: false }],
   appFusionRequirement: [
     {
       names: ["Bootmon", "Shutmon"],

@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { findPermanent, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT25-056.js";
@@ -71,7 +72,7 @@ describe("BT25-056 Bootmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-051", as: "host", under: [{ card: "BT26-010", as: "stackLink" }] }],
+          battleArea: [{ card: "BT1-051", as: "host", under: [{ card: "BT21-041", as: "stackLink" }] }],
           hand: [{ card: CARD_ID, as: "boot" }],
         },
         1: {
@@ -90,10 +91,162 @@ describe("BT25-056 Bootmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("stackLink").instanceId));
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.perm("host").topCard?.cardId).toBe(CARD_ID);
     expect(s.perm("host").linked[0]?.instanceId).toBe(s.inst("stackLink").instanceId);
     expect(s.perm("opponentTamer").isSuspended).toBe(true);
+  });
+
+  it.each([
+    ["green", "BT1-069"],
+    ["yellow", "BT1-051"],
+  ] as const)("uses the ordinary %s Lv4 evolution at cost 4", async (_color, source) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: source, as: "source" }], hand: [{ card: CARD_ID, as: "boot" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("boot").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("source").topCard?.cardId).toBe(CARD_ID);
+  });
+
+  it("rejects an off-color ordinary Lv4 source without changing hand or memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "source" }], hand: [{ card: CARD_ID, as: "boot" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("boot").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(CARD_ID);
+  });
+
+  it("App Fuses the printed Logimon and Craftmon pair at zero cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-052", as: "logimon", linked: [{ card: "BT25-036", as: "craftmon" }] }],
+          hand: [{ card: CARD_ID, as: "boot" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("logimon").permanentId,
+        instanceId: s.inst("boot").instanceId,
+        appFusionLinkInstanceId: s.inst("craftmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("logimon").topCard.cardId === CARD_ID);
+    expect(s.perm("logimon").stack.map(({ cardId }) => cardId)).toEqual(["BT25-036"]);
+    expect(s.perm("logimon").linked.map(({ cardId }) => cardId)).toContain("BT25-052");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("links from the printed When Attacking window at the reduced cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "attacker" }],
+          hand: [{ card: "BT26-010", as: "link" }],
+          security: ["BT1-001"],
+        },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").linked.some(({ cardId }) => cardId === "BT26-010"));
+    expect(s.perm("attacker").linked.map(({ cardId }) => cardId)).toContain("BT26-010");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("accepts inherited Barrier in a real battle and pays one security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "host", dp: 7000, suspended: true }],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 8000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondBarrier",
+        permanentId: s.perm("host").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("allows inherited Barrier refusal to delete the host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "host", dp: 7000, suspended: true }],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 8000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondBarrier",
+        permanentId: s.perm("host").permanentId,
+        accept: false,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("linked Bootmon fires in the same window and returns one suspended opposing Digimon to deck bottom", async () => {
@@ -102,7 +255,7 @@ describe("BT25-056 Bootmon", () => {
         0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: CARD_ID, as: "bootLink" }] },
         1: {
           battleArea: [
-            { card: "BT1-010", as: "suspended", suspended: true, under: ["BT1-009"] },
+            { card: "BT1-019", as: "suspended", suspended: true, under: ["BT1-009"] },
             { card: "BT1-013", as: "active" },
           ],
           deck: [{ card: "BT1-001", as: "sentinel" }],
@@ -111,7 +264,7 @@ describe("BT25-056 Bootmon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 3;
-    expect(s.perm("suspended").topCard.cardId).toBe("BT1-010");
+    expect(s.perm("suspended").topCard.cardId).toBe("BT1-019");
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -119,9 +272,9 @@ describe("BT25-056 Bootmon", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "BT1-010"));
+    await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "BT1-019"));
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-010");
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-019");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("active").permanentId,

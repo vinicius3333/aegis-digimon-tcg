@@ -89,6 +89,33 @@ describe("BT25-062 Kokuwamon", () => {
     expect(s.perm("koku").topCard.cardId).toBe(targetCard);
   });
 
+  it("supports the ordinary black Lv.2 route at cost 0 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackBase" }, hand: [{ card: "BT25-062", as: "offmon" }] },
+    });
+    ordinary.state.memory = 2;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("offmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === "BT25-062");
+    expect(ordinary.state.memory).toBe(2);
+
+    const wrongColor = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redBase" }, hand: [{ card: "BT25-062", as: "offmon" }] },
+    });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("offmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("does not activate at memory 5, and declining the may effect leaves the stack and hand unchanged", async () => {
     const above = setupEngine({
       0: {
@@ -158,6 +185,7 @@ describe("BT25-062 Kokuwamon", () => {
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("koku").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("koku").instanceId);
