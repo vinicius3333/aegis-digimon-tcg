@@ -40,6 +40,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
           action.target.filter.kind?.includes("Digimon")
             ? false
             : undefined),
+        attackPlayerOnly: action.attackPlayerOnly,
         attackMechanic: action.attackMechanic,
         afterAttackTriggers: fireDeferredSuspensionTriggers,
         drainTimingWindow: action.drainTimingWindowDuringAttack ? ctx.drainCurrentTimingWindow : undefined,

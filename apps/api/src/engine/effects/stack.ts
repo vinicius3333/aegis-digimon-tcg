@@ -35,10 +35,18 @@ export function orderTurnPlayerFirst(collected: readonly CollectedEffect[], turn
   const mine: CollectedEffect[] = [];
   const theirs: CollectedEffect[] = [];
   for (const item of collected) {
-    if (item.source.ownerSeat === turnSeat) mine.push(item);
+    if (orderingSeatOf(item) === turnSeat) mine.push(item);
     else theirs.push(item);
   }
   return [...mine, ...theirs];
+}
+
+/**
+ * The seat that gets to order this entry among the simultaneous ones: its controller, unless
+ * the entry is pending processing that carries an explicit {@link CollectedEffect.orderingSeat}.
+ */
+export function orderingSeatOf(collected: CollectedEffect): Seat {
+  return collected.orderingSeat ?? collected.source.ownerSeat;
 }
 
 /**
@@ -380,8 +388,8 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       // player orders all their own simultaneous triggers first, then the opponent
       // theirs). Cross-player ordering is fixed by orderTurnPlayerFirst, so we only ever
       // prompt within one controller's group.
-      const frontSeat = ordered[0]!.source.ownerSeat;
-      const group = ordered.filter((c) => c.source.ownerSeat === frontSeat);
+      const frontSeat = orderingSeatOf(ordered[0]!);
+      const group = ordered.filter((c) => orderingSeatOf(c) === frontSeat);
 
       const choice = await pickNext(frontSeat, group, timing, env);
       if (choice === null) {

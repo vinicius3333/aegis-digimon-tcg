@@ -37,7 +37,7 @@ import {
 } from "./state/visibility.js";
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
 import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
-import { CombatController } from "./combat/controller.js";
+import { CombatController, type CombatTrigger } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
@@ -311,6 +311,24 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.oncePerTurnKey ?? "",
     sub.dedupeKey ?? "",
   ].join("|");
+}
+
+/**
+ * Whether the card directly beneath this permanent's top — the base it just digivolved from —
+ * is a Tamer.
+ *
+ * KB Q6708 (BT23-101 Hudiemon, which may digivolve from a Tamer): "Digivolve from the Tamer as
+ * such, and do not treat it as if it is a digivolving Digimon", so a watcher that reads "when a
+ * Digimon digivolves" must not fire. The digivolving card's own [When Digivolving] window and
+ * the digivolution bonus draw (Q6709) are unaffected — only the Digimon-digivolve watchers are.
+ *
+ * `stack` is ordered bottom..just-below-top (see `pushDigivolution`), so `at(-1)` is the base.
+ */
+function digivolvedFromTamerBase(permanent: Permanent | undefined): boolean {
+  const base = permanent?.stack.at(-1);
+  if (base === undefined) return false;
+  const definition = lookupDefinition(base.cardId);
+  return definition !== undefined && isTamer(definition);
 }
 
 /**
@@ -770,57 +788,66 @@ export class GameEngine {
         ) {
           const att = this.access.permanentById(trigger.attackerPermanentId);
           if (att !== undefined) {
-            await this.fireTimingForPermanent(timing, att, {
-              attackerPermanentId: trigger.attackerPermanentId,
-              attackMechanic: trigger.attackMechanic,
-              defenderPermanentId: trigger.defenderPermanentId,
-              blockerPermanentId: trigger.blockerPermanentId,
-              ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
-              deletedPermanentId: trigger.deletedPermanentId,
-              deletedPermanentIds: trigger.deletedPermanentIds,
-              deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
-              deletingPermanentId: trigger.deletingPermanentId,
-              removalCause: trigger.removalCause,
-              deletedControllerSeat: trigger.deletedControllerSeat,
-              deletedTopCardId: trigger.deletedTopCardId,
-              deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
-              deletedInstanceIds: trigger.deletedInstanceIds,
-              deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
-              deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
-              deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
-              fortitudeInstanceIds: trigger.fortitudeInstanceIds,
-              deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
-              customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
-              battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
-            });
+            await this.fireTimingForPermanent(timing, att, this.combatTriggerInfo(trigger));
             return;
           }
         }
         await this.fireTiming(timing, {
           subjectPermanentId: trigger.subjectPermanentId,
           suspendedPermanentId: trigger.suspendedPermanentId,
-          attackerPermanentId: trigger.attackerPermanentId,
-          attackMechanic: trigger.attackMechanic,
-          defenderPermanentId: trigger.defenderPermanentId,
-          blockerPermanentId: trigger.blockerPermanentId,
-          ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
-          deletedPermanentId: trigger.deletedPermanentId,
-          deletedPermanentIds: trigger.deletedPermanentIds,
-          deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
-          deletingPermanentId: trigger.deletingPermanentId,
-          removalCause: trigger.removalCause,
-          deletedControllerSeat: trigger.deletedControllerSeat,
-          deletedTopCardId: trigger.deletedTopCardId,
-          deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
-          deletedInstanceIds: trigger.deletedInstanceIds,
-          deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
-          deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
-          deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
-          fortitudeInstanceIds: trigger.fortitudeInstanceIds,
-          deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
-          customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
-          battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
+          ...this.combatTriggerInfo(trigger),
         });
+      },
+      fireAttackTiming: async (trigger, allianceCount) => {
+        const attacker =
+          trigger.attackerPermanentId === undefined
+            ? undefined
+            : this.access.permanentById(trigger.attackerPermanentId);
+        const top = attacker?.topCard;
+        // A window opened INSIDE another effect's resolution is not the outermost one, so the
+        // resolver drops `extraPending` (and `fireTimingForPermanent` may defer the window
+        // wholesale). The synthetic Alliance effects would silently vanish with it, so decline
+        // the combined window here and let the caller run the legacy inline Alliance loop.
+        if (attacker === undefined || top === undefined || this.activeWindowToken !== undefined) {
+          await this.fireTiming(EffectTiming.OnUseAttack, this.combatTriggerInfo(trigger));
+          return false;
+        }
+        // Each ＜Alliance＞ instance enters the attacker's [When Attacking] window as one more
+        // simultaneous trigger, so the controller orders it against the printed effects instead
+        // of always resolving it last (Q5257). Distinct effectKeys keep the two instances
+        // independent in the resolver's `resolved` ledger; each is optional and may be declined
+        // on its own. `resolveAllianceEffect` re-reads the board when it runs, so an instance
+        // ordered after a derived On Play / DNA evolution sees the post-evolution allies.
+        const allianceEffects: CollectedEffect[] = Array.from({ length: allianceCount }, (_, index) => ({
+          source: this.cardSourceOf(top),
+          timing: EffectTiming.OnUseAttack,
+          effect: {
+            effectKey: `${top.instanceId}/alliance/${index}`,
+            description: "＜Alliance＞: Suspend another Digimon you control.",
+            // Not `optional`: the ally prompt itself carries the decline (a null response),
+            // exactly as the legacy path does. Marking it optional would insert a second,
+            // separate "use this effect?" decision that ＜Alliance＞ does not have.
+            optional: false,
+            isInherited: false,
+            isSecurity: false,
+            isLinked: false,
+            maxPerTurn: -1,
+            canTrigger: () => true,
+            // ＜Alliance＞ TRIGGERS with the attack whether or not an ally is available right
+            // now (CR §15-4): it takes its place in the ordered set, and the controller may
+            // put it after an effect that first creates the ally. `resolveAllianceEffect`
+            // re-reads the board and does nothing when no ally is there at resolution time.
+            canActivate: () => true,
+            resolve: async () => this.combat.resolveAllianceEffect(attacker.permanentId),
+          },
+        }));
+        await this.fireTimingForPermanent(
+          EffectTiming.OnUseAttack,
+          attacker,
+          this.combatTriggerInfo(trigger),
+          allianceEffects,
+        );
+        return true;
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
@@ -837,7 +864,8 @@ export class GameEngine {
         const permanent = this.access.permanentById(permanentId);
         return permanent === undefined ? [] : this.effectiveColorsOf(permanent);
       },
-      consultLeavePrevention: async (permanentIds) => this.consultLeavePrevention(permanentIds, "byBattle"),
+      consultLeavePrevention: async (permanentIds, opts) =>
+        this.consultLeavePrevention(permanentIds, "byBattle", undefined, opts),
       dropPermanentSubscriptions: (permanentId) => this.dropPermanentSubscriptions(permanentId),
       snapshotCustomEffectGrants: (departingInstanceIds) =>
         this.continuous.listCustomEffectGrants().map((grant) => {
@@ -867,6 +895,32 @@ export class GameEngine {
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
         return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
+      },
+      // Q5257: ＜Alliance＞ printed twice on the same Digimon (typically once on the top card
+      // and once inherited from a digivolution source) is TWO independent keywords, each
+      // suspending its own ally for its own DP/security benefit. A printed keyword reaches the
+      // permanent as one continuous grant per granting effect, so the grants ARE the instances;
+      // the fallback covers a permanent that has the keyword through some path that leaves no
+      // countable grant, which is always a single instance.
+      allianceCount: (permanentId) => {
+        const permanent = this.access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return 0;
+        const granted = this.continuous
+          .grantedKeywords(permanentId)
+          .filter((grant) => grant.keyword === "Alliance").length;
+        if (granted > 0) return granted;
+        return resolveKeywords(permanent, this.continuous).includes("Alliance") ? 1 : 0;
+      },
+      combineAllianceTiming: (permanentId) => {
+        const permanent = this.access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return false;
+        // An inherited [When Attacking] effect is as simultaneous with ＜Alliance＞ as a printed
+        // one (Q5257), so the digivolution cards and link cards count too. Reading only the top
+        // card left an attacker whose sole When Attacking effect is inherited on the legacy
+        // path, where Alliance always resolved last and could never be ordered against it.
+        return [permanent.topCard, ...permanent.stack, ...permanent.linked].some(
+          (card) => effectsOf(EffectTiming.OnUseAttack, this.cardSourceOf(card)).length > 0,
+        );
       },
       // Shared "pick one of these, or pass" decision channel for ＜Raid＞'s redirect choice and
       // ＜Scapegoat＞'s sacrifice choice (both battle-path consumers of combat/controller.ts) —
@@ -1200,7 +1254,7 @@ export class GameEngine {
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean },
+    opts?: { isBounce?: boolean; insteadOnly?: boolean },
   ): Promise<Set<string>> {
     return consultLeavePrevention(
       {
@@ -1255,7 +1309,7 @@ export class GameEngine {
       permanentIds,
       cause,
       resolvingSeat,
-      { isBounce: opts?.isBounce, reentryGuard: this.preventReentryGuard },
+      { isBounce: opts?.isBounce, insteadOnly: opts?.insteadOnly, reentryGuard: this.preventReentryGuard },
     );
   }
 
@@ -1467,8 +1521,20 @@ export class GameEngine {
         sweep("nextUntap");
         break;
     }
+    this.recomputeExpiredAffectationRecipients();
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();
+  }
+
+  /**
+   * A Digimon that just lost "isn't affected by effects" is affected again by an effect it was
+   * given while immune (KB Q5328). The DP ledger suppresses such a modifier live but keeps the
+   * stored `currentDP` until something recomputes it, so recompute each recipient here.
+   */
+  private recomputeExpiredAffectationRecipients(): void {
+    for (const permanentId of this.continuous.takeExpiredAffectationRecipients()) {
+      this.modifiers.recomputeDP(this.state, permanentId);
+    }
   }
 
   /**
@@ -1480,6 +1546,7 @@ export class GameEngine {
   private async sweepCombatDurations(): Promise<void> {
     this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat);
     this.continuous.sweep(this.state, "endBattle", this.state.turnSeat);
+    this.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
   }
 
@@ -1844,12 +1911,17 @@ export class GameEngine {
         // all of them in a single prompt — Destromon's own [When Digivolving] against the two
         // Xeno EX11-066 watchers, for example — instead of the printed effects always
         // resolving before the watchers.
+        // Q6708: digivolving from a Tamer base is not a Digimon digivolving, so the
+        // "when a Digimon digivolves" watchers are not armed for this window at all. The
+        // subject's own [When Digivolving] effects and the enter-field windows still fire.
+        const fromTamer = digivolvedFromTamerBase(permanent);
         const digivolveTrigger = {
           subjectPermanentId: permanent.permanentId,
           previousDigivolutionLevel: previousLevel,
+          ...(fromTamer ? { digivolvedFromTamer: true } : {}),
         };
         await this.withPendingSubTriggers(
-          ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
+          fromTamer ? [] : ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
           digivolveTrigger,
           async () => {
             // Scope [When Digivolving] to the permanent that just digivolved (its top card
@@ -2130,6 +2202,37 @@ export class GameEngine {
    * triggered DURING resolution (documented behavior). Centralized
    * so every caller (turn machine, actions, security check) shares one seam.
    */
+  /**
+   * Map a {@link CombatTrigger} onto the {@link TriggerInfo} a timing window reads. Shared by
+   * the plain combat timing hook and the combined [When Attacking]/＜Alliance＞ window so both
+   * present the same trigger data to collected effects.
+   */
+  private combatTriggerInfo(trigger: CombatTrigger): TriggerInfo {
+    return {
+      attackerPermanentId: trigger.attackerPermanentId,
+      attackMechanic: trigger.attackMechanic,
+      defenderPermanentId: trigger.defenderPermanentId,
+      blockerPermanentId: trigger.blockerPermanentId,
+      ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
+      deletedPermanentId: trigger.deletedPermanentId,
+      deletedPermanentIds: trigger.deletedPermanentIds,
+      deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+      deletingPermanentId: trigger.deletingPermanentId,
+      removalCause: trigger.removalCause,
+      deletedControllerSeat: trigger.deletedControllerSeat,
+      deletedTopCardId: trigger.deletedTopCardId,
+      deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
+      deletedInstanceIds: trigger.deletedInstanceIds,
+      deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+      deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+      deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
+      fortitudeInstanceIds: trigger.fortitudeInstanceIds,
+      deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
+      customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
+      battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
+    };
+  }
+
   private async fireTiming(
     timing: EffectTiming,
     trigger: TriggerInfo = {},
@@ -2659,10 +2762,12 @@ export class GameEngine {
         if (!this.subTriggerStillActivatable(remaining[index]!)) remaining.splice(index, 1);
       }
       if (remaining.length === 0) break;
-      const prioritySeat = remaining.some((item) => item.ctx.source.ownerSeat === this.state.turnSeat)
+      const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
+        item.sub.orderedByTurnPlayer === true ? this.state.turnSeat : item.ctx.source.ownerSeat;
+      const prioritySeat = remaining.some((item) => orderingSeatOfArmed(item) === this.state.turnSeat)
         ? this.state.turnSeat
-        : remaining[0]!.ctx.source.ownerSeat;
-      const sameController = remaining.filter((item) => item.ctx.source.ownerSeat === prioritySeat);
+        : orderingSeatOfArmed(remaining[0]!);
+      const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
       let chosen = sameController[0]!;
       if (sameController.length > 1) {
         const index = await this.resolverDecisions.chooseOrder(
@@ -2780,6 +2885,7 @@ export class GameEngine {
   private subTriggerAsCollected({ sub, ctx }: ArmedSubTrigger): CollectedEffect {
     return {
       source: ctx.source,
+      ...(sub.orderedByTurnPlayer === true ? { orderingSeat: this.state.turnSeat } : {}),
       // The stack resolver re-creates a context for every collected effect. Carry the event
       // snapshot along with this watcher so placement guards and action filters see the same
       // exact payload that armed it (especially a stack source already moved to trash).
@@ -3713,6 +3819,7 @@ export class GameEngine {
     timing: EffectTiming,
     permanent: Permanent,
     trigger: TriggerInfo = {},
+    extraPending: readonly CollectedEffect[] = [],
   ): Promise<void> {
     if (this.shouldDeferNestedTiming()) {
       await this.recomputeContinuousEffects();
@@ -3746,7 +3853,7 @@ export class GameEngine {
             this.collectPermanentInstances(permanent, scoped);
             return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
           },
-          { outermost: wasOutermostWindow },
+          { outermost: wasOutermostWindow, extraPending },
         ),
       );
       if (wasOutermostWindow) {
@@ -3903,18 +4010,23 @@ export class GameEngine {
         enteredByEffect: ownerSeat,
         ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
-      await this.fireSubTrigger("whenOneOfYoursDigivolves", {
-        subjectPermanentId,
-        enteredByEffect: ownerSeat,
-        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
-        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
-      });
-      await this.fireSubTrigger("whenAnyDigivolves", {
-        subjectPermanentId,
-        enteredByEffect: ownerSeat,
-        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
-        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
-      });
+      // Q6708: a Tamer base digivolves as a Tamer, so no Digimon digivolved and the
+      // "when a Digimon digivolves" watchers stay silent. The entering card's own
+      // [When Digivolving] window above, and the bonus draw (Q6709), are unaffected.
+      if (!digivolvedFromTamerBase(subjectPermanent)) {
+        await this.fireSubTrigger("whenOneOfYoursDigivolves", {
+          subjectPermanentId,
+          enteredByEffect: ownerSeat,
+          ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+          ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
+        });
+        await this.fireSubTrigger("whenAnyDigivolves", {
+          subjectPermanentId,
+          enteredByEffect: ownerSeat,
+          ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+          ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
+        });
+      }
     }
   }
 
@@ -4463,7 +4575,7 @@ export class GameEngine {
    */
   private resolutionDeps(
     listCandidate: () => readonly CardInstance[] = () => this.listCandidateInstances(),
-    opts: { outermost?: boolean } = {},
+    opts: { outermost?: boolean; extraPending?: readonly CollectedEffect[] } = {},
   ): ResolutionDeps {
     return {
       // Only the outermost loop settles the deferred queues between effects: at a nested one
@@ -4473,7 +4585,10 @@ export class GameEngine {
       // reach into the pool and resolve a sibling trigger mid-body. Both are the same test —
       // only the outermost loop runs with no card body on the stack.
       ...(opts.outermost === true
-        ? { betweenEffects: () => this.settleBetweenEffects(), collectPending: () => this.pendingWindowCollected() }
+        ? {
+            betweenEffects: () => this.settleBetweenEffects(),
+            collectPending: () => [...this.pendingWindowCollected(), ...(opts.extraPending ?? [])],
+          }
         : {}),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,

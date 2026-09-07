@@ -147,6 +147,15 @@ export interface CombatHooks {
    * way (subsystems: effect-framework, effect-stack-resolution).
    */
   fireTiming: (timing: EffectTiming, trigger: CombatTrigger) => Promise<void>;
+  /**
+   * Resolve the attack's When Attacking and ＜Alliance＞ effects as one simultaneous window.
+   * Returns whether the window actually carried the Alliance instances: a window the engine
+   * has to defer (an attack declared from INSIDE another effect's resolution) cannot, and the
+   * caller then falls back to the legacy inline Alliance loop.
+   */
+  fireAttackTiming?: (trigger: CombatTrigger, allianceCount: number) => Promise<boolean>;
+  /** Whether the engine has attack-timing effects to combine with Alliance. */
+  combineAllianceTiming?: (permanentId: string) => boolean;
   /** Resolve simultaneous [On Deletion]/<Ascension> reactions in controller-chosen order. */
   resolveDeletionReactions?: (
     trigger: CombatTrigger,
@@ -179,7 +188,7 @@ export interface CombatHooks {
    * effect-path primitive already uses the same shared consult; combat otherwise deletes by
    * raw state access and would pay a prevention cost without actually saving the Digimon.
    */
-  consultLeavePrevention?: (permanentIds: string[]) => Promise<Set<string>>;
+  consultLeavePrevention?: (permanentIds: string[], opts?: { insteadOnly?: boolean }) => Promise<Set<string>>;
   /**
    * Drop a battle-deleted permanent's modifier / continuous / SubTrigger ledgers as it
    * leaves the field (subsystems: static-continuous-effects, delayed-and-rule-effects).
@@ -222,6 +231,8 @@ export interface CombatHooks {
   continuous?: ContinuousLegalityReader;
   /** Resolve a keyword from printed top-card text plus live continuous grants. */
   hasKeyword?: (permanentId: string, keyword: string) => boolean;
+  /** Number of independent Alliance instances currently active on the attacker. */
+  allianceCount?: (permanentId: string) => number;
   /**
    * Add a battle-scoped DP modifier (UntilEndBattle). Used by ＜Alliance＞ (§16-24) to
    * boost the attacking Digimon's DP for the current battle. The modifier is cleaned
@@ -603,7 +614,22 @@ export class CombatController {
         "whenOpponentAttacks",
         attackSubTriggerPayload,
       );
-      await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
+      // ＜Alliance＞ triggers at the same time as the attacker's own [When Attacking]
+      // effects, and each printed/granted instance is a separate trigger (Q5257). Order them
+      // together in ONE window only when there is actually something to order: a second
+      // Alliance instance, or at least one [When Attacking] effect on the attacker. Any other
+      // attack keeps the legacy sequence below, so engines and tests that supply neither hook
+      // are unaffected.
+      const allianceCount =
+        this.hooks.allianceCount?.(attacker.permanentId) ?? (this.hasKeyword(attacker.permanentId, "Alliance") ? 1 : 0);
+      const fireAttackTiming = this.hooks.fireAttackTiming;
+      const combineAllianceTiming =
+        fireAttackTiming !== undefined &&
+        allianceCount > 0 &&
+        (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false));
+      let allianceResolvedInWindow = false;
+      if (combineAllianceTiming) allianceResolvedInWindow = await fireAttackTiming(attackTrigger, allianceCount);
+      else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
       await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
 
       // SubTrigger bus (System B): armed "when this attacks" / "when an opponent's Digimon
@@ -624,7 +650,9 @@ export class CombatController {
 
       // ＜Alliance＞ (§16-24): when this Digimon attacks, you may suspend another
       // Digimon you control to add its DP to this Digimon for the battle.
-      if (this.hasKeyword(attacker.permanentId, "Alliance")) {
+      // (Skipped when the window above already resolved them as ordered triggers.)
+      const legacyAllianceCount = allianceResolvedInWindow ? 0 : allianceCount;
+      for (let allianceIndex = 0; allianceIndex < legacyAllianceCount; allianceIndex += 1) {
         const allyIds = this.access
           .battleAreaPermanents(attackerSeat)
           .filter(
@@ -980,13 +1008,7 @@ export class CombatController {
   private runAllianceDecision(seat: Seat, permanentId: string, eligibleAllyIds: string[]): Promise<string | null> {
     if (eligibleAllyIds.length === 0) return Promise.resolve(null);
 
-    this.hooks.emit({
-      kind: "alliancePrompt",
-      permanentId,
-      eligibleAllyIds,
-    });
-
-    return new Promise<string | null>((resolve) => {
+    const promise = new Promise<string | null>((resolve) => {
       this.allianceDecision = {
         permanentId,
         seat,
@@ -994,6 +1016,63 @@ export class CombatController {
         resolve,
       };
     });
+    this.hooks.emit({
+      kind: "alliancePrompt",
+      permanentId,
+      eligibleAllyIds,
+    });
+    return promise;
+  }
+
+  /** Unsuspended other Digimon `attackerPermanentId`'s controller could suspend for ＜Alliance＞. */
+  private allianceAllyIds(attackerPermanentId: string): string[] {
+    const attacker = this.access.permanentById(attackerPermanentId);
+    if (attacker === undefined) return [];
+    return this.access
+      .battleAreaPermanents(attacker.controllerSeat)
+      .filter(
+        (p) =>
+          p.permanentId !== attacker.permanentId &&
+          !p.isSuspended &&
+          this.access.isBattleAreaDigimon(p, this.hooks.continuous),
+      )
+      .map((p) => p.permanentId);
+  }
+
+  /** Whether an ＜Alliance＞ instance still has a suspendable ally, re-read from live state. */
+  hasAllianceAlly(attackerPermanentId: string): boolean {
+    return this.allianceAllyIds(attackerPermanentId).length > 0;
+  }
+
+  /**
+   * Resolve ONE ＜Alliance＞ instance from the combined [When Attacking] window. Allies are
+   * re-read here, so an instance ordered after another one (or after a derived evolution)
+   * sees the current board. The DP/security benefit it pays for is installed on the attacker
+   * and is not undone by a later evolution of the suspended ally.
+   */
+  async resolveAllianceEffect(attackerPermanentId: string): Promise<void> {
+    const attacker = this.access.permanentById(attackerPermanentId);
+    if (attacker === undefined) return;
+    const allyIds = this.allianceAllyIds(attacker.permanentId);
+    // No eligible ally left when this instance resolves: the keyword simply does nothing.
+    // Prompting an empty choice would be a decision with one answer.
+    if (allyIds.length === 0) return;
+    const allyId = await this.runAllianceDecision(attacker.controllerSeat, attacker.permanentId, allyIds);
+    if (allyId === null) return;
+    const ally = this.access.permanentById(allyId);
+    if (ally === undefined) return;
+    const allySuspended = this.suspendInCombat(ally);
+    this.hooks.addDpModifier?.(attacker.permanentId, ally.currentDP);
+    this.hooks.addSecurityAttack?.(attacker.permanentId);
+    await this.fireSuspended(ally, allySuspended);
+    if (allySuspended) {
+      await this.hooks.fireSubTrigger?.("whenEffectSuspends", {
+        subjectPermanentId: ally.permanentId,
+        suspendedPermanentId: ally.permanentId,
+        effectSuspendSeat: attacker.controllerSeat,
+        byEffectCardId: attacker.topCard.cardId,
+      });
+    }
   }
 
   /**
@@ -1215,12 +1294,33 @@ export class CombatController {
       if (this.hooks.barrierFired?.(barrierKey) === true) continue;
       const accepted = await this.runBarrierDecision(perm.controllerSeat, permanentId);
       if (accepted) {
-        this.access.flipTopSecurityToTrash(perm.controllerSeat);
+        const paid = this.access.flipTopSecurityToTrash(perm.controllerSeat);
         this.hooks.markBarrierFired?.(barrierKey);
         barrieredIds.add(permanentId);
+        // Q5296: paying ＜Barrier＞ removes a card from the controller's own security stack, so
+        // the generic removal buses must carry it exactly as the primitive trash verb does
+        // (BT23-035's [All Turns] "when security stacks are removed from" reads them). The
+        // effect-only bus stays silent: the cost is a keyword payment, not an effect.
+        if (paid !== undefined) {
+          await this.hooks.fireSubTrigger?.("whenSecurityRemoved", {
+            removedFromSecuritySeat: perm.controllerSeat,
+          });
+          await this.hooks.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+            removedFromSecuritySeat: perm.controllerSeat,
+            trashedFromSecurityInstanceIds: [paid.instanceId],
+          });
+        }
       }
     }
     const postBarrierDeletedIds = resolvedDeletedIds.filter((id) => !barrieredIds.has(id));
+    // KB Q6250: ＜Barrier＞ and a same-event "instead" replacement (Shakkoumon's [All Turns]
+    // "play 1 Digimon from this Digimon's digivolution cards") are one ordered set of options
+    // on the SAME would-leave event. Preventing the deletion settles only the leave; it does
+    // not cancel the sibling replacement, which the controller may still use. The prevention
+    // half is already decided here, so only the "instead" half is offered.
+    if (barrieredIds.size > 0) {
+      await this.hooks.consultLeavePrevention?.([...barrieredIds], { insteadOnly: true });
+    }
 
     // ＜Detach (trait)＞ (Q6964): immediately before this Digimon is deleted IN BATTLE,
     // its controller may trash 1 eligible link card to prevent only this deletion. The

@@ -3274,9 +3274,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!engine.combat) continue; // no prompt facility available; deletion proceeds
         const accepted = await engine.combat.runBarrierDecision(perm.controllerSeat, permanentId);
         if (!accepted) continue;
-        access.flipTopSecurityToTrash(perm.controllerSeat);
+        const paid = access.flipTopSecurityToTrash(perm.controllerSeat);
         engine.markBarrierFired?.(barrierKey);
         barriered.add(permanentId);
+        // Q5296: the ＜Barrier＞ payment removes a card from the controller's own security
+        // stack, so the generic removal buses carry it exactly as `trashFromSecurity` does.
+        // The effect-only bus stays silent: this is a keyword cost, not an effect.
+        if (paid !== undefined) {
+          await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: perm.controllerSeat });
+          await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+            removedFromSecuritySeat: perm.controllerSeat,
+            trashedFromSecurityInstanceIds: [paid.instanceId],
+          });
+        }
       }
       if (barriered.size > 0) toDelete = toDelete.filter((id) => !barriered.has(id));
     }
@@ -4874,6 +4884,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
     });
+    // "Isn't affected by effects" ENDS an effect that is already applying (KB Q5327; the mirror
+    // of Q5328, where losing the immunity re-applies it). The DP ledger already suppresses a
+    // modifier the recipient cannot be affected by, but only re-reads that suppression when it
+    // recomputes, so the stored `currentDP` would keep a now-inert reduction until some other
+    // event moved it. Recompute the recipient here so the immunity takes effect immediately.
+    if (restriction === "beAffected") ledger.recomputeDP(state, permanentId);
   };
 
   const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (seat, restriction, duration, matches): void => {
@@ -5026,6 +5042,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
       once: true,
+      // Pending processing, not an activated effect: the turn player orders it against the
+      // other end-of-turn effects even when the deleted Digimon is the opponent's
+      // (KB Q5564/Q5566/Q5568).
+      orderedByTurnPlayer: true,
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       matches: (subCtx) =>
         (timing === "endOfCurrentTurn"
@@ -5054,6 +5074,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     subTriggers.subscribe({
       event: "endOfTurn",
       once: true,
+      // Pending processing, not an activated effect: the turn player orders it against the
+      // other end-of-turn processing (KB Q5564/Q5566/Q5568), as the delayed deletion is.
+      orderedByTurnPlayer: true,
       expiresOnTurnEndOf: seat,
       description: `At end of turn, ${amount >= 0 ? "gain" : "lose"} ${Math.abs(amount)} memory (delayed one-shot #${++delayedMemorySequence}).`,
       run: async () => {

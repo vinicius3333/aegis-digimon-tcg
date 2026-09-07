@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type Seat } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
 import type { DiscardedStackSourceProof, EffectContext, TriggerInfo } from "./EffectContext.js";
@@ -19,6 +19,14 @@ export interface CollectedEffect {
   conferredToPermanentId?: string;
   /** Physical source of this effect-conferral copy; distinguishes Q1943's stacked grants. */
   conferralGranterInstanceId?: string;
+  /**
+   * Seat that orders this entry against the other simultaneous ones, when that is NOT the
+   * source's controller. Set only for PENDING PROCESSING — a delayed deletion scheduled by an
+   * earlier effect, which is no longer anyone's activated effect by the time it happens. The
+   * ruling for that case (KB Q5564/Q5566/Q5568) puts the whole simultaneous set in the turn
+   * player's hands, unlike the §15-4-3-5 split that governs activated effects.
+   */
+  orderingSeat?: Seat;
 }
 
 /**

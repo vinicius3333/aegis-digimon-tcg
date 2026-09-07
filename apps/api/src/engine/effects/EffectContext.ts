@@ -408,6 +408,14 @@ export interface TriggerInfo {
    */
   digivolvedFromZone?: ZoneRef;
   /**
+   * True when the card the WhenDigivolving window's subject digivolved FROM is a Tamer
+   * (BT23-101's "digivolve from a Tamer" requirement). Per KB Q6708 the base digivolves as a
+   * Tamer, so no Digimon digivolved: the engine withholds `whenOneOfYoursDigivolves` /
+   * `whenAnyDigivolves` entirely for such an entry, and this flag lets an effect that DOES want
+   * to know read the distinction from inside the subject's own [When Digivolving] window.
+   */
+  digivolvedFromTamer?: boolean;
+  /**
    * The rules-relevant use cost of the Option whose use fired this event: after card-level
    * changes, but before payment-only reductions (BT10-032 Q1956/Q1957).
    */
@@ -1629,6 +1637,13 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /**
+   * Pending processing left over from an effect that already resolved (a delayed deletion, a
+   * delayed memory change, a delayed body) rather than an effect activating now. The turn
+   * player orders the whole simultaneous set it lands in, whoever controls its source
+   * (KB Q5564/Q5566/Q5568). See `SubTriggerSubscription.orderedByTurnPlayer`.
+   */
+  orderedByTurnPlayer?: boolean;
   /** Stable action identity used to avoid duplicate installs while preserving distinct clauses. */
   dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */

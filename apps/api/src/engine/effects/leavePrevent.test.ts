@@ -131,7 +131,9 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
       offeredReplacementIds.push(replacements.map(({ id }) => id));
       if (replacementOrder.length === 0) return replacements;
       const rank = new Map(replacementOrder.map((id, index) => [id, index]));
-      return [...replacements].sort((a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+      return [...replacements].sort(
+        (a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+      );
     },
     oncePerTurnFired: (key) => replacementFiredKeys.has(key),
     markOncePerTurnFired: (key) => replacementFiredKeys.add(key),
@@ -312,7 +314,9 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
       mode: "instead",
       description: "side effect",
       appliesTo: () => true,
-      apply: async () => { log.push("instead"); },
+      apply: async () => {
+        log.push("instead");
+      },
     });
     const preventId = h.subTriggers.subscribeReplacement({
       event: "wouldLeavePlay",
@@ -321,7 +325,10 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
       mode: "prevent",
       description: "prevention",
       protects: () => true,
-      preventCheck: async () => { log.push("prevent"); return true; },
+      preventCheck: async () => {
+        log.push("prevent");
+        return true;
+      },
     });
     return { insteadId, preventId };
   }
@@ -350,10 +357,18 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source");
     const log: string[] = [];
-    for (const name of ["first", "second"]) h.subTriggers.subscribeReplacement({
-      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: name,
-      protects: () => true, preventCheck: async () => { log.push(name); return true; },
-    });
+    for (const name of ["first", "second"])
+      h.subTriggers.subscribeReplacement({
+        event: "wouldLeavePlay",
+        sourcePermanentId: source.permanentId,
+        mode: "prevent",
+        description: name,
+        protects: () => true,
+        preventCheck: async () => {
+          log.push(name);
+          return true;
+        },
+      });
     await h.consult([source.permanentId]);
     expect(log).toEqual(["first"]);
   });
@@ -363,27 +378,80 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
     const source = putPermanent(h.state, 0, "source");
     const log: string[] = [];
     h.subTriggers.subscribeReplacement({
-      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "declined",
-      protects: () => true, preventCheck: async () => { log.push("declined"); return false; },
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      mode: "prevent",
+      description: "declined",
+      protects: () => true,
+      preventCheck: async () => {
+        log.push("declined");
+        return false;
+      },
     });
     h.subTriggers.subscribeReplacement({
-      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "accepted",
-      protects: () => true, preventCheck: async () => { log.push("accepted"); return true; },
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      mode: "prevent",
+      description: "accepted",
+      protects: () => true,
+      preventCheck: async () => {
+        log.push("accepted");
+        return true;
+      },
     });
     expect(await h.consult([source.permanentId])).toEqual(new Set([source.permanentId]));
     expect(log).toEqual(["declined", "accepted"]);
+  });
+
+  // KB Q5352: exactly one replacement applies to one leave event, and the affected player picks
+  // WHICH — the ruling names no survivor. The chooser is therefore consulted for ANY multi-
+  // eligible set, not only one that happens to mix "instead" with "prevent".
+  it("lets the affected player pick between two competing instead replacements (Q5352)", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const peer = putPermanent(h.state, 0, "peer");
+    const log: string[] = [];
+    const subscribeInstead = (owner: Permanent, name: string): number =>
+      h.subTriggers.subscribeReplacement({
+        event: "wouldLeavePlay",
+        sourcePermanentId: owner.permanentId,
+        sourceInstanceId: owner.topCard!.instanceId,
+        mode: "instead",
+        description: name,
+        appliesTo: () => true,
+        apply: async () => {
+          log.push(name);
+        },
+      });
+    const own = subscribeInstead(source, "own");
+    const other = subscribeInstead(peer, "other");
+
+    h.replacementOrder.push(other, own);
+    await h.consult([source.permanentId]);
+
+    expect(h.offeredReplacementIds).toEqual([[own, other]]);
+    // Only the chosen one applies: the loser has no leave event left to replace.
+    expect(log).toEqual(["other"]);
   });
 
   it("does not offer inapplicable reactions for ordering", async () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source");
     h.subTriggers.subscribeReplacement({
-      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "instead", description: "inapplicable",
-      appliesTo: () => false, apply: async () => undefined,
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      mode: "instead",
+      description: "inapplicable",
+      appliesTo: () => false,
+      apply: async () => undefined,
     });
     h.subTriggers.subscribeReplacement({
-      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "eligible",
-      protects: () => true, preventCheck: async () => true,
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      mode: "prevent",
+      description: "eligible",
+      protects: () => true,
+      preventCheck: async () => true,
     });
     await h.consult([source.permanentId]);
     expect(h.offeredReplacementIds).toEqual([]);
@@ -394,8 +462,14 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
     const source = putPermanent(h.state, 0, "source");
     const peer = putPermanent(h.state, 0, "peer");
     h.subTriggers.subscribeReplacement({
-      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "all",
-      affectsAll: true, oncePerTurnKey: "all/opt", protects: () => true, preventCheck: async () => true,
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      mode: "prevent",
+      description: "all",
+      affectsAll: true,
+      oncePerTurnKey: "all/opt",
+      protects: () => true,
+      preventCheck: async () => true,
     });
     expect(await h.consult([source.permanentId, peer.permanentId])).toEqual(
       new Set([source.permanentId, peer.permanentId]),

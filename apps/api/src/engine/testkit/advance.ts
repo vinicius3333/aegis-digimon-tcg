@@ -1,6 +1,6 @@
 import { EffectTiming, Phase, type CardInstance, type EffectDuration, type Permanent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../GameEngine.js";
-import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
+import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
 
 /**
@@ -176,6 +176,30 @@ export function advance(engine: GameEngine) {
       /** Close the window opened by `enterEffectResolution`. */
       leaveEffectResolution(): void {
         internals.primitives.leaveEffectResolution?.();
+      },
+      /**
+       * Grant a continuous restriction through the production primitive (the verb every
+       * `Restrict` / `GrantStatic` immunity clause compiles to), so its own side effects — the
+       * DP recompute a `beAffected` grant performs (KB Q5327) — run exactly as they do in a
+       * real resolution. Writing to the continuous ledger directly skips them.
+       */
+      async restrict(
+        permanentId: string,
+        restriction: Parameters<Primitives["restrict"]>[1],
+        duration: EffectDuration,
+        opts?: Parameters<Primitives["restrict"]>[3],
+      ): Promise<void> {
+        internals.primitives.restrict(permanentId, restriction, duration, opts);
+        await internals.recomputeContinuousEffects();
+      },
+      /**
+       * Arm the delayed end-of-turn memory change through the production primitive. Every card
+       * that prints this clause says "at the end of YOUR turn", so no legal line puts one
+       * player's tail into the other player's turn end — the board KB Q5566/Q5568 describe for
+       * pending processing. This verb builds it directly.
+       */
+      delayedGainMemory(seat: Seat, amount: number): void {
+        internals.primitives.delayedGainMemory?.(seat, amount);
       },
       /** Effect-driven deletion. Returns how many permanents were actually removed. */
       async deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number> {
