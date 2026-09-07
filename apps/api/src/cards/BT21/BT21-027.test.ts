@@ -123,13 +123,14 @@ describe("BT21-027 compiled implementation", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "low", dp: 3000 },
-            { card: "BT1-010", as: "high", dp: 4000 },
+            { card: "BT11-075", as: "high" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
+    await s.ready();
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
 
@@ -155,7 +156,8 @@ describe("BT21-027 compiled implementation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
+    await s.ready();
     const lowAId = s.perm("lowA").permanentId;
     const lowBId = s.perm("lowB").permanentId;
     const highId = s.perm("high").permanentId;
@@ -206,7 +208,7 @@ describe("BT21-027 compiled implementation", () => {
           1: {
             battleArea: [
               { card: "BT1-009", as: "low", dp: 3000 },
-              { card: "BT1-010", as: "high", dp: 4000 },
+              { card: "BT11-075", as: "high" },
             ],
           },
         },
@@ -227,9 +229,56 @@ describe("BT21-027 compiled implementation", () => {
       await settle(() => s.state.players[1]!.battleArea.length === 1);
 
       expect(s.state.memory).toBe(6 - expectedCost);
-      expect(s.state.players[1]!.battleArea[0]?.topCard.cardId).toBe("BT1-010");
+      expect(s.state.players[1]!.battleArea[0]?.topCard.cardId).toBe("BT11-075");
     },
   );
+
+  it("publicly performs two Security checks after DigiXrosing with an inherited Rush source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-027", as: "superior" },
+            { card: "BT21-021", as: "rushSource" },
+            { card: "AD1-013", as: "zeig" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("superior").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("rushSource").instanceId, s.inst("zeig").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("superior").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("superior"), "Rush")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("superior").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+  });
 
   it("rejects both alternate routes from a nonmatching level-3 base without paying", async () => {
     const s = setupEngine({
