@@ -1,4 +1,4 @@
-import { Phase } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,21 @@ import { compiled as BT24_052 } from "./BT24-052.js";
 import "../index.js";
 
 describe("BT24-052 Keramon (X Antibody)", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-052")).toMatchObject({
+      cardId: "BT24-052",
+      nameEn: "Keramon (X Antibody)",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 4,
+      dp: 3000,
+      forms: ["Rookie"],
+      attributes: ["Unknown"],
+      types: ["Unidentified", "X Antibody"],
+    });
+  });
+
   it("plays a Diaboromon Token on both printed timings", () => {
     for (const trigger of ["WhenMoving", "WhenDigivolving"]) {
       expect(BT24_052.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({
