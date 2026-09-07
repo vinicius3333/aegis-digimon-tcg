@@ -161,4 +161,102 @@ describe("BT21-051 Puppetmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("puppetmon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("puppetmon"), "Blocker")).toBe(true);
   });
+
+  it("Blast Digivolves through a real Counter window, resolves WD, then blocks the attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-020", as: "attacker", under: ["BT1-009", "BT1-019"] },
+            { card: "BT21-045", as: "victim", suspended: true, under: ["BT21-044"] },
+          ],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT21-050", as: "base" }],
+          hand: [{ card: "BT21-051", as: "puppetmon" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    preferred.push(s.perm("attacker").topCard.instanceId, s.perm("victim").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window missing");
+    const counter = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("puppetmon").instanceId);
+    expect(counter).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: counter!.instanceId,
+        effectKey: counter!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.perm("base").topCard.cardId).toBe("BT21-051");
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("base").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.perm("base").topCard.cardId).toBe("BT21-051");
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("Reboot unsuspends Puppetmon during the opponent's public turn and Overflow charges on battle removal", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-052", as: "attacker" }], deck: ["BT1-001", "BT1-002"] },
+      1: { battleArea: [{ card: "BT21-051", as: "puppetmon", suspended: true }], deck: ["BT1-003", "BT1-004"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("puppetmon").isSuspended).toBe(false);
+
+    const overflow = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT21-051", as: "puppetmon" }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    overflow.state.turnSeat = 0;
+    overflow.state.memory = 0;
+    await overflow.ready();
+    expect(
+      overflow.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: overflow.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => overflow.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(overflow.events.some((event) => event.kind === "blockWindowOpened")).toBe(true);
+    const overflowPuppetId = overflow.perm("puppetmon").permanentId;
+    expect(overflow.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: overflowPuppetId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        overflow.events.some((event) => event.kind === "combatResolved") &&
+        !observe(overflow.engine).isAttacking() &&
+        !overflow.state.players[1]!.battleArea.some((perm) => perm.permanentId === overflowPuppetId),
+    );
+    expect(overflow.state.memory).toBe(4);
+  });
 });
