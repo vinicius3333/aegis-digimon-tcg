@@ -143,6 +143,44 @@ describe("BT24-091 Tidal Stream", () => {
     expect([s.inst("low1").instanceId, s.inst("low2").instanceId]).toContain(s.state.players[1]!.hand[0]!.instanceId);
     expect(s.state.players[1]!.battleArea).toContain(s.perm("high"));
   });
+  it("resolves its linked effect during BT24-085's natural End-of-Your-Turn attack (Q5686)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-014", as: "host", linked: [{ card: "BT24-091", as: "option" }] },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-045", as: "low" },
+            { card: "BT1-051", as: "high" },
+          ],
+          security: [{ card: "BT1-013", as: "security" }, { card: "BT1-015", as: "security2" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("low").instanceId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("high").instanceId)).toBe(true);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security2").instanceId);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+  });
 
   it("activates its Main effect from security", async () => {
     const s = setupEngine(
