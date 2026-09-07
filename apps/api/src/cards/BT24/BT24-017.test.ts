@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-017.js";
 import "../index.js";
+import "../BT19/BT19-006.js";
+import "../BT19/BT19-020.js";
 
 describe("BT24-017 Medusamon", () => {
   it("deletes the lowest-DP Digimon, pays the exact two-card trash cost, and scales DP", () => {
@@ -143,6 +145,46 @@ describe("BT24-017 Medusamon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("source").currentDP).toBe(11000);
+  });
+
+  it("Q5593 returns a deleted card before its pending On Deletion can activate", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-016", as: "base" }],
+          hand: [{ card: "BT24-017", as: "medusamon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT19-020", as: "pending", dp: 1000 }],
+          hand: [{ card: "BT19-019", as: "kiriha" }],
+          trash: [{ card: "BT1-010", as: "filler" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const deletedId = s.perm("pending").topCard.instanceId;
+    preferred.push(deletedId, s.inst("filler").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medusamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT24-017");
+
+    expect(s.perm("base").topCard.cardId).toBe("BT24-017");
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([deletedId, s.inst("filler").instanceId]),
+    );
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === deletedId)).toBe(false);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("kiriha").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT19-020")).toBe(false);
   });
 
   it("gives Petrification Tokens their printed suspension lock and security-trash deletion", async () => {
