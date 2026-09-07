@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,19 @@ import { compiled } from "./BT24-097.js";
 import "../index.js";
 
 describe("BT24-097 Soul Fear", () => {
+  it("matches the immutable catalog identity and link route", () => {
+    expect(getCardDefinition("BT24-097")).toMatchObject({
+      cardId: "BT24-097",
+      nameEn: "Soul Fear",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 5,
+      types: ["TS"],
+      linkDp: 2000,
+      linkRequirement: "[Link] [TS]\u00a0trait: Cost 3",
+    });
+  });
+
   it("records the printed TS Link requirement and breeding-aware color waiver", () => {
     expect(compiled.linkRequirement).toEqual([{ traits: ["TS"], cost: 3 }]);
     expect(compiled.effects[0]).toMatchObject({
