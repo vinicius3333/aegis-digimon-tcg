@@ -131,18 +131,29 @@ describe("BT24-057 Docmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("On Deletion applies the same player-attack restriction", async () => {
+  it("a public opponent When Digivolving deletion applies the On Deletion restriction", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-057", as: "docmon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: {
+          battleArea: [{ card: "BT10-064", as: "base" }, { card: "BT1-009", as: "target" }],
+          hand: [{ card: "ST15-13", as: "hiandromon" }],
+        },
       },
       { autoSelectCards: true },
     );
     const docmonId = s.perm("docmon").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([docmonId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hiandromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === docmonId)).toBe(false);
