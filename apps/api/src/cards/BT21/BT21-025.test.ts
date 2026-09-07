@@ -180,6 +180,60 @@ describe("BT21-025 Lamiamon", () => {
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
   });
 
+  it("trashes security only once across two public Raid target switches while Lamiamon remains active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-025", as: "lamiamon" },
+            { card: "BT21-026", as: "firstRaid" },
+            { card: "BT21-026", as: "secondRaid" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003", "BT1-004", "BT1-005"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstTargetId = s.inst("firstTarget").instanceId;
+    const secondTargetId = s.inst("secondTarget").instanceId;
+    const retainedSecurityId = s.state.players[1]!.security[1]!.instanceId;
+
+    for (const attacker of ["firstRaid", "secondRaid"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !observe(s.engine).isAttacking() &&
+          s.state.players[1]!.battleArea.length === (attacker === "firstRaid" ? 1 : 0) &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(s.state.players[1]!.security).toHaveLength(1);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-025")).toBe(true);
+    }
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("BT1-002");
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([retainedSecurityId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([firstTargetId, secondTargetId]),
+    );
+  });
+
   it("plays a qualifying inherited Digimon from a public security attack", async () => {
     const s = setupEngine(
       {
@@ -209,6 +263,63 @@ describe("BT21-025 Lamiamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-017"));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
+  });
+
+  it("plays the inherited Digimon only once across two public security removals in one turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "host", under: ["BT21-025"] },
+            { card: "BT21-011", as: "firstAttacker" },
+          ],
+          hand: [
+            { card: "BT21-017", as: "firstEligible" },
+            { card: "BT21-015", as: "secondEligible" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-001", "BT1-002"], deck: ["BT1-003", "BT1-004", "BT1-005"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-017"),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT21-017")).toHaveLength(
+      1,
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT21-017")).toHaveLength(
+      1,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
+    const host = s.perm("host");
+    expect(host.topCard.cardId).toBe("BT21-026");
+    expect(host.stack.filter((card) => card.instanceId !== host.topCard.instanceId).map((card) => card.cardId)).toEqual(
+      ["BT21-025"],
+    );
   });
 
   it("inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free", async () => {
