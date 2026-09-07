@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-091.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT21-091 Spirit Evolution!", () => {
@@ -187,12 +188,78 @@ describe("BT21-091 Spirit Evolution!", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
         s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId) &&
-        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082"),
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082") &&
+        !observe(s.engine).isAttacking(),
     );
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082")).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("publicly plays an eligible inherited-effect Tamer from hand during Security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-091", as: "option" }, "BT1-001"],
+          hand: [{ card: "BT21-082", as: "takuya" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("takuya").instanceId,
+        ) &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("takuya").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("publicly declines the eligible inherited-effect Tamer Security play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-091", as: "option" }, "BT1-001"],
+          trash: [{ card: "BT21-082", as: "takuya" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("takuya").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("does not resolve a same-turn Delay trigger from a public inherited-effect Tamer play", async () => {
