@@ -1615,9 +1615,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    *
    * `appFusionCondition` produced by `AddAppfuseMethodByName`): the fusing permanent's top
    * card plus its linked cards must collectively cover >= 2 distinct required names (with the
-   * top card being one of them). The app-fusion cost is paid from memory. Returns the fused
-   * permanent, or undefined when the source/result is missing, the fusion is illegal, or the
-   * cost is unaffordable.
+   * top card being one of them). The controller chooses the linked physical material when
+   * multiple links qualify; that card is consumed into the result stack and other links remain
+   * attached. The app-fusion cost is paid from memory. Returns the fused permanent, or undefined
+   * when the source/result is missing, the fusion is illegal, the choice is invalid, or the cost
+   * is unaffordable.
    */
   const appFuseInto = async (sourcePermanentId: string, resultInstanceId: string): Promise<Permanent | undefined> => {
     const permanent = access.permanentById(sourcePermanentId);
@@ -1627,19 +1629,66 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const definition = requireCardDefinition(peek.cardId);
     if (!definition.kinds.includes(CardKind.Digimon)) return undefined;
     // Enforce the fusion-target's app-fusion legality + read its cost (server-authoritative).
+    const originalTopId = permanent.topCard.instanceId;
+    const originalResultId = peek.instanceId;
     const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
     const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
-    const cost = appFusionCostFor(peek.cardId, { topName, linkedNames });
-    if (cost === undefined) return undefined;
+    if (appFusionCostFor(peek.cardId, { topName, linkedNames }) === undefined) return undefined;
     const seat = permanent.controllerSeat;
-    if (engine.memory.maxCostFor(seat) < cost) return undefined;
-    if (cost > 0) engine.memory.pay(seat, cost, "appFusion");
+    // The fusion requirement identifies which linked physical card is consumed. A merely
+    // different name is insufficient when several links are present (and would silently
+    // consume an unrelated link). Ask the controller to choose the exact physical card while
+    // every candidate is still linked; no cost or zone mutation occurs until that choice is valid.
+    const eligiblePartners = permanent.linked.filter(
+      (card) =>
+        appFusionCostFor(peek.cardId, {
+          topName,
+          linkedNames: [requireCardDefinition(card.cardId).nameEn],
+        }) !== undefined &&
+        engine.memory.maxCostFor(seat) >=
+          appFusionCostFor(peek.cardId, {
+            topName,
+            linkedNames: [requireCardDefinition(card.cardId).nameEn],
+          })!,
+    );
+    if (eligiblePartners.length === 0) return undefined;
+    const selectedPartnerIds = await engine.ask.selectInstances(
+      seat,
+      eligiblePartners.map((card) => card.instanceId),
+      1,
+      1,
+      "App Fusion: choose the linked card used as fusion material.",
+      { sourceCardId: peek.cardId, timing: "WhenDigivolving", effectText: "App Fusion" },
+    );
+    if (selectedPartnerIds.length !== 1) return undefined;
+    const selectedPartnerId = selectedPartnerIds[0]!;
+    const partnerIndex = permanent.linked.findIndex((card) => card.instanceId === selectedPartnerId);
+    if (partnerIndex < 0 || !eligiblePartners.some((card) => card.instanceId === selectedPartnerId)) return undefined;
+    // Revalidate every mutable identity after the awaited choice. The source may have moved,
+    // changed controller/top card, or lost the result card while the decision was open.
+    const currentPermanent = access.permanentById(sourcePermanentId);
+    const currentResult = peekLooseInstance(state, resultInstanceId);
+    if (
+      currentPermanent !== permanent ||
+      permanent.controllerSeat !== seat ||
+      permanent.topCard?.instanceId !== originalTopId ||
+      currentResult?.instanceId !== originalResultId
+    )
+      return undefined;
+    // The selected physical card determines the actual printed route and therefore the cost paid.
+    const selectedName = requireCardDefinition(permanent.linked[partnerIndex]!.cardId).nameEn;
+    const selectedCost = appFusionCostFor(peek.cardId, { topName, linkedNames: [selectedName] });
+    if (selectedCost === undefined || peekLooseInstance(state, resultInstanceId) === undefined) return undefined;
+    if (engine.memory.maxCostFor(seat) < selectedCost) return undefined;
+    if (selectedCost > 0) engine.memory.pay(seat, selectedCost, "appFusion");
     const instance = removeLooseInstance(state, resultInstanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
+    const partner = permanent.linked.splice(partnerIndex, 1)[0];
     pushOnStack(permanent, priorTop);
+    if (partner !== undefined) pushOnStack(permanent, partner);
     setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
