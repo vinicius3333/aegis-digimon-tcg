@@ -333,46 +333,56 @@ describe("BT21-074 Satellamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("host"), "cantBeDeDigivolved")).toBe(false);
   });
 
-  it("shares the once-per-turn De-Digivolve budget across evolution and attack", async () => {
+  it("shares the once-per-turn De-Digivolve budget from public evolution into public attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            {
-              card: "BT21-074",
-              as: "satellamon",
-              under: [
-                { card: "BT21-070", as: "costA" },
-                { card: "BT21-071", as: "costB" },
-              ],
-            },
+          battleArea: [{ card: "BT21-071", as: "host", under: ["BT21-054"] }],
+          hand: [
+            { card: "BT21-074", as: "satellamon" },
+            { card: "BT21-070", as: "cost" },
           ],
         },
         1: {
-          battleArea: [
-            {
-              card: "BT21-072",
-              as: "target",
-              under: [
-                { card: "BT21-066", as: "lower" },
-                { card: "BT21-063", as: "upper" },
-              ],
-            },
-          ],
+          battleArea: [{ card: "BT21-072", as: "target", under: ["BT21-063", "BT21-066"] }],
+          security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    preferred.push(s.inst("costA").instanceId, s.perm("target").topCard.instanceId);
+    preferred.push(s.inst("cost").instanceId, s.perm("host").permanentId);
+    s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("satellamon"));
-    await settle(() => s.perm("target").topCard.instanceId === s.inst("upper").instanceId);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("satellamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("satellamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("satellamon").instanceId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.perm("target").topCard.cardId).toBe("BT21-066");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-054", "BT21-071"]);
+    expect(s.state.memory).toBe(1);
 
-    expect(s.perm("target").topCard.instanceId).toBe(s.inst("upper").instanceId);
-    expect(s.perm("satellamon").stack.some((card) => card.instanceId === s.inst("costB").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("satellamon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-054", "BT21-071"]);
+    expect(s.perm("target").topCard.cardId).toBe("BT21-066");
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("does not pay the stack-trash cost when the effect is declined", async () => {
@@ -417,8 +427,10 @@ describe("BT21-074 Satellamon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId) ||
-        s.perm("target").topCard.cardId === "BT21-066",
+        s.events.some((event) => event.kind === "combatResolved") &&
+        !observe(s.engine).isAttacking() &&
+        (!s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId) ||
+          s.perm("target").topCard.cardId === "BT21-066"),
     );
     expect(s.perm("satellamon").stack.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
     const target = s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId);
