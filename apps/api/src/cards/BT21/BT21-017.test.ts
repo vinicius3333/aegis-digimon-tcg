@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-017.js";
 import "../index.js";
 
@@ -179,7 +180,7 @@ describe("BT21-017 Dimetromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
     expect(s.state.memory).toBe(0);
   });
 
@@ -208,7 +209,11 @@ describe("BT21-017 Dimetromon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.players[1]!.security.length < (alias === "firstAttacker" ? 2 : 1));
+      await settle(
+        () =>
+          s.state.players[1]!.security.length < (alias === "firstAttacker" ? 2 : 1) && !observe(s.engine).isAttacking(),
+      );
+      expect(s.state.memory).toBe(1);
     }
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(1);
@@ -233,7 +238,9 @@ describe("BT21-017 Dimetromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0 && s.state.memory === 1);
+    await settle(
+      () => s.state.players[1]!.security.length === 0 && s.state.memory === 1 && !observe(s.engine).isAttacking(),
+    );
     expect(s.state.memory).toBe(1);
   });
 });
