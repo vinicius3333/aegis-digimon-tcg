@@ -31,6 +31,7 @@
 
 .game-mobile-turn,
 .game-mobile-surrender,
+.game-mobile-fullscreen,
 .game-mobile-bug {
   display: none;
 }
@@ -289,11 +290,68 @@
   display: grid;
   gap: var(--ds-space-4);
   padding: var(--ds-space-6);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto auto;
   place-items: center;
   background: rgb(4 14 31 / 88%);
   backdrop-filter: blur(8px);
   animation: battle-card-magnify var(--t-card-magnify, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* The card's stats sit under the blow-up on the dark backdrop, so the sheet's
+   info markup is reused with on-ink colors. */
+.card-zoom__details {
+  display: grid;
+  width: min(84vw, 22rem);
+  gap: var(--ds-space-2);
+  justify-items: center;
+  text-align: center;
+}
+.card-zoom__details > strong {
+  color: var(--ds-brand-on-ink);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-lg);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.card-zoom__details > .card-action-sheet__stats,
+.card-zoom__details > .card-action-sheet__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-1) var(--ds-space-2);
+}
+.card-zoom__details > .card-action-sheet__stats > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-brand-on-ink);
+  font: 700 var(--ds-text-xs) var(--ds-font-mono);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 14%, transparent);
+}
+.card-zoom__details > .card-action-sheet__stats > span[data-state="suspended"] {
+  color: var(--ds-warning);
+}
+.card-zoom__details > .card-action-sheet__stats em {
+  font-style: normal;
+  font-weight: 800;
+}
+.card-zoom__details > .card-action-sheet__stats em[data-sign="up"] {
+  color: var(--ds-success);
+}
+.card-zoom__details > .card-action-sheet__stats em[data-sign="down"] {
+  color: var(--ds-danger);
+}
+.card-zoom__details > .card-action-sheet__keywords > span {
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-accent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--ds-accent) 38%, transparent);
+  border-radius: 999px;
 }
 
 @keyframes battle-card-magnify {
@@ -549,6 +607,14 @@
   font-size: var(--ds-text-sm);
   font-weight: 600;
 }
+/* The printed window ([On Play] vs [When Digivolving]) is what separates two
+   effects of the same permanent, so it leads the row rather than trailing it. */
+.trigger-chooser__timing {
+  color: var(--ds-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
 
 /* --- Board-mode decision prompts ------------------------------------------ */
 
@@ -602,6 +668,10 @@
 }
 .board-prompt__back {
   align-self: flex-start;
+}
+.board-prompt__grip,
+.board-prompt-scrim {
+  display: none;
 }
 .board-prompt__eyebrow {
   margin: 0;
@@ -1585,6 +1655,13 @@
   overflow: visible;
 }
 
+/* The hand's positioning context, so the touch layout can hang scroll cues over
+   the ends of the strip. `contents` everywhere else: the pointer fan is laid out
+   by the dock itself and must not gain a box between them. */
+.game-hand-scroller {
+  display: contents;
+}
+
 .game-hand {
   margin-bottom: -1.7rem;
 }
@@ -1605,13 +1682,24 @@
 /* A card that cannot be picked stays readable but visibly out of the running,
    so the cyan glow above reads as "this one counts". */
 .game-hand-card--unpickable {
-  opacity: 0.45;
-  filter: grayscale(0.7);
+  opacity: 0.4;
+  filter: grayscale(0.85);
 }
+/* An eligible card wears the accent ring on its own halo, so it reads as a choice
+   rather than as the cyan "you could play this" glow it replaces. */
+.game-hand-card--pickable {
+  box-shadow:
+    0 0 0 3px var(--ds-accent),
+    0 0 0 6px var(--ds-accent-surface),
+    0 0 20px rgb(7 95 247 / 45%);
+}
+/* Picked is a different colour, not a brighter one: the ring goes green and the
+   card sits on a filled success halo the eye can tell apart at arm's length. */
 .game-hand-card--picked {
   box-shadow:
-    0 0 0 3px var(--battle-amber),
-    0 0 18px rgb(240 138 36 / 55%);
+    0 0 0 3px var(--ds-success),
+    0 0 0 7px var(--ds-success-surface),
+    0 0 22px rgb(22 101 52 / 55%);
 }
 .game-hand-card__pick-badge {
   position: absolute;
@@ -1652,15 +1740,39 @@
   }
 }
 
+/* The accent ring the touch layouts leave on the card that just arrived: the drop
+   is over in 120ms, and on a phone the hand is a scrolling strip of near-identical
+   backs, so the ring holds and then fades rather than blinking. It rides its own
+   pseudo-element because `--playable`, `--pickable` and `--picked` each own the
+   card's `box-shadow`, and a filled animation on the card would outrank them for
+   as long as the card stays in hand. */
+@keyframes battle-hand-draw-ring {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* --- Draw: card back flying from a deck pile to its hand ------------------ */
 
 /* The board sets the launch point and the trip vector; the element is mounted
    for one animation and unmounted by GameScreen when the beat ends. */
 .game-draw-flight {
+  --draw-flight-w: 30px;
+  --draw-flight-h: 42px;
+
   position: absolute;
   z-index: 62;
-  width: 30px;
-  height: 42px;
+  /* The board hands over the centre of the deck pile, so the card back pulls
+     itself back over that point; a layout may then resize it without the launch
+     point or the landing point drifting off the pile it belongs to. */
+  width: var(--draw-flight-w);
+  height: var(--draw-flight-h);
+  margin-top: calc(var(--draw-flight-h) / -2);
+  margin-left: calc(var(--draw-flight-w) / -2);
   pointer-events: none;
   border: 1px solid var(--ds-border-strong);
   border-radius: 5px;
@@ -1985,10 +2097,15 @@
 
 /* Sized to the flying card back so the burst opens exactly where it landed. */
 .game-draw-burst {
+  --draw-flight-w: 30px;
+  --draw-flight-h: 42px;
+
   position: absolute;
   z-index: 62;
-  width: 30px;
-  height: 42px;
+  width: var(--draw-flight-w);
+  height: var(--draw-flight-h);
+  margin-top: calc(var(--draw-flight-h) / -2);
+  margin-left: calc(var(--draw-flight-w) / -2);
   pointer-events: none;
 }
 
@@ -2729,6 +2846,13 @@
 
 /* The clock the player can see: a ring that erodes clockwise over the fixed
    reading time the panel was opened with. */
+/* A decision is waiting and the clocks are stopped (useMatchCues holds them), so
+   the rings stop where they are rather than running out on a paused clock. */
+[data-held] .side-panel__erode,
+[data-held] .match-notice__erode {
+  animation-play-state: paused;
+}
+
 .side-panel__erode,
 .match-notice__erode {
   position: absolute;
@@ -3770,6 +3894,33 @@ button.side-panel__name:focus-visible {
     overflow-y: auto;
     transform: none !important;
   }
+  /* The digivolve cost chooser keeps the inline `top: 120px` it needs on a
+     pointer screen, and with the rule above also pinning `bottom` the panel was
+     stretched from under the opponent bar to the floor, leaving a dark gap below
+     the last button. Releasing the top edge lets it hug its content, and the
+     rest turns it into the same bottom sheet as `.card-action-sheet__panel`. */
+  .evo-cost-prompt {
+    top: auto !important;
+    right: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: auto !important;
+    max-height: 82dvh !important;
+    padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)) !important;
+    border: 0 !important;
+    border-top: 1px solid var(--ds-border-strong) !important;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%) !important;
+  }
+  .evo-cost-prompt::before {
+    content: "";
+    display: block;
+    width: 2.25rem;
+    height: 4px;
+    margin: 0 auto var(--ds-space-3);
+    border-radius: 999px;
+    background: var(--ds-border-strong);
+  }
   .game-over-dialog {
     max-height: calc(100dvh - var(--ds-space-6));
     padding: var(--ds-space-6) var(--ds-space-4) !important;
@@ -3833,8 +3984,36 @@ button.side-panel__name:focus-visible {
      onto a second row and the header changed height as the match went on. */
   .game-opponent-bar {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
     gap: var(--ds-space-2);
+  }
+  /* The viewer's latest move, as one line under the header's controls. The phone
+     has no sidebar log, and the opponent's feed narrates only their side. */
+  .game-log-strip {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: var(--ds-space-2);
+    min-width: 0;
+    min-height: 32px;
+    margin: 0;
+    padding: 0 var(--ds-space-2);
+    color: var(--ds-brand-on-ink);
+    font-size: var(--ds-text-xs);
+    text-align: left;
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 22%, transparent);
+    border-radius: var(--ds-radius-sm);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+  }
+  .game-log-strip > svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .game-log-strip > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .game-opponent-identity > div:last-child > div:first-child {
     color: var(--ds-brand-on-ink) !important;
@@ -3864,6 +4043,7 @@ button.side-panel__name:focus-visible {
   /* Both match controls are square icons: the surrender label was as wide as the
      word it happened to be translated into, and the header shifted around it. */
   .game-mobile-surrender,
+  .game-mobile-fullscreen,
   .game-mobile-bug {
     display: grid;
     place-items: center;
@@ -4066,7 +4246,17 @@ button.side-panel__name:focus-visible {
   /* The row is sized to the card plus its own padding, and the padding needs
      !important to beat the inline fan-room padding — the desktop arc it reserves
      is disabled here, and it pushed the card tops past the clipped row. */
+  /* The strip is the scroller, so it is also the box the cues hang over. */
+  .game-hand-scroller {
+    display: block;
+    position: relative;
+    min-width: 0;
+  }
   .game-player-dock [data-testid="hand"] {
+    /* One gap value for the strip: the row leaves it between cards and the cue
+       buttons scroll by exactly one card plus one gap (HAND_TOUCH_GAP). */
+    --game-hand-gap: 16px;
+
     height: var(--game-hand-h) !important;
     padding: 0 var(--ds-space-2) var(--ds-space-2) !important;
     justify-content: flex-start !important;
@@ -4078,13 +4268,67 @@ button.side-panel__name:focus-visible {
     scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
   }
   /* Whole cards, side by side: the row scrolls, so burying a card under its
-     neighbour bought no room and left the overlapped edge tapping the wrong card. */
+     neighbour bought no room and left the overlapped edge tapping the wrong card.
+     The gap is what keeps two selection rings from merging into one blob. */
   .game-player-dock [data-testid="hand"] > div {
     flex: 0 0 auto;
-    margin-left: var(--ds-space-1) !important;
+    margin-left: var(--game-hand-gap) !important;
     transform: none !important;
     scroll-snap-align: center;
     touch-action: pan-x !important;
+  }
+  /* The pick badge overhangs the card's top-right corner, and the strip clips its
+     own overflow to keep the scrollbar out of the board — so on this layout the
+     badge sits inside the card instead of being cut in half by the strip's edge. */
+  .game-hand-card__pick-badge {
+    top: 0.15rem;
+    right: 0.15rem;
+  }
+  /* Selection at arm's length: thicker rings than the pointer layout, and an
+     ineligible card steps further back so the eligible ones carry the eye. */
+  .game-hand-card--pickable {
+    box-shadow:
+      0 0 0 4px var(--ds-accent),
+      0 0 0 8px var(--ds-accent-surface),
+      0 0 24px rgb(7 95 247 / 50%);
+  }
+  .game-hand-card--picked {
+    box-shadow:
+      0 0 0 4px var(--ds-success),
+      0 0 0 9px var(--ds-success-surface),
+      0 0 26px rgb(22 101 52 / 60%);
+  }
+  .game-hand-card--unpickable {
+    opacity: 0.32;
+  }
+  /* More air while a decision is being answered, so the rings stay separate. */
+  .game-player-dock [data-testid="hand"].game-hand--selecting {
+    --game-hand-gap: 22px;
+  }
+  /* There are more cards this way. The cue is small, sits clear of the cards'
+     faces, and scrolls the strip by one card when it is tapped. */
+  .game-hand-scroll-cue {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    translate: 0 -50%;
+    color: var(--ds-on-accent);
+    border: none;
+    border-radius: var(--ds-radius-pill);
+    background: var(--ds-accent);
+    opacity: 0.86;
+    box-shadow: var(--ds-shadow-lg);
+  }
+  .game-hand-scroll-cue--start {
+    left: 0;
+  }
+  .game-hand-scroll-cue--end {
+    right: 0;
   }
   .game-player-dock [data-testid="hand"] > div:first-child {
     margin-left: 0 !important;
@@ -4306,6 +4550,72 @@ button.side-panel__name:focus-visible {
     white-space: nowrap;
   }
 
+  /* Stack viewer as one sheet: header, computed state, then a wrapping grid per
+     role. Nothing scrolls sideways — the panel scrolls vertically instead, so a
+     digivolution source is never cut off past the right edge. */
+  .stack-sheet .card-action-sheet__panel {
+    max-height: 85dvh;
+    display: grid;
+    gap: var(--ds-space-3);
+    align-content: start;
+  }
+  .stack-sheet .card-action-sheet__body {
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  }
+  .stack-sheet .card-action-sheet__body > .card-action-sheet__zoom {
+    width: 100%;
+    height: auto;
+  }
+  .stack-sheet .card-action-sheet__body > .card-action-sheet__zoom > * {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .stack-sheet .stack-viewer-state__restrictions,
+  .stack-sheet .stack-viewer-state__keywords {
+    flex-wrap: wrap;
+  }
+  .stack-sheet__groups {
+    display: grid;
+    gap: var(--ds-space-3);
+  }
+  .stack-sheet__groups > section > span {
+    color: var(--ds-fg-muted);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stack-sheet__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-1);
+  }
+  .stack-sheet__grid > button {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .stack-sheet__grid > button > * {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .stack-sheet__grid figcaption {
+    margin-top: 2px;
+    color: var(--ds-fg-muted);
+    font-size: 0.5625rem;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .stack-sheet__grid figcaption > b {
+    margin-right: 3px;
+    color: var(--ds-accent);
+  }
+
   /* Trash: one scrollable row of every card, each tappable to enlarge. */
   .trash-sheet__header {
     display: flex;
@@ -4463,8 +4773,8 @@ button.side-panel__name:focus-visible {
     display: grid;
     padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)
       max(var(--ds-space-4), env(safe-area-inset-bottom));
-    gap: var(--ds-space-4);
-    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--ds-space-3);
+    grid-template-rows: minmax(0, 1fr) auto auto;
     place-items: center;
     background: rgb(4 14 31 / 88%);
     backdrop-filter: blur(8px);
@@ -4510,6 +4820,44 @@ button.side-panel__name:focus-visible {
     min-width: 0;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  /* --- Draw cue on a phone ----------------------------------------------- */
+
+  /* A 30px card back crossing a 393px screen in 340ms read as a flicker, and
+     players missed their own draws. On touch it flies at hand-card size behind an
+     accent glow; `useMatchCues` sets the matching (longer) duration inline, so the
+     queue unmounts it on the frame the trip ends. */
+  .game-draw-flight {
+    --draw-flight-w: var(--hand-card-width);
+    --draw-flight-h: calc(var(--hand-card-width) * 1.4);
+
+    border-width: 2px;
+    border-color: color-mix(in srgb, var(--battle-cyan) 70%, var(--ds-border-strong));
+    box-shadow:
+      0 6px 18px rgb(0 0 0 / 55%),
+      0 0 20px 6px color-mix(in srgb, var(--battle-cyan) 55%, transparent);
+  }
+
+  /* The burst opens where the card landed, so it grows with it. */
+  .game-draw-burst {
+    --draw-flight-w: var(--hand-card-width);
+    --draw-flight-h: calc(var(--hand-card-width) * 1.4);
+  }
+
+  /* The hand is a scrolling strip of near-identical backs here: the drop alone
+     does not say which card is new, so an accent ring stays on it and fades. */
+  .game-hand-card--drawn::after {
+    content: "";
+    position: absolute;
+    z-index: 3;
+    inset: -3px;
+    pointer-events: none;
+    border-radius: calc(0.7rem + 3px);
+    box-shadow:
+      0 0 0 3px var(--battle-cyan),
+      0 0 18px 6px color-mix(in srgb, var(--battle-cyan) 60%, transparent);
+    animation: battle-hand-draw-ring var(--t-hand-draw-ring, 900ms) ease-out both;
   }
 }
 
@@ -4655,17 +5003,55 @@ button.side-panel__name:focus-visible {
      only exit — nothing transient may land on top of its buttons. */
   .board-prompt {
     top: auto;
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-    bottom: calc(var(--game-hand-h) + 10rem + env(safe-area-inset-bottom, 0px));
-    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    right: 0;
+    bottom: calc(var(--game-hand-h) + env(safe-area-inset-bottom, 0px));
+    left: 0;
     z-index: calc(var(--ds-z-dialog) - 3);
     width: auto;
     /* All the height between the sheet's resting place and the top of the
        screen: only a clause that literally outgrows the viewport scrolls. */
-    max-height: calc(100dvh - var(--game-hand-h) - 11.5rem - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - var(--game-hand-h) - 4rem - env(safe-area-inset-bottom, 0px));
+    padding: var(--ds-space-2) max(var(--ds-space-4), env(safe-area-inset-right, 0px)) var(--ds-space-4)
+      max(var(--ds-space-4), env(safe-area-inset-left, 0px));
     overflow-y: auto;
+    border-width: 1px 0 0;
+    border-color: var(--ds-border-strong);
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%);
     translate: none;
     animation-name: battle-board-sheet-in;
+  }
+  /* Dressed like the card action sheets: a grip line, no back control (Escape
+     still hands the decision to its dialog, but a phone has no Escape and the
+     dialog would only cover the hand the selection is picking from). */
+  .board-prompt__grip {
+    display: block;
+    width: 2.25rem;
+    height: 4px;
+    margin: 0 auto var(--ds-space-2);
+    border-radius: 999px;
+    background: var(--ds-border-strong);
+  }
+  .board-prompt__back {
+    display: none;
+  }
+  /* The decision is the one thing to answer: the board dims under the sheet. The
+     hand stays lit for the cards a selection picks, and the feed column above the
+     scrim stays lit for the notices that explain what raised the decision. */
+  .board-prompt-scrim {
+    position: absolute;
+    z-index: calc(var(--ds-z-dialog) - 6);
+    display: block;
+    inset: 0 0 calc(var(--game-hand-h) + env(safe-area-inset-bottom, 0px)) 0;
+    pointer-events: none;
+    background: rgb(4 14 31 / 42%);
+    animation: aegis-fadeIn 140ms ease-out;
+  }
+  /* With a decision sheet open the feed column stops short of it and scrolls. */
+  .side-panel-stack[data-under-sheet] {
+    max-height: 30dvh;
+    overflow-y: auto;
+    pointer-events: auto;
   }
   /* Side by side: the sheet spends width it has and height it does not. */
   .board-prompt__actions {
@@ -4750,6 +5136,39 @@ button.side-panel__name:focus-visible {
   .game-end-turn-orb {
     margin: 0 0.25rem;
   }
+
+  /* Trigger chooser as one row of compact tiles. Stacked full-size cards pushed
+     the confirm button off a 393x852 screen, so choosing which effect to resolve
+     meant scrolling the sheet first. Two or three tiles fit across instead, and
+     the row scrolls sideways only when there are more. */
+  .trigger-chooser {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--ds-space-2);
+  }
+  .trigger-chooser__option {
+    flex: 0 0 auto;
+    max-width: 8rem;
+  }
+  /* CardFull sizes itself inline, so the thumbnail is shrunk here rather than by
+     passing a phone-only width down through the overlay. */
+  .trigger-chooser__card > div {
+    width: 64px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  /* The clause is printed in full above the list; on the tile it would be a
+     second truncation of the same sentence. */
+  .trigger-chooser__summary {
+    display: none;
+  }
+  .trigger-chooser__meta {
+    max-width: 100%;
+  }
+  .trigger-chooser__name {
+    font-size: var(--ds-text-xs);
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Keyed on width alone: a landscape phone is ~844px wide and fits all three
@@ -4772,6 +5191,23 @@ button.side-panel__name:focus-visible {
     top: calc(10.5rem + env(safe-area-inset-top, 0px));
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: auto;
+  }
+  /* The side panels share that band: their own two columns, one hanging from the
+     top and one rising from the bottom, met the notice band in the middle of the
+     screen and the three painted over each other. One column, oldest first, with
+     the notices under the panels, reads top to bottom instead. */
+  .side-panel-stack[data-side="all"] {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    bottom: auto;
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    flex-direction: column;
+    width: auto;
+    max-height: calc(100dvh - 10.5rem - var(--game-hand-h) - 6rem - env(safe-area-inset-top, 0px));
+    overflow: hidden;
+  }
+  .side-panel-stack[data-side="all"] > .match-notice-stack {
     width: auto;
   }
 }
@@ -4822,7 +5258,7 @@ button.side-panel__name:focus-visible {
      both match controls are base-hidden, and only a touch layout brings them back. */
   .game-opponent-bar {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
     gap: var(--ds-space-2);
   }
   .game-mobile-turn {
@@ -4842,6 +5278,7 @@ button.side-panel__name:focus-visible {
     font-weight: 700;
   }
   .game-mobile-surrender,
+  .game-mobile-fullscreen,
   .game-mobile-bug {
     display: grid;
     place-items: center;
@@ -5293,6 +5730,12 @@ button.side-panel__name:focus-visible {
   /* The flying card back exists only for its trip: with no motion it would just
      park over the board until its timer removes it. */
   .game-draw-flight {
+    display: none;
+  }
+
+  /* Same for the touch layouts' accent ring: with no animation to fade it, it
+     would park on the card for as long as that card stayed in hand. */
+  .game-hand-card--drawn::after {
     display: none;
   }
 

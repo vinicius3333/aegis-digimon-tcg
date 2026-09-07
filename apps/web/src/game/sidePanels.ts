@@ -191,10 +191,13 @@ export function sidePanelFromEvent(
       };
     }
     case "cardRevealed":
+      // A reveal exists to inform the other player; the revealer's own client
+      // already shows the card through the zone it came from or moves to.
+      if (event.seat === viewerSeat) return null;
       return {
         id,
         titleKey: "panel.revealedCards",
-        side: sideOf(event.seat, viewerSeat),
+        side: "opp",
         cards: numbered([event.cardId]),
         // A reveal is shown in the order it came off the deck, so it is numbered
         // from the first card even before a second one joins it.

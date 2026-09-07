@@ -55,6 +55,30 @@ describe("SidePanelStack", () => {
     expect(screen.queryByText("1")).toBeNull();
   });
 
+  it("folds both sides into one column, oldest first, with the tail under all of them", () => {
+    render(
+      <I18nProvider>
+        <SidePanelStack
+          panels={[
+            panel({ id: "yours", side: "you", titleKey: "panel.discardedCards", createdAt: 20 }),
+            panel({ id: "theirs", side: "opp", titleKey: "panel.revealedCards", createdAt: 10 }),
+          ]}
+          nowMs={0}
+          collapse
+          onDismiss={() => undefined}
+          oppColumnTail={<i data-testid="tail" />}
+        />
+      </I18nProvider>,
+    );
+    const stacks = screen.getAllByTestId("side-panel-stack");
+    expect(stacks).toHaveLength(1);
+    const stack = stacks[0]!;
+    expect(stack.getAttribute("data-side")).toBe("all");
+    const titles = Array.from(stack.querySelectorAll("h3")).map((heading) => heading.textContent);
+    expect(titles).toEqual(["Revealed Cards", "Discarded cards"]);
+    expect(stack.lastElementChild?.getAttribute("data-testid")).toBe("tail");
+  });
+
   it("carries the opponent column's tail under its panels, and alone when it has none", () => {
     const { rerender } = render(
       <I18nProvider>

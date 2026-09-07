@@ -6,6 +6,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
 import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlays";
 import { parseActivatable } from "./boardModel";
+import type { PermanentDetail } from "./permanentDetail";
 
 afterEach(() => cleanup());
 
@@ -277,5 +278,96 @@ describe("trash bottom sheet", () => {
   it("says so when the trash is empty", () => {
     renderTrash([]);
     expect(screen.getByText("trash is empty")).toBeTruthy();
+  });
+});
+
+describe("stack viewer bottom sheet", () => {
+  const detail: PermanentDetail = {
+    permanentId: "p1",
+    cardId: "BT1-010",
+    name: "Greymon",
+    cards: [],
+    currentDP: 5000,
+    baseDP: 3000,
+    dpDelta: 2000,
+    keywords: ["Blocker"],
+    grantedKeywords: [],
+    restrictions: [],
+    suspended: true,
+    summoningSick: false,
+    inBreeding: false,
+  };
+
+  function renderStackSheet(props: Partial<React.ComponentProps<typeof StackViewerOverlay>> = {}) {
+    return render(
+      <I18nProvider>
+        <StackViewerOverlay
+          sheet
+          title="Greymon"
+          cards={[
+            { cardId: "BT1-010", role: "top" },
+            { cardId: "ST1-02", role: "stack" },
+            { cardId: "ST1-03", role: "stack" },
+          ]}
+          detail={detail}
+          canAttack={false}
+          onAttack={noop}
+          onClose={noop}
+          {...props}
+        />
+      </I18nProvider>,
+    );
+  }
+
+  it("reads as one sheet: grip, header stats and keyword chips", () => {
+    renderStackSheet();
+    expect(document.querySelector(".stack-sheet .card-action-sheet__grip")).toBeTruthy();
+    expect(document.querySelector(".trash-viewer-dialog")).toBeNull();
+    expect(screen.getByText(/5[,.]000 DP/)).toBeTruthy();
+    expect(screen.getByText(/^\+2[,.]000$/)).toBeTruthy();
+    expect(screen.getByText("Suspended")).toBeTruthy();
+    expect(document.querySelector(".card-action-sheet__keywords")!.textContent).toContain("Blocker");
+  });
+
+  it("stacks a wrapping grid per role, numbering the sources from the bottom", () => {
+    renderStackSheet();
+    const sections = document.querySelectorAll(".stack-sheet__groups > section");
+    expect(sections).toHaveLength(2);
+    expect(sections[0]!.getAttribute("aria-label")).toBe("Active");
+    expect(sections[1]!.getAttribute("aria-label")).toBe("Digivolution");
+    const sources = sections[1]!.querySelectorAll(".stack-sheet__grid figcaption");
+    expect(sources).toHaveLength(2);
+    expect(sources[0]!.querySelector("b")!.textContent).toBe("1");
+    expect(sources[1]!.querySelector("b")!.textContent).toBe("2");
+  });
+
+  it("opens the card zoom from the active card and from a source", () => {
+    renderStackSheet();
+    fireEvent.click(screen.getByRole("button", { name: "Enlarge card" }));
+    expect(document.querySelector(".card-zoom")).toBeTruthy();
+    fireEvent.click(document.querySelector(".card-zoom")!);
+    expect(document.querySelector(".card-zoom")).toBeNull();
+
+    fireEvent.click(document.querySelectorAll(".stack-sheet__grid > button")[2]!);
+    expect(document.querySelector(".card-zoom")).toBeTruthy();
+  });
+
+  it("closes on Escape, but Escape over the zoom only closes the zoom", () => {
+    const onClose = vi.fn<() => void>();
+    renderStackSheet({ onClose });
+
+    fireEvent.click(document.querySelector(".stack-sheet__grid > button")!);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(document.querySelector(".card-zoom")).toBeNull();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the two-column dialog off the phone sheet", () => {
+    renderStackSheet({ sheet: false });
+    expect(document.querySelector(".trash-viewer-dialog")).toBeTruthy();
+    expect(document.querySelector(".stack-sheet")).toBeNull();
   });
 });

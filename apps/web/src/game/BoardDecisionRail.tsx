@@ -30,6 +30,7 @@ function BoardPromptRail({
   clause,
   detail,
   onOpenDialog,
+  showDialogButton,
   children,
 }: {
   label: string;
@@ -37,33 +38,42 @@ function BoardPromptRail({
   prompt: string;
   clause?: string;
   detail?: string;
+  /** Escape hands the decision back to its dialog whenever this is set. */
   onOpenDialog?: () => void;
+  /** Also offer that hand-off as a visible control; only worth it when the dialog shows more than the rail does. */
+  showDialogButton?: boolean;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
   useEscapeToDialog(onOpenDialog);
   return (
-    <section className="board-prompt" aria-label={label} data-testid="board-prompt">
-      {onOpenDialog ? (
-        <Button
-          className="board-prompt__back"
-          size="sm"
-          variant="ghost"
-          icon={Icons.ArrowLeft}
-          onClick={onOpenDialog}
-          aria-label={t("overlay.openDecisionDialog")}
-        >
-          {t("overlay.openDecisionDialog")}
-        </Button>
-      ) : null}
-      {eyebrow ? <p className="board-prompt__eyebrow">{eyebrow}</p> : null}
-      <p className="board-prompt__text" aria-live="polite">
-        {prompt}
-      </p>
-      {clause ? <p className="board-prompt__clause">{clause}</p> : null}
-      {detail ? <p className="board-prompt__detail">{detail}</p> : null}
-      <div className="board-prompt__actions">{children}</div>
-    </section>
+    <>
+      {/* Phone only (see game.css): dims the board under the sheet, not the hand
+          a selection picks from nor the notices that explain the decision. */}
+      <div className="board-prompt-scrim" aria-hidden />
+      <section className="board-prompt" aria-label={label} data-testid="board-prompt">
+        <div className="board-prompt__grip" aria-hidden />
+        {onOpenDialog && showDialogButton ? (
+          <Button
+            className="board-prompt__back"
+            size="sm"
+            variant="ghost"
+            icon={Icons.ArrowLeft}
+            onClick={onOpenDialog}
+            aria-label={t("overlay.openDecisionDialog")}
+          >
+            {t("overlay.openDecisionDialog")}
+          </Button>
+        ) : null}
+        {eyebrow ? <p className="board-prompt__eyebrow">{eyebrow}</p> : null}
+        <p className="board-prompt__text" aria-live="polite">
+          {prompt}
+        </p>
+        {clause ? <p className="board-prompt__clause">{clause}</p> : null}
+        {detail ? <p className="board-prompt__detail">{detail}</p> : null}
+        <div className="board-prompt__actions">{children}</div>
+      </section>
+    </>
   );
 }
 
@@ -99,6 +109,7 @@ export function BoardSelectionRail({
       clause={clause}
       detail={t("overlay.selectedOfRange", { count: pickCount, range: min === max ? `${max}` : `${min}–${max}` })}
       onOpenDialog={onOpenDialog}
+      showDialogButton
     >
       <Button full icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
         {t("overlay.endSelection")}
@@ -112,7 +123,7 @@ export function BoardSelectionRail({
   );
 }
 
-/** `optional` answered beside the field: "Will you use …?" with Use / Not use. */
+/** `optional` answered beside the field: the question over the clause, with Use / Not use. */
 export function BoardOptionalPrompt({
   sourceCardId,
   prompt,
@@ -122,6 +133,7 @@ export function BoardOptionalPrompt({
   onOpenDialog,
 }: {
   sourceCardId?: string;
+  /** The engine's question, already filtered of internal summaries; falls back to a generic one. */
   prompt?: string;
   clause?: string;
   onUse: () => void;
@@ -133,12 +145,13 @@ export function BoardOptionalPrompt({
   return (
     <BoardPromptRail
       label={sourceName ? t("overlay.cardEffect", { name: sourceName }) : t("overlay.useEffectPrompt")}
-      // The prompt and the clause below are the card's own printed text, which names
-      // other cards only as prose this client cannot resolve to ids. The source is the
-      // one card the rail holds an id for, so it is the one name that links.
+      // The clause below is the card's own printed text, which names other cards
+      // only as prose this client cannot resolve to ids. The source is the one card
+      // the rail holds an id for, so it is the one name that links.
       eyebrow={sourceCardId ? <CardLink cardId={sourceCardId} /> : undefined}
-      prompt={prompt ?? (clause ? t("overlay.willYouUse", { effect: clause }) : t("overlay.useEffectPrompt"))}
-      clause={prompt && clause ? clause : undefined}
+      prompt={prompt ?? t("overlay.useEffectPrompt")}
+      clause={clause}
+      // The dialog shows nothing the rail does not, so Escape is the only way back to it.
       onOpenDialog={onOpenDialog}
     >
       <Button className="board-prompt__use" full icon={Icons.Sparkles} onClick={onUse}>

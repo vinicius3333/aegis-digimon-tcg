@@ -28,6 +28,8 @@ import type { DpPulse } from "./dpPulse";
 import type { FreezePulse } from "./freezePulse";
 import { TIMINGS } from "./timings";
 import { useTranslation } from "../i18n";
+import { Icons } from "../design/icons";
+import { TOUCH_LAYOUT_QUERY, useMediaQuery } from "../design/useMediaQuery";
 
 type DropAttrs = Record<string, string>;
 
@@ -1110,6 +1112,12 @@ const HAND_FAN_ROOM = 28;
 const HAND_MAX_FAN = 14;
 /** The outermost cards are rotated, so each end of the fan reaches past its card box. */
 const HAND_TILT_BLEED = 20;
+/**
+ * The gap the phone strip leaves between two hand cards, mirroring the stylesheet's
+ * `--game-hand-gap`. A scroll cue moves the row by exactly one card and its gap, so
+ * the card it uncovers lands whole against the edge it came from.
+ */
+const HAND_TOUCH_GAP = 16;
 
 const handMinOverlap = (cardWidth: number) => Math.round(cardWidth * 0.26);
 /**
@@ -1154,6 +1162,45 @@ function useElementWidth(element: HTMLElement | null): number {
     return () => observer.disconnect();
   }, [element]);
   return width;
+}
+
+interface ScrollOverflow {
+  start: boolean;
+  end: boolean;
+}
+
+/**
+ * Which way a sideways-scrolling row still has cards hidden. The row is watched
+ * for both scrolling and resizing: a phone rotating, or the hand growing by a
+ * draw, changes the answer without anyone scrolling.
+ *
+ * `revision` re-measures when the content changes but the box does not — a
+ * ResizeObserver on the scroller sees its own size, never its content width.
+ */
+function useScrollOverflow(element: HTMLElement | null, revision: number): ScrollOverflow {
+  const [overflow, setOverflow] = useState<ScrollOverflow>({ start: false, end: false });
+  useEffect(() => {
+    if (!element) {
+      setOverflow({ start: false, end: false });
+      return;
+    }
+    const measure = () => {
+      // Sub-pixel layout leaves a scrollLeft a hair off both ends, so a cue is
+      // only claimed for a full pixel of hidden content.
+      const hidden = element.scrollWidth - element.clientWidth;
+      const left = element.scrollLeft;
+      setOverflow({ start: left > 1, end: left < hidden - 1 });
+    };
+    measure();
+    element.addEventListener("scroll", measure, { passive: true });
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : undefined;
+    observer?.observe(element);
+    return () => {
+      element.removeEventListener("scroll", measure);
+      observer?.disconnect();
+    };
+  }, [element, revision]);
+  return overflow;
 }
 
 /**
@@ -1203,6 +1250,16 @@ export function Hand({
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null);
   const rowWidth = useElementWidth(rowEl);
   const drawn = useEnterAnimation(cards.map((entry) => entry.instanceId));
+  // The strip only scrolls on the touch layout; everywhere else the fan is whole
+  // and the cues would point at nothing.
+  const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
+  const overflow = useScrollOverflow(touchLayout ? rowEl : null, n);
+  const scrollByCard = (direction: -1 | 1) => {
+    if (!rowEl) return;
+    const step = direction * (cardWidth + HAND_TOUCH_GAP);
+    if (typeof rowEl.scrollBy === "function") rowEl.scrollBy({ left: step, behavior: "smooth" });
+    else rowEl.scrollLeft += step;
+  };
   // Two copies of one card look identical in the fan, so a selection labels each
   // one by its position among the copies the way the dialog's grid does.
   const copyLabels = new Map<string, string>();
@@ -1258,137 +1315,164 @@ export function Hand({
     selection?.onToggle(instanceId);
   };
   return (
-    <div
-      ref={setRowEl}
-      data-testid="hand"
-      className="game-hand"
-      style={{
-        position: "relative",
-        boxSizing: "border-box",
-        height: handRowHeight(cardWidth),
-        minWidth: 0,
-        paddingBottom: HAND_FAN_ROOM,
-        display: "flex",
-        justifyContent: "safe center",
-        alignItems: "flex-end",
-      }}
-    >
-      {cards.map((entry, i) => {
-        const mid = (n - 1) / 2;
-        const off = i - mid;
-        // The arc always spends the same room, however many cards are fanned, so
-        // the outermost card never drops below the dock and out of the window.
-        const fan = mid > 0 ? (Math.abs(off) / mid) * HAND_MAX_FAN : 0;
-        const pickPosition = selection ? selection.pickedInstanceIds.indexOf(entry.instanceId) : -1;
-        const picked = pickPosition !== -1;
-        const pickable = selection?.selectableInstanceIds.includes(entry.instanceId) ?? false;
-        const sel = selection ? picked : selectedInstanceId === entry.instanceId;
-        const dragging = draggingInstanceId === entry.instanceId;
-        const hov = hoveredIndex === i;
-        const playable = selection ? pickable : entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
-        // Hover raises a buried card out of the fan so its face can be read; it
-        // never grows it. A card is inspected by clicking it, which opens the same
-        // focused overlay the touch layout uses.
-        const style: CSSProperties = {
-          marginLeft: i === 0 ? 0 : -overlap,
-          cursor: "grab",
-          touchAction: "none",
-          transform: `translateY(${sel ? -34 : hov ? -18 : fan}px) rotate(${sel || hov ? 0 : off * 4}deg)`,
-          transformOrigin: "bottom center",
-          transition: "transform 200ms",
-          zIndex: sel ? 50 : hov ? 40 : 10 + i,
-          opacity: dragging ? 0.3 : 1,
-          filter: sel
-            ? "drop-shadow(0 16px 26px rgba(15,23,42,0.32))"
-            : hov
-              ? "drop-shadow(0 10px 18px rgba(15,23,42,0.28))"
-              : "drop-shadow(0 4px 8px rgba(15,23,42,0.14))",
-        };
-        return (
-          <div
-            key={entry.instanceId}
-            onPointerDown={
-              selection ? (pickable ? (e) => beginPick(entry.instanceId, e) : undefined) : (e) => startDrag(i, e)
-            }
-            onPointerUp={selection && pickable ? (e) => finishPick(entry.instanceId, e) : undefined}
-            onPointerCancel={selection ? () => (pickPress.current = null) : undefined}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" && event.key !== " ") return;
-              event.preventDefault();
-              if (selection) {
-                if (pickable) selection.onToggle(entry.instanceId);
-                return;
+    <div className="game-hand-scroller">
+      <div
+        ref={setRowEl}
+        data-testid="hand"
+        className={selection ? "game-hand game-hand--selecting" : "game-hand"}
+        style={{
+          position: "relative",
+          boxSizing: "border-box",
+          height: handRowHeight(cardWidth),
+          minWidth: 0,
+          paddingBottom: HAND_FAN_ROOM,
+          display: "flex",
+          justifyContent: "safe center",
+          alignItems: "flex-end",
+        }}
+      >
+        {cards.map((entry, i) => {
+          const mid = (n - 1) / 2;
+          const off = i - mid;
+          // The arc always spends the same room, however many cards are fanned, so
+          // the outermost card never drops below the dock and out of the window.
+          const fan = mid > 0 ? (Math.abs(off) / mid) * HAND_MAX_FAN : 0;
+          const pickPosition = selection ? selection.pickedInstanceIds.indexOf(entry.instanceId) : -1;
+          const picked = pickPosition !== -1;
+          const pickable = selection?.selectableInstanceIds.includes(entry.instanceId) ?? false;
+          const sel = selection ? picked : selectedInstanceId === entry.instanceId;
+          const dragging = draggingInstanceId === entry.instanceId;
+          const hov = hoveredIndex === i;
+          const playable = selection
+            ? pickable
+            : entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
+          // Hover raises a buried card out of the fan so its face can be read; it
+          // never grows it. A card is inspected by clicking it, which opens the same
+          // focused overlay the touch layout uses.
+          const style: CSSProperties = {
+            marginLeft: i === 0 ? 0 : -overlap,
+            cursor: "grab",
+            touchAction: "none",
+            transform: `translateY(${sel ? -34 : hov ? -18 : fan}px) rotate(${sel || hov ? 0 : off * 4}deg)`,
+            transformOrigin: "bottom center",
+            transition: "transform 200ms",
+            zIndex: sel ? 50 : hov ? 40 : 10 + i,
+            opacity: dragging ? 0.3 : 1,
+            filter: sel
+              ? "drop-shadow(0 16px 26px rgba(15,23,42,0.32))"
+              : hov
+                ? "drop-shadow(0 10px 18px rgba(15,23,42,0.28))"
+                : "drop-shadow(0 4px 8px rgba(15,23,42,0.14))",
+          };
+          return (
+            <div
+              key={entry.instanceId}
+              onPointerDown={
+                selection ? (pickable ? (e) => beginPick(entry.instanceId, e) : undefined) : (e) => startDrag(i, e)
               }
-              selectCard?.(i);
-            }}
-            onClick={(event) => {
-              if (selection) {
-                // The gesture that already answered on `pointerup` sends this click
-                // too; anything else (keyboard, assistive activation, a browser that
-                // reports no pointerup here) is still a pick.
-                if (pointerPicked.current === entry.instanceId) {
-                  pointerPicked.current = null;
+              onPointerUp={selection && pickable ? (e) => finishPick(entry.instanceId, e) : undefined}
+              onPointerCancel={selection ? () => (pickPress.current = null) : undefined}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" && event.key !== " ") return;
+                event.preventDefault();
+                if (selection) {
+                  if (pickable) selection.onToggle(entry.instanceId);
                   return;
                 }
-                if (pickable) selection.onToggle(entry.instanceId);
-                return;
+                selectCard?.(i);
+              }}
+              onClick={(event) => {
+                if (selection) {
+                  // The gesture that already answered on `pointerup` sends this click
+                  // too; anything else (keyboard, assistive activation, a browser that
+                  // reports no pointerup here) is still a pick.
+                  if (pointerPicked.current === entry.instanceId) {
+                    pointerPicked.current = null;
+                    return;
+                  }
+                  if (pickable) selection.onToggle(entry.instanceId);
+                  return;
+                }
+                // Pointer taps are resolved by GameScreen's drag/tap recognizer.
+                // A zero-detail click is keyboard/assistive activation and needs a
+                // direct deterministic selection path without toggling twice.
+                if (event.detail === 0) selectCard?.(i);
+              }}
+              onMouseEnter={() => {
+                setHoveredIndex(i);
+                onHoverChange?.(entry.instanceId);
+              }}
+              onMouseLeave={() => {
+                setHoveredIndex(null);
+                onHoverChange?.(undefined);
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={
+                t(selection ? "game.pickCard" : "game.selectCard", {
+                  card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId,
+                }) +
+                (copyLabels.has(entry.instanceId) ? `, ${copyLabels.get(entry.instanceId)}` : "") +
+                (picked ? t("overlay.selected") : "")
               }
-              // Pointer taps are resolved by GameScreen's drag/tap recognizer.
-              // A zero-detail click is keyboard/assistive activation and needs a
-              // direct deterministic selection path without toggling twice.
-              if (event.detail === 0) selectCard?.(i);
-            }}
-            onMouseEnter={() => {
-              setHoveredIndex(i);
-              onHoverChange?.(entry.instanceId);
-            }}
-            onMouseLeave={() => {
-              setHoveredIndex(null);
-              onHoverChange?.(undefined);
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label={
-              t(selection ? "game.pickCard" : "game.selectCard", {
-                card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId,
-              }) +
-              (copyLabels.has(entry.instanceId) ? `, ${copyLabels.get(entry.instanceId)}` : "") +
-              (picked ? t("overlay.selected") : "")
-            }
-            aria-disabled={selection && !pickable ? true : undefined}
-            aria-pressed={sel}
-            className={[
-              "game-hand-card",
-              playable ? "game-hand-card--playable" : "",
-              drawn.has(entry.instanceId) ? "game-hand-card--drawn" : "",
-              selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
-              picked ? "game-hand-card--picked" : "",
-              shakeInstanceId === entry.instanceId ? "game-hand-card--shake" : "",
-              effectSourceInstanceId === entry.instanceId ? "game-hand-card--effect-source" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            style={
-              selection
-                ? // Nothing is dragged out of a hand that is answering a decision, so
-                  // the row keeps its sideways pan on touch instead of claiming the
-                  // gesture for a drag that cannot happen.
-                  { ...style, cursor: pickable ? "pointer" : "default", touchAction: "pan-x" }
-                : style
-            }
-          >
-            <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} zoomOnHover={false} />
-            {picked ? (
-              <span
-                className="game-hand-card__pick-badge"
-                aria-label={t("game.pickPosition", { position: pickPosition + 1 })}
-              >
-                {pickPosition + 1}
-              </span>
-            ) : null}
-          </div>
-        );
-      })}
+              aria-disabled={selection && !pickable ? true : undefined}
+              aria-pressed={sel}
+              className={[
+                "game-hand-card",
+                playable ? "game-hand-card--playable" : "",
+                drawn.has(entry.instanceId) ? "game-hand-card--drawn" : "",
+                selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
+                selection && pickable && !picked ? "game-hand-card--pickable" : "",
+                picked ? "game-hand-card--picked" : "",
+                shakeInstanceId === entry.instanceId ? "game-hand-card--shake" : "",
+                effectSourceInstanceId === entry.instanceId ? "game-hand-card--effect-source" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              style={
+                selection
+                  ? // Nothing is dragged out of a hand that is answering a decision, so
+                    // the row keeps its sideways pan on touch instead of claiming the
+                    // gesture for a drag that cannot happen.
+                    { ...style, cursor: pickable ? "pointer" : "default", touchAction: "pan-x" }
+                  : style
+              }
+            >
+              <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} zoomOnHover={false} />
+              {picked ? (
+                <span
+                  className="game-hand-card__pick-badge"
+                  aria-label={t("game.pickPosition", { position: pickPosition + 1 })}
+                >
+                  {pickPosition + 1}
+                </span>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      {touchLayout && overflow.start ? (
+        <button
+          type="button"
+          className="game-hand-scroll-cue game-hand-scroll-cue--start"
+          data-testid="hand-scroll-start"
+          aria-label={t("game.handScrollBack")}
+          onClick={() => scrollByCard(-1)}
+        >
+          <Icons.ChevronLeft size={18} />
+        </button>
+      ) : null}
+      {touchLayout && overflow.end ? (
+        <button
+          type="button"
+          className="game-hand-scroll-cue game-hand-scroll-cue--end"
+          data-testid="hand-scroll-forward"
+          aria-label={t("game.handScrollForward")}
+          onClick={() => scrollByCard(1)}
+        >
+          <Icons.ChevronRight size={18} />
+        </button>
+      ) : null}
     </div>
   );
 }

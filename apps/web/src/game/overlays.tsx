@@ -26,7 +26,7 @@ import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
 import { useTranslation, type Translate, type TranslationKey } from "../i18n";
 import { CardLink, CardLinkedText } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
-import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
+import { TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
 
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
 
@@ -1019,6 +1019,16 @@ export function cardEffectClauseForTiming(
   return effectClauseForTiming(matching ?? texts[0], timing);
 }
 
+/**
+ * The printed timing bracket for an engine timing name ("OnPlay" -> "[On Play]"),
+ * or undefined when the timing is unknown. This is how the trigger chooser tells
+ * apart two effects of one permanent, which share every other visible detail.
+ */
+export function printedTimingLabel(timing: string | undefined): string | undefined {
+  const label = timing ? TIMING_LABELS[timing] : undefined;
+  return label === undefined ? undefined : `[${label}]`;
+}
+
 /** The printed clause to surface for a resolved effect, or undefined when there is nothing worth showing. */
 export function resolvedEffectClause(
   cardId: string,
@@ -1050,7 +1060,7 @@ const INTERNAL_IR_DESCRIPTION = /^\[[^\]]+\](?:\s+＜[^＞]+＞)?\s+[A-Z][A-Za-z
  * can close on a parenthetical — while the generated grammar is bounded and
  * enumerable. An unrecognized segment is therefore taken as card text and shown.
  */
-const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
+const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
   /^Draw -?\d+$/,
   // A target count is a number or the literal "all" (`String(action.target.count)`
   // in describeAction stringifies both), so "Delete all target(s)" is generated too.
@@ -1070,8 +1080,12 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
   /^Hatch a Digi-Egg$/,
   /^Search your deck$/,
   /^(?:Digivolve|DNA digivolve|De-Digivolve)$/,
+];
+const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
+  ...DESCRIBED_ACTION_PHRASES,
   // The last resort in describeAction: an unmapped action kind, either raw
   // ("SubTrigger", "Aura") or spaced out of camel case ("Place in battle area self").
+  // Too loose to judge a prompt by: any capitalised sentence of plain words fits.
   /^[A-Z][A-Za-z0-9]*$/,
   /^[A-Z][a-z0-9]*(?: [a-z0-9]+)+$/,
 ];
@@ -1123,7 +1137,13 @@ export function playerFacingPromptText(promptText: string | undefined, kind: Dec
   // clause explains what is being selected.
   if (/^(?:choose targets?|select cards?|choose one effect to activate)$/i.test(trimmed)) return undefined;
   if (kind !== "optional") return trimmed;
-  return INTERNAL_IDENTIFIER_PROMPT.test(trimmed) || INTERNAL_ACTION_PROMPT.test(trimmed) ? undefined : trimmed;
+  // A reducer or keyword effect asks with the engine's own summary of what it does
+  // ("Draw 2", "Gain 2 memory"), which the printed clause under the prompt already says.
+  return INTERNAL_IDENTIFIER_PROMPT.test(trimmed) ||
+    INTERNAL_ACTION_PROMPT.test(trimmed) ||
+    DESCRIBED_ACTION_PHRASES.some((shape) => shape.test(trimmed))
+    ? undefined
+    : trimmed;
 }
 
 export function playerFacingEffectClause({
@@ -1233,6 +1253,12 @@ export function DecisionOverlay({
   const triggerKeys = request.options?.triggerKeys ?? [];
   const triggerCardIds = request.options?.triggerCardIds ?? [];
   const triggerKeyLabels = triggerLabels(triggerKeys, t, triggerCardIds);
+  // Two effects of ONE permanent reach the chooser with the same name and art; the
+  // window each fired in is the only honest thing that separates them.
+  const triggerTimingLabels = triggerKeys.map((_key, index) =>
+    printedTimingLabel(request.options?.triggerTimings?.[index] || undefined),
+  );
+  const distinctTriggerSummaries = new Set(triggerDetails.map((detail) => detail?.summary ?? "")).size;
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
   const selectedPlayCost = picks.reduce((total, instanceId) => {
     const cardId = candidates.find((candidate) => candidate.instanceId === instanceId)?.cardId;
@@ -1765,13 +1791,19 @@ export function DecisionOverlay({
               const chosen = selectedTriggerKeys.includes(key);
               const cardId = triggerCardIds[i] ?? triggerCardId(key);
               const detail = triggerDetails[i];
-              const summary = detail?.summary;
+              // The clause is already printed in full above the list, so repeating it
+              // per option only truncates the same sentence twice. It earns its space
+              // only where the options genuinely say different things.
+              const summary = distinctTriggerSummaries > 1 ? detail?.summary : undefined;
+              const timingLabel = triggerTimingLabels[i];
               return (
                 <button
                   type="button"
                   key={key}
                   className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
-                  aria-label={[triggerKeyLabels[i], detail?.sourceLabel, summary].filter(Boolean).join(", ")}
+                  aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel, summary]
+                    .filter(Boolean)
+                    .join(", ")}
                   aria-pressed={chosen}
                   onClick={() => toggleTrigger(key)}
                 >
@@ -1780,8 +1812,9 @@ export function DecisionOverlay({
                     {summary ? <span className="trigger-chooser__summary">{summary}</span> : null}
                   </span>
                   <span className="trigger-chooser__meta">
-                    {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
+                    {timingLabel ? <span className="trigger-chooser__timing">{timingLabel}</span> : null}
                     <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
+                    {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
                   </span>
                 </button>
               );
@@ -1970,8 +2003,6 @@ export function EvoCostChoiceOverlay({
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
-  const def = getCardDefinition(evolvingCardId);
-  const key = colorKey(def?.colors[0]);
 
   return (
     <div
@@ -1993,19 +2024,7 @@ export function EvoCostChoiceOverlay({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            display: "grid",
-            placeItems: "center",
-            flexShrink: 0,
-            background: COLORS[key].soft,
-          }}
-        >
-          <Sigil cardId={evolvingCardId} color={key} size={28} />
-        </div>
+        <CardArt cardId={evolvingCardId} width={56} />
         <div>
           <div
             style={{
@@ -2116,6 +2135,33 @@ export function CardActionMenu({
     const def = getCardDefinition(cardId ?? "");
     const dpDelta = dp != null && baseDP != null ? dp - baseDP : 0;
     const beneath = (stackCards ?? []).filter((c) => c.role !== "top");
+    const liveInfo = (
+      <>
+        <strong>{def?.nameEn ?? cardId}</strong>
+        <div className="card-action-sheet__stats">
+          {def?.level ? <span>Lv.{def.level}</span> : null}
+          {dp != null ? (
+            <span>
+              {dp.toLocaleString()} DP
+              {dpDelta !== 0 ? (
+                <em data-sign={dpDelta > 0 ? "up" : "down"}>
+                  {dpDelta > 0 ? "+" : "−"}
+                  {Math.abs(dpDelta).toLocaleString()}
+                </em>
+              ) : null}
+            </span>
+          ) : null}
+          {suspended ? <span data-state="suspended">{t("overlay.suspended")}</span> : null}
+        </div>
+        {keywords?.length ? (
+          <div className="card-action-sheet__keywords">
+            {keywords.map((k) => (
+              <span key={k}>{formatKeyword(k)}</span>
+            ))}
+          </div>
+        ) : null}
+      </>
+    );
     return createPortal(
       <div
         className="card-action-sheet"
@@ -2138,29 +2184,7 @@ export function CardActionMenu({
               </button>
             ) : null}
             <div className="card-action-sheet__info">
-              <strong>{def?.nameEn ?? cardId}</strong>
-              <div className="card-action-sheet__stats">
-                {def?.level ? <span>Lv.{def.level}</span> : null}
-                {dp != null ? (
-                  <span>
-                    {dp.toLocaleString()} DP
-                    {dpDelta !== 0 ? (
-                      <em data-sign={dpDelta > 0 ? "up" : "down"}>
-                        {dpDelta > 0 ? "+" : "−"}
-                        {Math.abs(dpDelta).toLocaleString()}
-                      </em>
-                    ) : null}
-                  </span>
-                ) : null}
-                {suspended ? <span data-state="suspended">{t("overlay.suspended")}</span> : null}
-              </div>
-              {keywords?.length ? (
-                <div className="card-action-sheet__keywords">
-                  {keywords.map((k) => (
-                    <span key={k}>{formatKeyword(k)}</span>
-                  ))}
-                </div>
-              ) : null}
+              {liveInfo}
               <div className="card-action-sheet__actions">
                 <Button size="md" full variant="secondary" icon={Icons.Search} onClick={onViewStack}>
                   {t("overlay.viewStack")}
@@ -2235,7 +2259,13 @@ export function CardActionMenu({
             </div>
           ) : null}
         </div>
-        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+        {zoomed ? (
+          <CardZoomOverlay
+            cardId={zoomed}
+            details={zoomed === cardId ? liveInfo : undefined}
+            onClose={() => setZoomed(null)}
+          />
+        ) : null}
       </div>,
       document.body,
     );
@@ -2340,11 +2370,14 @@ export function CardZoomOverlay({
   cardId,
   onClose,
   inline,
+  details,
 }: {
   cardId: string;
   onClose: () => void;
   /** Render in place rather than portalling, so a fixture stage can hold the overlay. */
   inline?: boolean;
+  /** Info shown under the card. Defaults to the printed name, level, cost and DP. */
+  details?: ReactNode;
 }) {
   const { t } = useTranslation();
   useEffect(() => {
@@ -2363,12 +2396,31 @@ export function CardZoomOverlay({
       onClick={onClose}
     >
       <CardFull cardId={cardId} width={340} />
+      <div className="card-zoom__details card-action-sheet__info" onClick={(e) => e.stopPropagation()}>
+        {details ?? <PrintedCardInfo cardId={cardId} />}
+      </div>
       <button type="button" onClick={onClose} autoFocus>
         {t("common.close")}
       </button>
     </div>
   );
   return inline ? panel : createPortal(panel, document.body);
+}
+
+/** Name plus the printed level, play cost and DP, styled like the action sheet header. */
+export function PrintedCardInfo({ cardId }: { cardId: string }) {
+  const { t } = useTranslation();
+  const def = getCardDefinition(cardId);
+  return (
+    <>
+      <strong>{def?.nameEn ?? cardId}</strong>
+      <div className="card-action-sheet__stats">
+        {def?.level ? <span>Lv.{def.level}</span> : null}
+        <span>{def && def.playCost >= 0 ? t("game.costsMemory", { count: def.playCost }) : t("game.noCost")}</span>
+        {def?.dp ? <span>{def.dp.toLocaleString()} DP</span> : null}
+      </div>
+    </>
+  );
 }
 
 /**
@@ -2465,6 +2517,155 @@ function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: Pe
 }
 
 /**
+ * The phone reading of a field permanent: one sheet that runs top to bottom —
+ * header, computed state, then a wrapping grid per role — so nothing is cut off
+ * sideways. Tapping any card opens the shared zoom overlay rather than pinning a
+ * full-width card under the sheet.
+ */
+function StackViewerSheet({
+  cards,
+  title,
+  detail,
+  fate,
+  zoomed,
+  onZoom,
+  canAttack,
+  canVortex,
+  onAttack,
+  onVortex,
+  onClose,
+}: {
+  cards: StackCard[];
+  title: string;
+  detail?: PermanentDetail;
+  fate?: PendingFateBadge;
+  zoomed: string | null;
+  onZoom: (cardId: string | null) => void;
+  canAttack: boolean;
+  canVortex?: boolean;
+  onAttack: () => void;
+  onVortex?: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const active = cards.find((c) => c.role === "top") ?? cards[0];
+  const def = getCardDefinition(active?.cardId ?? "");
+  const dp = detail?.currentDP ?? def?.dp;
+  const dpDelta = detail?.dpDelta ?? 0;
+  const granted = new Set(detail?.grantedKeywords ?? []);
+  const keywords = detail?.keywords ?? [];
+  const header = (
+    <>
+      <strong>{def?.nameEn ?? title}</strong>
+      <div className="card-action-sheet__stats">
+        {def?.level ? <span>Lv.{def.level}</span> : null}
+        {def?.colors?.length ? <span>{def.colors.join(" / ")}</span> : null}
+        {dp ? (
+          <span>
+            {dp.toLocaleString()} DP
+            {dpDelta === 0 ? null : (
+              <em data-sign={dpDelta > 0 ? "up" : "down"}>
+                {dpDelta > 0 ? "+" : "−"}
+                {Math.abs(dpDelta).toLocaleString()}
+              </em>
+            )}
+          </span>
+        ) : null}
+        {detail?.suspended ? <span data-state="suspended">{t("overlay.suspended")}</span> : null}
+      </div>
+      {keywords.length ? (
+        <div className="card-action-sheet__keywords" aria-label={t("overlay.keywords")}>
+          {keywords.map((keyword) => (
+            <span key={keyword} data-granted={granted.has(keyword) || undefined}>
+              {formatKeyword(keyword)}
+              {keyword === "SecurityAttack" && detail?.securityAttack !== undefined ? ` ×${detail.securityAttack}` : ""}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+  return createPortal(
+    <div className="card-action-sheet stack-sheet" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+      <div className="card-action-sheet__panel" onClick={(e) => e.stopPropagation()}>
+        <div className="card-action-sheet__grip" aria-hidden />
+        <div className="card-action-sheet__body">
+          {active ? (
+            <button
+              type="button"
+              className="card-action-sheet__zoom"
+              onClick={() => onZoom(active.cardId)}
+              aria-label={t("overlay.zoomCard")}
+            >
+              <CardArt cardId={active.cardId} width={140} />
+            </button>
+          ) : null}
+          <div className="card-action-sheet__info">{header}</div>
+        </div>
+        {detail?.restrictions.length ? (
+          <ul className="stack-viewer-state__restrictions" aria-label={t("overlay.restrictions")}>
+            {detail.restrictions.map((restriction) => (
+              <li key={restriction.kind}>{t(restriction.labelKey)}</li>
+            ))}
+          </ul>
+        ) : null}
+        {fate ? (
+          <p className="stack-viewer-state__fate" data-tone={fate.tone}>
+            <span aria-hidden="true">{fate.glyph}</span>
+            {t(fate.labelKey)}
+          </p>
+        ) : null}
+        <div className="stack-sheet__groups">
+          {(["top", "stack", "linked"] as const).map((role) => {
+            const group = cards.filter((c) => c.role === role);
+            if (group.length === 0) return null;
+            return (
+              <section key={role} aria-label={t(ROLE_LABEL_KEYS[role])}>
+                <span>{t(ROLE_LABEL_KEYS[role])}</span>
+                <div className="stack-sheet__grid">
+                  {group.map((c, i) => (
+                    <button type="button" key={`${c.cardId}-${i}`} onClick={() => onZoom(c.cardId)}>
+                      <CardArt cardId={c.cardId} width={72} />
+                      <figcaption>
+                        {role === "stack" ? <b>{i + 1}</b> : null}
+                        {getCardDefinition(c.cardId)?.nameEn ?? c.cardId}
+                      </figcaption>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+        <div className="card-action-sheet__actions">
+          {canAttack ? (
+            <Button size="md" full variant="danger" icon={Icons.Swords} onClick={onAttack}>
+              {t("overlay.attack")}
+            </Button>
+          ) : null}
+          {canVortex && onVortex ? (
+            <Button size="md" full variant="danger" icon={Icons.Swords} onClick={onVortex}>
+              {t("overlay.vortexAttack")}
+            </Button>
+          ) : null}
+          <Button size="sm" full variant="ghost" onClick={onClose} autoFocus={!canAttack && !canVortex}>
+            {t("common.close")}
+          </Button>
+        </div>
+      </div>
+      {zoomed ? (
+        <CardZoomOverlay
+          cardId={zoomed}
+          details={zoomed === active?.cardId ? header : undefined}
+          onClose={() => onZoom(null)}
+        />
+      ) : null}
+    </div>,
+    document.body,
+  );
+}
+
+/**
  * Modal that lays out the cards making up a field permanent: thumbnails on the
  * left (active card, its digivolution stack, then linked cards), and a large
  * preview of the last-hovered thumbnail on the right. Surfaces an "Attack" action
@@ -2475,6 +2676,7 @@ export function StackViewerOverlay({
   title,
   detail,
   fate,
+  sheet,
   canAttack,
   canVortex,
   onAttack,
@@ -2487,6 +2689,11 @@ export function StackViewerOverlay({
   detail?: PermanentDetail;
   /** The badge an open effect has already pinned to this permanent, if any. */
   fate?: PendingFateBadge;
+  /**
+   * Render as a bottom sheet (touch layouts) instead of the two-column dialog.
+   * Defaults to the same phone breakpoint the stylesheet's phone block carries.
+   */
+  sheet?: boolean;
   canAttack: boolean;
   canVortex?: boolean;
   onAttack: () => void;
@@ -2496,7 +2703,35 @@ export function StackViewerOverlay({
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const [previewZoomed, setPreviewZoomed] = useState(false);
+  const [zoomed, setZoomed] = useState<string | null>(null);
+  const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
   const preview = (cards[activeIndex] ?? cards[0])?.cardId;
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      // The card zoom sits on top and closes itself on Escape; the sheet under it stays.
+      if (event.key === "Escape" && zoomed === null) onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [onClose, zoomed]);
+
+  if (sheet ?? touchLayout) {
+    return (
+      <StackViewerSheet
+        cards={cards}
+        title={title}
+        detail={detail}
+        fate={fate}
+        zoomed={zoomed}
+        onZoom={setZoomed}
+        canAttack={canAttack}
+        canVortex={canVortex}
+        onAttack={onAttack}
+        onVortex={onVortex}
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <Scrim onClick={onClose} className="game-modal">

@@ -93,20 +93,30 @@ function SidePanelColumn({
   nowMs,
   onDismiss,
   tail,
+  held,
+  underSheet,
 }: {
   panels: readonly SidePanel[];
-  side: SidePanelSide;
+  side: SidePanelSide | "all";
   nowMs: number;
   onDismiss: (id: string) => void;
   /** Rendered under the column's panels, and on its own when the column has none. */
   tail?: ReactNode;
+  held?: boolean;
+  underSheet?: boolean;
 }) {
-  const column = sidePanelColumn(panels, side);
+  const column = side === "all" ? [...panels].sort((a, b) => a.createdAt - b.createdAt) : sidePanelColumn(panels, side);
   if (column.length === 0 && tail === undefined) return null;
   return (
     // Deliberately not a live region: the opponent action feed already narrates
     // these moments, and a second status would announce every card twice.
-    <div className="side-panel-stack" data-side={side} data-testid="side-panel-stack">
+    <div
+      className="side-panel-stack"
+      data-side={side}
+      data-held={held || undefined}
+      data-under-sheet={underSheet || undefined}
+      data-testid="side-panel-stack"
+    >
       {column.map((panel) => (
         <SidePanelView
           key={panel.id}
@@ -125,24 +135,42 @@ export function SidePanelStack({
   nowMs,
   onDismiss,
   oppColumnTail,
+  collapse,
+  held,
+  underSheet,
 }: {
   panels: readonly SidePanel[];
   /** Injected so the eroding borders start at the right point after a re-render. */
   nowMs?: number;
   onDismiss: (id: string) => void;
   /**
+   * Fold both sides into one column, oldest first, with the tail under all of them —
+   * the portrait phone, where two anchored columns landed on each other.
+   */
+  collapse?: boolean;
+  /**
    * What follows the opponent's panels down their column. The notices a security card
    * raises live here: the cards it revealed and the clause that revealed them are one
    * moment, read top to bottom, rather than two blocks anchored over each other.
    */
   oppColumnTail?: ReactNode;
+  /** The clocks are stopped (a decision is waiting), so the eroding borders pause with them. */
+  held?: boolean;
+  /** A decision sheet is open under the column, which then keeps out of its way. */
+  underSheet?: boolean;
 }) {
   if (panels.length === 0 && oppColumnTail === undefined) return null;
   const now = nowMs ?? Date.now();
+  const flags = { held, underSheet };
+  if (collapse) {
+    return (
+      <SidePanelColumn panels={panels} side="all" nowMs={now} onDismiss={onDismiss} tail={oppColumnTail} {...flags} />
+    );
+  }
   return (
     <>
-      <SidePanelColumn panels={panels} side="opp" nowMs={now} onDismiss={onDismiss} tail={oppColumnTail} />
-      <SidePanelColumn panels={panels} side="you" nowMs={now} onDismiss={onDismiss} />
+      <SidePanelColumn panels={panels} side="opp" nowMs={now} onDismiss={onDismiss} tail={oppColumnTail} {...flags} />
+      <SidePanelColumn panels={panels} side="you" nowMs={now} onDismiss={onDismiss} {...flags} />
     </>
   );
 }

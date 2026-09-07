@@ -133,6 +133,11 @@ describe("sidePanelFromEvent", () => {
     expect(result?.ordered).toBe(true);
   });
 
+  it("skips a reveal by the viewer, because a reveal informs the other player", () => {
+    const mine: ServerEvent = { kind: "cardRevealed", seat: 0, cardId: "BT1-021" };
+    expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "b", 0)).toBeNull();
+  });
+
   it("leaves a played card to the centre-screen showcase, for either seat", () => {
     const mine: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-030" };
     const theirs: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-031" };
