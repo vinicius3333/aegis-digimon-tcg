@@ -203,6 +203,8 @@ describe("BT21-071 Scopemon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("scopemon").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("drawA").instanceId, s.inst("drawB").instanceId]),
     );
