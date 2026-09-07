@@ -84,6 +84,25 @@ describe("BT24-079 Hadesmon", () => {
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("hadesmon").instanceId);
   });
 
+  it("may refuse the optional System revival on a public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-075", as: "base" }],
+          hand: [{ card: "BT24-079", as: "hadesmon" }],
+          trash: [{ card: "BT24-071", as: "system" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("hadesmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("hadesmon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("system").instanceId);
+    expect(s.perm("base").linked).toHaveLength(0);
+  });
+
   it("App Fuses from Revivemon linked with Biomon for cost 0", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
