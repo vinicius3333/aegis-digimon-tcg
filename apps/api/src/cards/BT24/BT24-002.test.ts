@@ -42,7 +42,7 @@ describe("BT24-002 Bukamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-002"], suspended: true }] },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true },
     );
@@ -96,7 +96,7 @@ describe("BT24-002 Bukamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-002"], suspended: true }] },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -119,5 +119,64 @@ describe("BT24-002 Bukamon", () => {
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.memory).toBe(-4);
+  });
+
+  it("can resolve before the simultaneous Dan Yuki end-turn attack (Q5575)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-022", as: "host", under: ["BT24-002"], suspended: true },
+            { card: "BT24-085", as: "dan" },
+          ],
+        },
+        1: {
+          security: [
+            { card: "BT1-009", as: "firstSecurity" },
+            { card: "BT1-010", as: "secondSecurity" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstSecurity").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstSecurity").instanceId)).toBe(true);
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderTriggers"));
+    const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers")!.req as any;
+    expect(ordering.options.triggerKeys.length).toBeGreaterThanOrEqual(2);
+    const bukamonKey = ordering.options.triggerKeys.find((key: string) => key.includes("BT24-002"));
+    expect(bukamonKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderTriggers", order: [bukamonKey] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended === true);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("dan").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(-4);
+    await turn;
   });
 });
