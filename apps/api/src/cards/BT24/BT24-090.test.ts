@@ -76,6 +76,21 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Alliance")).toBe(false);
   });
 
+  it("refuses color-waived Option play while a face-up security card remains", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-090", as: "faceUpSource", faceUp: true }],
+        hand: [{ card: "BT24-090", as: "option" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId });
+    expect(result.ok).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+  });
+
   it("adds bottom security to hand, places itself face up, and plays a TS Digimon for 3 less", async () => {
     const s = setupEngine(
       {
@@ -123,5 +138,23 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
     );
+  });
+
+  it("may refuse the optional Security play and leaves the Option in security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-090", as: "sanctuary" }],
+          hand: [{ card: "BT24-022", as: "candidate" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("sanctuary"));
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("sanctuary").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
