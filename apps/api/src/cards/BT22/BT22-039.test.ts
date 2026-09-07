@@ -80,10 +80,11 @@ describe("BT22-039 Ouranosmon", () => {
     );
     await settle();
 
-    expect(s.perm("ouranosmon").stack.some((card) => card.cardId === "BT22-035")).toBe(true);
+    // Linking moves the eligible Appmon out of Ouranosmon's digivolution stack.
+    expect(s.perm("ouranosmon").stack.some((card) => card.cardId === "BT22-035")).toBe(false);
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-035")),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-075")),
     ).toBe(true);

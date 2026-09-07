@@ -6,6 +6,12 @@ import { compiled } from "./BT22-033.js";
 
 describe("BT22-033 Mediamon", () => {
   it("keeps App Fusion, -4000 DP triggers, and both linked play effects", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, colors: ["Yellow"], cost: 3, isAlternate: false },
+      { level: 3, colors: ["Blue"], cost: 3, isAlternate: false },
+      { level: 3, traits: ["Stnd."], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Musimon", "Recomon", "Mcmon"], cost: 0 }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
@@ -54,6 +60,22 @@ describe("BT22-033 Mediamon", () => {
           linkedName === topName ? undefined : 0,
         );
       }
+    }
+  });
+
+  it("allows colored routes and the differently-colored Stnd. route, while rejecting a non-Stnd. base", async () => {
+    for (const [base, legal] of [["BT22-030", true], ["BT22-016", true], ["BT1-009", false]] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT22-033", as: "mediamon" }] },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("mediamon").instanceId,
+        }).ok,
+      ).toBe(legal);
     }
   });
 
@@ -107,6 +129,30 @@ describe("BT22-033 Mediamon", () => {
       s.inst("wrongLevel").instanceId,
       s.inst("wrongTrait").instanceId,
     ]);
+  });
+
+  it("charges the printed Link cost and resolves the linked attack effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-033", as: "mediamon" }], hand: [{ card: "BT22-058", as: "link" }] },
+        1: { battleArea: [{ card: "BT22-024", dp: 6000, as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("mediamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("mediamon").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("opponent").currentDP).toBe(6000);
   });
 
   it("does not react to another stack getting linked", async () => {

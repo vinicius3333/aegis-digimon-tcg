@@ -133,12 +133,18 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { level: 4, colors: ["Yellow"], cost: 4, isAlternate: false },
+    { level: 4, colors: ["Black"], cost: 4, isAlternate: false },
+    { level: 4, traits: ["Sup."], cost: 4, isAlternate: true },
+  ],
   appFusionRequirement: [
     {
       names: ["Mediamon", "Dreammon"],
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT22-035", compiled);
