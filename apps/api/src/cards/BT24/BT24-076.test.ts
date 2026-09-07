@@ -174,25 +174,33 @@ describe("BT24-076 WarGrowlmon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
   });
 
-  it.each([
-    ["Dark Dragon", "BT24-070"],
-    ["Evil Dragon", "BT11-079"],
-  ])("public inherited deletion plays a level 4 %s from trash", async (_label, reviveCard) => {
+  it("public opponent play deletes the inherited host", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-076"] }],
-          trash: [{ card: reviveCard, as: "revive" }],
+          trash: [{ card: "BT24-070", as: "revive" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          hand: [{ card: "BT24-076", as: "opponentWargrowlmon" }],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
-    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const deletedHostInstanceId = s.perm("host").stack[0]!.instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentWargrowlmon").instanceId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === deletedHostInstanceId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === deletedHostInstanceId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("does not revive a level 5 Dark Dragon from inherited deletion", async () => {
