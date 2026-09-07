@@ -30,6 +30,9 @@ export interface EngineInternals {
   readonly mainPhase: MainPhaseController;
   readonly primitives: Primitives;
   readonly securityDp: SecurityDpLedger;
+  readonly activeWindowToken: number | undefined;
+  readonly effectResolutionDepth: number;
+  readonly optionResolutionDepth: number;
   recomputeContinuousEffects(): Promise<void>;
   syncActivatableEffects(): void;
   fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;

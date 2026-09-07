@@ -20,14 +20,25 @@ export function advance(engine: GameEngine) {
   return {
     /** Wait until the requested seat's production Main controller is authoritatively open. */
     async waitForMainPhase(seat: Seat): Promise<void> {
-      for (
-        let i = 0;
-        i < 5000 && !(internals.mainPhase.seat === seat && internals.state.phase === Phase.Main);
-        i += 1
-      ) {
-        await Promise.resolve();
+      for (let i = 0; i < 5000; i += 1) {
+        if (
+          internals.mainPhase.seat === seat &&
+          internals.state.phase === Phase.Main &&
+          internals.activeWindowToken === undefined &&
+          internals.effectResolutionDepth === 0 &&
+          internals.optionResolutionDepth === 0
+        )
+          break;
+        if (i % 10 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
+        else await Promise.resolve();
       }
-      if (internals.mainPhase.seat !== seat || internals.state.phase !== Phase.Main) {
+      if (
+        internals.mainPhase.seat !== seat ||
+        internals.state.phase !== Phase.Main ||
+        internals.activeWindowToken !== undefined ||
+        internals.effectResolutionDepth !== 0 ||
+        internals.optionResolutionDepth !== 0
+      ) {
         throw new Error(`Seat ${seat}'s Main phase did not become ready`);
       }
       // TurnStateMachine deliberately opens Main before its asynchronous start-of-main

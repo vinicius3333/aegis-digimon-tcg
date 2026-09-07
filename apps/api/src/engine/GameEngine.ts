@@ -5789,6 +5789,16 @@ export class GameEngine {
    * mirrors), so the action modules and the router agree.
    */
   applyIntent(seat: Seat, intent: Intent): IntentResult {
+    const mainActionWhileResolving =
+      this.activeWindowToken !== undefined || this.effectResolutionDepth > 0 || this.optionResolutionDepth > 0;
+    if (
+      mainActionWhileResolving &&
+      ["playCard", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve", "endPhase"].includes(
+        intent.type,
+      )
+    ) {
+      return { ok: false, reason: "wrong-phase" };
+    }
     switch (intent.type) {
       case "playCard":
         return this.handlePlayCard(seat, intent);
