@@ -81,6 +81,7 @@ describe("BT21-070 Gossipmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gossipmon").instanceId })).toEqual({
       ok: true,
@@ -97,7 +98,7 @@ describe("BT21-070 Gossipmon", () => {
         0: {
           battleArea: [{ card: "BT21-041", as: "host" }],
           hand: [{ card: "BT21-070", as: "gossipmon" }],
-          trash: [{ card: "BT21-005", as: "recovered" }],
+          trash: [{ card: "BT21-041", as: "recovered" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -113,6 +114,8 @@ describe("BT21-070 Gossipmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recovered").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("recovered").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("recovered").instanceId);
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("gossipmon").instanceId)).toBe(true);
@@ -124,7 +127,7 @@ describe("BT21-070 Gossipmon", () => {
         0: {
           battleArea: [{ card: "BT10-071", as: "base" }],
           hand: [{ card: "BT21-070", as: "gossipmon" }],
-          trash: [{ card: "BT21-005", as: "recovered" }],
+          trash: [{ card: "BT21-041", as: "recovered" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -140,6 +143,8 @@ describe("BT21-070 Gossipmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recovered").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("recovered").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("recovered").instanceId);
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("gossipmon").instanceId);
     expect(s.state.memory).toBe(1);
@@ -191,7 +196,7 @@ describe("BT21-070 Gossipmon", () => {
   it("plays itself from security without paying cost", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        0: { battleArea: [{ card: "BT21-032", as: "attacker" }] },
         1: { security: [{ card: "BT21-070", as: "gossipmon" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -218,5 +223,25 @@ describe("BT21-070 Gossipmon", () => {
     const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-070");
     expect(checked).toBeGreaterThanOrEqual(0);
     expect(played).toBeGreaterThan(checked);
+  });
+  it("does not recover an Appmon Digi-Egg through a public play", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT21-070", as: "played" }], trash: [{ card: "BT21-005", as: "egg" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const eggId = s.inst("egg").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-070") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([eggId]);
+    expect(s.state.memory).toBe(0);
   });
 });
