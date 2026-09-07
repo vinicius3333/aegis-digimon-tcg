@@ -70,8 +70,8 @@ describe("BT21-055 Sunarizamon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "eligible" },
-            { card: "BT1-010", as: "tooExpensive" },
+            { card: "BT21-043", as: "eligible" },
+            { card: "BT1-018", as: "tooExpensive" },
           ],
         },
       },
@@ -96,8 +96,8 @@ describe("BT21-055 Sunarizamon", () => {
         1: {
           battleArea: [
             { card: "BT3-029", as: "magna", under: ["BT3-026"] },
-            { card: "BT1-009", as: "eligible" },
-            { card: "BT1-084", as: "tooExpensive" },
+            { card: "BT21-043", as: "eligible" },
+            { card: "BT1-018", as: "tooExpensive" },
           ],
         },
       },
@@ -127,12 +127,12 @@ describe("BT21-055 Sunarizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === sourceId));
     await settle(
-      () => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009") && !observe(s.engine).isAttacking(),
+      () => s.state.players[1]!.trash.some((card) => card.cardId === "BT21-043") && !observe(s.engine).isAttacking(),
     );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009")).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-084")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT21-043")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-018")).toBe(true);
   });
 
   it("does not trigger when the inherited source is trashed as a non-effect cost", async () => {
@@ -150,6 +150,107 @@ describe("BT21-055 Sunarizamon", () => {
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("eligible").permanentId),
     ).toBe(true);
+  });
+
+  it("publicly triggers from a legal Rock host and trashes only the play-cost-4 target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-055", as: "sunari" }],
+          hand: [
+            { card: "BT10-062", as: "golemon" },
+            { card: "BT10-064", as: "gogmamon" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-029", as: "magna", under: ["BT3-026"] },
+            { card: "BT21-043", as: "eligible" },
+            { card: "BT1-018", as: "tooExpensive" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sunari").permanentId,
+        instanceId: s.inst("golemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunari").topCard.cardId === "BT10-062");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sunari").permanentId,
+        instanceId: s.inst("gogmamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunari").topCard.cardId === "BT10-064");
+    const sourceId = s.perm("sunari").stack[0]!.instanceId;
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.trash.some((card) => card.instanceId === sourceId) && !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("sunari").topCard.cardId).toBe("BT10-064");
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT21-043")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-018")).toBe(true);
+  });
+
+  it("publicly trashes a source under a non-Mineral non-Rock host without triggering deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-055", as: "sunari" }],
+          hand: [{ card: "BT10-061", as: "skullKnightmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-029", as: "magna", under: ["BT3-026"] },
+            { card: "BT21-043", as: "eligible" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sunari").permanentId,
+        instanceId: s.inst("skullKnightmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunari").topCard.cardId === "BT10-061");
+    const sourceId = s.perm("sunari").stack[0]!.instanceId;
+    const eligibleId = s.perm("eligible").permanentId;
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.trash.some((card) => card.instanceId === sourceId) && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === eligibleId)).toBe(true);
+    expect(s.perm("sunari").topCard.cardId).toBe("BT10-061");
   });
 
   it("reduces a Mineral evolution by 1 in the battle area", async () => {
