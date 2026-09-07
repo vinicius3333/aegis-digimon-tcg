@@ -161,7 +161,7 @@ describe("BT21-063 Gumdramon", () => {
   it("publicly uses the zero-cost Hero alternate evolution route", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-002", as: "heroEgg" }],
+        breeding: { card: "BT21-002", as: "heroEgg" },
         hand: [{ card: "BT21-063", as: "gumdramon" }],
       },
     });
