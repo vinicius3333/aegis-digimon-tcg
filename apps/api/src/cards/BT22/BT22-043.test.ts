@@ -103,6 +103,24 @@ describe("BT22-043 Terriermon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
-    expect(host.stack[0]!.cardId).toBe("BT22-046");
+    expect(host.topCard?.cardId).toBe("BT22-043");
+    expect(host.stack.map((card) => card.cardId)).toEqual(["BT22-046", "BT22-044"]);
+  });
+
+  it("does not play a CS Tamer from a CS placement during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT22-091", as: "arata" }, { card: "BT22-019", as: "csCard" }],
+        battleArea: [{ card: "BT22-046", as: "host", under: ["BT22-043"] }],
+      },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("csCard").instanceId]);
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-091")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(false);
   });
 });
