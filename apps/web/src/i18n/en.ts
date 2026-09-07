@@ -383,6 +383,13 @@ export const en = {
   "game.hint.needLevel3": "This Digimon must reach level 3 before moving out",
 
   "overlay.openingHand": "Opening hand",
+  "overlay.appFusionTitle": "App Fusion",
+  "overlay.appFusionDetail": "Digivolve {result} onto {host}. Choose the linked card used as material.",
+  "overlay.appFusionMaterial": "Linked material",
+  "overlay.appFusionCost": "Cost: {cost}",
+  "overlay.appFusionConfirm": "App Fuse",
+  "overlay.appFusionNormal": "Digivolve normally",
+  "overlay.appFusionUnavailable": "No legal linked material is available.",
   "overlay.keepHand": "Will you mulligan your hand?",
   "overlay.mulliganDetail": "You drew {count} cards. You can mulligan once: shuffle back and redraw.",
   "overlay.mulligan": "Mulligan",

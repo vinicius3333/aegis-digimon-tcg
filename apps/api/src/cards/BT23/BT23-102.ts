@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -20,6 +19,19 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   2. The same-level condition includes this Digimon's top card (BT22-031 Q4879).
 //   3. The All Turns watcher accepts either player's Digimon (KB Q5391).
 export const compiled: CompiledCard = {
+  // Printed cost headers. `traits` is EXACT trait matching (CR 2-3-2-3): the printed
+  // "w/[CS] trait" must not accept a trait that merely contains "cs" (trait substring
+  // matching is case-insensitive, so "Abadin Electronics" would match a substring gate).
+  digivolutionRequirement: [{ level: 5, traits: ["CS"], cost: 5, isAlternate: true }],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+  ],
   effects: [
     {
       trigger: "Static",
@@ -78,6 +90,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          // "When security stacks are removed from" names BOTH stacks. Security-removal
+          // watchers read `sourceFilter.controller` as the watched stack direction and
+          // DEFAULT TO "mine" (interpreter/actions/subTrigger.ts securityRemovalGate), so
+          // without this the trigger missed every removal from the opponent's stack.
+          sourceFilter: { controller: "any" },
           actions: [
             {
               kind: "SecurityManipulation",

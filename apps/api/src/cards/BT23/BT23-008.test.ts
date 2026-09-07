@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -9,6 +9,12 @@ import { compiled } from "./BT23-008.js";
 function mainEffectKey(s: EngineSetup): string {
   const source = (s.engine as any).cardSourceOf(s.inst("greymon"));
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-008/"))!
+    .effectKey;
+}
+
+function mainEffectKey018(s: EngineSetup, instance = s.inst("garurumon")): string {
+  const source = (s.engine as any).cardSourceOf(instance);
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-018/"))!
     .effectKey;
 }
 
@@ -45,19 +51,19 @@ describe("BT23-008 Greymon", () => {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [{ tokens: ["Gabumon", "Nokia Shiramine"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Gabumon", "Nokia Shiramine"], match: "nameExact" }],
                 },
                 count: 1,
+                upTo: true,
               },
               from: ["hand"],
               payCost: true,
               reduceCostBy: 2,
               cost: {
                 kind: "place",
-                optional: true,
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               },
-              optional: true,
+              optional: false,
               abortOnDecline: true,
             },
           ],
@@ -191,7 +197,7 @@ describe("BT23-008 Greymon", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("allows the controller to decline before paying the restack cost", async () => {
+  it("still pays and restacks when the optional reduced play is declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -199,7 +205,7 @@ describe("BT23-008 Greymon", () => {
           hand: [{ card: "BT22-084", as: "nokia" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: false },
     );
     s.state.memory = 5;
     const before = [s.perm("greymon").topCard.instanceId, ...s.perm("greymon").stack.map((card) => card.instanceId)];
@@ -211,13 +217,65 @@ describe("BT23-008 Greymon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const playPrompt = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playPrompt.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
-    expect([s.perm("greymon").topCard.instanceId, ...s.perm("greymon").stack.map((card) => card.instanceId)]).toEqual(
-      before,
-    );
+    expect([
+      s.perm("greymon").topCard.instanceId,
+      ...s.perm("greymon").stack.map((card) => card.instanceId),
+    ]).not.toEqual(before);
+    expect(s.perm("greymon").stack[0]!.instanceId).toBe(s.inst("greymon").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nokia").instanceId);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("plays exact Gabumon while retaining a Gabumon X Antibody near-name variant", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-008", as: "greymon", under: ["BT23-001"] }],
+          hand: [
+            { card: "BT1-029", as: "gabumon" },
+            { card: "BT9-020", as: "xGabumon" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("greymon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const playDecision = s.decisions.find(({ req }) => req.kind === "selectCards")!;
+    expect(playDecision?.req.options?.candidateInstanceIds).toContain(s.inst("gabumon").instanceId);
+    expect(playDecision?.req.options?.candidateInstanceIds).not.toContain(s.inst("xGabumon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playDecision.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("gabumon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("xGabumon").instanceId);
   });
 
   it("supports both alternate level-3 boundaries and rejects an off-color nonmatch", async () => {
@@ -270,18 +328,136 @@ describe("BT23-008 Greymon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === raidTargetId));
 
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === raidTargetId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("gives the evolved host +2000 DP only during its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-010", under: ["BT23-008"], as: "host" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-012", under: ["BT23-008"], as: "host" }] } });
 
     s.state.turnSeat = 0;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-010")!.dp! + 2000);
+    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-012")!.dp! + 2000);
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-010")!.dp);
+    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-012")!.dp);
   });
+
+  it.each(["greymon", "garurumon"] as const)(
+    "re-exposes each physical source through public DNA and De-Digivolve for Main frequency (%s first)",
+    async (firstExposed) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT23-008", as: "greymon" }],
+            hand: [
+              { card: "BT23-018", as: "garurumon" },
+              { card: "BT8-084", as: "kimeramon" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          },
+          1: {
+            hand: [
+              { card: "EX9-051", as: "monochromon" },
+              { card: "BT1-009", as: "placement" },
+            ],
+            deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      const greymonId = s.inst("greymon").instanceId;
+      const garurumonId = s.inst("garurumon").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: garurumonId })).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === garurumonId));
+      const greymonPerm = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === greymonId)!;
+      const garurumonPerm = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === garurumonId)!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "dnaDigivolve",
+          materialPermanentIds:
+            firstExposed === "greymon"
+              ? [garurumonPerm.permanentId, greymonPerm.permanentId]
+              : [greymonPerm.permanentId, garurumonPerm.permanentId],
+          instanceId: s.inst("kimeramon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("kimeramon").instanceId),
+      );
+      const kimeramon = s.state.players[0]!.battleArea.find(
+        (p) => p.topCard?.instanceId === s.inst("kimeramon").instanceId,
+      )!;
+      expect(kimeramon.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([greymonId, garurumonId]));
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("monochromon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => kimeramon.stack.length === 1);
+      expect(kimeramon.stack).toHaveLength(1);
+      const firstSourceId = firstExposed === "greymon" ? greymonId : garurumonId;
+      const secondSourceId = firstExposed === "greymon" ? garurumonId : greymonId;
+      expect(kimeramon.topCard.instanceId).toBe(firstSourceId);
+      expect(s.state.turnSeat).toBe(0);
+      expect(s.state.phase).toBe(Phase.Main);
+      // Monochromon crosses memory, so its completed effect passes the turn automatically.
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: firstSourceId,
+          effectKey: firstExposed === "greymon" ? mainEffectKey(s) : mainEffectKey018(s, kimeramon.topCard),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => kimeramon.topCard.instanceId === secondSourceId);
+      expect(kimeramon.topCard.instanceId).toBe(secondSourceId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: secondSourceId,
+          effectKey: firstExposed === "greymon" ? mainEffectKey018(s, kimeramon.topCard) : mainEffectKey(s),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => kimeramon.topCard.instanceId === firstSourceId);
+      expect(kimeramon.topCard.instanceId).toBe(firstSourceId);
+      expect(s.state.turnSeat).toBe(0);
+      expect(s.state.phase).toBe(Phase.Main);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: firstSourceId,
+          effectKey: firstExposed === "greymon" ? mainEffectKey(s) : mainEffectKey018(s, kimeramon.topCard),
+        }).ok,
+      ).toBe(false);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: firstSourceId,
+          effectKey: firstExposed === "greymon" ? mainEffectKey(s) : mainEffectKey018(s, kimeramon.topCard),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => kimeramon.topCard.instanceId === secondSourceId);
+      expect(kimeramon.topCard.instanceId).toBe(secondSourceId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: secondSourceId,
+          effectKey: firstExposed === "greymon" ? mainEffectKey018(s, kimeramon.topCard) : mainEffectKey(s),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => kimeramon.topCard.instanceId === firstSourceId);
+      expect(kimeramon.topCard.instanceId).toBe(firstSourceId);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 });

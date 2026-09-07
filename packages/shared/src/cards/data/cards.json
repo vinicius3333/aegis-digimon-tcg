@@ -40241,7 +40241,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Free"],
     "types": ["Mutant", "Hudie", "CS", "Angel"],
-    "effectText": "[When Digivolving] Until your opponent's turn ends, give 1 of their Digimon \"[Start of Your Main Phase] This Digimon attacks.\" Then, if DNA digivolving, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. \n[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, you may play 1 level 4 or lower yellow, black or [CS] trait Digimon card from its digivolution cards without paying the cost.",
+    "effectText": "[Digivolve] Lv.4 w/[CS] trait: Cost 3\n[DNA Digivolve] Yellow Lv.4 + black/blue Lv.4: Cost 0\n[When Digivolving] Until your opponent's turn ends, give 1 of their Digimon \"[Start of Your Main Phase] This Digimon attacks.\" Then, if DNA digivolving, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. \n[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, you may play 1 level 4 or lower yellow, black or [CS] trait Digimon card from its digivolution cards without paying the cost.",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, you may play 1 level 4 or lower yellow, black or [CS] trait Digimon card from its digivolution cards without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -40671,7 +40671,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Holy Warrior", "Royal Knight", "CS"],
-    "effectText": "＜Piercing＞ \n＜Security A. +1＞ \n＜Partition (green Lv.5 & blue Lv.5)＞ \n[On Play] [When Digivolving] Suspend 5 of your opponent's Digimon or Tamers. None of your opponent's Digimon can unsuspend in their next unsuspend phase. Then, this Digimon may attack.\n[Your Turn] [Once Per Turn] When your opponent's security stack is removed from, trash 1 of their Option cards in the battle area. Then, delete 1 of their suspended Digimon or Tamers.",
+    "effectText": "[Digivolve] Lv.6 w/[CS] trait: Cost 5\n[DNA Digivolve] Green Lv.6 + blue Lv.6: Cost 0\n＜Piercing＞ \n＜Security A. +1＞ \n＜Partition (green Lv.5 & blue Lv.5)＞ \n[On Play] [When Digivolving] Suspend 5 of your opponent's Digimon or Tamers. None of your opponent's Digimon can unsuspend in their next unsuspend phase. Then, this Digimon may attack.\n[Your Turn] [Once Per Turn] When your opponent's security stack is removed from, trash 1 of their Option cards in the battle area. Then, delete 1 of their suspended Digimon or Tamers.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "BT23-047"
@@ -40814,7 +40814,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT23-052",
     "linkDp": 3000,
-    "linkEffect": "[When Linking] [When Linking] This Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
+    "linkEffect": "[When Linking] This Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
     "linkRequirement": "[Link] [Appmon] trait: Cost 2"
   },
   {
@@ -41529,7 +41529,8 @@
     "forms": ["-"],
     "attributes": ["-"],
     "types": ["Hudie", "CS"],
-    "effectText": "[Security] Play this card without paying the cost.\n[Start of Your Main Phase] If you have a Digimon with the [CS] trait, gain 1 memory.\n[End of Your Turn] By suspending this Tamer and returning 1 of your Digimon with the [Hudie] trait to the hand, you may play 1 level 3 Digimon card with the [CS] trait from your hand to your empty breeding area without paying the cost.",
+    "effectText": "[Start of Your Main Phase] If you have a Digimon with the [CS] trait, gain 1 memory.\n[End of Your Turn] By suspending this Tamer and returning 1 of your Digimon with the [Hudie] trait to the hand, you may play 1 level 3 Digimon card with the [CS] trait from your hand to your empty breeding area without paying the cost.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
     "inheritedEffectText": "[Your Turn] While this Digimon is [Hudiemon], [Eater Legion] or [Eater EDEN], it gains ＜Alliance＞.",
     "rarity": "SR",
     "maxCountInDeck": 4,
@@ -41799,7 +41800,7 @@
     "forms": ["-"],
     "attributes": ["-"],
     "types": ["CS"],
-    "effectText": "While you have a Digimon with [Huckmon] in its name the field, you can ignore this card's color requirements.\n[Main] ＜Draw 1＞ Then, place this card in the battle area.\n[Your Turn] When any of your Digimon digivolve into a Digimon with [Huckmon] or [Jesmon] in its name, ＜Delay＞ \n・You may play 1 card with [Sistermon] in its name from your hand or trash without paying the cost.",
+    "effectText": "While you have a Digimon with [Huckmon] in its name on the field, you can ignore this card's color requirements.\n[Main] ＜Draw 1＞ Then, place this card in the battle area.\n[Your Turn] When any of your Digimon digivolve into a Digimon with [Huckmon] or [Jesmon] in its name, ＜Delay＞ \n・You may play 1 card with [Sistermon] in its name from your hand or trash without paying the cost.",
     "securityEffectText": "[Security] You may play 1 card with [Sistermon] in its name from your hand or trash without paying the cost. Then, place this card in the battle area.",
     "rarity": "U",
     "maxCountInDeck": 4,
@@ -41808,7 +41809,7 @@
   {
     "cardId": "BT23-100",
     "set": "BT23",
-    "nameEn": "Hudie Net CafxE9",
+    "nameEn": "Hudie Net Café",
     "colors": ["White"],
     "kinds": ["Option"],
     "playCost": 3,
@@ -41876,7 +41877,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Angel", "CS"],
-    "effectText": "＜Barrier＞ \n＜Partition ([Angewomon] & [LadyDevimon])＞ \n[When Digivolving] You may play 1 level 5 or lower yellow or purple card from your hand or trash without paying the cost. Then, if this Digimon's stack has 2 or more same-level cards, trash the top cards of both players' security stacks so that they have 3 cards left.\n[All Turns] [Once Per Turn] When security stacks are removed from, you may place 1 Digimon as the bottom security card.",
+    "effectText": "[Digivolve] Lv.5 w/[CS] trait: Cost 5\n[DNA Digivolve] Yellow Lv.5 + purple Lv.5: Cost 0\n＜Barrier＞ \n＜Partition ([Angewomon] & [LadyDevimon])＞ \n[When Digivolving] You may play 1 level 5 or lower yellow or purple card from your hand or trash without paying the cost. Then, if this Digimon's stack has 2 or more same-level cards, trash the top cards of both players' security stacks so that they have 3 cards left.\n[All Turns] [Once Per Turn] When security stacks are removed from, you may place 1 Digimon as the bottom security card.",
     "rarity": "UR",
     "maxCountInDeck": 4,
     "imageId": "BT23-102"

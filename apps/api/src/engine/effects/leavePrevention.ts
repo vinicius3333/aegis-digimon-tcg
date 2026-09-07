@@ -26,10 +26,7 @@ export interface LeavePreventionHost {
   /** Record that a once-per-turn prevention key fired this turn. */
   markOncePerTurnFired?(key: string): void;
   /** Let the affected player order simultaneous non-preventing and preventing leave reactions. */
-  orderReplacements?(
-    replacements: ReplacementSubscription[],
-    seat: Seat,
-  ): Promise<ReplacementSubscription[]>;
+  orderReplacements?(replacements: ReplacementSubscription[], seat: Seat): Promise<ReplacementSubscription[]>;
 }
 
 /**
@@ -60,7 +57,16 @@ export async function consultLeavePrevention(
   permanentIds: string[],
   cause: RemovalCause,
   resolvingSeat: Seat | undefined,
-  opts: { isBounce?: boolean; reentryGuard: { activeReplacementKeys: Set<string> } },
+  opts: {
+    isBounce?: boolean;
+    /**
+     * Run only the "instead" (side-effect) replacements and offer no prevention. Used after a
+     * keyword prevention (＜Barrier＞) already stopped the leave: preventing it does not cancel
+     * the same event's sibling replacement, which is still offered (KB Q6250).
+     */
+    insteadOnly?: boolean;
+    reentryGuard: { activeReplacementKeys: Set<string> };
+  },
 ): Promise<Set<string>> {
   const prevented = new Set<string>();
   // wouldLeavePlay covers any leave (delete + hand/deck bounce); wouldBeDeleted watches
@@ -81,6 +87,7 @@ export async function consultLeavePrevention(
     const eligible: { repl: ReplacementSubscription; ctx: EffectContext; activationKey: string }[] = [];
     for (const repl of replacements) {
       if (repl.mode !== "instead" && repl.mode !== "prevent") continue;
+      if (opts.insteadOnly === true && repl.mode !== "instead") continue;
       const activationKey = replacementActivationKey(repl);
       if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
       if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
@@ -101,24 +108,39 @@ export async function consultLeavePrevention(
     }
 
     let ordered = eligible;
-    if (
-      host.orderReplacements !== undefined &&
-      eligible.some(({ repl }) => repl.mode === "instead") &&
-      eligible.some(({ repl }) => repl.mode === "prevent")
-    ) {
-      const orderedReplacements = await host.orderReplacements(eligible.map(({ repl }) => repl), leaving.controllerSeat);
+    // Exactly one replacement applies to one leave event (KB Q5352), and WHICH one is the
+    // affected player's choice — the rules do not name a survivor. Any set with more than one
+    // eligible replacement therefore goes to that player, not only a set that happens to mix
+    // "instead" with "prevent". The chooser's answer moves the picked replacement to the front;
+    // an unanswered or empty response keeps the engine's offered order.
+    if (host.orderReplacements !== undefined && eligible.length > 1) {
+      const orderedReplacements = await host.orderReplacements(
+        eligible.map(({ repl }) => repl),
+        leaving.controllerSeat,
+      );
       const byId = new Map(eligible.map((candidate) => [candidate.repl.id, candidate]));
-      ordered = orderedReplacements.map((replacement) => byId.get(replacement.id)).filter((value) => value !== undefined);
+      ordered = orderedReplacements
+        .map((replacement) => byId.get(replacement.id))
+        .filter((value) => value !== undefined);
     }
 
     let preventSucceeded = false;
+    // The source whose "instead" replacement already replaced this leave event, if any.
+    let insteadAppliedBySource: string | undefined;
     for (const { repl, ctx, activationKey } of ordered) {
       if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
       if (repl.mode === "instead") {
+        // Exactly ONE replacement applies to one leave event (KB Q5352): once another card's
+        // "instead" has replaced it, this one no longer has an event to replace. Sibling
+        // clauses of the SAME source keep their existing behaviour — they are one card's
+        // reaction to its own event, which the activation-identity guard already governs.
+        const replSource = repl.sourcePermanentId ?? repl.sourceInstanceId;
+        if (insteadAppliedBySource !== undefined && replSource !== insteadAppliedBySource) continue;
         if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
         opts.reentryGuard.activeReplacementKeys.add(activationKey);
+        let applied: void | boolean;
         try {
-          await repl.apply(ctx);
+          applied = await repl.apply(ctx);
         } finally {
           opts.reentryGuard.activeReplacementKeys.delete(activationKey);
         }
@@ -128,6 +150,12 @@ export async function consultLeavePrevention(
           prevented.add(leavingId);
           break;
         }
+        // An "instead" whose body actually ran has replaced the event even though it left the
+        // permanent in place (BT23-075 Eater EDEN plays a card from hand and stays put). A body
+        // that reported it did NOT apply — declined, or its cost could not be paid — leaves the
+        // event open for another card's replacement. Prevention is never suppressed here: a
+        // prevention and a same-event "instead" are siblings on one event (KB Q6250).
+        if (applied !== false) insteadAppliedBySource = repl.sourcePermanentId ?? repl.sourceInstanceId ?? "";
         continue;
       }
       if (repl.mode !== "prevent" || preventSucceeded) continue;

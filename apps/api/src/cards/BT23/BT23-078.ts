@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
@@ -21,15 +20,19 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       actions: [
-        ...(["whenPlayed", "whenOneOfYoursDigivolves"] as const).map((event) => ({
+        ...(["whenPlayed", "whenOneOfYoursDigivolves"] as const).map((event: SubTriggerEvent): Action => ({
           kind: "SubTrigger",
           event,
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
             or: [
+              // CR 2-3-2-4: "[XX] in any of its traits" references any trait that INCLUDES the
+              // bracketed text, so [Giant Bird] counts as [Bird]. That substring reach is also why
+              // the card has to print the [Sea Animal] exclusion for [Animal]. The [CS] branch is
+              // the "with the [XX] trait" wording of CR 2-3-2-3 and stays exact.
               {
-                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
+                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
                 excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
               },
               { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
@@ -38,7 +41,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "ModifyDP",
-              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              target: { filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"] }, count: 1 },
               amount: 3000,
               duration: "forTheTurn",
               cost: {
@@ -51,7 +54,7 @@ const compiled: CompiledCard = {
             },
             {
               kind: "Attack",
-              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              target: { filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"] }, count: 1 },
               withoutSuspending: false,
               optional: true,
             },

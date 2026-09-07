@@ -157,6 +157,14 @@ export interface SetupEngineOptions {
    * explicitly asserts the pending `orderTriggers` decision itself.
    */
   autoOrderTriggers?: boolean;
+  /**
+   * Bias `autoOrderTriggers`' answer: the first offered trigger key CONTAINING one of these
+   * substrings is put first instead of the engine's own first key. Lets a test name the branch
+   * it wants (a specific card's would-leave replacement, say) without turning off the
+   * auto-responder and hand-answering every prompt in the flow. No match leaves the offered
+   * order alone, so adding this never changes an unrelated prompt.
+   */
+  preferTriggerKeys?: string[];
   /** Keep an `orderCards` request in offered order by default; pass false to inspect/reorder it manually. */
   autoOrderCards?: boolean;
   /**
@@ -173,6 +181,15 @@ export interface SetupEngineOptions {
    * default of 0 — for a card whose intended (or asserted) branch isn't the first-listed one.
    */
   preferOptionIndex?: number;
+  /**
+   * Observe every ServerEvent as it is emitted, synchronously, before the engine continues.
+   * The `events` array only lets a test look at state AFTER the flow it was watching has
+   * finished, which cannot see a value that exists only during a battle (an ＜Alliance＞ DP
+   * bonus, say). This hook is the read seam for those: it runs inside the engine's own call
+   * stack, so the board it reads is the board at that instant. Observation only — an
+   * implementation that mutates state or throws corrupts the flow it is watching.
+   */
+  onEvent?(event: ServerEvent): void;
 }
 
 /**
@@ -311,11 +328,15 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         );
       }
       if (opts?.autoOrderTriggers !== false && req.kind === "orderTriggers") {
+        const triggerKeys = req.options?.triggerKeys ?? [];
+        const preferred = triggerKeys.find((key) =>
+          (opts?.preferTriggerKeys ?? []).some((wanted) => key.includes(wanted)),
+        );
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
             type: "respondDecision",
             decisionId: req.decisionId,
-            response: { kind: "orderTriggers", order: (req.options?.triggerKeys ?? []).slice(0, 1) },
+            response: { kind: "orderTriggers", order: preferred === undefined ? triggerKeys.slice(0, 1) : [preferred] },
           }),
         );
       }
@@ -390,7 +411,10 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         );
       }
     },
-    emit: (e) => events.push(e),
+    emit: (e) => {
+      events.push(e);
+      opts?.onEvent?.(e);
+    },
   };
   const engine = new GameEngine(state, hooks);
   engineRef = engine;
@@ -550,6 +574,22 @@ export async function settle(predicate: () => boolean | undefined = () => false,
   }
 }
 
+/**
+ * Like {@link settle}, but also lets TIMER callbacks run between polls.
+ *
+ * `settle` only drains the microtask queue. A turn loop parks on `setTimeout` between its
+ * phases, so a milestone reached on the other side of a phase boundary — an end-of-turn
+ * decision, say — is invisible to `settle` however long it spins. Returns as soon as the
+ * predicate holds, so a test that also wants `settle`'s trailing flush should follow with one.
+ */
+export async function settleAcrossTimers(predicate: () => boolean | undefined, maxRounds = 200): Promise<void> {
+  for (let round = 0; round < maxRounds; round += 1) {
+    await settle(predicate, 5);
+    if (predicate() === true) return;
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+}
+
 export function findPermanent(s: EngineSetup, seat: Seat, cardId: string): Permanent {
   const permanent = (s.state.players[seat] as PlayerState).battleArea.find((p) => p.topCard?.cardId === cardId);
   expect(permanent, `permanent ${cardId} on seat ${seat}`).toBeDefined();
@@ -597,8 +637,15 @@ export function makeSecurityState(securityCards: CardInstance[], attackerPermane
   return state;
 }
 
-/** A face-down security card owned by `seat`. */
-export function makeSecurityCard(seat: Seat, n: number, cardId = "BT1-001"): CardInstance {
+/**
+ * A face-down security card owned by `seat`.
+ *
+ * The default is an inert main-deck Digimon: BT1-009 Monodramon, level 3, 3000 DP, no effects. The
+ * previous default (BT1-001) is a Digi-Egg, which can never legally be in a security stack — a
+ * numeric `security: <n>` fixture built a board no game can reach, and its 0 DP quietly made
+ * every security battle a win for the attacker.
+ */
+export function makeSecurityCard(seat: Seat, n: number, cardId = "BT1-009"): CardInstance {
   const card = new CardInstance();
   card.instanceId = `sec-${seat}-${n}`;
   card.cardId = cardId;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,6 +14,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes vs AUTO-GENERATED:
 //   - Dynamic return ceiling counts Mother Eater digivolution cards in the breeding area
 //   - Replacement: added leaveCause:"otherThanYourEffect" (text: "other than by your effects")
+//   - Digivolve route uses namesExact: the printed "[Eater Legion]: Cost 3" is an exact
+//     card name, not the substring "[X] in name" wording that `names` models
+//   - Ceiling filter uses match:"nameExact" for the bracketed [Mother Eater] reference
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -37,7 +39,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               zone: "breeding",
-              nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Mother Eater"], match: "nameExact" }],
             },
             unit: "digivolutionCardsOfFiltered",
           },
@@ -65,7 +67,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               zone: "breeding",
-              nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Mother Eater"], match: "nameExact" }],
             },
             unit: "digivolutionCardsOfFiltered",
           },
@@ -129,7 +131,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Eater Legion"],
+      namesExact: ["Eater Legion"],
       cost: 3,
       isAlternate: true,
     },

@@ -1,11 +1,13 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // BT23-035 Dynasmon
 // Fix: [All Turns] Recovery action was outside the SubTrigger and had spurious `source` field.
-//   Rules §16-6: <Recovery> places top-of-deck cards on TOP of security stack. `toTop: true`.
 //   The conditional Recovery action is moved inside the SubTrigger as a second action.
+// Fix (re-audit): ＜Recovery +1 (Deck)＞ takes the deck's TOP card by rule (§16-6), so it uses
+//   the `addTop` / `source: "deck"` shape shared with EX1-027, which prints the same clause.
+//   The previous `placeAsSecurity` + `source` target filter opened a card selection over the
+//   whole deck, letting the controller pick any deck card.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -110,14 +112,9 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "SecurityManipulation",
-              op: "placeAsSecurity",
+              op: "addTop",
               controller: "mine",
-              from: ["deck"],
-              source: {
-                filter: { controllerDefault: "mine" },
-                count: 1,
-              },
-              toTop: true,
+              source: "deck",
               amount: 1,
               condition: {
                 kind: "zoneCount",

@@ -5,6 +5,86 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
+const ELIGIBLE_COST_CARD = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [
+    {
+      tokens: ["Royal Base", "Zaxon"],
+      match: "trait",
+    },
+  ],
+};
+
+const RETURN_TARGET = {
+  filter: {
+    controller: "opponent",
+    kind: ["Digimon"],
+    dp: {
+      op: "lte",
+      relativeToSource: true,
+    },
+  },
+  count: 1,
+};
+
+const PLACEMENT_RAW =
+  "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card";
+
+const HAS_ELIGIBLE_TRASH_CARD = {
+  kind: "selfHasMinTrash",
+  count: 1,
+  filter: ELIGIBLE_COST_CARD,
+};
+
+/**
+ * KB Q5331: the "by placing" condition is not a free choice. Once the effect activates, the
+ * controller must process it. A qualifying card in the public trash therefore forces the
+ * placement; when only the hidden hand can pay, the controller may still decline. The two
+ * branches are mutually exclusive on the same trash check, so exactly one ever resolves.
+ */
+const returnByPlacement = () =>
+  structuredClone([
+    {
+      kind: "Return",
+      target: RETURN_TARGET,
+      to: "hand",
+      condition: HAS_ELIGIBLE_TRASH_CARD,
+      cost: {
+        kind: "place",
+        target: {
+          filter: ELIGIBLE_COST_CARD,
+          count: 1,
+          from: ["hand", "trash"],
+        },
+        raw: PLACEMENT_RAW,
+        destination: "security",
+        position: "bottom",
+        faceDown: false,
+      },
+    },
+    {
+      kind: "Return",
+      target: RETURN_TARGET,
+      to: "hand",
+      condition: { kind: "not", condition: HAS_ELIGIBLE_TRASH_CARD },
+      cost: {
+        kind: "place",
+        target: {
+          filter: ELIGIBLE_COST_CARD,
+          count: 1,
+          from: ["hand"],
+        },
+        raw: PLACEMENT_RAW,
+        destination: "security",
+        position: "bottom",
+        faceDown: false,
+      },
+      optional: true,
+      abortOnDecline: true,
+    },
+  ]);
+
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -20,89 +100,11 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "OnPlay",
-      actions: [
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              dp: {
-                op: "lte",
-                relativeToSource: true,
-              },
-            },
-            count: 1,
-          },
-          to: "hand",
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Royal Base", "Zaxon"],
-                    match: "trait",
-                  },
-                ],
-              },
-              count: 1,
-              from: ["hand", "trash"],
-            },
-            raw: "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card",
-            destination: "security",
-            position: "bottom",
-            faceDown: false,
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-      ],
+      actions: returnByPlacement(),
     },
     {
       trigger: "WhenDigivolving",
-      actions: [
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              dp: {
-                op: "lte",
-                relativeToSource: true,
-              },
-            },
-            count: 1,
-          },
-          to: "hand",
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Royal Base", "Zaxon"],
-                    match: "trait",
-                  },
-                ],
-              },
-              count: 1,
-              from: ["hand", "trash"],
-            },
-            raw: "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card",
-            destination: "security",
-            position: "bottom",
-            faceDown: false,
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-      ],
+      actions: returnByPlacement(),
     },
     {
       trigger: "AllTurns",

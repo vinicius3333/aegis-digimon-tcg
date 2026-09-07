@@ -114,7 +114,11 @@ describe("§4-2 Digimon (comprehensive-0069)", () => {
         "linkDp. A linked card changes nothing about currentDP.",
     );
 
-    const linkCardId = "BT21-009";
+    // ST22-08 prints "[Link] Lv.3 or higher", which the Lv.4 host satisfies. A link card
+    // whose own printed requirement the host does NOT meet (BT21-009 needs the [Appmon]
+    // trait) is trashed again by the §17-1-3-2-7 rule sweep before DP can be read, so it
+    // cannot prove the DP contribution.
+    const linkCardId = "ST22-08";
     const s = setup({
       0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "host" }], hand: [{ card: linkCardId, as: "loose" }] },
     });

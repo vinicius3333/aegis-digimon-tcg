@@ -4,6 +4,7 @@ import {
   GameState,
   PlayerState,
   CardInstance,
+  AppFusionRoute,
   Permanent,
   PRIVATE_VIEW_TAG,
   PRIVATE_DECISION_VIEW_TAG,
@@ -169,6 +170,28 @@ describe("buildStateView", () => {
     const own = state.players[0]!;
     expect(view.has(own.hand)).toBe(true);
     expect(view.has(own.security)).toBe(true);
+  });
+
+  it("keeps App Fusion hand routes private to the hand owner", () => {
+    const route = new AppFusionRoute();
+    route.hostPermanentId = "perm-1";
+    route.linkedInstanceId = "linked-1";
+    route.projectedCost = 0;
+    state.players[0]!.hand[0]!.appFusionRoutes.push(route);
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    expect(ownerView.has(state.players[0]!.hand[0]!)).toBe(true);
+    expect(ownerView.has(state.players[0]!.hand[0]!.appFusionRoutes)).toBe(true);
+    expect(opponentView.has(state.players[0]!.hand[0]!)).toBe(false);
+    expect(opponentView.has(state.players[0]!.hand[0]!.appFusionRoutes)).toBe(false);
+    const ownerDecoder = new Decoder(new GameState());
+    const opponentDecoder = new Decoder(new GameState());
+    encodeAllForViews(state, [
+      { view: ownerView, decoder: ownerDecoder },
+      { view: opponentView, decoder: opponentDecoder },
+    ]);
+    expect(ownerDecoder.state.players[0]!.hand[0]!.appFusionRoutes[0]!.linkedInstanceId).toBe("linked-1");
+    expect(opponentDecoder.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("hides the viewer's own deck and egg deck from them too", () => {

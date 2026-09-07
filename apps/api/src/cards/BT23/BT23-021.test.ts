@@ -1,9 +1,12 @@
-import { appFusionCostFor, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, appFusionCostFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-021.js";
+import "../EX3/EX3-016.js";
+import "../EX3/EX3-019.js";
 
 describe("BT23-021 Dosukomon", () => {
   it("shares one Once Per Turn link effect across digivolving and attacking", () => {
@@ -30,8 +33,8 @@ describe("BT23-021 Dosukomon", () => {
       expect.objectContaining({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" }),
     ]);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
-      expect((compiled.effects.find((entry) => entry.trigger === trigger) as any).actions[0].target).toMatchObject({
-        source: "thisDigimon",
+      expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
+        actions: [{ target: { source: "thisDigimon" } }],
       });
     }
   });
@@ -77,6 +80,129 @@ describe("BT23-021 Dosukomon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000);
     expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+  });
+
+  it("linked Dosukomon survives losing a public battle while immunity lasts", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT23-021", as: "dosukomon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 12000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dosukomon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(s.perm("host").permanentId);
+    expect(s.perm("host").linked).toHaveLength(1);
+  });
+
+  it("expires linked battle immunity after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT23-021", as: "dosukomon" }],
+          security: [
+            "BT1-009",
+            "BT1-013",
+            "BT1-027",
+            "BT1-028",
+            "BT1-045",
+            "BT1-047",
+            "BT1-050",
+            "BT1-064",
+            "BT1-065",
+            "ST1-02",
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender", dp: 12000, suspended: true }],
+          security: [
+            "BT1-009",
+            "BT1-013",
+            "BT1-027",
+            "BT1-028",
+            "BT1-045",
+            "BT1-047",
+            "BT1-050",
+            "BT1-064",
+            "BT1-065",
+            "ST1-02",
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const hostId = s.perm("host").permanentId;
+    const defenderId = s.perm("defender").permanentId;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dosukomon").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(hostId);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: defenderId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(hostId);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.permanentId === hostId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("host").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(10);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("rejects the printed Link onto a non-Appmon without moving the card", async () => {
@@ -147,6 +273,61 @@ describe("BT23-021 Dosukomon", () => {
     expect(invalid.state.players[0]!.hand.map((card) => card.instanceId)).toContain(invalid.inst("noLink").instanceId);
   });
 
+  it("shares the link use across digivolving and attacking, then resets on the next own turn", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-017", as: "host" }],
+          hand: [
+            { card: "BT23-021", as: "dosukomon" },
+            { card: "BT23-007", as: "first" },
+            { card: "BT23-007", as: "second" },
+          ],
+          deck,
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"], deck },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const hostId = s.perm("host").permanentId;
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst("dosukomon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([firstId]);
+    expect(s.state.turnSeat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 4);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([firstId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(secondId);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([secondId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(firstId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(secondId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("when digivolving links from this Digimon's stack, not another friendly stack", async () => {
     const s = setupEngine(
       {
@@ -185,5 +366,207 @@ describe("BT23-021 Dosukomon", () => {
       }
       expect(appFusionCostFor("BT23-021", { topName, linkedNames: [topName] })).toBeUndefined();
     }
+  });
+  it("public Eri App Fusion moves the chosen link under Dosukomon and draws", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT23-079", as: "eri" },
+          { card: "BT23-016", as: "host" },
+        ],
+        hand: [
+          { card: "BT23-039", as: "partner" },
+          { card: "BT23-021", as: "dosukomon" },
+        ],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: {
+        battleArea: [{ card: "EX3-019", as: "opponent", under: [{ card: "EX3-016" }] }],
+        security: [
+          "BT1-009",
+          "BT1-013",
+          "BT1-027",
+          "BT1-028",
+          "BT1-045",
+          "BT1-047",
+          "BT1-050",
+          "BT1-064",
+          "BT1-065",
+          "ST1-02",
+        ],
+        deck: ["BT1-009"],
+      },
+    });
+    await s.ready();
+    const oldTopId = s.perm("host").topCard!.instanceId;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("partner").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    for (let step = 0; step < 12; step += 1) {
+      const pending = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)?.req;
+      if (pending === undefined) {
+        await settle(() => s.state.pendingDecision !== undefined || s.perm("host").topCard?.cardId === "BT23-021");
+        continue;
+      }
+      const response = (() => {
+        if (pending.kind === "optional")
+          return { kind: "optional" as const, accept: pending.sourceCardId !== "BT23-021" };
+        if (pending.kind === "selectCards") {
+          const ids = pending.options?.candidateInstanceIds;
+          if (ids === undefined) throw new Error("selectCards decision omitted candidates");
+          return { kind: "selectCards" as const, instanceIds: ids.slice(0, 1) };
+        }
+        const keys = pending.options?.triggerKeys;
+        if (keys === undefined) throw new Error("orderTriggers decision omitted keys");
+        return { kind: "orderTriggers" as const, order: keys.slice(0, 1) };
+      })();
+      expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () => s.state.pendingDecision === undefined || s.state.pendingDecision.decisionId !== pending.decisionId,
+      );
+      if (s.perm("host").topCard?.cardId === "BT23-021") break;
+    }
+    await settle(() => s.perm("host").topCard?.cardId === "BT23-021", 1000);
+    const bonus = s.state.players[0]!.hand.find((card) => card.cardId === "BT1-009");
+    expect(s.perm("host").topCard?.cardId).toBe("BT23-021");
+    expect(s.perm("host").enteredByEffect).toBe(true);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: "BT23-021" }),
+    );
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+    // The link declaration costs one memory and the opponent's SnowAgumon tax adds one
+    // to the printed-zero App Fusion, so the five-memory fixture settles at three.
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId, s.inst("partner").instanceId]);
+    expect(bonus).toBeDefined();
+  });
+
+  it("public Eri App Fusion lets the controller choose the second of two linked materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-079", as: "eri" },
+            { card: "BT23-016", as: "host", linked: [{ card: "BT23-039", as: "first" }] },
+          ],
+          hand: [
+            { card: "BT23-007", as: "second" },
+            { card: "BT23-021", as: "dosukomon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: false },
+    );
+    const host = s.perm("host");
+    const oldTopId = host.topCard!.instanceId;
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    advance(s.engine).ledgers.continuous.addLinkMaxGrant(host.permanentId, 1, EffectDuration.UntilEachTurnEnd);
+    await advance(s.engine).recompute();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, { type: "linkCard", instanceId: secondId, targetPermanentId: host.permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    let selected = false;
+    for (let step = 0; step < 16 && host.topCard?.cardId !== "BT23-021"; step += 1) {
+      const pending = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)?.req;
+      if (pending === undefined) {
+        await settle(() => s.state.pendingDecision !== undefined || host.topCard?.cardId === "BT23-021");
+        continue;
+      }
+      const response = (() => {
+        if (pending.kind === "optional")
+          return { kind: "optional" as const, accept: pending.sourceCardId !== "BT23-021" };
+        if (pending.kind === "selectCards") {
+          const ids = pending.options?.candidateInstanceIds;
+          if (ids === undefined) throw new Error("selectCards decision omitted candidates");
+          return { kind: "selectCards" as const, instanceIds: ids.includes(secondId) ? [secondId] : ids.slice(0, 1) };
+        }
+        const keys = pending.options?.triggerKeys;
+        if (keys === undefined) throw new Error("orderTriggers decision omitted keys");
+        return { kind: "orderTriggers" as const, order: keys.slice(0, 1) };
+      })();
+      if (
+        pending.kind === "selectCards" &&
+        pending.promptText === "App Fusion: choose the linked card used as fusion material."
+      ) {
+        const ids = pending.options?.candidateInstanceIds;
+        if (ids === undefined) throw new Error("App Fusion selection omitted candidates");
+        expect(ids).toEqual(expect.arrayContaining([firstId, secondId]));
+        expect(ids).toHaveLength(2);
+        expect(pending.options?.min).toBe(1);
+        expect(pending.options?.max).toBe(1);
+        selected = ids.includes(secondId);
+      }
+      expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () => s.state.pendingDecision === undefined || s.state.pendingDecision.decisionId !== pending.decisionId,
+      );
+    }
+    const trailing = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)?.req;
+    if (trailing?.kind === "optional" && trailing.sourceCardId === "BT23-021") {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: trailing.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined, 100);
+    }
+    expect(selected).toBe(true);
+    expect(host.topCard?.cardId).toBe("BT23-021");
+    expect(host.stack.map((card) => card.instanceId)).toEqual([oldTopId, secondId]);
+    expect(host.linked.map((card) => card.instanceId)).toEqual([firstId]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("rejects public App Fusion when the linked partner repeats the top name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-079", as: "eri" },
+            { card: "BT23-016", as: "host" },
+          ],
+          hand: [
+            { card: "BT23-016", as: "duplicate" },
+            { card: "BT23-021", as: "dosukomon" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).recompute();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("duplicate").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    await settle();
+    expect(s.perm("host").topCard?.cardId).toBe("BT23-016");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dosukomon").instanceId);
   });
 });

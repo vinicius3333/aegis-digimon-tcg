@@ -517,6 +517,8 @@ function clearsAt(duration: EffectDuration, boundary: DurationBoundary, ownerSea
 
 export class ContinuousEffectLedger {
   private restrictions: RestrictionEntry[] = [];
+  /** Permanents whose `beAffected` immunity expired in the last sweep (drained by the sweep site). */
+  private readonly expiredAffectationRecipients = new Set<string>();
   private playerRestrictions: PlayerRestrictionEntry[] = [];
   private attackTargetRestrictions: AttackTargetRestriction[] = [];
   private canAttackUnsuspendedGrants: CanAttackUnsuspendedGrant[] = [];
@@ -1490,11 +1492,26 @@ export class ContinuousEffectLedger {
   }
 
   /** Expire all continuous rules whose duration clears at `boundary`. */
+  /**
+   * Drain the permanents whose `beAffected` immunity expired since the last call, so the caller
+   * can recompute the effects that now apply to them again (KB Q5328).
+   */
+  takeExpiredAffectationRecipients(): string[] {
+    const drained = [...this.expiredAffectationRecipients];
+    this.expiredAffectationRecipients.clear();
+    return drained;
+  }
+
   sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat): void {
     const ownerOf = (permanentId: string): Seat => ownerSeatOfPermanent(state, permanentId);
-    this.restrictions = this.restrictions.filter(
-      (r) => !clearsAt(r.duration, boundary, ownerOf(r.permanentId), sweepSeat),
-    );
+    this.restrictions = this.restrictions.filter((r) => {
+      if (!clearsAt(r.duration, boundary, ownerOf(r.permanentId), sweepSeat)) return true;
+      // Losing "isn't affected by effects" RE-APPLIES an effect the card was given while it was
+      // immune (KB Q5328). The DP ledger only re-reads that suppression when it recomputes, so
+      // record the recipient for the sweep site to recompute.
+      if (r.restriction === "beAffected") this.expiredAffectationRecipients.add(r.permanentId);
+      return false;
+    });
     this.playerRestrictions = this.playerRestrictions.filter(
       (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
     );

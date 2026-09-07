@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,6 +17,9 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "opponent",
               kind: ["Digimon"],
+              // Comprehensive rules 3-4-5-8: breeding-area cards can't be referenced,
+              // so "your opponent has a Digimon" means the battle area only.
+              zone: "battleArea",
             },
             raw: "your opponent has a Digimon",
           },
@@ -33,6 +35,8 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
+            // Comprehensive rules 3-4-5-3: breeding-area cards aren't affected by effects.
+            zone: "battleArea",
             nameOrTrait: [
               {
                 tokens: ["CS"],

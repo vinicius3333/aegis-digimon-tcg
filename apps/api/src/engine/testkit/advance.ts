@@ -1,6 +1,6 @@
 import { EffectTiming, Phase, type CardInstance, type EffectDuration, type Permanent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../GameEngine.js";
-import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
+import type { Primitives, RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
 
 /**
@@ -20,14 +20,36 @@ export function advance(engine: GameEngine) {
   return {
     /** Wait until the requested seat's production Main controller is authoritatively open. */
     async waitForMainPhase(seat: Seat): Promise<void> {
-      for (
-        let i = 0;
-        i < 5000 && !(internals.mainPhase.seat === seat && internals.state.phase === Phase.Main);
-        i += 1
-      ) {
-        await Promise.resolve();
+      // Poll on MICROTASKS. Production opens Main, runs its start-of-main timing and can
+      // auto-end the phase without ever yielding to a timer, so the open-and-idle window is
+      // only a few microtasks wide; a macrotask yield drains every pending microtask at once
+      // and steps straight over it. Yield a real timer only once the engine has genuinely
+      // stopped progressing, so engine work that does need a timer is not starved either.
+      // Readiness deliberately does NOT wait on the engine's `mainEntryPending` flag: a
+      // start-of-main effect may be waiting on input that only this caller's test will supply,
+      // so requiring entry to be finalized here would deadlock those turns.
+      let signature = "";
+      let stalled = 0;
+      const ready = () =>
+        internals.mainPhase.seat === seat &&
+        internals.state.phase === Phase.Main &&
+        internals.activeWindowToken === undefined &&
+        internals.effectResolutionDepth === 0 &&
+        internals.optionResolutionDepth === 0;
+      for (let i = 0; i < 20000; i += 1) {
+        if (ready()) break;
+        const next = `${internals.state.phase}/${internals.mainPhase.seat}/${internals.activeWindowToken}/${internals.effectResolutionDepth}/${internals.optionResolutionDepth}`;
+        if (next === signature) stalled += 1;
+        else {
+          signature = next;
+          stalled = 0;
+        }
+        if (stalled >= 200) {
+          stalled = 0;
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        } else await Promise.resolve();
       }
-      if (internals.mainPhase.seat !== seat || internals.state.phase !== Phase.Main) {
+      if (!ready()) {
         throw new Error(`Seat ${seat}'s Main phase did not become ready`);
       }
       // TurnStateMachine deliberately opens Main before its asynchronous start-of-main
@@ -165,6 +187,30 @@ export function advance(engine: GameEngine) {
       /** Close the window opened by `enterEffectResolution`. */
       leaveEffectResolution(): void {
         internals.primitives.leaveEffectResolution?.();
+      },
+      /**
+       * Grant a continuous restriction through the production primitive (the verb every
+       * `Restrict` / `GrantStatic` immunity clause compiles to), so its own side effects — the
+       * DP recompute a `beAffected` grant performs (KB Q5327) — run exactly as they do in a
+       * real resolution. Writing to the continuous ledger directly skips them.
+       */
+      async restrict(
+        permanentId: string,
+        restriction: Parameters<Primitives["restrict"]>[1],
+        duration: EffectDuration,
+        opts?: Parameters<Primitives["restrict"]>[3],
+      ): Promise<void> {
+        internals.primitives.restrict(permanentId, restriction, duration, opts);
+        await internals.recomputeContinuousEffects();
+      },
+      /**
+       * Arm the delayed end-of-turn memory change through the production primitive. Every card
+       * that prints this clause says "at the end of YOUR turn", so no legal line puts one
+       * player's tail into the other player's turn end — the board KB Q5566/Q5568 describe for
+       * pending processing. This verb builds it directly.
+       */
+      delayedGainMemory(seat: Seat, amount: number): void {
+        internals.primitives.delayedGainMemory?.(seat, amount);
       },
       /** Effect-driven deletion. Returns how many permanents were actually removed. */
       async deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number> {

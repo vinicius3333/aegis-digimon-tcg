@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override: KB Q5341 — attack after deletion is mandatory when Belphemon in stack.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

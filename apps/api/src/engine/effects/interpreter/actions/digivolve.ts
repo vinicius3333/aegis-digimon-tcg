@@ -103,8 +103,8 @@ function legalIntoCandidates(
           })
         : undefined;
     const baseGranted =
-      virtualBase === undefined && base && sourceZone === "hand"
-        ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
+      virtualBase === undefined && base
+        ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef, sourceZone)
         : undefined;
     // Tamers and other level-less bases cannot satisfy an ordinary level-gated EvoCost. They
     // can still use an explicitly printed alternate route (for example Rie -> BT22-067), or a

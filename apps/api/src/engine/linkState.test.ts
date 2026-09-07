@@ -16,6 +16,7 @@ import { ContinuousEffectLedger } from "./effects/continuous.js";
 import { BASE_LINK_MAX, canLinkToTargetPermanent, linkMax } from "./effects/mindLink.js";
 import { linkCostOf } from "./effects/interpreter.js";
 import { CardKind, type CardDefinition, type Filter } from "@aegis/shared";
+import { advance } from "./testkit/advance.js";
 // Boot side-effect: self-registers every compiled-IR card module so the engine can
 // resolve [On Play] Link effects by card id.
 import "../cards/index.js";
@@ -205,6 +206,61 @@ function grantLinkMax(engine: GameEngine, permanentId: string, delta: number): v
  * BT21-009 and BT21-041 both carry `<Link>` and the [Social] attribute (link cost 1 each).
  */
 describe("A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule-check sweep trims the excess (CR §4-8-5 / §17-1-3-2-5)", () => {
+  it("suppresses whenLinkTrashed for rule trim but fires it for an effect trash", async () => {
+    const s = setup();
+    const player = s.state.players[0] as PlayerState;
+    const oldLink = looseCard("BT23-007", 0);
+    const newLink = looseCard("BT24-053", 0);
+    const hostCard = looseCard("BT23-007", 0);
+    player.hand.push(hostCard, oldLink, newLink);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: hostCard.instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        findPermanent(s, 0, "BT23-007") !== undefined &&
+        (s.engine as unknown as { mainVerbContinuationsInFlight: number }).mainVerbContinuationsInFlight === 0,
+      2000,
+    );
+    const host = findPermanent(s, 0, "BT23-007")!;
+    expect(host.topCard?.instanceId).toBe(hostCard.instanceId);
+    let fireCount = 0;
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "whenLinkTrashed",
+      sourcePermanentId: host.permanentId,
+      once: false,
+      run: async () => {
+        fireCount += 1;
+      },
+      description: "link replacement provenance",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: oldLink.instanceId,
+        targetPermanentId: host.permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => host.linked.length === 1 && host.linked[0]!.instanceId === oldLink.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: newLink.instanceId,
+        targetPermanentId: host.permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        host.linked.length === 1 &&
+        host.linked[0]!.instanceId === newLink.instanceId &&
+        player.trash.some((card) => card.instanceId === oldLink.instanceId),
+      10000,
+    );
+    expect(host.linked.map((card) => card.instanceId)).toEqual([newLink.instanceId]);
+    expect(player.trash.map((card) => card.instanceId)).toContain(oldLink.instanceId);
+    expect(fireCount).toBe(0);
+    await advance(s.engine).verb.trash([newLink.instanceId], 0);
+    expect(fireCount).toBe(1);
+  });
   /**
    * §4-8-5: "When linking to a Digimon that has already reached the link limit, the same
    * number of the existing link cards are trashed at the same time as the newly linked
@@ -223,8 +279,9 @@ describe("A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule
     const s = setup();
     const player = s.state.players[0] as PlayerState;
     const source = looseCard("AD1-005", 0);
-    player.hand.push(source);
-    player.hand.push(looseCard("BT21-009", 0), looseCard("BT21-041", 0));
+    const firstLink = looseCard("BT21-009", 0);
+    const secondLink = looseCard("BT21-041", 0);
+    player.hand.push(source, firstLink, secondLink);
     s.state.memory = 20; // afford the hard play + both link costs
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({ ok: true });
@@ -239,6 +296,13 @@ describe("A3 LinkedMax — a link beyond linkMax(recipient) lands, then the rule
     const ad1 = findPermanent(s, 0, "AD1-005");
     // Base LinkedMax is 1 — both cards landed, then the sweep trashed the excess back to 1.
     expect(ad1?.linked.length).toBe(1);
+    const retained = ad1!.linked[0]!;
+    const trashed = [firstLink, secondLink].find((card) =>
+      player.trash.some((entry) => entry.instanceId === card.instanceId),
+    );
+    expect(trashed).toBeDefined();
+    expect(retained.instanceId).not.toBe(trashed!.instanceId);
+    expect(ad1!.currentDP).toBe(requireCardDefinition("AD1-005").dp! + requireCardDefinition(retained.cardId).linkDp!);
   });
 
   /**

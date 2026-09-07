@@ -411,6 +411,14 @@ export interface TriggerInfo {
    */
   digivolvedFromZone?: ZoneRef;
   /**
+   * True when the card the WhenDigivolving window's subject digivolved FROM is a Tamer
+   * (BT23-101's "digivolve from a Tamer" requirement). Per KB Q6708 the base digivolves as a
+   * Tamer, so no Digimon digivolved: the engine withholds `whenOneOfYoursDigivolves` /
+   * `whenAnyDigivolves` entirely for such an entry, and this flag lets an effect that DOES want
+   * to know read the distinction from inside the subject's own [When Digivolving] window.
+   */
+  digivolvedFromTamer?: boolean;
+  /**
    * The rules-relevant use cost of the Option whose use fired this event: after card-level
    * changes, but before payment-only reductions (BT10-032 Q1956/Q1957).
    */
@@ -582,7 +590,12 @@ export interface GameAccess {
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
   /** A live battle-area base-granted evolution path, usable by effect-driven digivolution. */
-  baseGrantedDigivolve?(seat: Seat, base: Permanent, evolving: CardDefinition): { cost: number } | undefined;
+  baseGrantedDigivolve?(
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: ZoneRef,
+  ): { cost: number } | undefined;
   /** Whether the permanent is currently prevented from activating this timing. */
   isTimingEffectDisabled?(permanentId: string, timing: "whenDigivolving" | "whenAttacking" | "onPlay"): boolean;
 }
@@ -797,7 +810,13 @@ export interface Primitives {
    * card being one of them). Returns the fused permanent, or undefined when the source/result
    * is missing, the fusion is illegal, or the app-fusion cost is unaffordable.
    */
-  appFuseInto(sourcePermanentId: string, resultInstanceId: string): Promise<Permanent | undefined>;
+  appFuseInto(
+    sourcePermanentId: string,
+    resultInstanceId: string,
+    requestedLinkedInstanceId?: string,
+    costOverride?: number,
+    opts?: { publicEntry?: boolean },
+  ): Promise<Permanent | undefined>;
   /**
    * De-Digivolve `n`: for a target permanent, up to `n` times move the current top
    * card to the BOTTOM of its owner's deck and promote the card directly beneath it
@@ -1221,8 +1240,11 @@ export interface Primitives {
    */
   stackCardTrashLock?(instanceId: string, ownerSeat: Seat, duration: EffectDuration): void;
   securityAttackInvert?(permanentId: string, duration: EffectDuration): void;
-  /** Install an owner- or opponent-turn-end delete on one played permanent. */
-  delayedDeletePlayed?(playedPermanentId: string, timing?: "endOfOwnerTurn" | "endOfOpponentTurn"): void;
+  /** Install a deletion at the owner, opponent, or current turn end on one played permanent. */
+  delayedDeletePlayed?(
+    playedPermanentId: string,
+    timing?: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn",
+  ): void;
   /**
    * Install a one-shot end-of-turn memory change for `seat` ("Gain 3 memory. At the end of
    * your turn, lose 3 memory" — BT1-021). Anchor-less: the delayed change fires at the
@@ -1632,6 +1654,13 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /**
+   * Pending processing left over from an effect that already resolved (a delayed deletion, a
+   * delayed memory change, a delayed body) rather than an effect activating now. The turn
+   * player orders the whole simultaneous set it lands in, whoever controls its source
+   * (KB Q5564/Q5566/Q5568). See `SubTriggerSubscription.orderedByTurnPlayer`.
+   */
+  orderedByTurnPlayer?: boolean;
   /** Stable action identity used to avoid duplicate installs while preserving distinct clauses. */
   dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */

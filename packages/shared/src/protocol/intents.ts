@@ -19,6 +19,10 @@ export type Intent =
       digiXros?: DigiXrosPlan;
       assembly?: AssemblyPlan;
     } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
+  // Public App Fusion declaration (CR 8-4-1): host permanent, result hand card and the
+  // selected linked material. Kept alongside the digivolve intent's App Fusion fields, which
+  // remain the effect-driven route.
+  | { type: "appFusion"; permanentId: string; instanceId: string; linkedInstanceId: string }
   | {
       type: "digivolve";
       permanentId: string;

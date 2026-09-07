@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,6 +14,9 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              // Battle area only: a Digimon in the breeding area can't be referenced by an
+              // effect that does not name the breeding area (Comprehensive Rules 3-4-5-3).
+              zone: "battleArea",
               nameOrTrait: [{ tokens: ["Royal Base", "CS"], match: "trait" }],
             },
             raw: "you have a Digimon with the [Royal Base] or [CS] trait",

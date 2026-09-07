@@ -1,8 +1,16 @@
 import { Schema, ArraySchema, type, view } from "@colyseus/schema";
 import type { Seat } from "./enums.js";
+import { PRIVATE_VIEW_TAG } from "./viewTags.js";
 
 /** View tag that reveals a physical card's identity to an authorized viewer. */
 export const CARD_ID_VIEW_TAG = 2;
+
+/** A server-authorized App Fusion route projected onto the owning hand card. */
+export class AppFusionRoute extends Schema {
+  @type("string") hostPermanentId!: string;
+  @type("string") linkedInstanceId!: string;
+  @type("int8") projectedCost!: number;
+}
 
 /**
  * A specific physical card in the match. Static card facts (DP, cost, colors,
@@ -34,4 +42,6 @@ export class CardInstance extends Schema {
   @type("int8") projectedPlayCost = -1;
   // Own permanents this hand card may legally digivolve onto right now.
   @type(["string"]) digivolveTargetPermanentIds = new ArraySchema<string>();
+  /** Legal App Fusion routes for this hand card, visible only with the owner's hand view. */
+  @view(PRIVATE_VIEW_TAG) @type([AppFusionRoute]) appFusionRoutes = new ArraySchema<AppFusionRoute>();
 }

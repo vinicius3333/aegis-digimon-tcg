@@ -387,6 +387,13 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.hint.needLevel3": "Este Digimon precisa chegar ao nível 3 antes de sair",
 
   "overlay.openingHand": "Mão inicial",
+  "overlay.appFusionTitle": "App Fusion",
+  "overlay.appFusionDetail": "Digivolva {result} sobre {host}. Escolha o card vinculado usado como material.",
+  "overlay.appFusionMaterial": "Material vinculado",
+  "overlay.appFusionCost": "Custo: {cost}",
+  "overlay.appFusionConfirm": "Fazer App Fusion",
+  "overlay.appFusionNormal": "Digivolver normalmente",
+  "overlay.appFusionUnavailable": "Não há material vinculado legal disponível.",
   "overlay.keepHand": "Deseja fazer mulligan da sua mão?",
   "overlay.mulliganDetail":
     "Você comprou {count} cartas. Pode fazer mulligan uma vez: embaralhar de volta e comprar de novo.",

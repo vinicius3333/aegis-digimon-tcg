@@ -73,7 +73,12 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          // "When THIS Digimon ... would leave": the inherited clause guards only the
+          // permanent carrying this card, never every CS Digimon its controller owns.
+          // Without `isSelfRef` the replacement installs with a board-wide `protects`
+          // predicate, and `controllerDefault` is not read by that predicate's seat gate.
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [

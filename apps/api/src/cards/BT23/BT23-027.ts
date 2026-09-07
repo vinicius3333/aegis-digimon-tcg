@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -36,14 +35,17 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
+            // Printed: "DNA digivolve into [Shakkoumon] IN THE HAND". The zone lives on the
+            // result filter; the previous top-level `from: ["hand"]` is not a field of
+            // DnaDigivolveAction and was silently ignored (it only agreed with the default).
+            zone: "hand",
             nameOrTrait: [
               {
                 tokens: ["Shakkoumon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
-          from: ["hand"],
           payCost: true,
           condition: {
             kind: "isYourTurn",
@@ -72,14 +74,17 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
+            // Printed: "DNA digivolve into [Shakkoumon] IN THE HAND". The zone lives on the
+            // result filter; the previous top-level `from: ["hand"]` is not a field of
+            // DnaDigivolveAction and was silently ignored (it only agreed with the default).
+            zone: "hand",
             nameOrTrait: [
               {
                 tokens: ["Shakkoumon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
-          from: ["hand"],
           payCost: true,
           condition: {
             kind: "isYourTurn",
@@ -100,7 +105,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Patamon"],
+      namesExact: ["Patamon"],
       cost: 2,
       isAlternate: true,
     },

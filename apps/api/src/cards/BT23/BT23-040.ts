@@ -24,19 +24,18 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Hudiemon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
           from: ["hand", "trash"],
           payCost: true,
-          useAlternateCost: true,
           reduceCost: 2,
           optional: true,
           cost: {
             kind: "place",
-            optional: true,
             targetIsPermanent: true,
+            shedOwnCards: true,
             target: {
               filter: {
                 controller: "mine",
@@ -44,7 +43,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Erika Mishima"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

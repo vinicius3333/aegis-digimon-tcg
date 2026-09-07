@@ -39,6 +39,12 @@ function borrowedTiming(trigger: EffectTrigger): EffectTiming | undefined {
   return undefined;
 }
 
+function disabledTimingForTrigger(trigger: EffectTrigger): "whenDigivolving" | "onPlay" | undefined {
+  if (trigger === "WhenDigivolving") return "whenDigivolving";
+  if (trigger === "OnPlay") return "onPlay";
+  return undefined;
+}
+
 function borrowedSource(ctx: EffectContext, borrowed: BorrowableEffect): CardSource {
   const definition = ctx.game.definitionOf({ cardId: borrowed.sourceCardId });
   const permanentId = borrowed.sourcePermanentId;
@@ -70,13 +76,8 @@ function availableBorrowedEffects(
   return effects.filter((borrowed) => {
     // A stack card lends its printed effect, but the host activates it (EX9-073 Q4841).
     // Keep this timing identity separate from lender registration and usage identity.
-    const timingPermanentId = borrowed.sourcePermanentId ?? stackHostId;
-    const disabledTiming =
-      borrowed.effect.trigger === "WhenDigivolving"
-        ? "whenDigivolving"
-        : borrowed.effect.trigger === "OnPlay"
-          ? "onPlay"
-          : undefined;
+    const timingPermanentId = borrowed.sourcePermanentId ?? stackHostId ?? ctx.source.permanent()?.permanentId;
+    const disabledTiming = disabledTimingForTrigger(borrowed.effect.trigger);
     if (
       disabledTiming !== undefined &&
       timingPermanentId !== undefined &&
@@ -301,6 +302,16 @@ export async function runActivateForeignEffect(
   try {
     for (const borrowed of toRun.slice(0, action.count)) {
       const eff = borrowed.effect;
+      const timing = disabledTimingForTrigger(eff.trigger);
+      const timingPermanentId = borrowed.sourcePermanentId ?? ctx.source.permanent()?.permanentId;
+      if (
+        timing !== undefined &&
+        timingPermanentId !== undefined &&
+        (runCtx.fx.isTimingEffectDisabled?.(timingPermanentId, timing) ??
+          runCtx.game.isTimingEffectDisabled?.(timingPermanentId, timing)) === true
+      ) {
+        continue;
+      }
       const borrowedEffectOverrides =
         action.borrowedEffectOverrides?.sourceCardId === borrowed.sourceCardId &&
         action.borrowedEffectOverrides.trigger === eff.trigger

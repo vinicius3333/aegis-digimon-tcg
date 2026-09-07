@@ -7,6 +7,7 @@ import { GameState, CardInstance, type ServerEvent, type DecisionRequest } from 
 import { UseTracker } from "../effects/kernel.js";
 import { validateHatchEgg, applyHatchEgg } from "../actions/breeding.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
+import { advance } from "../testkit/advance.js";
 // Boot side-effect: self-registers every compiled-IR card module.
 import "../../cards/index.js";
 
@@ -246,12 +247,35 @@ function fullTurnHarness(firstSeat: Seat = 0): Harness {
   return { engine, state, events };
 }
 
+/** Whether the engine will accept an ordinary Main verb right now (no effect window in flight). */
+function mainPhaseReady(h: Harness): boolean {
+  const internals = h.engine as unknown as {
+    activeWindowToken: number | undefined;
+    effectResolutionDepth: number;
+    optionResolutionDepth: number;
+  };
+  return (
+    internals.activeWindowToken === undefined &&
+    internals.effectResolutionDepth === 0 &&
+    internals.optionResolutionDepth === 0
+  );
+}
+
 /** Drive one turn, tolerating the turn ending before Main phase ever opens (a deck-out loss). */
 async function driveTurnAllowingLoss(h: Harness, seat: Seat): Promise<void> {
   const turn = h.engine.runOneTurn();
   const mainPhase = (h.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
   for (let i = 0; i < 500 && !mainPhase.isOpen && !h.state.gameOver; i += 1) await Promise.resolve();
   if (mainPhase.isOpen) {
+    // Main verbs are rejected while the start-of-main window is still resolving, so let
+    // that window drain first. The phase may auto-end meanwhile (a deck-out loss), which
+    // this driver deliberately tolerates — hence the local loop rather than the seam's
+    // throwing readiness wait.
+    for (let i = 0; i < 500 && mainPhase.isOpen && !mainPhaseReady(h); i += 1) await Promise.resolve();
+    if (!mainPhase.isOpen) {
+      await turn;
+      return;
+    }
     h.engine.applyIntent(seat, { type: "endPhase" });
   }
   await turn;
@@ -438,8 +462,11 @@ describe("glossary-0012 (Actions, part 1)", () => {
     p0.hand.push(card("BT1-009", 0, false));
     h.state.memory = 2; // affords BT1-009 — keeps a legal action available so Main phase stays open
     const turn = h.engine.runOneTurn();
+    // The Main controller opens BEFORE the start-of-main timing window finishes, and
+    // `applyIntent` rejects Main verbs while any effect window is still active. Wait for
+    // the authoritative readiness the seam exposes, not merely for `isOpen`.
+    await advance(h.engine).waitForMainPhase(0);
     const mainPhase = (h.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    for (let i = 0; i < 500 && !mainPhase.isOpen; i += 1) await Promise.resolve();
     expect(mainPhase.isOpen).toBe(true);
 
     h.state.memory = 5; // an arbitrary prior value, strongly favoring the turn player (seat 0)

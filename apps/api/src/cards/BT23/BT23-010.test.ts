@@ -71,6 +71,7 @@ describe("BT23-010 GeoGreymon", () => {
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === geoId));
 
     expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === geoId)).toBe(true);
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === geoId)).toBe(false);
   });
 
@@ -90,6 +91,7 @@ describe("BT23-010 GeoGreymon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.instanceId === s.inst("geo").instanceId);
       expect(s.state.memory).toBe(1);
+      expect(s.perm("base").stack[0]!.instanceId).toBe(s.inst("base").instanceId);
     }
 
     const invalid = setupEngine({
@@ -123,6 +125,7 @@ describe("BT23-010 GeoGreymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 

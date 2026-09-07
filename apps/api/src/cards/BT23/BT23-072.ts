@@ -32,8 +32,11 @@ export const compiled: CompiledCard = {
                 zone: "breeding",
                 nameOrTrait: [
                   {
+                    // Printed as bracketed card names, so the host must match exactly;
+                    // `name` is substring matching (matchNameOrTrait in
+                    // engine/effects/interpreter/matching/definition.ts).
                     tokens: ["King Drasil_7D6", "Mother Eater"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

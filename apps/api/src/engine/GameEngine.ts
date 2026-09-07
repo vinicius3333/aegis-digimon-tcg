@@ -1,8 +1,11 @@
 import { peekCheckedCard } from "./security/checkedCard.js";
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
+import { isTimingActivationDisabled } from "./effects/timingActivation.js";
+import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
   CardKind,
+  AppFusionRoute,
   GameState,
   PlayerState,
   EffectTiming,
@@ -25,6 +28,7 @@ import {
   baseGrantedDigivolveFor,
   digiXrosRequirementFor,
   assemblyRequirementFor,
+  appFusionCostFor,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
@@ -35,7 +39,7 @@ import {
 } from "./state/visibility.js";
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
 import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
-import { CombatController } from "./combat/controller.js";
+import { CombatController, type CombatTrigger } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
@@ -275,6 +279,23 @@ function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]
   for (const value of values) target.push(value);
 }
 
+function replaceAppFusionRoutesIfChanged(target: ArraySchema<AppFusionRoute>, values: readonly AppFusionRoute[]): void {
+  const same =
+    target.length === values.length &&
+    target.every((route, index) => {
+      const next = values[index];
+      return (
+        next !== undefined &&
+        route.hostPermanentId === next.hostPermanentId &&
+        route.linkedInstanceId === next.linkedInstanceId &&
+        route.projectedCost === next.projectedCost
+      );
+    });
+  if (same) return;
+  target.splice(0, target.length);
+  for (const value of values) target.push(value);
+}
+
 /**
  * The brain of a single match. The ONLY object permitted to mutate GameState
  * (ARCHITECTURE.md section 3). It validates every intent, applies costs, mutates
@@ -299,6 +320,24 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.oncePerTurnKey ?? "",
     sub.dedupeKey ?? "",
   ].join("|");
+}
+
+/**
+ * Whether the card directly beneath this permanent's top — the base it just digivolved from —
+ * is a Tamer.
+ *
+ * KB Q6708 (BT23-101 Hudiemon, which may digivolve from a Tamer): "Digivolve from the Tamer as
+ * such, and do not treat it as if it is a digivolving Digimon", so a watcher that reads "when a
+ * Digimon digivolves" must not fire. The digivolving card's own [When Digivolving] window and
+ * the digivolution bonus draw (Q6709) are unaffected — only the Digimon-digivolve watchers are.
+ *
+ * `stack` is ordered bottom..just-below-top (see `pushDigivolution`), so `at(-1)` is the base.
+ */
+function digivolvedFromTamerBase(permanent: Permanent | undefined): boolean {
+  const base = permanent?.stack.at(-1);
+  if (base === undefined) return false;
+  const definition = lookupDefinition(base.cardId);
+  return definition !== undefined && isTamer(definition);
 }
 
 /**
@@ -396,6 +435,18 @@ export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledR
   };
 }
 
+type AppFusionValidation =
+  | { ok: false; reason: RejectReason }
+  | {
+      ok: true;
+      source: Permanent;
+      result: CardInstance;
+      resultDefinition: CardDefinition;
+      linked: CardInstance;
+      printedCost: number;
+      projectedCost: number;
+    };
+
 export class GameEngine {
   private readonly memory: MemoryGauge;
   private readonly turnMachine: TurnStateMachine;
@@ -446,6 +497,14 @@ export class GameEngine {
   private optionResolutionDepth = 0;
   /** Nesting guard that keeps rule checks outside an effect body's atomic resolution. */
   private effectResolutionDepth = 0;
+  /**
+   * Main is open but its start-of-main timing has not finished yet. The input controller
+   * deliberately opens before that asynchronous work completes, so this marks the interval
+   * in which the phase LOOKS ready but the turn has not actually been handed to the player.
+   */
+  private mainEntryPending = false;
+  /** A voluntary pass submitted during {@link mainEntryPending}, replayed once entry finalizes. */
+  private deferredEndPhaseSeat: Seat | undefined;
   /**
    * Tail of the serialized Main-verb chain: each accepted verb starts only once the
    * previous one has fully settled, so two effect resolutions are never in flight at
@@ -747,57 +806,66 @@ export class GameEngine {
         ) {
           const att = this.access.permanentById(trigger.attackerPermanentId);
           if (att !== undefined) {
-            await this.fireTimingForPermanent(timing, att, {
-              attackerPermanentId: trigger.attackerPermanentId,
-              attackMechanic: trigger.attackMechanic,
-              defenderPermanentId: trigger.defenderPermanentId,
-              blockerPermanentId: trigger.blockerPermanentId,
-              ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
-              deletedPermanentId: trigger.deletedPermanentId,
-              deletedPermanentIds: trigger.deletedPermanentIds,
-              deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
-              deletingPermanentId: trigger.deletingPermanentId,
-              removalCause: trigger.removalCause,
-              deletedControllerSeat: trigger.deletedControllerSeat,
-              deletedTopCardId: trigger.deletedTopCardId,
-              deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
-              deletedInstanceIds: trigger.deletedInstanceIds,
-              deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
-              deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
-              deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
-              fortitudeInstanceIds: trigger.fortitudeInstanceIds,
-              deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
-              customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
-              battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
-            });
+            await this.fireTimingForPermanent(timing, att, this.combatTriggerInfo(trigger));
             return;
           }
         }
         await this.fireTiming(timing, {
           subjectPermanentId: trigger.subjectPermanentId,
           suspendedPermanentId: trigger.suspendedPermanentId,
-          attackerPermanentId: trigger.attackerPermanentId,
-          attackMechanic: trigger.attackMechanic,
-          defenderPermanentId: trigger.defenderPermanentId,
-          blockerPermanentId: trigger.blockerPermanentId,
-          ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
-          deletedPermanentId: trigger.deletedPermanentId,
-          deletedPermanentIds: trigger.deletedPermanentIds,
-          deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
-          deletingPermanentId: trigger.deletingPermanentId,
-          removalCause: trigger.removalCause,
-          deletedControllerSeat: trigger.deletedControllerSeat,
-          deletedTopCardId: trigger.deletedTopCardId,
-          deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
-          deletedInstanceIds: trigger.deletedInstanceIds,
-          deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
-          deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
-          deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
-          fortitudeInstanceIds: trigger.fortitudeInstanceIds,
-          deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
-          customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
-          battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
+          ...this.combatTriggerInfo(trigger),
         });
+      },
+      fireAttackTiming: async (trigger, allianceCount) => {
+        const attacker =
+          trigger.attackerPermanentId === undefined
+            ? undefined
+            : this.access.permanentById(trigger.attackerPermanentId);
+        const top = attacker?.topCard;
+        // A window opened INSIDE another effect's resolution is not the outermost one, so the
+        // resolver drops `extraPending` (and `fireTimingForPermanent` may defer the window
+        // wholesale). The synthetic Alliance effects would silently vanish with it, so decline
+        // the combined window here and let the caller run the legacy inline Alliance loop.
+        if (attacker === undefined || top === undefined || this.activeWindowToken !== undefined) {
+          await this.fireTiming(EffectTiming.OnUseAttack, this.combatTriggerInfo(trigger));
+          return false;
+        }
+        // Each ＜Alliance＞ instance enters the attacker's [When Attacking] window as one more
+        // simultaneous trigger, so the controller orders it against the printed effects instead
+        // of always resolving it last (Q5257). Distinct effectKeys keep the two instances
+        // independent in the resolver's `resolved` ledger; each is optional and may be declined
+        // on its own. `resolveAllianceEffect` re-reads the board when it runs, so an instance
+        // ordered after a derived On Play / DNA evolution sees the post-evolution allies.
+        const allianceEffects: CollectedEffect[] = Array.from({ length: allianceCount }, (_, index) => ({
+          source: this.cardSourceOf(top),
+          timing: EffectTiming.OnUseAttack,
+          effect: {
+            effectKey: `${top.instanceId}/alliance/${index}`,
+            description: "＜Alliance＞: Suspend another Digimon you control.",
+            // Not `optional`: the ally prompt itself carries the decline (a null response),
+            // exactly as the legacy path does. Marking it optional would insert a second,
+            // separate "use this effect?" decision that ＜Alliance＞ does not have.
+            optional: false,
+            isInherited: false,
+            isSecurity: false,
+            isLinked: false,
+            maxPerTurn: -1,
+            canTrigger: () => true,
+            // ＜Alliance＞ TRIGGERS with the attack whether or not an ally is available right
+            // now (CR §15-4): it takes its place in the ordered set, and the controller may
+            // put it after an effect that first creates the ally. `resolveAllianceEffect`
+            // re-reads the board and does nothing when no ally is there at resolution time.
+            canActivate: () => true,
+            resolve: async () => this.combat.resolveAllianceEffect(attacker.permanentId),
+          },
+        }));
+        await this.fireTimingForPermanent(
+          EffectTiming.OnUseAttack,
+          attacker,
+          this.combatTriggerInfo(trigger),
+          allianceEffects,
+        );
+        return true;
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
@@ -814,7 +882,8 @@ export class GameEngine {
         const permanent = this.access.permanentById(permanentId);
         return permanent === undefined ? [] : this.effectiveColorsOf(permanent);
       },
-      consultLeavePrevention: async (permanentIds) => this.consultLeavePrevention(permanentIds, "byBattle"),
+      consultLeavePrevention: async (permanentIds, opts) =>
+        this.consultLeavePrevention(permanentIds, "byBattle", undefined, opts),
       dropPermanentSubscriptions: (permanentId) => this.dropPermanentSubscriptions(permanentId),
       snapshotCustomEffectGrants: (departingInstanceIds) =>
         this.continuous.listCustomEffectGrants().map((grant) => {
@@ -844,6 +913,32 @@ export class GameEngine {
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
         return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
+      },
+      // Q5257: ＜Alliance＞ printed twice on the same Digimon (typically once on the top card
+      // and once inherited from a digivolution source) is TWO independent keywords, each
+      // suspending its own ally for its own DP/security benefit. A printed keyword reaches the
+      // permanent as one continuous grant per granting effect, so the grants ARE the instances;
+      // the fallback covers a permanent that has the keyword through some path that leaves no
+      // countable grant, which is always a single instance.
+      allianceCount: (permanentId) => {
+        const permanent = this.access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return 0;
+        const granted = this.continuous
+          .grantedKeywords(permanentId)
+          .filter((grant) => grant.keyword === "Alliance").length;
+        if (granted > 0) return granted;
+        return resolveKeywords(permanent, this.continuous).includes("Alliance") ? 1 : 0;
+      },
+      combineAllianceTiming: (permanentId) => {
+        const permanent = this.access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return false;
+        // An inherited [When Attacking] effect is as simultaneous with ＜Alliance＞ as a printed
+        // one (Q5257), so the digivolution cards and link cards count too. Reading only the top
+        // card left an attacker whose sole When Attacking effect is inherited on the legacy
+        // path, where Alliance always resolved last and could never be ordered against it.
+        return [permanent.topCard, ...permanent.stack, ...permanent.linked].some(
+          (card) => effectsOf(EffectTiming.OnUseAttack, this.cardSourceOf(card)).length > 0,
+        );
       },
       // Shared "pick one of these, or pass" decision channel for ＜Raid＞'s redirect choice and
       // ＜Scapegoat＞'s sacrifice choice (both battle-path consumers of combat/controller.ts) —
@@ -943,7 +1038,8 @@ export class GameEngine {
           this.effectResolutionDepth = pausedDepth;
         }
       },
-      baseGrantedDigivolve: (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
+        this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       emit: (event) => this.hooks.emit(event),
       nextPermanentId: () => this.nextPermanentId(),
       nextInstanceId: () => this.nextInstanceId(),
@@ -1016,6 +1112,21 @@ export class GameEngine {
       reactivateOnPlay: (permanentId, opts) => this.reactivateOnPlay(permanentId, opts),
       fireEnteredByEffect: (timing, instanceId, ownerSeat, opts) =>
         this.fireEnteredByEffectTiming(timing, instanceId, ownerSeat, opts),
+      fireWhenDigivolving: (seat, permanent, previousLevel) =>
+        this.digivolveDeps().fireWhenDigivolving!(this.state, seat, permanent, previousLevel),
+      prepareAppFusion: async (seat, target, result, into) => {
+        const deps = this.digivolveDeps();
+        await deps.prepareDigivolveCost?.(this.state, seat, target, result, into);
+      },
+      appFusionTargetAllowed: (seat, target, result) => {
+        const deps = this.digivolveDeps();
+        return (
+          deps.digivolveBaseRestricted?.(this.state, target, result) !== true &&
+          deps.digivolveIntoAllowed?.(this.state, target, result) !== false
+        );
+      },
+      fireWouldDigivolve: (seat, target, into) =>
+        this.digivolveDeps().fireWouldDigivolve!(this.state, seat, target, into),
       consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
         this.consultLeavePrevention(ids, cause, resolvingSeat, opts),
       consultDigivolutionTrashRedirect: (ids) => this.consultDigivolutionTrashRedirect(ids),
@@ -1088,16 +1199,14 @@ export class GameEngine {
         );
       },
       (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
-      (permanentId, timing) =>
-        this.continuous.isTimingEffectDisabled(permanentId, timing) &&
-        !this.continuous.hasRestriction(permanentId, "beAffected"),
+      (permanentId, timing) => isTimingActivationDisabled(this.continuous, permanentId, timing),
       (permanent) => this.effectiveColorsOf(permanent),
       (instanceId) => this.continuous.hasColorWaiver(instanceId),
       (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
-      (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      (seat, base, evolving, sourceZone) => this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       undefined,
       (id, traits) =>
         this.continuous.linkCostReductionGrant(
@@ -1175,7 +1284,7 @@ export class GameEngine {
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean },
+    opts?: { isBounce?: boolean; insteadOnly?: boolean },
   ): Promise<Set<string>> {
     // Immediate reactions must observe the rebuilt continuous registry, never its
     // clear-before-refill interval during an overlapping effect-resolution flow.
@@ -1233,7 +1342,7 @@ export class GameEngine {
       permanentIds,
       cause,
       resolvingSeat,
-      { isBounce: opts?.isBounce, reentryGuard: this.preventReentryGuard },
+      { isBounce: opts?.isBounce, insteadOnly: opts?.insteadOnly, reentryGuard: this.preventReentryGuard },
     );
   }
 
@@ -1295,7 +1404,24 @@ export class GameEngine {
       if (check.ok) return true;
     }
 
-    // 3. Digivolve a hand Digimon onto a battle-area or breeding permanent
+    // 3. App Fusion from hand using an explicitly linked physical material.
+    for (const card of player.hand) {
+      const def = lookupDefinition(card.cardId);
+      if (!def?.kinds.includes(CardKind.Digimon)) continue;
+      for (const perm of player.battleArea) {
+        for (const linked of perm.linked) {
+          const check = this.validateAppFusion(seat, {
+            type: "appFusion",
+            permanentId: perm.permanentId,
+            instanceId: card.instanceId,
+            linkedInstanceId: linked.instanceId,
+          });
+          if (check.ok) return true;
+        }
+      }
+    }
+
+    // 4. Digivolve a hand Digimon onto a battle-area or breeding permanent
     const digiDeps = this.digivolveDeps();
     for (const card of player.hand) {
       const def = lookupDefinition(card.cardId);
@@ -1350,8 +1476,19 @@ export class GameEngine {
       deckCount: (seat) => this.state.players[seat]?.deck.length ?? 0,
       unsuspendForActivePhase: async (seat) => this.unsuspendForActivePhase(seat),
       runBreedingPhase: async (seat) => this.runBreedingPhase(seat),
-      runMainPhase: async (seat) => this.mainPhase.run(seat),
+      runMainPhase: async (seat) => {
+        this.mainEntryPending = true;
+        try {
+          return await this.mainPhase.run(seat);
+        } finally {
+          this.mainEntryPending = false;
+        }
+      },
       finalizeMainPhaseEntry: () => {
+        this.mainEntryPending = false;
+        const passed = this.deferredEndPhaseSeat;
+        this.deferredEndPhaseSeat = undefined;
+        if (passed !== undefined) this.applyIntent(passed, { type: "endPhase" });
         // The input controller deliberately opens before asynchronous start-of-main
         // work finishes. A very fast client can therefore submit a legal verb while
         // this finalizer is still pending. Route through the guarded post-verb check:
@@ -1428,8 +1565,20 @@ export class GameEngine {
         sweep("nextUntap");
         break;
     }
+    this.recomputeExpiredAffectationRecipients();
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();
+  }
+
+  /**
+   * A Digimon that just lost "isn't affected by effects" is affected again by an effect it was
+   * given while immune (KB Q5328). The DP ledger suppresses such a modifier live but keeps the
+   * stored `currentDP` until something recomputes it, so recompute each recipient here.
+   */
+  private recomputeExpiredAffectationRecipients(): void {
+    for (const permanentId of this.continuous.takeExpiredAffectationRecipients()) {
+      this.modifiers.recomputeDP(this.state, permanentId);
+    }
   }
 
   /**
@@ -1441,6 +1590,7 @@ export class GameEngine {
   private async sweepCombatDurations(): Promise<void> {
     this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat);
     this.continuous.sweep(this.state, "endBattle", this.state.turnSeat);
+    this.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
   }
 
@@ -1780,7 +1930,8 @@ export class GameEngine {
       // Base-granted digivolve path (ST7-03/BT6-060): the base permanent's static grant lets this
       // specific evolving card digivolve onto it, ignoring color/level, when active (battle area,
       // owner's turn — guaranteed by the verb — and the opponent-level condition when present).
-      baseGrantedDigivolve: (_state, seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      baseGrantedDigivolve: (_state, seat, base, evolving, sourceZone) =>
+        this.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
       // ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ (§16-26-1/§16-31-1): the evolving hand card's
       // own printed keyword, read from the compiled-IR side registry (registerIrCard populates it
       // via registerBlastDigivolveFromEffects) since the card is in hand, not a live permanent.
@@ -1806,14 +1957,24 @@ export class GameEngine {
         // all of them in a single prompt — Destromon's own [When Digivolving] against the two
         // Xeno EX11-066 watchers, for example — instead of the printed effects always
         // resolving before the watchers.
+        // Q6708: digivolving from a Tamer base is not a Digimon digivolving, so the
+        // "when a Digimon digivolves" watchers are not armed for this window at all. The
+        // subject's own [When Digivolving] effects and the enter-field windows still fire.
+        const fromTamer = digivolvedFromTamerBase(permanent);
         const digivolveTrigger = {
           subjectPermanentId: permanent.permanentId,
           previousDigivolutionLevel: previousLevel,
+          ...(fromTamer ? { digivolvedFromTamer: true } : {}),
         };
         await this.withPendingSubTriggers(
-          // Q6671: a Tamer source does not emit Digimon-evolution watcher events.
-          // The destination card still resolves its own When Digivolving effect.
-          baseWasDigimon === false ? [] : ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
+          // Q6671/Q6708: a non-Digimon source does not emit Digimon-evolution watcher events;
+          // the destination card still resolves its own When Digivolving effect. The caller's
+          // report wins where given — it reads EFFECTIVE kinds, so a Tamer currently treated as
+          // a Digimon keeps its watchers. The printed-base check is the fallback for callers
+          // (App Fusion) that report nothing.
+          (baseWasDigimon === undefined ? fromTamer : baseWasDigimon === false)
+            ? []
+            : ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
           digivolveTrigger,
           async () => {
             // Scope [When Digivolving] to the permanent that just digivolved (its top card
@@ -1921,8 +2082,10 @@ export class GameEngine {
     seat: Seat,
     base: Permanent,
     evolving: CardDefinition,
+    sourceZone?: ZoneRef,
   ): { cost: number } | undefined {
-    if (base.inBreeding || base.controllerSeat !== seat || this.state.turnSeat !== seat) return undefined;
+    if (base.inBreeding || base.controllerSeat !== seat || this.state.turnSeat !== seat || sourceZone !== "hand")
+      return undefined;
     if (this.continuous.cannotIgnoreDigivolution(seat)) return undefined;
     const grants = baseGrantedDigivolveFor(base.topCard.cardId);
     if (grants === undefined) return undefined;
@@ -1968,6 +2131,12 @@ export class GameEngine {
         names.add(definition.nameEn);
       }
       return names.size >= condition.count;
+    }
+    if (condition.kind === "tamerHasExactName") {
+      return this.access.player(seat).battleArea.some((perm) => {
+        const definition = perm.topCard === undefined ? undefined : lookupDefinition(perm.topCard.cardId);
+        return definition !== undefined && isTamer(definition) && definition.nameEn === condition.name;
+      });
     }
     const textCondition = condition as unknown as { kind: string; text?: string };
     if (textCondition.kind === "tamerHasText" && textCondition.text !== undefined) {
@@ -2090,6 +2259,37 @@ export class GameEngine {
    * triggered DURING resolution (documented behavior). Centralized
    * so every caller (turn machine, actions, security check) shares one seam.
    */
+  /**
+   * Map a {@link CombatTrigger} onto the {@link TriggerInfo} a timing window reads. Shared by
+   * the plain combat timing hook and the combined [When Attacking]/＜Alliance＞ window so both
+   * present the same trigger data to collected effects.
+   */
+  private combatTriggerInfo(trigger: CombatTrigger): TriggerInfo {
+    return {
+      attackerPermanentId: trigger.attackerPermanentId,
+      attackMechanic: trigger.attackMechanic,
+      defenderPermanentId: trigger.defenderPermanentId,
+      blockerPermanentId: trigger.blockerPermanentId,
+      ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
+      deletedPermanentId: trigger.deletedPermanentId,
+      deletedPermanentIds: trigger.deletedPermanentIds,
+      deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+      deletingPermanentId: trigger.deletingPermanentId,
+      removalCause: trigger.removalCause,
+      deletedControllerSeat: trigger.deletedControllerSeat,
+      deletedTopCardId: trigger.deletedTopCardId,
+      deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
+      deletedInstanceIds: trigger.deletedInstanceIds,
+      deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+      deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+      deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
+      fortitudeInstanceIds: trigger.fortitudeInstanceIds,
+      deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
+      customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
+      battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
+    };
+  }
+
   private async fireTiming(
     timing: EffectTiming,
     trigger: TriggerInfo = {},
@@ -2621,10 +2821,12 @@ export class GameEngine {
         if (!this.subTriggerStillActivatable(remaining[index]!)) remaining.splice(index, 1);
       }
       if (remaining.length === 0) break;
-      const prioritySeat = remaining.some((item) => item.ctx.source.ownerSeat === this.state.turnSeat)
+      const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
+        item.sub.orderedByTurnPlayer === true ? this.state.turnSeat : item.ctx.source.ownerSeat;
+      const prioritySeat = remaining.some((item) => orderingSeatOfArmed(item) === this.state.turnSeat)
         ? this.state.turnSeat
-        : remaining[0]!.ctx.source.ownerSeat;
-      const sameController = remaining.filter((item) => item.ctx.source.ownerSeat === prioritySeat);
+        : orderingSeatOfArmed(remaining[0]!);
+      const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
       let chosen = sameController[0]!;
       if (sameController.length > 1) {
         const index = await this.resolverDecisions.chooseOrder(
@@ -2742,11 +2944,13 @@ export class GameEngine {
   private subTriggerAsCollected({ sub, ctx }: ArmedSubTrigger): CollectedEffect {
     return {
       source: ctx.source,
+      ...(sub.orderedByTurnPlayer === true ? { orderingSeat: this.state.turnSeat } : {}),
       // The stack resolver re-creates a context for every collected effect. Carry the event
       // snapshot along with this watcher so placement guards and action filters see the same
       // exact payload that armed it (especially a stack source already moved to trash).
       triggerInfo: ctx.trigger,
       discardedStackSourceProof: ctx.discardedStackSourceProof,
+      timingLabel: sub.event,
       effect: {
         effectKey: `subtrigger/${sub.id}/${sub.description}`,
         description: sub.description,
@@ -3311,7 +3515,9 @@ export class GameEngine {
     for (const p of pool) {
       if (p.topCard === undefined) continue;
       const cost = lookupDefinition(p.topCard.cardId)?.playCost;
-      if (cost === undefined) continue;
+      // Negative play costs are sentinels for tokens / cards with no printed play cost;
+      // they must not become the highest-cost exemption when every candidate is uncosted.
+      if (cost === undefined || cost < 0) continue;
       costs.set(p.permanentId, cost);
       if (cost > best) best = cost;
     }
@@ -3535,6 +3741,30 @@ export class GameEngine {
             bases: [...turnPlayer.battleArea, ...(turnPlayer.breeding ? [turnPlayer.breeding] : [])],
           };
 
+    // Routes are private hand affordances and must not survive a zone change. Clear only
+    // physical instances outside the active turn player's hand; current hand routes are compared
+    // in place below, avoiding schema churn on an unchanged recompute.
+    const activeHand = active?.player.hand;
+    const clearOutsideActiveHand = (instance: CardInstance): void => {
+      if (activeHand?.includes(instance) !== true) replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
+    };
+    for (const player of this.state.players) {
+      for (const instance of [
+        ...player.deck,
+        ...player.eggDeck,
+        ...player.security,
+        ...player.trash,
+        ...player.delayZone,
+      ]) {
+        clearOutsideActiveHand(instance);
+      }
+      if (player.resolvingOption !== undefined) clearOutsideActiveHand(player.resolvingOption);
+      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
+        for (const instance of [...permanent.stack, ...permanent.linked]) clearOutsideActiveHand(instance);
+        clearOutsideActiveHand(permanent.topCard);
+      }
+    }
+
     // One pass that writes each card's final affordance, rather than clearing every hand and
     // refilling the turn player's: an ArraySchema splice is a wire-level change even when the
     // contents come back identical, and this projection runs on every continuous recompute.
@@ -3546,6 +3776,7 @@ export class GameEngine {
           instance.playableFromHand = false;
           instance.projectedPlayCost = NO_PROJECTED_COST;
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
 
@@ -3560,9 +3791,11 @@ export class GameEngine {
 
         if (!definition.kinds.includes(CardKind.Digimon)) {
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
         const targets: string[] = [];
+        const appFusionRoutes: AppFusionRoute[] = [];
         for (const base of active.bases) {
           const check = validateDigivolve(
             this.state,
@@ -3571,8 +3804,25 @@ export class GameEngine {
             active.digivolveDeps,
           );
           if (check.ok) targets.push(base.permanentId);
+          if (base.controllerSeat === seat) {
+            for (const linked of base.linked) {
+              const fusionCheck = this.validateAppFusion(seat, {
+                type: "appFusion",
+                permanentId: base.permanentId,
+                instanceId: instance.instanceId,
+                linkedInstanceId: linked.instanceId,
+              });
+              if (!fusionCheck.ok) continue;
+              const route = new AppFusionRoute();
+              route.hostPermanentId = base.permanentId;
+              route.linkedInstanceId = linked.instanceId;
+              route.projectedCost = fusionCheck.projectedCost;
+              appFusionRoutes.push(route);
+            }
+          }
         }
         replaceIfChanged(instance.digivolveTargetPermanentIds, targets);
+        replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, appFusionRoutes);
       }
     }
   }
@@ -3629,6 +3879,7 @@ export class GameEngine {
     timing: EffectTiming,
     permanent: Permanent,
     trigger: TriggerInfo = {},
+    extraPending: readonly CollectedEffect[] = [],
   ): Promise<void> {
     if (this.shouldDeferNestedTiming()) {
       await this.recomputeContinuousEffects();
@@ -3662,7 +3913,7 @@ export class GameEngine {
             this.collectPermanentInstances(permanent, scoped);
             return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
           },
-          { outermost: wasOutermostWindow },
+          { outermost: wasOutermostWindow, extraPending },
         ),
       );
       if (wasOutermostWindow) {
@@ -3820,19 +4071,27 @@ export class GameEngine {
         enteredByEffect: ownerSeat,
         ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
-      if (opts?.baseWasDigimon === false) return;
-      await this.fireSubTrigger("whenOneOfYoursDigivolves", {
-        subjectPermanentId,
-        enteredByEffect: ownerSeat,
-        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
-        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
-      });
-      await this.fireSubTrigger("whenAnyDigivolves", {
-        subjectPermanentId,
-        enteredByEffect: ownerSeat,
-        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
-        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
-      });
+      // Q6671/Q6708: a Tamer base digivolves as a Tamer, so no Digimon digivolved and the
+      // "when a Digimon digivolves" watchers stay silent. The caller's report wins where given
+      // (it reads EFFECTIVE kinds, so a Tamer treated as a Digimon keeps its watchers); the
+      // printed-base check is the fallback. The entering card's own [When Digivolving] window
+      // above, and the bonus draw (Q6709), are unaffected.
+      const baseWasTamer =
+        opts?.baseWasDigimon === undefined ? digivolvedFromTamerBase(subjectPermanent) : opts.baseWasDigimon === false;
+      if (!baseWasTamer) {
+        await this.fireSubTrigger("whenOneOfYoursDigivolves", {
+          subjectPermanentId,
+          enteredByEffect: ownerSeat,
+          ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+          ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
+        });
+        await this.fireSubTrigger("whenAnyDigivolves", {
+          subjectPermanentId,
+          enteredByEffect: ownerSeat,
+          ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+          ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
+        });
+      }
     }
   }
 
@@ -3871,30 +4130,59 @@ export class GameEngine {
       .flatMap((instance) => {
         const source = this.cardSourceOf(instance);
         const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
-        return timings.flatMap((timing) => effectsOf(timing, source).map((effect) => ({ effect, source, ctx })));
+        return timings.flatMap((timing) => {
+          const timingKey: "whenDigivolving" | "onPlay" | "whenAttacking" | undefined =
+            timing === EffectTiming.WhenDigivolving
+              ? "whenDigivolving"
+              : timing === EffectTiming.OnPlay
+                ? "onPlay"
+                : timing === EffectTiming.OnUseAttack
+                  ? "whenAttacking"
+                  : undefined;
+          return effectsOf(timing, source).map((effect) => ({ effect, source, ctx, timing: timingKey }));
+        });
       })
       .filter(({ effect }) => !effect.isSecurity)
       .filter(({ effect, ctx }) => opts?.outsideTriggerWindow === true || canTrigger(effect, ctx, this.tracker));
-    if (candidates.length === 0) return false;
+    const availableCandidates = candidates.filter(({ ctx, timing }) => {
+      if (timing === undefined) return true;
+      const sourcePermanentId = ctx.source.permanent()?.permanentId;
+      return sourcePermanentId === undefined || !isTimingActivationDisabled(this.continuous, sourcePermanentId, timing);
+    });
+    if (availableCandidates.length === 0) return false;
     if (!chooseOne) {
       let activatedAny = false;
-      for (const { effect, ctx } of candidates) {
+      for (const { effect, ctx, timing } of availableCandidates) {
         if (!canActivate(effect, ctx, this.tracker)) continue;
+        const sourcePermanentId = ctx.source.permanent()?.permanentId;
+        if (
+          timing !== undefined &&
+          sourcePermanentId !== undefined &&
+          isTimingActivationDisabled(this.continuous, sourcePermanentId, timing)
+        )
+          continue;
         await effect.resolve(ctx);
         activatedAny = true;
       }
       await this.recomputeContinuousEffects();
       return activatedAny;
     }
-    let chosen = candidates[0]!;
-    if (candidates.length > 1) {
+    let chosen = availableCandidates[0]!;
+    if (availableCandidates.length > 1) {
       const index = await this.decisionApi.chooseOption(
         chosen.ctx,
-        candidates.map(({ effect }) => effect.description),
+        availableCandidates.map(({ effect }) => effect.description),
       );
-      chosen = candidates[index] ?? candidates[0]!;
+      chosen = availableCandidates[index] ?? availableCandidates[0]!;
     }
     if (!canActivate(chosen.effect, chosen.ctx, this.tracker)) return false;
+    const chosenSourcePermanentId = chosen.ctx.source.permanent()?.permanentId;
+    if (
+      chosen.timing !== undefined &&
+      chosenSourcePermanentId !== undefined &&
+      isTimingActivationDisabled(this.continuous, chosenSourcePermanentId, chosen.timing)
+    )
+      return false;
     await chosen.effect.resolve(chosen.ctx);
     await this.recomputeContinuousEffects();
     return true;
@@ -4352,7 +4640,7 @@ export class GameEngine {
    */
   private resolutionDeps(
     listCandidate: () => readonly CardInstance[] = () => this.listCandidateInstances(),
-    opts: { outermost?: boolean } = {},
+    opts: { outermost?: boolean; extraPending?: readonly CollectedEffect[] } = {},
   ): ResolutionDeps {
     return {
       // Only the outermost loop settles the deferred queues between effects: at a nested one
@@ -4362,7 +4650,10 @@ export class GameEngine {
       // reach into the pool and resolve a sibling trigger mid-body. Both are the same test —
       // only the outermost loop runs with no card body on the stack.
       ...(opts.outermost === true
-        ? { betweenEffects: () => this.settleBetweenEffects(), collectPending: () => this.pendingWindowCollected() }
+        ? {
+            betweenEffects: () => this.settleBetweenEffects(),
+            collectPending: () => [...this.pendingWindowCollected(), ...(opts.extraPending ?? [])],
+          }
         : {}),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
@@ -4381,7 +4672,7 @@ export class GameEngine {
           sourceCardId: collected.source.cardId,
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
-          timing: EffectTiming[collected.timing ?? timing],
+          timing: collected.timingLabel ?? EffectTiming[collected.timing ?? timing],
           ...(collected.effect.isInherited ? { isInherited: true } : {}),
           // `securityChecked` closes the check AFTER these effects have resolved, so the
           // client needs this to hold the announcement until the reveal has been shown.
@@ -4395,7 +4686,7 @@ export class GameEngine {
           sourceCardId: collected.source.cardId,
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
-          timing: EffectTiming[collected.timing ?? timing],
+          timing: collected.timingLabel ?? EffectTiming[collected.timing ?? timing],
           ...(collected.effect.isInherited ? { isInherited: true } : {}),
         });
       },
@@ -4584,9 +4875,11 @@ export class GameEngine {
         this.ruleProcessing = false;
       }
     }
-    // Even a quiet check establishes the current Link cards as existing cards for
-    // the next Link operation. Keep the markers through this whole fixpoint, then
-    // retire them before its deferred reactions can create a fresh batch of Links.
+    // Even a quiet check establishes the current Link cards as existing cards for the next Link
+    // operation, so the markers are kept through this whole fixpoint and retired before its
+    // deferred reactions can create a fresh batch of Links. A link is therefore protected only
+    // through the rule-check boundary that immediately follows its linking action; sequential
+    // later links can replace this card once that boundary has completed.
     this.justLinked.clear();
   }
 
@@ -5871,9 +6164,43 @@ export class GameEngine {
    * mirrors), so the action modules and the router agree.
    */
   applyIntent(seat: Seat, intent: Intent): IntentResult {
+    const mainActionWhileResolving =
+      this.activeWindowToken !== undefined || this.effectResolutionDepth > 0 || this.optionResolutionDepth > 0;
+    // Readiness guard. Main opens before its start-of-main timing finishes, so a fast client
+    // can submit a verb while the turn has not actually been handed over; those are refused.
+    // Once entry is finalized the engine SERIALIZES main verbs through `continueMainVerb`
+    // instead, so a verb issued while some other effect window happens to be open is queued,
+    // not rejected — refusing those would break the ordinary "act again immediately" path.
+    if (
+      this.mainEntryPending &&
+      mainActionWhileResolving &&
+      ["playCard", "appFusion", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve"].includes(
+        intent.type,
+      )
+    ) {
+      return { ok: false, reason: "wrong-phase" };
+    }
+    // Q5335 (BT23-065): activating an effect is refused outright while ANOTHER effect is still
+    // resolving, at any point in the turn. This one verb keeps the broad condition — it is a
+    // rules restriction on activation timing, not the start-of-main readiness case above.
+    if (mainActionWhileResolving && intent.type === "activateEffect") {
+      return { ok: false, reason: "wrong-phase" };
+    }
+    // A voluntary pass is DEFERRED, not refused, while the start-of-main entry is in flight.
+    // The readiness invariant is that no main action takes effect before the turn is actually
+    // handed to the player; ending the phase early satisfies that by being replayed at
+    // finalize. Refusing it outright strands any client that passes as soon as Main appears
+    // to open, which is exactly what the production turn drivers do.
+    if (intent.type === "endPhase" && this.mainEntryPending && mainActionWhileResolving) {
+      this.deferredEndPhaseSeat = seat;
+      return { ok: true };
+    }
     switch (intent.type) {
       case "playCard":
         return this.handlePlayCard(seat, intent);
+
+      case "appFusion":
+        return this.handleAppFusion(seat, intent);
 
       case "digivolve":
         return this.handleDigivolve(seat, intent);
@@ -6622,6 +6949,100 @@ export class GameEngine {
    * to clients as Colyseus deltas and any prompt arrives on the decision channel,
    * matching the API-CONTRACT "Digivolve" flow.
    */
+  private validateAppFusion(seat: Seat, intent: Extract<Intent, { type: "appFusion" }>): AppFusionValidation {
+    if (this.state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
+    if (this.state.phase !== Phase.Main) return { ok: false, reason: "wrong-phase" };
+    const player = this.state.players[seat];
+    const source = player?.battleArea.find(({ permanentId }) => permanentId === intent.permanentId);
+    const result = player?.hand.find(({ instanceId }) => instanceId === intent.instanceId);
+    if (source === undefined || source.topCard === undefined || result === undefined) {
+      return { ok: false, reason: "illegal-target" };
+    }
+    const linked = source.linked.find(({ instanceId }) => instanceId === intent.linkedInstanceId);
+    if (linked === undefined) return { ok: false, reason: "illegal-target" };
+    const topName = lookupDefinition(source.topCard.cardId)?.nameEn;
+    const linkedName = lookupDefinition(linked.cardId)?.nameEn;
+    const resultDefinition = lookupDefinition(result.cardId);
+    const deps = this.digivolveDeps();
+    // App Fusion uses the same resulting stack transition as ordinary digivolution;
+    // active base restrictions therefore apply before any cost or zone mutation.
+    if (deps.digivolveBaseRestricted?.(this.state, source, result) === true) {
+      return { ok: false, reason: "illegal-target" };
+    }
+    if (deps.digivolveIntoAllowed?.(this.state, source, result) === false) {
+      return { ok: false, reason: "illegal-target" };
+    }
+    const printedCost =
+      topName === undefined || linkedName === undefined || resultDefinition === undefined
+        ? undefined
+        : appFusionCostFor(result.cardId, { topName, linkedNames: [linkedName] });
+    if (printedCost === undefined || resultDefinition === undefined) return { ok: false, reason: "illegal-target" };
+    const passiveCost =
+      deps.adjustedDigivolveCost?.(this.state, source, printedCost, resultDefinition, { consumeOnce: false }) ??
+      printedCost;
+    const potentialReduction =
+      deps.potentialInteractiveDigivolveReduction?.(this.state, seat, source, resultDefinition) ?? 0;
+    const projectedCost = Math.max(0, passiveCost - potentialReduction);
+    if (deps.maxAffordable(this.state, seat) < projectedCost) return { ok: false, reason: "insufficient-memory" };
+    return { ok: true, source, result, resultDefinition, linked, printedCost, projectedCost };
+  }
+
+  private handleAppFusion(seat: Seat, intent: Extract<Intent, { type: "appFusion" }>): IntentResult {
+    const check = this.validateAppFusion(seat, intent);
+    if (!check.ok) return check;
+    const { source, result, resultDefinition, printedCost } = check;
+    const originalTopInstanceId = source.topCard!.instanceId;
+    const originalLinkedInstanceId = intent.linkedInstanceId;
+    const samePublicAppFusionSnapshot = (): boolean => {
+      const currentSource = this.state.players[seat]?.battleArea.find(
+        ({ permanentId }) => permanentId === intent.permanentId,
+      );
+      const currentResult = this.state.players[seat]?.hand.find(({ instanceId }) => instanceId === intent.instanceId);
+      return (
+        currentSource === source &&
+        currentSource?.controllerSeat === seat &&
+        currentSource.topCard?.instanceId === originalTopInstanceId &&
+        currentSource.linked.some(({ instanceId }) => instanceId === originalLinkedInstanceId) &&
+        currentResult === result
+      );
+    };
+    const deps = this.digivolveDeps();
+
+    this.continueMainVerb(
+      async () => {
+        await deps.prepareDigivolveCost?.(this.state, seat, source, result, resultDefinition);
+        if (!samePublicAppFusionSnapshot()) return undefined;
+        const adjusted =
+          deps.adjustedDigivolveCost?.(this.state, source, printedCost, resultDefinition, { consumeOnce: true }) ??
+          printedCost;
+        const interactiveReduction =
+          (await deps.activateInteractiveDigivolveReduction?.(
+            this.state,
+            seat,
+            source,
+            resultDefinition,
+            result.instanceId,
+          )) ?? 0;
+        if (!samePublicAppFusionSnapshot()) return undefined;
+        const finalCost = Math.max(0, adjusted - interactiveReduction);
+        if (deps.maxAffordable(this.state, seat) < finalCost) return undefined;
+        await deps.fireWouldDigivolve?.(this.state, seat, source, resultDefinition);
+        if (!samePublicAppFusionSnapshot()) return undefined;
+        return this.primitives.appFuseInto(intent.permanentId, intent.instanceId, intent.linkedInstanceId, finalCost, {
+          publicEntry: true,
+        });
+      },
+      () => {},
+      (err) =>
+        this.hooks.emit({
+          kind: "actionRejected",
+          intent: "appFusion",
+          reason: err instanceof Error ? err.message : "app-fusion-apply-error",
+        }),
+    );
+    return { ok: true };
+  }
+
   private handleDigivolve(seat: Seat, intent: DigivolveIntent): IntentResult {
     const deps = this.digivolveDeps();
     const check = validateDigivolve(this.state, seat, intent, deps);

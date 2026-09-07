@@ -101,6 +101,15 @@ export interface SubTriggerSubscription {
    */
   expiresOnTurnEndOf?: Seat;
   /**
+   * This watcher is PENDING PROCESSING scheduled by an effect that has already activated (a
+   * delayed deletion), not an effect its source's controller activates now. §15-4-3-5 splits
+   * simultaneous ACTIVATED effects turn-player-first; the rulings for a delayed end-of-turn
+   * deletion (KB Q5564/Q5566/Q5568) instead put the whole simultaneous set, this deletion
+   * included, in the TURN PLAYER's hands whoever controls the deleted Digimon. Ordering only:
+   * the body still resolves with its own source and controller.
+   */
+  orderedByTurnPlayer?: boolean;
+  /**
    * Produced by a PERSISTENT (static / `[Breeding]` / `EffectTiming.None`) effect that the
    * continuous-recompute pass re-derives every time it runs. The recompute clears these via
    * `clearContinuous` and re-installs them fresh, so they never accumulate. A one-shot install

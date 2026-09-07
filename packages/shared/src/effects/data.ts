@@ -1221,9 +1221,9 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // Digimon for cost 3, plus Huckmon for cost 5 only while the opponent has a 10000-DP-or-higher
   // Digimon. The committed generated entry dropped SaviorHuckmon's level and the live DP gate.
   "BT23-013": [
-    { names: ["SaviorHuckmon"], level: 5, cost: 3, isAlternate: true },
+    { namesExact: ["SaviorHuckmon"], level: 5, cost: 3, isAlternate: true },
     { traits: ["CS"], level: 5, cost: 3, isAlternate: true },
-    { names: ["Huckmon"], opponentDigimonDpMin: 10000, cost: 5, isAlternate: true },
+    { namesExact: ["Huckmon"], opponentDigimonDpMin: 10000, cost: 5, isAlternate: true },
   ],
   // BT21-063/066/072 (Gumdramon line): "[Digivolve] Lv.N w/＜Save＞ in text or w/[Hero] trait: Cost C".
   // The ＜Save＞ keyword's full-width angle brackets and the "in text" phrasing defeat the text
@@ -1822,7 +1822,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
 
 /** The base-granted digivolution paths a card in play offers, or undefined when it grants none. */
 export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] | undefined {
-  return BASE_GRANTED_DIGIVOLVE[cardId];
+  return compiledEffects[cardId]?.baseGrantedDigivolve ?? BASE_GRANTED_DIGIVOLVE[cardId];
 }
 
 /**

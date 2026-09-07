@@ -1,8 +1,5 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-const playWatcherUseKey = "bt23-029/play-watcher";
 
 // Hand-authored override for BT23-029 (Antylamon).
 // [All Turns] [Once Per Turn] When any of your cards with [Beast], [Beastkin] or [CS]
@@ -19,28 +16,6 @@ export const compiled: CompiledCard = {
         {
           keyword: "Alliance",
           raw: "＜Alliance＞",
-        },
-      ],
-    },
-    // The card's All Turns watcher includes the play of Antylamon itself. The entry-window
-    // snapshot cannot observe a watcher installed by that same play, so mirror that one
-    // self-play event through the direct On Play timing while retaining the watcher for peers.
-    {
-      trigger: "OnPlay",
-      frequency: "OncePerTurn",
-      sharedUseKey: playWatcherUseKey,
-      actions: [
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          restriction: "cannotActivateWhenDigivolving",
-          duration: "untilOpponentTurnEnd",
         },
       ],
     },
@@ -77,7 +52,6 @@ export const compiled: CompiledCard = {
         },
       ],
       frequency: "OncePerTurn",
-      sharedUseKey: playWatcherUseKey,
     },
     {
       trigger: "AllTurns",
@@ -108,7 +82,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Turuiemon", "Wendigomon"],
+      namesExact: ["Turuiemon", "Wendigomon"],
       cost: 3,
       isAlternate: true,
     },

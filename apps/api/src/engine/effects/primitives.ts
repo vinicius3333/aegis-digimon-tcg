@@ -63,6 +63,7 @@ import {
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
 import { ContinuousEffectLedger, effectiveKinds, effectiveNames } from "./continuous.js";
+import { isTimingActivationDisabled } from "./timingActivation.js";
 import { SubTriggerRegistry, type DnaMemoryGain, type SubTriggerRootZone } from "./subtriggers.js";
 import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
@@ -122,7 +123,12 @@ export interface PrimitivesEngine {
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
-  baseGrantedDigivolve?(seat: Seat, base: Permanent, evolving: CardDefinition): { cost: number } | undefined;
+  baseGrantedDigivolve?(
+    seat: Seat,
+    base: Permanent,
+    evolving: CardDefinition,
+    sourceZone?: ZoneRef,
+  ): { cost: number } | undefined;
   /** Emit a server event (narration/log). */
   emit(event: ServerEvent): void;
   /** Allocate a permanentId unique within the match (play-from-hand/security). */
@@ -159,6 +165,14 @@ export interface PrimitivesEngine {
   ) => Promise<void>;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
+  /** Resolve the normal When Digivolving window for a public digivolution-like entry. */
+  fireWhenDigivolving?: (seat: Seat, permanent: Permanent, previousLevel?: number) => Promise<void>;
+  /** Run the would-digivolve and before-cost windows for effect-driven App Fusion. */
+  prepareAppFusion?: (seat: Seat, target: Permanent, result: CardInstance, into: CardDefinition) => Promise<void>;
+  /** Apply active ordinary-digivolution target restrictions to effect-driven App Fusion. */
+  appFusionTargetAllowed?: (seat: Seat, target: Permanent, result: CardInstance) => boolean;
+  /** Resolve the would-digivolve window after effect-route cost decisions complete. */
+  fireWouldDigivolve?: (seat: Seat, target: Permanent, into: CardDefinition) => Promise<void>;
   /**
    * Resolve the played loose card's own pay-time reducers ("when this card would be
    * played") before effect-driven play. Free play runs the same window with a
@@ -724,7 +738,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addPlayerEffectTimingDisable(seat, ownerSeat, timings, duration, matches, continuousOpt());
   };
   const isTimingEffectDisabled: NonNullable<Primitives["isTimingEffectDisabled"]> = (permanentId, timing) =>
-    continuous.isTimingEffectDisabled(permanentId, timing) && !continuous.hasRestriction(permanentId, "beAffected");
+    isTimingActivationDisabled(continuous, permanentId, timing);
 
   const declareWinner = (seat: Seat): void => {
     if (engine.win) engine.win.declareWinner(seat, "effect");
@@ -1348,8 +1362,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // original card's Tamer/name/trait identity here would incorrectly admit alternate
         // paths in addition to the stated virtual level and colors.
         const baseGranted =
-          opts.virtualBase === undefined && sourceZone === Zone.Hand
-            ? engine.baseGrantedDigivolve?.(seat, permanent, definition)
+          opts.virtualBase === undefined
+            ? engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone)
             : undefined;
         const alternate =
           opts.virtualBase === undefined
@@ -1404,8 +1418,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // only gate a base that carries a level — a level-less base (Q4242) satisfies no level-gated
       // requirement, so the check is meaningless and is skipped rather than rejecting the digivolve.
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
-      const baseGranted =
-        sourceZone === Zone.Hand ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
+      const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       if (
         baseDef.level !== undefined &&
         !canDigivolveOntoWithAlternates(definition, baseDef) &&
@@ -1650,19 +1663,34 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    *
    * `appFusionCondition` produced by `AddAppfuseMethodByName`): the fusing permanent's top
    * card plus its linked cards must collectively cover >= 2 distinct required names (with the
-   * top card being one of them). The app-fusion cost is paid from memory. Returns the fused
-   * permanent, or undefined when the source/result is missing, the fusion is illegal, or the
-   * cost is unaffordable.
+   * top card being one of them). The controller chooses the linked physical material when
+   * multiple links qualify; that card is consumed into the result stack and other links remain
+   * attached. The app-fusion cost is paid from memory. Returns the fused permanent, or undefined
+   * when the source/result is missing, the fusion is illegal, the choice is invalid, or the cost
+   * is unaffordable.
    */
-  const appFuseInto = async (sourcePermanentId: string, resultInstanceId: string): Promise<Permanent | undefined> => {
+  const appFuseInto = async (
+    sourcePermanentId: string,
+    resultInstanceId: string,
+    requestedLinkedInstanceId?: string,
+    costOverride?: number,
+    opts?: { publicEntry?: boolean },
+  ): Promise<Permanent | undefined> => {
     const permanent = access.permanentById(sourcePermanentId);
     if (permanent === undefined || permanent.topCard === undefined) return undefined;
     const peek = peekLooseInstance(state, resultInstanceId);
     if (peek === undefined) return undefined;
+    const originalResultLocation = locateLooseInstance(state, resultInstanceId);
+    if (originalResultLocation === undefined) return undefined;
     const definition = requireCardDefinition(peek.cardId);
     if (!definition.kinds.includes(CardKind.Digimon)) return undefined;
-    if (
-      permanent.inBreeding ||
+    if (permanent.inBreeding) return undefined;
+    // The engine hook is the authoritative digivolve-restriction gate (it shares
+    // `digivolveBaseRestricted`/`digivolveIntoAllowed` with the ordinary digivolve path).
+    // The inline checks remain the fallback for engines that do not supply it.
+    if (engine.appFusionTargetAllowed !== undefined) {
+      if (!engine.appFusionTargetAllowed(permanent.controllerSeat, permanent, peek)) return undefined;
+    } else if (
       continuous.hasRestriction(sourcePermanentId, "digivolve") ||
       !continuous.digivolveIntoAllowed(sourcePermanentId, definition) ||
       (definition.level === 7 && continuous.hasRestriction(sourcePermanentId, "digivolveToLevel7")) ||
@@ -1670,61 +1698,128 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     )
       return undefined;
     // Enforce the fusion-target's app-fusion legality + read its cost (server-authoritative).
+    const originalTopId = permanent.topCard.instanceId;
     const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
+    const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
+    if (appFusionCostFor(peek.cardId, { topName, linkedNames }) === undefined) return undefined;
     const seat = permanent.controllerSeat;
-    const partners = Array.from(permanent.linked).filter(
+    // The fusion requirement identifies which linked physical card is consumed. A merely
+    // different name is insufficient when several links are present (and would silently
+    // consume an unrelated link). Ask the controller to choose the exact physical card while
+    // every candidate is still linked; no cost or zone mutation occurs until that choice is valid.
+    const eligiblePartners = permanent.linked.filter(
       (card) =>
         appFusionCostFor(peek.cardId, {
           topName,
           linkedNames: [requireCardDefinition(card.cardId).nameEn],
         }) !== undefined,
     );
-    if (partners.length === 0) return undefined;
-    const selected =
-      partners.length === 1
-        ? [partners[0]!.instanceId]
-        : await engine.ask.selectInstances(
+    if (eligiblePartners.length === 0) return undefined;
+    // Only a genuine choice is put to the controller. An explicit declaration names the card,
+    // and a single eligible link has nothing to choose, so neither opens a decision.
+    const selectedPartnerIds =
+      requestedLinkedInstanceId !== undefined
+        ? [requestedLinkedInstanceId]
+        : eligiblePartners.length === 1
+          ? [eligiblePartners[0]!.instanceId]
+          : await engine.ask.selectInstances(
             seat,
-            partners.map((card) => card.instanceId),
+            eligiblePartners.map((card) => card.instanceId),
             1,
             1,
-            "Choose the linked card to use for App Fusion.",
+            "App Fusion: choose the linked card used as fusion material.",
+            { sourceCardId: peek.cardId, timing: "WhenDigivolving", effectText: "App Fusion" },
           );
-    const partner = partners.find((card) => card.instanceId === selected[0]);
-    if (partner === undefined) return undefined;
-    const printedCost = appFusionCostFor(peek.cardId, {
-      topName,
-      linkedNames: [requireCardDefinition(partner.cardId).nameEn],
-    });
-    if (printedCost === undefined) return undefined;
+    if (selectedPartnerIds.length !== 1) return undefined;
+    const selectedPartnerId = selectedPartnerIds[0]!;
+    const partnerIndex = permanent.linked.findIndex((card) => card.instanceId === selectedPartnerId);
+    if (partnerIndex < 0 || !eligiblePartners.some((card) => card.instanceId === selectedPartnerId)) return undefined;
+    // Revalidate every mutable identity after the awaited choice. The source may have moved,
+    // changed controller/top card, or lost the result card while the decision was open.
+    const currentPermanent = access.permanentById(sourcePermanentId);
+    const currentResult = locateLooseInstance(state, resultInstanceId);
+    if (
+      currentPermanent !== permanent ||
+      permanent.controllerSeat !== seat ||
+      permanent.topCard?.instanceId !== originalTopId ||
+      currentResult?.card !== peek ||
+      currentResult.ownerSeat !== originalResultLocation.ownerSeat ||
+      currentResult.zone !== originalResultLocation.zone
+    )
+      return undefined;
+    // The selected physical card determines the actual printed route and therefore the cost paid.
+    const selectedName = requireCardDefinition(permanent.linked[partnerIndex]!.cardId).nameEn;
+    const selectedCost = costOverride ?? appFusionCostFor(peek.cardId, { topName, linkedNames: [selectedName] });
+    if (selectedCost === undefined || peekLooseInstance(state, resultInstanceId) === undefined) return undefined;
+    if (opts?.publicEntry !== true) await engine.prepareAppFusion?.(seat, permanent, peek, definition);
     // CR 8-4-2-3: digivolution cost effects also modify App Fusion. Resolve them
     // before moving the pair, while "no digivolution cards" still describes the base.
-    const cost = Math.max(
-      0,
-      engine.finalizeEffectDigivolveCost !== undefined
-        ? await engine.finalizeEffectDigivolveCost(permanent, resultInstanceId, definition, printedCost)
-        : adjustedEvoCost(seat, permanent, printedCost, definition),
-    );
-    const partnerIndex = permanent.linked.findIndex((card) => card.instanceId === partner.instanceId);
-    if (partnerIndex < 0) return undefined;
-    if (engine.memory.maxCostFor(seat) < cost) return undefined;
-    if (cost > 0) engine.memory.pay(seat, cost, "appFusion");
+    const effectiveCost =
+      costOverride !== undefined
+        ? selectedCost
+        : Math.max(
+            0,
+            engine.finalizeEffectDigivolveCost !== undefined
+              ? await engine.finalizeEffectDigivolveCost(permanent, resultInstanceId, definition, selectedCost)
+              : adjustedEvoCost(seat, permanent, selectedCost, definition),
+          );
+    const postAwaitPermanent = access.permanentById(sourcePermanentId);
+    const postAwaitResult = locateLooseInstance(state, resultInstanceId);
+    const postAwaitPartnerIndex =
+      postAwaitPermanent?.linked.findIndex(({ instanceId }) => instanceId === selectedPartnerId) ?? -1;
+    if (
+      postAwaitPermanent !== permanent ||
+      postAwaitPermanent.controllerSeat !== seat ||
+      postAwaitPermanent.topCard?.instanceId !== originalTopId ||
+      postAwaitResult?.card !== peek ||
+      postAwaitResult.ownerSeat !== originalResultLocation.ownerSeat ||
+      postAwaitResult.zone !== originalResultLocation.zone ||
+      postAwaitPartnerIndex < 0
+    )
+      return undefined;
+    if (engine.memory.maxCostFor(seat) < effectiveCost) return undefined;
+    if (opts?.publicEntry !== true) await engine.fireWouldDigivolve?.(seat, permanent, definition);
+    const afterWouldPermanent = access.permanentById(sourcePermanentId);
+    const afterWouldResult = locateLooseInstance(state, resultInstanceId);
+    const afterWouldPartnerIndex =
+      afterWouldPermanent?.linked.findIndex(({ instanceId }) => instanceId === selectedPartnerId) ?? -1;
+    if (
+      afterWouldPermanent !== permanent ||
+      afterWouldPermanent.controllerSeat !== seat ||
+      afterWouldPermanent.topCard?.instanceId !== originalTopId ||
+      afterWouldResult?.card !== peek ||
+      afterWouldResult.ownerSeat !== originalResultLocation.ownerSeat ||
+      afterWouldResult.zone !== originalResultLocation.zone ||
+      afterWouldPartnerIndex < 0
+    )
+      return undefined;
+    if (engine.memory.maxCostFor(seat) < effectiveCost) return undefined;
+    if (effectiveCost > 0) engine.memory.pay(seat, effectiveCost, "appFusion");
     const instance = removeLooseInstance(state, resultInstanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
+    const previousLevel = requireCardDefinition(priorTop.cardId).level;
+    const partner = permanent.linked.splice(afterWouldPartnerIndex, 1)[0];
     pushOnStack(permanent, priorTop);
-    permanent.linked.splice(partnerIndex, 1);
-    pushOnStack(permanent, partner);
+    if (partner !== undefined) pushOnStack(permanent, partner);
     setTopCard(permanent, instance);
+    permanent.enteredByEffect = opts?.publicEntry !== true;
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
     ledger.recomputeDP(state, permanent.permanentId);
     permanent.isSuspended = carriedSuspended;
-    engine.emit({ kind: "cardPlayed", seat, cardId: instance.cardId, permanentId: permanent.permanentId });
+    engine.emit({
+      kind: "digivolved",
+      seat,
+      cardId: instance.cardId,
+      permanentId: permanent.permanentId,
+      mechanic: "appFusion",
+      inBreeding: false,
+    });
     engine.emit({ kind: "cardsMoved", instanceIds: [instance.instanceId], from: "various", to: Zone.BattleArea });
     // CR 8-4-3-3: the app fusion procedure itself draws 1 card — unconditional, part of the
     // placement procedure (mirrors applyDigivolve step 6 / dnaDigivolveInto).
@@ -1738,7 +1833,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // of [When Digivolving] ("triggered ... when the action of digivolving into a card with that
     // effect is complete") together say App Fusion IS "digivolving" for the entering card's own
     // [When Digivolving] window, so it fires here.
-    await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat);
+    if (opts?.publicEntry === true) {
+      await engine.fireWhenDigivolving?.(seat, permanent, previousLevel);
+    } else {
+      await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat);
+    }
     return permanent;
   };
 
@@ -2443,13 +2542,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // permanent (whose link card this is) is carried as `subjectPermanentId` so a watcher can gate
     // on "this Digimon" / "an opponent's Digimon".
     const linkTrashed: { instanceId: string; hostPermanentId: string }[] = [];
+    // Rule-based link-limit cleanup suppresses whenLinkTrashed, but removing the old link
+    // still changes the host's observable DP and linked keywords. Keep the host identity
+    // separately so refreshing those values does not depend on emitting a subtrigger.
+    const linkedHostsToRefresh = new Set<string>();
+    const linkedHostByInstance = new Map<string, string>();
     const optionBattleAreaTrashed: string[] = [];
     // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
     // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
-    if (engine.fireSubTrigger && opts?.byRule !== true) {
-      for (const instanceId of instanceIds) {
-        const host = hostOfLinkedInstance(state, instanceId);
-        if (host !== undefined) linkTrashed.push({ instanceId, hostPermanentId: host });
+    for (const instanceId of instanceIds) {
+      const host = hostOfLinkedInstance(state, instanceId);
+      if (host !== undefined) {
+        linkedHostByInstance.set(instanceId, host);
+        if (engine.fireSubTrigger && opts?.byRule !== true) linkTrashed.push({ instanceId, hostPermanentId: host });
       }
     }
     // <Overflow> (CR §4-18) eligibility, recorded BEFORE removal: this verb also trashes loose
@@ -2529,8 +2634,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         to: Zone.Trash,
       });
     }
-    // Fire AFTER the move, gated to instances that actually left the linked list.
+    // Identify only linked instances that actually moved; restricted or missing ids must not
+    // cause an unrelated host refresh.
     const movedIds = new Set(moved.map((c) => c.instanceId));
+    for (const instanceId of movedIds) {
+      const host = linkedHostByInstance.get(instanceId);
+      if (host !== undefined) linkedHostsToRefresh.add(host);
+    }
+    // A by-rule link removal intentionally emits no whenLinkTrashed event. Refresh the
+    // affected host DP directly after movement so the stale linkDp contribution cannot remain
+    // observable; the continuous layer is refreshed immediately below without firing the
+    // suppressed whenLinkTrashed watcher.
+    for (const hostPermanentId of linkedHostsToRefresh) {
+      if (findPermanentInState(state, hostPermanentId) !== undefined) ledger.recomputeDP(state, hostPermanentId);
+    }
+    if (linkedHostsToRefresh.size > 0) await engine.recomputeContinuousEffects?.();
+    // Fire AFTER the move, gated to instances that actually left the linked list.
     for (const entry of linkTrashed) {
       if (!movedIds.has(entry.instanceId)) continue;
       await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
@@ -3232,9 +3351,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!engine.combat) continue; // no prompt facility available; deletion proceeds
         const accepted = await engine.combat.runBarrierDecision(perm.controllerSeat, permanentId);
         if (!accepted) continue;
-        access.flipTopSecurityToTrash(perm.controllerSeat);
+        const paid = access.flipTopSecurityToTrash(perm.controllerSeat);
         engine.markBarrierFired?.(barrierKey);
         barriered.add(permanentId);
+        // Q5296: the ＜Barrier＞ payment removes a card from the controller's own security
+        // stack, so the generic removal buses carry it exactly as `trashFromSecurity` does.
+        // The effect-only bus stays silent: this is a keyword cost, not an effect.
+        if (paid !== undefined) {
+          await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: perm.controllerSeat });
+          await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+            removedFromSecuritySeat: perm.controllerSeat,
+            trashedFromSecurityInstanceIds: [paid.instanceId],
+          });
+        }
       }
       if (barriered.size > 0) toDelete = toDelete.filter((id) => !barriered.has(id));
     }
@@ -4842,6 +4971,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
     });
+    // "Isn't affected by effects" ENDS an effect that is already applying (KB Q5327; the mirror
+    // of Q5328, where losing the immunity re-applies it). The DP ledger already suppresses a
+    // modifier the recipient cannot be affected by, but only re-reads that suppression when it
+    // recomputes, so the stored `currentDP` would keep a now-inert reduction until some other
+    // event moved it. Recompute the recipient here so the immunity takes effect immediately.
+    if (restriction === "beAffected") ledger.recomputeDP(state, permanentId);
   };
 
   const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (seat, restriction, duration, matches): void => {
@@ -4979,25 +5114,41 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const delayedDeletePlayed = (
     playedPermanentId: string,
-    timing: "endOfOwnerTurn" | "endOfOpponentTurn" = "endOfOwnerTurn",
+    timing: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn" = "endOfOwnerTurn",
   ): void => {
     // A one-shot `endOfTurn` watcher anchored on the affected permanent. Most cards delete at
     // their owner's turn end; BT23-048 explicitly schedules the opponent's turn end (Q5567/Q5568).
     const ownerSeat = access.permanentById(playedPermanentId)?.controllerSeat;
+    const currentTurnSeat = state.turnSeat;
     const expiresOnTurnEndOf =
-      ownerSeat === undefined ? undefined : timing === "endOfOpponentTurn" ? access.opponentOf(ownerSeat) : ownerSeat;
+      timing === "endOfCurrentTurn"
+        ? currentTurnSeat
+        : ownerSeat === undefined
+          ? undefined
+          : timing === "endOfOpponentTurn"
+            ? access.opponentOf(ownerSeat)
+            : ownerSeat;
     subTriggers.subscribe({
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
       once: true,
+      // Pending processing, not an activated effect: the turn player orders it against the
+      // other end-of-turn effects even when the deleted Digimon is the opponent's
+      // (KB Q5564/Q5566/Q5568).
+      orderedByTurnPlayer: true,
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       matches: (subCtx) =>
-        (timing === "endOfOpponentTurn" ? !subCtx.source.isOwnersTurn() : subCtx.source.isOwnersTurn()) &&
-        subCtx.source.isOnBattleArea(),
+        (timing === "endOfCurrentTurn"
+          ? state.turnSeat === currentTurnSeat
+          : timing === "endOfOpponentTurn"
+            ? !subCtx.source.isOwnersTurn()
+            : subCtx.source.isOwnersTurn()) && subCtx.source.isOnBattleArea(),
       description:
-        timing === "endOfOpponentTurn"
-          ? "[End of Your Opponent's Turn] Delete this Digimon."
-          : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
+        timing === "endOfCurrentTurn"
+          ? "[End of Current Turn] Delete this Digimon (delayed-delete-played)."
+          : timing === "endOfOpponentTurn"
+            ? "[End of Your Opponent's Turn] Delete this Digimon."
+            : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
       run: async () => {
         await deletePermanent([playedPermanentId], "byEffect");
       },
@@ -5013,6 +5164,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     subTriggers.subscribe({
       event: "endOfTurn",
       once: true,
+      // Pending processing, not an activated effect: the turn player orders it against the
+      // other end-of-turn processing (KB Q5564/Q5566/Q5568), as the delayed deletion is.
+      orderedByTurnPlayer: true,
       expiresOnTurnEndOf: seat,
       description: `At end of turn, ${amount >= 0 ? "gain" : "lose"} ${Math.abs(amount)} memory (delayed one-shot #${++delayedMemorySequence}).`,
       run: async () => {
@@ -6015,9 +6169,16 @@ function removeLooseInstance(
  * digivolution-stack / linked card — NOT a permanent's top card) WITHOUT removing it.
  * Used to inspect a card's definition (kind/cost) before deciding to play it.
  */
-function peekLooseInstance(state: GameState, instanceId: string): CardInstance | undefined {
+type LooseInstanceLocation = {
+  card: CardInstance;
+  ownerSeat: Seat;
+  zone: "checked" | "resolvingOption" | "hand" | "security" | "deck" | "trash" | "stack" | "linked";
+};
+
+function locateLooseInstance(state: GameState, instanceId: string): LooseInstanceLocation | undefined {
+  // CR 13-1-6: a card being checked from security has no area until the check ends.
   const checked = peekCheckedCard(state, instanceId);
-  if (checked !== undefined) return checked.card;
+  if (checked !== undefined) return { card: checked.card, ownerSeat: checked.seat, zone: "checked" };
   for (const owner of state.players) {
     // §9-1-4/9-1-5: an Option resolving its own [Main] effect is held on `resolvingOption`
     // (no zone array) rather than pre-trashed. Its own effect can still relocate it into a
@@ -6025,25 +6186,36 @@ function peekLooseInstance(state: GameState, instanceId: string): CardInstance |
     // an area" clause is exactly this: PlaceInBattleAreaSelf (BT18-100 option permanents),
     // PlayWithoutCost, and self-referencing SecurityManipulation (P-181) all resolve by
     // finding and moving "this card" through these loose-instance helpers.
-    if (owner.resolvingOption?.instanceId === instanceId) return owner.resolvingOption;
-    for (const list of [owner.hand, owner.security, owner.deck, owner.trash]) {
+    if (owner.resolvingOption?.instanceId === instanceId) {
+      return { card: owner.resolvingOption, ownerSeat: owner.seat, zone: "resolvingOption" };
+    }
+    for (const [zone, list] of [
+      ["hand", owner.hand],
+      ["security", owner.security],
+      ["deck", owner.deck],
+      ["trash", owner.trash],
+    ] as const) {
       const found = list.find((c) => c.instanceId === instanceId);
-      if (found) return found;
+      if (found) return { card: found, ownerSeat: owner.seat, zone };
     }
     for (const permanent of owner.battleArea) {
       const inStack = permanent.stack.find((c) => c.instanceId === instanceId);
-      if (inStack) return inStack;
+      if (inStack) return { card: inStack, ownerSeat: owner.seat, zone: "stack" };
       const inLinked = permanent.linked.find((c) => c.instanceId === instanceId);
-      if (inLinked) return inLinked;
+      if (inLinked) return { card: inLinked, ownerSeat: owner.seat, zone: "linked" };
     }
     if (owner.breeding !== undefined) {
       const inStack = owner.breeding.stack.find((c) => c.instanceId === instanceId);
-      if (inStack) return inStack;
+      if (inStack) return { card: inStack, ownerSeat: owner.seat, zone: "stack" };
       const inLinked = owner.breeding.linked.find((c) => c.instanceId === instanceId);
-      if (inLinked) return inLinked;
+      if (inLinked) return { card: inLinked, ownerSeat: owner.seat, zone: "linked" };
     }
   }
   return undefined;
+}
+
+function peekLooseInstance(state: GameState, instanceId: string): CardInstance | undefined {
+  return locateLooseInstance(state, instanceId)?.card;
 }
 
 /**
