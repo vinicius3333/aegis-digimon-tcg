@@ -72,6 +72,23 @@ describe("BT24-014 Aegiochusmon", () => {
     expect(s.perm("target").currentDP).toBe(2000);
   });
 
+  it("expires the -5000 DP reduction at the real opponent turn boundary", async () => {
+    const s = setupEngine({
+      0: { security: 4, battleArea: [{ card: "BT24-014", as: "aegiochusmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }], deck: ["BT1-010", "BT1-011"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("aegiochusmon"));
+    expect(s.perm("target").currentDP).toBe(2000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(7000);
+  });
+
   it("uses top-card Decode to play Aegiomon and still removes Aegiochusmon", async () => {
     const s = setupEngine(
       {
@@ -125,6 +142,22 @@ describe("BT24-014 Aegiochusmon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("aegiomon").instanceId);
+  });
+
+  it("allows explicit refusal of non-battle Decode and leaves the stack in trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-014", as: "host", under: [{ card: "P-194", as: "aegiomon" }] }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const hostCardId = s.perm("host").topCard.instanceId;
+    const sourceId = s.inst("aegiomon").instanceId;
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([hostCardId, sourceId]));
   });
 
   it("digivolves from Aegiomon for cost 3", async () => {
