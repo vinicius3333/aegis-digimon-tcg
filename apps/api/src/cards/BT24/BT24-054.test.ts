@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,29 @@ import { compiled as BT24_054 } from "./BT24-054.js";
 import "../index.js";
 
 describe("BT24-054 Ryudamon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-054")).toMatchObject({
+      cardId: "BT24-054",
+      nameEn: "Ryudamon",
+      colors: ["Black", "Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Beast", "X Antibody", "DigiPolice", "SEEKERS"],
+      evoCosts: [
+        { color: "Black", level: 2, memoryCost: 1 },
+        { color: "Green", level: 2, memoryCost: 1 },
+      ],
+    });
+    expect(BT24_054.digivolutionRequirement).toEqual([
+      { namesExact: ["Kyokyomon"], cost: 0, isAlternate: true },
+      { level: 2, traits: ["DigiPolice", "SEEKERS"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("limits the inherited suspension target by this Digimon's play cost", () => {
     const inherited = BT24_054.effects?.find((entry) => entry.isInherited);
     expect((inherited?.actions?.[0] as any).actions?.[0]).toMatchObject({
@@ -140,5 +164,18 @@ describe("BT24-054 Ryudamon", () => {
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
     expect(s.perm("second").isSuspended).toBe(false);
+  });
+
+  it("activates inherited suspension from a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-055", as: "host", under: ["BT24-054"] }] },
+      1: { security: ["BT1-010"], battleArea: [{ card: "BT1-088", as: "target" }] },
+    });
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
   });
 });
