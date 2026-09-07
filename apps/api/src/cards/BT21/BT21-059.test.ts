@@ -58,14 +58,14 @@ describe("BT21-059 Timemon", () => {
         0: {
           battleArea: [
             { card: "BT21-009", as: "host" },
-            { card: "BT21-045", as: "ownOther", under: ["BT21-042"] },
+            { card: "BT21-045", as: "ownOther", under: ["BT21-042", "BT21-044"] },
           ],
           hand: [{ card: "BT21-059", as: "timemon" }],
         },
         1: {
           battleArea: [
             { card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] },
-            { card: "BT21-045", as: "otherOpponent", under: ["BT21-042"] },
+            { card: "BT21-045", as: "otherOpponent", under: ["BT21-042", "BT21-044"] },
           ],
         },
       },
@@ -180,7 +180,7 @@ describe("BT21-059 Timemon", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("App Fuses the two available distinct recipe names through the production verb", async () => {
+  it("App Fuses two distinct recipe names through the public evolution intent", async () => {
     const s = setupEngine(
       {
         0: {
@@ -205,5 +205,47 @@ describe("BT21-059 Timemon", () => {
     expect(s.perm("watchmon").stack.map((card) => card.cardId)).toEqual(["BT21-053", "BT21-041"]);
     expect(s.perm("watchmon").linked).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("refuses same-name App Fusion material without moving either card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-053", as: "watchmonHost" }],
+          hand: [
+            { card: "BT21-059", as: "timemon" },
+            { card: "BT21-053", as: "duplicateWatchmon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const timemonId = s.inst("timemon").instanceId;
+    const duplicateId = s.inst("duplicateWatchmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: duplicateId,
+        targetPermanentId: s.perm("watchmonHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("watchmonHost").linked.some((card) => card.instanceId === duplicateId));
+    expect(s.state.memory).toBe(5);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("watchmonHost").permanentId,
+        instanceId: timemonId,
+        appFusionLinkedInstanceId: duplicateId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([timemonId]);
+    expect(s.perm("watchmonHost").topCard.cardId).toBe("BT21-053");
+    expect(s.perm("watchmonHost").stack).toHaveLength(0);
+    expect(s.perm("watchmonHost").linked.map((card) => card.instanceId)).toEqual([duplicateId]);
   });
 });
