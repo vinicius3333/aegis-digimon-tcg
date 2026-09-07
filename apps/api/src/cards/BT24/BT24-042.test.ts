@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +7,29 @@ import { compiled as BT24_042 } from "./BT24-042.js";
 import "../index.js";
 
 describe("BT24-042 Goblimon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-042")).toMatchObject({
+      cardId: "BT24-042",
+      nameEn: "Goblimon",
+      colors: ["Green", "Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Demon", "Titan", "TS"],
+      evoCosts: [
+        { color: "Green", level: 2, memoryCost: 1 },
+        { color: "Purple", level: 2, memoryCost: 1 },
+      ],
+    });
+    expect(BT24_042.digivolutionRequirement).toEqual([
+      { namesExact: ["Tsunomon"], cost: 0, isAlternate: true },
+      { level: 2, traits: ["TS"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("reduces Demon/Titan digivolution costs on your turn", () => {
     const replacement = BT24_042.effects?.find(
       (entry) => entry.trigger === "YourTurn" && entry.actions?.[0]?.kind === "Replacement",
