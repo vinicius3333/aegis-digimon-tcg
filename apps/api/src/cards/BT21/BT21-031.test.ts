@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { createCardSource } from "../../engine/cards/CardSource.js";
+import { createCardStateLookup } from "../../engine/effects/context.js";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-031.js";
 import "../index.js";
+import "../BT22/BT22-024.js";
 
 describe("BT21-031 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -125,27 +130,19 @@ describe("BT21-031 compiled implementation", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("gains 1 memory at end of attack only once per turn from a realistic evolution stack", async () => {
+  it("gains 1 memory once per turn across two public attacks after a public unsuspend", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-003", as: "host" }],
+        battleArea: [{ card: "BT21-031", as: "host", under: ["BT1-003"] }],
         hand: [
-          { card: "BT21-031", as: "sangomon" },
           { card: "BT1-033", as: "dolphmon" },
+          { card: "ST8-11", as: "unsuspendOption" },
         ],
       },
       1: { security: ["BT1-001", "BT1-002", "BT1-004"] },
     });
-    s.state.memory = 5;
+    s.state.memory = 8;
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("sangomon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.instanceId === s.inst("sangomon").instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -164,8 +161,15 @@ describe("BT21-031 compiled implementation", () => {
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
     const memoryAfterFirstAttack = s.state.memory;
-    expect(memoryAfterFirstAttack).toBeGreaterThanOrEqual(1);
-    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(memoryAfterFirstAttack).toBe(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("unsuspendOption").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(memoryAfterFirstAttack - 3);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -176,6 +180,38 @@ describe("BT21-031 compiled implementation", () => {
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 2);
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.memory).toBe(memoryAfterFirstAttack);
+    expect(s.state.memory).toBe(memoryAfterFirstAttack - 3);
+  });
+
+  it("reduces the related BT22-024 hand effect from 3 to 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-031", as: "sangomon", under: ["BT1-003"] },
+            { card: "BT22-086", as: "yao" },
+          ],
+          hand: [{ card: "BT22-024", as: "marineBullmon" }],
+          trash: ["BT22-021", "BT22-020"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = createCardSource(s.inst("marineBullmon"), createCardStateLookup(s.state));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("marineBullmon").instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sangomon").topCard.cardId === "BT22-024");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT1-003", "BT21-031"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT22-020"]);
   });
 });
