@@ -65,6 +65,7 @@ describe("BT25-061 Offmon", () => {
         permanentId: legal.perm("base").permanentId,
         instanceId: legal.inst("offmon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.cardId === CARD_ID);
@@ -79,56 +80,77 @@ describe("BT25-061 Offmon", () => {
         permanentId: invalid.perm("plain").permanentId,
         instanceId: invalid.inst("offmon").instanceId,
         useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("supports the ordinary black Lv.2 route at cost 0 and rejects a wrong-color source", async () => {
+    const ordinary = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackBase" }, hand: [{ card: CARD_ID, as: "offmon" }] },
+    });
+    ordinary.state.memory = 2;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("offmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === CARD_ID);
+    expect(ordinary.state.memory).toBe(2);
+
+    const wrongColor = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redBase" }, hand: [{ card: CARD_ID, as: "offmon" }] },
+    });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("offmon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("pays one Appmon card, then draws and gains memory as one effect", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "offmon" }],
           hand: [
-            { card: "BT21-005", as: "cost" },
-            { card: "BT25-089", as: "secondCost" },
+            { card: "BT21-009", as: "cost" },
+            { card: "BT25-089", as: "appmonTamer" },
             { card: "BT1-009", as: "plain" },
           ],
           deck: [{ card: "BT1-013", as: "drawn" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await advance(s.engine).runTurn(0);
+    preferred.push(s.inst("cost").instanceId);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("offmon"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
-    expect(s.state.memory).toBe(-3); // runTurn completes the phase transition after the +1 effect.
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("plain").instanceId, s.inst("drawn").instanceId]),
     );
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("appmonTamer").instanceId);
   });
 
-  it("may decline the cost and receives neither benefit", async () => {
+  it("refuses the start effect without an Appmon card and receives neither benefit", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: CARD_ID, as: "offmon" }],
-        hand: [{ card: "BT21-005", as: "cost" }],
+        hand: [{ card: "BT1-009", as: "wrongTrait" }],
         deck: [{ card: "BT1-013", as: "top" }],
       },
     });
-    const pending = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("offmon"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const decision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await pending;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("offmon"));
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("wrongTrait").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
   });
 
@@ -187,5 +209,20 @@ describe("BT25-061 Offmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("other").instanceId));
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+  });
+
+  it("refuses linking Offmon to a host without the Appmon trait", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "plainHost" }], hand: [{ card: CARD_ID, as: "link" }] },
+    });
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("plainHost").permanentId,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
   });
 });

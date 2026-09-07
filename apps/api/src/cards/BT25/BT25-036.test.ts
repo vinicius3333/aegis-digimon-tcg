@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { appFusionCostFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -110,6 +110,17 @@ describe("BT25-036 Craftmon", () => {
     });
   });
 
+  it("accepts every ordered pair of distinct printed App Fusion names and rejects same-name pairs", () => {
+    const names = ["Kabemon", "Gomimon", "Ecomon", "Puzzlemon"];
+    for (const topName of names) {
+      for (const linkedName of names) {
+        expect(appFusionCostFor("BT25-036", { topName, linkedNames: [linkedName] })).toBe(
+          topName === linkedName ? undefined : 0,
+        );
+      }
+    }
+  });
+
   it("plays from security only after its battle, then runs On Play", async () => {
     const s = setupEngine(
       {
@@ -208,7 +219,10 @@ describe("BT25-036 Craftmon", () => {
       legal.inst("craftmon").instanceId,
     );
     expect(fused?.topCard.cardId).toBe("BT25-036");
-    expect(fused?.stack.map(({ cardId }) => cardId)).toContain("EX10-024");
+    expect(fused?.stack.map(({ cardId }) => cardId)).toEqual(["EX10-024", "BT26-051"]);
+    expect(legal.perm("kabemon").linked).toHaveLength(0);
+    expect(legal.state.memory).toBe(0);
+    expect(legal.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(legal.inst("drawn").instanceId);
 
     const illegal = setupEngine({
       0: {
@@ -226,6 +240,28 @@ describe("BT25-036 Craftmon", () => {
     );
   });
 
+  it("accepts the reverse Gomimon-to-Kabemon material order and keeps the zero-cost fusion observable", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-051", as: "gomimon", linked: [{ card: "EX10-024", as: "kabemon" }] }],
+        hand: [{ card: "BT25-036", as: "craftmon" }],
+        deck: [{ card: "BT1-010", as: "fusionDraw" }],
+      },
+    });
+    s.state.memory = 0;
+
+    const fused = await advance(s.engine).verb.appFuseInto(
+      s.perm("gomimon").permanentId,
+      s.inst("craftmon").instanceId,
+    );
+
+    expect(fused?.topCard.cardId).toBe("BT25-036");
+    expect(fused?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-051", "EX10-024"]);
+    expect(s.perm("gomimon").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("fusionDraw").instanceId);
+  });
+
   it("links for 2, trashes one Appmon from hand, and draws two", async () => {
     const s = setupEngine(
       {
@@ -235,7 +271,10 @@ describe("BT25-036 Craftmon", () => {
             { card: "BT25-036", as: "craftmon" },
             { card: "BT21-041", as: "appmonCost" },
           ],
-          deck: [{ card: "BT1-009", as: "drawA" }, { card: "BT1-010", as: "drawB" }],
+          deck: [
+            { card: "BT1-009", as: "drawA" },
+            { card: "BT1-010", as: "drawB" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -268,7 +307,10 @@ describe("BT25-036 Craftmon", () => {
             { card: "BT25-036", as: "craftmon" },
             { card: "BT21-041", as: "appmonCost" },
           ],
-          deck: [{ card: "BT1-009", as: "drawA" }, { card: "BT1-010", as: "drawB" }],
+          deck: [
+            { card: "BT1-009", as: "drawA" },
+            { card: "BT1-010", as: "drawB" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -318,7 +360,10 @@ describe("BT25-036 Craftmon", () => {
             { card: "BT25-036", as: "craftmon" },
             { card: "BT1-009", as: "nonAppmonCost" },
           ],
-          deck: [{ card: "BT1-010", as: "drawA" }, { card: "BT1-011", as: "drawB" }],
+          deck: [
+            { card: "BT1-010", as: "drawA" },
+            { card: "BT1-011", as: "drawB" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -331,7 +376,11 @@ describe("BT25-036 Craftmon", () => {
         targetPermanentId: nonMatchingCost.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => nonMatchingCost.perm("host").linked.some((card) => card.instanceId === nonMatchingCost.inst("craftmon").instanceId));
+    await settle(() =>
+      nonMatchingCost
+        .perm("host")
+        .linked.some((card) => card.instanceId === nonMatchingCost.inst("craftmon").instanceId),
+    );
 
     expect(nonMatchingCost.state.players[0]!.trash).toHaveLength(0);
     expect(nonMatchingCost.state.players[0]!.hand.map((card) => card.instanceId)).toContain(

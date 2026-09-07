@@ -124,14 +124,14 @@ describe("BT26-048 BloomLordmon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-023");
   });
 
-  it("cannot pay with a face-up bottom card even when a higher stack card is face-down", async () => {
+  it("pays with the first face-down card above a face-up bottom (Q4785)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-048", as: "bloomLordmon" },
             {
-              card: "BT1-009",
+              card: "BT1-016",
               as: "host",
               under: [
                 { card: "BT1-010", as: "faceUpBottom", faceUp: true },
@@ -148,11 +148,9 @@ describe("BT26-048 BloomLordmon", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
 
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ver4").instanceId);
-    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("faceUpBottom").instanceId,
-      s.inst("faceDownUpper").instanceId,
-    ]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(s.inst("ver4").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("faceDownUpper").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("faceUpBottom").instanceId]);
   });
 
   it("activates its All Turns debuff once for a simultaneous batch of multiple face-down cards (Q7050)", async () => {

@@ -243,13 +243,16 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
     async (timing) => {
       const s = setupEngine(
         {
-          0: { battleArea: [{ card: "BT25-026", as: "source" }] },
+          0: {
+            hand: [{ card: "BT25-026", as: "source" }],
+            battleArea: timing === EffectTiming.WhenDigivolving ? [{ card: "BT25-024", as: "base" }] : [],
+          },
           1: {
             battleArea: [
               {
-                card: "BT1-010",
+                card: "BT1-043",
                 as: "stacked",
-                under: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+                under: ["BT1-001", "BT1-010", "BT25-024", "BT25-026"],
               },
               { card: "BT1-010", as: "empty" },
             ],
@@ -257,17 +260,26 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
         },
         { autoSelectCards: true },
       );
+      s.state.memory = 10;
       await s.ready();
-
-      await advance(s.engine).fireForPermanent(timing, s.perm("source"));
+      const intent =
+        timing === EffectTiming.OnPlay
+          ? { type: "playCard" as const, instanceId: s.inst("source").instanceId }
+          : {
+              type: "digivolve" as const,
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("source").instanceId,
+            };
+      expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
       await settle(
         () => s.state.players[1]!.trash.length === 3 && observe(s.engine).isRestricted(s.perm("empty"), "beSuspended"),
       );
 
+      expect(s.state.memory).toBe(timing === EffectTiming.OnPlay ? 4 : 7);
       expect(s.perm("stacked").stack).toHaveLength(1);
       expect(s.state.players[1]!.trash).toHaveLength(3);
-      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
-      expect(s.perm("stacked").stack[0]!.cardId).toBe("BT1-004");
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-010", "BT25-024"]);
+      expect(s.perm("stacked").stack[0]!.cardId).toBe("BT25-026");
       expect(observe(s.engine).isRestricted(s.perm("stacked"), "beSuspended")).toBe(false);
       expect(observe(s.engine).isRestricted(s.perm("empty"), "beSuspended")).toBe(true);
     },
@@ -281,6 +293,81 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(false);
+  });
+
+  it("prevents an opponent's restricted Digimon from attacking until their turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-026", as: "source" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-043", as: "target" }], deck: ["BT1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beSuspended"));
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("target").permanentId]);
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("publicly rejects a Blocker redirect while the inherited restriction is active", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-018", as: "host", under: ["BT25-026"] }] },
+      1: { battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-001"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("allows the same Blocker redirect without the inherited restriction", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-018", as: "host" }] },
+      1: { battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-001"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it.each(["whenPlayed", "whenOneOfYoursDigivolves"] as const)(
@@ -333,6 +420,128 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
     expect(s.perm("source").topCard.cardId).toBe("BT25-028");
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("dianamon").instanceId);
+  });
+
+  it("naturally reacts to a public blue-to-red evolution using the post-evolution color", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-026", as: "source" },
+            { card: "BT25-024", as: "blueSubject" },
+          ],
+          hand: [{ card: "BT25-017", as: "redEvolution" }],
+          trash: [{ card: "BT25-028", as: "dianamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueSubject").permanentId,
+        instanceId: s.inst("redEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT25-028");
+
+    expect(s.perm("blueSubject").topCard.cardId).toBe("BT25-017");
+    expect(s.perm("source").topCard.cardId).toBe("BT25-028");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("may refuse the Dianamon evolution and keeps the card in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-026", as: "source" },
+            { card: "BT1-010", as: "redSubject" },
+          ],
+          trash: [{ card: "BT25-028", as: "dianamon" }],
+          hand: [],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    const firing = advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("redSubject").permanentId,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.perm("source").topCard.cardId).toBe("BT25-026");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("dianamon").instanceId);
+  });
+
+  it("does not evolve when Dianamon is only in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-026", as: "source" },
+            { card: "BT1-010", as: "redSubject" },
+          ],
+          hand: [{ card: "BT25-028", as: "dianamon" }],
+          trash: [],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("redSubject").permanentId });
+
+    expect(s.perm("source").topCard.cardId).toBe("BT25-026");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dianamon").instanceId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("uses the post-evolution color for Q6291 and rejects a red-to-blue evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-026", as: "source" },
+            { card: "BT1-014", as: "redSubject" },
+          ],
+          hand: [{ card: "BT25-026", as: "crescemon" }],
+          trash: [{ card: "BT25-028", as: "dianamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redSubject").permanentId,
+        instanceId: s.inst("crescemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redSubject").topCard.cardId === "BT25-026");
+
+    expect(s.perm("redSubject").topCard.cardId).toBe("BT25-026");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("dianamon").instanceId);
   });
 
   it("does not use a Dianamon in the opponent's trash", async () => {

@@ -24,6 +24,7 @@ import {
   wouldBePlayedSelfReducersFor,
 } from "./interpreter.js";
 import { canPayCost } from "./interpreter/costs.js";
+import { countMatching, scaleFactor } from "./interpreter/scaling.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
 import "../../cards/BT16/BT16-048.js";
 import bt17065 from "../../cards/BT17/BT17-065.js";
@@ -33,6 +34,39 @@ import "../../cards/EX10/EX10-072.js";
 import "../../cards/EX11/EX11-061.js";
 import "../../cards/EX3/EX3-069.js";
 import "../../cards/BT12/BT12-112.js";
+
+describe("breeding references in effect counts", () => {
+  it("excludes breeding from ordinary scaling and conditions but honors explicit references", () => {
+    const topCard = { instanceId: "count-card", cardId: "COUNT-DIGIMON" } as never;
+    const field = makeFakePermanent({ permanentId: "field", controllerSeat: 0, topCard });
+    const ownBreeding = makeFakePermanent({
+      permanentId: "own-breeding",
+      controllerSeat: 0,
+      topCard,
+      inBreeding: true,
+    });
+    const opponentBreeding = makeFakePermanent({
+      permanentId: "opponent-breeding",
+      controllerSeat: 1,
+      topCard,
+      inBreeding: true,
+    });
+    const ctx = makeContext({
+      source: makeSource({ ownerSeat: 0 }),
+      recorder: { calls: [] },
+      ownBattleArea: [field],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.game.player(0).breeding = ownBreeding;
+    ctx.game.player(1).breeding = opponentBreeding;
+
+    expect(scaleFactor(ctx, { unit: "cards", per: 1, filter: { controller: "mine", kind: ["Digimon"] } })).toBe(1);
+    expect(evaluateCondition(ctx, { kind: "opponentHas", filter: { kind: ["Digimon"] } })).toBe(false);
+    expect(countMatching(ctx, { controller: "any", kind: ["Digimon"] })).toBe(1);
+    expect(countMatching(ctx, { controller: "mine", zone: "breeding", kind: ["Digimon"] })).toBe(1);
+    expect(countMatching(ctx, { controller: "any", zone: ["battleArea", "breeding"], kind: ["Digimon"] })).toBe(3);
+  });
+});
 
 describe("matchNameOrTrait text matching", () => {
   it.each([

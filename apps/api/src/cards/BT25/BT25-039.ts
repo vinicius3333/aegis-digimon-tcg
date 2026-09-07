@@ -1,5 +1,3 @@
-// @ts-nocheck
-// HAND-FIXED IR for BT25-039 — do not regenerate.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -48,7 +46,6 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
-      raw: "[Security][End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7. If this effect played, you may place this card as the played Digimon's bottom digivolution card.",
     },
     {
       trigger: "AllTurns",

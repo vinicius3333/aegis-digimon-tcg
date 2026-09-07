@@ -60,6 +60,34 @@ describe("BT25-066 Guardromon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
+  it("ordinary-digivolves from black non-TS Lv3 for 2 and rejects red ordinary", async () => {
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT10-058", as: "blackBase" }], hand: [{ card: CARD_ID, as: "guard" }] },
+    });
+    ordinary.state.memory = 3;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("blackBase").permanentId,
+        instanceId: ordinary.inst("guard").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => ordinary.perm("blackBase").topCard?.cardId === CARD_ID);
+    expect(ordinary.state.memory).toBe(1);
+
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: CARD_ID, as: "guard" }] },
+    });
+    wrongColor.state.memory = 3;
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redBase").permanentId,
+        instanceId: wrongColor.inst("guard").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("prevents leaving by trashing exactly one of its own link cards", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: CARD_ID, as: "guard", linked: [{ card: "BT1-013", as: "link" }] }] } },
@@ -71,6 +99,61 @@ describe("BT25-066 Guardromon", () => {
     expect(await deletionPrimitive(s).deletePermanent([guardId])).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === guardId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === linkId)).toBe(true);
+  });
+
+  it("plays for the catalog cost 5 and resolves Blocker through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], security: ["BT1-010"] },
+        1: { hand: [{ card: CARD_ID, as: "guard" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    s.state.turnSeat = 1;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("guard").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("guard").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("guard"), "Blocker")).toBe(true);
+
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("guard").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("guard").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("attacker").permanentId)).toBe(false);
+  });
+
+  it("can decline Blocker and lets the attack complete against security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: CARD_ID, as: "guard", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("guard").permanentId)).toBe(true);
   });
 
   it("naturally replaces deletion from a losing battle with its linked-card cost", async () => {
@@ -153,7 +236,7 @@ describe("BT25-066 Guardromon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-013", dp: 4000, as: "host", under: [CARD_ID] },
+          { card: "BT10-064", dp: 4000, as: "host", under: [CARD_ID] },
           { card: CARD_ID, dp: 5000, as: "standalone" },
         ],
       },

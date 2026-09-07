@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -63,6 +62,12 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
+    {
+      level: 2,
+      colors: ["Black"],
+      cost: 0,
+      isAlternate: false,
+    },
     {
       level: 2,
       traits: ["TS"],

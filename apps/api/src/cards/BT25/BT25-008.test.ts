@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_008 } from "./BT25-008.js";
@@ -38,7 +38,7 @@ describe("BT25-008 Coronamon", () => {
             upTo: true,
           },
         },
-        scaling: { per: 1, usePaidCount: true },
+        scaling: { per: 1, usePaidCount: true, unit: "cards" },
       });
     }
   });
@@ -98,13 +98,91 @@ describe("BT25-008 Coronamon", () => {
     },
   );
 
-  it("draws only once when one qualifying card is paid and can be declined", async () => {
+  it("draws once for one paid qualifying card through a public move", async () => {
+    const single = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT25-008", as: "coronamon" },
+          hand: [
+            { card: "BT25-022", as: "iliad" },
+            { card: "BT25-021", as: "wrongTrait" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    single.state.phase = Phase.Breeding;
+    await single.ready();
+    expect(
+      single.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: single.perm("coronamon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => single.state.players[0]!.trash.length === 1);
+    expect(single.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT25-022"]);
+    expect(single.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-021", "BT1-001"]);
+    expect(single.state.players[0]!.deck).toHaveLength(0);
+
     const paid = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-008", as: "coronamon" }],
+          breeding: { card: "BT25-008", as: "coronamon" },
           hand: [
             { card: "BT25-022", as: "iliad" },
+            { card: "BT25-005", as: "ts" },
+            { card: "BT25-021", as: "wrongTrait" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    paid.state.phase = Phase.Breeding;
+    await paid.ready();
+    expect(
+      paid.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: paid.perm("coronamon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => paid.state.players[0]!.trash.length === 2);
+    expect(paid.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT25-022", "BT25-005"]),
+    );
+    expect(paid.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002", "BT25-021"]),
+    );
+    expect(paid.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-003"]);
+
+    const declined = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT25-008", as: "coronamon" },
+          hand: ["BT25-022"],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    declined.state.phase = Phase.Breeding;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: declined.perm("coronamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("coronamon").inBreeding === false);
+    expect(declined.state.players[0]!.trash).toHaveLength(0);
+    expect(declined.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-022"]);
+    expect(declined.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
+  });
+
+  it("caps payment at two qualifying cards and retains the third plus wrong traits", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT25-008", as: "coronamon" },
+          hand: [
+            { card: "BT25-022", as: "iliad1" },
+            { card: "BT25-005", as: "ts1" },
+            { card: "BT25-015", as: "iliad2" },
             { card: "BT25-021", as: "wrongTrait" },
           ],
           deck: ["BT1-001", "BT1-002"],
@@ -112,13 +190,71 @@ describe("BT25-008 Coronamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(paid.engine).fireForPermanent(EffectTiming.WhenMoving, paid.perm("coronamon"));
-    await settle(() => paid.state.players[0]!.trash.length === 1);
-    expect(paid.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT25-022"]);
-    expect(paid.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT25-021"]),
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("coronamon").permanentId })).toEqual(
+      { ok: true },
     );
-    expect(paid.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    await settle(() => s.state.players[0]!.trash.length === 2);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT25-022", "BT25-005"]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT25-015", "BT25-021"]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("does not draw or trash when no hand card has Iliad or TS", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT25-008", as: "coronamon" },
+          hand: [{ card: "BT25-021", as: "wrongTrait" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("coronamon").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.perm("coronamon").inBreeding === false);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-021"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
+  });
+
+  it("can decline the optional payment after a paid setup without changing zones", async () => {
+    const paid = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT25-008", as: "coronamon" },
+          hand: [
+            { card: "BT25-022", as: "iliad" },
+            { card: "BT25-005", as: "ts" },
+            { card: "BT25-021", as: "wrongTrait" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    paid.state.phase = Phase.Breeding;
+    await paid.ready();
+    expect(
+      paid.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: paid.perm("coronamon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => paid.state.players[0]!.trash.length === 2);
+    expect(paid.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT25-022", "BT25-005"]),
+    );
+    expect(paid.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002", "BT25-021"]),
+    );
+    expect(paid.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-003"]);
 
     const declined = setupEngine(
       {
@@ -163,13 +299,25 @@ describe("BT25-008 Coronamon", () => {
     expect(s.perm("base").currentDP).toBe(getCardDefinition("BT25-008")!.dp);
 
     const inherited = setupEngine({
-      0: { battleArea: [{ card: "BT25-021", dp: 4000, under: ["BT25-008"], as: "host" }] },
+      0: {
+        battleArea: [{ card: "BT25-013", under: ["BT25-008"], as: "host" }],
+        hand: [{ card: "BT25-015", as: "next" }],
+      },
     });
+    inherited.state.memory = 3;
     await inherited.ready();
-    expect(inherited.perm("host").currentDP).toBe(6000);
+    expect(
+      inherited.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: inherited.perm("host").permanentId,
+        instanceId: inherited.inst("next").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => inherited.perm("host").topCard?.cardId === "BT25-015");
+    expect(inherited.perm("host").currentDP).toBe(11000);
     inherited.state.turnSeat = 1;
-    await (inherited.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
-    expect(inherited.perm("host").currentDP).toBe(4000);
+    await advance(inherited.engine).recompute();
+    expect(inherited.perm("host").currentDP).toBe(7000);
 
     const invalid = setupEngine({
       0: { breeding: { card: "BT25-004", as: "nonTs" }, hand: [{ card: "BT25-008", as: "coronamon" }] },
