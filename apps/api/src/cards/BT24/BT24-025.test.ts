@@ -132,6 +132,33 @@ describe("BT24-025 Shellmon", () => {
     expect(s.perm("shellmon").topCard.cardId).toBe("BT24-040");
   });
 
+  it("naturally reacts when another blue TS Digimon unsuspends during the public unsuspend phase", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-025", as: "shellmon" },
+            { card: "BT24-020", as: "trigger", suspended: true },
+          ],
+          hand: [{ card: "BT24-040", as: "venusmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("shellmon").topCard.cardId === "BT24-040");
+
+    expect(s.perm("shellmon").topCard.cardId).toBe("BT24-040");
+    expect(s.perm("shellmon").stack.map((card) => card.cardId)).toEqual(["BT24-025"]);
+    expect(s.state.memory).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("may unsuspend one other TS Digimon at end of turn and grants inherited Jamming", async () => {
     const s = setupEngine(
       {
