@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-049.js";
 import "../index.js";
@@ -66,10 +67,87 @@ describe("BT21-049 Woodmon", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
+  it("Q4554: On Play may suspend one of your own Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-049", as: "woodmon" }],
+          battleArea: [{ card: "BT1-009", as: "ownTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("ownTarget").topCard.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("woodmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ownTarget").isSuspended);
+    expect(s.perm("ownTarget").isSuspended).toBe(true);
+    expect(s.perm("woodmon").topCard.cardId).toBe("BT21-049");
+  });
+
   it("retains complete compiled coverage and Piercing as a keyword surface", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT21-049", as: "woodmon" }] } });
     await s.ready();
     expect(s.perm("woodmon").topCard?.cardId).toBe("BT21-049");
+  });
+
+  it("publicly carries inherited Piercing through Woodmon into Cherrymon combat", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-048", as: "base" }],
+          hand: [
+            { card: "BT21-049", as: "woodmon" },
+            { card: "BT21-050", as: "cherrymon" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("woodmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-049");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cherrymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-050");
+    expect(s.perm("base").topCard.cardId).toBe("BT21-050");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("base").topCard.cardId).toBe("BT21-050");
   });
 
   it("Q4553 triggers after Dokugumon suspends Woodmon during the opponent's play", async () => {
