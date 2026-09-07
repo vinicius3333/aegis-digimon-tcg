@@ -46,4 +46,3 @@ stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this G
       Tests  31 passed (31)
    Start at  21:13:00
    Duration  6.96s (transform 83%, import 15%, tests 2%)
-

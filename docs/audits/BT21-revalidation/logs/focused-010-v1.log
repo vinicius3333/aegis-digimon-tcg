@@ -16,4 +16,3 @@ stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > also qualifies wi
       Tests  7 passed (7)
    Start at  00:54:27
    Duration  11.35s (transform 84%, import 15%, tests 1%)
-

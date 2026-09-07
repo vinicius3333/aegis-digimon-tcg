@@ -2583,4 +2583,3 @@ stdout | src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > re
       Tests  2501 passed (2501)
    Start at  21:22:06
    Duration  54.46s (tests 82%, transform 14%, import 5%)
-

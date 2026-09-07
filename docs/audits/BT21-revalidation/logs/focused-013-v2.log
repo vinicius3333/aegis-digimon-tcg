@@ -9,7 +9,7 @@ Error: Transform failed with 1 error:
 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api/src/cards/BT21/BT21-012.ts:59:6: ERROR: Expected identifier but found "]"
   Plugin: vite:esbuild
   File: /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api/src/cards/BT21/BT21-012.ts:59:6
-  
+
   Expected identifier but found "]"
   57 |          },
   58 |          {
@@ -17,7 +17,7 @@ Error: Transform failed with 1 error:
      |        ^
   60 |      },
   61 |      {
-  
+
  ❯ failureErrorWithLog ../../node_modules/.pnpm/esbuild@0.25.12/node_modules/esbuild/lib/main.js:1467:15
  ❯ ../../node_modules/.pnpm/esbuild@0.25.12/node_modules/esbuild/lib/main.js:736:50
  ❯ responseCallbacks.<computed> ../../node_modules/.pnpm/esbuild@0.25.12/node_modules/esbuild/lib/main.js:603:9

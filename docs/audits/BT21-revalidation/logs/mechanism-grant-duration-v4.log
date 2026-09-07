@@ -11,4 +11,3 @@ stdout | src/engine/effects/grantStaticDurationOwnership.test.ts > GrantStatic d
       Tests  1 passed (1)
    Start at  09:21:20
    Duration  34.81s (transform 86%, import 13%)
-

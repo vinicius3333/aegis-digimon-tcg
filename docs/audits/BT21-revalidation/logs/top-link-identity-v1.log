@@ -102,4 +102,3 @@ stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an elig
       Tests  90 passed (90)
    Start at  20:54:30
    Duration  9.33s (transform 80%, import 14%, tests 5%)
-

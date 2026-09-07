@@ -34,4 +34,3 @@ stdout | src/cards/BT21/BT21-010.test.ts > BT21-010 Gammamon > Q5210: public Off
       Tests  22 passed (22)
    Start at  21:20:45
    Duration  7.33s (transform 84%, import 15%, tests 1%)
-
