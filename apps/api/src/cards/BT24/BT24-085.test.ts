@@ -154,5 +154,43 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
     );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("repeats the public End of Your Turn attack after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-012", "BT1-012", "BT1-012"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    expect(s.perm("source").isSuspended).toBe(true);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    expect(s.perm("source").isSuspended).toBe(true);
+    await secondTurn;
   });
 });
