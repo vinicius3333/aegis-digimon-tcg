@@ -1,8 +1,9 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
+import "../BT11/BT11-086.js";
 import { compiled } from "./BT23-014.js";
 
 describe("BT23-014 Gallantmon", () => {
@@ -76,6 +77,46 @@ describe("BT23-014 Gallantmon", () => {
     await advance(s.engine).fire(timing, s.perm("gallantmon"));
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
+  });
+
+  it("resolves its On Play deletion from a public play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT23-014", as: "gallantmon" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 8000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("resolves the When Attacking deletion through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-014", as: "gallantmon" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 8000 }], security: 1 },
+      },
+      { autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallantmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
   });
 
   it("preserves a 13000-DP Digimon above the two-permanent scaled ceiling", async () => {
@@ -152,6 +193,104 @@ describe("BT23-014 Gallantmon", () => {
     expect(ledger.isPlayBlocked(1, getCardDefinition("BT1-009")!, "play", true, "trash")).toBe(false);
   });
 
+  it("blocks a public opponent effect from playing a Digimon from trash while allowing its hand play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT23-014", as: "gallantmon" }], deck: ["BT1-001"] },
+        1: {
+          hand: [{ card: "BT11-086", as: "mervamon" }],
+          trash: [{ card: "BT11-082", as: "trashTarget" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-014"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 11;
+    await s.engine.recomputeContinuousEffects();
+    const trashTargetId = s.inst("trashTarget").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT11-086"));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === trashTargetId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === trashTargetId)).toBe(false);
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT11-086")).toBe(false);
+  });
+
+  it("expires the public trash-play lock at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT23-014", as: "gallantmon" }], deck: ["BT1-001", "BT1-002"] },
+        1: {
+          hand: [
+            { card: "BT11-086", as: "firstMervamon" },
+            { card: "BT11-086", as: "secondMervamon" },
+          ],
+          trash: [
+            { card: "BT11-082", as: "firstTarget" },
+            { card: "BT11-082", as: "secondTarget" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-014"));
+    await advance(s.engine).waitForMainPhase(1);
+
+    s.state.memory = 11;
+    const firstTargetId = s.inst("firstTarget").instanceId;
+    const secondTargetId = s.inst("secondTarget").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstMervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT11-086"));
+    expect(s.state.phase).toBe(Phase.Main);
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([firstTargetId, secondTargetId]),
+    );
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === firstTargetId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === secondTargetId)).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondMervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.filter((p) => p.topCard?.cardId === "BT11-086").length === 2);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (p) => p.topCard?.instanceId === firstTargetId || p.topCard?.instanceId === secondTargetId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toEqual(
+      expect.arrayContaining([firstTargetId]),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(secondTargetId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("digivolves for 3 from an off-color level-5 CS Digimon and rejects an off-color non-CS base", async () => {
     const legal = setupEngine({
       0: {
@@ -162,6 +301,8 @@ describe("BT23-014 Gallantmon", () => {
     });
     legal.state.memory = 3;
     await legal.ready();
+    const baseId = legal.inst("base").instanceId;
+    const gallantmonId = legal.inst("gallantmon").instanceId;
     expect(
       legal.engine.applyIntent(0, {
         type: "digivolve",
@@ -169,8 +310,10 @@ describe("BT23-014 Gallantmon", () => {
         instanceId: legal.inst("gallantmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.perm("base").topCard.instanceId === legal.inst("gallantmon").instanceId);
+    await settle(() => legal.perm("base").topCard.instanceId === gallantmonId);
     expect(legal.state.memory).toBe(0);
+    expect(legal.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
+    expect(legal.perm("base").topCard?.instanceId).toBe(gallantmonId);
 
     const illegal = setupEngine({
       0: { battleArea: [{ card: "BT1-041", as: "base" }], hand: [{ card: "BT23-014", as: "gallantmon" }] },
