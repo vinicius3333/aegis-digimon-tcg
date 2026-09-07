@@ -34,6 +34,30 @@ describe("BT21-099 Xros Up", () => {
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
+  it("publicly places a Save Digimon from trash under an own Tamer", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT21-089", as: "tamer", under: [{ card: "BT1-009", as: "existing" }] }],
+          hand: [{ card: "BT21-099", as: "option" }],
+          trash: [{ card: "BT14-057", as: "save" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const saveId = s.inst("save").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === saveId));
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([saveId, s.inst("existing").instanceId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === saveId)).toBe(false);
+    expect(s.state.memory).toBe(9);
+  });
+
   it("places the Save card only under one of its controller's Tamers", async () => {
     const s = setup(
       {
