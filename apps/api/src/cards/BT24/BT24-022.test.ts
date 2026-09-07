@@ -73,6 +73,21 @@ describe("BT24-022 Ikkakumon", () => {
     expect(observe(s.engine).isRestricted(s.perm("twoSources"), "suspend")).toBe(false);
   });
 
+  it("resolves both On Play clauses from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-022", as: "ikkakumon" }] },
+      1: { battleArea: [{ card: "BT24-022", as: "target", under: ["BT24-019", "BT24-020"] }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ikkakumon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea[0]!.stack.length === 0);
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+  });
+
   it("exposes Jamming and inherited draw only at seven or fewer cards, once per turn", async () => {
     const s = setupEngine({
       0: {
