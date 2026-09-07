@@ -142,6 +142,46 @@ describe("BT21-078 WereGarurumon", () => {
     });
     await settle(() => s.perm("ally").isSuspended);
     expect(s.perm("ally").isSuspended).toBe(true);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it("consumes the Your Turn trigger once for the same WereGarurumon source", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-078", as: "source" },
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+          hand: [
+            { card: "BT21-057", as: "firstAdventure" },
+            { card: "BT21-057", as: "secondAdventure" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("firstTarget").permanentId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("firstTarget"), "Alliance"));
+
+    preferred.splice(0, preferred.length, s.perm("secondTarget").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondAdventure").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("firstTarget"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("secondTarget"), "Alliance")).toBe(false);
   });
 
   it("Q4732 still allows an attack when the played Digimon is not ADVENTURE", async () => {
