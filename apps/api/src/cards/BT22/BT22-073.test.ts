@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT22-073.js";
 import "./BT22-073.js";
 
 type DeletePrimitives = {
@@ -8,6 +9,13 @@ type DeletePrimitives = {
 };
 
 describe("BT22-073 Crescemon", () => {
+  it("keeps the ordinary colors and Night Claw/Light Fang/CS alternate evolution routes", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, colors: ["Purple"], cost: 4, isAlternate: false },
+      { level: 4, colors: ["Blue"], cost: 4, isAlternate: false },
+      { level: 4, traits: ["Night Claw", "Light Fang", "CS"], cost: 3, isAlternate: true },
+    ]);
+  });
   it("has intrinsic Jamming while in the battle area", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT22-073", as: "crescemon" }] } });
     await s.ready();

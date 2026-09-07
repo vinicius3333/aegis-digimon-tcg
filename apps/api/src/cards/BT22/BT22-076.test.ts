@@ -3,6 +3,13 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-076.js";
 
 describe("BT22-076 ShinMonzaemon", () => {
+  it("keeps the ordinary purple/yellow routes and DM alternate route", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Purple"], cost: 5, isAlternate: false },
+      { level: 5, colors: ["Yellow"], cost: 5, isAlternate: false },
+      { level: 5, traits: ["DM"], cost: 5, isAlternate: true },
+    ]);
+  });
   it("reduces only Ver.1 digivolutions into ShinMonzaemon", () => {
     const modifier = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0] as any;
     expect(modifier).toMatchObject({

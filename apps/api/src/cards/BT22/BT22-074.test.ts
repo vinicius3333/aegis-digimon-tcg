@@ -6,6 +6,13 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-074.js";
 
 describe("BT22-074 SkullMeramon", () => {
+  it("keeps the ordinary purple and red evolution routes", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, colors: ["Purple"], cost: 4, isAlternate: false },
+      { level: 4, colors: ["Red"], cost: 4, isAlternate: false },
+      { level: 4, traits: ["Flame", "CS"], cost: 3, isAlternate: true },
+    ]);
+  });
   it("pays 3, deletes up to level 5, conditionally grants Security Attack, then may attack", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main).toMatchObject({ frequency: "OncePerTurn" });
