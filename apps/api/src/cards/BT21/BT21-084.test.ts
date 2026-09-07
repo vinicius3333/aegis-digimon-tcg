@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-084.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT21-084 Haru Shinkai", () => {
@@ -194,13 +195,39 @@ describe("BT21-084 Haru Shinkai", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
-  it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-084", as: "haru" }] } });
+  it("plays itself from security through a public attack without paying cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT21-084", as: "haru" }] },
+      1: { battleArea: [{ card: "BT1-019", as: "attacker" }], security: ["BT1-001"] },
+    });
     s.state.memory = 0;
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("haru"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    const haruId = s.inst("haru").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === haruId),
+    );
+
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === haruId)).toBe(true);
+    const securityChecked = s.events.findIndex((event) => event.kind === "securityChecked");
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-084");
+    expect(securityChecked).toBeGreaterThanOrEqual(0);
+    // securityChecked is emitted after the Security effect has resolved.
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(played).toBeLessThan(securityChecked);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 });
