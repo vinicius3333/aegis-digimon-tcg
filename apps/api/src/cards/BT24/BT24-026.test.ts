@@ -152,6 +152,40 @@ describe("BT24-026 Hyogamon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 
+  it("resets the shared public trigger on the owner's later turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-026", as: "hyogamon" }, { card: "BT24-042", as: "eligible" }],
+        hand: [{ card: "BT1-009", as: "firstCost" }, { card: "BT1-010", as: "secondCost" }],
+        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+      },
+      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 10;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const attackerId = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === s.inst("hyogamon").instanceId)!.permanentId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("firstCost").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstCost").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondCost").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondCost").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
+  });
+
   it("only inherited-evolves after its owner's hand is trashed and pays 1 less", async () => {
     const s = setupEngine(
       {
