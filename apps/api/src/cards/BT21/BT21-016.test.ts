@@ -509,6 +509,51 @@ describe("BT21-016 Shoutmon (King Version)", () => {
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([deletedInstanceId]);
   });
 
+  it.each([
+    ["Hero only", "BT21-010", "hand"],
+    ["Xros Heart only", "BT12-008", "trash"],
+    ["Blue Flare only", "BT10-019", "hand"],
+  ] as const)("places a %s card from the printed zone after public battle deletion", async (_label, cardId, zone) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-016", as: "king", suspended: true },
+            { card: "BT21-083", as: "tamer" },
+          ],
+          [zone]: [
+            { card: cardId, as: "selected" },
+            { card: "BT1-009", as: "nonmatching" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const kingId = s.inst("king").instanceId;
+    const selectedId = s.inst("selected").instanceId;
+    preferred.push(selectedId, s.perm("tamer").permanentId);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("king").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s
+        .perm("tamer")
+        .stack.map((card) => card.instanceId)
+        .sort(),
+    ).toEqual([kingId, selectedId].sort());
+    expect(s.state.players[0]![zone].some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
+  });
+
   it("grants inherited +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-021", as: "host", under: ["BT21-016"] }] },
