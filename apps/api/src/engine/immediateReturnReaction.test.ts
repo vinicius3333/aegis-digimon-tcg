@@ -31,7 +31,8 @@ describe("immediate public return reactions", () => {
     expect(merged?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-074");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("ST2-16");
-    expect(s.state.memory).toBe(7); // Opponent pays 7, then the defending seat pays 4: 10 - 7 + 4.
+    // Opponent pays 7; BT20-076 prints [DNA Digivolve] Purple Lv.5 + Red Lv.5: Cost 0, so the reaction pays nothing.
+    expect(s.state.memory).toBe(3);
     const reaction = s.events.findIndex(
       (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-074",
     );
@@ -67,7 +68,8 @@ describe("immediate public return reactions", () => {
     expect(merged?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).not.toContain("BT20-074");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT5-097");
-    expect(s.state.memory).toBe(8); // Opponent pays 6, then the defending seat pays 4: 10 - 6 + 4.
+    // Opponent pays 6; BT20-076 prints [DNA Digivolve] Purple Lv.5 + Red Lv.5: Cost 0, so the reaction pays nothing.
+    expect(s.state.memory).toBe(4);
   });
 
   it.each([

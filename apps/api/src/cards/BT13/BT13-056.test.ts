@@ -160,15 +160,20 @@ describe("BT13-056 Leopardmon", () => {
   });
 
   it("grants Blocker to existing and newly played green Digimon through the opponent's turn (Q2301)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT13-056", as: "leo" },
-          { card: "BT13-051", as: "existing" },
-        ],
-        hand: [{ card: "BT13-051", as: "played" }],
+    // Mikemon's own [On Play] asks for a Piercing target; auto-select it so Leopardmon's
+    // whenPlayed grant, queued behind that decision, resolves.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-056", as: "leo" },
+            { card: "BT13-051", as: "existing" },
+          ],
+          hand: [{ card: "BT13-051", as: "played" }],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
@@ -177,6 +182,7 @@ describe("BT13-056 Leopardmon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("played").instanceId),
     );
+    await s.ready();
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("played").instanceId)!;
     expect(observe(s.engine).hasKeyword(s.perm("existing"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);

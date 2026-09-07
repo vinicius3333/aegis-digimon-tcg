@@ -100,7 +100,7 @@ describe("BT20-050 HoverEspimon", () => {
             { card: "BT1-036", as: "firstGarurumon" },
             { card: "BT1-036", as: "secondGarurumon" },
           ],
-          security: Array.from({ length: 8 }, () => "BT9-109"),
+          security: Array.from({ length: 8 }, () => "BT1-101"),
           deck: [
             { card: "BT1-009", as: "firstDraw" },
             { card: "BT1-010", as: "secondDraw" },
@@ -109,7 +109,7 @@ describe("BT20-050 HoverEspimon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "opponentAttacker" }],
-          security: Array.from({ length: 8 }, () => "BT9-109"),
+          security: Array.from({ length: 8 }, () => "BT1-101"),
           deck: ["BT1-009", "BT1-010"],
         },
       },

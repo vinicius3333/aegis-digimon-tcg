@@ -3,7 +3,7 @@ import type { Permanent } from "@aegis/shared";
 import type { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { GameStateAccess } from "../../engine/state/access.js";
 import { validateAttack } from "../../engine/actions/attack.js";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js"; // register compiled cards so the real [Your Turn] recompute runs
 
 /**
@@ -15,11 +15,16 @@ import "../index.js"; // register compiled cards so the real [Your Turn] recompu
  * [Your Turn] static installs that grant on all your Digimon while the opponent has no unsuspended
  * Digimon (Q5919: also met when the opponent has no Digimon at all).
  *
- * REAL LEVER (fails-when-reverted): WITH EX11-062 active + opponent has no unsuspended Digimon, a
- * friendly ＜Vortex＞ Digimon's ＜Vortex＞-mode player attack is LEGAL; revert the relaxation (drop the
- * grant) and that player attack is ILLEGAL (base Digimon-only rule wins) — RED. Controls: without
- * EX11-062 the grant is absent (illegal); with an UNSUSPENDED opponent Digimon present the static's
- * condition fails so the grant is not derived (illegal). A NORMAL (non-Vortex) attack is unaffected.
+ * ＜Vortex＞ attacks are synthesized at the end of your turn (docs/audits/VORTEX-TIMING-AUDIT.md);
+ * a forged Main-phase `vortex: true` intent is rejected as wrong-phase, so the legality lever is
+ * observed through the real turn loop: the end-turn trigger collects its targets via the same
+ * canAttackTarget seam and declares against whichever legal target the controller picks.
+ *
+ * REAL LEVER (fails-when-reverted): WITH EX11-062 active + opponent has no unsuspended Digimon, the
+ * friendly ＜Vortex＞ Digimon's end-turn attack may hit the PLAYER; revert the relaxation (drop the
+ * grant) and the player is not offered (base Digimon-only rule wins) — RED. Controls: without
+ * EX11-062 the grant is absent; with an UNSUSPENDED opponent Digimon present the static's condition
+ * fails so only the Digimon is attackable. A NORMAL (non-Vortex) attack is unaffected.
  */
 
 // BT25-053 carries the printed ＜Vortex＞ keyword; AD1-002 is a vanilla opponent Digimon.
@@ -73,59 +78,117 @@ describe("EX11-062 — [Your Turn] grants VortexCanAttackPlayers (production rec
   });
 });
 
-describe("EX11-062 — ＜Vortex＞ player-attack legality (real lever)", () => {
-  it("WITH the relaxation, the friendly ＜Vortex＞ player attack is LEGAL", async () => {
-    const s = setupEngine({
-      0: { battleArea: ["EX11-062", { card: VORTEX_DIGIMON, as: "vortexAttacker" }] },
-    });
+describe("EX11-062 — ＜Vortex＞ player-attack legality (real end-of-turn flow)", () => {
+  /**
+   * The synthesized ＜Vortex＞ attack collects its legal targets through the production
+   * canAttackTarget seam: the player only when the grant is derived, plus any opponent Digimon.
+   * Preferring "player" makes the pick deterministic wherever both are offered, so a wrongly
+   * derived grant shows up as a security hit and a wrongly missing one as a Digimon hit.
+   *
+   * `runTurn` resolves to the grant state observed in the Main phase, before the end-turn
+   * ＜Vortex＞ attack: the ledger after the turn reflects the post-attack board (a deleted
+   * opponent Digimon re-derives the grant), so it is not the state the attack was declared under.
+   */
+  function vortexTurn(board: { opponentDigimon?: { suspended: boolean }; withShoto: boolean }): {
+    s: EngineSetup;
+    runTurn: () => Promise<{ grantAtMain: boolean }>;
+  } {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+          battleArea: [
+            ...(board.withShoto ? ["EX11-062"] : []),
+            { card: VORTEX_DIGIMON, as: "vortexAttacker", dp: 8000 },
+          ],
+        },
+        1: {
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+          security: ["BT1-011"],
+          battleArea:
+            board.opponentDigimon === undefined
+              ? []
+              : [{ card: PLAIN_DIGIMON, as: "opponentDigimon", dp: 1000, suspended: board.opponentDigimon.suspended }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: ["player"] },
+    );
+    const runTurn = async (): Promise<{ grantAtMain: boolean }> => {
+      s.state.isFirstPlayersFirstTurn = true;
+      const turn = s.engine.runOneTurn();
+      const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+      await settle(() => mainPhase.isOpen, 500);
+      const grantAtMain = ledger(s).vortexCanAttackPlayers(s.perm("vortexAttacker").permanentId);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await turn;
+      return { grantAtMain };
+    };
+    return { s, runTurn };
+  }
+
+  const declaredAttacks = (s: EngineSetup) => s.events.filter((event) => event.kind === "attackDeclared");
+  const vortexPrompted = (s: EngineSetup): boolean =>
+    s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === VORTEX_DIGIMON);
+
+  it("WITH the relaxation, the friendly ＜Vortex＞ attack may target the player", async () => {
+    // Opponent battle area is empty => Q5919 condition met => the player is a legal ＜Vortex＞ target.
+    const { s, runTurn } = vortexTurn({ withShoto: true });
     const vortexAttacker = s.perm("vortexAttacker");
+    const { grantAtMain } = await runTurn();
 
-    await recompute(s);
-
-    // ＜Vortex＞-mode declaration against a player: legal because the grant was derived.
-    expect(validate(s, vortexAttacker, { kind: "player" }, true)).toBeNull();
+    expect(grantAtMain).toBe(true);
+    expect(declaredAttacks(s)).toEqual([
+      expect.objectContaining({ attackerPermanentId: vortexAttacker.permanentId, target: { kind: "player" } }),
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     // REVERT-CONFIRM-RED: dropping the grant (revert EX11-062's [Your Turn] / the base
-    // canAttackTarget Vortex guard) => the player attack is illegal-target => RED.
+    // canAttackTarget Vortex guard) leaves no legal target => no attack => security intact => RED.
   });
 
-  it("WITHOUT the grant (no EX11-062), the ＜Vortex＞ player attack is ILLEGAL (base Digimon-only)", async () => {
-    // A friendly ＜Vortex＞ Digimon but NO EX11-062 on the field => no grant derived.
-    const s = setupEngine({
-      0: { battleArea: [{ card: VORTEX_DIGIMON, as: "vortexAttacker" }] },
-    });
-    const vortexAttacker = s.perm("vortexAttacker");
+  it("WITHOUT the grant (no EX11-062), the ＜Vortex＞ attack has no legal target (base Digimon-only)", async () => {
+    const { s, runTurn } = vortexTurn({ withShoto: false });
+    const { grantAtMain } = await runTurn();
 
-    await recompute(s);
-    expect(ledger(s).vortexCanAttackPlayers(vortexAttacker.permanentId)).toBe(false);
-    expect(validate(s, vortexAttacker, { kind: "player" }, true)).toBe("illegal-target");
+    expect(grantAtMain).toBe(false);
+    // The end-of-turn ＜Vortex＞ trigger did run (its optional prompt was answered) but the
+    // player is not a legal target and no opponent Digimon exists, so nothing was declared.
+    expect(vortexPrompted(s)).toBe(true);
+    expect(declaredAttacks(s)).toEqual([]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("control: an UNSUSPENDED opponent Digimon fails the condition => grant not derived => illegal", async () => {
-    // Opponent has an UNSUSPENDED Digimon => "no unsuspended Digimon" condition is FALSE.
-    const s = setupEngine({
-      0: { battleArea: ["EX11-062", { card: VORTEX_DIGIMON, as: "vortexAttacker" }] },
-      1: { battleArea: [{ card: PLAIN_DIGIMON, suspended: false }] },
-    });
+  it("control: an UNSUSPENDED opponent Digimon fails the condition => grant not derived => Digimon only", async () => {
+    const { s, runTurn } = vortexTurn({ withShoto: true, opponentDigimon: { suspended: false } });
     const vortexAttacker = s.perm("vortexAttacker");
+    const opponentDigimonId = s.perm("opponentDigimon").permanentId;
+    const { grantAtMain } = await runTurn();
 
-    await recompute(s);
-
-    expect(ledger(s).vortexCanAttackPlayers(vortexAttacker.permanentId)).toBe(false);
-    expect(validate(s, vortexAttacker, { kind: "player" }, true)).toBe("illegal-target");
+    expect(grantAtMain).toBe(false);
+    // "player" was preferred but never offered: the ＜Vortex＞ attack went to the Digimon.
+    expect(declaredAttacks(s)).toEqual([
+      expect.objectContaining({
+        attackerPermanentId: vortexAttacker.permanentId,
+        target: { kind: "permanent", permanentId: opponentDigimonId },
+      }),
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("control: a SUSPENDED opponent Digimon still satisfies the condition => grant derived => legal", async () => {
-    // Opponent's only Digimon is SUSPENDED => "no UNSUSPENDED Digimon" still holds.
-    const s = setupEngine({
-      0: { battleArea: ["EX11-062", { card: VORTEX_DIGIMON, as: "vortexAttacker" }] },
-      1: { battleArea: [{ card: PLAIN_DIGIMON, suspended: true }] },
-    });
+  it("control: a SUSPENDED opponent Digimon still satisfies the condition => grant derived => player legal", async () => {
+    const { s, runTurn } = vortexTurn({ withShoto: true, opponentDigimon: { suspended: true } });
     const vortexAttacker = s.perm("vortexAttacker");
+    const { grantAtMain } = await runTurn();
 
-    await recompute(s);
-
-    expect(ledger(s).vortexCanAttackPlayers(vortexAttacker.permanentId)).toBe(true);
-    expect(validate(s, vortexAttacker, { kind: "player" }, true)).toBeNull();
+    expect(grantAtMain).toBe(true);
+    // Both the player and the suspended Digimon were offered; the preferred player target won.
+    expect(declaredAttacks(s)).toEqual([
+      expect.objectContaining({ attackerPermanentId: vortexAttacker.permanentId, target: { kind: "player" } }),
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("a NORMAL (non-Vortex) player attack is unaffected by the base subsystem (still legal)", async () => {

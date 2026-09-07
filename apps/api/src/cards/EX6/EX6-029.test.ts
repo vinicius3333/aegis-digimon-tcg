@@ -65,7 +65,9 @@ describe("EX6-029 Mastemon", () => {
     );
   });
 
-  it("publicly performs Blast DNA Digivolve and places another Digimon in security while trimming the opponent to four", async () => {
+  // EX6-029 prints [DNA Digivolve] Yellow Lv.5 + Purple Lv.5: Cost 0. Blast DNA is a Counter-only
+  // procedure (CR 16-31), so the Main-phase verb takes the printed cost-0 recipe instead.
+  it("publicly DNA digivolves at Main for the printed cost 0 and places another Digimon in security while trimming the opponent to four", async () => {
     const s = setupEngine(
       {
         0: {
@@ -88,8 +90,7 @@ describe("EX6-029 Mastemon", () => {
         type: "dnaDigivolve",
         materialPermanentIds: [s.perm("ange").permanentId, s.perm("lady").permanentId],
         instanceId: s.inst("mast").instanceId,
-        useBlastDigivolve: true,
-      } as never),
+      }),
     ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mast").instanceId),
@@ -125,8 +126,7 @@ describe("EX6-029 Mastemon", () => {
         type: "dnaDigivolve",
         materialPermanentIds: [s.perm("ange").permanentId, s.perm("lady").permanentId],
         instanceId: s.inst("mast").instanceId,
-        useBlastDigivolve: true,
-      } as never),
+      }),
     ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mast").instanceId),
@@ -159,8 +159,7 @@ describe("EX6-029 Mastemon", () => {
         type: "dnaDigivolve",
         materialPermanentIds: [s.perm("ange").permanentId, s.perm("lady").permanentId],
         instanceId: s.inst("mast").instanceId,
-        useBlastDigivolve: true,
-      } as never),
+      }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-029"));
     expect(s.state.players[1]!.security).toHaveLength(4);

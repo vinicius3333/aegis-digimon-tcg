@@ -239,7 +239,10 @@ describe("BT23-065 Phantomon", () => {
     // Q5335: this clause cannot be activated at the same time as an effect such as
     // P-108 [Wisdom Training] that digivolves. The engine enforces it in
     // `GameEngine.applyIntent`'s `mainActionWhileResolving` gate: while another effect is
-    // resolving, every main-phase verb (activateEffect included) is refused as "wrong-phase".
+    // resolving, every main-phase verb (activateEffect included) is refused. The reason names
+    // the most specific cause: here the first activation is parked on its own selection
+    // decision, so the verb's decision gate reports `decision-pending` (the same answer
+    // BT25-089 / BT25-098 assert); an effect resolving with no decision open is `wrong-phase`.
     const s = setupEngine({
       0: {
         battleArea: [
@@ -271,7 +274,7 @@ describe("BT23-065 Phantomon", () => {
         sourceInstanceId: s.inst("phantomon").instanceId,
         effectKey: phantomonKey,
       }),
-    ).toEqual({ ok: false, reason: "wrong-phase" });
+    ).toEqual({ ok: false, reason: "decision-pending" });
   });
 
   it("matches bracketed card names exactly, not by substring", () => {

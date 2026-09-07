@@ -36,6 +36,10 @@ function fakeDefinition(cardId: string, over: Partial<CardDefinition> = {}): Car
     nameEn: cardId,
     kinds: ["Digimon"] as never,
     colors: ["Yellow"] as never,
+    // The base must satisfy the into-card's printed requirement even when the cost is waived
+    // ("without paying the cost" waives memory, not the level/color requirement), so the fake
+    // base is level 4 and the digivolution target overrides to level 5.
+    level: 4,
     playCost: 5,
     dp: 5000,
     evoCosts: [{ memoryCost: 3, level: 4, color: "Yellow" as never }],
@@ -121,6 +125,7 @@ describe("BT14-033 DigivolveFromSecurity A3", () => {
           return fakeDefinition(yellowVaccineCardId, {
             kinds: ["Digimon"] as never,
             colors: ["Yellow"] as never,
+            level: 5,
             attributes: ["Vaccine"] as never,
           });
         }

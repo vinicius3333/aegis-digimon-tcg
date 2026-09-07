@@ -6,6 +6,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-080.js";
+import "./BT13-083.js";
+import "./BT13-086.js";
 
 describe("BT13-080 ProtoGizmon", () => {
   it("reduces its play cost by deleting a level 2 Digimon in the breeding area", () => {
@@ -127,10 +129,12 @@ describe("BT13-080 ProtoGizmon", () => {
 
   it("returns two Gizmon cards before playing Gizmon: AT from the trash", async () => {
     const preferInstanceIds: string[] = [];
+    // Gizmon: AT's own [On Play] draws 2, so the deck needs cards above the returned pair.
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-080", as: "proto" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
           trash: [
             { card: "BT13-083", as: "at" },
             { card: "BT13-086", as: "xt" },
@@ -144,11 +148,12 @@ describe("BT13-080 ProtoGizmon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083"));
+    await s.ready();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(true);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT13-080", "BT13-086"]),
-    );
+    const deck = s.state.players[0]!.deck.map((card) => card.cardId);
+    expect(deck).toHaveLength(3);
+    expect(deck.slice(-2)).toEqual(expect.arrayContaining(["BT13-080", "BT13-086"]));
   });
 
   it("pays the two-Gizmon return cost even when no Gizmon: AT target exists", async () => {

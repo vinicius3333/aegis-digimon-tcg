@@ -60,7 +60,9 @@ describe("EX6-011 RagnaLoardmon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 
-  it("publicly performs Blast DNA Digivolve and resolves the DNA-only de-digivolve/delete tail", async () => {
+  // EX6-011 prints [DNA Digivolve] Red Lv.6 + Black Lv.6: Cost 0. Blast DNA is a Counter-only
+  // procedure (CR 16-31), so the Main-phase verb takes the printed cost-0 recipe instead.
+  it("publicly DNA digivolves at Main for the printed cost 0 and resolves the DNA-only de-digivolve/delete tail", async () => {
     const s = setupEngine(
       {
         0: {
@@ -89,8 +91,7 @@ describe("EX6-011 RagnaLoardmon", () => {
         type: "dnaDigivolve",
         materialPermanentIds: [s.perm("durandamon").permanentId, s.perm("brywe").permanentId],
         instanceId: s.inst("ragna").instanceId,
-        useBlastDigivolve: true,
-      } as never),
+      }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const deletion = s.state.pendingDecision!;

@@ -8,26 +8,60 @@ import "./BT9-080.js";
 describe("BT9-080 Raguelmon", () => {
   it("matches catalog values and both security-dependent trash-play branches", () => {
     expect(getCardDefinition("BT9-080")).toMatchObject({
-      colors: ["Purple", "Yellow"], level: 6, playCost: 12, dp: 12000,
-      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }, { color: "Yellow", level: 5, memoryCost: 4 }],
+      colors: ["Purple", "Yellow"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Purple", level: 5, memoryCost: 4 },
+        { color: "Yellow", level: 5, memoryCost: 4 },
+      ],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [],
+      coverage: "full",
+      residual: [],
       effects: [
-        { trigger: "OnPlay", actions: [
-          { kind: "PlayWithoutCost", from: ["trash"], payCost: false, condition: { kind: "zoneCount", zone: "security", op: "gte", value: 2 } },
-          {
-            kind: "Modal", condition: { kind: "zoneCount", zone: "security", op: "lte", value: 1 },
-            options: [
-              [{ kind: "PlayWithoutCost", from: ["trash"] }],
-              [{
-                kind: "PlayWithoutCost", from: ["trash"],
-                target: { filter: { levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ tokens: ["Angel", "Fallen Angel"], match: "trait" }] } },
-              }],
-            ],
-          },
-        ] },
-        { trigger: "EndOfYourTurn", actions: [{ kind: "DnaDigivolve", optional: true, payCost: true, materials: [{ filter: { isSelfRef: true } }, { filter: { excludeSelf: true } }] }] },
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              payCost: false,
+              condition: { kind: "zoneCount", zone: "security", op: "gte", value: 2 },
+            },
+            {
+              kind: "Modal",
+              condition: { kind: "zoneCount", zone: "security", op: "lte", value: 1 },
+              options: [
+                [{ kind: "PlayWithoutCost", from: ["trash"] }],
+                [
+                  {
+                    kind: "PlayWithoutCost",
+                    from: ["trash"],
+                    target: {
+                      filter: {
+                        levelComparison: { op: "lte", value: 6 },
+                        nameOrTrait: [{ tokens: ["Angel", "Fallen Angel"], match: "trait" }],
+                      },
+                    },
+                  },
+                ],
+              ],
+            },
+          ],
+        },
+        {
+          trigger: "EndOfYourTurn",
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              optional: true,
+              payCost: true,
+              materials: [{ filter: { isSelfRef: true } }, { filter: { excludeSelf: true } }],
+            },
+          ],
+        },
       ],
     });
   });
@@ -40,7 +74,9 @@ describe("BT9-080 Raguelmon", () => {
           hand: [{ card: "BT9-080", as: "source" }],
           security: ["BT9-072"],
           trash: [
-            { card: "BT9-082", as: "angel" },
+            // A level 6 [Angel] above 6000 DP: only the alternative option can play it
+            // (BT9-082 Ordinemon is level 7, outside the printed "level 6 or lower").
+            { card: "BT3-090", as: "angel" },
             { card: "BT9-073", as: "normal" },
           ],
         },

@@ -138,7 +138,8 @@ describe("EX1-070 Fight for Your Pride!", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(played()!, "Blocker")).toBe(true);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    // Seat 1 has no legal main action, so the engine auto-passes its Main on entry.
+    advance(s.engine).endMainPhaseIfOpen(1);
     await settle(() => s.state.turnSeat === 0 && s.state.phase === "Main", 5000);
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasKeyword(played()!, "Blocker")).toBe(false);

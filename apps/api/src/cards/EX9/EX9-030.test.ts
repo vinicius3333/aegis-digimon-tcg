@@ -205,7 +205,10 @@ describe("EX9-030", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it.each([false, true])("does not activate the play-cost reducer under Psychemon (free=%s)", async (free) => {
+  // KB Q4443 (EX8-074 under Psychemon): the played card's own "by <cost>, reduce" clause may still
+  // be used while play costs can't be reduced; only the reduction is nullified, so the hand card is
+  // trashed and the original cost is paid.
+  it.each([false, true])("pays the reducer's cost under Psychemon without reducing (free=%s)", async (free) => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX9-030", as: "source" }, "EX9-023"] },
@@ -222,10 +225,11 @@ describe("EX9-030", () => {
     expect(declared).toEqual(free ? undefined : { ok: true });
     await settle();
     expect(s.state.memory).toBe(free ? 10 : 3);
-    // ST12-03 Q755: the reduction effect cannot activate, so its cost is not paid.
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-023"]);
+    // The trashed card is then placed back under Andromon by its own [On Play] cost.
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-030");
-    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual([]);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["EX9-023"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

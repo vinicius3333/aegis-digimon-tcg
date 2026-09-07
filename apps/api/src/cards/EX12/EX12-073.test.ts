@@ -59,11 +59,13 @@ describe("EX12-073 Giant Meat", () => {
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
-  it("can be played when an [ME] trait Digimon is in the breeding area", async () => {
+  // EX12-008 ToyAgumon is a RED [ME] Digimon, so only the ＜Use Req.＞ waiver lets this White
+  // Option be played; its colour alone never satisfies the requirement.
+  it("can be played when an [ME] trait Digimon is in the battle area", async () => {
     const s = setupEngine(
       {
         0: {
-          breeding: { card: "EX12-008", as: "meInBreeding" },
+          battleArea: [{ card: "EX12-008", as: "meDigimon" }],
           hand: [{ card: CARD_ID, as: "giantMeat" }],
           deck: ["EX12-038", "BT1-009", "BT1-010"],
         },
@@ -83,9 +85,25 @@ describe("EX12-073 Giant Meat", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
   });
 
-  it("still requires a matching trait when the breeding area is empty", () => {
+  it("still requires a matching trait when the field is empty", () => {
     const s = setupEngine({ 0: { hand: [{ card: CARD_ID, as: "giantMeat" }] } });
     s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantMeat").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+  });
+
+  // CR 3-4-7-8: information on breeding-area cards can't be referenced unless the effect names
+  // the breeding area, and its printed example is exactly a trait-based colour waiver. The
+  // printed ＜Use Req.＞ names no breeding area, so an [ME] Digimon there does not enable it.
+  it("is not enabled by an [ME] trait Digimon in the breeding area (CR 3-4-7-8)", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "EX12-008", as: "meInBreeding" }, hand: [{ card: CARD_ID, as: "giantMeat" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantMeat").instanceId })).toEqual({
       ok: false,
@@ -97,7 +115,7 @@ describe("EX12-073 Giant Meat", () => {
     const s = setupEngine(
       {
         0: {
-          breeding: { card: "EX12-008", as: "meInBreeding" },
+          battleArea: [{ card: "EX12-008", as: "meDigimon" }],
           hand: [{ card: CARD_ID, as: "option" }],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
@@ -120,7 +138,7 @@ describe("EX12-073 Giant Meat", () => {
     const s = setupEngine(
       {
         0: {
-          breeding: { card: "EX12-008", as: "meInBreeding" },
+          battleArea: [{ card: "EX12-008", as: "meDigimon" }],
           hand: [{ card: CARD_ID, as: "option" }],
           deck: ["EX12-038", "BT1-009", "BT1-010"],
         },

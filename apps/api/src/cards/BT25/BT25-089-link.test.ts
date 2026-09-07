@@ -33,12 +33,12 @@ import "../index.js";
  * a structured header that never appears in `effectText`).
  *
  * Card data (node check): BT21-009 Gatchmon is [Appmon] trait AND carries "[Link] [Appmon] trait:
- * Cost 1" (CAN link); BT22-009 Effecmon is [Appmon] trait but carries NO LinkRequirement
+ * Cost 1" (CAN link); BT21-101 Gaiamon is [Appmon] trait but carries NO LinkRequirement (level 6 Appmon; every lower-level BT22 Appmon prints a ＜Link＞ header)
  * (CANNOT link). The clause must accept the former and reject the latter.
  */
 
 const CAN_LINK = "BT21-009"; // Gatchmon — [Appmon] trait, "[Link] [Appmon] trait: Cost 1"
-const NO_LINK = "BT22-009"; // Effecmon — [Appmon] trait, no LinkRequirement (cannot be linked)
+const NO_LINK = "BT21-101"; // Gaiamon — [Appmon] trait, no LinkRequirement (cannot be linked)
 
 let seq = 0;
 function card(cardId: string, seat: Seat): CardInstance {
@@ -152,7 +152,7 @@ describe("BT25-089 [Main] — only a card that CAN link (carries its own ＜Link
     const ids = candidateLooseInstances(ctx, target, ["hand"]).map((c) => c.cardId);
 
     expect(ids, "Gatchmon (Appmon + Link requirement) is a legal link target").toContain(CAN_LINK);
-    expect(ids, "Effecmon (Appmon but NO Link requirement) is rejected — Q6422").not.toContain(NO_LINK);
+    expect(ids, "Gaiamon (Appmon but NO Link requirement) is rejected — Q6422").not.toContain(NO_LINK);
   });
 
   it("FAILS-WHEN-REVERTED: drop hasLinkRequirement from the filter and the no-＜Link＞ [Appmon] card is wrongly offered (gate stops discriminating)", () => {

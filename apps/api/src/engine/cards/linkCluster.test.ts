@@ -30,23 +30,23 @@ import "../../cards/index.js";
  *
  * REVERT-CONFIRM-RED lever: remove the `.filter(...linkEligible...)` wire-up from `runLink`
  * (apps/api/src/engine/effects/interpreter.ts). The negative case below (the no-<Link>
- * Appmon Digimon, BT22-016, accepted and linked) then goes RED — proving the guard, not the
+ * Appmon Digimon, BT21-101, accepted and linked) then goes RED — proving the guard, not the
  * harness, is what rejects the no-<Link> card from BT22-039's link.
  */
 
 describe("A3 Link cluster — BT22-039 links an [Appmon] <Link> card on play, gated by linkEligible (KB Q4892)", () => {
-  it("links BT21-009 (Appmon + <Link>) and REJECTS BT22-016 (Appmon, NO <Link>) from BT22-039's digivolution cards", async () => {
+  it("links BT21-009 (Appmon + <Link>) and REJECTS BT21-101 (Appmon, NO <Link>) from BT22-039's digivolution cards", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             // BT22-039 Ouranosmon on the field, carrying two Appmon Digimon as digivolution cards:
             //   BT21-009 Gatchmon — [Appmon] trait + <Link> (linkRequirement) -> ELIGIBLE link material
-            //   BT22-016          — [Appmon] trait, NO <Link>               -> INELIGIBLE (the guard)
-            // BT22-016 is placed FIRST in the stack so it is the first link candidate: without the
-            // `linkEligible` guard the count:1 link would pick it, making `not.toContain("BT22-016")`
+            //   BT21-101 Gaiamon  — [Appmon] trait, NO <Link> (level 6)    -> INELIGIBLE (the guard)
+            // BT21-101 is placed FIRST in the stack so it is the first link candidate: without the
+            // `linkEligible` guard the count:1 link would pick it, making `not.toContain("BT21-101")`
             // the live REVERT-CONFIRM-RED lever (it depends on the guard excluding it).
-            { card: "BT22-039", dp: 4000, as: "ouranosmon", under: ["BT22-016", "BT21-009"] },
+            { card: "BT22-039", dp: 4000, as: "ouranosmon", under: ["BT21-101", "BT21-009"] },
             // A separate friendly Digimon to RECEIVE the linked card ("link ... to 1 of your Digimon").
             { card: "BT1-009", dp: 4000, as: "recipient" },
           ],
@@ -83,11 +83,11 @@ describe("A3 Link cluster — BT22-039 links an [Appmon] <Link> card on play, ga
     // Positive: the <Link>-carrying Appmon card was linked.
     expect(linkedCardIds).toContain("BT21-009");
     // Negative (REVERT-CONFIRM-RED lever): the no-<Link> Appmon card was NOT linked.
-    expect(linkedCardIds).not.toContain("BT22-016");
-    // BT22-016 stays in BT22-039's digivolution stack, never consumed by the link.
+    expect(linkedCardIds).not.toContain("BT21-101");
+    // BT21-101 stays in BT22-039's digivolution stack, never consumed by the link.
     const stackIds: string[] = [];
     for (const c of ouranosmon.stack) stackIds.push(c.cardId);
-    expect(stackIds).toContain("BT22-016");
+    expect(stackIds).toContain("BT21-101");
 
     assertNoLoudGap(s);
   });
