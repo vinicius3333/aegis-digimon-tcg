@@ -1,3 +1,9 @@
+# Final BT21 delivery
+
+**Complete: 102/102 cards at 10/10; 1020/1020 points.** No unresolved fidelity or delivery gap remains. The final 2603-assertion gate, required checks, atomic commits, pushed branch and ready review PR are recorded in `ledger.json` and `delivery-summary-v14.md`.
+
+The following snapshots are historical and are superseded by final v14 evidence.
+
 # Current status: final gate v14
 
 All 102 cards have accepted catalog/rules, IR, behavioral and peer/stack evidence (816/1020 points before delivery). No unresolved card or engine fidelity finding remains. The synchronized gate passes 2603 assertions across 150 files, shared/API/web typecheck, scoped style, BT21 effects check and baseline diff whitespace check. Atomic commits and push are being finalized; delivery points remain withheld until the branch is pushed. Historical findings below describe earlier revisions.

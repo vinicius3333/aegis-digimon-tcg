@@ -133,3 +133,7 @@ The ledger recalculates to **695/1020**, **0/102 final 10/10**; 59 cards have ac
 ## Final synchronized gate v14
 
 All 102 cards accepted at 8/10 fidelity; 816/1020 points before final delivery. The complete suite passes 2603/2603 assertions across 150 files: 1226 BT21 card assertions and 1377 affected mechanism assertions. Exact invocation and per-file results are in `collection-command-v14.json` and `collection-results-v14.json`. Typecheck passes for shared/API/web; scoped formatting/lint passes for 180 changed paths with nonblocking warnings; all 102 effects records are synchronized with 22 semantic changes against the baseline and no outside-set changes. Final lead/Luna inventory and integration reviews are recorded in `integration-review-v14.json`. Atomic card proofs and final delivery commit/push follow this gate.
+
+## Final delivery
+
+Recalculated all 102 cards to 10/10 (1020/1020 points) after the passing v14 gate, independent review, atomic commits and verified remote push of `81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1`. PR #4722 is ready for review. No open card or shared-engine finding remains; all historical pending scores are superseded. The final evidence closeout is committed and pushed separately from executable changes.

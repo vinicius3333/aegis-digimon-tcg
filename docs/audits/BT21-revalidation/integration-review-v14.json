@@ -21,5 +21,7 @@
     "Documented Tai reactivation as source-zone proof; intrinsic OPT remains IR/mechanism backed",
     "Used printed DP victims and actual public effects instead of synthetic DP changes"
   ],
-  "deliveryStatus": "pending final gates and push"
+  "deliveryStatus": "passed",
+  "pushedGateCommit": "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1",
+  "reviewPr": "https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722"
 }

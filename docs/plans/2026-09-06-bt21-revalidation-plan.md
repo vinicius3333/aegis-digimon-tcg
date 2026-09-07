@@ -46,3 +46,7 @@ Independent comparison with CR8-4-3 and the official revised-rules App Fusion pr
 ## Final integrated gate v14
 
 Every catalog card has completed independent clause review. All 102 cards hold the four fidelity categories (8/10) pending delivery. The final 150-file card/mechanism gate passes 2603 assertions, and typecheck, scoped style, set-scoped effects synchronization, and diff checks pass. Closeout now records the atomic commit map, pushes this worktree branch, makes the review PR ready, and assigns delivery scores only after those actions succeed.
+
+## Delivered collection
+
+All 102 catalog cards independently verified at 10/10 after final checks, atomic commits, verified branch push, and ready review PR #4722. `docs/audits/BT21-revalidation/README.md` is the recalculated collection ledger; `delivery-summary-v14.md` records final results and reproduction. No implementation or evidence gap remains.

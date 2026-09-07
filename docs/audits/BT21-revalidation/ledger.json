@@ -1,7 +1,7 @@
 {
   "set": "BT21",
   "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
-  "status": "incomplete",
+  "status": "complete",
   "scoreModel": [
     "Catalog/rules",
     "IR trace",
@@ -13,18 +13,16 @@
     {
       "cardId": "BT21-001",
       "name": "Gigimon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-001.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_a",
       "commands": [
         {
@@ -92,24 +90,23 @@
       ],
       "deliveryCommits": [
         "d541e53f4",
-        "5ca110443"
+        "5ca110443",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-002",
       "name": "Gurimon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-002.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_a",
       "commands": [
         {
@@ -171,24 +168,23 @@
         }
       ],
       "deliveryCommits": [
-        "6f81fe1b2"
+        "6f81fe1b2",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-003",
       "name": "Yokomon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-003.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_a",
       "commands": [
         {
@@ -256,24 +252,23 @@
       ],
       "deliveryCommits": [
         "3ba73356d",
-        "4d1ac902d"
+        "4d1ac902d",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-004",
       "name": "Koromon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-004.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_b",
       "commands": [
         {
@@ -342,24 +337,23 @@
       "deliveryCommits": [
         "c96c27e36",
         "2cc8fbcf5",
-        "3c52033aa"
+        "3c52033aa",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-005",
       "name": "Swipemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-005.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_b",
       "commands": [
         {
@@ -429,7 +423,8 @@
         "90393deb6",
         "e8b547ea6",
         "8d7a3ce52",
-        "62119597fa0408052cd854dd43bda52e1452302a"
+        "62119597fa0408052cd854dd43bda52e1452302a",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -439,18 +434,16 @@
     {
       "cardId": "BT21-006",
       "name": "Tsumemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-006.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_b",
       "commands": [
         {
@@ -512,24 +505,23 @@
         }
       ],
       "deliveryCommits": [
-        "2776d46c3"
+        "2776d46c3",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-007",
       "name": "Agumon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-007.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_c",
       "commands": [
         {
@@ -591,24 +583,23 @@
         }
       ],
       "deliveryCommits": [
-        "89baf6ba2"
+        "89baf6ba2",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-008",
       "name": "Elizamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-008.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_c",
       "commands": [
         {
@@ -670,24 +661,23 @@
         }
       ],
       "deliveryCommits": [
-        "c56bf694b"
+        "c56bf694b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-009",
       "name": "Gatchmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-009.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "owner": "luna_c",
       "commands": [
         {
@@ -757,24 +747,23 @@
         "0c07388e4",
         "cb067066f",
         "9d0dd75cb",
-        "e429d7e96"
+        "e429d7e96",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-010",
       "name": "Gammamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-010.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -841,24 +830,23 @@
       ],
       "deliveryCommits": [
         "45860f0a2",
-        "66b4c35e6"
+        "66b4c35e6",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-011",
       "name": "Shoutmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-011.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-011.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -919,24 +907,23 @@
         }
       ],
       "deliveryCommits": [
-        "d3269ba44"
+        "d3269ba44",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-012",
       "name": "Flamemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-012.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -997,24 +984,23 @@
         }
       ],
       "deliveryCommits": [
-        "2e43eaf27"
+        "2e43eaf27",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-013",
       "name": "Agunimon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-013.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-013.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1083,24 +1069,23 @@
         "80a4adc48",
         "b6ae98205",
         "1b9a9ecac",
-        "970e6b467"
+        "970e6b467",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-014",
       "name": "BurningGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-014.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-014.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1173,24 +1158,23 @@
       "deliveryCommits": [
         "0c2434fda",
         "b59968ce0",
-        "03fdd4fb0"
+        "03fdd4fb0",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-015",
       "name": "Cyclonemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-015.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-015.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1251,24 +1235,23 @@
         }
       ],
       "deliveryCommits": [
-        "e505b2309"
+        "e505b2309",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-016",
       "name": "Shoutmon (King Version)",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-016.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1349,24 +1332,23 @@
         "68742aeb6",
         "b93f4b92d",
         "dc1df3e60",
-        "b46506307573bd1df8857601b7c83ee8c32b352d"
+        "b46506307573bd1df8857601b7c83ee8c32b352d",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-017",
       "name": "Dimetromon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-017.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-017.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1439,24 +1421,23 @@
       "deliveryCommits": [
         "da873dffe",
         "39de30ae1",
-        "92a9f5254"
+        "92a9f5254",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-018",
       "name": "DoGatchmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-018.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1530,24 +1511,23 @@
         "0edef5803",
         "21b86844b",
         "116372d96",
-        "ce6dced21"
+        "ce6dced21",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-019",
       "name": "BetelGammamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-019.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-019.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1608,24 +1588,23 @@
         }
       ],
       "deliveryCommits": [
-        "7702cb521"
+        "7702cb521",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-020",
       "name": "Aldamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-020.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-020.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1687,24 +1666,23 @@
       ],
       "deliveryCommits": [
         "a2f962525",
-        "dee8f7495"
+        "dee8f7495",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-021",
       "name": "OmniShoutmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-021.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-021.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1773,24 +1751,23 @@
         "038f2aac4",
         "542c55229",
         "50a194b51",
-        "1da9da5a5"
+        "1da9da5a5",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-022",
       "name": "Canoweissmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-022.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-022.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1852,24 +1829,23 @@
       ],
       "deliveryCommits": [
         "75d656b52",
-        "18c9163dc"
+        "18c9163dc",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-023",
       "name": "Globemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-023.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-023.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -1948,24 +1924,23 @@
         "b6f83876a",
         "0b72bcf8c",
         "ce6dced21",
-        "18c0af158"
+        "18c0af158",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-024",
       "name": "Cyberdramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-024.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-024.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2033,24 +2008,23 @@
       "deliveryCommits": [
         "b47181bfd",
         "4bc3176fe",
-        "216af73a7"
+        "216af73a7",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-025",
       "name": "Lamiamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-025.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-025.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2118,24 +2092,23 @@
       "deliveryCommits": [
         "beac94777",
         "ee616db90",
-        "81ba9bcdb"
+        "81ba9bcdb",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-026",
       "name": "WarGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-026.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2209,24 +2182,23 @@
         "027fdfdb8",
         "ec9da90c4",
         "9d28e51d9",
-        "3225234e1"
+        "3225234e1",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-027",
       "name": "Shoutmon DX",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-027.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-027.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2294,24 +2266,23 @@
       "deliveryCommits": [
         "440a61b8a",
         "542c55229",
-        "50fbc8992"
+        "50fbc8992",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-028",
       "name": "Siriusmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-028.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-028.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2379,24 +2350,23 @@
       "deliveryCommits": [
         "a744e0d79",
         "baab7eb59",
-        "b2062a06b"
+        "b2062a06b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-029",
       "name": "Medusamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-029.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-029.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2469,24 +2439,23 @@
       "deliveryCommits": [
         "b6daaad45",
         "cfdc483bd",
-        "fe1dcb0c7"
+        "fe1dcb0c7",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-030",
       "name": "Shoutmon X7: Superior Mode",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-030.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-030.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2559,24 +2528,23 @@
       "deliveryCommits": [
         "e8fc24547",
         "928280648",
-        "33e42ea40"
+        "33e42ea40",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-031",
       "name": "Sangomon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-031.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2649,24 +2617,23 @@
       "deliveryCommits": [
         "18c9980b1",
         "c53ef92ee",
-        "d773ace4c"
+        "d773ace4c",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-032",
       "name": "Veemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-032.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-032.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2739,24 +2706,23 @@
       "deliveryCommits": [
         "0def4911e",
         "9794ac695",
-        "f0f7ed90d"
+        "f0f7ed90d",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-033",
       "name": "Floramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-033.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2829,24 +2795,23 @@
       "deliveryCommits": [
         "5818ec1da",
         "089edf7d2",
-        "163e3d10f"
+        "163e3d10f",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-034",
       "name": "Kiwimon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-034.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-034.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -2919,24 +2884,23 @@
       "deliveryCommits": [
         "a2fc43285",
         "8b34f6fa6",
-        "5554d0d9b"
+        "5554d0d9b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-035",
       "name": "Flamedramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-035.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-035.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3009,24 +2973,23 @@
       "deliveryCommits": [
         "2149b3ed1",
         "cf1be44de",
-        "2a5eee733"
+        "2a5eee733",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-036",
       "name": "Magnamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-036.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-036.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3099,24 +3062,23 @@
       "deliveryCommits": [
         "551779c58",
         "4b9148a81",
-        "fd5bd5ddd"
+        "fd5bd5ddd",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-037",
       "name": "Lighdramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-037.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-037.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3189,24 +3151,23 @@
       "deliveryCommits": [
         "e469b53d5",
         "7d4a1ca72",
-        "4381e652e"
+        "4381e652e",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-038",
       "name": "Deramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-038.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-038.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3280,24 +3241,23 @@
         "daa683fdc",
         "ccdd01824",
         "d1a580689",
-        "2d4387cbf"
+        "2d4387cbf",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-039",
       "name": "Gryphonmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-039.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-039.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3370,24 +3330,23 @@
       "deliveryCommits": [
         "4573fbcbc",
         "3db73d9b4",
-        "6c5f2967c"
+        "6c5f2967c",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-040",
       "name": "Agumon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-040.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-040.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3460,24 +3419,23 @@
       "deliveryCommits": [
         "fd1726c20",
         "e5b89f9b4",
-        "ab1cdff73"
+        "ab1cdff73",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-041",
       "name": "Calendamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-041.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-041.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3550,24 +3508,23 @@
       "deliveryCommits": [
         "3699e1484",
         "337b9a1a8",
-        "db12988b8"
+        "db12988b8",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-042",
       "name": "GeoGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-042.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-042.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3635,24 +3592,23 @@
       "deliveryCommits": [
         "2fbd09eaa",
         "1f94155b4",
-        "5520b37e4"
+        "5520b37e4",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-043",
       "name": "Sociamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-043.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3725,24 +3681,23 @@
       "deliveryCommits": [
         "54ca4a928",
         "cd964a595",
-        "f799984eb"
+        "f799984eb",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-044",
       "name": "RizeGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-044.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3811,24 +3766,23 @@
         "ff15ba47a",
         "f6a7b56bd",
         "ba282eeee",
-        "1eaf741ee"
+        "1eaf741ee",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-045",
       "name": "ShineGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-045.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-045.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -3911,24 +3865,23 @@
       "deliveryCommits": [
         "38e115eae",
         "235d0cf36",
-        "100ed8f70"
+        "100ed8f70",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-046",
       "name": "Dracomon (X Antibody)",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-046.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-046.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4006,24 +3959,23 @@
       "deliveryCommits": [
         "8a35dd09d",
         "b85edc848",
-        "0c19a5b66"
+        "0c19a5b66",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-047",
       "name": "Navimon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-047.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-047.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4101,24 +4053,23 @@
       "deliveryCommits": [
         "19882a8a3",
         "7daf970a0",
-        "6e84ae138"
+        "6e84ae138",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-048",
       "name": "Mushroomon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-048.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-048.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4196,24 +4147,23 @@
       "deliveryCommits": [
         "cda6d5368",
         "d39eb4b17",
-        "f45cc3c3b"
+        "f45cc3c3b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-049",
       "name": "Woodmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-049.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4297,24 +4247,23 @@
         "1e3e27b60",
         "311be22ff",
         "6fed3caaa",
-        "0040747f66aaba553ae6e3d3036262689f610125"
+        "0040747f66aaba553ae6e3d3036262689f610125",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-050",
       "name": "Cherrymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-050.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4393,24 +4342,23 @@
         "c55349af6",
         "491cfca14",
         "2eb97bb9c",
-        "723ee4869ec00f74b2cab113bbdf37205cd9a64c"
+        "723ee4869ec00f74b2cab113bbdf37205cd9a64c",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-051",
       "name": "Puppetmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-051.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4483,24 +4431,23 @@
       "deliveryCommits": [
         "5c14d5cbb",
         "71f9efe43",
-        "54f3dc8f7"
+        "54f3dc8f7",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-052",
       "name": "Examon (X Antibody)",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-052.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4588,24 +4535,23 @@
       "deliveryCommits": [
         "4fa840e80",
         "2e93623e4",
-        "a9f6a2049"
+        "a9f6a2049",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-053",
       "name": "Watchmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-053.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-053.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4673,24 +4619,23 @@
       "deliveryCommits": [
         "f10d4f284",
         "dff506613",
-        "f87560f79"
+        "f87560f79",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-054",
       "name": "Shotmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-054.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-054.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4768,24 +4713,23 @@
       "deliveryCommits": [
         "e99478ada",
         "58f4b9204",
-        "04829d5f3"
+        "04829d5f3",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-055",
       "name": "Sunarizamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-055.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-055.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4859,24 +4803,23 @@
         "67dda0b42",
         "1fe1f2ef5",
         "1890365a1",
-        "3561ab802"
+        "3561ab802",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-056",
       "name": "Vemmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-056.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -4956,7 +4899,8 @@
         "2b14bfcb0",
         "61af52223",
         "c67079f4d74bf3c852b9db3c5b064fffaba0967c",
-        "63494f15d1364aa1b18db3cd3751a09ef33b7338"
+        "63494f15d1364aa1b18db3cd3751a09ef33b7338",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -4966,21 +4910,20 @@
     {
       "cardId": "BT21-057",
       "name": "Greymon",
-      "status": "integration-review",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-057.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "61077ebf2",
-        "b6c88bb40"
+        "b6c88bb40",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -5050,18 +4993,16 @@
     {
       "cardId": "BT21-058",
       "name": "Snatchmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-058.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -5141,7 +5082,8 @@
         "80918a43e",
         "523f4da51",
         "bb6052ac1a049b9881fc94672484c7fbc7e53193",
-        "892d9f042bf984da1ef3212a05cd24148cb95300"
+        "892d9f042bf984da1ef3212a05cd24148cb95300",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -5151,18 +5093,16 @@
     {
       "cardId": "BT21-059",
       "name": "Timemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-059.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -5247,7 +5187,8 @@
         "50fcffd1a",
         "ce6dced21",
         "b5e7349df",
-        "2dec37ab2769d041d715bc16816ee40ccd34ef63"
+        "2dec37ab2769d041d715bc16816ee40ccd34ef63",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -5257,18 +5198,16 @@
     {
       "cardId": "BT21-060",
       "name": "Destromon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-060.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -5353,7 +5292,8 @@
         "2a4a62735",
         "64063dca6",
         "2fe203560ba6cef0a82e3f54f90cada108d81f2b",
-        "31315109b9c4e3f253e522d8475ebf7d5a7d7161"
+        "31315109b9c4e3f253e522d8475ebf7d5a7d7161",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -5363,18 +5303,16 @@
     {
       "cardId": "BT21-061",
       "name": "MetalGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-061.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -5448,7 +5386,8 @@
         "969b44852",
         "3639b253b",
         "71b9456d1",
-        "f5e88e97dac991c2c1521a5d7589626525000321"
+        "f5e88e97dac991c2c1521a5d7589626525000321",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -5458,18 +5397,16 @@
     {
       "cardId": "BT21-062",
       "name": "Galacticmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-062.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -5531,30 +5468,30 @@
       ],
       "deliveryCommits": [
         "f1709caae",
-        "e54b271ef"
+        "e54b271ef",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-063",
       "name": "Gumdramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-063.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "f05a5893f",
         "594f11e49",
         "e4d0b3447",
         "0e688ab3a200d9cf0c5ab92084dac8706f1e33d0",
-        "7502b55c7943ed60bec79cc09059e86bdb06663f"
+        "7502b55c7943ed60bec79cc09059e86bdb06663f",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -5638,23 +5575,22 @@
     {
       "cardId": "BT21-064",
       "name": "Guilmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-064.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "6681e89dc",
         "dd1427de6",
         "b29ab04e8",
-        "cc622da723e25bfd56dcb6448f904c731846b767"
+        "cc622da723e25bfd56dcb6448f904c731846b767",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -5738,22 +5674,21 @@
     {
       "cardId": "BT21-065",
       "name": "Ghostmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-065.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "ea28b12ca",
         "eb853825b",
-        "4798eec230c8e380e26f75450709104ea085063b"
+        "4798eec230c8e380e26f75450709104ea085063b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -5828,23 +5763,22 @@
     {
       "cardId": "BT21-066",
       "name": "Arresterdramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-066.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "fddf83434",
         "39f2f9b92",
         "253c02dc1",
-        "dc1df3e60"
+        "dc1df3e60",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -5919,22 +5853,21 @@
     {
       "cardId": "BT21-067",
       "name": "Garurumon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-067.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "47a92d46c",
         "109fe1e26",
-        "c2606d11814fc9b41b21b10dca6320b3b5a59dd5"
+        "c2606d11814fc9b41b21b10dca6320b3b5a59dd5",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6004,22 +5937,21 @@
     {
       "cardId": "BT21-068",
       "name": "Growlmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-068.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "4419ca1e8",
         "0fedb1fe4",
-        "8441673b2b2dbafac58598ec01bffafe1e4742bf"
+        "8441673b2b2dbafac58598ec01bffafe1e4742bf",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6089,21 +6021,20 @@
     {
       "cardId": "BT21-069",
       "name": "GulusGammamon",
-      "status": "integration-review",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-069.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "fb93271bb",
-        "cb86ea589"
+        "cb86ea589",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6168,22 +6099,21 @@
     {
       "cardId": "BT21-070",
       "name": "Gossipmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-070.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "fb93271bb",
         "c7fd51cba",
-        "1b031cecaf784aca0cf0be55de1b73b22cb68973"
+        "1b031cecaf784aca0cf0be55de1b73b22cb68973",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6253,23 +6183,22 @@
     {
       "cardId": "BT21-071",
       "name": "Scopemon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-071.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "51c2b9ded",
         "b7fce2f9b",
         "63a4d9d5fa396a7f702f10af4edc6213ec910aed",
-        "22229fee0ba3b1a3845ca280653dded040550905"
+        "22229fee0ba3b1a3845ca280653dded040550905",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6343,22 +6272,21 @@
     {
       "cardId": "BT21-072",
       "name": "Arresterdramon: Superior Mode",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-072.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "58ec247ee",
         "f695da99e",
-        "007cd0cdb3bb0e48e0b1d276cdb079ed03db8470"
+        "007cd0cdb3bb0e48e0b1d276cdb079ed03db8470",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6428,18 +6356,16 @@
     {
       "cardId": "BT21-073",
       "name": "Charismon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-073.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-073.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -6508,28 +6434,28 @@
         "b78ba0432",
         "81f10aab8",
         "ce6dced21",
-        "982a9ec81"
+        "982a9ec81",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-074",
       "name": "Satellamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-074.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "de6982860",
         "fa372fe51",
-        "4f6b594facbdda3426a1af3f9243e0f2ee22fcef"
+        "4f6b594facbdda3426a1af3f9243e0f2ee22fcef",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6603,18 +6529,16 @@
     {
       "cardId": "BT21-075",
       "name": "SkullGreymon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-075.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-075.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -6677,29 +6601,29 @@
       "deliveryCommits": [
         "5fff21410",
         "eb42814a3",
-        "b5cbfcde2"
+        "b5cbfcde2",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-076",
       "name": "WarGrowlmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-076.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "c8b1a6538",
         "dbce40c8d",
         "51ec4f0ce",
-        "b75dd1137"
+        "b75dd1137",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6764,23 +6688,22 @@
     {
       "cardId": "BT21-077",
       "name": "Regulusmon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-077.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "b92f46c7d",
         "41fbc6fd1",
         "3d38cef2b5c57c3a5de3109e44a546baf6a62636",
-        "f49bd5b07fd831778418df7d9eeeaf58f059ba6f"
+        "f49bd5b07fd831778418df7d9eeeaf58f059ba6f",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6854,23 +6777,22 @@
     {
       "cardId": "BT21-078",
       "name": "WereGarurumon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-078.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "75256536e",
         "225986de3",
         "be9bb774c35b6b1bb6701bc34f4fba036ac92e87",
-        "1062bd78b3fee012b6cf04585ea91fac48c3f87a"
+        "1062bd78b3fee012b6cf04585ea91fac48c3f87a",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -6944,23 +6866,22 @@
     {
       "cardId": "BT21-079",
       "name": "Megidramon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-079.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "bd9d34e5d",
         "6354ac0ca",
         "bdc0807cbb379b2e14215c9ef46665420b545563",
-        "276dbffa13046fa69a6da79dfde1366160a7d734"
+        "276dbffa13046fa69a6da79dfde1366160a7d734",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7034,23 +6955,22 @@
     {
       "cardId": "BT21-080",
       "name": "Hiro Amanokawa",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-080.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "82529a55f",
         "a56ef8d23",
         "3b9848fb76afc3c326eeed44b382915c830b13c1",
-        "ee6b1bbb35e10402e01c88b6efa1d22a323d2122"
+        "ee6b1bbb35e10402e01c88b6efa1d22a323d2122",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7124,22 +7044,21 @@
     {
       "cardId": "BT21-081",
       "name": "Owen Dreadnought",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-081.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "b4d7774ab",
         "61ee00248",
-        "a198f169dc92cb9e7bb1aa5890a479c1a166d909"
+        "a198f169dc92cb9e7bb1aa5890a479c1a166d909",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7209,18 +7128,16 @@
     {
       "cardId": "BT21-082",
       "name": "Takuya Kanbara",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-082.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-082.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -7277,29 +7194,29 @@
       ],
       "deliveryCommits": [
         "c8970dc0b",
-        "dfda62a67"
+        "dfda62a67",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ]
     },
     {
       "cardId": "BT21-083",
       "name": "Taiki Kudo",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-083.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "759f2b2c6",
         "e499b4fd9",
         "e2955f079f1bdda352f1b393adacf6ed6baddd29",
-        "b71d60e9f66552621bc4f8e8e905b0831feecd80"
+        "b71d60e9f66552621bc4f8e8e905b0831feecd80",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7373,23 +7290,22 @@
     {
       "cardId": "BT21-084",
       "name": "Haru Shinkai",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-084.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "4712f2d0e",
         "eabcd5bdd",
         "82c53457c1a4e7d3583ef0ffc5c805ab543de29d",
-        "c185890865f0855bb713c4651972cee97c275fb1"
+        "c185890865f0855bb713c4651972cee97c275fb1",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7463,22 +7379,21 @@
     {
       "cardId": "BT21-085",
       "name": "Davis Motomiya",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-085.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "aafa5e016",
         "92cfd2381",
-        "b98c16a765e979d843bb1f62f4da7c5c24b56b72"
+        "b98c16a765e979d843bb1f62f4da7c5c24b56b72",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7557,23 +7472,22 @@
     {
       "cardId": "BT21-086",
       "name": "Marcus Damon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-086.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "a750d11c4",
         "d857dcbc0",
         "f47bca680caf843da01407e14df3cfeb9364cc91",
-        "34f95dcb825a9fff12d5ea5f4855d71f395eba1b"
+        "34f95dcb825a9fff12d5ea5f4855d71f395eba1b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7652,22 +7566,21 @@
     {
       "cardId": "BT21-087",
       "name": "Zenith",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-087.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "342ecda36",
         "e7cba3cbf",
-        "23342e5d48af1bc18784471bfde3685d1055a1bf"
+        "23342e5d48af1bc18784471bfde3685d1055a1bf",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7746,23 +7659,22 @@
     {
       "cardId": "BT21-088",
       "name": "Tagiru Akashi",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-088.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "e6537145b",
         "af82bf5a8",
         "d5fa0c0a8e09b7d6c918e5e9e76c5e207c67e5d5",
-        "ff5c57273ff5bea833decf2c8c49e36ebaa8a414"
+        "ff5c57273ff5bea833decf2c8c49e36ebaa8a414",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7841,24 +7753,23 @@
     {
       "cardId": "BT21-089",
       "name": "Takato Matsuki",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-089.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "9051179c2",
         "aa34236cf",
         "47791d062",
         "45b1ac8742c971c5e99e50e08db673bec0fe0b94",
-        "4cae27bf05dc6be79261d52c1ac58680eff7fbb2"
+        "4cae27bf05dc6be79261d52c1ac58680eff7fbb2",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -7927,23 +7838,22 @@
     {
       "cardId": "BT21-090",
       "name": "The Strongest of Brothers",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-090.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "90d5bd6f0",
         "c1d873be0",
         "28ac258c28c336d716d571c36612da59da67b5a4",
-        "f356f90614391762bc09ce270d69bf758bee631f"
+        "f356f90614391762bc09ce270d69bf758bee631f",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -8012,18 +7922,16 @@
     {
       "cardId": "BT21-091",
       "name": "Spirit Evolution!",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-091.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-091.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -8080,7 +7988,8 @@
       ],
       "deliveryCommits": [
         "d3fa7014b",
-        "e4180163d4ab740b8c5eb25759fab4b89ac3ad94"
+        "e4180163d4ab740b8c5eb25759fab4b89ac3ad94",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -8090,23 +7999,22 @@
     {
       "cardId": "BT21-092",
       "name": "Can't Turn My Back!",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-092.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "2fc6cc732",
         "3a970b932",
         "487b533cecb61d78f99773f44234a31f2221c631",
-        "586c2309b4b08235966ff10d8769107edfd986de"
+        "586c2309b4b08235966ff10d8769107edfd986de",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -8175,18 +8083,16 @@
     {
       "cardId": "BT21-093",
       "name": "Raging Serpentine",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-093.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-093.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -8243,7 +8149,8 @@
       ],
       "deliveryCommits": [
         "17f2b6e76",
-        "dd4ffd242dd4e5b1901ea41797655ea89daa4089"
+        "dd4ffd242dd4e5b1901ea41797655ea89daa4089",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -8253,18 +8160,16 @@
     {
       "cardId": "BT21-094",
       "name": "Armor Digivolution",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-094.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -8322,7 +8227,8 @@
       "deliveryCommits": [
         "7e4f2050e",
         "e65e4cfe2655418387cd8aa42c2f64bf82796dd9",
-        "13b756dac461b483ddd8a22a86319e50f9359716"
+        "13b756dac461b483ddd8a22a86319e50f9359716",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -8332,22 +8238,21 @@
     {
       "cardId": "BT21-095",
       "name": "Wind Guardians",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-095.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "54cc96a2c",
         "c4a95828c",
-        "b42418fae1d6ee4fbb8559eacbdd8cf4269b6a3c"
+        "b42418fae1d6ee4fbb8559eacbdd8cf4269b6a3c",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -8416,24 +8321,23 @@
     {
       "cardId": "BT21-096",
       "name": "The Champion Ultimate Fighter!",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-096.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "607af2a3b",
         "3257a96a8",
         "fc759fee1",
         "ad49841de4b868095b8f63a2b8445424f550393c",
-        "cebce8e584799b6ee771b6183c3f5d8ac29c8c7d"
+        "cebce8e584799b6ee771b6183c3f5d8ac29c8c7d",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -8502,22 +8406,21 @@
     {
       "cardId": "BT21-097",
       "name": "App Link",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-097.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "3598d3f79",
         "64719eb9c",
-        "bf64d24140bcfb6ee1fb8a706fc9d55ba7a77129"
+        "bf64d24140bcfb6ee1fb8a706fc9d55ba7a77129",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -8586,18 +8489,16 @@
     {
       "cardId": "BT21-098",
       "name": "Ragnarok Cannon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-098.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -8661,7 +8562,8 @@
         "6151393f1",
         "cee8ce24e",
         "bb75e3c96bf03770c704192c2689accfadcd9bc3",
-        "b3825313ef802cd27ff2dd36f4c86930d88d2709"
+        "b3825313ef802cd27ff2dd36f4c86930d88d2709",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -8671,23 +8573,22 @@
     {
       "cardId": "BT21-099",
       "name": "Xros Up",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-099.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "07b70678f",
         "29fd24f31",
         "6ef0fcb64505583bbcbafaa29bbc7f90b0129982",
-        "f100c809fc3dfe1b2eb8e7b3d50caa78058b27da"
+        "f100c809fc3dfe1b2eb8e7b3d50caa78058b27da",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -8756,18 +8657,16 @@
     {
       "cardId": "BT21-100",
       "name": "The Digimon I Designed",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-100.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -8825,7 +8724,8 @@
       "deliveryCommits": [
         "890e7f774",
         "386437b8f9df2012ca613f80721491a9d9ac1bb6",
-        "a9e5087e32ea2d91fb4a0fd0afd0d589bd1d6bb7"
+        "a9e5087e32ea2d91fb4a0fd0afd0d589bd1d6bb7",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -8835,18 +8735,16 @@
     {
       "cardId": "BT21-101",
       "name": "Gaiamon",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-101.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-101.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
@@ -8911,7 +8809,8 @@
         "3bc7fdf50",
         "ce6dced21",
         "1e843072a7048be5cf91668b54e3101237464102",
-        "7d34e1d2f9d1db5b68a296bf475cbb7fa9a44544"
+        "7d34e1d2f9d1db5b68a296bf475cbb7fa9a44544",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "leadReview": {
         "checkpoint": "v14",
@@ -8921,23 +8820,22 @@
     {
       "cardId": "BT21-102",
       "name": "Tai Kamiya",
-      "status": "delivery-pending",
+      "status": "verified",
       "scores": [
         2,
         2,
         2,
         2,
-        0
+        2
       ],
       "evidence": "cards/BT21-102.md",
-      "gaps": [
-        "Final collection delivery gates pending"
-      ],
+      "gaps": [],
       "deliveryCommits": [
         "7632dd026",
         "66cfda08d",
         "8d3663f3d4f34e7b50381d2f1f4b82796bc0f537",
-        "82719e86cc530107dc225bd16b300e24fe02d15b"
+        "82719e86cc530107dc225bd16b300e24fe02d15b",
+        "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1"
       ],
       "commands": [
         {
@@ -9006,11 +8904,14 @@
   ],
   "commandNote": "Per-card commands reproduce the card assertions. Recorded logs may group multiple listed card paths into one serialized invocation; aggregate red runs are explicitly not delivery gates.",
   "deliveryGates": {
-    "status": "pending",
-    "collection": "2573/2573 assertions across 150 files in logs/collection-public-proofs-v13.log; exact paths collection-suite-v13.json. Final all-card clause review remains incomplete.",
-    "typecheck": "Shared/API/web passed in logs/typecheck-public-proofs-v2.log.",
-    "sync": "102 BT21 records synchronized; 22 semantic changes against baseline, zero semantic or byte changes outside BT21 (logs/effects-check-public-proofs-v3.log).",
-    "review": "Draft PR https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; 32 additional atomic card proof commits recorded in card-proof-commits-v13.json. Independent review identified precise remaining fidelity gaps; collection incomplete.",
-    "style": "Oxfmt/Oxlint/check exit successfully on all 180 changed apps/packages TypeScript/JSON paths in logs/style-public-proofs-v3.log; nonblocking lint warnings recorded. Full baseline and working-tree git diff --check clean."
+    "status": "passed",
+    "collection": "2603/2603 assertions across 150 files (1226 BT21 card assertions; 1377 affected mechanism assertions), logs/collection-final-v14.log; exact argv/environment collection-command-v14.json; per-file counts collection-results-v14.json.",
+    "typecheck": "Shared/API/web passed: logs/typecheck-final-v14-r2.log.",
+    "sync": "102 BT21 records synchronized; 22 semantic changes against baseline; zero semantic or byte changes outside BT21: logs/effects-check-final-v14.log.",
+    "review": "Astra and three gpt-5.6-luna workers completed independent fidelity and integration review. No unresolved finding. Review PR ready: https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; integration-review-v14.json.",
+    "style": "Oxfmt/Oxlint/format check passed for all 180 changed apps/packages source/data paths: logs/style-final-v14.log; nonblocking warnings recorded. Full baseline, working-tree and staged git diff --check passed.",
+    "delivery": "34 final atomic card proof commits plus synchronized gate commit pushed to origin/audit-bt21-astra-luna; remote verified at 81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1. See card-proof-commits-v14.json and earlier commit maps.",
+    "pushedGateCommit": "81a5f5cc65c0ffdb68ca0c4f079ec4191f959ac1",
+    "reviewPr": "https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722"
   }
 }
