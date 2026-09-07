@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,17 @@ import "../index.js";
 import { compiled } from "./BT24-084.js";
 
 describe("BT24-084 Inori Misono", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-084")).toMatchObject({
+      cardId: "BT24-084",
+      nameEn: "Inori Misono",
+      colors: ["Yellow"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      types: ["TS"],
+    });
+  });
+
   it("gains memory only at 4 or less at the start of your main phase", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "StartOfYourMainPhase",
@@ -93,7 +104,7 @@ describe("BT24-084 Inori Misono", () => {
             { card: "BT24-034", as: "aegiomon" },
           ],
           hand: [{ card: "BT24-014", as: "aegiochusmon" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -118,7 +129,7 @@ describe("BT24-084 Inori Misono", () => {
           ],
           hand: [{ card: "BT24-014", as: "aegiochusmon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -139,7 +150,7 @@ describe("BT24-084 Inori Misono", () => {
             { card: "BT24-034", as: "aegiomon" },
           ],
           hand: [{ card: "BT24-014", as: "aegiochusmon" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
