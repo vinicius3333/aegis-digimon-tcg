@@ -35,7 +35,8 @@ import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
-import { candidatePermanents } from "./targeting/permanents.js";
+import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
+import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect, Target } from "@aegis/shared";
 
@@ -750,7 +751,15 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     ) {
       return undefined;
     }
-    const target = (action as { target?: Target }).target;
+    // A self-placement cost that raises the deletion's level ceiling (EX9-061) can create the
+    // only legal target; scan the board as it will look once that cost is paid, exactly as
+    // the resolver's own preflight does.
+    // A printed DP cap is read with the controller's live DP-deletion-maximum bonus (BT12-001's
+    // inherited "+1000"), exactly as the resolver reads it when the Delete runs.
+    const target =
+      action.kind === "Delete"
+        ? raiseDeletionDpCap(ctx, targetAfterSelfPlacementCost(ctx, action) ?? action.target)
+        : (action as { target?: Target }).target;
     if (target === undefined || target.fromSelectionRef !== undefined) return undefined;
     const filter = target.filter;
     if (filter === undefined || filter.boundRef !== undefined || filter.useTriggerSource === true) return undefined;

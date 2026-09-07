@@ -1,6 +1,7 @@
 // Matching a filter against the payload of the firing trigger event.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { peekCheckedCard } from "../../../security/checkedCard.js";
 import { definitionMatches, matchNameOrTrait } from "./definition.js";
 import { permanentMatchesFilter, seatsForController } from "./permanent.js";
 import type { Filter } from "@aegis/shared";
@@ -123,7 +124,9 @@ export function triggerAddedSecurityMatches(ctx: EffectContext, filter: Filter |
   const seat = ctx.trigger.addedToSecuritySeat ?? ctx.source.ownerSeat;
   const security = ctx.game.player(seat).security;
   for (const id of ids) {
-    const card = security.find((c) => c.instanceId === id);
+    // A security check flips the card face up and then holds it outside every zone while the
+    // check resolves (CR 13-1-6); that reveal still counts as a face-up add (KB Q5789).
+    const card = security.find((c) => c.instanceId === id) ?? peekCheckedCard(ctx.game.state, id)?.card;
     if (card === undefined || card.faceUp !== true) continue;
     if (filter === undefined) return true;
     const def = ctx.game.definitionOf({ cardId: card.cardId } as never);

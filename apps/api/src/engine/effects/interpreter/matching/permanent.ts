@@ -147,14 +147,20 @@ export function seatsForController(ctx: EffectContext, filter: Filter): Seat[] {
  * The level bound for a `levelComparison.relativeTo:"lastDeleted"` filter: the printed level of
  * the Digimon just deleted in this resolution. Prefer the effect-result capture set by a
  * `deleteOwn` cost / Delete action (BT8-107). Fall back to the SubTrigger deletion subject, whose
+ * top card is read from the event snapshot once the permanent has already left play (a
+ * battle deletion's `onDeletionOf` watcher runs after the loser is gone — BT17-071).
  */
 function lastDeletedLevelBound(ctx: EffectContext): number | undefined {
   if (ctx.lastDeletedLevel !== undefined) return ctx.lastDeletedLevel;
   const id = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
   if (id === undefined) return undefined;
   const perm = ctx.game.permanentById(id);
-  if (perm?.topCard === undefined) return undefined;
-  const level = ctx.game.definitionOf(perm.topCard).level;
+  const topCardId =
+    perm?.topCard?.cardId ??
+    ctx.trigger.deletedPermanentSnapshots?.find((snapshot) => snapshot.permanentId === id)?.topCardId ??
+    (id === ctx.trigger.deletedPermanentId ? ctx.trigger.deletedTopCardId : undefined);
+  if (topCardId === undefined) return undefined;
+  const level = ctx.game.definitionOf({ cardId: topCardId } as never).level;
   return level !== undefined && level > 0 ? level : undefined;
 }
 
