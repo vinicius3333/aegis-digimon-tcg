@@ -1,4 +1,4 @@
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled } from "./BT24-095.js";
 import "../index.js";
 
 describe("BT24-095 Sonic Shot", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-095")).toMatchObject({
+      cardId: "BT24-095",
+      nameEn: "Sonic Shot",
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["TS"],
+      linkDp: 2000,
+      linkRequirement: "[Link] [TS]\u00a0trait: Cost 3",
+    });
+  });
+
   it("records the printed TS Link requirement and breeding-aware color waiver", () => {
     expect(compiled.linkRequirement).toEqual([{ traits: ["TS"], cost: 3 }]);
     expect(compiled.effects[0]).toMatchObject({
