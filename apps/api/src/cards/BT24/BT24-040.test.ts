@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,28 @@ import { compiled as BT24_040 } from "./BT24-040.js";
 import "../index.js";
 
 describe("BT24-040 Venusmon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-040")).toMatchObject({
+      cardId: "BT24-040",
+      nameEn: "Venusmon",
+      colors: ["Yellow", "Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Shaman", "Olympos XII", "Iliad", "TS"],
+      evoCosts: [
+        { color: "Yellow", level: 5, memoryCost: 4 },
+        { color: "Blue", level: 5, memoryCost: 4 },
+      ],
+    });
+    expect(BT24_040.digivolutionRequirement).toEqual([
+      { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
+    ]);
+  });
+
   it("trashes one opponent stack and applies the two shared restrictions", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = BT24_040.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
@@ -100,6 +122,34 @@ describe("BT24-040 Venusmon", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("venusmon"));
 
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    for (const permanent of [s.perm("stacked"), s.perm("tamer")]) {
+      expect(observe(s.engine).isRestricted(permanent, "suspend")).toBe(true);
+      expect(observe(s.engine).isRestricted(permanent, "cannotActivateWhenDigivolving")).toBe(true);
+    }
+  });
+
+  it("resolves both entry clauses from a public play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-040", as: "venusmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-030", as: "stacked", under: ["BT24-029", "BT24-027"] },
+            { card: "BT24-083", as: "tamer" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-040"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-040")).toBe(true);
     expect(s.perm("stacked").stack).toHaveLength(0);
     for (const permanent of [s.perm("stacked"), s.perm("tamer")]) {
       expect(observe(s.engine).isRestricted(permanent, "suspend")).toBe(true);
