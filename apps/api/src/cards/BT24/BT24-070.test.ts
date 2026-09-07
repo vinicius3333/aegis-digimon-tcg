@@ -1,5 +1,6 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_070 } from "./BT24-070.js";
@@ -92,6 +93,21 @@ describe("BT24-070 Growlmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("tamer").instanceId);
   });
 
+  it("does not play a purple Tamer above the printed cost-4 boundary", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-070", as: "growlmon" }],
+        trash: [{ card: "AD1-023", as: "expensiveTamer" }],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-070"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("expensiveTamer").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("expensiveTamer").instanceId)).toBe(false);
+  });
+
   it("public attack uses the inherited effect to delete only a level-3 opponent", async () => {
     const s = setupEngine(
       {
@@ -123,5 +139,39 @@ describe("BT24-070 Growlmon", () => {
       expect.arrayContaining([s.perm("secondLevel3").permanentId, s.perm("level4").permanentId]),
     );
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstLevel3").instanceId);
+  });
+
+  it("resets inherited level-3 deletion after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-032", as: "host", under: ["BT24-070"] }], deck: ["BT1-009", "BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }],
+          security: ["BT1-012", "BT1-012"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("first").instanceId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("second").instanceId));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });
