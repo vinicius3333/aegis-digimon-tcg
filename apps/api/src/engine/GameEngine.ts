@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
   CardKind,
+  AppFusionRoute,
   GameState,
   PlayerState,
   EffectTiming,
@@ -264,6 +265,23 @@ function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
  */
 function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]): void {
   if (target.length === values.length && values.every((value, index) => target[index] === value)) return;
+  target.splice(0, target.length);
+  for (const value of values) target.push(value);
+}
+
+function replaceAppFusionRoutesIfChanged(target: ArraySchema<AppFusionRoute>, values: readonly AppFusionRoute[]): void {
+  const same =
+    target.length === values.length &&
+    target.every((route, index) => {
+      const next = values[index];
+      return (
+        next !== undefined &&
+        route.hostPermanentId === next.hostPermanentId &&
+        route.linkedInstanceId === next.linkedInstanceId &&
+        route.projectedCost === next.projectedCost
+      );
+    });
+  if (same) return;
   target.splice(0, target.length);
   for (const value of values) target.push(value);
 }
@@ -3548,6 +3566,30 @@ export class GameEngine {
             bases: [...turnPlayer.battleArea, ...(turnPlayer.breeding ? [turnPlayer.breeding] : [])],
           };
 
+    // Routes are private hand affordances and must not survive a zone change. Clear only
+    // physical instances outside the active turn player's hand; current hand routes are compared
+    // in place below, avoiding schema churn on an unchanged recompute.
+    const activeHand = active?.player.hand;
+    const clearOutsideActiveHand = (instance: CardInstance): void => {
+      if (activeHand?.includes(instance) !== true) replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
+    };
+    for (const player of this.state.players) {
+      for (const instance of [
+        ...player.deck,
+        ...player.eggDeck,
+        ...player.security,
+        ...player.trash,
+        ...player.delayZone,
+      ]) {
+        clearOutsideActiveHand(instance);
+      }
+      if (player.resolvingOption !== undefined) clearOutsideActiveHand(player.resolvingOption);
+      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
+        for (const instance of [...permanent.stack, ...permanent.linked]) clearOutsideActiveHand(instance);
+        clearOutsideActiveHand(permanent.topCard);
+      }
+    }
+
     // One pass that writes each card's final affordance, rather than clearing every hand and
     // refilling the turn player's: an ArraySchema splice is a wire-level change even when the
     // contents come back identical, and this projection runs on every continuous recompute.
@@ -3559,6 +3601,7 @@ export class GameEngine {
           instance.playableFromHand = false;
           instance.projectedPlayCost = NO_PROJECTED_COST;
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
 
@@ -3573,9 +3616,11 @@ export class GameEngine {
 
         if (!definition.kinds.includes(CardKind.Digimon)) {
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
           continue;
         }
         const targets: string[] = [];
+        const appFusionRoutes: AppFusionRoute[] = [];
         for (const base of active.bases) {
           const check = validateDigivolve(
             this.state,
@@ -3584,8 +3629,25 @@ export class GameEngine {
             active.digivolveDeps,
           );
           if (check.ok) targets.push(base.permanentId);
+          if (base.controllerSeat === seat) {
+            for (const linked of base.linked) {
+              const fusionCheck = this.validateAppFusion(seat, {
+                type: "appFusion",
+                permanentId: base.permanentId,
+                instanceId: instance.instanceId,
+                linkedInstanceId: linked.instanceId,
+              });
+              if (!fusionCheck.ok) continue;
+              const route = new AppFusionRoute();
+              route.hostPermanentId = base.permanentId;
+              route.linkedInstanceId = linked.instanceId;
+              route.projectedCost = fusionCheck.projectedCost;
+              appFusionRoutes.push(route);
+            }
+          }
         }
         replaceIfChanged(instance.digivolveTargetPermanentIds, targets);
+        replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, appFusionRoutes);
       }
     }
   }

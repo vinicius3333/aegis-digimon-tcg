@@ -25,6 +25,21 @@ describe("public App Fusion", () => {
     );
     const oldTopId = s.perm("host").topCard!.instanceId;
     s.state.memory = 0;
+    await s.ready();
+    expect(
+      s
+        .inst("result")
+        .appFusionRoutes.map(({ hostPermanentId, linkedInstanceId, projectedCost }) => ({
+          hostPermanentId,
+          linkedInstanceId,
+          projectedCost,
+        })),
+    ).toEqual([
+      { hostPermanentId: s.perm("host").permanentId, linkedInstanceId: s.inst("link").instanceId, projectedCost: 0 },
+    ]);
+    const projectedRoute = s.inst("result").appFusionRoutes[0];
+    await s.engine.recomputeContinuousEffects();
+    expect(s.inst("result").appFusionRoutes[0]).toBe(projectedRoute);
     expect(
       s.engine.applyIntent(0, {
         type: "appFusion",
@@ -44,6 +59,72 @@ describe("public App Fusion", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT23-021");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.memory).toBe(0);
+    expect(s.inst("result").appFusionRoutes).toHaveLength(0);
+  });
+
+  it("clears projected App Fusion routes when the linked material leaves the host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-016", as: "host", linked: [{ card: "BT23-039", as: "link" }] }],
+        hand: [{ card: "BT23-021", as: "result" }],
+        deck: ["BT1-009"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    expect(s.inst("result").appFusionRoutes).toHaveLength(1);
+    const [removed] = s.perm("host").linked.splice(0, 1);
+    if (removed) s.state.players[0]!.trash.push(removed);
+    await s.engine.recomputeContinuousEffects();
+    expect(s.inst("result").appFusionRoutes).toHaveLength(0);
+  });
+
+  it.each(["deck", "face-down security"] as const)(
+    "clears projected routes when the hand card moves to %s",
+    async (destination) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT23-016", as: "host", linked: [{ card: "BT23-039", as: "link" }] }],
+          hand: [{ card: "BT23-021", as: "result" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      });
+      await s.ready();
+      const result = s.inst("result");
+      expect(result.appFusionRoutes).toHaveLength(1);
+      const handIndex = s.state.players[0]!.hand.findIndex(({ instanceId }) => instanceId === result.instanceId);
+      const [moved] = s.state.players[0]!.hand.splice(handIndex, 1);
+      if (moved === undefined) throw new Error("projection fixture result missing from hand");
+      if (destination === "deck") s.state.players[0]!.deck.push(moved);
+      else {
+        moved.faceUp = false;
+        s.state.players[0]!.security.push(moved);
+      }
+      await s.engine.recomputeContinuousEffects();
+      expect(result.appFusionRoutes).toHaveLength(0);
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === result.instanceId)).toBe(false);
+    },
+  );
+
+  it("clears projected routes outside the owner's Main turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-016", as: "host", linked: [{ card: "BT23-039", as: "link" }] }],
+        hand: [{ card: "BT23-021", as: "result" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    const result = s.inst("result");
+    expect(result.appFusionRoutes).toHaveLength(1);
+    s.state.phase = Phase.End;
+    await s.engine.recomputeContinuousEffects();
+    expect(result.appFusionRoutes).toHaveLength(0);
+    s.state.phase = Phase.Main;
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(result.appFusionRoutes).toHaveLength(0);
   });
   it("uses the declared second physical link and leaves the first linked", async () => {
     const s = setupEngine(
@@ -71,6 +152,10 @@ describe("public App Fusion", () => {
     advance(s.engine).ledgers.continuous.addLinkMaxGrant(host.permanentId, 1, EffectDuration.UntilEachTurnEnd);
     await advance(s.engine).recompute();
     s.state.memory = 0;
+    expect(s.inst("result").appFusionRoutes.map(({ linkedInstanceId }) => linkedInstanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
     expect(
       s.engine.applyIntent(0, {
         type: "appFusion",
@@ -305,6 +390,8 @@ describe("public App Fusion", () => {
     s.state.turnSeat = 1;
     await s.ready();
     const host = s.perm("host");
+    expect(s.inst("result").appFusionRoutes).toHaveLength(1);
+    expect(s.inst("result").appFusionRoutes[0]!.projectedCost).toBe(1);
     expect(
       s.engine.applyIntent(1, {
         type: "appFusion",
