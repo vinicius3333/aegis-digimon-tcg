@@ -42,3 +42,7 @@ Continue with one-card Luna assignments 085, 086, 087, then 088–090 and reacti
 ## App Fusion correction scope
 
 Independent comparison with CR8-4-3 and the official revised-rules App Fusion procedure exposed a missing partner-to-stack move. Root owns the shared correction; Luna supplies bounded mechanism regressions. Correct both effect and declared evolution placement, preserve unchosen links, use the existing digivolution-cost path before placement, and reject stale or restricted sources. Normal declaration extends the existing digivolve intent with an explicit partner instance ID; no parallel transport verb is needed. Update affected cross-set test expectations only where the shared fix disproves them, then run their suites alongside BT21. Official Q4892 explicitly excludes cards without Link from Ouranosmon's relinking effect; do not relax Link eligibility.
+
+## Final integrated gate v14
+
+Every catalog card has completed independent clause review. All 102 cards hold the four fidelity categories (8/10) pending delivery. The final 150-file card/mechanism gate passes 2603 assertions, and typecheck, scoped style, set-scoped effects synchronization, and diff checks pass. Closeout now records the atomic commit map, pushes this worktree branch, makes the review PR ready, and assigns delivery scores only after those actions succeed.

@@ -1,3 +1,7 @@
+# Current status: final gate v14
+
+All 102 cards have accepted catalog/rules, IR, behavioral and peer/stack evidence (816/1020 points before delivery). No unresolved card or engine fidelity finding remains. The synchronized gate passes 2603 assertions across 150 files, shared/API/web typecheck, scoped style, BT21 effects check and baseline diff whitespace check. Atomic commits and push are being finalized; delivery points remain withheld until the branch is pushed. Historical findings below describe earlier revisions.
+
 ## Public proof checkpoint v13 (current review)
 
 The lead recalculated all 102 cards: **722/1020**, **68 cards at accepted 8/10 fidelity**, **0/102 final 10/10**. Delivery is incomplete. The full v13 collection gate is being recorded separately; focused passes alone do not close this collection.

@@ -1,0 +1,25 @@
+{
+  "checkpoint": "v14",
+  "catalogCards": 102,
+  "catalogSnapshotMatchesCommittedSource": true,
+  "irOnlyModules": 102,
+  "focusedTestFiles": 102,
+  "evidenceReports": 102,
+  "reviewers": [
+    "Astra lead",
+    "gpt-5.6-luna /root/luna_a",
+    "gpt-5.6-luna /root/luna_b",
+    "gpt-5.6-luna /root/luna_c"
+  ],
+  "remainingFidelityFindings": [],
+  "resolvedFindings": [
+    "Corrected inherited Snatchmon fixture to Lv6 Galacticmon over Destromon and Snatchmon",
+    "Corrected Collision defender ownership and stable identities",
+    "Rejected incorrect BT21-095 trash-source claim: committed Security is hand only",
+    "Corrected Security Option zones and completed attack observations",
+    "Replaced illegal name-filter negative evolution routes with otherwise-legal red routes",
+    "Documented Tai reactivation as source-zone proof; intrinsic OPT remains IR/mechanism backed",
+    "Used printed DP victims and actual public effects instead of synthetic DP changes"
+  ],
+  "deliveryStatus": "pending final gates and push"
+}

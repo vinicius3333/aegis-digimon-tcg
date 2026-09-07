@@ -81,6 +81,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-001.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-001.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -154,6 +161,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-002.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-002.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -231,6 +245,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-003.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-003.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -309,6 +330,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-004.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-004.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -320,17 +348,16 @@
     {
       "cardId": "BT21-005",
       "name": "Swipemon",
-      "status": "proof-gaps",
+      "status": "delivery-pending",
       "scores": [
         2,
         2,
-        1,
+        2,
         2,
         0
       ],
       "evidence": "cards/BT21-005.md",
       "gaps": [
-        "Opponent-turn public link rejection prevents the trigger; an actual opponent-turn link producer or isolated event proof remains under review.",
         "Final collection delivery gates pending"
       ],
       "owner": "luna_b",
@@ -389,13 +416,25 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-005.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-005.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "90393deb6",
         "e8b547ea6",
-        "8d7a3ce52"
-      ]
+        "8d7a3ce52",
+        "62119597fa0408052cd854dd43bda52e1452302a"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public own-turn Link producers and opponent-turn intent rejection are paired with an isolated event timing negative. The latter is supplemental because linkCard is turn-gated; no unsupported public opponent-turn producer is claimed."
+      }
     },
     {
       "cardId": "BT21-006",
@@ -463,6 +502,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "5/5",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -535,6 +581,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -607,6 +660,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-008.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-008.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -684,6 +744,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -763,6 +830,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -835,6 +909,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-011.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-011.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -906,6 +987,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -982,6 +1070,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-013.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-013.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1066,6 +1161,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-014.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-014.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1139,6 +1241,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-015.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-015.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1225,6 +1334,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "19/19",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1311,6 +1427,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-017.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-017.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1394,6 +1517,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "21/21",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "21/21",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1468,6 +1598,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-019.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-019.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1539,6 +1676,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-020.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-020.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1616,6 +1760,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-021.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "19/19",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-021.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1690,6 +1841,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-022.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-022.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1777,6 +1935,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-023.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-023.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1856,6 +2021,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-024.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-024.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -1934,6 +2106,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-025.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-025.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2017,6 +2196,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2096,6 +2282,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-027.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-027.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2174,6 +2367,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-028.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-028.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2257,6 +2457,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-029.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-029.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2340,6 +2547,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-030.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-030.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2423,6 +2637,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2506,6 +2727,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-032.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-032.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2589,6 +2817,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2672,6 +2907,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-034.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-034.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2755,6 +2997,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-035.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-035.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2838,6 +3087,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-036.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-036.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -2921,6 +3177,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-037.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-037.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3004,6 +3267,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-038.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "19/19",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-038.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3088,6 +3358,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-039.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-039.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3171,6 +3448,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-040.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "18/18",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-040.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "18/18",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3254,6 +3538,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-041.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-041.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3332,6 +3623,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-042.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-042.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3415,6 +3713,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3493,6 +3798,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3587,6 +3899,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-045.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-045.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3675,6 +3994,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-046.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-046.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3763,6 +4089,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-047.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-047.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3851,6 +4184,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-048.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-048.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -3944,6 +4284,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4033,6 +4380,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4117,6 +4471,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4215,6 +4576,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4293,6 +4661,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-053.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-053.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4381,6 +4756,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-054.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-054.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4464,6 +4846,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-055.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-055.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -4476,17 +4865,16 @@
     {
       "cardId": "BT21-056",
       "name": "Vemmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-056.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -4554,14 +4942,26 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "bc2284dec",
         "2b14bfcb0",
         "61af52223",
-        "c67079f4d74bf3c852b9db3c5b064fffaba0967c"
-      ]
+        "c67079f4d74bf3c852b9db3c5b064fffaba0967c",
+        "63494f15d1364aa1b18db3cd3751a09ef33b7338"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public named/text matching, hand cost/refusal, own-target boundaries, Digi-Egg rejection, once-per-turn and next-turn reset reviewed against catalog and Q4560."
+      }
     },
     {
       "cardId": "BT21-057",
@@ -4637,23 +5037,29 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
     {
       "cardId": "BT21-058",
       "name": "Snatchmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-058.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -4721,29 +5127,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "98a07cfb0",
         "80918a43e",
         "523f4da51",
-        "bb6052ac1a049b9881fc94672484c7fbc7e53193"
-      ]
+        "bb6052ac1a049b9881fc94672484c7fbc7e53193",
+        "892d9f042bf984da1ef3212a05cd24148cb95300"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Completed public opponent-turn attack on a legal Galacticmon host carrying Snatchmon and Destromon returns exactly two named Vemmon, triggers inherited cost-4 deletion and interrupts the attack before Security. Prior top-Destromon draft was invalid and replaced."
+      }
     },
     {
       "cardId": "BT21-059",
       "name": "Timemon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-059.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -4816,29 +5233,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "33bc0c5e3",
         "50fcffd1a",
         "ce6dced21",
-        "b5e7349df"
-      ]
+        "b5e7349df",
+        "2dec37ab2769d041d715bc16816ee40ccd34ef63"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Link costs and refusal, non-Appmon boundary, same-host once-per-turn, real Blocker interception and two-distinct-name App Fusion reviewed."
+      }
     },
     {
       "cardId": "BT21-060",
       "name": "Destromon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-060.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -4911,29 +5339,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "10417ed45",
         "2a4a62735",
         "64063dca6",
-        "2fe203560ba6cef0a82e3f54f90cada108d81f2b"
-      ]
+        "2fe203560ba6cef0a82e3f54f90cada108d81f2b",
+        "31315109b9c4e3f253e522d8475ebf7d5a7d7161"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Exact alternate evolution, stacked De-Digivolve, opponent effect protection through its full duration, Vemmon recovery, inherited interruption/cost refusal and security ordering reviewed."
+      }
     },
     {
       "cardId": "BT21-061",
       "name": "MetalGreymon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-061.md",
       "gaps": [
-        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -4996,13 +5435,25 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "969b44852",
         "3639b253b",
-        "71b9456d1"
-      ]
+        "71b9456d1",
+        "f5e88e97dac991c2c1521a5d7589626525000321"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public distinct-color De-Digivolve, independent Alliance recipient and attacker choices, same-source once-per-turn, non-ADVENTURE exclusion and inherited Alliance evolution reviewed."
+      }
     },
     {
       "cardId": "BT21-062",
@@ -5069,6 +5520,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -5079,24 +5537,24 @@
     {
       "cardId": "BT21-063",
       "name": "Gumdramon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-063.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "f05a5893f",
         "594f11e49",
         "e4d0b3447",
-        "0e688ab3a200d9cf0c5ab92084dac8706f1e33d0"
+        "0e688ab3a200d9cf0c5ab92084dac8706f1e33d0",
+        "7502b55c7943ed60bec79cc09059e86bdb06663f"
       ],
       "commands": [
         {
@@ -5163,29 +5621,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public alternate routes, Draw cost/refusal, accepted and declined Save after actual deletion, and inherited DP expiry across turns reviewed."
+      }
     },
     {
       "cardId": "BT21-064",
       "name": "Guilmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-064.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "6681e89dc",
         "dd1427de6",
-        "b29ab04e8"
+        "b29ab04e8",
+        "cc622da723e25bfd56dcb6448f904c731846b767"
       ],
       "commands": [
         {
@@ -5252,8 +5721,19 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public alternate routes, family-name/Hero cost, refusal/nonmatch, and inherited memory after completed battle deletion reviewed. Q5758/Q5759 concern related BT21-068 interactions and are not an unresolved printed BT21-064 clause."
+      }
     },
     {
       "cardId": "BT21-065",
@@ -5335,6 +5815,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -5419,6 +5906,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-066.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "18/18",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-066.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "18/18",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -5497,6 +5991,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-067.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-067.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -5575,6 +6076,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-068.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-068.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -5647,6 +6155,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -5725,29 +6240,36 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
     {
       "cardId": "BT21-071",
       "name": "Scopemon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-071.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "51c2b9ded",
         "b7fce2f9b",
-        "63a4d9d5fa396a7f702f10af4edc6213ec910aed"
+        "63a4d9d5fa396a7f702f10af4edc6213ec910aed",
+        "22229fee0ba3b1a3845ca280653dded040550905"
       ],
       "commands": [
         {
@@ -5804,8 +6326,19 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Appmon/Three Musketeers source placement, genuine bottom ordering, no-target/refusal, alternate evolution, exact Link DP and draw/trash reviewed."
+      }
     },
     {
       "cardId": "BT21-072",
@@ -5882,6 +6415,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -5955,6 +6495,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-073.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "22/22",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-073.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "22/22",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -5967,22 +6514,22 @@
     {
       "cardId": "BT21-074",
       "name": "Satellamon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-074.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "de6982860",
-        "fa372fe51"
+        "fa372fe51",
+        "4f6b594facbdda3426a1af3f9243e0f2ee22fcef"
       ],
       "commands": [
         {
@@ -6039,8 +6586,19 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-074.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "13/13",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-074.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public source placement/refusal, protection and expiry, separate Link producers, same-source shared once-per-turn and legal evolution then attack De-Digivolve reviewed."
+      }
     },
     {
       "cardId": "BT21-075",
@@ -6107,6 +6665,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-075.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "17/17",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-075.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "17/17",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -6186,29 +6751,36 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-076.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "15/15",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-076.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "15/15",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
     {
       "cardId": "BT21-077",
       "name": "Regulusmon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-077.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "b92f46c7d",
         "41fbc6fd1",
-        "3d38cef2b5c57c3a5de3109e44a546baf6a62636"
+        "3d38cef2b5c57c3a5de3109e44a546baf6a62636",
+        "f49bd5b07fd831778418df7d9eeeaf58f059ba6f"
       ],
       "commands": [
         {
@@ -6265,29 +6837,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-077.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-077.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Corrected Collision fixture uses defender-owned printed Timemon, stable permanent IDs and defender trash. Forced opponent attack, Security preservation, duration, cost/refusal and both recurrence effects reviewed."
+      }
     },
     {
       "cardId": "BT21-078",
       "name": "WereGarurumon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-078.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "75256536e",
         "225986de3",
-        "be9bb774c35b6b1bb6701bc34f4fba036ac92e87"
+        "be9bb774c35b6b1bb6701bc34f4fba036ac92e87",
+        "1062bd78b3fee012b6cf04585ea91fac48c3f87a"
       ],
       "commands": [
         {
@@ -6344,29 +6927,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-078.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-078.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Independent Alliance recipient/attacker choices, non-ADVENTURE attack boundary, completed public Alliance battles, inherited legal stack, once-per-turn and grant expiry reviewed."
+      }
     },
     {
       "cardId": "BT21-079",
       "name": "Megidramon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-079.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "bd9d34e5d",
         "6354ac0ca",
-        "bdc0807cbb379b2e14215c9ef46665420b545563"
+        "bdc0807cbb379b2e14215c9ef46665420b545563",
+        "276dbffa13046fa69a6da79dfde1366160a7d734"
       ],
       "commands": [
         {
@@ -6423,29 +7017,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-079.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "16/16",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-079.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "16/16",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Completed public Security Attack +1 and End-of-Attack wipe, both-controller deletion, Armor Purge, exact trash thresholds, recurrence/refusal and alternate evolution reviewed."
+      }
     },
     {
       "cardId": "BT21-080",
       "name": "Hiro Amanokawa",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-080.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "82529a55f",
         "a56ef8d23",
-        "3b9848fb76afc3c326eeed44b382915c830b13c1"
+        "3b9848fb76afc3c326eeed44b382915c830b13c1",
+        "ee6b1bbb35e10402e01c88b6efa1d22a323d2122"
       ],
       "commands": [
         {
@@ -6502,8 +7107,19 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-080.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-080.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Start Main, Gammamon-text and Hero-only source-placement producers, nonmatch and eligible refusal, controller boundary and Security reviewed."
+      }
     },
     {
       "cardId": "BT21-081",
@@ -6580,6 +7196,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ]
     },
@@ -6643,6 +7266,13 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-082.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-082.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
@@ -6653,23 +7283,23 @@
     {
       "cardId": "BT21-083",
       "name": "Taiki Kudo",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-083.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "759f2b2c6",
         "e499b4fd9",
-        "e2955f079f1bdda352f1b393adacf6ed6baddd29"
+        "e2955f079f1bdda352f1b393adacf6ed6baddd29",
+        "b71d60e9f66552621bc4f8e8e905b0831feecd80"
       ],
       "commands": [
         {
@@ -6726,29 +7356,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-083.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-083.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Start Main source placement, played/digivolved attack producers, nonmatching/opponent boundaries, eligible refusal and completed Security self-play reviewed."
+      }
     },
     {
       "cardId": "BT21-084",
       "name": "Haru Shinkai",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-084.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "4712f2d0e",
         "eabcd5bdd",
-        "82c53457c1a4e7d3583ef0ffc5c805ab543de29d"
+        "82c53457c1a4e7d3583ef0ffc5c805ab543de29d",
+        "c185890865f0855bb713c4651972cee97c275fb1"
       ],
       "commands": [
         {
@@ -6805,28 +7446,39 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Start Turn memory, linking cost/draw/App Fusion and refusal/controller boundary, plus completed Security self-play reviewed. securityChecked is emitted after the Security effect resolves."
+      }
     },
     {
       "cardId": "BT21-085",
       "name": "Davis Motomiya",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-085.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "aafa5e016",
-        "92cfd2381"
+        "92cfd2381",
+        "b98c16a765e979d843bb1f62f4da7c5c24b56b72"
       ],
       "commands": [
         {
@@ -6888,29 +7540,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-085.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Start Main, suspension plus top Armor source cost, exact draw/memory, no-target/refusal and Security reviewed. Related P-117 Q4600 does not add an unprinted BT21-085 clause."
+      }
     },
     {
       "cardId": "BT21-086",
       "name": "Marcus Damon",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-086.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "a750d11c4",
         "d857dcbc0",
-        "f47bca680caf843da01407e14df3cfeb9364cc91"
+        "f47bca680caf843da01407e14df3cfeb9364cc91",
+        "34f95dcb825a9fff12d5ea5f4855d71f395eba1b"
       ],
       "commands": [
         {
@@ -6972,28 +7635,39 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public conditional Start Main, suspension choice/refusal, same-Tamer two-suspension once-per-turn via printed Shoutmon X4, real Piercing battle, both DP modifiers and expiry, and completed Security reviewed."
+      }
     },
     {
       "cardId": "BT21-087",
       "name": "Zenith",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-087.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "342ecda36",
-        "e7cba3cbf"
+        "e7cba3cbf",
+        "23342e5d48af1bc18784471bfde3685d1055a1bf"
       ],
       "commands": [
         {
@@ -7055,29 +7729,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-087.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public reveal/add/free-play dispositions, all candidate visibility, text/no-match boundaries, Start Turn threshold and Security On Play reviewed."
+      }
     },
     {
       "cardId": "BT21-088",
       "name": "Tagiru Akashi",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-088.md",
       "gaps": [
-        "Opponent-controller and opponent-Tamer material negatives pass; own evolution on opponent turn still requires an actual effect producer or isolated event proof.",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "e6537145b",
         "af82bf5a8",
-        "d5fa0c0a8e09b7d6c918e5e9e76c5e207c67e5d5"
+        "d5fa0c0a8e09b7d6c918e5e9e76c5e207c67e5d5",
+        "ff5c57273ff5bea833decf2c8c49e36ebaa8a414"
       ],
       "commands": [
         {
@@ -7139,30 +7824,41 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "19/19",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "19/19",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public source placement/refusal and bottom ordering, Save/Hero union, controller/material exclusions and cost reduction reviewed. Own evolution on opponent turn is an isolated event supplement to public controller negatives, accurately documented."
+      }
     },
     {
       "cardId": "BT21-089",
       "name": "Takato Matsuki",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
         2,
         2,
-        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-089.md",
       "gaps": [
-        "Final target/trait and eligible refusal sufficiency review pending; Tamer-source watcher defect is fixed.",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "9051179c2",
         "aa34236cf",
         "47791d062",
-        "45b1ac8742c971c5e99e50e08db673bec0fe0b94"
+        "45b1ac8742c971c5e99e50e08db673bec0fe0b94",
+        "4cae27bf05dc6be79261d52c1ac58680eff7fbb2"
       ],
       "commands": [
         {
@@ -7214,29 +7910,40 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-089.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "14/14",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-089.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Main timing, eligible Hero refusal, real Blocker interception, legal source evolution boundaries, exact combined-trash threshold and expiry through opponent turn reviewed."
+      }
     },
     {
       "cardId": "BT21-090",
       "name": "The Strongest of Brothers",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
         2,
         2,
-        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-090.md",
       "gaps": [
-        "Opposing-controller/non-effect source-placement negatives and Security over-cap/refusal require final review.",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "90d5bd6f0",
         "c1d873be0",
-        "28ac258c28c336d716d571c36612da59da67b5a4"
+        "28ac258c28c336d716d571c36612da59da67b5a4",
+        "f356f90614391762bc09ce270d69bf758bee631f"
       ],
       "commands": [
         {
@@ -7288,23 +7995,33 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "12/12",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-090.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "14/14",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public placement and aged Delay acceptance/refusal, ordinary rule evolution and opponent placement negatives, color waiver boundaries, Security hand/trash/refusal and over-cap rejection reviewed."
+      }
     },
     {
       "cardId": "BT21-091",
       "name": "Spirit Evolution!",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-091.md",
       "gaps": [
-        "Reactive Delay public aging, acceptance and refusal now pass; remaining full clause review pending.",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -7352,32 +8069,44 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-091.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-091.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
-        "d3fa7014b"
-      ]
+        "d3fa7014b",
+        "e4180163d4ab740b8c5eb25759fab4b89ac3ad94"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Main Hybrid cost/refusal, inherited-Tamer waiver/controller boundary, same-turn Delay rejection, aged acceptance/refusal, and completed Security hand/trash/refusal reviewed."
+      }
     },
     {
       "cardId": "BT21-092",
       "name": "Can't Turn My Back!",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-092.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "2fc6cc732",
         "3a970b932",
-        "487b533cecb61d78f99773f44234a31f2221c631"
+        "487b533cecb61d78f99773f44234a31f2221c631",
+        "586c2309b4b08235966ff10d8769107edfd986de"
       ],
       "commands": [
         {
@@ -7429,23 +8158,33 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-092.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-092.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public all-Digimon source transfer with Digi-Egg retained, explicit reverse ordering and bottom placement, exact counted play reduction/refusal, waiver boundaries, and Security source/cost/refusal reviewed."
+      }
     },
     {
       "cardId": "BT21-093",
       "name": "Raging Serpentine",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-093.md",
       "gaps": [
-        "Reactive Delay now proven by aged public security attacks; remaining full clause review pending.",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -7493,26 +8232,37 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-093.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-093.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
-        "17f2b6e76"
-      ]
+        "17f2b6e76",
+        "dd4ffd242dd4e5b1901ea41797655ea89daa4089"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public highest-DP deletion, exact security-count use reduction, actual Security battle, aged security-removal free evolution and eligible refusal reviewed. Synthetic DP overrides in deletion fixtures replaced with printed cards."
+      }
     },
     {
       "cardId": "BT21-094",
       "name": "Armor Digivolution",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-094.md",
       "gaps": [
-        "Reactive Delay public Armor Purge acceptance passes; ineligible evolution negative may be confounded by placement-turn restriction.",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -7560,32 +8310,44 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "5/5",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "7e4f2050e",
-        "e65e4cfe2655418387cd8aa42c2f64bf82796dd9"
-      ]
+        "e65e4cfe2655418387cd8aa42c2f64bf82796dd9",
+        "13b756dac461b483ddd8a22a86319e50f9359716"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Main/Security reveal dispositions, completed Security battle, actual Armor Purge and fully aged legal/non-Armor Delay cases reviewed."
+      }
     },
     {
       "cardId": "BT21-095",
       "name": "Wind Guardians",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-095.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "54cc96a2c",
-        "c4a95828c"
+        "c4a95828c",
+        "b42418fae1d6ee4fbb8559eacbdd8cf4269b6a3c"
       ],
       "commands": [
         {
@@ -7637,30 +8399,41 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-095.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-095.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Committed catalog Security is HAND ONLY. Rejected proposed trash-source production change. Public level-6 WG hand rejection complements level-5 acceptance/refusal, Main face-up placement, waiver and Vortex duration proofs."
+      }
     },
     {
       "cardId": "BT21-096",
       "name": "The Champion Ultimate Fighter!",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
         2,
         2,
-        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-096.md",
       "gaps": [
-        "Exact for-the-turn expiry of all temporary Marcus properties still needs a card-level lifecycle proof.",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "607af2a3b",
         "3257a96a8",
         "fc759fee1",
-        "ad49841de4b868095b8f63a2b8445424f550393c"
+        "ad49841de4b868095b8f63a2b8445424f550393c",
+        "cebce8e584799b6ee771b6183c3f5d8ac29c8c7d"
       ],
       "commands": [
         {
@@ -7712,28 +8485,39 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-096.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-096.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Main battle is completed; actual eligible refusal is separate from no-target case. Exact free play and temporary Marcus DP/Rush/restriction/attack-permission expiry plus Security hand/trash reviewed."
+      }
     },
     {
       "cardId": "BT21-097",
       "name": "App Link",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-097.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "3598d3f79",
-        "64719eb9c"
+        "64719eb9c",
+        "bf64d24140bcfb6ee1fb8a706fc9d55ba7a77129"
       ],
       "commands": [
         {
@@ -7785,23 +8569,33 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-097.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "5/5",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-097.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Actual placement, full turn aging, eligible Link acceptance/refusal, non-Link boundary and completed Security placement reviewed. Refusal fixture now has enough deck cards for reveal and both owner turns."
+      }
     },
     {
       "cardId": "BT21-098",
       "name": "Ragnarok Cannon",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-098.md",
       "gaps": [
-        "Public Security hand/trash proof passes; Delay still uses a seeded aged Option and needs public placement-to-aging review.",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -7854,34 +8648,46 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "6151393f1",
         "cee8ce24e",
-        "bb75e3c96bf03770c704192c2689accfadcd9bc3"
-      ]
+        "bb75e3c96bf03770c704192c2689accfadcd9bc3",
+        "b3825313ef802cd27ff2dd36f4c86930d88d2709"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Option placement and full aging, lowest-cost deletion, completed attack, Security hand/trash, eligible refusal and over-cap rejection reviewed. No cost-7 Vemmon-text Digimon exists in the committed catalog; cost-10 Destromon is a valid over-cap negative. Two own Start Main phases produce two BT11-111 security trashes before the attack check."
+      }
     },
     {
       "cardId": "BT21-099",
       "name": "Xros Up",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-099.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "07b70678f",
         "29fd24f31",
-        "6ef0fcb64505583bbcbafaa29bbc7f90b0129982"
+        "6ef0fcb64505583bbcbafaa29bbc7f90b0129982",
+        "f100c809fc3dfe1b2eb8e7b3d50caa78058b27da"
       ],
       "commands": [
         {
@@ -7933,23 +8739,33 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-099.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-099.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public Main proves both hand and trash placement at the bottom of an own Tamer, free evolution/refusal, no-target paths and both Security source zones."
+      }
     },
     {
       "cardId": "BT21-100",
       "name": "The Digimon I Designed",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-100.md",
       "gaps": [
-        "Public same-turn/aged actual deletion and outer refusal pass; full remaining clause review pending.",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -7997,27 +8813,38 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-100.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "890e7f774",
-        "386437b8f9df2012ca613f80721491a9d9ac1bb6"
-      ]
+        "386437b8f9df2012ca613f80721491a9d9ac1bb6",
+        "a9e5087e32ea2d91fb4a0fd0afd0d589bd1d6bb7"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Fully aged public effect deletion proves acceptance/refusal, opponent-turn exclusion, and independent name-family negatives. Wrong host is red Lv5 BT1-023 with eligible red Lv6 BT21-079; wrong destination is red Lv6 BT1-025 over qualifying red/purple Lv5 BT21-076. Both otherwise legal routes isolate the name filter. Printed BT1-014 replaces injected 4000-DP victims."
+      }
     },
     {
       "cardId": "BT21-101",
       "name": "Gaiamon",
-      "status": "review-pending",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-101.md",
       "gaps": [
-        "Both App Fusion material orders proven through public Haru linking; genuine eligible attack-link refusal and full boundary review pending.",
         "Final collection delivery gates pending"
       ],
       "commands": [
@@ -8070,35 +8897,47 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-101.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-101.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
       ],
       "deliveryCommits": [
         "1622ba96c",
         "3bc7fdf50",
         "ce6dced21",
-        "1e843072a7048be5cf91668b54e3101237464102"
-      ]
+        "1e843072a7048be5cf91668b54e3101237464102",
+        "7d34e1d2f9d1db5b68a296bf475cbb7fa9a44544"
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public same-host Link intent then attack-time Link produces exactly two linked cards, one security trash, completed battle and a still-suspended Gaiamon after the second opportunity. App Fusion, source/controller/trait boundaries and eligible attack-time refusal reviewed."
+      }
     },
     {
       "cardId": "BT21-102",
       "name": "Tai Kamiya",
-      "status": "integration-review",
+      "status": "delivery-pending",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-102.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
         "7632dd026",
         "66cfda08d",
-        "8d3663f3d4f34e7b50381d2f1f4b82796bc0f537"
+        "8d3663f3d4f34e7b50381d2f1f4b82796bc0f537",
+        "82719e86cc530107dc225bd16b300e24fe02d15b"
       ],
       "commands": [
         {
@@ -8150,8 +8989,19 @@
           "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-102.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
           "result": "10/10",
           "log": "logs/collection-public-proofs-v13.log"
+        },
+        {
+          "command": "TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-102.test.ts --maxWorkers=1 --no-file-parallelism --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-final-v14.log",
+          "executedCommandManifest": "collection-command-v14.json",
+          "note": "Card assertions executed in the complete 150-file invocation; command above reproduces this card in isolation."
         }
-      ]
+      ],
+      "leadReview": {
+        "checkpoint": "v14",
+        "result": "Public conditional Start Turn, completed attack Draw, exact free Main play memory, scaling/refusal, deck-bottom return and Security reviewed. Public reactivation rejection is a source-zone proof after Tai returns to deck, not an isolated once-per-turn proof; the IR frequency and shared mechanism tests cover that intrinsic limit."
+      }
     }
   ],
   "commandNote": "Per-card commands reproduce the card assertions. Recorded logs may group multiple listed card paths into one serialized invocation; aggregate red runs are explicitly not delivery gates.",
