@@ -98,6 +98,29 @@ describe("BT24-034 Aegiomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT24-083");
   });
 
+  it("resolves the security cost and TS Tamer play through a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-034", as: "aegiomon" }, { card: "BT24-083", as: "tamer" }],
+          security: [{ card: "BT1-009", as: "cost" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const costInstanceId = s.inst("cost").instanceId;
+    const tamerInstanceId = s.inst("tamer").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aegiomon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([costInstanceId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(tamerInstanceId);
+  });
+
   it("allows Dan Yuki beside Dan Yuki & Kanan Yuki because the names differ (Q6713)", async () => {
     const s = setupEngine(
       {
