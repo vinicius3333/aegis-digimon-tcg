@@ -366,4 +366,24 @@ describe("BT24-056 Dezipmon", () => {
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("dezipmon").instanceId));
     expect(s.state.memory).toBe(-1);
   });
+
+  it("refuses linking onto an opponent host without paying or moving the Appmon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-009", as: "ownHost" }], hand: [{ card: "BT24-056", as: "dezipmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponentHost" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dezipmon").instanceId,
+        targetPermanentId: s.perm("opponentHost").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "no-such-permanent" });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dezipmon").instanceId);
+    expect(s.perm("opponentHost").linked).toHaveLength(0);
+  });
 });
