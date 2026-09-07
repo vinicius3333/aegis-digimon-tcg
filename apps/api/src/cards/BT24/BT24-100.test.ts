@@ -93,4 +93,23 @@ describe("BT24-100 In-Between Theater", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-100")).toBe(true);
   });
+
+  it("places itself from security during a natural public security battle", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT24-100", as: "checkedOption", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("checkedOption").instanceId));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(s.inst("checkedOption").instanceId);
+  });
 });
