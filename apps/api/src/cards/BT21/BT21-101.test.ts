@@ -139,6 +139,38 @@ describe("BT21-101 Gaiamon", () => {
     expect(s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
   });
 
+  it("accepts the public attack but declines an eligible attack-time link", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-101", as: "gaiamon" }], hand: [{ card: "BT21-009", as: "link" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const pending = s.state.pendingDecision;
+    expect(pending?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("gaiamon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
   it("publicly declines the optional attack-time link and rejects a non-Link candidate", async () => {
     const s = setupEngine(
       {
