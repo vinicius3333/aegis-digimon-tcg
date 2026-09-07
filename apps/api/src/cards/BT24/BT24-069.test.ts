@@ -85,13 +85,13 @@ describe("BT24-069 Vilemon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-069", as: "vilemon" }],
-          hand: [{ card: "BT1-001", as: "ownCard" }],
+          hand: [{ card: "BT1-009", as: "ownCard" }],
         },
         1: {
-          hand: [{ card: "BT1-002", as: "opponentCard" }],
+          hand: [{ card: "BT1-010", as: "opponentCard" }],
           deck: [
-            { card: "BT1-003", as: "firstDeck" },
-            { card: "BT1-004", as: "secondDeck" },
+            { card: "BT1-011", as: "firstDeck" },
+            { card: "BT1-012", as: "secondDeck" },
           ],
         },
       },
@@ -121,7 +121,7 @@ describe("BT24-069 Vilemon", () => {
   it("gains Blocker and 2000 DP at 10 cards in the opponent's trash", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT24-069", as: "vilemon" }] },
-      1: { trash: Array.from({ length: 10 }, () => "BT1-001") },
+      1: { trash: Array.from({ length: 10 }, () => "BT1-009") },
     });
     await s.ready();
 
@@ -132,15 +132,15 @@ describe("BT24-069 Vilemon", () => {
   it("public attack trashes both players' top cards through the inherited effect", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-069"] }],
-        deck: ["BT1-001", "BT1-002"],
+        battleArea: [{ card: "BT1-032", as: "host", under: ["BT24-069"] }],
+        deck: ["BT1-009", "BT1-010"],
       },
       1: {
         deck: [
-          { card: "BT1-003", as: "theirFirst" },
-          { card: "BT1-004", as: "theirSecond" },
+          { card: "BT1-011", as: "theirFirst" },
+          { card: "BT1-012", as: "theirSecond" },
         ],
-        security: ["BT1-005", "BT1-006"],
+        security: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();
