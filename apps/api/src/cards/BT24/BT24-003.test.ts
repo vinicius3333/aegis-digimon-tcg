@@ -86,7 +86,7 @@ describe("BT24-003 Tsunomon", () => {
         0: {
           battleArea: [{ card: "P-194", as: "host", under: ["BT24-003"] }],
           hand: [{ card: "BT24-014", as: "shaman" }],
-          security: [{ card: "BT1-001", as: "removed" }],
+          security: [{ card: "BT1-009", as: "removed" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -110,8 +110,8 @@ describe("BT24-003 Tsunomon", () => {
             { card: "BT24-014", as: "shaman" },
             { card: "BT24-093", as: "temple" },
           ],
-          security: ["BT1-001"],
-          deck: ["BT1-002"],
+          security: ["BT1-009"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -124,6 +124,52 @@ describe("BT24-003 Tsunomon", () => {
     await settle(() => s.perm("host").topCard.instanceId === s.inst("shaman").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.memory).toBe(6);
+  });
+
+  it("survives a losing security battle with Barrier, then evolves and checks the extra security (Q5576/Q5585)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-194", as: "host", under: ["BT24-003"] }],
+          hand: [{ card: "BT24-014", as: "shaman" }],
+          security: [{ card: "BT1-009", as: "barrierCost" }],
+        },
+        1: {
+          security: [
+            { card: "ST1-10", as: "strong" },
+            { card: "BT1-009", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("shaman").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.events).toContainEqual({ kind: "barrierPrompt", permanentId: hostId });
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "barrierResolved"));
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("shaman").instanceId);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("barrierCost").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("strong").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+    expect(
+      s.events
+        .filter((event) => event.kind === "securityChecked")
+        .map((event) => (event.kind === "securityChecked" ? event.revealedCardId : undefined)),
+    ).toEqual(["ST1-10", "BT1-009"]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-003", "P-194"]);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
   });
 
   it("can be reached through two public legal TS evolution steps from the egg", async () => {
