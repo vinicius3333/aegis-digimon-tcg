@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT8/BT8-067.js";
 import "../BT8/BT8-084.js";
 import "./P-076.js";
 
@@ -32,14 +33,13 @@ describe("P-076 Deltamon", () => {
         instanceId: s.inst("metalGreymon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.perm("deltamon").topCard.cardId === "BT8-067" &&
-        s.state.players[1]!.battleArea.length === 0 &&
-        s.state.pendingDecision === undefined,
-      5000,
-    );
+    // Deltamon's own Delete is a WhenAttacking effect, not WhenDigivolving — but the
+    // digivolution target itself, BT8-067 MetalGreymon, carries its own mandatory
+    // [When Digivolving] "delete 1 opponent Digimon with 3000 DP or less", which fires
+    // right here and removes one of the two DP-3000 opponents before any attack happens.
+    await settle(() => s.perm("deltamon").topCard.cardId === "BT8-067" && s.state.pendingDecision === undefined, 5000);
     expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
     expect(
       s.engine.applyIntent(0, {

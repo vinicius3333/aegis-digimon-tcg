@@ -75,7 +75,7 @@ describe("BT9-044 Magnamon (X Antibody)", () => {
         },
         1: { battleArea: [{ card: "BT9-023", as: "attacker" }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();

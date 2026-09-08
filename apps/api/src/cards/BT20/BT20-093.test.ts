@@ -207,7 +207,9 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    // A player-directed, unblocked attack resolves through a security check rather than
+    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("breaker").isSuspended).toBe(true);
 
     expect(

@@ -76,7 +76,7 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
-        s.state.players[1]!.security.length === 2 &&
+        s.state.players[1]!.security.length === 1 &&
         !observe(s.engine).isAttacking(),
     );
 

@@ -88,11 +88,14 @@ describe("ST13 Legend-Arms end-of-turn DNA deck", () => {
         response: { kind: "chooseTargets", instanceIds: [bryweludramonId] },
       }),
     ).toEqual({ ok: true });
+    // BT1-001 is a Digi-Egg: a generic "add to hand" reveal disposition can't put a
+    // Digi-Egg in hand, so it lands face-down at the bottom of the egg deck instead
+    // (KB BT25-080 Q6715), not the hand.
     await settle(
       () =>
         s.perm("durandamon").stack.some(({ cardId }) => cardId === "ST13-02") &&
         s.perm("bryweludramon").stack.some(({ cardId }) => cardId === "ST13-09") &&
-        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001") &&
+        s.state.players[0]!.eggDeck.some(({ cardId }) => cardId === "BT1-001") &&
         s.perm("durandamon").currentDP === 14000 &&
         observe(s.engine).keywordAmount(s.perm("durandamon"), "SecurityAttack") === 1 &&
         observe(s.engine).isRestricted(s.perm("bryweludramon"), "beDeleted") &&

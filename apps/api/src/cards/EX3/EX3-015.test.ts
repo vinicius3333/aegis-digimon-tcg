@@ -121,6 +121,17 @@ describe("EX3-015 Crabmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // EX3-022's own "may play EX3-015 from digivolution cards" prompt comes first.
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.decisions.at(-1)?.req.sourceCardId === "EX3-022",
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () => s.state.pendingDecision?.kind === "optional" && s.decisions.at(-1)?.req.sourceCardId === "EX3-015",
     );

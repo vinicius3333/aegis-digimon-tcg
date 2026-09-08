@@ -167,7 +167,9 @@ describe("BT26-031 compiled fidelity", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
+    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("faceUpBottom").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("faceDownUpper").instanceId);

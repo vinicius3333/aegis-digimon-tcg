@@ -206,7 +206,7 @@ describe("EX3-028 Patamon", () => {
         s.events.some(
           (event) =>
             event.kind === "cardsMoved" &&
-            event.to === "deck" &&
+            event.to === "deckBottom" &&
             event.instanceIds.length === 2 &&
             event.instanceIds.every((instanceId, index) => instanceId === requestedBottomOrder[index]),
         ),
@@ -377,7 +377,7 @@ describe("EX3-028 Patamon", () => {
       s.events.some(
         (event) =>
           event.kind === "cardsMoved" &&
-          event.to === "deck" &&
+          event.to === "deckBottom" &&
           event.instanceIds.length === 3 &&
           event.instanceIds.every((instanceId, index) => instanceId === order[index]),
       ),

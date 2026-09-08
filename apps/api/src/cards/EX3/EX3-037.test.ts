@@ -171,7 +171,7 @@ describe("EX3-037 Dracomon", () => {
         s.events.some(
           (event) =>
             event.kind === "cardsMoved" &&
-            event.to === "deck" &&
+            event.to === "deckBottom" &&
             event.instanceIds.some((instanceId) => requestedOrder.includes(instanceId)),
         ),
     );

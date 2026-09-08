@@ -10,7 +10,15 @@ describe("P-179 Justimon: Critical Arm", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT19-064", as: "base" }],
+          // BT19-064 itself carries an inherited "[When Digivolving] by trashing 1
+          // Option card in the battle area (either side's), unsuspend this Digimon"
+          // effect, which also fires here. Give it its own spare Option (BT1-090) so
+          // it doesn't consume the opponent's only Option before P-179's own delete
+          // cost gets to spend it.
+          battleArea: [
+            { card: "BT19-064", as: "base" },
+            { card: "BT1-090", as: "spareOption" },
+          ],
           hand: [
             { card: "P-179", as: "critical" },
             { card: "P-155", as: "device" },
@@ -33,7 +41,12 @@ describe("P-179 Justimon: Critical Arm", () => {
       },
     );
     const cost9Id = s.perm("cost9").permanentId;
-    preferred.push(s.inst("device").instanceId, s.perm("opponentOption").topCard.instanceId, cost9Id);
+    preferred.push(
+      s.inst("spareOption").instanceId,
+      s.inst("device").instanceId,
+      s.perm("opponentOption").topCard.instanceId,
+      cost9Id,
+    );
     s.state.memory = 3;
 
     expect(
@@ -43,10 +56,12 @@ describe("P-179 Justimon: Critical Arm", () => {
         instanceId: s.inst("critical").instanceId,
       }),
     ).toEqual({ ok: true });
+    // The Device's own cost places it into the battle area (not trash); it's the
+    // OPPONENT's Option (opponentOption) that gets trashed to pay the delete cost.
     await settle(
       () =>
         s.perm("base").topCard.cardId === "P-179" &&
-        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("device").instanceId) &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("device").instanceId) &&
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === cost9Id),
     );
 

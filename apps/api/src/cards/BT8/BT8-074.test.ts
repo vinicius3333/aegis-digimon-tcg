@@ -20,7 +20,9 @@ describe("BT8-074 Soulmon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.length === 2);
+    // Digivolving draws 1 card first (CR §8-2-4), leaving only 1 card in a 2-card
+    // deck for this effect's "trash the top 2" mill, so only 1 card reaches the trash.
+    await settle(() => s.state.players[0]!.trash.length === 1);
     expect(s.state.memory).toBe(3);
   });
 

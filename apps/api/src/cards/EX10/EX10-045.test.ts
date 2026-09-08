@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-045.js";
 import "../index.js";
@@ -179,7 +179,10 @@ describe("EX10-045 Tuwarmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    // The plain attacker grants no ＜Collision＞ and the defender has no ＜Blocker＞, so no block
+    // window ever opens for this attack — there is no such milestone to wait on here.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("noBlocker").permanentId }),
     ).toMatchObject({ ok: false });
@@ -193,7 +196,7 @@ describe("EX10-045 Tuwarmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
+    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 1);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("noBlocker").permanentId }),
     ).toEqual({ ok: true });

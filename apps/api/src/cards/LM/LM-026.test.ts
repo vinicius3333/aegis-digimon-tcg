@@ -120,7 +120,7 @@ describe("LM-026 Megidramon", () => {
     await withoutMegidramon.ready();
 
     await advance(withoutMegidramon.engine).fire(EffectTiming.WhenDigivolving, withoutMegidramon.perm("host"));
-    await settle(() => withoutMegidramon.state.pendingDecision === null);
+    await settle(() => withoutMegidramon.state.pendingDecision == null);
     expect(withoutMegidramon.state.players[1]!.battleArea).toHaveLength(1);
   });
 
@@ -137,7 +137,7 @@ describe("LM-026 Megidramon", () => {
     // Aldamon has 8000 DP. LM-026 adds only to printed numeric DP ceilings, not to
     // "as much or less DP as this Digimon"; Q4032 therefore leaves the 10000-DP target in play.
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId),

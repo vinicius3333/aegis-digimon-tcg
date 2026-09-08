@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-072.js";
 import "../BT10/BT10-022.js";
@@ -89,7 +89,10 @@ describe("EX1-047 Guardromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-047"));
+    // With no Machine/Cyborg card in hand to pay the cost, the optional effect never triggers
+    // at all — there is no `effectResolved` to wait on.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-047")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongTrait").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongTrait").instanceId)).toBe(false);

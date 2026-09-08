@@ -75,7 +75,7 @@ describe("BT10-072 Soundbirdmon", () => {
         },
         1: { security: ["BT1-001"] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
     const purpleId = s.inst("purpleMaterial").instanceId;
     const redId = s.inst("redDigimon").instanceId;

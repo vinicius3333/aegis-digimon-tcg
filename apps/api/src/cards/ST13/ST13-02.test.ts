@@ -9,7 +9,10 @@ describe("ST13-02 Zubamon", () => {
         0: {
           battleArea: [{ card: "ST13-05", as: "host" }],
           hand: [{ card: "ST13-02", as: "zubamon" }],
-          deck: ["ST13-07"],
+          // Ludomon: a Digimon with the [Legend-Arms] trait and a play cost of 3 — eligible
+          // for Zubamon's "play it without paying its memory cost" reveal (ST13-07 has no
+          // [Legend-Arms] trait and would go to hand instead, per the third test below).
+          deck: ["ST13-09"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -18,7 +21,7 @@ describe("ST13-02 Zubamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zubamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-07"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-09"));
     expect(s.perm("host").stack.some((card) => card.cardId === "ST13-02")).toBe(true);
     expect(s.state.memory).toBe(7);
   });

@@ -54,7 +54,7 @@ describe("BT8-085 Yolei Inoue", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
     expect(s.perm("yolei").isSuspended).toBe(false);
   });

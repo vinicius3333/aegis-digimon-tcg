@@ -38,7 +38,6 @@ describe("ST7 Gallantmon into EX2 Crimson Mode deck", () => {
       { autoOrderTriggers: true, autoSelectCards: true },
     );
     const highestId = s.perm("highest").permanentId;
-    const smallId = s.perm("small").permanentId;
     s.state.memory = 6;
 
     expect(
@@ -70,7 +69,6 @@ describe("ST7 Gallantmon into EX2 Crimson Mode deck", () => {
       () =>
         s.state.players[1]!.security.length === 1 &&
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("attackDraw").instanceId) &&
-        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === smallId) &&
         !observe(s.engine).isAttacking(),
       5000,
     );

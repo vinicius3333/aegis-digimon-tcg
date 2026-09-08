@@ -24,7 +24,7 @@ async function answerUntilPagumonDecision(s: ReturnType<typeof setupEngine>, acc
 
 async function declinePendingOptionals(s: ReturnType<typeof setupEngine>): Promise<void> {
   for (let i = 0; i < 20; i += 1) {
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "optional" || s.state.pendingDecision == null);
     const decision = s.state.pendingDecision;
     if (decision?.kind !== "optional") return;
     expect(
@@ -181,7 +181,7 @@ describe("BT25-005 Pagumon", () => {
       } as never),
     ).toEqual({ ok: true });
     for (let i = 0; i < 12; i += 1) {
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "optional" || s.state.pendingDecision == null);
       const decision = s.state.pendingDecision;
       if (decision?.kind !== "optional") break;
       const accept = decision.promptText === "Place 1 card(s) under" || decision.promptText === "Digivolve";

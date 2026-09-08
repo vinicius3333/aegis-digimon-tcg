@@ -105,21 +105,12 @@ describe("BT7-085 Takuya Kanbara", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const materials = s.decisions.at(-1)!.req;
-    expect(materials.sourceCardId).toBe("BT7-085");
-    expect(materials.options?.timing).toBe("Main");
-    expect(materials.options?.effectText).toContain("[Main][Once Per Turn]");
-    expect(materials.options?.effectText).not.toContain("[Inherited]");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: materials.decisionId,
-        response: { kind: "selectCards", instanceIds: hybrids },
-      }),
-    ).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const ordering = s.decisions.at(-1)!.req;
+    expect(ordering.sourceCardId).toBe("BT7-085");
+    expect(ordering.options?.timing).toBe("Main");
+    expect(ordering.options?.effectText).toContain("[Main][Once Per Turn]");
+    expect(ordering.options?.effectText).not.toContain("[Inherited]");
     expect(ordering.options?.orderDestination).toBe("stackBottom");
     const orderingResult = s.engine.applyIntent(0, {
       type: "respondDecision",

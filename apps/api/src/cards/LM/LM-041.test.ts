@@ -48,7 +48,7 @@ describe("LM-041 Regalecusmon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("regalecusmon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);

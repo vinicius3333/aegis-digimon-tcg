@@ -53,7 +53,7 @@ describe("BT6-017 MagnaKidmon", () => {
         },
         1: { battleArea: [{ card: "BT5-071", as: "target", dp: 4000 }] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").permanentId;
     s.state.memory = 4;

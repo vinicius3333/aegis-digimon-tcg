@@ -39,22 +39,28 @@ describe("BT1-101 Howling Crusher", () => {
   });
 
   it("does not end an already-declared attack after Security removes the attacker's sources (Q1311)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          {
-            card: "BT1-081",
-            as: "attacker",
-            dp: 10000,
-            under: ["BT1-001", "BT1-002"],
-          },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-081",
+              as: "attacker",
+              dp: 10000,
+              under: ["BT1-001", "BT1-002"],
+            },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT5-032", as: "hexeblaumon" }],
+          security: ["BT1-101", "BT1-009"],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT5-032", as: "hexeblaumon" }],
-        security: ["BT1-101", "BT1-009"],
-      },
-    });
+      // BT1-081's own [EndOfAttack] optional Unsuspend prompt is unrelated to what this
+      // test proves (BT1-101's Q1311 behavior); decline it so its own decision never
+      // stalls the settle below.
+      { autoDeclineOptional: true },
+    );
     advance(s.engine).ledgers.continuous.addKeywordGrant(
       s.perm("attacker").permanentId,
       "SecurityAttack",
@@ -70,7 +76,7 @@ describe("BT1-101 Howling Crusher", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking(), 1000);
 
     expect(s.perm("attacker").stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((entry) => entry.permanentId === s.perm("attacker").permanentId)).toBe(

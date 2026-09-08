@@ -379,9 +379,11 @@ describe("BT20-036 BanchoLeomon", () => {
       }),
     ).toEqual({ ok: true });
     advance(s.engine).endMainPhaseIfOpen(0);
-    await settle(() => false, 200);
+    // This is a player-directed attack (unblocked, no Digimon battle), so it resolves through
+    // a security check rather than emitting `combatResolved` (that event only fires for a
+    // resolved Digimon-vs-Digimon battle; see combat/controller.ts's `completedCombat`).
     await settle(
-      () => s.state.pendingDecision === undefined && s.events.some((event) => event.kind === "combatResolved"),
+      () => s.state.pendingDecision === undefined && s.events.some((event) => event.kind === "securityChecked"),
     );
     expect(s.state.pendingDecision).toBeUndefined();
     await turn;

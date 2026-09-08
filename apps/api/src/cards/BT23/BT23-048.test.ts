@@ -444,11 +444,12 @@ describe("BT23-048 Gotsumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
+    await settleAcrossTimers(
       () =>
         s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleId) &&
         !observe(s.engine).isAttacking(),
     );
+    await settle();
 
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;

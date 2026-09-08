@@ -86,7 +86,7 @@ describe("BT10-039 Taomon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
 
     const pending = s.state.pendingDecision!;
     expect(s.decisions.at(-1)!.req).toMatchObject({

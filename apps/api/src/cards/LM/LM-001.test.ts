@@ -99,7 +99,7 @@ describe("LM-001 Siriusmon", () => {
       instanceId: s.inst("siriusmon").instanceId,
       permanentId: s.perm("base").permanentId,
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
@@ -142,7 +142,7 @@ describe("LM-001 Siriusmon", () => {
     s.state.memory = 7;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("siriusmon").instanceId });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "LM-016")).toBe(true);
   });

@@ -274,7 +274,9 @@ describe("BT26-082 compiled behavior", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
+    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

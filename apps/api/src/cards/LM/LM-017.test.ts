@@ -127,7 +127,7 @@ describe("LM-017 Regulusmon", () => {
       subjectPermanentId: s.perm("regulusmon").permanentId,
       addedDigivolutionCardInstanceIds: [],
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "LM-016")).toBe(true);
@@ -154,7 +154,15 @@ describe("LM-017 Regulusmon", () => {
       addedDigivolutionCardInstanceIds: [],
       byEffectSeat: 0,
     });
-    await settle(() => s.state.players[0]!.trash.length === 1, 2000);
+    // The cost deletes one battlefield Digimon into trash while the effect plays one
+    // card out of trash, leaving trash at 2 (not 1): BT10-078 stays, and the deleted
+    // "first" (BT1-009) replaces the played LM-016.
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-016"),
+      2000,
+    );
     const afterFirst = s.state.players[0]!.battleArea.length;
 
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
@@ -162,7 +170,7 @@ describe("LM-017 Regulusmon", () => {
       addedDigivolutionCardInstanceIds: [],
       byEffectSeat: 0,
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(afterFirst);
   });

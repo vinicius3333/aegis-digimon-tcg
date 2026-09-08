@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-072.js";
 
 describe("BT6-072 Ogremon", () => {
@@ -43,8 +43,9 @@ describe("BT6-072 Ogremon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT6-072"));
+    await drainMicrotasks();
 
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT6-072")).toBe(false);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
       s.perm("target").topCard?.instanceId,
     );

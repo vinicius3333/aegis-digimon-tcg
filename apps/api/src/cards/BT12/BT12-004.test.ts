@@ -33,7 +33,7 @@ describe("BT12-004 TorikaraBallmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-009"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-009"));
     expect(s.perm("host").currentDP).toBe(before);
   });
 
@@ -68,7 +68,9 @@ describe("BT12-004 TorikaraBallmon", () => {
     const before = s.perm("host").currentDP;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === before + 2000);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     expect(s.perm("host").currentDP).toBe(before + 2000);
   });

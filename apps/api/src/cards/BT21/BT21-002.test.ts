@@ -103,7 +103,7 @@ describe("BT21-002 Gurimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);

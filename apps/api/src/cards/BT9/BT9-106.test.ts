@@ -8,16 +8,41 @@ import "./BT9-106.js";
 describe("BT9-106 DeathXDigivolution!", () => {
   it("matches catalog values and waiver, legal trash evolution, and security IR", () => {
     expect(getCardDefinition("BT9-106")).toMatchObject({
-      colors: ["Purple"], kinds: ["Option"], playCost: 0, types: ["X Antibody"],
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 0,
+      types: ["X Antibody"],
       securityEffectText: "[Security] Add this card to its owner's hand.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         {
           trigger: "Static",
-          actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } } }],
+          actions: [
+            {
+              kind: "WaiveColorRequirement",
+              condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+            },
+          ],
         },
-        { trigger: "Main", actions: [{ kind: "Digivolve", from: ["trash"], payCost: true, into: { nameOrTrait: [{ tokens: ["Dex"], match: "name" }, { tokens: ["DeathX"], match: "name" }] } }] },
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Digivolve",
+              from: ["trash"],
+              payCost: true,
+              into: {
+                nameOrTrait: [
+                  { tokens: ["Dex"], match: "name" },
+                  { tokens: ["DeathX"], match: "name" },
+                ],
+              },
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "AddToHandSelf" }] },
       ],
     });
@@ -43,7 +68,7 @@ describe("BT9-106 DeathXDigivolution!", () => {
         instanceId: s.inst("option").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectTargets");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const baseChoice = s.decisions.at(-1)!.req;
     expect(baseChoice.sourceCardId).toBe("BT9-106");

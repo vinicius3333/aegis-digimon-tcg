@@ -50,6 +50,9 @@ describe("P-178 Sagittarimon", () => {
             { card: "BT1-009", dp: 7000, as: "four" },
             { card: "BT1-009", dp: 8000, as: "five" },
           ],
+          // Non-empty security so the player-directed attack below runs a real
+          // security check instead of instantly winning against an empty stack.
+          security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

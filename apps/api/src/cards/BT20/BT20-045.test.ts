@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-045.js";
 import "./index.js";
 import "../ST22/ST22-08.js";
@@ -72,7 +72,10 @@ describe("BT20-045 Examon ACE", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    // Examon (1000 DP) loses this battle against the 5000 DP defender, which survives —
+    // only the attacker is deleted.
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(-5);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-045");
   });
@@ -203,10 +206,11 @@ describe("BT20-045 Examon ACE", () => {
         effectKey: eligible!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(
+    await settleAcrossTimers(
       () =>
         s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-045") && !observe(s.engine).isAttacking(),
     );
+    await settle();
     const result = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT20-045")!;
     expect(result.stack.map((card) => card.cardId)).toEqual(["BT20-027", "BT20-044"]);
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-010"]);
@@ -374,12 +378,12 @@ describe("BT20-045 Examon ACE", () => {
               { card: "BT20-045", suspended: true, as: "examon" },
               ...(suspendingSeat === 0 ? [{ card: "BT20-010", as: "trigger" }] : []),
             ],
+            security: ["BT1-001"],
           },
           1: {
             battleArea: suspendingSeat === 1 ? [{ card: "BT20-010", as: "trigger" }] : [],
             security: ["BT1-001"],
           },
-          ...(suspendingSeat === 0 ? { security: ["BT1-001"] } : {}),
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
@@ -392,7 +396,17 @@ describe("BT20-045 Examon ACE", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+      // Examon's own watcher can unsuspend it before the block window is evaluated (its
+      // trigger permanent suspends itself on attack declaration), which makes Examon's
+      // ＜Blocker＞ eligible when seat 1 attacks. The block-window contract is a first-class
+      // intent, not a `respondDecision` round-trip, so it needs an explicit decline here.
+      if (suspendingSeat === 1) {
+        await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+        expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+      }
+      // Player-directed, unblocked attacks resolve through a security check rather than
+      // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
+      await settle(() => s.events.some((event) => event.kind === "securityChecked"));
       expect(s.perm("examon").isSuspended).toBe(false);
     }
   });
@@ -425,7 +439,9 @@ describe("BT20-045 Examon ACE", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    // Player-directed, unblocked attacks resolve through a security check rather than
+    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("examon").isSuspended).toBe(false);
 
     expect(

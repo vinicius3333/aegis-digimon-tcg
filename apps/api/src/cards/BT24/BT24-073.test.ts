@@ -45,7 +45,7 @@ describe("BT24-073 SkullSatamon", () => {
           0: {
             battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
             deck: ["BT1-001", "BT1-002", "BT1-003"],
-            trash: [{ card: "BT1-069", as: "revive" }],
+            trash: [{ card: "BT2-067", as: "revive" }],
           },
           1: {
             deck: ["BT1-004", "BT1-005", "BT1-006"],
@@ -76,7 +76,7 @@ describe("BT24-073 SkullSatamon", () => {
           battleArea: [{ card: "BT24-070", as: "base" }],
           hand: [{ card: "BT24-073", as: "skullsatamon" }],
           deck: ["BT1-001", "BT1-002", "BT1-003"],
-          trash: [{ card: "BT1-069", as: "revive" }],
+          trash: [{ card: "BT2-067", as: "revive" }],
         },
         1: {
           deck: ["BT1-004", "BT1-005", "BT1-006"],
@@ -110,7 +110,7 @@ describe("BT24-073 SkullSatamon", () => {
         0: {
           battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
           deck: ["BT1-001", "BT1-002", "BT1-003"],
-          trash: [{ card: "BT1-069", as: "revive" }],
+          trash: [{ card: "BT2-067", as: "revive" }],
         },
         1: {
           deck: ["BT1-004", "BT1-005", "BT1-006"],

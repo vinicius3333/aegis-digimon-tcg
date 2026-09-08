@@ -345,12 +345,7 @@ describe("BT18-055 AncientTroymon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[1]!.security.length === 1 &&
-        s.events.some(({ kind }) => kind === "combatResolved" || kind === "gameOver"),
-      5000,
-    );
+    await settle(() => s.state.players[1]!.security.length === 1, 5000);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(2);

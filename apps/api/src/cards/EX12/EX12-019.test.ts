@@ -174,7 +174,19 @@ describe("EX12-019 Nezhamon", () => {
         blockerPermanentId: s.perm("blocker").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await (await import("../../engine/testkit/harness.js")).drainMicrotasks(500);
+    console.log(
+      "EVENTS",
+      s.events.map((e) => e.kind),
+      "KIND",
+      s.state.pendingDecision?.kind,
+      "SEC",
+      s.state.players[1]!.security.length,
+      "BA",
+      s.state.players[1]!.battleArea.length,
+      "DP",
+      s.perm("source").currentDP,
+    );
 
     expect(s.perm("source").currentDP).toBe(16000);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

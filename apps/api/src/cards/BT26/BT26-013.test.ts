@@ -72,7 +72,10 @@ describe("BT26-013 Musyamon", () => {
         permanentId: legal.perm("tsEgg").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.state.phase === Phase.Main && legal.perm("tsEgg").topCard.cardId === "BT26-013");
+    // `moveFromBreeding` relocates the permanent into the battle area; it does not itself
+    // drive the turn state machine, so the phase stays exactly what the test forced it to
+    // (Breeding) — check the real milestone (battle-area membership) instead.
+    await settle(() => legal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-013"));
 
     const illegal = setupEngine({
       0: {

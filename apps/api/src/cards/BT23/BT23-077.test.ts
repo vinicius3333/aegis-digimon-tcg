@@ -144,7 +144,7 @@ describe("BT23-077 Sistermon Ciel", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("stack").topCard?.cardId).toBe("ST1-02");
     expect(s.perm("stack").topCard?.instanceId).toBe(biyomonCardId);
@@ -237,7 +237,7 @@ describe("BT23-077 Sistermon Ciel", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("stack").topCard?.instanceId).toBe(greymonCardId);
     expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["ST1-02"]);
@@ -268,7 +268,7 @@ describe("BT23-077 Sistermon Ciel", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([barePermanentId]);
     expect(s.perm("bare").stack).toHaveLength(0);

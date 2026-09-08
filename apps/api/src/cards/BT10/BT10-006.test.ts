@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, drainMicrotasks } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT10-006.js";
 
 // A3 for BT10-006 (Tokomon) â€” inherited rider:
@@ -76,7 +76,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
     await s.engine.recomputeContinuousEffects();
 
     await advance(s.engine).verb.trashDigivolutionCards(host.permanentId, [digiCard.instanceId], 0);
-    await settle(() => p0.deck.length < deckBefore, 50);
+    await drainMicrotasks(50);
 
     expect(p0.deck.length).toBe(deckBefore); // no draw on own turn
   });

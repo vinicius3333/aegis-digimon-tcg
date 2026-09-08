@@ -48,6 +48,7 @@ describe("EX2-027 Rapidmon", () => {
   });
 
   it("gains inherited Security Attack +1 when an opponent's Digimon becomes suspended", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -66,15 +67,18 @@ describe("EX2-027 Rapidmon", () => {
           deck: ["BT1-001"],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     await s.ready();
+    preferred.push(s.perm("target1").topCard.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack") === 1);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    preferred.length = 0;
+    preferred.push(s.perm("target2").topCard.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
       ok: true,
     });

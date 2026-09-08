@@ -337,7 +337,7 @@ describe("BT20-027 Slayerdramon", () => {
         0: { battleArea: [{ card: "BT20-027", as: "slayer" }] },
         1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "blocker" }], security: ["BT1-010"] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.turnSeat = 0;
     await s.ready();

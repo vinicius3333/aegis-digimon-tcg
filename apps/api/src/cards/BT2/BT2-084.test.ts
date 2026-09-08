@@ -92,11 +92,13 @@ describe("BT2-084 Sora Takenouchi", () => {
   });
 
   it("does not activate for a non-red attacker", async () => {
+    // BT1-031 is Blue; BT2-020 (the earlier fixture here) is actually Red, which
+    // let the trigger fire and left an unanswered optional decision hanging.
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT2-084", as: "sora" },
-          { card: "BT2-020", as: "attacker" },
+          { card: "BT1-031", as: "attacker" },
         ],
       },
       1: { security: [{ card: "BT1-001", as: "security" }] },

@@ -248,7 +248,7 @@ describe("BT21-022 Canoweissmon", () => {
       expect.arrayContaining([s.inst("cost1").instanceId, s.inst("cost2").instanceId, s.inst("cost3").instanceId]),
     );
     await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
-    await settle(() => s.state.players[0]!.trash.length === 3);
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
   });
 

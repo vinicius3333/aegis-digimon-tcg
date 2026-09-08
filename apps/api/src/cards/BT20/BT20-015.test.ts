@@ -261,7 +261,11 @@ describe("BT20-015 Hisyaryumon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+      // A player-directed attack resolves through the security check, not a
+      // Digimon-vs-Digimon battle, so `combatResolved` never fires here.
+      await settle(
+        () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
+      );
       expect(s.state.memory).toBe(expectedMemory);
       expect(s.state.players[1]!.security).toHaveLength(0);
     }

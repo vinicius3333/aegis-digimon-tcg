@@ -315,6 +315,8 @@ describe("BT21-039 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("nonWgBase").topCard.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.hand).toContainEqual(

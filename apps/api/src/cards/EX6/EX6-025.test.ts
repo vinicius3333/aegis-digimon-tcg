@@ -113,8 +113,9 @@ describe("EX6-025 Sanzomon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-025", as: "sanzo", under: ["EX6-019"] }] } });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("sanzo").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sanzo").instanceId));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sanzo").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 

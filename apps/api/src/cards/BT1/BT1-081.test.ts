@@ -75,7 +75,7 @@ describe("BT1-081 HerculesKabuterimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
     expect(s.decisions.at(-1)!.req).toMatchObject({ kind: "optional", sourceCardId: "BT1-081" });
     expect(

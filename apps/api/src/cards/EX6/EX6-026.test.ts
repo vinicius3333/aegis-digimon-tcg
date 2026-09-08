@@ -116,8 +116,9 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-026", as: "cho", under: ["EX6-019"] }] } });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("cho").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cho").instanceId));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cho").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 

@@ -95,6 +95,7 @@ describe("BT17-059 Diaboromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.events.some((event) => event.kind === "gameOver"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

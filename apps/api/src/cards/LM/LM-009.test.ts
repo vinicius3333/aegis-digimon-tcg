@@ -38,7 +38,7 @@ describe("LM-009 Airdramon", () => {
     await s.ready();
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chamblemon").instanceId });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("airdramon").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);

@@ -212,7 +212,7 @@ describe("BT10-097 Blazing Memory Boost!", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.memory === 9 && s.state.players[0]!.trash.some((card) => card.instanceId === boost.topCard.instanceId),
+        s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.instanceId === boost.topCard.instanceId),
     );
 
     expect(

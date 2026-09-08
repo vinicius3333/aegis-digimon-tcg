@@ -57,12 +57,15 @@ describe("BT10-057 Bloomlordmon", () => {
   });
 
   it("stays suspended and gains no Piercing when only BloomLordmon itself qualifies", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "AD1-011", as: "base", suspended: true }],
-        hand: [{ card: "BT10-057", as: "evolving" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-011", as: "base", suspended: true }],
+          hand: [{ card: "BT10-057", as: "evolving" }],
+        },
       },
-    });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 4;
 
     expect(

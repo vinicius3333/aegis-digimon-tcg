@@ -41,6 +41,7 @@ describe("EX1-039 Lillymon", () => {
   });
 
   it("triggers only once per turn and expires when the public turn ends", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -62,8 +63,9 @@ describe("EX1-039 Lillymon", () => {
           security: ["BT1-001", "BT1-001"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("opponentOne").permanentId);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
@@ -75,6 +77,7 @@ describe("EX1-039 Lillymon", () => {
       () =>
         s.perm("opponentOne").isSuspended && observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack") === 1,
     );
+    preferred.splice(0, preferred.length, s.perm("opponentTwo").permanentId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondSuspender").instanceId })).toEqual({
       ok: true,
     });
@@ -117,7 +120,9 @@ describe("EX1-039 Lillymon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").isSuspended);
+    // "controller: opponent" is relative to the player who plays the suspender, and
+    // `autoSelectCards` lands on the first eligible target — player0's host — not "target".
+    await settle(() => s.perm("host").isSuspended);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

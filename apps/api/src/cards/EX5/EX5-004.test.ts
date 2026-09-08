@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-004.js";
 import "../index.js";
 
@@ -20,7 +20,10 @@ describe("EX5-004 Frimon", () => {
   });
 
   it("draws on a Leomon-name attack but not on an unrelated Digimon attack", async () => {
-    const resolve = async (hostCard: string) => {
+    // An unrelated host never fires the inherited draw, so that case can only be proven
+    // by draining the queue and asserting the draw did NOT happen (a disguised negative
+    // proof otherwise).
+    const resolve = async (hostCard: string, expectDraw: boolean) => {
       const s = setupEngine({
         0: {
           battleArea: [{ card: hostCard, as: "host", under: ["EX5-004"] }],
@@ -36,11 +39,18 @@ describe("EX5-004 Frimon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId), 300);
+      if (expectDraw) {
+        await settle(
+          () => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+          300,
+        );
+      } else {
+        await drainMicrotasks(300);
+      }
       return s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId);
     };
 
-    expect(await resolve("BT1-035")).toBe(true);
-    expect(await resolve("BT1-034")).toBe(false);
+    expect(await resolve("BT1-035", true)).toBe(true);
+    expect(await resolve("BT1-034", false)).toBe(false);
   });
 });

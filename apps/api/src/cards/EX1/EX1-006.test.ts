@@ -83,8 +83,8 @@ describe("EX1-006 Garudamon", () => {
         target: { kind: "player" },
       });
     expect(attack()).toEqual({ ok: true });
-    await settle(() => s.state.memory === 11);
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.state.memory === 10);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",

@@ -29,7 +29,7 @@ describe("BT12-005 Kozenimon", () => {
     s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plain").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-009"));
+    await settle(() => s.state.players[0]!.hand.length === 0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
@@ -62,7 +62,9 @@ describe("BT12-005 Kozenimon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);

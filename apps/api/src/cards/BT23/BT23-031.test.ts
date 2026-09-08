@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { settle, setupEngine, type BoardSpec } from "../../engine/testkit/harness.js";
+import { settle, settleAcrossTimers, setupEngine, type BoardSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-031.js";
@@ -390,7 +390,12 @@ describe("BT23-031 Angewomon", () => {
     expect(s.perm("carrier").currentDP).toBe(12000);
     expect(s.perm("carrier").securityAttack).toBe(1);
 
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("defender").instanceId));
+    // Combat resolution parks on a timer between the alliance prompt and the security check;
+    // `settle` alone cannot cross that boundary.
+    await settleAcrossTimers(() =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("defender").instanceId),
+    );
+    await settle();
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.perm("carrier").currentDP).toBe(12000);
   });

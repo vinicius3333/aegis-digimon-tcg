@@ -38,7 +38,7 @@ describe("BT12-001 Gigimon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.trash.some(({ cardId }) => cardId === "ST7-06"));
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST7-06"));
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 });

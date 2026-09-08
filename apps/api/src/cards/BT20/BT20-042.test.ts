@@ -119,7 +119,14 @@ describe("BT20-042 Groundramon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(targets.perm("suspendTarget").permanentId, targets.perm("restrictTarget").permanentId);
+    const suspendId = targets.perm("suspendTarget").permanentId;
+    const restrictId = targets.perm("restrictTarget").permanentId;
+    // The Suspend and Restrict candidates are the same pair of opponent permanents, so a
+    // static preference order would auto-select the same one for both. Bias dynamically
+    // instead: prefer whichever candidate the Suspend action has not already claimed, so
+    // the two independent chooseTargets prompts land on distinct cards.
+    preferred.includes = (id: string) =>
+      id === suspendId ? !targets.perm("suspendTarget").isSuspended : id === restrictId;
     targets.state.memory = 10;
     await targets.ready();
     expect(

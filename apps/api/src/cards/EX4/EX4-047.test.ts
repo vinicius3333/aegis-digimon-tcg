@@ -138,7 +138,7 @@ describe("EX4-047 DarkKnightmon", () => {
             event.kind === "attackDeclared" &&
             event.target.kind === "permanent" &&
             event.target.permanentId === valid.perm("greyKnights").permanentId,
-        ) && valid.state.pendingDecision === null,
+        ) && valid.state.pendingDecision === undefined,
     );
     const redirected = valid.events.find(
       (event) => event.kind === "attackDeclared" && event.target.kind === "permanent",

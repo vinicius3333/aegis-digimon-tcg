@@ -57,7 +57,10 @@ describe("EX1-024 Patamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("patamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.deck.length === 0);
+    // No revealed card matches the trait, so all 4 go back to the bottom of the deck rather
+    // than being removed — the deck stays at 4, it never empties.
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-024"));
+    expect(s.state.players[0]!.deck).toHaveLength(4);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });

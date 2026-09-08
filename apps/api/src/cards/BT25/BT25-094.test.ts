@@ -59,7 +59,7 @@ describe("BT25-094 Cosmic Area", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();

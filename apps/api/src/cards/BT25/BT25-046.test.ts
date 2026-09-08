@@ -146,11 +146,10 @@ describe("BT25-046 Gekkomon", () => {
         instanceId: s.inst("gekkomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.perm("greenEgg").topCard.cardId === "BT25-046" &&
-        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-046"),
-    );
+    // Digivolving is not "playing" (On Play only fires from the hand, CR 4-6-1), so
+    // BT25-046's printed [On Play] reveal never triggers here; the real milestone is
+    // the digivolve itself completing with its standard post-digivolve draw.
+    await settle(() => s.perm("greenEgg").topCard.cardId === "BT25-046" && s.state.players[0]!.deck.length === 2);
     expect(s.state.memory).toBe(0);
     expect(s.perm("greenEgg").topCard.cardId).toBe("BT25-046");
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);

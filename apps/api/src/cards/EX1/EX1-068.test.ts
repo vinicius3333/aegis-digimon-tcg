@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX1-068.js";
 import "../BT14/BT14-058.js";
 import "../BT14/BT14-086.js";
@@ -362,7 +362,7 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.memory).toBe(firstMemory - 2);
-    await settle(() => s.state.turnCount >= 3 && s.state.turnSeat === 1);
+    await settleAcrossTimers(() => s.state.turnCount >= 3 && s.state.turnSeat === 1);
     await advance(s.engine).waitForMainPhase(1);
     const secondMemory = s.state.memory;
     expect(

@@ -169,7 +169,11 @@ describe("AD1-001 Greymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("greymon").instanceId) &&
+        s.state.pendingDecision == null,
+    );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(
       true,

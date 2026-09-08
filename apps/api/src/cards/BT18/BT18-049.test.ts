@@ -91,7 +91,7 @@ describe("BT18-049 Zephyrmon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").currentDP === 10000);
+    await settle(() => s.perm("target").currentDP === 6000);
 
     expect([s.perm("base").currentDP, s.perm("target").currentDP].sort((a, b) => a - b)).toEqual([6000, 7000]);
     expect(s.perm("opponent").currentDP).toBe(3000);

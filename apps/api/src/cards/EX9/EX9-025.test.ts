@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-025.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 
@@ -78,8 +78,11 @@ describe("EX9-025", () => {
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.length > 0);
+    // An empty own deck leaves no legal cost payment, so the optional reduction is
+    // never offered as a decision at all; just drain and assert the no-op.
+    await drainMicrotasks();
 
+    expect(s.decisions).toHaveLength(0);
     expect(source.stack).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(1);

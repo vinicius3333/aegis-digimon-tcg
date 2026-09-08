@@ -153,6 +153,11 @@ describe("BT20-044 Breakdramon", () => {
         target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
       }),
     ).toEqual({ ok: true });
+    // Breakdramon has ＜Blocker＞ and is eligible, so a block window opens. The block-window
+    // contract is a first-class intent (not a `respondDecision` round-trip), so it needs an
+    // explicit decline here; nothing in the harness auto-answers it.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea).toContain(s.perm("untouched"));
   });
@@ -240,10 +245,14 @@ describe("BT20-044 Breakdramon", () => {
           );
           expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
         }
+        // Both attacks here are player-directed (unblocked, no Digimon battle), so they
+        // resolve through a security check rather than `combatResolved` (that event only
+        // fires for a resolved Digimon-vs-Digimon battle; see combat/controller.ts's
+        // `completedCombat`).
         await settle(
           () =>
             !observe(s.engine).isAttacking() &&
-            s.events.filter((event) => event.kind === "combatResolved").length >= (alias === "battle3" ? 3 : 4),
+            s.events.filter((event) => event.kind === "securityChecked").length >= (alias === "battle3" ? 1 : 2),
         );
         expect(observe(s.engine).isAttacking()).toBe(false);
       }
@@ -283,7 +292,7 @@ describe("BT20-044 Breakdramon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     expect(
       s.engine.applyIntent(0, {

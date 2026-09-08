@@ -5,6 +5,11 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT25-049.js";
+// Several tests below play P-236 (Glowing Dawn) directly to exercise Armalizamon's cost
+// reduction; without this import, P-236's own IR is only registered when some other test
+// file happens to import it first in this worker (isolate: false), which is why these
+// tests fail when this file runs alone or with a different file set.
+import "../P/P-236.js";
 
 describe("BT25-049 Armalizamon", () => {
   it("suspends one opponent Digimon on play", async () => {
@@ -299,7 +304,9 @@ describe("BT25-049 Armalizamon", () => {
     expect(
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId, useAs: "option" } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costTwo").instanceId));
+    // "under" lists costOne first, so it sits at the bottom of the Tamer's stack — the
+    // reduction cost trashes the bottom face-down card, so costOne is the one trashed first.
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costOne").instanceId));
     expect(
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId, useAs: "option" } as never),
     ).toEqual({ ok: true });
@@ -362,11 +369,14 @@ describe("BT25-049 Armalizamon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
+    // P-236's own [Main] effect places itself in the battle area as a fresh single-card
+    // permanent (PlaceInBattleAreaSelf) — it becomes that permanent's topCard, not a
+    // digivolution card under something else, so check topCard, not .stack.
     await settle(
       () =>
         s.state.pendingDecision === undefined &&
         s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "P-236").length >= 1 &&
-        s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.instanceId === firstId)),
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === firstId),
     );
     expect(s.state.memory).toBe(7);
     expect(s.perm("tamer").stack).toHaveLength(4);
@@ -383,14 +393,15 @@ describe("BT25-049 Armalizamon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
+    // The reduction trashes the Tamer stack's bottom face-down card. The first play (declined
+    // above) left the stack untouched, so this second, accepted play trashes costOne — the
+    // card at the bottom — not costThree.
     await settle(
       () =>
         s.state.pendingDecision === undefined &&
         s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "P-236").length >= 2 &&
-        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costThree").instanceId) &&
-        s.state.players[0]!.battleArea.some((permanent) =>
-          permanent.stack.some((card) => card.instanceId === secondId),
-        ),
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costOne").instanceId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === secondId),
     );
     expect(s.state.memory).toBe(7);
     expect(s.perm("tamer").stack).toHaveLength(3);
@@ -402,7 +413,7 @@ describe("BT25-049 Armalizamon", () => {
       () =>
         s.state.pendingDecision === undefined &&
         s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "P-236").length >= 3 &&
-        s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.instanceId === thirdId)),
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === thirdId),
     );
     expect(s.state.memory).toBe(4);
     expect(s.perm("tamer").stack).toHaveLength(3);

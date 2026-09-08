@@ -107,9 +107,10 @@ describe("ST20-04 Garudamon", () => {
     expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: allyId } as never)).toEqual({
       ok: true,
     });
-    await settle(() => (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat.hasOpenBlockWindow);
-    expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === allyId)?.isSuspended).toBe(true);
+    // The opponent has no Digimon in play, so this attack is player-directed and never
+    // opens a block window; it runs straight through both security checks.
     await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === allyId)?.isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

@@ -44,7 +44,7 @@ describe("LM-004 Thetismon", () => {
     const s = setupEngine(entranceBoard, { autoDeclineOptional: true, autoSelectCards: true });
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thetismon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("digimon").isSuspended).toBe(true);
@@ -68,7 +68,7 @@ describe("LM-004 Thetismon", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thetismon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("digimon").isSuspended).toBe(true);
@@ -105,7 +105,7 @@ describe("LM-004 Thetismon", () => {
       trashedFromHandInstanceId: s.inst("teslaJellymon").instanceId,
       handTrashedSeat: 0,
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
     expect(s.perm("host").isSuspended).toBe(true);
   });
 
@@ -126,7 +126,7 @@ describe("LM-004 Thetismon", () => {
       trashedFromHandInstanceId: s.inst("unrelated").instanceId,
       handTrashedSeat: 0,
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("host").isSuspended).toBe(true);
   });

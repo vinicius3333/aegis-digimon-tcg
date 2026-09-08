@@ -1,7 +1,13 @@
 import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import {
+  assertNoLoudGap,
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type EngineSetup,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-010.js";
 
@@ -109,7 +115,9 @@ describe("EX3-010 Paildramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX3-010");
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-010"));
+    // A normal digivolve does not trigger EX3-010's DNA-only Dinobeemon effect.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-010")).toBe(false);
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("dinobeemon").instanceId)).toBe(
       true,

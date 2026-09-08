@@ -90,8 +90,9 @@ describe("EX6-023 Gokuumon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-023", as: "goku", under: ["EX6-019"] }] } });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("goku").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("goku").instanceId));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("goku").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 

@@ -34,7 +34,7 @@ describe("LM-019 Bokomon", () => {
     s.state.memory = 2;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(4);
@@ -80,7 +80,7 @@ describe("LM-019 Bokomon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([otherId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === otherId)).toBe(false);
   });
@@ -102,7 +102,7 @@ describe("LM-019 Bokomon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([protectedId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "LM-019")).toBe(false);
@@ -126,7 +126,7 @@ describe("LM-019 Bokomon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([bokomonId, protectedId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === bokomonId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
@@ -150,7 +150,7 @@ describe("LM-019 Bokomon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([protectedId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === bokomonId)).toBe(true);

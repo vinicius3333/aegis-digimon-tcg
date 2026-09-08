@@ -72,6 +72,10 @@ describe("ST13-05 Durandamon", () => {
             { card: "ST13-03", as: "zubaeagermon" },
           ],
         },
+        // ZubaEagermon's placement cost is gated behind its own [On Play] Delete having a
+        // legal target (opponent Digimon, 5000 DP or less); without one it can't place
+        // itself under Durandamon at all. Seed one so the second placement is real.
+        1: { battleArea: [{ card: "BT1-009", as: "oppTarget", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

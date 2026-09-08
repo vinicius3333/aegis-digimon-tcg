@@ -69,7 +69,7 @@ describe("EX3-027 Agumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.deck.length === 0);
+    await settle(() => s.state.players[0]!.deck.length === 1);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("inheritedDraw").instanceId]);

@@ -184,7 +184,7 @@ describe("BT21-095 Wind Guardians", () => {
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("wg"), "Vortex"));
     expect(observe(s.engine).hasKeyword(s.perm("wg"), "Vortex")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

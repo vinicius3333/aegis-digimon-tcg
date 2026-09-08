@@ -520,7 +520,9 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         // EX12-033 (read from apps/api/src/cards/EX12/EX12-033.ts): "[When Digivolving] [When
         // Attacking] [Counter] You may trash up to 3 cards in your hand. Then, to 1 of your
         // opponent's Digimon, give -4000 DP ... for each card this effect trashed."
-        1: { battleArea: [{ card: "EX12-033", dp: 4000, as: "counterCard" }] },
+        // A security card is required: with none, the attack on the player wins the game
+        // outright at 0 checks, masking the counter-timing sequence this test proves.
+        1: { battleArea: [{ card: "EX12-033", dp: 4000, as: "counterCard" }], security: [DIGIMON_B] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

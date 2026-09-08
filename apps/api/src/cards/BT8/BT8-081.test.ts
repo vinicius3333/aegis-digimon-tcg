@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./BT8-081.js";
 import "./BT8-081.js";
@@ -56,7 +56,11 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-081"));
+    // The hand card's printed name is "Rasenmon Fury Mode", not an exact "Rasenmon"
+    // match, so the [End of Attack] effect has no legal target and never triggers at
+    // all — `effectResolved`/`effectTriggered` for BT8-081 never fire.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT8-081")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("illegal").instanceId)).toBe(true);
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
   });

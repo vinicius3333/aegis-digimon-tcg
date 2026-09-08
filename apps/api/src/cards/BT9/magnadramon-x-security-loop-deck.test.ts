@@ -87,7 +87,7 @@ describe("BT9 Magnadramon X security loop deck", () => {
     expect(s.perm("angelStack").stack.some(({ cardId }) => cardId === "BT9-109")).toBe(true);
 
     const securityMovedToHandId = s.state.players[0]!.security[0]!.instanceId;
-    const firstCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
+    const firstCombatCount = s.events.filter(({ kind }) => kind === "securityChecked").length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -97,7 +97,7 @@ describe("BT9 Magnadramon X security loop deck", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
+        s.events.filter(({ kind }) => kind === "securityChecked").length > firstCombatCount &&
         !s.perm("angelStack").isSuspended &&
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === securityMovedToHandId),
     );
@@ -108,7 +108,7 @@ describe("BT9 Magnadramon X security loop deck", () => {
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
 
     const decisionCountBeforeSecondAttack = s.decisions.length;
-    const secondCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
+    const secondCombatCount = s.events.filter(({ kind }) => kind === "securityChecked").length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -118,7 +118,7 @@ describe("BT9 Magnadramon X security loop deck", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount &&
+        s.events.filter(({ kind }) => kind === "securityChecked").length > secondCombatCount &&
         s.state.players[1]!.security.length === 1,
     );
 

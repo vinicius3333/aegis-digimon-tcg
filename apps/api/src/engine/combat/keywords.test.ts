@@ -150,13 +150,16 @@ describe("resolved keyword contract", () => {
   it.each(["BT1-023", "BT5-016", "BT6-054", "BT8-048", "BT10-112", "EX1-009", "ST5-14"])(
     "%s can't block merely because its text references or conditionally grants Blocker",
     async (cardId) => {
-      const s = setupEngine({
-        0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
-        1: {
-          battleArea: [{ card: cardId, as: "nonBlocker" }],
-          security: ["BT1-011"],
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+          1: {
+            battleArea: [{ card: cardId, as: "nonBlocker" }],
+            security: ["BT1-011"],
+          },
         },
-      });
+        { autoSelectCards: true },
+      );
       await s.ready();
 
       expect(

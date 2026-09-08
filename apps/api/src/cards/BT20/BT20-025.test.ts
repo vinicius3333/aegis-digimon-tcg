@@ -199,6 +199,8 @@ describe("BT20-025 Wingdramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("examon").instanceId);

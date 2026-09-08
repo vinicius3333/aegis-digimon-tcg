@@ -179,9 +179,10 @@ describe("EX3-044 Breakdramon", () => {
     s.perm("breakdramon").isSuspended = false;
     s.perm("firstTarget").isSuspended = true;
     s.perm("secondTarget").isSuspended = false;
-    const decisionsBeforeSecondTurn = s.decisions.length;
     await advance(s.engine).verb.suspend([s.perm("breakdramon").permanentId]);
-    await settle(() => s.decisions.length > decisionsBeforeSecondTurn);
+    // Only 1 legal target remains (firstTarget is already suspended), so the effect resolves it
+    // without a chooseTargets decision.
+    await settle(() => s.perm("secondTarget").isSuspended);
 
     expect(s.perm("secondTarget").isSuspended).toBe(true);
     expect(s.decisions.at(-1)?.req.sourceCardId).toBe("EX3-044");

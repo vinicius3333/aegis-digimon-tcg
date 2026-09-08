@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT19-007 Guilmon", () => {
@@ -46,7 +46,11 @@ describe("BT19-007 Guilmon", () => {
         instanceId: s.inst("host").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
+    if (deletesTarget) {
+      await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
+    } else {
+      await drainMicrotasks(20);
+    }
 
     expect(s.state.players[1]!.battleArea).toHaveLength(deletesTarget ? 0 : 1);
   });

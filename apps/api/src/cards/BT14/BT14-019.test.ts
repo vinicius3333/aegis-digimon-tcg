@@ -125,6 +125,15 @@ describe("BT14-019", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const raidDecision = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: raidDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.perm("second").stack.map((card) => card.cardId)).toEqual(["BT14-001", "BT14-007", "BT14-012"]);
     assertNoLoudGap(s);

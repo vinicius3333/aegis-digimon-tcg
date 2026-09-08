@@ -110,7 +110,7 @@ describe("BT10-029 Starmons", () => {
     );
     const starmonsId = s.perm("starmons").topCard.instanceId;
     const deletion = advance(s.engine).verb.deletePermanent([s.perm("starmons").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
 
     const pending = s.state.pendingDecision!;
     expect(s.decisions.at(-1)!.req).toMatchObject({ kind: "optional", sourceCardId: "BT10-029" });

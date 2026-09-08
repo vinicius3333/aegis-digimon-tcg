@@ -174,6 +174,11 @@ describe("BT20-054 Bulbmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The redirect re-declares the attack against the host, which reopens a block window
+    // (the host's stack is still eligible to block itself). Decline it explicitly — the
+    // block-window contract is a first-class intent, not a `respondDecision` round-trip.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-056")).toBe(true);

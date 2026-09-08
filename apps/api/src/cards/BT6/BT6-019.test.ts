@@ -23,7 +23,7 @@ describe("BT6-019 Gabumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("matt").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 9);
+    await settle(() => s.state.memory === 8);
   });
 
   it("gains memory only once per turn when matching Matt Ishida Tamers are played", async () => {

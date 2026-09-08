@@ -12,7 +12,7 @@ describe("BT10-098 Plasma Deckerdra Launcher", () => {
         0: { battleArea: ["BT10-017"], hand: [{ card: "BT10-098", as: "option" }] },
         1: {
           battleArea: [
-            { card: "BT10-085", as: "level6" },
+            { card: "BT1-080", as: "level6" },
             { card: "BT10-043", as: "lowerLevel" },
           ],
         },
@@ -37,7 +37,7 @@ describe("BT10-098 Plasma Deckerdra Launcher", () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT10-017"], hand: [{ card: "BT10-098", as: "option" }] },
-        1: { battleArea: [{ card: "BT10-085", as: "level6" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "level6" }] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -46,7 +46,7 @@ describe("BT10-098 Plasma Deckerdra Launcher", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT10-085"));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-080"));
 
     expect(s.state.memory).toBe(3);
   });

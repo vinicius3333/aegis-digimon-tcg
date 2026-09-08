@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled as BT24_060 } from "./BT24-060.js";
 import "../index.js";
 
@@ -85,7 +85,8 @@ describe("BT24-060 Hisyaryumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking());
+    await settle();
 
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT24-064", "BT1-001", "BT1-002"]);
   });

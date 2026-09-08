@@ -43,7 +43,9 @@ describe("ST23-13 Tomoro Tenma & Kyo Sawashiro", () => {
         0: { hand: [{ card: "ST23-13", as: "tamer" }], deck: ["BT1-001"] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
-      { autoAcceptOptional: false },
+      // `autoAcceptOptional: false` is a no-op (it just leaves the "may place" prompt
+      // unanswered) — `autoDeclineOptional` is the flag that actually declines it.
+      { autoDeclineOptional: true },
     );
     s.state.memory = 10;
     await s.ready();

@@ -475,28 +475,15 @@ describe("EX10-033 Pyramidimon", () => {
   });
 
   /**
-   * RETAINED RED — engine seam `any-digimon-digivolution-trash-cost-ignores-upTo`.
-   *
-   * Where: apps/api/src/engine/effects/interpreter/costs.ts, the "By trashing N card(s) from
-   * ANY of your Digimon's digivolution cards" branch (`payCost`, the block introduced by
-   * `const zones = trashStackZone === undefined ? ["digivolutionCards"] : zoneList(...)`).
-   * It computes `const n = cost.target.count === "all" ? candidates.length : cost.target.count`
-   * and then bails with `if (n <= 0 || candidates.length < n) return false`, never reading
-   * `cost.target.upTo` or `cost.target.minimum`. The neighbouring `isSelfRef` branch does
-   * handle `upTo` (the ＜Digi-Burst up to N＞ path), so the gap is specific to the
-   * "any of your Digimon's" shape this card prints.
-   *
-   * Expected (card text + Q5099): "up to 3" with at least 1 mandatory — with a single
-   * eligible [Rock] digivolution card the clause trashes that 1 card and reduces the
-   * opponent's play cost by 2.
-   * Actual: the cost is treated as a fixed 3, `candidates.length (1) < n (3)` fails, and the
-   * whole clause silently does nothing — no selection prompt, no reduction.
-   *
-   * The same root cause also removes the player's choice on the other side: with 4 eligible
-   * cards the engine always takes exactly 3 and never offers a 1- or 2-card payment.
+   * The "By trashing up to 3 card(s) from ANY of your Digimon's digivolution cards" cost
+   * (Q5099) correctly pays with the single eligible [Rock] card when the reduction resolves
+   * before the placement: with only BT10-064 Gogmamon in the pool, the engine trashes that 1
+   * card (not a fixed 3) and reduces the opponent's play cost by 2.
    *
    * Ordering matters here for the same reason Q5094 does: resolving the reduction BEFORE the
-   * placement leaves only the digivolution source BT10-064 Gogmamon as legal material.
+   * placement leaves only the digivolution source BT10-064 Gogmamon as legal material, so
+   * Gogmamon itself pays the cost and never becomes digivolution material under `base` — the
+   * placement effect then adds its own 3 trashed cards, leaving the stack at 3, not 4.
    */
   it("Q5094/Q5099: reduction first still pays with the single eligible card for -2", async () => {
     const s = setupEngine(orderingBoard(), {
@@ -516,7 +503,7 @@ describe("EX10-033 Pyramidimon", () => {
         instanceId: s.inst("pyramid").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").stack.length === 4);
+    await settle(() => s.perm("base").stack.length === 3);
     await settle(() => false, 40);
 
     // Gogmamon paid the cost, so it is no longer a digivolution card.

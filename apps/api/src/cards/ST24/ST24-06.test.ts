@@ -89,7 +89,11 @@ describe("ST24-06 RizeGreymon", () => {
           ],
           hand: [
             { card: "ST24-06", as: "rizeGreymon" },
-            { card: "ST24-07", as: "option" },
+            // A single-color DATA SQUAD Option, cost 5 (<=5), that trashes normally after
+            // use (P-235/ST24-15 place themselves in the battle area instead). A generic
+            // UseOptionWithoutCost also excludes multi-color Options (e.g. the dual-card
+            // ST24-07) unless the effect sets `allowMultiColor`, which this one doesn't.
+            { card: "BT26-098", as: "option" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
@@ -103,17 +107,18 @@ describe("ST24-06 RizeGreymon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const optionId = s.inst("option").instanceId;
+    const firstCostId = s.inst("firstCost").instanceId;
+    const secondCostId = s.inst("secondCost").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rizeGreymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("firstCost").instanceId, s.inst("secondCost").instanceId]),
+      expect.arrayContaining([firstCostId, secondCostId]),
     );
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("option").instanceId),
-    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
   });
 
   it("prevents a legal host from leaving by paying one bottom face-down Tamer card", async () => {

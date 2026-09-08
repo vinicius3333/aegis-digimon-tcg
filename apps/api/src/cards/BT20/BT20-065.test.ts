@@ -226,7 +226,9 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     expect(
       s.engine.applyIntent(1, { type: "attack", attackerPermanentId: recipientId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    // A player-directed, unblocked attack resolves through a security check rather than
+    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 

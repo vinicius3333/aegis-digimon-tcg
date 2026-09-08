@@ -102,8 +102,10 @@ describe("P-053 Ophanimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // A security battle is not a battleArea-vs-battleArea Digimon battle, so it never
+    // emits `combatResolved` — the real close-of-check event is `securityChecked`.
     await settle(
-      () => s.state.players[1]!.security.length === 0 && s.events.some((event) => event.kind === "combatResolved"),
+      () => s.state.players[1]!.security.length === 0 && s.events.some((event) => event.kind === "securityChecked"),
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);

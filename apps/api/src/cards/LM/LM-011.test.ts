@@ -40,7 +40,7 @@ describe("LM-011 SymbareAngoramon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("symbare"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.battleArea.filter((permanent) => !permanent.isSuspended)).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(s.perm("symbare"), "Blocker")).toBe(false);

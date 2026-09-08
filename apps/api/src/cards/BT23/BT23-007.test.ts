@@ -120,6 +120,7 @@ describe("BT23-007 Musclemon", () => {
       },
     });
     s.state.memory = 5;
+    await s.ready();
     const baseDp = s.perm("host").currentDP;
 
     expect(
@@ -129,11 +130,15 @@ describe("BT23-007 Musclemon", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Piercing"));
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("muscle").instanceId));
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
     expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("muscle").instanceId);
+    // `hasKeyword` reads the general granted-keyword ledger, which a linked Static effect
+    // does not populate; `hasPierce` is the modifier ledger Piercing actually lives on
+    // (see the sibling test below, which proves it through real combat).
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
 
   it("uses linked Piercing to check security after deleting a suspended Digimon", async () => {

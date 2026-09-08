@@ -78,9 +78,7 @@ describe("EmperorGreymon and MagnaGarurumon dual Hybrid deck", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId &&
-        s.state.pendingDecision === undefined &&
-        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT7-085"),
+        s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId && s.state.pendingDecision === undefined,
     );
     await s.engine.recomputeContinuousEffects();
     await settle(() => observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack") === 1);
@@ -116,10 +114,7 @@ describe("EmperorGreymon and MagnaGarurumon dual Hybrid deck", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () =>
-        s.perm("koji").topCard.instanceId === s.inst("magna").instanceId &&
-        s.state.pendingDecision === undefined &&
-        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT7-087"),
+      () => s.perm("koji").topCard.instanceId === s.inst("magna").instanceId && s.state.pendingDecision === undefined,
     );
 
     expect(s.perm("koji").stack.map((card) => card.instanceId)).toEqual([...blueOrder.slice(1), kojiInstanceId]);

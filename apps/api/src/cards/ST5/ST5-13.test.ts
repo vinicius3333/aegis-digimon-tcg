@@ -37,6 +37,7 @@ describe("ST5-13 BlitzGreymon", () => {
   });
 
   it("has Security Attack +1 and Digi-Bursts 2 to give +4000 DP", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -46,8 +47,9 @@ describe("ST5-13 BlitzGreymon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("target").permanentId);
     await s.ready();
     const seam = s.engine as unknown as CardSourceSeam;
     const source = seam.cardSourceOf(s.perm("blitz").topCard);

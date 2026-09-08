@@ -222,6 +222,18 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
         useAs: "option",
       } as never),
     ).toEqual({ ok: true });
+    // With a TS Digimon in play but nothing to affect, resolving BT26-056's own effect (no
+    // opponent Digimon exist, so the De-Digivolve step just fizzles) leaves the printed
+    // Arts Digivolve offer pending: decline it so the option lands in trash as normal.
+    await settle(() => withTs.state.pendingDecision?.kind === "selectCards");
+    const artsDigivolve = withTs.state.pendingDecision!;
+    expect(
+      withTs.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: artsDigivolve.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => withTs.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-056"));
   });
 

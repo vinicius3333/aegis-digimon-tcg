@@ -58,7 +58,10 @@ describe("BT24-064 Ouryumon", () => {
           0: {
             battleArea: [{ card: baseCard, as: "base" }],
             hand: [{ card: "BT24-064", as: "ouryumon" }],
+            // Digivolving draws 1 card first (engine step (6)), so the top deck card is drawn to
+            // hand before this reveal ever runs; the reveal itself sees whatever is under it.
             deck: [
+              { card: "BT1-003", as: "drawn" },
               { card: "BT24-060", as: "played" },
               { card: "BT1-001", as: "miss1" },
               { card: "BT1-002", as: "miss2" },
@@ -86,6 +89,7 @@ describe("BT24-064 Ouryumon", () => {
       );
 
       expect(s.state.memory).toBe(5 - expectedCost);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     },
   );
 

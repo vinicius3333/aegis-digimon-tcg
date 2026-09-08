@@ -114,7 +114,10 @@ describe("EX1-030 Angewomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTakeru").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 0);
+    // Each Takeru play also triggers its own public Recovery, which puts the recovered
+    // security card back into hand — hand size never reaches 0, so wait on the decision idling
+    // instead of a hand count that was never going to hit zero.
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("target").currentDP).toBe(3000);
   });
 
@@ -162,7 +165,7 @@ describe("EX1-030 Angewomon", () => {
         0: {
           battleArea: [{ card: "EX1-030", as: "angewomon" }],
           hand: [{ card: "BT6-033", as: "pulse" }],
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
           deck: ["BT1-010", "BT1-011"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }], security: ["BT1-001"] },
@@ -180,7 +183,7 @@ describe("EX1-030 Angewomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulse").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 2);
+    await settle(() => s.state.players[0]!.security.length === 3);
     expect(s.perm("target").currentDP).toBe(2000);
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
   });

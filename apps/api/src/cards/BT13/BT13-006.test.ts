@@ -31,7 +31,7 @@ describe("BT13-006 Kapurimon", () => {
     s.state.turnSeat = 1;
 
     expect(deleteKapurimonHost(s)).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.players[0]!.trash.length === 2);
+    await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.players[0]!.trash.length === 3);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(

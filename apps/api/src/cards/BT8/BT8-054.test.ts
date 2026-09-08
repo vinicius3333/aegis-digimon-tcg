@@ -4,6 +4,7 @@ import "./BT8-054.js";
 
 describe("BT8-054 Pistmon", () => {
   it("suspends one of your Digimon to reduce its digivolution cost by 2", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -14,10 +15,14 @@ describe("BT8-054 Pistmon", () => {
           hand: [{ card: "BT8-054", as: "evolving" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 3;
     await s.ready();
+    // The suspend cost's "1 of your Digimon" filter includes the digivolving base
+    // itself; bias selection toward the intended target ("cost") so the test
+    // proves the effect on the card it names.
+    preferred.push(s.perm("cost").topCard!.instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

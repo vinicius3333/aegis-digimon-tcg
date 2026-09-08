@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, drainMicrotasks } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../EX2/EX2-038.js";
 import "../EX2/EX2-062.js";
@@ -77,8 +77,9 @@ describe("BT10-067 Justimon: Critical Arm", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT10-067"));
+    await drainMicrotasks(500);
 
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT10-067")).toBe(false);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT10-067");
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId)).toBe(true);
     assertNoLoudGap(s);

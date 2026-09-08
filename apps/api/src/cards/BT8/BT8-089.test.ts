@@ -56,7 +56,7 @@ describe("BT8-089 Cody Hida", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
     expect(s.perm("cody").isSuspended).toBe(false);
   });

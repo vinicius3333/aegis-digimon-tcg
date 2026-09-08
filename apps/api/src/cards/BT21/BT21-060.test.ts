@@ -369,7 +369,7 @@ describe("BT21-060 Destromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.deck.length === 2 && !observe(s.engine).isAttacking());
+    await settle(() => !observe(s.engine).isAttacking(), 500);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-060"]);

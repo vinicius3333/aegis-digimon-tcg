@@ -49,13 +49,16 @@ describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [F
   });
 
   it("does not trash security when no own [Four Sovereigns] Digimon are present", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon", dp: 15000 }] },
-      1: {
-        battleArea: [{ card: OPP_DIGIMON, as: "opponent", dp: 10000, suspended: true }],
-        security: [VANILLA, VANILLA],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon", dp: 15000 }] },
+        1: {
+          battleArea: [{ card: OPP_DIGIMON, as: "opponent", dp: 10000, suspended: true }],
+          security: [VANILLA, VANILLA],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const p1 = s.state.players[1] as PlayerState;
     await s.ready();
     expect(

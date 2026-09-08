@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-043.js";
@@ -169,7 +169,11 @@ describe("BT23-043 CannonBeemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    // No legal blocker exists (a non-Royal-Base Digimon can't block on this card's strength),
+    // so the engine never opens a block window at all; drain instead of waiting on an event
+    // that will never fire, then prove the attacker is legally refused a block.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("other").permanentId }).ok).toBe(
       false,
     );

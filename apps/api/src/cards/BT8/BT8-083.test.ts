@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-083.js";
 
 describe("BT8-083 MaloMyotismon", () => {
@@ -72,7 +72,10 @@ describe("BT8-083 MaloMyotismon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-083"));
+    // With only 4 (not 5+) Myotismon in trash, neither On Play action's condition is
+    // met, so the effect has nothing to do and never even triggers.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT8-083")).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

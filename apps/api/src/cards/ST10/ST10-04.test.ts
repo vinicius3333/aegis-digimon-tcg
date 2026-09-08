@@ -113,7 +113,7 @@ describe("ST10-04 Gatomon", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("yellow").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards" && s.decisions.length >= 3);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards" && s.decisions.length >= 2);
 
     const second = s.decisions.at(-1)!.req;
     expect(second.sourceCardId).toBe("ST10-04");

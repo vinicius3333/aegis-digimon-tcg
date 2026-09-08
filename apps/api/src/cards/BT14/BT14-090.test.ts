@@ -167,7 +167,7 @@ describe("BT14-090", () => {
     const agumonAId = s.perm("agumonA").permanentId;
     const agumonBId = s.perm("agumonB").permanentId;
 
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const firstPaymentDecision = s.state.pendingDecision!;
     const firstPaymentEntry = s.decisions.find(({ req }) => req.decisionId === firstPaymentDecision.decisionId);
     const firstPaymentRequest = firstPaymentEntry?.req;

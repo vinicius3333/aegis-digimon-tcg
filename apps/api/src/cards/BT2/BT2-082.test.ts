@@ -96,10 +96,13 @@ describe("BT2-082 Diaboromon", () => {
   });
 
   it("may delete a Diaboromon Token to survive deletion in battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-082", as: "protected", suspended: true }] },
-      1: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-082", as: "protected", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const token = await (
       s.engine as unknown as {
         primitives: { playToken(seat: Seat, name: string, opts: { payCost: boolean }): Promise<Permanent | undefined> };

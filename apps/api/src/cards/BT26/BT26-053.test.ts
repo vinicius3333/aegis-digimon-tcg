@@ -273,6 +273,10 @@ describe("BT26-053 Wolvermon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The block window is a raw applyIntent, not a pendingDecision — the redirect target
+    // (source, which carries Blocker) can decline so the redirected battle proceeds.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-009");
     expect(s.perm("tamer2").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
@@ -304,6 +308,9 @@ describe("BT26-053 Wolvermon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The block window is a raw applyIntent, not a pendingDecision.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-009");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("P-236");

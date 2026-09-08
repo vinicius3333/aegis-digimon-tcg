@@ -193,7 +193,7 @@ describe("BT1-084 Omnimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {

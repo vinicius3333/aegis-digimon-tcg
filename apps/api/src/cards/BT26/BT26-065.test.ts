@@ -205,7 +205,9 @@ describe("BT26-065 Falcomon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.events.filter((event) => event.kind === "combatResolved").length === attack + 1);
+      // Player-directed attack: it resolves through a security check, not a
+      // Digimon-vs-Digimon battle, so "combatResolved" never fires.
+      await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === attack + 1);
       if (attack === 0) await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     }
 

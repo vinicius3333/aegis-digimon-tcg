@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-001.js";
 import "../index.js";
@@ -196,7 +196,7 @@ describe("BT21-001 Gigimon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await drainMicrotasks();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolution").instanceId);
     expect(s.perm("host").topCard.cardId).toBe("BT21-007");
   });
@@ -222,7 +222,7 @@ describe("BT21-001 Gigimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await drainMicrotasks();
     expect(s.perm("host").topCard.cardId).toBe("BT21-007");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
   });

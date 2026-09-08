@@ -119,7 +119,7 @@ describe("EX11-028 Galemon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
     expect(decision.options?.candidateInstanceIds).toContain(s.perm("theirs").permanentId);
     expect(

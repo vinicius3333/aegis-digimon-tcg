@@ -67,6 +67,9 @@ describe("ST3-15 Holy Flame", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+    await settle(() => combat.hasOpenBlockWindow);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.gameOver).toBe(false);
   });

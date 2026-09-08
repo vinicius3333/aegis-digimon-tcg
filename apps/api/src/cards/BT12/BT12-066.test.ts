@@ -34,25 +34,34 @@ describe("BT12-066 Mercurymon", () => {
   });
 
   it("digivolves from a black Tamer for 2, draws, and resolves When Digivolving", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT12-094", as: "tamer" },
-            { card: "BT1-009", as: "ally" },
-          ],
-          hand: [{ card: "BT12-066", as: "mercury" }],
-          deck: [{ card: "BT1-010", as: "drawn" }],
-        },
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT12-094", as: "tamer" },
+          { card: "BT1-009", as: "ally" },
+        ],
+        hand: [{ card: "BT12-066", as: "mercury" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
       },
-      { autoSelectCards: true },
-    );
+    });
     s.state.memory = 2;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("tamer").permanentId,
         instanceId: s.inst("mercury").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    // The [When Digivolving] Blocker grant may target any friendly Digimon, including the
+    // Digimon that just digivolved. Answer the prompt explicitly to prove it can also reach
+    // an ally, instead of leaving the choice to autoSelectCards's arbitrary pick.
+    await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "BT12-066" && req.kind === "chooseTargets"));
+    const grant = s.decisions.find(({ req }) => req.sourceCardId === "BT12-066" && req.kind === "chooseTargets")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: grant.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("ally").permanentId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Blocker"));

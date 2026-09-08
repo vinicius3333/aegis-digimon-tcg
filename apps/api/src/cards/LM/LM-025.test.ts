@@ -88,7 +88,7 @@ describe("LM-025 Cyberdramon", () => {
     const afterFirst = s.state.players[1]!.trash.length;
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.trash).toHaveLength(afterFirst);
   });

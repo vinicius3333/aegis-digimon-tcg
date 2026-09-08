@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-035.js";
+import "../BT1/BT1-102.js";
 import "./index.js";
 
 describe("BT17-035 Taomon", () => {
@@ -70,6 +71,7 @@ describe("BT17-035 Taomon", () => {
           battleArea: [{ card: "BT17-038", under: ["BT17-035"], as: "sakuyamon" }],
           hand: [{ card: "BT1-102", as: "option" }],
           deck: [{ card: "BT1-011", as: "drawn" }],
+          security: 2,
         },
         1: { security: 1 },
       },

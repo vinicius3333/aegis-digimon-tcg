@@ -73,7 +73,10 @@ describe("BT24-063 Locomon", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-063", as: "locomon" }],
+          // Digivolving draws 1 card first (engine step (6)), so the top deck card is drawn to
+          // hand before this reveal ever runs; the reveal itself sees whatever is under it.
           deck: [
+            { card: "BT1-011", as: "drawn" },
             { card: "BT24-083", as: "tamer" },
             { card: "BT1-009", as: "miss1" },
             { card: "BT1-010", as: "miss2" },
@@ -99,6 +102,7 @@ describe("BT24-063 Locomon", () => {
     );
 
     expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
   it("exposes Collision both as a main and inherited keyword", async () => {

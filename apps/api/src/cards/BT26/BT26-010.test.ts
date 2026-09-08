@@ -142,7 +142,9 @@ describe("BT26-010 Roleplaymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
+    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("one").instanceId,
@@ -308,8 +310,13 @@ describe("BT26-010 Roleplaymon", () => {
   });
 
   it("does not offer Detach for a linked card without the noted Seven Code trait", async () => {
+    // BT21-009 carries its own link DP (2000, Comprehensive Rules §4-2-4: "A Digimon gets
+    // the link DP value on its link card"), so the attacker's effective DP is 4000 (own) +
+    // 2000 (link) = 6000. Give the attacker a lower own DP so the total still ties the
+    // defender's 4000 — otherwise this is a clean win, not the tie the test needs to prove
+    // Detach isn't offered for an ineligible linked card.
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 4000, linked: [{ card: "BT21-009" }] }] },
+      0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 2000, linked: [{ card: "BT21-009" }] }] },
       1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
     });
     expect(

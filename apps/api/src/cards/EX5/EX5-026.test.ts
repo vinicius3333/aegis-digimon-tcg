@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { runStaticAction } from "../../engine/effects/interpreter/actions/statics.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-026.js";
 
 describe("EX5-026 MetalGarurumon (X Antibody)", () => {
@@ -37,7 +37,10 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
   });
 
   it("makes an opposing attack lose memory only for an exact stack name", async () => {
-    const resolve = async (stackCard: string) => {
+    // A non-matching stack name never fires the memory-loss aura, so that case can only be
+    // proven by draining the queue and asserting memory did NOT change (a disguised negative
+    // proof otherwise).
+    const resolve = async (stackCard: string, expectMemoryLoss: boolean) => {
       const s = setupEngine(
         {
           0: {
@@ -65,13 +68,17 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.memory !== 5, 500);
+      if (expectMemoryLoss) {
+        await settle(() => s.state.memory !== 5, 500);
+      } else {
+        await drainMicrotasks(500);
+      }
       return s.state.memory;
     };
 
-    expect(await resolve("BT1-044")).toBe(1);
-    expect(await resolve("BT9-031")).toBe(5);
-    expect(await resolve("BT13-063")).toBe(5);
+    expect(await resolve("BT1-044", true)).toBe(1);
+    expect(await resolve("BT9-031", false)).toBe(5);
+    expect(await resolve("BT13-063", false)).toBe(5);
   });
 
   it("grants later matching battle entrants exactly once through opponent-turn end", async () => {

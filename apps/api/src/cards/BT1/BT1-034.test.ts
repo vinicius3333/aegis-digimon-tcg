@@ -33,6 +33,13 @@ describe("BT1-034 Ikkakumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("blocker").isSuspended);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

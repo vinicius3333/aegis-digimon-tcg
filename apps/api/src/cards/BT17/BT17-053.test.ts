@@ -45,9 +45,9 @@ describe("BT17-053 Keramon", () => {
       {
         0: {
           battleArea: [{ card: "BT17-053", as: "keramon" }],
-          hand: [{ card: "BT17-056", as: "infermon" }],
+          hand: [{ card: "BT17-055", as: "infermon" }],
         },
-        1: { hand: [{ card: "BT17-055", as: "playedLevel5" }] },
+        1: { hand: [{ card: "BT17-056", as: "playedLevel5" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -91,7 +91,7 @@ describe("BT17-053 Keramon", () => {
   it("plays a Diaboromon Token when its Unidentified host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-054", under: ["BT17-053"], suspended: true, as: "host" }] },
+        0: { battleArea: [{ card: "BT2-059", under: ["BT17-053"], suspended: true, as: "host" }] },
         1: { battleArea: [{ card: "BT17-057", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

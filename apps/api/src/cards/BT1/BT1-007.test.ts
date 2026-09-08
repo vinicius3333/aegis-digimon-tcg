@@ -22,7 +22,7 @@ describe("BT1-007 Tanemon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "cardsMoved" && event.to === "hand"));
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -51,7 +51,7 @@ it("gates Security Attack -1 on four or more digivolution cards", async () => {
   });
 });
 
-it("activates its Main deletion effect from security", async () => {
+it("activates its Main DP-reduction effect from security", async () => {
   const s = setupEngine(
     {
       0: {
@@ -65,7 +65,8 @@ it("activates its Main deletion effect from security", async () => {
   await s.ready();
 
   await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  await settle(() => s.perm("target").currentDP === 1000);
 
   expect(s.perm("target").currentDP).toBe(1000);
+  expect(s.state.players[1]!.battleArea).toHaveLength(1);
 });

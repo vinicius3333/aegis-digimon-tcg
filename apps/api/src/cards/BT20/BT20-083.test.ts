@@ -113,7 +113,7 @@ describe("BT20-083 Omekamon", () => {
         0: { battleArea: [{ card: "BT20-083", as: "omekamon" }], security: ["BT20-010"] },
         1: { battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }] },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
     s.state.turnSeat = 1;

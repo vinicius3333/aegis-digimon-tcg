@@ -551,15 +551,22 @@ describe("BT25-039 Sirenmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The redirect switches the target to firstRedirect, but Ceresmon's own "when any
+    // Digimon suspend" reaction fires first (on the attacker's own suspension) and, with
+    // three suspended Digimon on the board, drops the attacker's DP to 0 or below before a
+    // battle can happen. The attacker is deleted by that state-based check, not by combat,
+    // so no combatResolved event is ever published and firstRedirect is never touched.
     await settle(
       () =>
         s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstAttacker").instanceId) &&
-        s.events.some((event) => event.kind === "combatResolved") &&
         s.state.phase === Phase.Main &&
         !observe(s.engine).isAttacking(),
       5_000,
     );
     expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("firstRedirect").permanentId),
+    ).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -604,7 +611,7 @@ describe("BT25-039 Sirenmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () => s.state.players[0]!.security.length === 0 && s.events.some((event) => event.kind === "combatResolved"),
+      () => s.state.players[0]!.security.length === 0 && s.events.some((event) => event.kind === "securityChecked"),
     );
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("redirect").permanentId),

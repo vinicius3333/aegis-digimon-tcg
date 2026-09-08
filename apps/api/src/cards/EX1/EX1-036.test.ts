@@ -28,6 +28,7 @@ describe("EX1-036 Togemon", () => {
   });
 
   it("ignores own suspension, triggers once per turn, and expires at turn end", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -52,8 +53,9 @@ describe("EX1-036 Togemon", () => {
           security: ["BT1-001", "BT1-001"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("opponentOne").permanentId);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
@@ -73,6 +75,7 @@ describe("EX1-036 Togemon", () => {
     await settle(() => s.perm("opponentOne").isSuspended && s.perm("host").currentDP === 7000);
     expect(s.perm("host").currentDP).toBe(7000);
 
+    preferred.splice(0, preferred.length, s.perm("opponentTwo").permanentId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondSuspender").instanceId })).toEqual({
       ok: true,
     });
@@ -114,7 +117,9 @@ describe("EX1-036 Togemon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("opponentTarget").isSuspended);
+    // "controller: opponent" is relative to the player who plays the suspender, so player1's
+    // own suspend card targets player0's host, not player1's own opponentTarget.
+    await settle(() => s.perm("host").isSuspended);
     expect(s.perm("host").currentDP).toBe(5000);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

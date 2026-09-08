@@ -36,7 +36,10 @@ describe("BT1-089 Mimi Tachikawa", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-089", as: "mimi" }, { card: "BT1-078", under: ["BT1-073"] }],
+          battleArea: [
+            { card: "BT1-089", as: "mimi" },
+            { card: "BT1-078", under: ["BT1-073"] },
+          ],
           eggDeck: ["BT1-008"],
         },
       },
@@ -51,7 +54,10 @@ describe("BT1-089 Mimi Tachikawa", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-089", as: "mimi" }, { card: "BT1-078", under: ["BT1-073"] }],
+          battleArea: [
+            { card: "BT1-089", as: "mimi" },
+            { card: "BT1-078", under: ["BT1-073"] },
+          ],
           eggDeck: ["BT1-008"],
         },
       },
@@ -59,7 +65,7 @@ describe("BT1-089 Mimi Tachikawa", () => {
     );
 
     const action = advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("mimi"));
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const pending = s.state.pendingDecision!;
     expect(s.decisions.at(-1)!.req).toMatchObject({ kind: "optional", sourceCardId: "BT1-089" });
     expect(

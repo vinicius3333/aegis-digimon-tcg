@@ -86,6 +86,7 @@ describe("BT24-071 Raidramon", () => {
     ["normal purple level-3 requirement", "BT24-068"],
     ["normal red level-3 requirement", "BT1-009"],
   ])("uses the %s for cost 3", async (_label, baseCard) => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -96,8 +97,12 @@ describe("BT24-071 Raidramon", () => {
           hand: [{ card: "BT24-071", as: "raidramon" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    // Raidramon's own [System] App Name attribute also matches the "System/Life/Transmutation
+    // trait" filter, so it is itself a legal target alongside "life"; bias the pick so the test
+    // proves the effect can reach ANOTHER qualifying Digimon, not just itself.
+    preferred.push(s.inst("life").instanceId);
     s.state.memory = 5;
     await s.ready();
 
