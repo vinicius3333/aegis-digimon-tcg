@@ -47,7 +47,7 @@ describe("BT24-072 SkullGreymon", () => {
         0: {
           hand: [
             { card: "BT24-072", as: "skullgreymon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
       },
@@ -76,7 +76,7 @@ describe("BT24-072 SkullGreymon", () => {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [
             { card: "BT24-072", as: "skullgreymon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
       },
@@ -104,7 +104,7 @@ describe("BT24-072 SkullGreymon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-072", as: "skullgreymon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -154,6 +154,10 @@ describe("BT24-072 SkullGreymon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("demon").instanceId),
     );
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("demon").instanceId,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("skullgreymon").instanceId);
   });
 
   it.each([
