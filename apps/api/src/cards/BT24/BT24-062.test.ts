@@ -127,6 +127,31 @@ describe("BT24-062 MasterBlimpmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawId);
   });
 
+  it("does not play a stacked low-cost Digimon without Machine, Cyborg, or TS", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-062", as: "master", under: [{ card: "BT1-009", as: "invalid" }] }] },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const invalidId = s.inst("invalid").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("master").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("master").stack.map((card) => card.instanceId)).toEqual([invalidId]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT24-062"]);
+  });
+
   it("shares the public End of Attack and opponent-turn frequency across a real turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
