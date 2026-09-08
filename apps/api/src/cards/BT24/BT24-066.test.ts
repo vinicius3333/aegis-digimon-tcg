@@ -114,6 +114,41 @@ describe("BT24-066 Guilmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("publicly skips the reveal destinations when no qualifying card is revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-066", as: "source" },
+            { card: "BT1-009", as: "handCost" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "missOne" },
+            { card: "BT1-011", as: "missTwo" },
+            { card: "BT1-012", as: "missThree" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("missOne").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("missOne").instanceId,
+      s.inst("missTwo").instanceId,
+      s.inst("missThree").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     ["Evil", "BT24-066"],
     ["Dark Dragon", "BT12-010"],

@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 777/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 778/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -73,7 +73,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-063 | Locomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-063.md). Public own/inherited Collision forces block and rejects decline, exact combat/security; cost6 TS negative and explicit revealed-play refusal, paid routes with separate bonus draw and actual Tamer play. Root12green; cost5 accepted/Machine-Cyborg matrix and delivery open. |
 | BT24-064 | Ouryumon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-064.md). Root12green: public Piercing/Blocker, exact evolution draw and reveal destinations, legal DeDigivolve stacks and public same-turn/opponent-turn reset. Tamer suspension and full trait/route matrix pending. |
 | BT24-065 | Diaboromon (X Antibody) | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-065.md). Root11green: public Overclock/Blocker, scaled De-Digivolve and highest-cost removal, normal/alternate routes, Q5644-Q5645, exact-source replacement/refusal and name/source/own-effect/simultaneity negatives. Typed IR/assertions; Q5646 opponent-turn temporal boundary remains collection follow-up; delivery pending. |
-| BT24-066 | Guilmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-066.md). Root13green: five search trait/Tamer positives, mandatory second destination, exact egg evolution, legal inherited public deletion frequency/reset with security endpoints. Full negative and insufficient-candidate search boundaries pending. |
+| BT24-066 | Guilmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-066.md). Root14green: five positive search traits/Tamer, mandatory second destination, public all-miss negative, exact evolution routes and inherited public deletion frequency/reset. Collection delivery pending. |
 | BT24-067 | Hackmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-067.md). Root16green: public Link/Retaliation, exact 0/1/2 Tamer and source boundaries, refusal, explicit Rei-watcher decline and Link cleanup through real turn reset, exact breeding and invalid evolution/Link routes. Delivery pending. |
 | BT24-068 | DemiDevimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-068.md). Root9green: Evil/FallenAngel search positives, legal Purple4 inherited host, public mill suppression/reset distinguishing normal draws, exact breeding evolution and invalid Blue egg. Missing-category/overlap and no-match final trash pending. |
 | BT24-069 | Vilemon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-069.md). Root12green: public promotion/evolution discard acceptance and refusal, 9/10-trash combat boundary, exact evolution and invalid color, inherited mill suppression/reset preserving legal stack and normal draws. Delivery pending. |
