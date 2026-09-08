@@ -92803,7 +92803,7 @@
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
-                    { "tokens": ["Titamon"], "match": "name" },
+                    { "tokens": ["Titamon"], "match": "nameExact" },
                     { "tokens": ["Titan"], "match": "trait" }
                   ]
                 },
@@ -92978,7 +92978,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Lanamon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Lanamon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
