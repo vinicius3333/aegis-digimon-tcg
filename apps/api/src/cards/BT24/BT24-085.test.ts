@@ -197,6 +197,167 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
   });
 
+  it("publicly links BT24-091 before its End-of-Turn attack (Q5686)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT3-089", as: "memoryPlay" },
+            { card: "BT24-091", as: "option" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-014", as: "high" },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("option").instanceId, s.perm("attacker").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(-6);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("low").instanceId));
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("low").instanceId, s.inst("high").instanceId]),
+    );
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("security").instanceId]),
+    );
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    await turn;
+  });
+
+  it("publicly uses BT24-097 after deleting the highest-level enemy (Q5708)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT3-089", as: "memoryPlay" },
+            { card: "BT24-097", as: "option" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "enemySix" },
+            { card: "BT1-020", as: "enemyFive" },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-015"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("option").instanceId, s.perm("attacker").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(-6);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("enemyFive").instanceId));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("enemySix").instanceId,
+        s.inst("enemyFive").instanceId,
+        s.inst("security").instanceId,
+      ]),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+  });
+
+  it("publicly uses Sonic Shot before the trailing TS attack (Q5701)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker", dp: 10000 },
+          ],
+          hand: [{ card: "BT24-095", as: "sonicShot" }],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "enemy", dp: 6000 }],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("enemy").instanceId) &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toEqual([s.inst("sonicShot").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("sonicShot").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("enemy").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+  });
+
   it("skips both End-of-Turn tails when Security has already suspended this Tamer (Q5672)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
