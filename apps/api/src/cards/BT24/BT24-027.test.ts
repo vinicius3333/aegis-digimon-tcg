@@ -25,7 +25,10 @@ describe("BT24-027 Lanamon", () => {
 
   it("requires the qualifying hand placement on entry", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as any;
+      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as {
+        cost: { kind: string; destination: string; position: string; optional?: unknown; abortOnDecline?: unknown };
+        abortOnDecline?: unknown;
+      };
       expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
       expect(action.cost.optional).toBeUndefined();
       expect(action.cost.abortOnDecline).toBeUndefined();
@@ -34,7 +37,15 @@ describe("BT24-027 Lanamon", () => {
   });
 
   it("implements Decode by playing Calmaramon from the stack on non-battle removal", () => {
-    const decode = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions?.[0] as any;
+    const decode = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions?.[0] as {
+      actions: Array<{
+        kind: string;
+        from?: string[];
+        optional?: unknown;
+        target?: { filter?: { nameOrTrait?: unknown } };
+      }>;
+      target?: { filter?: { nameOrTrait?: unknown } };
+    };
     expect(decode).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
@@ -332,6 +343,58 @@ describe("BT24-027 Lanamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("draw").instanceId);
   });
 
+  it("resets the inherited once-per-turn draw on the next natural owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-040", as: "host", under: ["BT24-027"] }],
+          deck: [
+            { card: "BT1-013", as: "firstDraw" },
+            { card: "BT1-015", as: "secondDraw" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-013", "BT1-015"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 7;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("firstDraw").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondDraw").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
+
   it("does not Decode after a public battle deletion", async () => {
     const s = setupEngine(
       {
@@ -419,4 +482,50 @@ describe("BT24-027 Lanamon", () => {
       expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
     },
   );
+
+  it("uses the normal blue level-3 evolution route for cost 2", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-020", as: "base" }],
+        hand: [
+          { card: "BT24-027", as: "lanamon" },
+          { card: "BT24-022", as: "placed" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lanamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("lanamon").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("placed").instanceId,
+      s.inst("base").instanceId,
+    ]);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("lanamon").instanceId);
+  });
+
+  it("rejects a normal evolution from a non-blue level-3 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT24-027", as: "lanamon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lanamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("lanamon").instanceId);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+  });
 });

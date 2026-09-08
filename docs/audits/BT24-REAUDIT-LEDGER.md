@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 727/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 729/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -34,7 +34,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-024 | Submarimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-024.md). Public Tamer play/refusal and non-TS rejection, same-turn suppression/reset, Armor Purge acceptance/explicit zero-card refusal, normal blue and alternate routes with draw/stack pass. Root15green; normal yellow comparison and final peer/delivery acceptance pending. |
 | BT24-025 | Shellmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-025.md). Root15green: public Q5603-Q5605, Jamming/EOT paths, self/red-TS/non-TS unsuspend negatives and Venusmon refusal. EOT second-trigger/reset and illegal normal route remain open; delivery pending. |
 | BT24-026 | Hyogamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-026.md). Public inherited072-P209-081 chain proves exact costs, stacks, same-turn suppression and owner reset. Root11green; Q5607 and shared own-effect frequency still partly injected; normal/alternate026 routes and broader refusals pending. |
-| BT24-027 | Lanamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-027.md). Exact Calmaramon Decode, public placement/cost/draw, protection expiry and inherited hand7/8 boundary pass; public inherited frequency/reset and normal/illegal evolution routes remain open. |
+| BT24-027 | Lanamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-027.md). Root21green: exact Decode/placement/cost/draw/protection, inherited hand boundary and public OPT reset, plus legal normal evolution and illegal route rejection. Typed IR; delivery pending. |
 | BT24-028 | Divermon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-028.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
 | BT24-029 | Whamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-029.md). Public Q5609 cost5 Tamer/Aqua placement, paid evolution stack/draw, attack rejection and opponent-turn expiry pass. Main/inherited same-turn limits, main reset, refusals and route/cost6 boundaries remain open. |
 | BT24-030 | Neptunemon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-030.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
