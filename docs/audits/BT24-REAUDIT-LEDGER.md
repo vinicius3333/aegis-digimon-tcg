@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 790/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 791/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -80,7 +80,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-070 | Growlmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-070.md). Root12green: exact 4/5 post-evolution hand gates, public Tamer color/cost/refusal boundaries, invalid normal source and legal inherited deletion suppression/reset with exact endpoints. Collection delivery pending. |
 | BT24-071 | Raidramon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-071.md). Root24green: six public Q5647 fusion routes, Q5648 host-only return cancellation, public deletion/trait/expiry proof, invalid evolution-source rejection, and invalid non-Appmon link rejection without mutation. Delivery pending. |
 | BT24-072 | SkullGreymon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-072.md). Root22 green: legal evo/inherited hosts, Shaman/Demon combat, expiry and public revival negatives. Titan-only revival remains unisolated (013 also Demon); broader route and inherited turn-ownership contrasts plus delivery pending. |
-| BT24-073 | SkullSatamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-073.md). Root13 green: public 6/7/10/11 thresholds, deletion accept/refuse, legal inherited host and real turn reset with named draws/decks. Blocker combat, revival filter and invalid evolution boundaries plus delivery pending. |
+| BT24-073 | SkullSatamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-073.md). Root16green: natural 6/7/10/11 threshold/Q5649-Q5650 matrix, public OnDeletion acceptance/refusal, inherited suppression/reset, Blocker combat, invalid evolution rejection, and nonmatching revival-candidate exclusion. Delivery pending. |
 | BT24-074 | SkullSeadramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-074.md). Root17 green: public normal/effect entry, five paid evo routes, legal neighbor/source identities, inherited placement/refusal and real turn reset. Full public Q5652 trait/level matrix and invalid-source routes plus delivery pending. |
 | BT24-075 | SkullBaluchimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-075.md). Root20 green: fixed only-Lv4 cost gate with typedCostGatedBlock and oldIR red/newIR green; public target/refusal boundaries, legal2/2/1 inherited combat and real owner/opponent aura. Collection delivery pending. |
 | BT24-076 | WarGrowlmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-076.md). Root13 green: Q5653 valid-key hand4/5 and zone gates, exact paid evolution, legal inherited host and public DarkDragon/EvilDragon revival/refusal/level negatives. Collection delivery pending. |
