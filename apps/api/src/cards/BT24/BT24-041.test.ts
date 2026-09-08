@@ -16,13 +16,14 @@ describe("BT24-041 Minervamon", () => {
         amount: 1,
         scaling: { unit: "cards", per: 1 },
       });
-      expect((effect?.actions?.[1] as any).optional).toBeUndefined();
+      expect(effect?.actions?.[1]).not.toHaveProperty("optional");
     }
   });
   it("grants Iliad Digimon Reboot and Blocker during the opponent turn", () => {
     const effect = BT24_041.effects?.find((entry) => entry.trigger === "OpponentsTurn");
     expect(effect?.actions).toHaveLength(2);
-    expect(effect?.actions?.map((action: any) => action.keyword?.keyword)).toEqual(["Reboot", "Blocker"]);
+    expect(effect?.actions?.[0]).toMatchObject({ keyword: { keyword: "Reboot" } });
+    expect(effect?.actions?.[1]).toMatchObject({ keyword: { keyword: "Blocker" } });
   });
 
   it.each([
@@ -288,6 +289,24 @@ describe("BT24-041 Minervamon", () => {
       expect(observe(s.engine).hasKeyword(s.perm("minervamon"), keyword)).toBe(true);
       expect(observe(s.engine).hasKeyword(s.perm("nonIliad"), keyword)).toBe(false);
     }
+  });
+
+  it("publicly reboots an Iliad Digimon when the opponent's turn begins", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-041", as: "minervamon", suspended: true }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("minervamon").isSuspended).toBe(false);
   });
 
   it.each([
