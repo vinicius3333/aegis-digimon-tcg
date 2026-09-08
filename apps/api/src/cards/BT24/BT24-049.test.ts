@@ -112,6 +112,25 @@ describe("BT24-049 Parrotmon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
   });
 
+  it("rejects a public evolution from a non-green, non-TS level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-051", as: "base" }], hand: [{ card: "BT24-049", as: "parrotmon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("parrotmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("parrotmon").instanceId);
+  });
+
   it("returns the lowest-DP suspended Digimon when played by an effect", async () => {
     const s = setupEngine(
       {
