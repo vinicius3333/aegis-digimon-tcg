@@ -1,49 +1,11 @@
-import { type CompiledCard } from "@aegis/shared";
-import { afterEach, describe, expect, it } from "vitest";
-import { registerIrCard, runtimeCompiledCard } from "./interpreter.js";
+import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
-const REPLACEMENT_CARD_ID = "BT1-009";
-const originalReplacementCard = runtimeCompiledCard(REPLACEMENT_CARD_ID);
-
-afterEach(() => {
-  if (originalReplacementCard !== undefined) registerIrCard(REPLACEMENT_CARD_ID, originalReplacementCard);
-});
+const REPLACEMENT_CARD_ID = "EX10-052";
 
 describe("BT24-017 Q6027 source-removal continuation", () => {
   it("continues the resolving effect after an immediate leave replacement removes Medusamon", async () => {
-    registerIrCard(REPLACEMENT_CARD_ID, {
-      effects: [
-        {
-          trigger: "AllTurns",
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldLeavePlay",
-              mode: "instead",
-              sourceFilter: { isSelfRef: true },
-              actions: [
-                {
-                  kind: "Delete",
-                  target: {
-                    filter: {
-                      controller: "opponent",
-                      kind: ["Digimon"],
-                      nameOrTrait: [{ tokens: ["Medusamon"], match: "nameExact" }],
-                    },
-                    count: 1,
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      coverage: "full",
-      residual: [],
-    } satisfies CompiledCard);
-
     const s = setupEngine(
       {
         0: {
