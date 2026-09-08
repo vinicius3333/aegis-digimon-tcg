@@ -153,3 +153,51 @@ Aggregate **363/1020**, zero102 at10/10;053 has8/10 evidence and awaits collecti
 delivery, while049/051 retain explicit optional/peer gaps. Next Luna
 050/056/057 baseline passed **37 tests**. No push, PR update or Orca completion
 action performed; the full set audit continues.
+
+## Resume verification, 2026-09-08 03:09 BRT
+
+Root independently reran the current050/056/057 changes: **3 files / 38 tests
+passed**. Fresh shared/API/web `pnpm typecheck` passed. This is a restart
+checkpoint, not final acceptance: review still found missing full-combat
+endpoints, a primitive linked-deletion origin and unasserted wait predicates.
+The same three Luna lanes received bounded corrections in their own files.
+No engine or catalog changes are authorized for those follow-ups.
+
+The next058/059/061 batch has an independently measured **3 files / 25 tests
+passed** baseline. Catalog and card KB queries were inspected; all three
+queries return no card-specific KB entries. Their inherited stack, destination
+ordering and frequency proofs still need review. Aggregate remains363/1020;
+no additional score, delivery or completion credit is granted by these runs.
+
+## Stable 050/056/057/058/059/061 checkpoint, 2026-09-08 03:26 BRT
+
+Root accepted focused suites050:11,056:17,057:11,058:8,059:12 and061:9.
+The frozen full collection/mechanism gate passed **228 files /3217 tests**;
+fresh shared/API/web typecheck passed. Additional Docmon/Medicmon/ST17-13,
+security and battle-conformance regression passed **13 files /85 tests**.
+Effects sync/check against da5c7733c reports **16 semantic changes**,102
+synchronized records and zero semantic or byte changes outside BT24. Scoped
+format/diff checks pass; lint has only structural-any/optional-chain and
+parameterized conditional-assertion warnings, no errors. The existing AD1-002
+unsupported-legacy diagnostic remains inside a passing test.
+
+Atomic commits: `803bcea7f` WereGarurumon public Evade/frequency;
+`fa905a6fb` Dezipmon public hand/deck protection and Blocker;
+`dae007d47` Docmon end-of-security-battle correction and Q5643;
+`e5b7778a2` Blimpmon exact reveal destinations and inherited Reboot;
+`839bc87b7` Sharkmon legal inherited placement/refusal/frequency;
+`dcf62e986` Vademon public deck-top return and inherited frequency/reset.
+Docmon now uses the already-supported end-of-battle subscription instead of
+playing before the security DP comparison. The old IR failed the new weak
+attacker test; the corrected card passes both losing and surviving attacker
+cases. No new engine changes were necessary in this batch.
+
+Intermediate runs were not accepted:056's generic already-true event wait
+observed Great Maelstrom before Option disposal;061's new second attack was
+rejected with `decision-pending` until WereGarurumon's optional choice was
+answered. The final frozen rerun is green; neither was an engine defect.
+
+Aggregate **399/1020**, zero102 at10/10. Remaining public trait, target,
+duration and route boundaries are explicitly retained below full credit.
+The next062/063/064 baseline passed **3 files /30 tests**. No push, PR update
+or Orca completion action performed; the full set remains in progress.

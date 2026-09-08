@@ -98,3 +98,21 @@ Earlier results were not qualified: illegal Digi-Egg decks, incomplete turn
 setup, early assertions, and Homeros's additional TS-wide +1000 DP each
 confounded prior fixtures. Do not cite those as engine evidence. See
 [mechanism record](PLAYER-WIDE-DP-MECHANISM.md) for the final disposition.
+
+## Docmon Security timing correction
+
+BT24-057's printed Security clause says to play it at the end of the battle.
+The old direct `PlayWithoutCost` action moved the checked card into the battle
+area before the security DP comparison. In securityCheck.ts, that makes
+`stillChecked` false and skips the battle. The historical test used a2000-DP
+attacker against4000-DP Docmon but asserted that the attacker remained a
+restriction target, concealing the incorrect skipped battle.
+
+The Luna lane reproduced the old IR against the new weak-attacker test:
+`securityChecked.resolution` was `effect`, not `battle`. The corrected card
+uses the existing036/ST17-13 `whenSecurityBattleEnded` subscription and plays
+the exact checked instance from trash. No engine change is needed. This
+matches CR13-1-8-3 and14-2-5. Root independently passed13 files /85 tests across
+036,057,ST17-13,security and battle conformance; strong-attacker survival and
+weak-attacker deletion now accompany Docmon's final placement. Full collection
+gates and remaining public restriction expiry/route evidence are still open.
