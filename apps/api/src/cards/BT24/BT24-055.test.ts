@@ -24,7 +24,7 @@ describe("BT24-055 Ginryumon", () => {
 
   it("limits the inherited suspension target to the source's play cost", () => {
     const inherited = BT24_055.effects?.find((entry) => entry.isInherited);
-    const action = inherited?.actions?.[0] as any;
+    const action = inherited?.actions?.[0] as unknown as { actions?: unknown[] };
     expect(action).toMatchObject({ kind: "SubTrigger", event: "whenSuspended" });
     expect(action.actions?.[0]).toMatchObject({
       kind: "Suspend",
@@ -34,7 +34,7 @@ describe("BT24-055 Ginryumon", () => {
   it("requires Shuu Yulin as the On Play/When Digivolving placement cost", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = BT24_055.effects?.find((entry) => entry.trigger === trigger);
-      const action = effect?.actions?.[0] as any;
+      const action = effect?.actions?.[0] as unknown as { cost: unknown };
       expect(action).toMatchObject({ optional: true, abortOnDecline: true });
       expect(action.cost).toMatchObject({
         kind: "place",
@@ -181,5 +181,37 @@ describe("BT24-055 Ginryumon", () => {
 
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("activates the inherited suspension through a public attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-056", as: "host", under: ["BT24-055"] }],
+        security: [{ card: "BT1-009", as: "security" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: [{ card: "BT1-009" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended && !observe(s.engine).isAttacking());
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not suspend an opposing Digimon above the host play-cost ceiling", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-056", as: "host", under: ["BT24-055"] }] },
+      1: { battleArea: [{ card: "BT24-040", as: "highCost" }] },
+    });
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    expect(s.perm("highCost").isSuspended).toBe(false);
   });
 });
