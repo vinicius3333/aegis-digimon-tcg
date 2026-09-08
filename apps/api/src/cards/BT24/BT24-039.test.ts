@@ -34,10 +34,20 @@ describe("BT24-039 Piximon", () => {
   });
   it("has Blocker, Barrier, and inherited Recovery +1", () => {
     expect(
-      BT24_039.effects
-        ?.filter((entry) => entry.keywords?.length)
-        .flatMap((entry) => entry.keywords?.map((keyword: any) => keyword.keyword)),
-    ).toEqual(["Blocker", "Barrier", "Recovery"]);
+      BT24_039.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Blocker")),
+    ).toMatchObject({
+      keywords: [{ keyword: "Blocker" }],
+    });
+    expect(
+      BT24_039.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Barrier")),
+    ).toMatchObject({
+      keywords: [{ keyword: "Barrier" }],
+    });
+    expect(
+      BT24_039.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Recovery")),
+    ).toMatchObject({
+      keywords: [{ keyword: "Recovery", amount: 1 }],
+    });
   });
 
   it("plays from security without battle against an opposing level 6 Digimon", async () => {
