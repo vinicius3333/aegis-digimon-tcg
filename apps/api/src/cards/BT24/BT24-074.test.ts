@@ -275,6 +275,40 @@ describe("BT24-074 SkullSeadramon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
   });
 
+  it("Q5652: public revival selects one preferred eligible card and leaves the other in trash", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-074", as: "skullseadramon", dp: 1000 }],
+          trash: [
+            { card: "BT15-025", as: "seadramon" },
+            { card: "BT24-010", as: "tsCandidate" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const hostId = s.inst("skullseadramon").instanceId;
+    const preferredId = s.inst("tsCandidate").instanceId;
+    const remainingId = s.inst("seadramon").instanceId;
+    preferred.push(preferredId);
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === preferredId));
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(preferredId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hostId, remainingId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(preferredId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("Q5652: does not play a near-matching level 4 Sea Beast", async () => {
     const s = setupEngine(
       {
