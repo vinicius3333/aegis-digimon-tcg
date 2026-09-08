@@ -188,6 +188,36 @@ describe("BT24-068 DemiDevimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
   });
 
+  it("accepts the alternate Fallen Angel branch while excluding a near-match trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-068", as: "demidevimon" },
+            { card: "BT1-009", as: "handCost" },
+          ],
+          deck: [
+            { card: "BT11-080", as: "fallenAngel" },
+            { card: "BT1-011", as: "nearMatch" },
+            { card: "BT12-085", as: "demonLord" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("demidevimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("fallenAngel").instanceId, s.inst("demonLord").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("nearMatch").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nearMatch").instanceId]);
+  });
+
   it("public attack trashes both players' top cards through the inherited effect", async () => {
     const s = setupEngine({
       0: {
