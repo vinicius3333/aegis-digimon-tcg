@@ -25,7 +25,12 @@ describe("BT24-029 Whamon", () => {
 
   it("requires the qualifying hand card placement for both entry triggers", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as any;
+      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as unknown as {
+        kind: string;
+        target: { filter: { kind: string[] } };
+        cost: { kind: string; destination: string; position: string; target: { filter: { nameOrTrait: unknown } } };
+        abortOnDecline: boolean;
+      };
       expect(action.kind).toBe("Restrict");
       expect(action.target.filter.kind).toEqual(["Digimon", "Tamer"]);
       expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
@@ -40,8 +45,22 @@ describe("BT24-029 Whamon", () => {
   });
 
   it("plays qualifying TS cards from its digivolution cards", () => {
-    const endOfAttack = compiled.effects.find((effect) => effect.trigger === "EndOfAttack")?.actions?.[0] as any;
-    const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")?.actions?.[0] as any;
+    const endOfAttack = compiled.effects.find((effect) => effect.trigger === "EndOfAttack")
+      ?.actions?.[0] as unknown as {
+      kind: string;
+      from: string[];
+      fromOwnDigivolutionStack: boolean;
+      optional: boolean;
+      target: { filter: unknown };
+    };
+    const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")
+      ?.actions?.[0] as unknown as {
+      kind: string;
+      from: string[];
+      fromOwnDigivolutionStack: boolean;
+      optional: boolean;
+      target: { filter: unknown };
+    };
     expect(endOfAttack).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],
@@ -337,6 +356,29 @@ describe("BT24-029 Whamon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("whamon").instanceId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+  });
+
+  it("digivolves from a normal blue level-4 source for the catalog cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-010", as: "blueBase" }],
+        hand: [{ card: "BT24-029", as: "whamon" }],
+        deck: [{ card: "BT1-013", as: "bonusDraw" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("whamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueBase").topCard.instanceId === s.inst("whamon").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("blueBase").stack.map((card) => card.instanceId)).toEqual([s.inst("blueBase").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
