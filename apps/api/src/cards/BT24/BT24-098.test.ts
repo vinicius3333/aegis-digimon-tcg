@@ -4,6 +4,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_098 } from "./BT24-098.js";
 import "../index.js";
 
@@ -122,7 +123,7 @@ describe("BT24-098 Invasion of the Titans", () => {
           trash: ["BT24-075"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-042")).toBe(true);
@@ -130,38 +131,81 @@ describe("BT24-098 Invasion of the Titans", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-098")).toBe(true);
   });
 
-  it("arms on a Titan play and uses Delay to play a level 5 Titan while the opponent has 5 memory", async () => {
+  it("publicly reveals Security, plays an exact level-4 Titan for free, then adds itself to hand", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT24-098", as: "option" },
-            { card: "BT24-042", as: "playedTitan" },
-          ],
-          trash: [{ card: "BT24-075", as: "target" }],
+          security: [{ card: "BT24-098", as: "securityOption" }],
+          hand: [{ card: "BT24-042", as: "eligibleTitan" }],
+          trash: [{ card: "BT24-075", as: "ineligibleLevel5" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }],
+          security: ["BT1-013"],
+          hand: ["BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = -5;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
-    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("playedTitan").permanentId,
-    });
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
-        effectKey: delayEffectKey(s),
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("eligibleTitan").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard.instanceId)).toContain(
+      s.inst("eligibleTitan").instanceId,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ineligibleLevel5").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it.fails("arms on a public Titan play and uses Delay to play a level 5 Titan while the opponent has 5 memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-098", as: "option" }],
+          hand: [{ card: "BT24-042", as: "playedTitan" }],
+          trash: [{ card: "BT24-075", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = -2;
+    await s.ready();
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("target").instanceId),
     );
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("target").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("target").instanceId);
+    expect(s.state.memory).toBe(-5);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("may pay Delay but plays nothing if the opponent no longer has 5 memory at resolution (Q5710)", async () => {
