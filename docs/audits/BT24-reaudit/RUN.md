@@ -848,3 +848,21 @@ immediately. `9ea54d2ef` raises090 from7→8. The corrected098 memory fixture is
 preserved as a real expected payload failure in `363fc6a05`; its score remains6.
 Aggregate726/1020,0 cards at10/10. Lanes advance through025-027; no publication
 has occurred.
+
+Root046 public evidence was accepted conservatively at7/10 in `7e7fa6bb1`;
+its direct same-turn inherited OPT suppression and natural reset remain open.
+Root041 passed15/15 with public On Deletion, Reboot and Blocker
+acceptance/refusal (`0f125eca7`, `801d46695`), but remains7 because Q5628
+effect-immunity/interleaving has no natural public fixture; the seam was
+recorded in `723b8d4bb` and reconciled in `e04ebd4c0`. Root047 remains6 after
+9/9, with its obsolete module suppression removed in `390e0aed7` and inherited
+OPT reset still open.
+
+Root048 passed12/12 and rose6→7 in `3b81e0e7a` after public normal evolution,
+invalid-source rejection and typed IR cleanup; inherited frequency/reset stays
+open. Root052 passed13/13 and rose6→7 after stale-evidence reconciliation
+(`a4bbbed09`, `b87c2667d`), retaining natural reset/interleaving gaps. Root054
+passed12/12 independently (25/25 together with052), replaced broad structural
+casts in `b95f3351b`, and rose6→8 in `b87c2667d` with public frequency/reset and
+route boundaries. Aggregate758/1020,0 cards at10/10. Three Luna lanes proceed
+through055,060 and065. No publication has occurred.
