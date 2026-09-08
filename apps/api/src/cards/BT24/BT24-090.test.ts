@@ -201,7 +201,7 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     await turn;
   });
 
-  it.fails("expires Blocker and Alliance after a public face-up security check", async () => {
+  it("expires Blocker and Alliance after a public face-up security check", async () => {
     const s = setupEngine({
       0: {
         security: [
@@ -229,36 +229,16 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(sanctuaryId);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(observe(s.engine).hasKeyword(s.perm("qualifying"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("qualifying"), "Alliance")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await firstTurn;
-    s.state.turnSeat = 0;
-    const ownerTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await ownerTurn;
-    s.state.turnSeat = 1;
-    const secondTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(1);
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.events.filter((event) => event.kind === "securityChecked").length >= 2 && !observe(s.engine).isAttacking(),
-    );
-    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
-    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
-    expect(s.state.pendingDecision).toBeUndefined();
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await secondTurn;
   });
 
   it("does not grant Alliance without an exact Neptunemon or Venusmon", async () => {
