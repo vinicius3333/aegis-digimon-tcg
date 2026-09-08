@@ -14,6 +14,8 @@ Only edit the assigned card module, colocated test and report. Never edit engine
 
 ## Acceptance traps found in this restart
 
+- `preferInstanceIds` is a membership set, not an ordered ranking (harness.ts selection comparator). To select a different target later, replace the list contents; unshifting a second target while retaining the first leaves both equally preferred. Already-suspended Digimon may remain legal Suspend targets. Do not infer an OPT failure from selection of the first target again.
+- Fortitude is mandatory (CR16-27-3); do not invent a refusal prompt. A top card's own Barrier is not inherited unless its inherited text grants it.
 - Ordinary security attacks finish with `securityChecked` plus `!observe(engine).isAttacking()`; `combatResolved` is supplied by Digimon battle resolution. Assert the relevant completion event and final state explicitly. Do not wait for two combatResolved events when only one attack was a Digimon battle.
 - A public play with no eligible placement-cost card proves an unavailable-cost boundary, not that On Play only works for effect-play. Keep test comments faithful to the printed trigger.
 - Barrier has its own `barrierPrompt` / `respondBarrier` decision. Generic optional automation does not answer it. Use a neutral higher-level host to isolate an inherited keyword.

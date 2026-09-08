@@ -79,3 +79,22 @@ Independent batch004/007/010/011/012/013 passed63 tests. Remaining concrete gaps
 ## Medusamon continuation status
 
 Preserved local test/report changes pass the restart focused check. Full acceptance and collection gates still required.
+
+## Qualified future-entrant DP projection gap (Q5629)
+
+The public EX4-074 evolution followed by Minervamon play now reaches a fully
+drained owner Main phase (memory 3, no pending decision). The existing Iliad
+Digimon correctly reads 5000 DP; the newly played 5000-DP Iliad card reaches
+trash after three De-Digivolve operations. Minervamon nevertheless retains
+12000 currentDP instead of 7000. Root independently reproduced this exact
+failure. New-permanent creation initializes currentDP from printed DP without
+refreshing the existing player-wide modifier ledger; a serialized engine lane
+corrected the entry projection and added regression proof. Root action,
+primitive, modifier and card checks passed 221 tests; the full collection and
+mechanism gate passed 3200 tests with a fresh shared/API/web typecheck. The
+separate DNA constructor is explicitly outside this correction's proof.
+
+Earlier results were not qualified: illegal Digi-Egg decks, incomplete turn
+setup, early assertions, and Homeros's additional TS-wide +1000 DP each
+confounded prior fixtures. Do not cite those as engine evidence. See
+[mechanism record](PLAYER-WIDE-DP-MECHANISM.md) for the final disposition.

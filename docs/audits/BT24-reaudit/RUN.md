@@ -95,3 +95,40 @@ Root focused acceptance passed **3 files / 33 tests** (036:8,038:14,039:11); ful
 Atomic commits `cad00637c`, `d92669ae0`, and `49de3132d` record public Medicmon deletion/Q5615 Link cancellation, Biomon App Fusion/source isolation/Fortitude boundaries, and Piximon security/Blocker/Barrier/inherited Recovery.036/038 module typecheck suppressions were removed; no new behavior or engine change was necessary. A redundant036 normal evolution requirement was rejected because the catalog already supplies it. Fortitude is mandatory (CR16-27-3), and Piximon's Barrier is not inherited: earlier contrary fixture assumptions were corrected, not treated as engine bugs.
 
 Aggregate **297/1020**, zero102 at10/10. Full collection remains in progress with explicit duration/frequency/peer boundaries. Next Luna lanes040/041/043 have a root baseline with044 of **4 files / 37 tests passed**. No push, PR update or Orca completion action performed.
+
+## Stable 040–048 and entrant-DP checkpoint, 2026-09-08 02:50 BRT
+
+Root accepted040 (15 tests),043 (8),044 (8), and041/046/047/048
+(42 tests). The final frozen full collection/mechanism run passed **228 files /
+3200 tests**. Fresh `pnpm typecheck` passed shared/API/web. Independent public
+play, primitive, modifier and041 checks passed **4 files / 221 tests**. Effects
+sync/check against da5c7733c remain **15 semantic changes**, 102 synchronized
+records and zero semantic/byte changes outside BT24. Scoped Oxfmt and diff
+checks pass; Oxlint has three existing structural warnings in041 and no errors.
+The known AD1-002 diagnostic remains inside a passing test.
+
+Atomic checkpoints: `735e00996` Venusmon public suppression/replacement,
+`8815c4a39` Tapirmon public search and frequency/reset, `bdeab2027` Muchomon
+public search/battle frequency, `a7fe32568` entrant-DP engine correction,
+`cf61c2993` Minervamon Q5627/Q5629, `5e24dbc39` Garurumon Jamming/routes,
+`f596f99de` Kokatorimon public follow-up attack, and `36721a58f` Deramon public
+Blocker/breeding/refusal boundaries.
+
+The qualified Q5629 public test exposed a real currentDP projection gap:
+existing player-wide modifiers were not applied when a permanent was created.
+Manual and shared effect placement now recompute the entrant immediately,
+without changing deferred DP-zero deletion ordering. Primitive tests cover
+both modifier signs, security entry and expiry; DNA's separate constructor is
+not claimed as covered. Earlier failures from illegal eggs, early assertions,
+wrong turn setup and Homeros's +1000 DP were fixture confounds, not this bug.
+
+Additional fixture traps: preference arrays express membership, not ranking;
+already-suspended targets and timed-out predicates can produce false green
+tests. Garurumon cannot attack immediately after public play without Rush.
+Inherited hosts must have legal levels. Every reported alias/assertion change
+was checked in the actual diff before acceptance.
+
+Aggregate **341/1020**, zero102 at10/10. The102 ledger rows match102 catalog
+cards. Next Luna batch049/051/053 has an independent **24-test** green baseline.
+Full collection completion, remaining clause/peer evidence and delivery remain
+open. No push, PR update or Orca completion action performed.

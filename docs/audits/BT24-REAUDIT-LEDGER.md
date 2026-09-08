@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 297/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 341/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -47,15 +47,15 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-037 | Silphymon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-037.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
 | BT24-038 | Biomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-038.md). Public Q5620, own-stack Link isolation, zero-DP boundary, Fortitude source/no-source and paid-Link into zero-cost AppFusion pass. Main linked OPT/reset, duration and invalid-fusion contrasts remain open. |
 | BT24-039 | Piximon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-039.md). Public security battle-area/breeding level boundary, Blocker plus Barrier, inherited recovery and paid TS evolution pass. Normal/illegal evolution and keyword refusal boundaries remain open. |
-| BT24-040 | Venusmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-041 | Minervamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-040 | Venusmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-040.md). Public Q5622 suppression, Q5621 simultaneous protection and Q5781 self-cost, security order and paid routes. Root15green; Q5623-26 distinctions, replacement refusal/frequency/reset and peer boundaries open. |
+| BT24-041 | Minervamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-041.md). Public Q5627 refusal, Q5629 DP-zero ordering and exact paid evolution routes. Root12green after entrant currentDP fix; Q5628 immunity interleaving, On Deletion and public Reboot/Blocker still open. |
 | BT24-042 | Goblimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-042.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
-| BT24-043 | Tapirmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-044 | Muchomon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-043 | Tapirmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-043.md). Public Beast/Shaman search, same-source inherited suspension frequency/reset, normal and alternate egg cost/stack/draw. Root8green; illegal egg and full trait/refusal matrix plus delivery remain open. |
+| BT24-044 | Muchomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-044.md). Public suspend-gated search and opponent negative, paid egg route, inherited battle survival/deletion contrast and same-source frequency/reset. Root8green; refusal, level7 exclusion, illegal egg and full search-trait matrix remain open. |
 | BT24-045 | Ogremon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-045.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
-| BT24-046 | Garurumon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-047 | Kokatorimon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-048 | Deramon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-046 | Garurumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-046.md). Public Jamming combat, entry suspension and normal/Gabumon/TS cost/top/stack/draw plus illegal source. Root11green; inherited same-turn suppression, fully completed reset combat and remaining route negatives open. |
+| BT24-047 | Kokatorimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-047.md). Public suspend/unsuspend/attack sequence, opponent negative, refusal and paid normal evolution top/stack/draw. Root9green; inherited same-source frequency/reset and wider trait/route boundaries remain open. |
+| BT24-048 | Deramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-048.md). Public Blocker, hatch/refusal, free breeding evolution with exact draw/stack/payment and legal-route non-Avian negative. Root10green; inherited frequency/reset, normal paid evolution and target boundaries open. |
 | BT24-049 | Parrotmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-050 | WereGarurumon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-051 | Merukimon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
