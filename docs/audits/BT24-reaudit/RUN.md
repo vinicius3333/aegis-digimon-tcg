@@ -477,3 +477,68 @@ Dependency-ordered local commits: `a24221486` engine ordering and mechanism proo
 to550/1020, zero102 at10/10. These commits are local; no push or PR mutation.
 The same Luna engine worker now owns only087's three card files while079/085
 continue bounded evidence work. Engine production is frozen.
+
+## Card-only follow-up checkpoint, 2026-09-08 09:18 BRT
+
+Root085 focused11 passed; scoped lint/format and diff checks passed. Committed
+`514a343b5` for public Q5672/Q5673/Q5691 and memory-boundary evidence. Root assigns
+6/10, not the old report's8: public Security, cap/filter negatives and additional
+linked-Option rulings remain incomplete. Ledger556/1020, zero102 at10/10.
+
+Concurrent079 Q5660 polish briefly failed expected memory0 vs actual-3 because
+the assertion had been inserted after voluntarily ending Main; the lane moved
+the cost assertion before the turn pass. This is a fixture sequencing error,
+not a production engine defect. Root's API typecheck failed087.ts:74 after the
+lane removed nocheck without typing its compiled export (TS2345, widened string
+trigger). The lane must add the real CompiledCard annotation and rerun types;
+this is current WIP, not a pre-existing failure. No closing gate claimed.
+
+Ruling provenance review:085 Q5575 has public peer proof in002; Q6713 in034.
+091's existing Q5686 fixture starts already linked and cannot prove newly linked
+effect activation;095 Q5701 changes memory mid-Main;097 Q5708 injects timing.
+These are not credited as complete public interaction proof. Q6442 belongs to
+BT25-093. Q7171's wording matches BT26-097's bottom-source placement clause,
+but the local QA index contains only its related085 entry; keep that provenance
+limitation explicit while testing the observable continuation scenario.
+
+## Restart after lost execution handles, 2026-09-08 09:34 BRT
+
+The previous goal turn made concrete progress through commits and new evidence.
+On continuation the old process handles were missing and the agent registry
+contained only root. Disk now reports23GiB available without further root
+deletion; no additional cache cleanup is needed. Existing card edits remain.
+Root restart079/085/087:35 tests,33 passed and2 failed, both079. The unfinished
+manual decision edit disabled auto-accept in the normal evolution fixture but
+left it enabled in the fusion fixture; the former leaves a Play optional pending,
+the latter observes079 after Rei's decisions already auto-resolved. Repair the
+exact fixture options rather than changing expected rules or production code.
+Catalog102 equals102 unique ledger rows. Full typecheck is running before the
+three Luna lanes are recreated. Aggregate remains556/1020; no completion claim.
+
+Restart full `pnpm typecheck` passed shared/API/web. Three replacement Luna
+lanes now own079 (repair manual fusion decisions),085 (newlinked095 Q5701),
+and087 (public Security and payable suspension refusal). Root keeps all
+engine/shared/ledger ownership. The interruption left no trustworthy completion
+signal for the abandoned focused handles, so fresh results supersede them.
+
+The restarted effects-check process exited137 during API build, before reporting
+record comparison. No successful effects check is inferred from this attempt;
+rerun after the card batch is frozen. Disk remained21GiB free, so this is not a
+reproduced ENOSPC failure. The earlier18/102/zero-outside result remains the last
+completed effects gate, not a claim for the unfinished batch.
+
+Root079 rerun at09:38:51 passed14 tests after exact manual-decision repair;
+committed `b93760bd4` for public Q5660 rescue and ordered Rei App Fusion with
+separate draws. Root085/087 at09:41:43 passed24 tests (14/10). Committed
+`82fbe63ae` for typed087, public Link cost/refusal and Security; `99e64b0fd`
+for085's newly linked091/095/097 attack effects. Seven newly added087 no-shadow
+warnings were returned to the lane and removed, not labeled pre-existing.
+Formatting and diff checks passed. Ledger570/1020, zero102 at10/10;079 and087
+receive7 while085 remains6 pending its remaining printed/ruling cases. These
+are local atomic checkpoints, not pushed delivery or collection completion.
+
+The repeated effects check completed successfully after the earlier exit137:
+18 semantic changes againstda5c7733c,102 records synchronized, zero semantic
+or byte changes outsideBT24. Disk20GiB free. No shared runtime change was made
+by the current card-only follow-up lanes; their in-progress tests remain outside
+any closing collection-gate claim.
