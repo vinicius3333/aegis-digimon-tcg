@@ -25,11 +25,27 @@ describe("BT24-019 Kamemon", () => {
     expect(compiled.effects.find((effect) => effect.isInherited)?.keywords?.[0]?.keyword).toBe("Jamming");
   });
 
+  it("keeps a Jamming host after losing a public security battle to higher DP", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-022", as: "attacker", under: ["BT24-019"] }] },
+      1: { security: [{ card: "BT24-051", as: "securityDigimon" }], deck: ["BT1-009", "BT1-010"] },
+    });
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(attackerId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);
+  });
+
   it("reduces a blue TS evolution from cost 2 to 1 in the battle area", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-019", as: "kamemon" }],
         hand: [{ card: "BT24-022", as: "ikkakumon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 5;
@@ -45,6 +61,9 @@ describe("BT24-019 Kamemon", () => {
     await settle(() => s.perm("kamemon").topCard.instanceId === s.inst("ikkakumon").instanceId);
 
     expect(s.state.memory).toBe(4);
+    expect(s.perm("kamemon").topCard.instanceId).toBe(s.inst("ikkakumon").instanceId);
+    expect(s.perm("kamemon").stack.map((card) => card.instanceId)).toContain(s.inst("kamemon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 
   it("does not reduce the same evolution in the breeding area (Q5601)", async () => {
@@ -52,6 +71,7 @@ describe("BT24-019 Kamemon", () => {
       0: {
         breeding: { card: "BT24-019", as: "kamemon" },
         hand: [{ card: "BT24-022", as: "ikkakumon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 5;
@@ -67,6 +87,9 @@ describe("BT24-019 Kamemon", () => {
     await settle(() => s.perm("kamemon").topCard.instanceId === s.inst("ikkakumon").instanceId);
 
     expect(s.state.memory).toBe(3);
+    expect(s.perm("kamemon").topCard.instanceId).toBe(s.inst("ikkakumon").instanceId);
+    expect(s.perm("kamemon").stack.map((card) => card.instanceId)).toEqual([s.inst("kamemon").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 
   it("does not reduce a blue Digimon without the TS trait", async () => {
@@ -91,6 +114,7 @@ describe("BT24-019 Kamemon", () => {
       0: {
         breeding: { card: "BT24-003", as: "tsEgg" },
         hand: [{ card: "BT24-019", as: "kamemon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
         battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-019"] }],
       },
     });
@@ -108,5 +132,8 @@ describe("BT24-019 Kamemon", () => {
     await settle(() => s.perm("tsEgg").topCard.instanceId === s.inst("kamemon").instanceId);
 
     expect(s.state.memory).toBe(5);
+    expect(s.perm("tsEgg").topCard.instanceId).toBe(s.inst("kamemon").instanceId);
+    expect(s.perm("tsEgg").stack.map((card) => card.instanceId)).toEqual([s.inst("tsEgg").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 });
