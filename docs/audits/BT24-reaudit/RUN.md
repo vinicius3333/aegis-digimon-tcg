@@ -225,3 +225,30 @@ structural/parameterized conditional-assertion lint warnings. Commit
 The next069/070/071 baseline passed3 files/33 tests.
 No new full collection gate is claimed beyond the3217-test checkpoint.
 No push, PR update or Orca completion was performed.
+
+## Frozen 066/067/068/069 checkpoint, 2026-09-08 03:58 BRT
+
+Root focused acceptance:066 thirteen tests,067 sixteen,068 nine and069 eight.
+The frozen collection/mechanism gate passed **228 files /3244 tests** at
+03:57:27. Fresh shared/API/web typecheck passed. Effects check against
+da5c7733c reports16 semantic changes,102 synchronized records, and zero
+semantic/byte changes outside BT24. No stray probe files or legacy
+`registerCard` registrations were found in the set. Scoped format/diff checks
+pass; lint has only the existing structural-any warning in067. The known
+AD1-002 unsupported legacy diagnostic remains inside a passing test.
+
+Commits: `271d1dcf5` DemiDevimon legal host, search branches and public mill
+reset; `1d1932c10` Guilmon five qualifying branches, mandatory reveal and
+public inherited deletion reset; `b1da3e8a7` Hackmon Retaliation, Tamer count,
+explicit Rei watcher decisions and final Link cleanup; `14239270a` Vilemon
+public promotion refusal and threshold combat. Typed module cleanup in
+066/067/068/069 changes no executable IR semantics. Intermediate066 source
+identity and067 pre-cleanup Link assertions were corrected before acceptance;
+their failures were not treated as engine defects.
+
+Aggregate **448/1020**, zero102 at10/10.067 has8 evidence points;066/068
+retain7 and069 retains6 with its frequency/evolution/9-trash boundaries
+explicitly pending. The next072/073/074 baseline passed3 files/36 tests;
+catalog and KB queries were inspected (073 Q5649–Q5651,074 Q5652,072 none).
+No push, PR update or Orca completion was performed. Work resumes in bounded
+Luna lanes on069 frequency,070 hand-size/evolution, and071 fusion routes.
