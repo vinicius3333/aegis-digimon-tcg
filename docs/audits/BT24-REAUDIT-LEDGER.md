@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 803/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 804/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -87,7 +87,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-077 | Revivemon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-077.md). Root19green: ordered public App Fusion and invalid pair, normal routes, own-source Link/Q5654, tied/unique lowest-DP deletion, mixed valid/invalid OnDeletion pool, exact revival, and explicit refusal of Link and Play Without Cost. Delivery pending. |
 | BT24-078 | Creepymon (X Antibody) | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-078.md). Root22 public tests green including both Q5656 orders after pooled attack-window fix; legal routes, exact stack/draw, Q5775 late entry, Q6028 source removal, mixed traits and post-deletion budgets. Full BT24/engine8558 and typecheck green; delivery pending. |
 | BT24-079 | Hadesmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-079.md). Public Q5660 rescue, own-source Link, invalid fusion, same-turn OPT/reset, token and Appmon Overclock/refusal/completed attacks and two paid Link capacity. Root21green, typed IR; delivery pending. |
-| BT24-080 | Megidramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-080.md). Root19 tests green: real trash EndTurn Dark/Evil Dragon routes, hand5 and wrongtrait/level denial, refusal, Q5662 activation recheck, public play/evolution/deletion and Blocker combat. Invalid normal route, fuller source-stack/deletion endpoints and delivery pending. |
+| BT24-080 | Megidramon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-080.md). Root21green: real trash EndTurn Dark/Evil Dragon routes, hand/trait/level gates, Q5662 recheck, public play/evolution/deletion/Blocker, invalid normal route, and refusal→opponent turn→next-owner acceptance with exact free-evolution stack. Delivery pending. |
 | BT24-081 | Titamon + SkullBaluchimon | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-081.md). Root20 tests green: legal Purple/Green routes and invalid Red, exact stack/draw, paid and refused costs, mixed exact-name and level/trait revival, real Rush/Piercing and Execute acceptance/refusal. Full collection/engine and typecheck green; delivery pending. |
 | BT24-082 | Owen Dreadnought | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-082.md). Root17green: return-cost correction, public Reptile/Dragonkin routes, nonmatching/suspended negatives, optional refusal, completed Security, and natural next-owner reset with opponent attack plus repeated exact stack/draw/DP/attack endpoints. Delivery pending. |
 | BT24-083 | Hiroko Sagisaka | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-083.md). Root12green: real4/5 memory boundary, Q5667, exact public play/Security destinations, mixed DP/trait selection and optional replacement refusal. Typed IR; no engine/shared gap remains for printed clauses, collection delivery pending. |
