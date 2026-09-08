@@ -98,7 +98,7 @@ describe("BT24-062 MasterBlimpmon", () => {
             { card: "BT24-058", as: "neighbor", under: ["BT24-058"] },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-013", "BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

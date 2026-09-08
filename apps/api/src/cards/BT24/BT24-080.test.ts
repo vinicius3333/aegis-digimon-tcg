@@ -45,8 +45,8 @@ describe("BT24-080 Megidramon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-076", as: "darkDragon" }],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
-          deck: ["BT1-005"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013"],
           trash: [{ card: "BT24-080", as: "megidramon" }],
         },
       },
@@ -67,8 +67,8 @@ describe("BT24-080 Megidramon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-076", as: "darkDragon" }],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
-          deck: ["BT1-005"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013"],
           trash: [{ card: "BT24-080", as: "megidramon" }],
         },
         1: {
@@ -185,7 +185,7 @@ describe("BT24-080 Megidramon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-070", as: "darkDragon" }],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
           trash: [{ card: "BT24-080", as: "megidramon" }],
         },
       },
@@ -208,8 +208,8 @@ describe("BT24-080 Megidramon", () => {
             { card: "BT24-076", as: "firstHost" },
             { card: "BT24-076", as: "secondHost" },
           ],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
-          deck: ["BT1-005", "BT1-006"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014"],
           trash: [
             { card: "BT24-080", as: "firstMegidramon" },
             { card: "BT24-080", as: "secondMegidramon" },

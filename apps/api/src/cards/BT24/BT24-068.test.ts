@@ -45,12 +45,12 @@ describe("BT24-068 DemiDevimon", () => {
         0: {
           hand: [
             { card: "BT24-068", as: "demidevimon" },
-            { card: "BT1-002", as: "handCost" },
+            { card: "BT1-009", as: "handCost" },
           ],
           deck: [
             { card: "BT11-080", as: "evil" },
             { card: "BT12-085", as: "demonLord" },
-            { card: "BT1-010", as: "miss" },
+            { card: "BT1-011", as: "miss" },
           ],
         },
       },
@@ -100,16 +100,16 @@ describe("BT24-068 DemiDevimon", () => {
       0: {
         battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-068"] }],
         deck: [
-          { card: "BT1-001", as: "mineFirst" },
-          { card: "BT1-002", as: "mineSecond" },
+          { card: "BT1-009", as: "mineFirst" },
+          { card: "BT1-010", as: "mineSecond" },
         ],
       },
       1: {
         deck: [
-          { card: "BT1-003", as: "theirFirst" },
-          { card: "BT1-004", as: "theirSecond" },
+          { card: "BT1-011", as: "theirFirst" },
+          { card: "BT1-012", as: "theirSecond" },
         ],
-        security: ["BT1-005", "BT1-006"],
+        security: ["BT1-013", "BT1-014"],
       },
     });
     await s.ready();
