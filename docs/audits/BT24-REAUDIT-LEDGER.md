@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 571/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 573/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -92,7 +92,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-082 | Owen Dreadnought | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-082.md). Root15 tests green: return-cost correction, public Reptile/Dragonkin evolution costs/stack/draw/owner-end expiry, nonmatching and suspended-cost negatives, completed public Security. Local checkpoint ec4483f85. Optional watcher refusal and stronger repeated-stack/draw endpoints remain pending. |
 | BT24-083 | Hiroko Sagisaka | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-083.md). Root10 tests green: real4/5 memory boundary, realQ5667, publicplay3 and Security reveal exactdestinations. Local7e47b4b9b. Public mixed DP/trait selection, optional refusal, fuller replacement sequence and delivery pending; oldprimitiveSecurity has noassertion lintwarning. |
 | BT24-084 | Inori Misono | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-084.md). Root13 tests green: real4/5 memory boundary, Q5669 Security priority, Q5670 Barrier/free evolution with exact stack/draw and public Security no-retrotrigger. Public mixed-name/refusal boundaries remain partial; delivery pending. |
-| BT24-085 | Dan Yuki & Kanan Yuki | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-085.md). Root11 tests green: real4/5 memory boundary, Q5672 public Security suspension blocks both tails, Q5673 accepted Option/refused attack, Q5691 newlinked092 double6k deletion and exact security. Public Security/cap/traits and remaining QAs pending. |
+| BT24-085 | Dan Yuki & Kanan Yuki | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-085.md). Public Security, exact cap/trait contrasts, independent cost/Option/attack refusals and all linked-Option rulings plus002/034 peer proofs. Root42green (08521); typed IR; delivery pending. |
 | BT24-086 | The Crossroad Witch | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-086.md). Restored official Shuu Yulin rule-name alias; shared identity and Q5674/public005 reset regressions green. Fullcard public clause review and delivery pending. |
 | BT24-087 | Rei Katsura | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-087.md). Root13tests plus077peer15 green: publiccost/refusals/Security/memory, Life038fusion, System077 andTransmutation079 peer routes with exactsources/draws, wrongSocialtargetlegalpair rejected. Allprintedclauses mapped; closingdelivery pending. |
 | BT24-088 | Asuna Shiroki | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |

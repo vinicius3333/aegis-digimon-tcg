@@ -563,3 +563,32 @@ The full typecheck started09:53:03 failed only085.ts24/25 after nocheck removal:
 its unannotated Option/Digimon filter constants widened kind to string[].
 The lane added Filter annotations; a fresh full result is required. This was
 current audit WIP, not a pre-existing error or a production behavior change.
+
+Root fullBT24 plus entire engine at10:01:30 finished351 files /8581 tests:
+349 files passed,2 failed;8573 tests passed,8 failed. Seven failures in
+blastDnaCounter reported `counter window did not open`; one088 On Play
+refusal was picked up during an unfinished fixture edit. Isolated
+blastDnaCounter rerun at10:03:12 passed13/13. The default config uses
+isolate:false, so order/shared-state contamination is a hypothesis, not yet
+a proved cause. The freed085 Luna lane is investigating the smallest
+reproduction read-only; no engine change is authorized from that result alone.
+
+Root085/002/034 at10:04:16 passed42 tests (08521). Scoped style/diff checks
+passed. Committed `26bc1e661` for typed085 and public final interactions,
+including independent payable suspension refusal and Option refusal followed
+by completed attack.085 receives8/10; ledger573/1020, zero102 at10/10.
+Root fulltypecheck restarted after the Filter annotation fix. All delivery
+gates remain0; the broad failure is not concealed by the focused green run.
+
+Fulltypecheck shared build/shared/web passed, but API was killed with signal9,
+exit137; an API-only retry also exited137 without TypeScript diagnostics.
+A bounded 2048MiB API retry then failed explicitly with V8 heap exhaustion,
+exit134. A4096MiB API retry is running. No green type gate is claimed for
+these resource failures. Disk remains16GiB free. Root088 rerun10:06:46
+passed13 tests after its public-play placement wait; root07910:07:36 passed19.
+
+The API retry with `NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter
+@aegis/api typecheck` passed (exit0), completing the API portion after shared
+and web had passed. Root08810:08:50 passed16 tests, with final explicit
+placement/combat endpoint polish still requested. The earlier7 Blast DNA
+failures remain unclassified pending the engine lane's order investigation.
