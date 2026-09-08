@@ -592,3 +592,17 @@ The API retry with `NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter
 and web had passed. Root08810:08:50 passed16 tests, with final explicit
 placement/combat endpoint polish still requested. The earlier7 Blast DNA
 failures remain unclassified pending the engine lane's order investigation.
+
+Root088 final16 tests plus scoped style/diff passed at10:10:48; committed
+`4baab510e`. Its full printed paths now have public origins and explicit
+endpoints, including both On Play filter branches, negative/refusal, natural
+replacement and Security with/without payable draw cost.088 receives8/10,
+ledger581/1020. Its Luna lane advances to089's Main/Security first pass;
+the old089 report's injected suspension and edited entry age are not credited.
+
+Root079/077/087 at10:09:32 passed48 tests (07920). Final079 review still
+requires public Link+1 capacity and an isolated Overclock payment endpoint:
+Pipomon032 is System, so Hadesmon's automatic reactivation can revive its
+deleted cost as a new permanent. Absence of the old permanent does not prove
+the card finishes in trash. The lane is replacing that confounded cost with
+a non-System/non-Life Appmon, not changing production deletion semantics.
