@@ -3,12 +3,15 @@ import { compiledEffects, digiXrosRequirementFor, type Action } from "@aegis/sha
 import { setupEngine, settle } from "../../../testkit/harness.js";
 import { advance } from "../../../testkit/advance.js";
 import { getEffectModule, registerCard, unregisterCard } from "../../registry.js";
+import { registeredCompiledCards, registeredIrModules } from "../compiledCards.js";
 import { registerIrCard } from "./module.js";
 import "../../../../cards/BT1/BT1-090.js";
 
 const CARD_ID = "BT1-090";
 const originalModule = getEffectModule(CARD_ID);
 const originalCompiled = compiledEffects[CARD_ID];
+const originalRegisteredCompiled = registeredCompiledCards.get(CARD_ID);
+const originalRegisteredIrModule = registeredIrModules.get(CARD_ID);
 
 beforeEach(() => {
   unregisterCard(CARD_ID);
@@ -21,6 +24,10 @@ afterEach(() => {
   registerCard(originalModule);
   if (originalCompiled === undefined) delete compiledEffects[CARD_ID];
   else compiledEffects[CARD_ID] = originalCompiled;
+  if (originalRegisteredCompiled === undefined) registeredCompiledCards.delete(CARD_ID);
+  else registeredCompiledCards.set(CARD_ID, originalRegisteredCompiled);
+  if (originalRegisteredIrModule === undefined) registeredIrModules.delete(CARD_ID);
+  else registeredIrModules.set(CARD_ID, originalRegisteredIrModule);
   if (getEffectModule(CARD_ID) !== originalModule) throw new Error(`Failed to restore ${CARD_ID} module`);
 });
 
