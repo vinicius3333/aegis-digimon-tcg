@@ -32,11 +32,14 @@ describe("BT24-059 Sharkmon", () => {
 
   it("models the inherited placement-and-unsuspend as an optional paid activation", () => {
     const inherited = BT24_059.effects?.find((entry) => entry.isInherited);
-    const action = inherited?.actions?.[0] as any;
     expect(inherited).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn" });
-    expect(action).toMatchObject({ kind: "Unsuspend", target: { filter: { isSelfRef: true } } });
-    expect(action).toMatchObject({ optional: true, abortOnDecline: true });
-    expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
+    expect(inherited?.actions?.[0]).toMatchObject({
+      kind: "Unsuspend",
+      target: { filter: { isSelfRef: true } },
+      optional: true,
+      abortOnDecline: true,
+      cost: { kind: "place", destination: "digivolutionStack", position: "bottom" },
+    });
   });
 
   it("public play pays 7 and De-Digivolves 1", async () => {
