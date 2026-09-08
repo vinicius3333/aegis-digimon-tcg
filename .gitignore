@@ -43,6 +43,9 @@ docs/audits/*
 !docs/audits/*QUEUE*.md
 !docs/audits/BT25/
 !docs/audits/BT25/**
+!docs/audits/EX10-reaudit/
+!docs/audits/EX10-reaudit/**
+docs/audits/EX10-reaudit/logs/
 docs/audits/EX12-strict-card-audit.md
 internal-docs/audits/
 internal-docs/card-audits/
