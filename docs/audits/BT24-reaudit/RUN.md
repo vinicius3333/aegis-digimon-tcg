@@ -684,3 +684,17 @@ rows, and no card at10/10. The reactive Delay registration seam has 15 green
 existing mechanism tests, but awaits a dedicated generalized regression
 before root acceptance. Luna lanes continue089/092,093, and serialized engine
 work respectively; no publication has occurred.
+
+Root092 acceptance at10:51:22 passed5 tests with one named expected failure.
+Public Main/link and linked attacks prove exact DP reduction, same-turn OPT
+suppression and next-owner-turn reset. A real Security check does not execute
+the Option Main body, so that engine seam remains explicit. Committed
+`9e0ac67ad`;092 receives7/10.
+
+Root093 acceptance at10:52:14 passed11/11 tests. Its public Security attack
+free-plays the exact Aegiomon from hand, while existing public Main, Delay
+stack identity, host boundaries and hand/trash routes remain green. The module
+is typed and uses only registerIrCard. Committed `61b063e8f`;093 receives8/10.
+Aggregate617/1020, 11 pending zero rows, no card at10/10. Card lanes advance
+to094 and096 while the third Luna completes the dedicated reactive Delay
+engine regression. No publication has occurred.
