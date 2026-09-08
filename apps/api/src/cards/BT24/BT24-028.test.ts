@@ -109,12 +109,20 @@ describe("BT24-028 Divermon", () => {
     await turn;
   });
 
-  it("does not free-evolve into another legal level-6 target", async () => {
+  it("does not free-evolve into another legal blue level-6 target", async () => {
+    expect(getCardDefinition("ST2-11")).toMatchObject({
+      cardId: "ST2-11",
+      nameEn: "MetalGarurumon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      evoCosts: [{ color: "Blue", level: 5, memoryCost: 4 }],
+    });
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT24-028", as: "divermon", suspended: true }],
-          hand: [{ card: "BT24-029", as: "wrongTarget" }],
+          hand: [{ card: "ST2-11", as: "wrongTarget" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
