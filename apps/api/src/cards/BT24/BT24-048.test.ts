@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -58,25 +57,129 @@ describe("BT24-048 Deramon", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("free-digivolves a qualifying breeding Digimon while respecting requirements", async () => {
+  it("uses Deramon's public Blocker in a real opponent attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-048", as: "deramon", dp: 6000 }],
+        security: [{ card: "BT1-009", as: "security" }],
+        deck: ["BT1-010", "BT1-011"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker", dp: 2000 }],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const deramonId = s.perm("deramon").permanentId;
+    const attackerId = s.perm("attacker").permanentId;
+    const securityId = s.inst("security").instanceId;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: deramonId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deramonId)).toBe(true);
+    expect(s.perm("deramon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([securityId]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
+  it("publicly free-digivolves a qualifying breeding Digimon while respecting requirements", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-048", as: "deramon" }],
           breeding: { card: "BT16-008", as: "avian" },
-          hand: [{ card: "BT24-048", as: "evolution" }],
+          hand: [
+            { card: "BT24-048", as: "deramon" },
+            { card: "BT24-048", as: "evolution" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("deramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("avian").topCard.instanceId === s.inst("evolution").instanceId);
 
     expect(s.perm("avian").topCard.instanceId).toBe(s.inst("evolution").instanceId);
-    expect(s.state.memory).toBe(3);
+    expect(s.perm("avian").stack.map((card) => card.instanceId)).toEqual([s.inst("avian").instanceId]);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+  });
+
+  it("declines public hatching", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-048", as: "deramon" }],
+          eggDeck: [{ card: "BT24-001", as: "egg" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-048"));
+    const prompt = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-048")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: prompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.eggDeck.map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("does not free-digivolve a non-Avian/Bird breeding Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT1-071", as: "nonAvian" },
+          hand: [
+            { card: "BT24-048", as: "deramon" },
+            { card: "BT24-048", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const baseId = s.perm("nonAvian").topCard.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-048"));
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-048")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("nonAvian").topCard.instanceId).toBe(baseId);
+    expect(s.perm("nonAvian").topCard.instanceId).toBe(s.inst("nonAvian").instanceId);
   });
 
   it("inherited effect unsuspends its host after that host wins a battle", async () => {
