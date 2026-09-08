@@ -140,6 +140,36 @@ describe("BT24-032 Pipomon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("publicly leaves non-System/non-Transmutation cards out of the second search", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-032", as: "pipomon" }],
+          deck: [
+            { card: "BT21-009", as: "appmon" },
+            { card: "BT1-009", as: "neutralOne" },
+            { card: "BT1-010", as: "neutralTwo" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pipomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("appmon").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("neutralOne").instanceId,
+      s.inst("neutralTwo").instanceId,
+    ]);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("links for cost 1, contributes 2000 DP, and gives an opponent Digimon -2000 DP", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
