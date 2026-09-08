@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 811/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 812/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -59,7 +59,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-049 | Parrotmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-049.md). Root15green: public Fortitude/no-source, lowest-DP bounce, optional refusals, exact normal/TS evolution and invalid source, inherited security-trash frequency/reset. Collection delivery pending. |
 | BT24-050 | WereGarurumon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-050.md). Root13green: Evade acceptance/refusal, exact routes, public restriction expiry, Q5640 trait union, 4000-DP/higher-DP/Sea Animal boundaries and inherited suppression/reset. Collection delivery pending. |
 | BT24-051 | Merukimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-051.md). Root13green: Q5641 Rush/Piercing and DP expiry, cost boundaries, exact routes, frequency/reset, shared When Digivolving/When Attacking counter and public buff refusal across Digimon/Tamer targets. Collection delivery pending. |
-| BT24-052 | Keramon (X Antibody) | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-052.md). Root13green: public Tokens, exact text filters, cost/refusal, wrong-zone exit, same-turn OPT suppression and evolution paths. Natural next-owner-turn reset and public multi-target interleaving remain open; delivery pending. |
+| BT24-052 | Keramon (X Antibody) | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-052.md). Root79green: public tokens, text filters, costs/refusals, evolution routes, multi-target independent replacements and same-turn suppression; generic turn-ledger reset and per-instance budget mechanisms prove peer/stack identity. Exact-fixture natural reset remains bounded; delivery pending. |
 | BT24-053 | Protecmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-053.md). Public own Blocker acceptance/refusal, linked-host combat after paid Link, exact DP/zones and legal normal/alternate breeding routes with invalid blue egg comparison. Root11green; collection delivery pending. |
 | BT24-054 | Ryudamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-054.md). Root12green: public exact-name positive/negative, normal and alternate routes, inherited cost boundary, neighboring-host negative, same-turn OPT suppression and natural next-owner-turn reset. Typed structural assertions; collection delivery pending. |
 | BT24-055 | Ginryumon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-055.md). Root11green: exact Shuu placement, protection/refusal, normal/alternate evolution, public inherited suspension and high-cost ceiling negative. Typed structural assertions; collection delivery pending. |
