@@ -57,11 +57,11 @@ describe("BT24-060 Hisyaryumon", () => {
           battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
           deck: [
             { card: "BT24-064", as: "ouryumon" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-013", as: "miss1" },
+            { card: "BT1-015", as: "miss2" },
           ],
         },
-        1: { security: ["BT1-003", "BT1-004"] },
+        1: { security: ["BT1-013", "BT1-015"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
     );
@@ -79,6 +79,11 @@ describe("BT24-060 Hisyaryumon", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.memory).toBe(3);
+    expect(s.perm("hisyaryumon").topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
+    expect(s.perm("hisyaryumon").stack.map((card) => card.instanceId)).toEqual([s.inst("hisyaryumon").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("miss1").instanceId, s.inst("miss2").instanceId]),
+    );
   });
 
   it("returns all revealed cards to the chosen deck end when evolution is declined", async () => {
@@ -86,9 +91,9 @@ describe("BT24-060 Hisyaryumon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
-          deck: ["BT24-064", "BT1-001", "BT1-002"],
+          deck: ["BT24-064", "BT1-013", "BT1-015"],
         },
-        1: { security: ["BT1-003"] },
+        1: { security: ["BT1-013"] },
       },
       { autoDeclineOptional: true, autoChooseOption: true, autoOrderCards: true },
     );
@@ -103,7 +108,7 @@ describe("BT24-060 Hisyaryumon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT24-064", "BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT24-064", "BT1-013", "BT1-015"]);
   });
 
   it.each([
@@ -131,6 +136,8 @@ describe("BT24-060 Hisyaryumon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("hisyaryumon").instanceId);
 
     expect(s.state.memory).toBe(5 - expectedCost);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("hisyaryumon").instanceId);
+    expect(s.perm("base").stack[0]!.instanceId).toBe(s.inst("base").instanceId);
   });
 
   it("suspends an opponent Digimon when a Tamer is placed in its own stack", async () => {
@@ -140,7 +147,7 @@ describe("BT24-060 Hisyaryumon", () => {
           battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
           hand: [{ card: "BT15-087", as: "shuu" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -153,22 +160,44 @@ describe("BT24-060 Hisyaryumon", () => {
   });
 
   it("may attack the Digimon it suspends after a Tamer enters its stack", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
-          hand: [{ card: "BT15-087", as: "shuu" }],
+          battleArea: [
+            { card: "BT24-060", as: "hisyaryumon" },
+            { card: "BT24-086", as: "mindLink" },
+          ],
+          hand: [{ card: "BT1-009", as: "playedDigimon" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        autoOrderTriggers: true,
+        preferInstanceIds: preferred,
+      },
     );
     const targetId = s.perm("target").permanentId;
+    const mindLinkId = s.inst("mindLink").instanceId;
+    preferred.push(targetId);
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).verb.placeUnder(s.perm("hisyaryumon").permanentId, [s.inst("shuu").instanceId]);
-    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId));
-    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("hisyaryumon").stack.some((card) => card.instanceId === mindLinkId));
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    const alliance = s.events.find((event) => event.kind === "alliancePrompt");
+    if (alliance?.kind !== "alliancePrompt") throw new Error("Alliance prompt missing");
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: alliance.eligibleAllyIds[0] })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
     expect(s.perm("hisyaryumon").isSuspended).toBe(true);
@@ -179,22 +208,50 @@ describe("BT24-060 Hisyaryumon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-064", as: "host", under: ["BT24-060", "BT15-087"] },
-            { card: "BT24-054", as: "other" },
+            { card: "BT24-064", as: "host", dp: 1000, under: ["BT24-060", "BT15-087"] },
+            { card: "BT24-054", as: "other", dp: 1000 },
           ],
         },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "happyBullet" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const hostId = s.perm("host").permanentId;
     const otherId = s.perm("other").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
     await s.ready();
-
-    await advance(s.engine).verb.deletePermanent([hostId, otherId], "byEffect");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("happyBullet").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-087"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === otherId)).toBe(true);
     expect(s.perm("host").stack.some((card) => card.cardId === "BT15-087")).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("happyBullet").instanceId)).toBe(true);
+  });
+
+  it("Q5782 refusal allows both simultaneous qualifying departures", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-064", as: "host", dp: 1000, under: ["BT24-060", "BT15-087"] },
+            { card: "BT24-054", as: "other", dp: 1000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "happyBullet" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("happyBullet").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
