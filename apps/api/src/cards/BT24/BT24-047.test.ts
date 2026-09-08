@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_047 } from "./BT24-047.js";
 import "../index.js";
 
@@ -56,23 +57,37 @@ describe("BT24-047 Kokatorimon", () => {
     expect(s.perm("avian").isSuspended).toBe(true);
   });
 
-  it("suspends, unsuspends, and attacks with its own Giant Bird as one sequence", async () => {
+  it("publicly plays, suspends, unsuspends, and attacks with its own Giant Bird", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-047", as: "source" }] },
+        0: {
+          hand: [{ card: "BT24-047", as: "source" }],
+          battleArea: [{ card: "BT1-022", as: "avian", suspended: false }],
+        },
         1: { security: [{ card: "BT1-009", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("source").permanentId);
+    preferred.push(s.perm("avian").permanentId);
+    s.state.memory = 10;
     await s.ready();
+    const avianPermanentId = s.perm("avian").permanentId;
+    const securityInstanceId = s.inst("security").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking(),
+    );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[1]!.security.length === 0);
-
-    expect(s.perm("source").isSuspended).toBe(true);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("avian").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityInstanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(avianPermanentId);
   });
 
   it("resolves opponent suspension from a public play intent", async () => {
@@ -98,6 +113,51 @@ describe("BT24-047 Kokatorimon", () => {
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("avian").isSuspended).toBe(true);
+  });
+
+  it("publicly declines the optional suspension without changing memory or zones", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT24-047", as: "kokatorimon" }], deck: ["BT1-009", "BT1-010", "BT1-011"] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kokatorimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("kokatorimon").instanceId),
+    );
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("kokatorimon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+  });
+
+  it("digivolves publicly through the legal green level-3 route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "base" }],
+          hand: [{ card: "BT24-047", as: "kokatorimon" }],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }, "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kokatorimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("kokatorimon").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("kokatorimon").instanceId);
+    expect(s.perm("base").stack.map((c) => c.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
   it("inherited effect gains memory only when its own host wins and survives", async () => {
