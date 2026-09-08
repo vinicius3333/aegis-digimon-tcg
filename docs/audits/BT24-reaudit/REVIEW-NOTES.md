@@ -14,6 +14,8 @@ Resolved: ledger now has separate rubric columns and retains all existing eviden
 
 BT24-095 still proves Security and Q5701 with injected timing and its linked OPT with a direct private fireTiming call. The breeding color-waiver test ends with settle(predicate) without an explicit suspension assertion. Full 8/10 behavioral claim is not accepted until natural public origins, endpoint assertions, and next-turn OPT reset are demonstrated. Queue a card lane after the initial three return.
 
+Resolved on 2026-09-08: root acceptance rerun passed 11 tests. New public Security/Q5701, Q5698 Digimon-effect provenance, Q5699 Option prohibition versus legal Link, same-source public OPT/reset, two natural opponent Active phases and exact +2000 Link DP prove the previously missing clauses. Legacy injected probe remains supplemental only. Provisional evidence is 8/10, delivery 0. Full-tree typecheck currently fails in sibling 003/006 test type narrowing, returned to that lane.
+
 ## Additional acceptance findings
 
 - BT24-001 focused rerun passes 10 tests. Public legal breeding evolution now asserts both costs. Report overstates same-turn suppression in its public reset scenario (one attack per owner turn); require correction before full behavior acceptance.
@@ -28,6 +30,46 @@ BT24-095 still proves Security and Q5701 with injected timing and its linked OPT
 
 BT24-002 worker changed Q5575 to expected-failure with a final unsuspended assertion even though the trailing attack should suspend the host. Its reset fixture relied on pre-Active suspension and did not attack/pay on both turns. Both were returned as fixture corrections; neither currently establishes an engine defect. Never weaken a valid expected result or classify an incomplete fixture as an engine seam.
 
+## Collection fixture sweep
+
+Restart static sweep found illegal Digi-Egg deck/security placeholders in BT24-005, 008, 009, 060, 062, 065, 068, 074 and 080. BT24-014 still uses numeric security fixtures. These must be corrected in their individual card lanes and rerun before delivery; a green collection run does not certify fixture validity.
+
+Priority queue after active cards: 001 acceptance correction, 003 acceptance correction, 005, 008, 009, 014, 060, 062, 065, 068, 074, 080, 072, 081, 084, 018, 019, 028, then all remaining card evidence reconciliation. Each dispatch owns only one card at a time.
+
+## Accepted resumed evidence
+
+001, 003, 006, 008 and 095 now carry provisional 8/10 after independent focused runs and review of corrected public assertions. Delivery remains zero. The two earlier 003/006 type-narrowing errors and duplicate001 import were corrected; a fresh API typecheck is running.
+
+005: coordinator's proposed double-MindLink fixture was invalid because an existing Tamer prevents a second MindLink. This is not a production defect. Fresh Luna card lane is replacing it with public MindLink plus 055's separate printed hand-placement cost, and real turn-loop reset.
+
+009: valid public discard can evolve013 into072, whose own evolution discard causes another009 evolution intoP209 before the first effect finishes. A fresh serialized Luna engine lane is reproducing and checking inherited OPT reentrancy. No production defect is considered closed without the corrected full public test and mechanism regression.
+
+009 hypothesis rejected:013 itself supplies another inherited evolution-on-discard effect after evolving into072. Replacing the initial host with010 isolates009; 16 focused tests pass without an engine change. Remaining009 public refusal and paid evolution/draw proof are assigned to the same Luna lane. The previous reentrancy description was a hypothesis, not a confirmed defect.
+
+Runtime counting scan: current `countMatching` defaults ordinary effects to battle area and includes breeding only explicitly. The older brief's warning that unspecified conditions always count breeding is stale for this HEAD; read runtime before proposing zone changes. No change is warranted solely by the absence of an explicit battleArea filter.
+
 ## Medusamon continuation
+
+## Next focused corrections
+
+Confirmed production issue054: ordinary Filter does not define `namesExact`; two malformed fields (Shuu trigger and Hisyaryumon target) were silently ignored under ts-nocheck. Luna is correcting054 to supported `nameOrTrait`/`nameExact`, with specific public negative/positive regressions. No engine widening is required. Static follow-up candidates with the same invalid ordinary-filter spelling:028,035,042,045,052,055. Requirement-level `namesExact` is valid and must not be mechanically replaced.055 is assigned next; remaining candidates must receive individual card regressions.
+
+Resolved name-filter batch:61fb8d6ec corrects028/035/042/045/052/054/055 and their persisted records. Root focused acceptance (seven cards plus catalog sync) passed178 tests.75b0b5adf subsequently replaces028's wrong-level negative with catalog-verified ST2-11. ff99dde6a restores086's official rule identity; shared alias9tests and005/054/055/08642tests pass. No engine change belongs to these fixes.
+
+## Remaining typed-IR census
+
+Luna's read-only in-memory TypeScript census removed nocheck only in a custom compiler host for all102 modules and found31 diagnostics:015/039 `withoutBattle`;028 `additionalEffect`;030 `triggerCondition`;034 missing replacement `event`;037 `fromHost`;060 requirement `traitsMatchAny`;082 targets missing `filter`;089 missing `payCost`; and widened literal types in017/044/056/066/085/087/094/102. These are review candidates, not31 confirmed runtime bugs.028 additionalEffect is explicitly supported by board.ts but absent from schema: retain original nocheck until a proper schema/valid-IR solution, never hide whole actions with as-never.030 and037 are assigned for public negative proof.
+
+## Diaboromon source-play seam
+
+065 public hand replacement and refusal pass; public own-stack replacement remains a retained expected failure. Exact source card should enter battle but instead travels to trash with its departing host. A serialized Luna engine lane is tracing the actual candidate/play path. A speculative fallback playing ctx.source.instanceId after the host vanished was rejected and removed because it selected the wrong card and bypassed the target filter. No engine fix is accepted yet.
+
+Hypothesis rejected after fixture inspection: the restored red used065 itself as the source, not exact Diaboromon. The printed effect cannot play Diaboromon (X Antibody). With legal BT17-059 beneath065, the exact source is played correctly. Root065+052 acceptance passed24 tests and all temporary engine patches/logging were removed. There is no confirmed engine defect from this scenario. Treat previous worker seam claims as superseded, not as a closed production fix.
+
+Independent batch004/007/010/011/012/013 passed63 tests. Remaining concrete gaps prevent accepting historical8/10 claims:004 uses a blue Lv.3 over a green egg, injected trait boundaries, and a reset assertion that can observe the normal draw instead of inherited draw;002 still injects refusal and its egg evolution omits immediate cost/bonus draw;010 lacks actual Blocker interception/refusal and alternate-route exact stack/draw;011 likewise omits cost/draw in its inherited route and has a level-3 host over a level-4 source in the keyword fixture. Correct these in card lanes, not coordinator edits.
+
+060 public MindLink attack failure was an unanswered explicit Alliance prompt from086, not a missing attack trigger. Luna added public response and public Q5782 simultaneous-departure cases; final independent review remains pending.
+
+## Medusamon continuation status
 
 Preserved local test/report changes pass the restart focused check. Full acceptance and collection gates still required.
