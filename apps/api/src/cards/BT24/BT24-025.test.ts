@@ -352,4 +352,28 @@ describe("BT24-025 Shellmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
   });
+
+  it("rejects a normal evolution into Venusmon and preserves the zones and memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-025", as: "shellmon" }],
+        hand: [{ card: "BT24-040", as: "venusmon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const shellId = s.perm("shellmon").permanentId;
+    const venusId = s.inst("venusmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: shellId,
+        instanceId: venusId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("shellmon").permanentId).toBe(shellId);
+    expect(s.perm("shellmon").topCard.cardId).toBe("BT24-025");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(venusId);
+  });
 });

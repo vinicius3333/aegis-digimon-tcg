@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 731/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 732/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -32,7 +32,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-022 | Ikkakumon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-022.md). Root13green: public play/source-trash, Jamming combat, unsuspend suppression/reset, suspend restriction enforcement/expiry, evolution and filter boundaries. Typed IR; delivery pending. |
 | BT24-023 | Calmaramon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-023.md). Root15green: public effect-play/bottom order, Blocker decisions, restriction enforcement/expiry, exact Lanamon Decode, Jamming combat, paid alternate routes and refusal. Delivery pending. |
 | BT24-024 | Submarimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-024.md). Public Tamer play/refusal and non-TS rejection, same-turn suppression/reset, Armor Purge acceptance/explicit zero-card refusal, normal blue and alternate routes with draw/stack pass. Root15green; normal yellow comparison and final peer/delivery acceptance pending. |
-| BT24-025 | Shellmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-025.md). Root15green: public Q5603-Q5605, Jamming/EOT paths, self/red-TS/non-TS unsuspend negatives and Venusmon refusal. EOT second-trigger/reset and illegal normal route remain open; delivery pending. |
+| BT24-025 | Shellmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-025.md). Root16green: public Q5603-Q5605, Jamming/EOT acceptance/refusal, exact unsuspend trigger boundaries and illegal normal Venusmon evolution. Phase-bound EOT has no natural duplicate window; delivery pending. |
 | BT24-026 | Hyogamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-026.md). Root15green: public grant refusal/Jamming combat, inherited chain with suppression/reset, exact normal and alternate evolution costs/stacks/draws and invalid route. Typed IR; delivery pending. |
 | BT24-027 | Lanamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-027.md). Root21green: exact Decode/placement/cost/draw/protection, inherited hand boundary and public OPT reset, plus legal normal evolution and illegal route rejection. Typed IR; delivery pending. |
 | BT24-028 | Divermon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-028.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
