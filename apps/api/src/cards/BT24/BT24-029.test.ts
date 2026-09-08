@@ -62,19 +62,28 @@ describe("BT24-029 Whamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-029", as: "whamon" }],
-          hand: [{ card: "BT24-102", as: "placed" }],
+          hand: [
+            { card: "BT24-029", as: "whamon" },
+            { card: "BT24-102", as: "placed" },
+          ],
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("placed").instanceId, s.perm("restricted").topCard.instanceId);
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("whamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("whamon").instanceId),
+    );
 
     expect(s.perm("whamon").stack[0]?.instanceId).toBe(s.inst("placed").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("whamon").instanceId);
+    expect(s.state.memory).toBe(3);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
   });
 
@@ -83,19 +92,28 @@ describe("BT24-029 Whamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-029", as: "whamon" }],
-          hand: [{ card: "BT15-025", as: "aquatic" }],
+          hand: [
+            { card: "BT24-029", as: "whamon" },
+            { card: "BT15-025", as: "aquatic" },
+          ],
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("aquatic").instanceId, s.perm("restricted").permanentId);
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("whamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("whamon").instanceId),
+    );
 
     expect(s.perm("whamon").stack[0]?.instanceId).toBe(s.inst("aquatic").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("whamon").instanceId);
+    expect(s.state.memory).toBe(3);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
   });
 
@@ -111,7 +129,7 @@ describe("BT24-029 Whamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
   });
 
-  it("keeps the restriction scoped to effect play on a public play", async () => {
+  it("does not restrict when the public placement cost is unavailable", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT24-029", as: "whamon" }] },
       1: {
@@ -128,8 +146,7 @@ describe("BT24-029 Whamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-029")).toBe(true);
-    // The printed restriction is an effect-play clause; a normal public play
-    // enters without creating a suspend restriction.
+    // The printed restriction cannot resolve when no legal placement card is available.
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
   });
 
@@ -300,6 +317,7 @@ describe("BT24-029 Whamon", () => {
       0: {
         battleArea: [{ card: "BT24-010", as: "base" }],
         hand: [{ card: "BT24-029", as: "whamon" }],
+        deck: [{ card: "BT1-013", as: "bonusDraw" }],
       },
     });
     s.state.memory = 5;
@@ -317,6 +335,9 @@ describe("BT24-029 Whamon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("whamon").instanceId);
 
     expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("whamon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
   it("runs the qualifying placement and restriction on a public digivolution", async () => {
@@ -329,6 +350,7 @@ describe("BT24-029 Whamon", () => {
             { card: "BT24-029", as: "whamon" },
             { card: "BT24-102", as: "placed" },
           ],
+          deck: [{ card: "BT1-013", as: "bonusDraw" }],
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },
@@ -350,7 +372,54 @@ describe("BT24-029 Whamon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("whamon").instanceId);
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("whamon").instanceId);
-    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("placed").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("placed").instanceId,
+      s.inst("base").instanceId,
+    ]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
+  });
+
+  it("blocks a public suspend attempt until the opponent turn ends", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-029", as: "whamon" },
+            { card: "BT24-102", as: "placed" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "restricted" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("placed").instanceId, s.perm("restricted").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "suspend"));
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const attackerId = s.perm("restricted").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: false,
+      reason: "illegal-target",
+    });
+    expect(s.perm("restricted").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(false);
   });
 });
