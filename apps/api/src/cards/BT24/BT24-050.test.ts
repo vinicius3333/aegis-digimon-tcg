@@ -87,6 +87,34 @@ describe("BT24-050 WereGarurumon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("expires the opponent unsuspend restriction at the end of that opponent's turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-050", as: "weregarurumon" }] },
+        1: {
+          battleArea: [{ card: "P-133", as: "target", suspended: true }],
+          security: ["BT1-013", "BT1-015"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("target").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("weregarurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+  });
+
   it.each([
     ["normal green requirement", false, 4],
     ["alternate Garurumon-in-name requirement", true, 3],
@@ -187,6 +215,40 @@ describe("BT24-050 WereGarurumon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("iliad").instanceId),
     ).toBe(true);
+  });
+
+  it("accepts the exact 4000-DP Beast boundary and rejects a higher-DP candidate", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-051", as: "host", under: ["BT24-050"] }],
+          hand: [
+            { card: "BT10-034", as: "boundary" },
+            { card: "BT24-022", as: "tooLarge" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("boundary").instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("boundary").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("boundary").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooLarge").instanceId);
   });
 
   it("resets the inherited hand-play limit on its owner's later turn", async () => {
