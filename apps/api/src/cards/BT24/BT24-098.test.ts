@@ -205,6 +205,7 @@ describe("BT24-098 Invasion of the Titans", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("target").instanceId);
     expect(s.state.memory).toBe(-8);
     expect(s.state.pendingDecision).toBeUndefined();
+    await ownerTurn;
   });
 
   it("may pay Delay but plays nothing if the opponent no longer has 5 memory at resolution (Q5710)", async () => {
