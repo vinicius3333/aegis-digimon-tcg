@@ -268,7 +268,7 @@ describe("BT24-024 Submarimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-024", as: "submarimon", suspended: true, under: ["BT24-020"] }] },
-        1: { battleArea: [{ card: "BT24-017", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
       },
       { autoSelectCards: false },
     );
