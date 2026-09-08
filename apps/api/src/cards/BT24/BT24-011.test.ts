@@ -27,7 +27,7 @@ describe("BT24-011 Cyclonemon", () => {
       0: {
         battleArea: [
           { card: "BT24-011", as: "cyclonemon" },
-          { card: "BT1-009", as: "host", under: ["BT24-011"] },
+          { card: "BT1-020", as: "host", under: ["BT24-011"] },
         ],
       },
     });
@@ -44,6 +44,7 @@ describe("BT24-011 Cyclonemon", () => {
       0: {
         battleArea: [{ card: "BT24-009", as: "tsBase" }],
         hand: [{ card: "BT24-011", as: "cyclonemon" }],
+        deck: [{ card: "BT1-013", as: "draw" }],
       },
     });
     s.state.memory = 5;
@@ -59,6 +60,9 @@ describe("BT24-011 Cyclonemon", () => {
     await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("cyclonemon").instanceId);
 
     expect(s.state.memory).toBe(3);
+    expect(s.perm("tsBase").stack.map((card) => card.instanceId)).toEqual([s.inst("tsBase").instanceId]);
+    expect(s.perm("tsBase").topCard.instanceId).toBe(s.inst("cyclonemon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("draw").instanceId);
   });
 
   it("rejects a public alternate evolution from a non-TS level 3 source", async () => {
@@ -136,7 +140,11 @@ describe("BT24-011 Cyclonemon", () => {
   it("retains inherited Raid through a legal red level-5 evolution stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-011", as: "base" }], hand: [{ card: "BT1-020", as: "host" }] },
+        0: {
+          battleArea: [{ card: "BT24-011", as: "base" }],
+          hand: [{ card: "BT1-020", as: "host" }],
+          deck: [{ card: "BT1-013", as: "draw" }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "high", dp: 4000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -153,6 +161,10 @@ describe("BT24-011 Cyclonemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("host").instanceId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT24-011"]);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("draw").instanceId);
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toContain(highId);
     expect(
       s.engine.applyIntent(0, {
