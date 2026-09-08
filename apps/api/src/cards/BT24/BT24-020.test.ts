@@ -183,6 +183,7 @@ describe("BT24-020 Gomamon", () => {
       0: {
         breeding: { card: "BT24-003", as: "tsEgg" },
         hand: [{ card: "BT24-020", as: "gomamon" }],
+        deck: [{ card: "BT1-014", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 5;
@@ -198,5 +199,32 @@ describe("BT24-020 Gomamon", () => {
     await settle(() => s.perm("tsEgg").topCard.instanceId === s.inst("gomamon").instanceId);
 
     expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.perm("tsEgg").stack.map((card) => card.instanceId)).toEqual([s.inst("tsEgg").instanceId]);
+  });
+
+  it("digivolves from a blue level-2 Digi-Egg by the normal route for cost 0", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-003", as: "blueEgg" },
+        hand: [{ card: "BT24-020", as: "gomamon" }],
+        deck: [{ card: "BT1-015", as: "evolutionDraw" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueEgg").permanentId,
+        instanceId: s.inst("gomamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueEgg").topCard.instanceId === s.inst("gomamon").instanceId);
+
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.perm("blueEgg").stack.map((card) => card.instanceId)).toEqual([s.inst("blueEgg").instanceId]);
   });
 });
