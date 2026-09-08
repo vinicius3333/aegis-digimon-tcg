@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,11 +6,12 @@ import "../index.js";
 
 describe("BT24-014 Aegiochusmon", () => {
   it("applies the DP reduction then conditionally deletes at three or fewer security cards", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any;
-    expect(effect.actions[0]).toMatchObject({ kind: "ModifyDP", amount: -5000 });
-    expect(effect.actions[1]).toMatchObject({
-      kind: "Delete",
-      condition: { kind: "zoneCount", zone: "security", op: "lte", value: 3 },
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect).toMatchObject({
+      actions: [
+        { kind: "ModifyDP", amount: -5000 },
+        { kind: "Delete", condition: { kind: "zoneCount", zone: "security", op: "lte", value: 3 } },
+      ],
     });
   });
 
@@ -20,18 +20,23 @@ describe("BT24-014 Aegiochusmon", () => {
     expect(decodeEffects).toHaveLength(2);
     expect(decodeEffects.some((effect) => effect.isInherited)).toBe(true);
     for (const effect of decodeEffects) {
-      const replacement = effect.actions?.[0] as any;
-      expect(replacement).toMatchObject({
-        kind: "Replacement",
-        event: "wouldLeavePlay",
-        leaveCause: "otherThanBattle",
-      });
-      expect(replacement.actions[0]).toMatchObject({
-        kind: "PlayWithoutCost",
-        from: ["digivolutionCards"],
-        fromOwnDigivolutionStack: true,
-        optional: true,
-        playedByDecode: true,
+      expect(effect).toMatchObject({
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            leaveCause: "otherThanBattle",
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                from: ["digivolutionCards"],
+                fromOwnDigivolutionStack: true,
+                optional: true,
+                playedByDecode: true,
+              },
+            ],
+          },
+        ],
       });
     }
   });
