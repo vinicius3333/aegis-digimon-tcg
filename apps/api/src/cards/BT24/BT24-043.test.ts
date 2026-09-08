@@ -24,11 +24,15 @@ describe("BT24-043 Tapirmon", () => {
 
   it("reveals three and searches the two printed pools", () => {
     const onPlay = BT24_043.effects?.find((entry) => entry.trigger === "OnPlay");
-    const reveal = onPlay?.actions?.[0] as any;
+    const reveal = onPlay?.actions?.[0];
     expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
-    expect(reveal.add).toHaveLength(2);
-    expect(reveal.add[0]).toMatchObject({ to: "hand", filter: { kind: ["Digimon"] } });
-    expect(reveal.add[1]).toMatchObject({ to: "hand", filter: { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } });
+    const additions = reveal?.kind === "RevealAdd" ? reveal.add : undefined;
+    expect(additions).toHaveLength(2);
+    expect(additions?.[0]).toMatchObject({ to: "hand", filter: { kind: ["Digimon"] } });
+    expect(additions?.[1]).toMatchObject({
+      to: "hand",
+      filter: { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+    });
     expect(BT24_043.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
@@ -123,6 +127,36 @@ describe("BT24-043 Tapirmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
   });
 
+  it("publicly bottoms all three cards when both search pools miss", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-043", as: "tapirmon" }],
+          deck: [
+            { card: "BT1-009", as: "unrelated" },
+            { card: "BT1-033", as: "seaAnimal" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tapirmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-043"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("unrelated").instanceId,
+      s.inst("seaAnimal").instanceId,
+      s.inst("other").instanceId,
+    ]);
+  });
+
   it("publicly suspends one opponent and resets on the next owner turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -215,11 +249,7 @@ describe("BT24-043 Tapirmon", () => {
         s.events.filter((event) => event.kind === "securityChecked").length >= 3 &&
         !observe(s.engine).isAttacking(),
     );
-    expect(
-      s.perm("second").isSuspended,
-      `next-turn target not suspended: turnSeat=${s.state.turnSeat}; hostSuspended=${s.perm("host").isSuspended}; ` +
-        `attacking=${observe(s.engine).isAttacking()}; targets=${s.state.players[1]!.battleArea.map((p) => `${p.permanentId}:${p.isSuspended}`)}`,
-    ).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
   });
@@ -258,5 +288,38 @@ describe("BT24-043 Tapirmon", () => {
     expect(s.perm("egg").topCard.instanceId).toBe(s.inst("tapirmon").instanceId);
     expect(s.perm("egg").stack.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+  });
+
+  it("rejects normal and alternate evolution from a blue non-TS egg", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-003", as: "egg" },
+        hand: [{ card: "BT24-043", as: "tapirmon" }],
+        deck: [{ card: "BT1-009", as: "unchanged" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("tapirmon").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("tapirmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("tapirmon").instanceId]);
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("egg").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("unchanged").instanceId]);
   });
 });
