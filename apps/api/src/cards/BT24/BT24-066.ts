@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const qualifying = {
+const qualifying: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],
   nameOrTrait: [
@@ -12,7 +11,7 @@ const qualifying = {
     { tokens: ["Dark Knight"], match: "trait" },
   ],
 };
-const qualifyingTamer = { controllerDefault: "mine", kind: ["Tamer"], colors: ["Purple"] };
+const qualifyingTamer: Filter = { controllerDefault: "mine", kind: ["Tamer"], colors: ["Purple"] };
 
 export const compiled: CompiledCard = {
   effects: [
