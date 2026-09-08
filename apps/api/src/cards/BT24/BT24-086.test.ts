@@ -119,6 +119,56 @@ describe("BT24-086 The Crossroad Witch", () => {
     expect(observe(s.engine).hasKeyword(s.perm("neighbor"), "Alliance")).toBe(false);
   });
 
+  it("uses inherited Alliance in combat and Reboot on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-063", as: "host", under: ["BT24-086"] },
+            { card: "BT24-020", as: "ally" },
+          ],
+          security: ["BT1-013"],
+        },
+        1: { security: ["BT1-009"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    const alliance = s.events.find((event) => event.kind === "alliancePrompt");
+    expect(alliance?.kind).toBe("alliancePrompt");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondAlliance",
+        allyPermanentId: s.perm("ally").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
+
   it("plays itself from its host's digivolution cards at end of all turns (Q5674)", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT24-086", as: "witch" }] }] } },
