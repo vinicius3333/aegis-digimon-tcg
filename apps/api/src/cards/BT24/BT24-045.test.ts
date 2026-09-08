@@ -30,8 +30,13 @@ describe("BT24-045 Ogremon", () => {
   it("requires the hand-trash cost and locks the suspended target until opponent turn end", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
       const effect = BT24_045.effects?.find((entry) => entry.trigger === trigger);
-      const suspend = effect?.actions?.[0] as any;
-      const restrict = effect?.actions?.[1] as any;
+      const suspend = effect?.actions?.[0] as unknown as { optional: boolean; abortOnDecline: boolean };
+      const restrict = effect?.actions?.[1] as unknown as {
+        kind: string;
+        restriction: string;
+        duration: string;
+        target: { sameTarget: boolean };
+      };
       expect(suspend).toMatchObject({ optional: true, abortOnDecline: true });
       expect(restrict).toMatchObject({
         kind: "Restrict",
@@ -113,6 +118,31 @@ describe("BT24-045 Ogremon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+  });
+
+  it("resolves the hand-trash cost and lock from a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-045", as: "ogremon" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogremon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
   });
 
   it("Q5635: only the first of two trashed copies draws after the hand rises above five", async () => {
