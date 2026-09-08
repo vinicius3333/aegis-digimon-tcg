@@ -201,3 +201,27 @@ Aggregate **399/1020**, zero102 at10/10. Remaining public trait, target,
 duration and route boundaries are explicitly retained below full credit.
 The next062/063/064 baseline passed **3 files /30 tests**. No push, PR update
 or Orca completion action performed; the full set remains in progress.
+
+## Restart and 063/064 acceptance, 2026-09-08 03:48 BRT
+
+Root reviewed and committed Locomon063 (`3f92c22d5`,12 tests) and
+Ouryumon064 (`2584a04c1`,12 tests). Both now distinguish the evolution bonus
+draw from the subsequent reveal pool;064 also proves distinct top/bottom
+destinations with an untouched deck card, legal De-Digivolve source order,
+public Piercing/Blocker and same-turn suppression/opponent-turn reset.
+Their remaining route/trait boundaries keep each at7/10 evidence.
+Aggregate is413/1020, zero102 at10/10; delivery credit remains zero.
+
+Fresh shared/API/web typecheck passed. The concurrent restart run of
+062/064/067 had37 passing tests and two WIP failures:062 frequency timed out
+awaiting a turn;067's explicit decision response addressed an already
+automated/missing decision. These are not accepted as engine defects or
+completed evidence.062's subsequent15-test run passed, but independent
+review rejected removal of the owner-turn loop; a corrected frozen rerun
+was required. The restored full owner-turn/opponent-turn test then passed
+root acceptance at03:48:48 (15 tests), with format/diff clean and only
+structural/parameterized conditional-assertion lint warnings. Commit
+`e239f0ff6` records062 at7/10, bringing the aggregate to420/1020.
+The next069/070/071 baseline passed3 files/33 tests.
+No new full collection gate is claimed beyond the3217-test checkpoint.
+No push, PR update or Orca completion was performed.

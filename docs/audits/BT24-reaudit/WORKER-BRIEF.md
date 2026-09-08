@@ -41,4 +41,10 @@ Only edit the assigned card module, colocated test and report. Never edit engine
 - BT24-086 is The Crossroad Witch, also named Shuu Yulin by its printed Rule (catalog restored in this restart). Q5674 permits it to play itself, but does not limit the inherited Shuu target to self. Never rewrite a generic name-target effect to self-only to compensate for missing catalog identity.
 - BT1-010 is NOT inert when publicly played: its On Play reveal can contaminate generic cardRevealed counts. Use two distinct BT1-009 instances for neutral repeated plays; inspect printed effects for every fixture origin.
 
+- Evolution bonus draw precedes When Digivolving reveals. Put a separate named draw card before the reveal pool and assert both the draw and the played/revealed destinations.
+- Playing a digivolution source creates a new permanent; it does not promote that source to the original host's top card. Assert the original host and neighboring stacks remain correct.
+- Public battle-area attack targets use `kind: "permanent"`, not `kind: "digimon"`; runtime acceptance alone does not prove a typed legal intent.
+- A real turn with a playable hand may stay in Main. Await Main and explicitly end it before awaiting End of Turn effects or the turn promise.
+- `settle` can time out silently. Assert its intended endpoint, and do not use a pre-existing event or unchanged deck length as proof that a new effect has completed.
+
 Run focused vitest with --maxWorkers=1 --no-file-parallelism; lint and format assigned files. Report clauses/Q&A mapping, exact results, remaining gaps and next useful card. Coordinator independently runs acceptance and full gates. Do not claim collection completion.
