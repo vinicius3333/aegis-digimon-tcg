@@ -28,14 +28,13 @@ describe("BT24-064 Ouryumon", () => {
 
   it("models the All Turns De-Digivolve trigger when any Digimon or Tamer suspends", () => {
     const allTurns = BT24_064.effects?.find((entry) => entry.trigger === "AllTurns");
-    const subTrigger = allTurns?.actions?.[0] as any;
-    expect(subTrigger).toMatchObject({
+    expect(allTurns?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
       sourceFilter: { kind: ["Digimon", "Tamer"] },
     });
-    expect(subTrigger.sourceFilter.controllerDefault).toBeUndefined();
-    expect(subTrigger.actions?.[0]).toMatchObject({ kind: "DeDigivolve", amount: 2 });
+    expect(allTurns?.actions?.[0]).not.toMatchObject({ sourceFilter: { controllerDefault: expect.anything() } });
+    expect(allTurns?.actions?.[0]).toMatchObject({ actions: [{ kind: "DeDigivolve", amount: 2 }] });
   });
 
   it("has Piercing and Blocker", async () => {
