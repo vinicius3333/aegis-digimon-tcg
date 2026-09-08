@@ -711,3 +711,16 @@ boundaries remain green. Committed `c3a60c9bb`;094 receives8/10. Aggregate
 633/1020, 9 pending zero rows, no card at10/10. Card lanes advance to097 and
 098; engine Delay registration is still withheld until its real-card fixture
 restores both registry and shared compiled state. No publication has occurred.
+
+Root API typecheck with4096MiB passed after the concurrent094 Filter annotation
+was finalized; that annotation was captured separately in `597562425` rather
+than amending history. Root097 at11:01:29 passed9/9. Its typed module and
+existing public Main, natural Security, link/deletion boundaries, OPT reset,
+breeding and Q5704-Q5708 peer paths support8/10; committed `6d125c0df`.
+
+Root099 at11:03:34 passed7/7. Public Main cost/refusal/atomicity, draw,
+placement, deletion-armed Delay link/refusal/pre-arm rejection and Security
+placement support8/10; committed `dd8f34e35`. Aggregate649/1020, 8 pending
+zero rows, no card at10/10. The098 lane was returned for a fully public Titan
+play-to-Delay path because its reported component score totaled6, not7. The
+other card lane advances to100; no publication has occurred.
