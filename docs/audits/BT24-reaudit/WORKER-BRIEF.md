@@ -14,6 +14,10 @@ Only edit the assigned card module, colocated test and report. Never edit engine
 
 ## Acceptance traps found in this restart
 
+- Digi-Egg evolution fixtures belong in `breeding`, never `battleArea`; normal and alternate proofs must retain that legal zone. Put named bonus draws in the initial Board Spec `deck`; `s.give` does not accept `"deck"` as a CardZone.
+- Security top is index 0, not the last array entry. Use named main-deck Digimon for inert checks; Option security text can change the scenario.
+- `runOneTurn` owns phase transitions. For separately driven turns, set the next `turnSeat` and a positive memory value only between completed turns. Do not force a phase or cast `"Start"` into the Phase type. End and await the first real turn before starting the next.
+- New entrant currentDP now includes active player-wide modifiers (a7fe32568); Minervamon Q5629 proves public effect ordering and deferred zero-DP deletion. Do not reintroduce the old printed-DP expectation. Separate DNA entry remains outside this mechanism's proof.
 - `preferInstanceIds` is a membership set, not an ordered ranking (harness.ts selection comparator). To select a different target later, replace the list contents; unshifting a second target while retaining the first leaves both equally preferred. Already-suspended Digimon may remain legal Suspend targets. Do not infer an OPT failure from selection of the first target again.
 - Fortitude is mandatory (CR16-27-3); do not invent a refusal prompt. A top card's own Barrier is not inherited unless its inherited text grants it.
 - Ordinary security attacks finish with `securityChecked` plus `!observe(engine).isAttacking()`; `combatResolved` is supplied by Digimon battle resolution. Assert the relevant completion event and final state explicitly. Do not wait for two combatResolved events when only one attack was a Digimon battle.

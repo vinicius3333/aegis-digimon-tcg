@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 341/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 363/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -56,11 +56,11 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-046 | Garurumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-046.md). Public Jamming combat, entry suspension and normal/Gabumon/TS cost/top/stack/draw plus illegal source. Root11green; inherited same-turn suppression, fully completed reset combat and remaining route negatives open. |
 | BT24-047 | Kokatorimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-047.md). Public suspend/unsuspend/attack sequence, opponent negative, refusal and paid normal evolution top/stack/draw. Root9green; inherited same-source frequency/reset and wider trait/route boundaries remain open. |
 | BT24-048 | Deramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-048.md). Public Blocker, hatch/refusal, free breeding evolution with exact draw/stack/payment and legal-route non-Avian negative. Root10green; inherited frequency/reset, normal paid evolution and target boundaries open. |
-| BT24-049 | Parrotmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-049 | Parrotmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-049.md). Public Fortitude replay/no-source contrast, natural lowest-DP bounce, paid routes, legal inherited host and security-trash frequency/reset. Root13green; optional refusals and wider route/target boundaries remain open. |
 | BT24-050 | WereGarurumon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-051 | Merukimon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-051 | Merukimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-051.md). Public Q5641 Rush/Piercing mandatory attack and DP expiry, cost boundary, exact paid routes and When Attacking frequency/reset. Root11green; shared When Digivolving counter contrast and buff refusal/target matrix open. |
 | BT24-052 | Keramon (X Antibody) | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-052.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
-| BT24-053 | Protecmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-053 | Protecmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-053.md). Public own Blocker acceptance/refusal, linked-host combat after paid Link, exact DP/zones and legal normal/alternate breeding routes with invalid blue egg comparison. Root11green; collection delivery pending. |
 | BT24-054 | Ryudamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-054.md). Fixed malformed ordinary exact-name filters; public Monodramon negative and Hisyaryumon positive independently green. Full inherited frequency, route draws and delivery pending. |
 | BT24-055 | Ginryumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-055.md). Fixed both malformed Shuu placement filters; public wrong-name rejection and refusal green. Actual protection/expiry, inherited frequency and full route draws still pending. |
 | BT24-056 | Dezipmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-056.md). Printed-text discrepancy corrected and synchronized; public opponent hand/deck returns, Blocker combat and link boundaries remain. |

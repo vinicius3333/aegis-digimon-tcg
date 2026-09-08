@@ -132,3 +132,24 @@ Aggregate **341/1020**, zero102 at10/10. The102 ledger rows match102 catalog
 cards. Next Luna batch049/051/053 has an independent **24-test** green baseline.
 Full collection completion, remaining clause/peer evidence and delivery remain
 open. No push, PR update or Orca completion action performed.
+
+## Stable 049/051/053 checkpoint, 2026-09-08 03:01 BRT
+
+Root focused acceptance passed **3 files / 35 tests** (049:13,051:11,053:11).
+Full collection/mechanism gate passed **228 files / 3211 tests**. Fresh
+shared/API/web typecheck passed. Effects synchronization remains 15 semantic
+changes, 102 synchronized records and zero semantic/byte changes outside BT24.
+Scoped Oxfmt and diff checks pass; Oxlint has only two existing structural
+warnings in049. No new engine changes were needed in this batch.
+
+`d26b55ffb` records Parrotmon's natural public Fortitude bounce, legal inherited
+host and security-trash frequency/reset. `3b56eb074` records Merukimon's Q5641
+public Rush/Piercing attack, DP expiry and When Attacking frequency/reset;
+the separate shared When Digivolving counter contrast remains open.
+`3ecfd2e26` records Protecmon's own and linked Blocker combat, legal breeding
+routes, invalid egg/Link comparisons, and module typecheck-suppression removal.
+
+Aggregate **363/1020**, zero102 at10/10;053 has8/10 evidence and awaits collection
+delivery, while049/051 retain explicit optional/peer gaps. Next Luna
+050/056/057 baseline passed **37 tests**. No push, PR update or Orca completion
+action performed; the full set audit continues.
