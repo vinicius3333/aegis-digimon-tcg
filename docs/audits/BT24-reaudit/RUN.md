@@ -63,3 +63,11 @@ Root focused acceptance plus persisted-record checks: **4 files / 144 tests pass
 `1f853fcbe` records exact Titamon/Lanamon filters plus021/023 public proofs and generated records. `c391cef12` records022 public frequency/reset, source order and normal/alternate route checks. A proposed redundant ordinary requirement022 was rejected: its normal route already passes from catalog metadata. No022 production change retained. Intermediate WIP failures (021 mandatory P-209 discard consuming draw,022 stale generated record and wrong rejection reason) were resolved before this stable gate.
 
 Ledger aggregate220/1020; zero102 cards at10/10. Three Luna lanes now own024/025/026. Full-set completion, additional behavioral/peer evidence and delivery remain open. No push or Orca completion action performed.
+
+## Stable 024–026 checkpoint, 2026-09-08 01:33 BRT
+
+Root focused024 passed15 tests;025+026 passed24 tests. Full collection/mechanism gate passed **228 files / 3150 tests**. Fresh `pnpm typecheck` passed shared/API/web. Effects sync and check report **13 semantic changes**, 102 synchronized records and zero semantic/byte changes outside BT24. Scoped Oxfmt and diff checks passed; Oxlint has only existing structural-any warnings.
+
+`03afd019f` records025/026 exact names, public timing/decision/stack proofs and generated effects. `efd02270c` records024 public Tamer frequency and explicit Armor Purge refusal. The proposed026 source-stack seam was a missing chooseOption response, not an engine defect. Armor Purge's min-zero selection was incorrectly auto-accepted by the earlier fixture; explicit empty public selection while the opponent remains active proves refusal. No engine changes retained.
+
+Aggregate239/1020, zero102 at10/10; public boundary and route gaps remain explicit. Luna next lanes027/032/033;031/032/033 independent baseline passed23 tests. Collection remains in progress with local commits, no push or Orca completion action.

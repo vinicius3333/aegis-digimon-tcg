@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 220/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 239/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -31,9 +31,9 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-021 | SnowGoblimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-021.md). Public search, paid discard evolution/refusal, legal egg routes and neutral-host same-turn suppression/reset pass. Root13green; exact Titamon correction. Further own-turn/trait negatives and delivery pending. |
 | BT24-022 | Ikkakumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-022.md). Public play cost/source-trash, two real same-turn unsuspends and next-owner draw reset, normal route and alternate rejection pass. Root13green; direct Jamming combat, suspend restriction enforcement/expiry and full boundary proof pending. |
 | BT24-023 | Calmaramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-023.md). Public effect-play origin, exact bottom deck order, Decode effect/battle/refusal, inherited Jamming combat and paid routes pass. Root15green; exact Lanamon correction. Public Blocker, restriction enforcement/expiry and remaining route comparisons pending. |
-| BT24-024 | Submarimon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-025 | Shellmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-026 | Hyogamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-024 | Submarimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-024.md). Public Tamer play/refusal and non-TS rejection, same-turn suppression/reset, Armor Purge acceptance/explicit zero-card refusal, normal blue and alternate routes with draw/stack pass. Root15green; normal yellow comparison and final peer/delivery acceptance pending. |
+| BT24-025 | Shellmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-025.md). Public Q5603-5605 cost/legality/Active timing, legal inherited Jamming combat and EOT acceptance/refusal pass. Root13green; public trait/self boundaries, Venusmon refusal, frequency/reset and route negative pending. |
+| BT24-026 | Hyogamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-026.md). Public inherited072-P209-081 chain proves exact costs, stacks, same-turn suppression and owner reset. Root11green; Q5607 and shared own-effect frequency still partly injected; normal/alternate026 routes and broader refusals pending. |
 | BT24-027 | Lanamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-028 | Divermon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-028.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
 | BT24-029 | Whamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
