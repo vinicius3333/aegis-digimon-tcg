@@ -509,6 +509,161 @@ describe("BT24-079 Hadesmon", () => {
     ).toBe(true);
   });
 
+  it("limits public deletion reactivation to once per turn and resets next turn", async () => {
+    const harnessOptions = { autoAcceptOptional: true, autoDeclineOptional: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-079", as: "hadesmon", under: [{ card: "BT2-075", as: "hadesSource" }] },
+            { card: "BT3-089", as: "firstAttacker" },
+            { card: "BT1-020", as: "secondAttacker" },
+          ],
+          trash: [
+            { card: "BT24-056", as: "firstSystem" },
+            { card: "BT24-057", as: "secondSystem" },
+          ],
+          security: [{ card: "BT1-090", as: "ownerSecurity" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowVictim", suspended: true, dp: 2000 },
+            { card: "BT1-014", as: "midVictim", suspended: true, dp: 5000 },
+            { card: "BT1-020", as: "highVictim", suspended: true, dp: 6000 },
+          ],
+          security: ["BT1-014"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      harnessOptions,
+    );
+    const hadesPermanentId = s.perm("hadesmon").permanentId;
+    const hadesTopId = s.inst("hadesmon").instanceId;
+    const hadesSourceId = s.inst("hadesSource").instanceId;
+    const lowVictimId = s.inst("lowVictim").instanceId;
+    const midVictimId = s.inst("midVictim").instanceId;
+    const highVictimId = s.inst("highVictim").instanceId;
+    const firstSystemId = s.inst("firstSystem").instanceId;
+    const secondSystemId = s.inst("secondSystem").instanceId;
+    const ownerSecurityId = s.inst("ownerSecurity").instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("lowVictim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === lowVictimId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === firstSystemId),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === firstSystemId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondSystemId)).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(lowVictimId);
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("hadesmon").permanentId).toBe(hadesPermanentId);
+    expect(s.perm("hadesmon").topCard.instanceId).toBe(hadesTopId);
+    expect(s.perm("hadesmon").stack.map((card) => card.instanceId)).toEqual([hadesSourceId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("midVictim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.filter((event) => event.kind === "combatResolved").length >= 2 && !observe(s.engine).isAttacking(),
+    );
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === midVictimId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondSystemId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(secondSystemId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === firstSystemId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === highVictimId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(midVictimId);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.pendingDecision).toBeUndefined();
+    harnessOptions.autoAcceptOptional = false;
+    harnessOptions.autoDeclineOptional = true;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === firstSystemId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(secondSystemId);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("highVictim").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(ownerSecurityId);
+    expect(s.perm("highVictim").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    harnessOptions.autoAcceptOptional = true;
+    harnessOptions.autoDeclineOptional = false;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("highVictim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.filter((event) => event.kind === "combatResolved").length >= 3 && !observe(s.engine).isAttacking(),
+    );
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === highVictimId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondSystemId),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondSystemId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(secondSystemId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(highVictimId);
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("hadesmon").permanentId).toBe(hadesPermanentId);
+    expect(s.perm("hadesmon").topCard.instanceId).toBe(hadesTopId);
+    expect(s.perm("hadesmon").stack.map((card) => card.instanceId)).toEqual([hadesSourceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+  });
+
   it("resets its deletion reactivation on the next turn through public plays", async () => {
     const s = setupEngine(
       {
