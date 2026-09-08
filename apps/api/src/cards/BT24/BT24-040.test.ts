@@ -299,6 +299,67 @@ describe("BT24-040 Venusmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
   });
 
+  it("resolves a public When Attacking effect after Venusmon's restrictions expire", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-040", as: "venusmon" }],
+        security: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT13-026", as: "attacker" },
+          { card: "BT1-009", as: "control" },
+        ],
+        security: ["BT1-010", "BT1-011"],
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("venusmon").instanceId),
+    );
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "suspend")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "suspend")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const beforeDraw = s.state.players[1]!.deck.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.deck.length).toBe(beforeDraw - 1);
+
+    const beforeControl = s.state.players[1]!.deck.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("control").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.deck.length).toBe(beforeControl);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
   it("pays once to protect all simultaneously leaving TS Digimon (Q5621)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
