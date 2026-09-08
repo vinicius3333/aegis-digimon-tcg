@@ -25,7 +25,14 @@ describe("BT24-022 Ikkakumon", () => {
 
   it("trashes two stack cards, then restricts an opponent Digimon by source stack count", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as any[];
+      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as unknown as Array<{
+        kind: string;
+        amount: number;
+        fromTop: boolean;
+        restriction: string;
+        duration: string;
+        target: { filter: { digivolutionCardsCompareToSource: string } };
+      }>;
       expect(actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 2, fromTop: true });
       expect(actions[1]).toMatchObject({ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" });
       expect(actions[1].target.filter.digivolutionCardsCompareToSource).toBe("lte");
@@ -33,7 +40,9 @@ describe("BT24-022 Ikkakumon", () => {
   });
 
   it("keeps the inherited unsuspend-to-draw condition", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
+    const inherited = compiled.effects.find((effect) => effect.isInherited) as unknown as {
+      actions: Array<{ kind: string; event: string; actions: Array<{ condition: unknown }> }>;
+    };
     const sub = inherited.actions[0];
     expect(sub).toMatchObject({ kind: "SubTrigger", event: "whenUnsuspended" });
     expect(sub.actions[0].condition).toMatchObject({
