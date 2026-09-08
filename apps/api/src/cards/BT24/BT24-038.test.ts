@@ -344,6 +344,43 @@ describe("BT24-038 Biomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
+  it("rejects App Fusion from a non-Docmon host without changing its link or memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-009", as: "wrongHost" }],
+        hand: [
+          { card: "BT24-036", as: "medicmon" },
+          { card: "BT24-038", as: "biomon" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("medicmon").instanceId,
+        targetPermanentId: s.perm("wrongHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("wrongHost").linked.some((card) => card.instanceId === s.inst("medicmon").instanceId));
+    const memoryBefore = s.state.memory;
+    const stackBefore = s.perm("wrongHost").stack.map((card) => card.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("wrongHost").permanentId,
+        instanceId: s.inst("biomon").instanceId,
+        linkedInstanceId: s.inst("medicmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.perm("wrongHost").stack.map((card) => card.instanceId)).toEqual(stackBefore);
+    expect(s.perm("wrongHost").linked.map((card) => card.instanceId)).toEqual([s.inst("medicmon").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("biomon").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("replays the same instance through Fortitude after a public opponent deletion", async () => {
     const s = setupEngine(
       {
