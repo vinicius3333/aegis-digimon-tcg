@@ -748,3 +748,14 @@ without playing the eligible level5 Titan from trash. The injected Q5710 recheck
 remains supplemental only, so098 receives an honest6/10 in `34c68ecf8`.
 Aggregate679/1020, three pending zero rows (015-017), no card at10/10. Lanes
 continue015,016 and089; no publication has occurred.
+
+Root015 at11:13:14 passed13/13. Typed IR plus Security level boundary,
+Blocker/refusal, attack-target-switch lowest-DP deletion, inherited deletion
+OPT and both alternate evolution routes support8/10; committed `ef4e362a2`.
+
+Root017 card plus Medusamon source-continuation mechanism gate at11:15:00
+passed2 files /10 tests. Typed card/token IR, exact deletion/cost/order,
+Petrification Tokens, scaling/expiry and keyword paths support8/10; committed
+`aaf1b0824`. Aggregate695/1020; only016 remains a zero row, and no card is
+10/10. The freed lane begins completion work on low-score012 while089 and016
+continue. No publication has occurred.
