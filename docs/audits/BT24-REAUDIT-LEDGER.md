@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 815/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 816/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -105,7 +105,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-095 | Sonic Shot | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-095.md). Root acceptance: 11 focused tests green, public Security/Q5697-Q5701, same-instance OPT/reset, natural lock expiry and Link DP/cost; collection delivery gates pending. |
 | BT24-096 | Seventh Graviton | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-096.md). Root9green: public paid Main and Security attack, exact delete/mill branches and deck order, real Creepymon X evolution/from-trash cost, refusal and later-turn repetition. Typed IR; delivery pending. |
 | BT24-097 | Soul Fear | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-097.md). Root9green: public Main and natural Security attack, exact deletion/link routes and boundaries, linked attack OPT/reset, breeding/Q5704-Q5708 peer interactions, typed IR. Delivery pending. |
-| BT24-098 | Invasion of the Titans | 2 | 2 | 1 | 2 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-098.md). Root322green+1 expected fail: public Main/Security/Q5710; generalized Delay arming, age, refusal, consumption and nested dispatch prove peer/stack. Public Titan-trigger payload still fails; delivery pending. |
+| BT24-098 | Invasion of the Titans | 2 | 2 | 2 | 2 | 0 | 8/10 | Catalog and IR exact; 9/9 focused public/integration proofs green including natural triggered Delay acceptance/refusal and supplemental Q5710 ordering; canonical peers and synchronized effects verified; delivery pending full set gates/push. |
 | BT24-099 | Super Hacking | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-099.md). Root7green: public Main cost/refusal/atomicity, draw and placement, deletion-armed Delay link/refusal/pre-arm rejection, Security placement and typed IR. Delivery pending. |
 | BT24-100 | In-Between Theater | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-100.md). Root5green: public reveal/add/bottom/self-placement, TS waiver, aged Delay activation/memory/consumption and natural Security placement. Typed IR; delivery pending. |
 | BT24-101 | Jupitermon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-101.md). Root10green: evolution-cost scaling, public On Play/When Digivolving DP/security/recovery, security-removal OPT, simultaneous TS departure prevention and natural battle protection. Typed IR; delivery pending. |
