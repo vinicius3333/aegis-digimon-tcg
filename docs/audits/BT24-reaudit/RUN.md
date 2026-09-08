@@ -724,3 +724,16 @@ placement support8/10; committed `dd8f34e35`. Aggregate649/1020, 8 pending
 zero rows, no card at10/10. The098 lane was returned for a fully public Titan
 play-to-Delay path because its reported component score totaled6, not7. The
 other card lane advances to100; no publication has occurred.
+
+Reactive action-level Delay registration passed root19/19 at11:07:20. Its
+dedicated regression proves aged source trash-before-payload, same-turn entry
+suppression with exact memory, and restoration of the real BT1-090 module and
+shared compiled entry after each stand-in fixture. Committed `f42ee3d9d`.
+
+Root100 at11:06:34 passed5/5; typed IR plus public reveal/add/bottom,
+self-placement, TS waiver, aged Delay and natural Security placement support
+8/10. Committed `c972a72bf`. Root101 at11:08:08 passed10/10; evolution-cost
+scaling, public DP/security/recovery, removal OPT, simultaneous prevention and
+natural battle protection support8/10. Committed `4d476175e`. Aggregate
+665/1020, five pending zero rows (015-017,098,102), no card at10/10. Lanes
+continue089 completion,098 public Delay and102; no publication has occurred.
