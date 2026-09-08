@@ -509,6 +509,7 @@ describe("BT24-077 Revivemon", () => {
     preferred.push(s.perm("lowA").topCard.instanceId);
     const lowAId = s.perm("lowA").permanentId;
     const lowBId = s.perm("lowB").permanentId;
+    const lowAInstanceId = s.perm("lowA").topCard.instanceId;
     s.state.memory = 5;
     await s.ready();
     const hostDp = s.perm("host").currentDP;
@@ -527,6 +528,50 @@ describe("BT24-077 Revivemon", () => {
     expect(s.perm("host").currentDP).toBe(hostDp + 4000);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(lowBId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(lowAInstanceId);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
+  });
+
+  it("publicly deletes the exact unique lowest-DP opponent Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT24-077", as: "revivemon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 1000 },
+            { card: "BT1-010", as: "middle", dp: 2000 },
+            { card: "BT1-011", as: "high", dp: 3000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("low").topCard.instanceId);
+    const lowId = s.perm("low").permanentId;
+    const lowInstanceId = s.perm("low").topCard.instanceId;
+    const middleId = s.perm("middle").permanentId;
+    const highId = s.perm("high").permanentId;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("revivemon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("revivemon").instanceId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([middleId, highId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(lowInstanceId);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("revivemon").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
