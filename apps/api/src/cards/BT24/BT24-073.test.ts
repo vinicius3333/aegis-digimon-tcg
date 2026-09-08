@@ -226,6 +226,58 @@ describe("BT24-073 SkullSatamon", () => {
     );
   });
 
+  it("rejects a public evolution from a non-purple level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-051", as: "base" }], hand: [{ card: "BT24-073", as: "skullsatamon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullsatamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("skullsatamon").instanceId);
+  });
+
+  it("does not revive a low-level non-Evil/Fallen Angel trash candidate after public deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
+          trash: [{ card: "BT1-009", as: "invalidCandidate" }, ...Array.from({ length: 7 }, () => "BT1-013")],
+          deck: ["BT1-015", "BT1-045", "BT1-046"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "redSource" }],
+          hand: [{ card: "BT6-095", as: "deletionOption" }],
+          trash: Array.from({ length: 7 }, () => "BT1-013"),
+          deck: ["BT1-009", "BT1-011", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("deletionOption").instanceId;
+    const invalidId = s.inst("invalidCandidate").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.pendingDecision &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("skullsatamon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(invalidId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(optionId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
   it.each([true, false])("public opponent deletion mills and %s revival", async (acceptRevival) => {
     const s = setupEngine(
       {
