@@ -28,7 +28,7 @@ describe("BT24-082 Owen Dreadnought", () => {
       target: { filter: { nameOrTrait: [{ tokens: ["Elizamon"], match: "nameExact" }] } },
       from: ["trash"],
     });
-    expect(gate.actions[1].condition.kind).toBe("youHaveNone");
+    expect(gate.actions[1]).toMatchObject({ condition: { kind: "youHaveNone" } });
     const watcher = BT24_082.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0];
     expect(watcher?.kind).toBe("SubTrigger");
     if (watcher?.kind !== "SubTrigger") throw new Error("Your Turn action is not a SubTrigger");
@@ -215,10 +215,11 @@ describe("BT24-082 Owen Dreadnought", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     s.state.memory = 5;
     await s.ready();
+    s.state.turnSeat = 0;
     const evolvedBaseDp = getCardDefinition("BT24-012")!.dp;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -226,7 +227,6 @@ describe("BT24-082 Owen Dreadnought", () => {
         instanceId: s.inst("evolved").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("reptile").topCard.instanceId === s.inst("evolved").instanceId);
     await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("reptile")));
     expect(s.perm("owen").isSuspended).toBe(true);
     expect(s.perm("reptile").currentDP).toBe(evolvedBaseDp + 3000);
@@ -236,6 +236,105 @@ describe("BT24-082 Owen Dreadnought", () => {
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
     expect(s.perm("reptile").currentDP).toBe(evolvedBaseDp);
+  });
+
+  it.each([
+    ["Reptile", "BT24-012"],
+    ["Dragonkin", "BT24-011"],
+  ] as const)("publicly plays Owen, then boosts and attacks with a %s evolution", async (_trait, evolvedCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [
+            { card: "BT24-082", as: "owen" },
+            { card: evolvedCard, as: "evolved" },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "bonusDraw" },
+            { card: "BT1-010", as: "untouched" },
+          ],
+        },
+        1: {
+          security: [
+            { card: "BT1-011", as: "securityOne" },
+            { card: "BT1-014", as: "securityTwo" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("owen").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("owen").instanceId));
+    expect(s.state.memory).toBe(7);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolved").instanceId);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("base")));
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("owen").isSuspended).toBe(true);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolved").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.perm("base").currentDP).toBe(getCardDefinition(evolvedCard)!.dp + 3000);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityOne").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("securityTwo").instanceId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("base").currentDP).toBe(getCardDefinition(evolvedCard)!.dp);
+  });
+
+  it("does not trigger Owen for a public non-Reptile evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [
+            { card: "BT24-082", as: "owen" },
+            { card: "BT1-014", as: "giantBird" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: [{ card: "BT1-011", as: "security" }], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("owen").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("giantBird").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("giantBird").instanceId && s.state.memory === 5);
+    expect(s.perm("owen").isSuspended).toBe(false);
+    expect(s.perm("base").currentDP).toBe(getCardDefinition("BT1-014")!.dp);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("grants no DP and no attack when Owen cannot pay the suspension cost (Q5665)", async () => {
@@ -262,6 +361,61 @@ describe("BT24-082 Owen Dreadnought", () => {
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("reptile"))).toBe(false);
   });
 
+  it("refuses a second public evolution while Owen is already suspended (Q5665)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "firstBase" },
+            { card: "BT1-009", as: "secondBase" },
+          ],
+          hand: [
+            { card: "BT24-082", as: "owen" },
+            { card: "BT24-012", as: "firstEvolved" },
+            { card: "BT24-011", as: "secondEvolved" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: { security: [{ card: "BT1-011", as: "security" }], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("owen").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstBase").permanentId,
+        instanceId: s.inst("firstEvolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("firstBase").topCard.instanceId === s.inst("firstEvolved").instanceId && s.state.memory === 5,
+    );
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("owen").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondBase").permanentId,
+        instanceId: s.inst("secondEvolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("secondBase").topCard.instanceId === s.inst("secondEvolved").instanceId && s.state.memory === 3,
+    );
+    expect(s.perm("secondBase").currentDP).toBe(getCardDefinition("BT24-011")!.dp);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("secondBase"))).toBe(false);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT24-082", as: "owen" }] } });
     await s.ready();
@@ -274,5 +428,53 @@ describe("BT24-082 Owen Dreadnought", () => {
       s.inst("owen").instanceId,
     );
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("owen").instanceId);
+  });
+
+  it("publicly plays itself from security after an opponent attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-082", as: "owen" },
+            { card: "BT1-014", as: "remainingSecurity" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const owenId = s.inst("owen").instanceId;
+    const remainingSecurityId = s.inst("remainingSecurity").instanceId;
+    await s.ready();
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(owenId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([remainingSecurityId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(3);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 });
