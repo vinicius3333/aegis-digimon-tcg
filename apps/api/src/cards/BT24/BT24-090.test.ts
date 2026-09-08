@@ -91,6 +91,22 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 
+  it("waives its color requirement with no face-up security cards", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT24-090", as: "option" }], security: ["BT1-013"] } },
+      { autoDeclineOptional: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(optionId);
+  });
+
   it("adds bottom security to hand, places itself face up, and plays a TS Digimon for 3 less", async () => {
     const s = setupEngine(
       {
@@ -116,10 +132,47 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
     );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
+    ).toBe(true);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT24-090" && card.faceUp)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("top").instanceId,
+      s.inst("sanctuary").instanceId,
+    ]);
     expect(s.state.memory).toBe(7);
+  });
+
+  it("may refuse an eligible reduced-cost Main TS play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT24-024", as: "candidate" },
+          ],
+          security: [
+            { card: "BT1-013", as: "top" },
+            { card: "BT1-015", as: "bottom" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const candidateId = s.inst("candidate").instanceId;
+    const bottomId = s.inst("bottom").instanceId;
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sanctuaryId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === sanctuaryId));
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(bottomId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("plays a level 4 blue or yellow TS Digimon from security", async () => {
@@ -138,6 +191,166 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
     );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
+    ).toBe(true);
+  });
+
+  it("publicly checks Throne Room and plays a level-4 TS Digimon for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT1-013", as: "untouched" },
+          ],
+          hand: [{ card: "BT24-024", as: "candidate" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "attacker" }],
+          security: [{ card: "BT1-013" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    const candidateId = s.inst("candidate").instanceId;
+    const attackerId = s.perm("attacker").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === candidateId),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sanctuaryId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("untouched").instanceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === candidateId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(candidateId);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("publicly declines the Security TS play while Throne Room goes to trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT1-013", as: "untouched" },
+          ],
+          hand: [{ card: "BT24-024", as: "candidate" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "attacker" }],
+          security: [{ card: "BT1-013" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    const candidateId = s.inst("candidate").instanceId;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sanctuaryId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("untouched").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("publicly pays the reduced Main cost for a TS Digimon and preserves security order", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT24-024", as: "digimon" },
+          ],
+          security: [
+            { card: "BT1-013", as: "top" },
+            { card: "BT1-015", as: "bottom" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sanctuary").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("digimon").instanceId),
+    );
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("digimon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("digimon").instanceId);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("bottom").instanceId }),
+    );
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("top").instanceId,
+      s.inst("sanctuary").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("excludes invalid Main candidates by TS color and trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT24-011", as: "redTs" },
+            { card: "BT1-028", as: "blueNonTs" },
+          ],
+          security: ["BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sanctuary").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === sanctuaryId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("redTs").instanceId, s.inst("blueNonTs").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("may refuse the optional Security play and leaves the Option in security", async () => {
