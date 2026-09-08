@@ -23,7 +23,11 @@ export const compiled: CompiledCard = {
           choose: true,
         },
         {
-          kind: "Restrict",
+          // "This Digimon can't be blocked for the turn" (Q2390): the enforced mechanism is the
+          // `unblockable` GrantStatic (BT4-035), not a `Restrict` — no interpreter consumer reads
+          // a `beBlocked` restriction. It is a separate sentence, so it applies even when the
+          // preceding trash found no opposing digivolution card.
+          kind: "GrantStatic",
           target: {
             filter: {
               isSelfRef: true,
@@ -31,7 +35,8 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          restriction: "beBlocked",
+          grant: "unblockable",
+          tokens: [],
           duration: "forTheTurn",
         },
       ],

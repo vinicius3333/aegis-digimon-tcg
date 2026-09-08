@@ -25,7 +25,7 @@ describe("BT14-020", () => {
           trigger: "StartOfYourMainPhase",
           actions: [
             { kind: "TrashDigivolution", amount: 1, choose: true },
-            { kind: "Restrict", restriction: "beBlocked", duration: "forTheTurn" },
+            { kind: "GrantStatic", grant: "unblockable", duration: "forTheTurn" },
           ],
         },
         {

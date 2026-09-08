@@ -195,7 +195,6 @@ describe("BT23-009 Coachmon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
-    const baseDp = s.perm("host").currentDP;
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -205,7 +204,8 @@ describe("BT23-009 Coachmon", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").linked).toHaveLength(1);
-    expect(s.perm("host").currentDP).toBe(baseDp + 6000);
+    // 4000 printed DP + the replacement link's 2000 link DP + the 4000 DP its own link trigger grants.
+    expect(s.perm("host").currentDP).toBe(10000);
     expect(s.perm("host").linked[0]!.instanceId).toBe(s.inst("second").instanceId);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("first").instanceId)).toBe(true);
   });

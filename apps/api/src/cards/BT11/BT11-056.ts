@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
             },
           ],
           rest: "deckBottom",
-          scaling: {
+          revealScaling: {
             per: 1,
             filter: {
               or: [

@@ -3338,7 +3338,14 @@
       {
         "trigger": "OnPlay",
         "actions": [
-          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } }
+          {
+            "kind": "Suspend",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "allowUnaffectableChoice": true
+            }
+          }
         ]
       }
     ],
@@ -4701,7 +4708,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -5295,7 +5303,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -5353,7 +5362,8 @@
           {
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -5437,7 +5447,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -5778,7 +5789,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -5941,7 +5953,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -6407,7 +6420,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -6838,7 +6852,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -7294,7 +7309,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -7354,7 +7370,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -7432,7 +7449,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -7488,7 +7506,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -7544,7 +7563,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -9978,7 +9998,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -10697,7 +10718,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           },
           {
             "kind": "PlaceUnder",
@@ -10716,7 +10738,8 @@
               "kind": ["Tamer"],
               "nameOrTrait": [{ "tokens": ["General"], "match": "trait" }]
             },
-            "bindHostAs": "zeigGeneral"
+            "bindHostAs": "zeigGeneral",
+            "position": "bottom"
           },
           {
             "kind": "PlaceUnder",
@@ -10730,7 +10753,8 @@
               "count": 1,
               "from": ["trash"]
             },
-            "underSelectionRef": "zeigGeneral"
+            "underSelectionRef": "zeigGeneral",
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -11782,7 +11806,7 @@
               }
             ],
             "rest": "deckBottom",
-            "scaling": {
+            "revealScaling": {
               "per": 1,
               "filter": {
                 "or": [
@@ -12354,8 +12378,12 @@
               "count": 1
             },
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["MetalGreymon", "X Antibody"], "match": "nameExact" }] }
+              "kind": "selfHasInDigivolutionCards",
+              "nameOrTrait": [
+                { "tokens": ["MetalGreymon"], "match": "name" },
+                { "tokens": ["X Antibody"], "match": "trait" }
+              ],
+              "raw": "[MetalGreymon] or [X Antibody] is in this Digimon's digivolution cards"
             }
           }
         ]
@@ -12843,7 +12871,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -12973,7 +13002,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -15220,7 +15250,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -17082,7 +17113,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -17497,7 +17529,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -18106,7 +18139,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -18156,7 +18190,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -18752,7 +18787,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -20818,7 +20854,23 @@
     "effects": [
       {
         "trigger": "OnPlay",
+        "condition": { "kind": "triggerEnteredByEffect", "raw": "played by an effect" },
         "actions": [
+          {
+            "kind": "Return",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Tamer"],
+                "nameOrTrait": [{ "tokens": ["Kristy Damon"], "match": "nameExact" }]
+              },
+              "count": 1
+            },
+            "to": "hand",
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "by returning 1 of your [Kristy Damon]s to the hand"
+          },
           {
             "kind": "Digivolve",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -20826,20 +20878,7 @@
             "payCost": false,
             "from": ["hand"],
             "ignoreRequirements": true,
-            "optional": true,
-            "condition": { "kind": "triggerEnteredByEffect", "raw": "played by an effect" },
-            "cost": {
-              "kind": "return",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["Kristy Damon"], "match": "nameExact" }]
-                },
-                "count": 1
-              },
-              "raw": "by returning 1 of your [Kristy Damon]s to the hand"
-            },
-            "abortOnDecline": true
+            "optional": true
           }
         ]
       },
@@ -26857,9 +26896,10 @@
             "choose": true
           },
           {
-            "kind": "Restrict",
+            "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "restriction": "beBlocked",
+            "grant": "unblockable",
+            "tokens": [],
             "duration": "forTheTurn"
           }
         ]
@@ -28233,7 +28273,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -28327,7 +28368,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [
@@ -44536,7 +44578,8 @@
           },
           {
             "kind": "Attack",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "attackPlayer": false,
             "optional": true
           }
         ],
@@ -45978,13 +46021,18 @@
           {
             "kind": "SubTrigger",
             "event": "whenAttacking",
-            "sourceFilter": { "isSelfRef": true },
-            "condition": {
-              "kind": "attackTargetMatchesFilter",
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasNone" },
-              "raw": "when this Digimon attacks an opponent's Digimon with no digivolution cards"
-            },
-            "actions": [{ "kind": "Delete", "target": { "sourceRef": "triggerDefender", "filter": {}, "count": 1 } }]
+            "triggerFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "Delete",
+                "target": { "sourceRef": "triggerDefender", "filter": {}, "count": 1 },
+                "condition": {
+                  "kind": "attackTargetMatchesFilter",
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasNone" },
+                  "raw": "when this Digimon attacks an opponent's Digimon with no digivolution cards"
+                }
+              }
+            ]
           }
         ]
       }
@@ -57003,7 +57051,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -57988,7 +58037,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -58607,7 +58657,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -58642,7 +58693,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -58667,7 +58719,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -71090,7 +71143,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -74215,7 +74269,8 @@
           {
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -74361,13 +74416,15 @@
               "from": ["hand", "trash"]
             },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           },
           {
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"], "excludeToken": true },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -106725,7 +106782,11 @@
           {
             "kind": "Link",
             "target": { "filter": { "isSelfRef": true }, "count": 1 },
-            "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "recipient": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "orFilters": [{ "controller": "mine", "kind": ["Digimon"], "zone": "breeding" }],
+              "count": 1
+            },
             "allowBreedingRecipient": true,
             "payCost": false,
             "optional": true
@@ -138141,18 +138202,18 @@
     "effects": [
       {
         "trigger": "WhenDigivolving",
+        "cost": {
+          "kind": "trash",
+          "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+          "raw": "By trashing 1 card in your hand"
+        },
         "actions": [
           {
             "kind": "Delete",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
             "optional": true,
             "controller": "opponent",
-            "allowCostWithoutTarget": true,
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
-              "raw": "By trashing 1 card in your hand"
-            }
+            "allowCostWithoutTarget": true
           },
           {
             "kind": "SecurityManipulation",
@@ -138166,18 +138227,18 @@
       },
       {
         "trigger": "WhenAttacking",
+        "cost": {
+          "kind": "trash",
+          "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+          "raw": "By trashing 1 card in your hand"
+        },
         "actions": [
           {
             "kind": "Delete",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
             "optional": true,
             "controller": "opponent",
-            "allowCostWithoutTarget": true,
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
-              "raw": "By trashing 1 card in your hand"
-            }
+            "allowCostWithoutTarget": true
           },
           {
             "kind": "SecurityManipulation",
@@ -160053,7 +160114,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -160118,7 +160180,8 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
-            "optional": true
+            "optional": true,
+            "position": "bottom"
           }
         ],
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
@@ -162153,28 +162216,28 @@
                   "location": "trash",
                   "controller": "mine"
                 },
+                "from": ["trash"],
                 "payCost": false
               }
-            ],
-            "cost": {
-              "kind": "deleteOwn",
-              "target": {
-                "filter": {
-                  "isSelfRef": true,
-                  "digivolutionStackNameOrTrait": [
-                    { "tokens": ["Bird"], "match": "trait" },
-                    { "tokens": ["Avian"], "match": "trait" }
-                  ]
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "raw": "By deleting this Digimon that has a digivolution card with [Bird] or [Avian] in one of its traits"
-            },
-            "optional": true,
-            "abortOnDecline": true
+            ]
           }
-        ]
+        ],
+        "cost": {
+          "kind": "deleteOwn",
+          "target": {
+            "filter": {
+              "isSelfRef": true,
+              "digivolutionStackNameOrTrait": [
+                { "tokens": ["Bird"], "match": "traitContains" },
+                { "tokens": ["Avian"], "match": "traitContains" }
+              ]
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "optional": true,
+          "raw": "By deleting this Digimon that has a digivolution card with [Bird] or [Avian] in one of its traits"
+        }
       },
       {
         "trigger": "OnDeletion",
@@ -163838,6 +163901,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "opponent" },
             "actions": [
               {
                 "kind": "Delete",
@@ -193728,24 +193792,12 @@
           {
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "into": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Black"] } },
+            "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Black"] },
             "from": ["hand"],
+            "reduceCost": 2,
             "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldDigivolve",
-            "sourceFilter": { "isSelfRef": true },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldDigivolve",
-                "mode": "reduceCost",
-                "amount": 2,
-                "raw": "reduce the cost by 2"
-              }
-            ]
+            "optional": true,
+            "allowNoTarget": true
           }
         ],
         "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]

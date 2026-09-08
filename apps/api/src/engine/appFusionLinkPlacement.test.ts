@@ -17,7 +17,8 @@ describe("App Fusion linked-card placement regression (BT25-036)", () => {
     );
     s.state.memory = 0;
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(4000);
+    // BT26-051 Gomimon prints 4000 DP; the seeded EX10-024 link adds its printed 2000 link DP.
+    expect(s.perm("host").currentDP).toBe(6000);
 
     const fused = await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("result").instanceId);
 

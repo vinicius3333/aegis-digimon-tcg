@@ -8,7 +8,36 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
+      // Q2269: "by returning 1 of your [Kristy Damon]s to the hand" is a processing condition of
+      // the whole clause, so it is offered — and paid — even when no [Garudamon] is in hand.
+      // Encoded as the leading optional action (declining it aborts the clause) rather than as
+      // the Digivolve's `cost`, because a cost fused to the Digivolve is only offered when that
+      // digivolve already has a legal target.
+      condition: {
+        kind: "triggerEnteredByEffect",
+        raw: "played by an effect",
+      },
       actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
+                {
+                  tokens: ["Kristy Damon"],
+                  match: "nameExact",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+          abortOnDecline: true,
+          raw: "by returning 1 of your [Kristy Damon]s to the hand",
+        },
         {
           kind: "Digivolve",
           target: {
@@ -31,27 +60,6 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           ignoreRequirements: true,
           optional: true,
-          condition: {
-            kind: "triggerEnteredByEffect",
-            raw: "played by an effect",
-          },
-          cost: {
-            kind: "return",
-            target: {
-              filter: {
-                controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Kristy Damon"],
-                    match: "nameExact",
-                  },
-                ],
-              },
-              count: 1,
-            },
-            raw: "by returning 1 of your [Kristy Damon]s to the hand",
-          },
-          abortOnDecline: true,
         },
       ],
     },

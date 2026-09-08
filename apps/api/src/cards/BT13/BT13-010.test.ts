@@ -10,11 +10,16 @@ import "./BT13-014.js";
 
 describe("BT13-010 Biyomon", () => {
   it("keeps Garudamon and Kristy Damon bracket references exact", () => {
-    const action = compiled.effects[0]?.actions[0];
+    // The Kristy return is the clause's leading optional action, not the Digivolve's cost
+    // (Q2269: it is offered even with no [Garudamon] in hand).
+    const returnAction = compiled.effects[0]?.actions[0];
+    const action = compiled.effects[0]?.actions[1];
+    expect(returnAction?.kind).toBe("Return");
     expect(action?.kind).toBe("Digivolve");
+    if (returnAction?.kind !== "Return") throw new Error("Expected Return action");
     if (action?.kind !== "Digivolve") throw new Error("Expected Digivolve action");
     const garudamonReference = action.into?.nameOrTrait?.[0];
-    const kristyReference = action.cost?.target?.filter.nameOrTrait?.[0];
+    const kristyReference = returnAction.target?.filter.nameOrTrait?.[0];
     if (garudamonReference === undefined || kristyReference === undefined) {
       throw new Error("Expected Garudamon and Kristy Damon name references");
     }

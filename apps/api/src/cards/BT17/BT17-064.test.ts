@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-064.js";
 import "./index.js";
+// Every card this file puts on the board is imported so its real effects are registered when the
+// file runs alone. `./index.js` only covers BT17; the digivolution sources live in other sets.
+import "../BT1/BT1-010.js";
+import "../BT1/BT1-011.js";
+import "../BT16/BT16-016.js";
 
 describe("BT17-064 Pipismon", () => {
   it("trashes the bottom two digivolution cards of one opposing Digimon", () => {
@@ -19,15 +24,17 @@ describe("BT17-064 Pipismon", () => {
     expect(effect?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenAttacking",
-      sourceFilter: { isSelfRef: true },
-      condition: {
-        kind: "attackTargetMatchesFilter",
-        filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasNone" },
-      },
+      // `whenAttacking` reads its subject through `triggerFilter`, and the defender gate has to
+      // sit on the sub-effect's own action so it is evaluated when the watcher fires.
+      triggerFilter: { isSelfRef: true },
       actions: [
         {
           kind: "Delete",
           target: { sourceRef: "triggerDefender", filter: {}, count: 1 },
+          condition: {
+            kind: "attackTargetMatchesFilter",
+            filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasNone" },
+          },
         },
       ],
     });
@@ -89,7 +96,10 @@ describe("BT17-064 Pipismon", () => {
   it("does not trigger if the target had a source when the attack was declared", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-064", dp: 5000, under: ["BT16-016"], as: "pipismon" }] },
+        // BT1-010 is the source because it has no inherited effect. BT16-016's inherited
+        // [When Attacking] would trash the defender's only digivolution card mid-attack and
+        // destroy the very precondition this test is about.
+        0: { battleArea: [{ card: "BT17-064", dp: 5000, under: ["BT1-010"], as: "pipismon" }] },
         1: { battleArea: [{ card: "BT17-025", dp: 9000, under: ["BT1-010"], suspended: true, as: "target" }] },
       },
       { autoSelectCards: true },
@@ -104,8 +114,11 @@ describe("BT17-064 Pipismon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === pipismonId));
+    // Pipismon loses the battle at 5000 DP against 9000 and its ＜Armor Purge＞ trashes the top
+    // card instead of deleting the permanent, so the battle is over once the top card changed.
+    await settle(() => s.perm("pipismon").topCard.cardId !== "BT17-064");
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("target").stack).toHaveLength(1);
   });
 });

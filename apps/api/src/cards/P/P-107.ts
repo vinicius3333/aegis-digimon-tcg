@@ -40,31 +40,15 @@ const compiled: CompiledCard = {
             count: 1,
           },
           into: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              colors: ["Black"],
-            },
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Black"],
           },
           from: ["hand"],
+          reduceCost: 2,
           payCost: true,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the cost by 2",
-            },
-          ],
+          allowNoTarget: true,
         },
       ],
       keywords: [

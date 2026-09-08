@@ -59,7 +59,7 @@ describe("BT17-073 DexDorugoramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT17-073", suspended: true, as: "dexDorugoramon" }] },
-        1: { battleArea: [{ card: "BT17-064", dp: 1000, as: "opposingDigimon" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "opposingDigimon" }] },
       },
       { autoAcceptOptional: true },
     );

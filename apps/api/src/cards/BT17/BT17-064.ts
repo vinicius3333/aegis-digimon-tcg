@@ -36,17 +36,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttacking",
-          sourceFilter: {
+          // `whenAttacking` reads the attacking subject through `triggerFilter`
+          // (SUBJECT_TRIGGER_FILTER_EVENTS); a `sourceFilter` here is never consumed.
+          triggerFilter: {
             isSelfRef: true,
-          },
-          condition: {
-            kind: "attackTargetMatchesFilter",
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              digivolutionCards: "hasNone",
-            },
-            raw: "when this Digimon attacks an opponent's Digimon with no digivolution cards",
           },
           actions: [
             {
@@ -55,6 +48,18 @@ export const compiled: CompiledCard = {
                 sourceRef: "triggerDefender",
                 filter: {},
                 count: 1,
+              },
+              // The declared defender is only known when the watcher FIRES; a condition on the
+              // SubTrigger action itself is evaluated while the watcher is being installed, when
+              // the trigger payload carries no defender.
+              condition: {
+                kind: "attackTargetMatchesFilter",
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasNone",
+                },
+                raw: "when this Digimon attacks an opponent's Digimon with no digivolution cards",
               },
             },
           ],
