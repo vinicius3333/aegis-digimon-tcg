@@ -111,7 +111,10 @@ describe("BT24-084 Inori Misono", () => {
             { card: "BT24-084", as: "inori" },
             { card: "BT24-034", as: "aegiomon" },
           ],
-          hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+          hand: [
+            { card: "BT24-014", as: "aegiochusmon" },
+            { card: "BT24-070", as: "wrongName" },
+          ],
           security: ["BT1-009"],
         },
       },
@@ -125,6 +128,7 @@ describe("BT24-084 Inori Misono", () => {
 
     expect(s.perm("inori").isSuspended).toBe(true);
     expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongName").instanceId);
   });
 
   it("uses Barrier in a public security battle, then Inori evolves the surviving Aegiomon (Q5670)", async () => {
