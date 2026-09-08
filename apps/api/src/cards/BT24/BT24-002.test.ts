@@ -19,10 +19,9 @@ describe("BT24-002 Bukamon", () => {
   });
 
   it("unsuspends this Digimon, not an arbitrary blue TS Digimon", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
-    const action = inherited.actions[0];
-    expect(inherited.frequency).toBe("OncePerTurn");
-    expect(action).toMatchObject({
+    const inherited = compiled.effects.find((effect) => effect.isInherited);
+    expect(inherited).toMatchObject({ frequency: "OncePerTurn" });
+    expect(inherited?.actions?.[0]).toMatchObject({
       kind: "Unsuspend",
       target: {
         filter: {
@@ -228,10 +227,11 @@ describe("BT24-002 Bukamon", () => {
     expect(s.perm("host").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.decisions.some(({ req }) => req.kind === "orderTriggers"));
-    const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers")!.req as any;
+    const ordering = s.decisions.map(({ req }) => req).find((req) => req.kind === "orderTriggers");
+    if (ordering === undefined || ordering.kind !== "orderTriggers") throw new Error("order trigger decision missing");
     expect(ordering.options.triggerKeys.length).toBeGreaterThanOrEqual(2);
-    const bukamonKey = ordering.options.triggerKeys.find((key: string) => key.includes("BT24-002"));
-    const danKey = ordering.options.triggerKeys.find((key: string) => key.includes("BT24-085"));
+    const bukamonKey = ordering.options.triggerKeys.find((key) => key.includes("BT24-002"));
+    const danKey = ordering.options.triggerKeys.find((key) => key.includes("BT24-085"));
     expect(bukamonKey).toBeDefined();
     expect(danKey).toBeDefined();
     expect(
