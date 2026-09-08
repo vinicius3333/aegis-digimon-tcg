@@ -7,6 +7,7 @@ import { SubTriggerRegistry } from "../../engine/effects/subtriggers.js";
 import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../../engine/effects/primitives.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 // Self-register the compiled-IR cards so getCompiledCard can resolve the fusion target's
 // appFusionRequirement at runtime (the engine reads it inside appFuseInto).
 import "../index.js";
@@ -174,7 +175,7 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     expect(s.perm("fuser").stack.map((instance) => instance.cardId)).toContain(MEDICMON);
   });
 
-  it("does not trigger when an opponent's Digimon gets linked", async () => {
+  it("structurally filters out an opponent's Digimon when the link watcher is injected", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-087", as: "rei" }],
@@ -206,7 +207,10 @@ describe("BT24-087 Rei Katsura public behavior", () => {
             { card: MEDICMON, as: "link" },
             { card: "BT1-009", as: "discard" },
           ],
-          deck: [{ card: "BT1-010", as: "drawn" }],
+          deck: [
+            { card: "BT1-010", as: "drawn" },
+            { card: "BT4-022", as: "fusionDraw" },
+          ],
           trash: [{ card: TARGET, as: "fusion" }],
         },
       },
@@ -214,6 +218,10 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     );
     s.state.memory = 3;
     await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const hostSourceId = s.perm("host").topCard.instanceId;
+    const linkId = s.inst("link").instanceId;
+    const fusionId = s.inst("fusion").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -222,11 +230,19 @@ describe("BT24-087 Rei Katsura public behavior", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("fusion").instanceId);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").permanentId).toBe(hostId);
     expect(s.perm("host").topCard.cardId).toBe(TARGET);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toContain(MEDICMON);
+    expect(s.perm("host").topCard.instanceId).toBe(fusionId);
+    expect(s.perm("host").stack.map((instance) => instance.instanceId)).toEqual([linkId]);
+    expect(s.perm("host").linked.map((instance) => instance.instanceId)).toEqual([hostSourceId]);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).not.toContain(fusionId);
     expect(s.perm("rei").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("fusionDraw").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not draw, trash, or App Fuse when Rei cannot pay the suspension cost (Q5675)", async () => {
@@ -235,25 +251,77 @@ describe("BT24-087 Rei Katsura public behavior", () => {
         0: {
           battleArea: [
             { card: "BT24-087", as: "rei", suspended: true },
-            { card: DOCMON, as: "fuser", linked: [MEDICMON] },
+            { card: DOCMON, as: "fuser" },
           ],
-          hand: ["BT1-009"],
-          deck: ["BT1-010"],
+          hand: [
+            { card: MEDICMON, as: "link" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: [{ card: "BT4-022", as: "drawn" }],
           trash: [{ card: TARGET, as: "fusion" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("fuser").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("fuser").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("fuser").linked.some((instance) => instance.instanceId === s.inst("link").instanceId));
 
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toEqual([s.inst("discard").instanceId]);
     expect(s.perm("fuser").topCard.cardId).toBe(DOCMON);
     expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("fusion").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("may refuse the payable suspension cost after a real Link, stopping the then-tail", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: DOCMON, as: "host" },
+          ],
+          hand: [
+            { card: MEDICMON, as: "link" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: [{ card: "BT4-022", as: "drawn" }],
+          trash: [{ card: TARGET, as: "fusion" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((instance) => instance.instanceId === s.inst("link").instanceId));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").linked.map((instance) => instance.instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.perm("rei").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck.map((instance) => instance.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toEqual([s.inst("discard").instanceId]);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("fusion").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe(DOCMON);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("gains memory at the start of the main phase only while the opponent has a Digimon", async () => {
@@ -263,14 +331,20 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     });
     withOpponent.state.memory = 2;
     await withOpponent.ready();
-    await advance(withOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withOpponent.perm("rei"));
+    const withOpponentTurn = withOpponent.engine.runOneTurn();
+    await advance(withOpponent.engine).waitForMainPhase(0);
     expect(withOpponent.state.memory).toBe(3);
+    advance(withOpponent.engine).endMainPhaseIfOpen(0);
+    await withOpponentTurn;
 
     const withoutOpponent = setupEngine({ 0: { battleArea: [{ card: "BT24-087", as: "rei" }] } });
     withoutOpponent.state.memory = 2;
     await withoutOpponent.ready();
-    await advance(withoutOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withoutOpponent.perm("rei"));
+    const withoutOpponentTurn = withoutOpponent.engine.runOneTurn();
+    await advance(withoutOpponent.engine).waitForMainPhase(0);
     expect(withoutOpponent.state.memory).toBe(2);
+    advance(withoutOpponent.engine).endMainPhaseIfOpen(0);
+    await withoutOpponentTurn;
   });
 
   it("plays itself from security without paying the cost", async () => {
@@ -281,5 +355,43 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("rei").instanceId),
     );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("rei").instanceId),
+    ).toBe(true);
+  });
+
+  it("plays from security on a real opponent attack and removes only the checked card", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: "BT24-087", as: "rei" },
+          { card: "BT1-013", as: "remainingSecurity" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const reiId = s.inst("rei").instanceId;
+    const remainingId = s.inst("remainingSecurity").instanceId;
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+
+    const checked = s.events.filter((event) => event.kind === "securityChecked");
+    expect(checked).toHaveLength(1);
+    expect(checked[0]).toMatchObject({ revealedCardId: "BT24-087" });
+    expect(s.state.players[0]!.security.map((instance) => instance.instanceId)).toEqual([remainingId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(reiId);
+    expect(s.perm("rei").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).not.toContain(reiId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(3);
   });
 });
