@@ -138,10 +138,80 @@ describe("BT24-063 Locomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-063"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("does not play a matching trait card above the play-cost-5 boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-063", as: "locomon" }],
+          deck: [
+            { card: "BT24-022", as: "tooExpensive" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-063"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("tooExpensive").instanceId,
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+    ]);
+  });
+
+  it("publicly refuses the optional revealed play and returns all cards to the deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-063", as: "locomon" }],
+          deck: [
+            { card: "BT24-010", as: "candidate" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const refusal = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: refusal.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-063"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toHaveLength(3);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("candidate").instanceId,
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
   });
 
   it.each([
@@ -154,6 +224,7 @@ describe("BT24-063 Locomon", () => {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-063", as: "locomon" }],
           deck: [
+            { card: "BT1-015", as: "bonusDraw" },
             { card: "BT24-083", as: "tamer" },
             { card: "BT1-009", as: "miss1" },
             { card: "BT1-010", as: "miss2" },
@@ -164,6 +235,8 @@ describe("BT24-063 Locomon", () => {
     );
     s.state.memory = 5;
     await s.ready();
+    const baseId = s.inst("base").instanceId;
+    const locomonId = s.inst("locomon").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -179,6 +252,12 @@ describe("BT24-063 Locomon", () => {
     );
 
     expect(s.state.memory).toBe(2);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.perm("base").topCard.instanceId).toBe(locomonId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 
   it("exposes Collision both as a main and inherited keyword", async () => {
@@ -194,5 +273,38 @@ describe("BT24-063 Locomon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("locomon"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
+  });
+
+  it.each([
+    ["main", { card: "BT24-063", as: "locomon" }],
+    ["inherited", { card: "BT10-028", as: "host", under: ["BT24-063"] }],
+  ])("public %s Collision grants the opponent Blocker and forces a block", async (_label, attacker) => {
+    const s = setupEngine({
+      0: { battleArea: [attacker], deck: ["BT1-015", "BT1-016"] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "blocker", dp: 2000 }],
+        security: [{ card: "BT1-011", as: "security" }],
+        deck: ["BT1-015", "BT1-016"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    const attackerId = s.state.players[0]!.battleArea[0]!.permanentId;
+    const blockerId = s.perm("blocker").permanentId;
+    const securityId = s.inst("security").instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [blockerId],
+    });
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toMatchObject({ ok: false });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([securityId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("blocker").instanceId);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 });
