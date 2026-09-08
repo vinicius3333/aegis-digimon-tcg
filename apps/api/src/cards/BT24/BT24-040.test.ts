@@ -488,4 +488,22 @@ describe("BT24-040 Venusmon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
+
+  it("rejects a public evolution from a red level-5 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "base" }], hand: [{ card: "BT24-040", as: "venusmon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("venusmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
+  });
 });
