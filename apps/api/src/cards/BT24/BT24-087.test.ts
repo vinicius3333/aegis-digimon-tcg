@@ -195,6 +195,49 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
+  it("does not trigger from an opponent's real Link during the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-087", as: "rei" }],
+          hand: [{ card: "BT1-009", as: "discard" }],
+          deck: [{ card: "BT4-022", as: "drawn" }],
+          trash: [{ card: TARGET, as: "fusion" }],
+        },
+        1: {
+          battleArea: [{ card: "BT21-009", as: "opponentHost" }],
+          hand: [{ card: MEDICMON, as: "opponentLink" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const reiId = s.inst("rei").instanceId;
+    const opponentLinkId = s.inst("opponentLink").instanceId;
+    const drawnId = s.inst("drawn").instanceId;
+    const discardId = s.inst("discard").instanceId;
+    const fusionId = s.inst("fusion").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "linkCard",
+        instanceId: s.inst("opponentLink").instanceId,
+        targetPermanentId: s.perm("opponentHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponentHost").linked.some((instance) => instance.cardId === MEDICMON));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("opponentHost").linked.map((instance) => instance.instanceId)).toEqual([opponentLinkId]);
+    expect(s.perm("rei").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck.map((instance) => instance.instanceId)).toEqual([drawnId]);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toEqual([discardId]);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toEqual([fusionId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([reiId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("naturally triggers when a friendly Digimon gets linked", async () => {
     const s = setupEngine(
       {
@@ -322,6 +365,110 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     expect(s.perm("host").topCard.cardId).toBe(DOCMON);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("draws and trashes before refusing the optional App Fusion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: DOCMON, as: "host" },
+          ],
+          hand: [
+            { card: MEDICMON, as: "link" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: [{ card: "BT4-022", as: "drawn" }],
+          trash: [{ card: TARGET, as: "fusion" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const hostTopId = s.perm("host").topCard.instanceId;
+    const linkId = s.inst("link").instanceId;
+    const fusionId = s.inst("fusion").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: linkId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((instance) => instance.instanceId === linkId));
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 1);
+    const suspendPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[0]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
+    const fusionPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: fusionPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("rei").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(fusionId);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").topCard.instanceId).toBe(hostTopId);
+    expect(s.perm("host").linked.map((instance) => instance.instanceId)).toEqual([linkId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not App Fuse into a non-System/Life/Transmutation target despite a legal App Fusion pair", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: "BT21-009", as: "fuser" },
+          ],
+          hand: [
+            { card: "BT21-047", as: "navimon" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: [{ card: "BT4-022", as: "drawn" }],
+          trash: [{ card: "BT21-018", as: "wrongTraitFusion" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const wrongTargetId = s.inst("wrongTraitFusion").instanceId;
+    const linkId = s.inst("navimon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: linkId,
+        targetPermanentId: s.perm("fuser").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("fuser").linked.some((instance) => instance.instanceId === linkId));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("rei").isSuspended).toBe(true);
+    expect(s.perm("fuser").topCard.cardId).toBe("BT21-009");
+    expect(s.perm("fuser").linked.map((instance) => instance.instanceId)).toEqual([linkId]);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(wrongTargetId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("gains memory at the start of the main phase only while the opponent has a Digimon", async () => {
