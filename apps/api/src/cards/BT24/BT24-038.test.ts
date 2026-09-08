@@ -9,7 +9,13 @@ import "../index.js";
 describe("BT24-038 Biomon", () => {
   it("links a level-4-or-lower Digimon from hand or this stack to itself", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const action = BT24_038.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0] as any;
+      const action = BT24_038.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0] as unknown as {
+        kind: string;
+        from: string[];
+        optional: boolean;
+        target: { filter: { levelComparison: unknown; hasLinkRequirement: boolean; hostFilter: unknown } };
+        recipient: unknown;
+      };
       expect(action).toMatchObject({ kind: "Link", from: ["hand", "digivolutionCards"], optional: true });
       expect(action.target.filter.levelComparison).toEqual({ op: "lte", value: 4 });
       expect(action.target.filter.hasLinkRequirement).toBe(true);
@@ -257,6 +263,31 @@ describe("BT24-038 Biomon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
     expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([biomonId]);
+  });
+
+  it("expires the linked -7000 DP modifier at the end of the linking player's turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT24-038", as: "biomon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 10000 }], deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("biomon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.perm("target").currentDP).toBe(3000);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(10000);
   });
 
   it("exposes Fortitude and the exact Docmon-Medicmon App Fusion recipe", async () => {

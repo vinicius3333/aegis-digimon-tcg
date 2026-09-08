@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 744/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 745/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -45,7 +45,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-035 | Gatomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-035.md). Root6green: public Q5614 Play/When Digivolving DNA routes and opponent-turn refusal, inherited Barrier, TS evolution and exact zero-DP cleanup sequencing. Typed IR; delivery pending. |
 | BT24-036 | Medicmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-036.md). Public security play and DP, battle deletion, linked HappyBullet deletion, Q5615 public Link/host return and paid normal evolution pass. DP-duration/zero boundaries and ordering contrasts remain open. |
 | BT24-037 | Silphymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-037.md). Root12green: full public behavior and replacement/evolution-stack evidence; typed replacement assertions and compiled IR. Collection delivery gates pending. |
-| BT24-038 | Biomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-038.md). Public Q5620, own-stack Link isolation, zero-DP boundary, Fortitude source/no-source and paid-Link into zero-cost AppFusion pass. Main linked OPT/reset, duration and invalid-fusion contrasts remain open. |
+| BT24-038 | Biomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-038.md). Root15green: public Q5620, Link isolation, zero-DP/Fortitude/AppFusion and linked -7000 duration/expiry. Public linked OPT reset and invalid App Fusion source remain open; delivery pending. |
 | BT24-039 | Piximon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-039.md). Public security battle-area/breeding level boundary, Blocker plus Barrier, inherited recovery and paid TS evolution pass. Normal/illegal evolution and keyword refusal boundaries remain open. |
 | BT24-040 | Venusmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-040.md). Public Q5622 suppression, Q5621 simultaneous protection and Q5781 self-cost, security order and paid routes. Root15green; Q5623-26 distinctions, replacement refusal/frequency/reset and peer boundaries open. |
 | BT24-041 | Minervamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-041.md). Public Q5627 refusal, Q5629 DP-zero ordering and exact paid evolution routes. Root12green after entrant currentDP fix; Q5628 immunity interleaving, On Deletion and public Reboot/Blocker still open. |
