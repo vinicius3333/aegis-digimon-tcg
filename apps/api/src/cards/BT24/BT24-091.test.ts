@@ -205,6 +205,91 @@ describe("BT24-091 Tidal Stream", () => {
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("low").instanceId);
   });
 
+  it("is blocked by a public System protection as a linked Digimon effect (Q5683)", async () => {
+    const runComparison = async (withProtection: boolean) => {
+      let ownerTurn: Promise<void> | undefined;
+      let protectionPlaySucceeded = !withProtection;
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-014", as: "host" }],
+            hand: [{ card: "BT24-091", as: "option" }],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT24-032", as: "systemTarget", suspended: true },
+              ...(withProtection ? [] : [{ card: "BT1-051", as: "higher" }]),
+            ],
+            ...(withProtection ? { hand: [{ card: "BT24-056", as: "protector" }] } : {}),
+            deck: ["BT1-012", "BT1-013", "BT1-015"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const targetPermanentId = s.perm("systemTarget").permanentId;
+      s.state.turnSeat = withProtection ? 1 : 0;
+      s.state.memory = 10;
+      await s.ready();
+
+      if (withProtection) {
+        const opponentTurn = s.engine.runOneTurn();
+        await advance(s.engine).waitForMainPhase(1);
+        protectionPlaySucceeded = s.engine.applyIntent(1, {
+          type: "playCard",
+          instanceId: s.inst("protector").instanceId,
+        }).ok;
+        await settle(() => observe(s.engine).isRestricted(s.perm("systemTarget"), "beReturned"));
+        advance(s.engine).endMainPhaseIfOpen(1);
+        await opponentTurn;
+        s.state.turnSeat = 0;
+        s.state.memory = 10;
+        ownerTurn = s.engine.runOneTurn();
+        await advance(s.engine).waitForMainPhase(0);
+      }
+      expect(protectionPlaySucceeded).toBe(true);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst("option").instanceId,
+          targetPermanentId: s.perm("host").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("option").instanceId));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      if (withProtection) {
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await ownerTurn;
+      }
+      return { s, targetPermanentId };
+    };
+
+    const protectedCase = await runComparison(true);
+    expect(
+      protectedCase.s.state.players[1]!.battleArea.some((p) => p.permanentId === protectedCase.targetPermanentId),
+    ).toBe(true);
+    expect(protectedCase.s.state.players[1]!.hand).toHaveLength(0);
+    expect(protectedCase.s.perm("host").linked.map((card) => card.instanceId)).toEqual([
+      protectedCase.s.inst("option").instanceId,
+    ]);
+
+    const controlCase = await runComparison(false);
+    expect(controlCase.s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([
+      controlCase.s.inst("systemTarget").instanceId,
+    ]);
+    expect(
+      controlCase.s.state.players[1]!.battleArea.some((p) => p.permanentId === controlCase.targetPermanentId),
+    ).toBe(false);
+  });
+
   it("publicly pays Main cost, returns every tied lowest level, unsuspends, and links", async () => {
     const s = setupEngine(
       {
