@@ -26,7 +26,13 @@ describe("BT24-057 Docmon", () => {
 
   it("plays from security at battle end and restricts one opposing Digimon", () => {
     const security = BT24_057.effects?.find((entry) => entry.trigger === "Security");
-    expect(security?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", payCost: false });
+    expect(security).toMatchObject({ trigger: "Security", timing: "endOfBattle", isSecurity: true });
+    expect(security?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityBattleEnded",
+      once: true,
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
+    });
     for (const trigger of ["OnPlay", "OnDeletion"]) {
       const effect = BT24_057.effects?.find((entry) => entry.trigger === trigger);
       expect(effect?.actions?.[0]).toMatchObject({
@@ -50,13 +56,15 @@ describe("BT24-057 Docmon", () => {
     const s = setupEngine(
       {
         0: { security: [{ card: "BT24-057", as: "docmon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 6000 }] },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 1;
     await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    const docmonId = s.inst("docmon").instanceId;
 
     expect(
       s.engine.applyIntent(1, {
@@ -65,14 +73,63 @@ describe("BT24-057 Docmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("docmon").instanceId),
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.events.some((event) => event.kind === "combatResolved") &&
+        !observe(s.engine).isAttacking(),
     );
-    await settle(() => observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers"));
 
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      resolution: "battle",
+      battle: { attackerDeleted: false },
+    });
     expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === docmonId)).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(true);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("a weaker attacker is deleted by the real Security battle while Docmon is played", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT24-057", as: "docmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    const attackerInstanceId = s.inst("attacker").instanceId;
+    const docmonInstanceId = s.inst("docmon").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.events.some((event) => event.kind === "combatResolved") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      resolution: "battle",
+      battle: { attackerDeleted: true },
+    });
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === docmonInstanceId)).toBe(
+      true,
+    );
   });
 
   it("normal black level-3 evolution costs 2", async () => {
@@ -80,10 +137,12 @@ describe("BT24-057 Docmon", () => {
       0: {
         battleArea: [{ card: "BT11-036", as: "base" }],
         hand: [{ card: "BT24-057", as: "docmon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 5;
     await s.ready();
+    const baseId = s.perm("base").topCard.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -95,6 +154,9 @@ describe("BT24-057 Docmon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("docmon").instanceId);
 
     expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("docmon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 
   it("On Play prevents an opposing Digimon from attacking players", async () => {
@@ -162,14 +224,20 @@ describe("BT24-057 Docmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === docmonId)).toBe(false);
   });
 
-  it("links for cost 2, adds 3000 DP, and De-Digivolves after the host is deleted", async () => {
+  it("publicly links for cost 2 and De-Digivolves after Happy Bullet deletes its host", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
+          battleArea: [{ card: "BT24-067", as: "host" }],
           hand: [{ card: "BT24-057", as: "docmon" }],
         },
-        1: { battleArea: [{ card: "BT24-051", as: "target", under: ["BT24-050"] }] },
+        1: {
+          battleArea: [
+            { card: "BT24-051", as: "target", under: [{ card: "BT24-050", as: "targetSource" }] },
+            { card: "BT1-020", as: "colorSource" },
+          ],
+          hand: [{ card: "BT6-095", as: "happyBullet" }],
+        },
       },
       { autoSelectCards: true },
     );
@@ -177,6 +245,11 @@ describe("BT24-057 Docmon", () => {
     await s.ready();
     const hostId = s.perm("host").permanentId;
     const hostDp = s.perm("host").currentDP;
+    const hostInstanceId = s.inst("host").instanceId;
+    const docmonInstanceId = s.inst("docmon").instanceId;
+    const targetTopId = s.perm("target").topCard.instanceId;
+    const targetSourceId = s.inst("targetSource").instanceId;
+    const happyBulletId = s.inst("happyBullet").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -189,34 +262,69 @@ describe("BT24-057 Docmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("host").currentDP).toBe(hostDp + 3000);
 
-    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
-    await settle(() => s.perm("target").topCard.cardId === "BT24-050");
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("happyBullet").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId));
 
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(happyBulletId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hostInstanceId, docmonInstanceId]),
+    );
+    expect(s.perm("target").topCard.instanceId).toBe(targetSourceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(targetTopId);
     expect(s.perm("target").stack).toHaveLength(0);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT24-051")).toBe(true);
   });
 
   it("cancels the linked De-Digivolve when BT7-107 returns its deleted host first (Q5643)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT7-067", as: "host", linked: [{ card: "BT24-057", as: "docmon" }] }],
-          hand: [{ card: "BT7-107", as: "calling" }],
+          battleArea: [{ card: "BT24-067", as: "host" }],
+          hand: [
+            { card: "BT24-057", as: "docmon" },
+            { card: "BT7-107", as: "calling" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawBoundary" }],
         },
-        1: { battleArea: [{ card: "BT24-051", as: "target", under: ["BT24-050"] }] },
+        1: { battleArea: [{ card: "BT24-051", as: "target", under: [{ card: "BT24-050", as: "targetSource" }] }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
     await s.ready();
+    const deckIds = s.state.players[0]!.deck.map((card) => card.instanceId);
+    const targetTopId = s.perm("target").topCard.instanceId;
+    const targetSourceId = s.inst("targetSource").instanceId;
+    const callingId = s.inst("calling").instanceId;
 
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("docmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("docmon").instanceId));
+    expect(s.state.memory).toBe(1);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("calling").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("host").instanceId));
 
-    expect(s.perm("target").topCard.cardId).toBe("BT24-051");
-    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("host").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("docmon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(callingId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckIds);
+    expect(s.perm("target").topCard.instanceId).toBe(targetTopId);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([targetSourceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("docmon").instanceId);
   });
 });
