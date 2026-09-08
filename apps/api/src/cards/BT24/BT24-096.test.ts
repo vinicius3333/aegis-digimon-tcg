@@ -2,6 +2,7 @@ import { EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-096.js";
 import "../index.js";
 
@@ -127,6 +128,56 @@ describe("BT24-096 Seventh Graviton", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+
+  it("publicly reveals Security and activates Main without paying the 7-cost (Q5693)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-096", as: "securityOption" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "attacker", dp: 3000 }],
+          security: ["BT1-013"],
+          hand: ["BT1-010"],
+          deck: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-045", as: "second" },
+            { card: "AD1-001", as: "third" },
+            { card: "BT1-080", as: "fourth" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.trash.length === 3);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+      s.inst("third").instanceId,
+    ]);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("fourth").instanceId]);
+    expect(s.state.memory).toBe(2);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("from trash follows a real Creepymon X digivolution, pays its return cost, and activates Main", async () => {
