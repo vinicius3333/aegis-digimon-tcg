@@ -793,3 +793,16 @@ protection/refusal/Q5599, evolution and keyword routes raise it6→8 in
 `2fb8b6738`. Aggregate716/1020,0 cards at10/10. Lanes continue020,013 OPT
 completion and the confirmed098 reactive payload dispatch seam. No publication
 has occurred.
+
+Root020 at11:31:40 passed9/9; exact search/hand threshold, public unsuspend OPT
+reset and egg routes raise it6→8 in `a98dfdbcd`. Root021 at11:34:39 and
+11:36:24 passed13/13; exact search, Titamon discard evolution/refusal, inherited
+reset and route boundaries raise it6→8 in `7f312b2e5` plus typed-test follow-up
+`2f1662640`. Root013 at11:36:54 passed15/15 after a fully public inherited
+same-turn suppression and next-owner reset sequence; `8201179c4` raises it7→8.
+Aggregate721/1020,0 cards at10/10.
+
+The090 engine investigation added a generalized face-up security removal
+conformance regression and found no runtime defect: the card-specific expected
+failure stalled at the Blocker decision before any security check. The lane is
+correcting that public decision flow. No publication has occurred.
