@@ -606,3 +606,24 @@ Pipomon032 is System, so Hadesmon's automatic reactivation can revive its
 deleted cost as a new permanent. Absence of the old permanent does not prove
 the card finishes in trash. The lane is replacing that confounded cost with
 a non-System/non-Life Appmon, not changing production deletion semantics.
+
+Root079 final21 passed10:15:11 after capturing the token instance before its
+removal from the match. Committed `e36283b3c`;079 receives8/10, aggregate582.
+Public Link capacity now retains two paid links with memory10→8→7. Both
+Overclock cost branches have explicit completed attack endpoints. The next
+card lane owns090 Main/color first, not its unproved old Security claims.
+
+Root089 first11 passed10:16:35; scoped style/diff passed. Committed
+`4e6e4ccc7`;089 receives6/10, aggregate588. Rules review then identified its
+permanent Delay grant/manual Main model as inconsistent with the printed
+Owen-suspension trigger. CR15-4-2-2,15-8-3-1/2 and16-17 require reactive
+optional activation with a source-trash cost and entry-turn restriction.
+The design in `270333e67` selects the existing reactive IR gate, conditional
+on public red-first proof; no engine change is inferred. The lane is creating
+that proof before changing the card representation.
+
+Engine diagnosis reproduced7 Blast DNA failures in the full engine run while
+its isolated13 and proposed predecessor subsets passed. A minimal polluter
+is not yet known. The engine lane may instrument only the failing test
+temporarily to compare counter eligibility and registered state; no production
+runtime edits are authorized at this diagnostic stage.

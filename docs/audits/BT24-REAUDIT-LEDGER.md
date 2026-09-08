@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 581/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 588/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -86,7 +86,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-076 | WarGrowlmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-076.md). Root13 green: Q5653 valid-key hand4/5 and zone gates, exact paid evolution, legal inherited host and public DarkDragon/EvilDragon revival/refusal/level negatives. Collection delivery pending. |
 | BT24-077 | Revivemon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-077.md). Root15 tests green: ordered public App Fusion, normal routes, own-source Link and Q5654/refusal, real Happy Bullet Link/revival and Blocker. Globemon recipient satisfies link requirement; no engine defect. Mixed invalid/refusal boundaries and delivery pending. |
 | BT24-078 | Creepymon (X Antibody) | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-078.md). Root22 public tests green including both Q5656 orders after pooled attack-window fix; legal routes, exact stack/draw, Q5775 late entry, Q6028 source removal, mixed traits and post-deletion budgets. Full BT24/engine8558 and typecheck green; delivery pending. |
-| BT24-079 | Hadesmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-079.md). Root14 tests green: legal normal route, Q5659 Link eligibility/refusal, real Q5660 RuinMode rescue, manual Rei AppFusion with exact ordered sources and both draws. Same-turnOPT/public ownsourceLink/illegalroute and complete Overclock endpoints remain pending. |
+| BT24-079 | Hadesmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-079.md). Public Q5660 rescue, own-source Link, invalid fusion, same-turn OPT/reset, token and Appmon Overclock/refusal/completed attacks and two paid Link capacity. Root21green, typed IR; delivery pending. |
 | BT24-080 | Megidramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-080.md). Root19 tests green: real trash EndTurn Dark/Evil Dragon routes, hand5 and wrongtrait/level denial, refusal, Q5662 activation recheck, public play/evolution/deletion and Blocker combat. Invalid normal route, fuller source-stack/deletion endpoints and delivery pending. |
 | BT24-081 | Titamon + SkullBaluchimon | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-081.md). Root20 tests green: legal Purple/Green routes and invalid Red, exact stack/draw, paid and refused costs, mixed exact-name and level/trait revival, real Rush/Piercing and Execute acceptance/refusal. Full collection/engine and typecheck green; delivery pending. |
 | BT24-082 | Owen Dreadnought | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-082.md). Root15 tests green: return-cost correction, public Reptile/Dragonkin evolution costs/stack/draw/owner-end expiry, nonmatching and suspended-cost negatives, completed public Security. Local checkpoint ec4483f85. Optional watcher refusal and stronger repeated-stack/draw endpoints remain pending. |
@@ -96,7 +96,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-086 | The Crossroad Witch | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-086.md). Restored official Shuu Yulin rule-name alias; shared identity and Q5674/public005 reset regressions green. Fullcard public clause review and delivery pending. |
 | BT24-087 | Rei Katsura | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-087.md). Root13tests plus077peer15 green: publiccost/refusals/Security/memory, Life038fusion, System077 andTransmutation079 peer routes with exactsources/draws, wrongSocialtargetlegalpair rejected. Allprintedclauses mapped; closingdelivery pending. |
 | BT24-088 | Asuna Shiroki | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-088.md). Natural start-turn exact bottom-deck replacement, memory4/5, mixed and no-target controls, no-retro Q5679, public OnPlay cost/refusal and Security with optional draw. Root16green; typed IR; delivery pending. |
-| BT24-089 | Unique Emblem: Blazing Conductor | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-089 | Unique Emblem: Blazing Conductor | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-089.md). Root11green public Main cost/placement/refusal and Security. Delay timing remains under semantic review; injected suspension and edited entry age are not public proof. Delivery pending. |
 | BT24-090 | Abyss Sanctuary: Throne Room | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-091 | Tidal Stream | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-092 | Shock Plasma | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
