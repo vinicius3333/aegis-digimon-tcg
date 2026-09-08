@@ -1145,6 +1145,103 @@ describe("suspension cost cardinality", () => {
   });
 });
 
+describe("linked cost stale-selection atomicity", () => {
+  function linkedCostContext(
+    moveAfterPick: (host: Permanent, other: Permanent, selectedId: string, ctx: EffectContext) => void,
+  ) {
+    const host = makeFakePermanent({
+      permanentId: "linked-host",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "host-top", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+      linked: [
+        { instanceId: "link-a", cardId: "LINK-A", ownerSeat: 0, faceUp: true },
+        { instanceId: "link-b", cardId: "LINK-B", ownerSeat: 0, faceUp: true },
+      ] as never,
+      stack: [{ instanceId: "stack-a", cardId: "STACK-A", ownerSeat: 0, faceUp: true }] as never,
+    });
+    const other = makeFakePermanent({
+      permanentId: "other-host",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "other-top", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source: makeSource({ permanent: () => host }),
+      recorder,
+      ownBattleArea: [host, other],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon], types: ["Appmon"] }),
+      selectCardsAnswer: ({ candidates, max }) => {
+        const selected = candidates.slice(0, max);
+        moveAfterPick(host, other, selected[0]!, ctx);
+        return selected;
+      },
+    });
+    return { ctx, host, other, recorder };
+  }
+
+  it.each([
+    [
+      "hand",
+      (host: Permanent, _other: Permanent, id: string, ctx: EffectContext) => {
+        const index = host.linked.findIndex((card) => card.instanceId === id);
+        const [card] = host.linked.splice(index, 1);
+        ctx.game.player(0).hand.push(card!);
+      },
+    ],
+    [
+      "stack",
+      (host: Permanent, _other: Permanent, id: string) => {
+        const index = host.linked.findIndex((card) => card.instanceId === id);
+        const [card] = host.linked.splice(index, 1);
+        host.stack.push(card!);
+      },
+    ],
+    [
+      "other host",
+      (host: Permanent, other: Permanent, id: string) => {
+        const index = host.linked.findIndex((card) => card.instanceId === id);
+        const [card] = host.linked.splice(index, 1);
+        other.linked.push(card!);
+      },
+    ],
+  ] as const)("fails atomically when selected linked card moves to %s", async (_label, move) => {
+    const { ctx, host, recorder } = linkedCostContext(move);
+    const receipt = { paidCount: 0 };
+    expect(
+      await payCost(
+        ctx,
+        {
+          kind: "trash",
+          target: { filter: { zone: "linked", isSelfRef: true }, count: 1 },
+        },
+        receipt,
+      ),
+    ).toBe(false);
+    expect(host.linked).toHaveLength(1);
+    expect(recorder.calls.some((call) => call.verb === "trash")).toBe(false);
+  });
+
+  it("rejects a multi-card pool when its selected linked card goes stale, without partial trash", async () => {
+    const { ctx, host, recorder } = linkedCostContext((currentHost) => {
+      currentHost.linked.splice(0, 1);
+    });
+    const receipt = { paidCount: 0 };
+    expect(
+      await payCost(
+        ctx,
+        {
+          kind: "trash",
+          target: { filter: { zone: "linked", isSelfRef: true }, count: 1 },
+        },
+        receipt,
+      ),
+    ).toBe(false);
+    expect(host.linked).toHaveLength(1);
+    expect(receipt.paidCount).toBe(0);
+    expect(recorder.calls.some((call) => call.verb === "trash")).toBe(false);
+  });
+});
+
 describe("attack cost feasibility", () => {
   it("offers only the copy that can legally attack, including a same-turn Rush Digimon", () => {
     const suspended = makeFakePermanent({
