@@ -771,3 +771,16 @@ legal evolution evidence raise012 from4/10 to8/10 in `354479c2b`.
 Aggregate707/1020; every one of102 cards now has an independent score, but
 none is10/10. Completion lanes proceed through014,013 and the remaining089
 Q5680/entry-age gaps. No publication has occurred.
+
+Root089 card plus Delay mechanisms at11:20:54 passed4 files /27 tests. The
+reactive implementation now uses public Owen suspension and explicit Delay and
+evolution decisions with exact source trash, reduced cost, stack and memory.
+Committed `8961d4d7d`;089 rises6→7, with Q5680 matrix/entry-age negative open.
+
+Root014 at11:21:51 passed13/13. Typed Decode plus public acceptance/refusal,
+inherited Decode, Security Attack, evolution and DP/expiry boundaries raise it
+5→8 in `6fb9558ad`. Root013 at11:22:35 passed14/14; typed IR and public On Play
+payment/deletion raise it6→7 in `5f5188c0b`, while inherited public OPT reset
+remains open. Aggregate712/1020,0 cards at10/10. Investigation showed098's
+expected failure used memory-2 despite claiming opponent memory5; no engine bug
+is inferred, and the lane is correcting it to-5. No publication has occurred.
