@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -55,28 +55,31 @@ describe("BT24-050 WereGarurumon", () => {
     });
   });
 
-  it("has Evade, unsuspends an own Digimon, and locks an opposing Tamer", async () => {
+  it("publicly plays, unsuspends an own Digimon, and locks an opposing Tamer", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT24-050", as: "weregarurumon" },
-            { card: "BT1-009", as: "ally", suspended: true },
-          ],
+          battleArea: [{ card: "BT1-009", as: "ally", suspended: true }],
+          hand: [{ card: "BT24-050", as: "weregarurumon" }],
         },
         1: { battleArea: [{ card: "P-133", as: "tamer", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("ally").permanentId, s.perm("tamer").permanentId);
+    s.state.memory = 10;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("weregarurumon"), "Evade")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("weregarurumon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("weregarurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-050"));
 
+    expect(observe(s.engine).hasKeyword(s.perm("weregarurumon"), "Evade")).toBe(true);
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it.each([
@@ -88,6 +91,7 @@ describe("BT24-050 WereGarurumon", () => {
         0: {
           battleArea: [{ card: "BT24-046", as: "garurumon", suspended: true }],
           hand: [{ card: "BT24-050", as: "weregarurumon" }],
+          deck: [{ card: "BT1-009", as: "evolutionDraw" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
@@ -95,6 +99,8 @@ describe("BT24-050 WereGarurumon", () => {
     );
     s.state.memory = 5;
     await s.ready();
+    const sourceId = s.inst("garurumon").instanceId;
+    const drawId = s.inst("evolutionDraw").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -108,6 +114,10 @@ describe("BT24-050 WereGarurumon", () => {
     await settle(() => !s.perm("garurumon").isSuspended);
 
     expect(s.state.memory).toBe(5 - expectedCost);
+    expect(s.perm("garurumon").topCard.cardId).toBe("BT24-050");
+    expect(s.perm("garurumon").topCard.instanceId).toBe(s.inst("weregarurumon").instanceId);
+    expect(s.perm("garurumon").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawId);
   });
 
   it("Q5640: a public attack plays a Beastkin card but rejects Sea Animal", async () => {
@@ -175,25 +185,37 @@ describe("BT24-050 WereGarurumon", () => {
   });
 
   it("resets the inherited hand-play limit on its owner's later turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-051", as: "host", under: ["BT24-050"] }],
+          battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-050"] }],
           hand: [
             { card: "BT24-019", as: "firstIliad" },
             { card: "BT24-019", as: "secondIliad" },
+            { card: "BT24-050", as: "unsuspender" },
           ],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
-          security: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+          security: [
+            { card: "BT1-012", as: "security1" },
+            { card: "BT1-012", as: "security2" },
+            { card: "BT1-012", as: "security3" },
+            { card: "BT1-012", as: "security4" },
+          ],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
+    const security1Id = s.inst("security1").instanceId;
+    const security2Id = s.inst("security2").instanceId;
+    const security3Id = s.inst("security3").instanceId;
+    const security4Id = s.inst("security4").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -202,9 +224,41 @@ describe("BT24-050 WereGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstIliad").instanceId),
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(security1Id);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      security2Id,
+      security3Id,
+      security4Id,
+    ]);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstIliad").instanceId)).toBe(
+      true,
     );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondIliad").instanceId);
+
+    preferred.push(s.perm("host").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unsuspender").instanceId),
+    );
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length >= 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(security2Id);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([security3Id, security4Id]);
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondIliad").instanceId);
 
     s.state.turnSeat = 1;
@@ -222,6 +276,12 @@ describe("BT24-050 WereGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length >= 3 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(security3Id);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([security4Id]);
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondIliad").instanceId),
     );
@@ -231,23 +291,39 @@ describe("BT24-050 WereGarurumon", () => {
     await ownerTurn;
   });
 
-  it("uses Evade to suspend itself and prevent deletion", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-050", as: "weregarurumon" }] } });
+  it.each([true, false])("uses public Happy Bullet to accept=%s Evade", async (accept) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-050", as: "weregarurumon" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "redSource" }], hand: [{ card: "BT6-095", as: "happyBullet" }] },
+      },
+      { autoSelectCards: true },
+    );
     const permanentId = s.perm("weregarurumon").permanentId;
+    const optionId = s.inst("happyBullet").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
     await s.ready();
 
-    const deletion = advance(s.engine).verb.deletePermanent([permanentId], "byEffect");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
     expect(
       s.engine.applyIntent(0, {
         type: "respondEvade",
         permanentId,
-        accept: true,
+        accept,
       }),
     ).toEqual({ ok: true });
-    expect(await deletion).toBe(0);
-
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(permanentId);
-    expect(s.perm("weregarurumon").isSuspended).toBe(true);
+    await settle(() => s.events.some((event) => event.kind === "cardsMoved" && event.instanceIds.includes(optionId)));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    if (accept) {
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(permanentId);
+      expect(s.perm("weregarurumon").isSuspended).toBe(true);
+      expect(s.state.memory).toBe(0);
+    } else {
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(permanentId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("weregarurumon").instanceId);
+      expect(s.state.memory).toBe(0);
+    }
   });
 });
