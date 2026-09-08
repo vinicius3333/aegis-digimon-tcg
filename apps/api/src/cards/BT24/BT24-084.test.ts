@@ -209,12 +209,28 @@ describe("BT24-084 Inori Misono", () => {
   });
 
   it("plays itself from security without paying the cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT24-084", as: "inori" }] } });
+    const s = setupEngine({
+      0: { security: [{ card: "BT24-084", as: "inori" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-010", "BT1-011"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("inori"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("inori").instanceId),
     );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("inori").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(10);
   });
 });
