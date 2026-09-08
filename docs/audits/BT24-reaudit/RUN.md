@@ -293,3 +293,33 @@ This gate includes paused, uncommitted074 and076 test-only work (focused16
 and10 respectively), not accepted whole-card reports.075 was clean during
 the freeze. Resume those three bounded lanes after the gate. No push,
 PR update or Orca completion was performed; delivery remains unawarded.
+
+## Frozen 074–076 checkpoint, 2026-09-08 04:55 BRT
+
+Root accepted074 at7 (17 tests, `d54fd3e15`),075 at8 (20 tests,
+`03296348d`), and076 at8 (13 tests, `6abe68aa6`). Aggregate **501/1020**,
+zero102 at10/10.074 retains explicit public revival-filter/invalid-route
+gaps;072 also retains a Titan-only revival gap because013 has both Demon
+and Titan. Neither partial score is treated as completion.
+
+075 is a production behavior correction: a single typed cost-gated block
+now pays for the independent level-3 and level-4 deletions. The old IR
+failed the public only-level-4 proof by neither paying nor deleting; the
+new IR passes. Both triggers and the persisted075 record are updated.
+The generic interpreter guards were not changed.076 removes nocheck and
+adds public valid-key hand-size/zone rejection and legal inherited revival
+proof for both distinct traits.
+
+The full collection/mechanism gate passed **228 files /3284 tests** at
+04:55:02, after effects synchronization. An earlier parallel run loaded
+the old persisted075 record and failed only catalog synchronization;
+it is not counted as green. Fresh shared/API/web typecheck passed.
+Sync and check report17 semantic changes against da5c7733c,102 synchronized
+records and zero semantic/byte changes outside BT24. Scoped style/diff
+checks pass;077 retains an existing structural-any lint warning. Disk
+availability268 MiB, no deletion performed.
+
+077 has13 green WIP tests, but its full fusion/deletion/Blocker proof is
+still pending and it remains unscored. The next bounded lanes are077
+fusion,078 trash-attack timing, and080 trash end-of-turn gates;079 is queued
+behind the Appmon lane. No push, PR update or Orca completion was performed.

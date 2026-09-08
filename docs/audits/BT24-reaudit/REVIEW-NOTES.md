@@ -99,6 +99,24 @@ setup, early assertions, and Homeros's additional TS-wide +1000 DP each
 confounded prior fixtures. Do not cite those as engine evidence. See
 [mechanism record](PLAYER-WIDE-DP-MECHANISM.md) for the final disposition.
 
+## SkullBaluchimon independent deletion branches
+
+BT24-075's original IR attached the single hand-trash cost and
+`abortOnDecline` to its level-3 Delete action, followed by an ungated
+level-4 Delete. This accidentally made a level-3 target a prerequisite for
+the entire printed clause. `effect.ts` leading-action availability and
+`actions/runAction.ts` no-target cost preflight explain the observed
+only-level-4 failure. Those generic guards also protect other cards and
+must not be weakened for this representation error.
+
+CR1-3-2 requires resolving the possible portions of an effect. The card
+lane is using the existing typed `CostGatedBlock` to pay once and then run
+the two deletions independently, for both entry triggers. Acceptance
+requires an intended only-level-4 red against the original module and a
+green against the new module, alongside both-target, only-level-3,
+payable-refusal and no-hand controls. This finding is card-local; no shared
+engine edit is authorized or required by the current evidence.
+
 ## Docmon Security timing correction
 
 BT24-057's printed Security clause says to play it at the end of the battle.
