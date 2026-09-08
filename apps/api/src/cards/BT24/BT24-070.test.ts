@@ -227,6 +227,30 @@ describe("BT24-070 Growlmon", () => {
     );
   });
 
+  it("rejects normal evolution from a non-purple level-3 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongColorSource" }],
+        hand: [{ card: "BT24-070", as: "growlmon" }],
+        deck: [{ card: "BT1-015", as: "unchanged" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongColorSource").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("growlmon").instanceId]);
+    expect(s.perm("wrongColorSource").topCard.instanceId).toBe(s.inst("wrongColorSource").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("unchanged").instanceId]);
+  });
+
   it("public attack uses the inherited effect to delete only a level-3 opponent", async () => {
     const s = setupEngine(
       {
