@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -44,6 +44,29 @@ describe("BT24-056 Dezipmon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
 
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beReturned")).toBe(true);
+  });
+
+  it("recognizes the catalog System attribute as a printed trait", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-056", as: "source" },
+            { card: "BT24-032", as: "protected" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
+
+    expect(getCardDefinition("BT24-032")?.attributes).toContain("System");
     expect(observe(s.engine).isRestricted(s.perm("protected"), "beReturned")).toBe(true);
   });
 
