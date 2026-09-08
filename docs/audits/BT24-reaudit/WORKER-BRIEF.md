@@ -1,5 +1,7 @@
 # BT24 resumed audit worker brief
 
+Latest acceptance traps: `it.fails` accepts ANY assertion failure, including an illegal first evolution or missing deck causing deck-out. Report the literal first failing assertion before naming an engine seam. A public sequence must assert its first successful endpoint before testing frequency. In a battle-based negative for optional Decode, accept optional decisions so refusal cannot mask an incorrectly offered effect. To prove Jamming, security DP must exceed host DP and assertions must follow combat resolution, not initial security extraction. Harness `under` arrays are bottom-to-top, like the resulting `Permanent.stack`.
+
 Read `.agents/skills/verify-card-implementation/SKILL.md` and the full template `.agents/skills/audit-card-set/references/worker-brief.md` first. Work in this shared worktree. English reports. User explicitly requests Luna workers, overriding the default model in the audit skill.
 
 Audit one assigned card at a time against `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card <ID>`, applicable local comprehensive rules, its direct module, tests and existing report. Existing report claims are unverified. Exemplars: BT24-015.test.ts, BT24-016.test.ts, BT24-017.test.ts; inspect critically rather than copying gaps. Base: a924de971e0b43ad9ebd8f82a454d495ff880a60. Main merged at da5c7733c.

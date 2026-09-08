@@ -55,3 +55,11 @@ Independent final focused acceptance of 007/011/018/019/020/030/037/065 passed *
 Atomic checkpoints: `6212c8b75` fixes 030 opponent-effect protection and 037 own-stack source scope with generated effects; `c81076223`, `cdf3f581e`, `04637209c`, `430c6c654`, `25df1f133`, and `d39903254` preserve the 007/011/018/019/020/065 evidence respectively. No engine change was needed for 065: the rejected fixture used Diaboromon X instead of exact Diaboromon.
 
 Three Luna lanes continue with 021/022/023. Provisional report scores do not override coordinator acceptance. Public frequency, route and boundary gaps remain recorded; no collection completion or delivery credit awarded and no branch push performed at this checkpoint.
+
+## Stable 021–023 checkpoint, 2026-09-08 01:21 BRT
+
+Root focused acceptance plus persisted-record checks: **4 files / 144 tests passed**. Full collection/mechanism gate: **228 files / 3141 tests passed**. Fresh `pnpm typecheck` passed shared/API/web. Effects sync and check against da5c7733c: **11 semantic changes**, 102 synchronized records, zero semantic/byte changes outside BT24. Oxfmt and `git diff --check` passed; scoped Oxlint has no errors, retains existing structural-any warnings and new deterministic-loop conditional-expect warnings in022.
+
+`1f853fcbe` records exact Titamon/Lanamon filters plus021/023 public proofs and generated records. `c391cef12` records022 public frequency/reset, source order and normal/alternate route checks. A proposed redundant ordinary requirement022 was rejected: its normal route already passes from catalog metadata. No022 production change retained. Intermediate WIP failures (021 mandatory P-209 discard consuming draw,022 stale generated record and wrong rejection reason) were resolved before this stable gate.
+
+Ledger aggregate220/1020; zero102 cards at10/10. Three Luna lanes now own024/025/026. Full-set completion, additional behavioral/peer evidence and delivery remain open. No push or Orca completion action performed.

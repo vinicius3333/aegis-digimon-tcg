@@ -28,6 +28,8 @@ Resolved on 2026-09-08: root acceptance rerun passed 11 tests. New public Securi
 
 ## Rejected worker engine claims
 
+021's new expected-failure report repeated the earlier frequency false alarm: the actual public fixture was 072→072, not the claimed 010→072→P-209 chain, and lacked an owner deck for the later turn. Correcting the fixture made suppression/reset green without engine edits. A subsequent bonus-draw assertion encountered P-209's real mandatory When Digivolving discard; that cost must be represented, not mistaken for a missing draw. Expected-failure tests require the first failing assertion and a legal first transition before engine escalation.
+
 BT24-002 worker changed Q5575 to expected-failure with a final unsuspended assertion even though the trailing attack should suspend the host. Its reset fixture relied on pre-Active suspension and did not attack/pay on both turns. Both were returned as fixture corrections; neither currently establishes an engine defect. Never weaken a valid expected result or classify an incomplete fixture as an engine seam.
 
 ## Collection fixture sweep
@@ -57,6 +59,10 @@ Confirmed production issue054: ordinary Filter does not define `namesExact`; two
 Resolved name-filter batch:61fb8d6ec corrects028/035/042/045/052/054/055 and their persisted records. Root focused acceptance (seven cards plus catalog sync) passed178 tests.75b0b5adf subsequently replaces028's wrong-level negative with catalog-verified ST2-11. ff99dde6a restores086's official rule identity; shared alias9tests and005/054/055/08642tests pass. No engine change belongs to these fixes.
 
 ## Remaining typed-IR census
+
+Further exact-name review against catalog text: 009/013/021/026 specify exact `[Titamon]` OR Titan trait, 014 exact Aegiomon Decode, 016 exact Owen/Dimetromon/Elizamon, 025 exact Venusmon, and 023/027 exact reciprocal Decode. Their substring `match: "name"` fields need bounded lane corrections (021/023 underway). Do not mechanically change 065's departing-Diaboromon name substring, 074's Seadramon substring, or 084/101's Aegiochusmon substring: those are explicitly printed "in name". Current Titamon suffix cards also have Titan, so exact-name corrections may be forward-looking for the current catalog; do not fabricate a distinguishing existing card.
+
+015/039 `withoutBattle` is absent from PlayWithoutCost typing, but securityCheck.ts resolves battle only while the exact checked card remains loose (`stillChecked`). Successful security play already removes it and skips battle. This is a typing/representation review candidate, not a demonstrated battle-resolution defect. Focused015/016/017 baseline: 3 files / 32 tests passed. Public frequency and complete paid-route assertions still pending.
 
 Luna's read-only in-memory TypeScript census removed nocheck only in a custom compiler host for all102 modules and found31 diagnostics:015/039 `withoutBattle`;028 `additionalEffect`;030 `triggerCondition`;034 missing replacement `event`;037 `fromHost`;060 requirement `traitsMatchAny`;082 targets missing `filter`;089 missing `payCost`; and widened literal types in017/044/056/066/085/087/094/102. These are review candidates, not31 confirmed runtime bugs.028 additionalEffect is explicitly supported by board.ts but absent from schema: retain original nocheck until a proper schema/valid-IR solution, never hide whole actions with as-never.030 and037 are assigned for public negative proof.
 
