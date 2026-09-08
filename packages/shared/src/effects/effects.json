@@ -93357,7 +93357,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Calmaramon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Calmaramon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -93822,7 +93822,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["System", "Transmutation (App Name)"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["System", "Transmutation"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
