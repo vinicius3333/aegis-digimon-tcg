@@ -48,19 +48,25 @@ describe("BT24-079 Hadesmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-075", as: "base" },
+            { card: "BT2-075", as: "base" },
             { card: "BT21-009", as: "recipient" },
           ],
           hand: [
             { card: "BT24-079", as: "hadesmon" },
-            { card: "BT24-036", as: "link" },
+            { card: "BT24-071", as: "link" },
           ],
-          trash: [{ card: "BT24-071", as: "system" }],
+          trash: [{ card: "BT24-056", as: "system" }],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("system").instanceId, s.perm("recipient").topCard.instanceId, s.inst("link").instanceId);
+    const baseId = s.perm("base").permanentId;
+    const baseInstanceId = s.inst("base").instanceId;
+    const systemId = s.inst("system").instanceId;
+    const linkId = s.inst("link").instanceId;
+    const recipientId = s.perm("recipient").permanentId;
     s.state.memory = 6;
     await s.ready();
 
@@ -81,7 +87,19 @@ describe("BT24-079 Hadesmon", () => {
     );
 
     expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("base").permanentId).toBe(baseId);
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("hadesmon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === recipientId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === systemId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === recipientId)?.linked.map(
+        (card) => card.instanceId,
+      ),
+    ).toContain(linkId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(linkId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
   it("may refuse the optional System revival on a public evolution", async () => {
@@ -109,7 +127,152 @@ describe("BT24-079 Hadesmon", () => {
     expect(s.perm("base").linked).toHaveLength(0);
   });
 
-  it("App Fuses from Revivemon linked with Biomon for cost 0", async () => {
+  it("publicly refuses a valid Appmon link while retaining the card in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-075", as: "base" }],
+          hand: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "BT24-071", as: "link" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hadesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("hadesmon").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.perm("base").linked).toHaveLength(0);
+  });
+
+  it("Q5660 keeps a revived 5000-DP System alive when linked before zero-DP cleanup", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-077", as: "base" }],
+          hand: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "BT24-071", as: "link" },
+          ],
+          trash: [{ card: "BT24-056", as: "system" }],
+          deck: [
+            { card: "BT1-009", as: "normalDraw" },
+            { card: "BT1-010", as: "bonusDraw" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT3-089", as: "ruinBase" }],
+          hand: [{ card: "EX4-074", as: "ruinMode" }],
+          deck: [{ card: "BT1-011", as: "opponentDraw" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const baseId = s.inst("base").instanceId;
+    const systemId = s.inst("system").instanceId;
+    const linkId = s.inst("link").instanceId;
+    const ruinBaseId = s.inst("ruinBase").instanceId;
+    const ruinModeId = s.inst("ruinMode").instanceId;
+    const normalDrawId = s.inst("normalDraw").instanceId;
+    const bonusDrawId = s.inst("bonusDraw").instanceId;
+    const opponentDrawId = s.inst("opponentDraw").instanceId;
+    preferred.push(systemId, linkId);
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("ruinBase").permanentId,
+        instanceId: s.inst("ruinMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ruinBase").topCard.instanceId === s.inst("ruinMode").instanceId);
+    expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("ruinBase").topCard.instanceId).toBe(ruinModeId);
+    expect(s.perm("ruinBase").stack.map((card) => card.instanceId)).toEqual([ruinBaseId]);
+    expect(s.perm("base").currentDP).toBe(4000);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(opponentDrawId);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 4;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(normalDrawId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([bonusDrawId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hadesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === systemId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.instanceId === linkId)),
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("hadesmon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    const revived = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === systemId)!;
+    expect(revived.currentDP).toBe(3000);
+    expect(revived.linked.map((card) => card.instanceId)).toEqual([linkId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(systemId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === ruinBaseId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+  });
+
+  it("rejects a public link candidate without the Link keyword", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-075", as: "base" }],
+          hand: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "BT24-035", as: "noLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hadesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("hadesmon").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
+    expect(s.perm("base").linked).toHaveLength(0);
+  });
+
+  it("publicly links Biomon, then Rei App Fuses Revivemon into Hadesmon for free", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -118,13 +281,24 @@ describe("BT24-079 Hadesmon", () => {
             { card: "BT24-087", as: "rei" },
             { card: "BT24-077", as: "revivemon" },
           ],
-          hand: [{ card: "BT24-038", as: "biomon" }],
+          hand: [
+            { card: "BT24-038", as: "biomon" },
+            { card: "BT1-009", as: "reiDiscard" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "reiDraw" },
+            { card: "BT1-011", as: "appFusionDraw" },
+          ],
           trash: [{ card: "BT24-079", as: "fusion" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("revivemon").topCard.instanceId, s.inst("fusion").instanceId);
+    preferred.push(
+      s.perm("revivemon").topCard.instanceId,
+      s.inst("fusion").instanceId,
+      s.inst("reiDiscard").instanceId,
+    );
     s.state.memory = 5;
     await s.ready();
 
@@ -135,12 +309,52 @@ describe("BT24-079 Hadesmon", () => {
         targetPermanentId: s.perm("revivemon").permanentId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const reiDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-087");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: reiDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const fusionDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-087");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: fusionDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const hadesLinkDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-079");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hadesLinkDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("revivemon").topCard.instanceId === s.inst("fusion").instanceId);
-    await settle(() => observe(s.engine).hasKeyword(s.perm("revivemon"), "Overclock"));
-    await settle(() => observe(s.engine).linkMaxDelta(s.perm("revivemon")) === 1);
-
     expect(s.state.memory).toBe(2);
+    expect(s.perm("rei").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("reiDraw").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("reiDiscard").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("appFusionDraw").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("fusion").instanceId);
+    expect(s.perm("revivemon").topCard.instanceId).toBe(s.inst("fusion").instanceId);
+    expect(s.perm("revivemon").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("revivemon").instanceId,
+      s.inst("biomon").instanceId,
+    ]);
+    expect(s.perm("revivemon").linked).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("revivemon"), "Overclock")).toBe(true);
     expect(observe(s.engine).linkMaxDelta(s.perm("revivemon"))).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses Overclock by deleting another Appmon and attacks without suspending", async () => {
