@@ -27,16 +27,19 @@ describe("BT24-030 Neptunemon", () => {
   });
 
   it("reduces its play cost when the opponent has at least two Digimon", () => {
-    const replacement = compiled.effects.find((effect) => effect.trigger === "Static")?.actions?.[0] as any;
-    const reduction = replacement.actions[0];
-
-    expect(reduction.event).toBe("wouldBePlayed");
-    expect(reduction.mode).toBe("reduceCost");
-    expect(reduction.amount).toBe(5);
-    expect(reduction.condition).toMatchObject({
-      kind: "opponentHas",
-      count: 2,
-      filter: { kind: ["Digimon"] },
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions?.[0]).toMatchObject({
+      actions: [
+        {
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 5,
+          condition: {
+            kind: "opponentHas",
+            count: 2,
+            filter: { kind: ["Digimon"] },
+          },
+        },
+      ],
     });
   });
 
@@ -55,7 +58,7 @@ describe("BT24-030 Neptunemon", () => {
     const replacement = compiled.effects
       .filter((effect) => effect.trigger === "AllTurns")
       .flatMap((effect) => effect.actions)
-      .find((action: any) => action.kind === "Replacement" && action.event === "wouldLeavePlay") as any;
+      .find((action) => action.kind === "Replacement" && action.event === "wouldLeavePlay");
     expect(replacement).toMatchObject({
       target: { count: 10000, upTo: true },
       affectsAll: true,
@@ -181,6 +184,35 @@ describe("BT24-030 Neptunemon", () => {
 
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([morePermanentId]);
+  });
+
+  it("bottom-decks tied opponents through a natural public play", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-030", as: "neptunemon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "fewestA" },
+          { card: "BT1-010", as: "fewestB" },
+          { card: "BT1-011", as: "more", under: ["BT1-013"] },
+        ],
+      },
+    });
+    const fewestAId = s.inst("fewestA").instanceId;
+    const fewestBId = s.inst("fewestB").instanceId;
+    const moreId = s.perm("more").permanentId;
+    s.state.turnSeat = 0;
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("neptunemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-030"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([moreId]);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([fewestAId, fewestBId]),
+    );
   });
 
   it("may unsuspend once when it suspends", async () => {
