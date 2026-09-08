@@ -79,3 +79,11 @@ Root focused acceptance passed **3 files / 42 tests** (027:18,032:13,033:11). Fu
 `90b7587c2` isolates024's Armor Purge attacker. `c6447b5d7` corrects027's exact Calmaramon name and032's executable Transmutation trait, with public proofs and generated records. Salamon's separate checkpoint proves public Barrier acceptance/refusal and exact normal/alternate/breeding evolution endpoints;032/033 no longer need module typecheck suppression. No engine change was required. In027, security attacks and Digimon battles have different completion events; treating both as combatResolved caused a false fixture discrepancy, now corrected.
 
 Aggregate **259/1020**, zero102 at10/10. Remaining public frequency, route and peer gaps are explicitly retained in the coordinator ledger. Next queued Luna batch029/031/034 has a root baseline (with036) of40 passing tests. No branch push, PR update or Orca completion performed; full collection audit remains in progress.
+
+## Stable 029/031/034 checkpoint, 2026-09-08 01:57 BRT
+
+Root focused acceptance passed **3 files / 42 tests** (029:15,031:15,034:12). Full collection/mechanism gate passed **228 files / 3173 tests**. Fresh `pnpm typecheck` passed shared/API/web; effects check remains 15 semantic changes, 102 synchronized records and zero outside-set changes. Scoped formatting/diff checks pass; Oxlint has six structural-any warnings and no errors. No new engine change or retained red.
+
+Atomic commits `cebb0c88b`, `b0eed5bda`, and `13c36b90b` record Whamon public placement/restriction expiry, Elecmon Q5611 recovery/frequency/reset, and Aegiomon public Q5613/Q6713/moving/evolution endpoints. The incorrect Whamon effect-play-only interpretation was a cost-unavailable fixture and has been removed. Illegal same-level inherited hosts were replaced with legal neutral hosts.031's unnecessary module typecheck suppression is removed.
+
+Aggregate **278/1020**, zero102 at10/10. Remaining public boundary/peer gaps are explicit; no collection completion or delivery credit. Next Luna lanes036/038/039 have a root baseline with040 of **4 files / 37 tests passed**. No push, PR update or Orca completion action has been performed.

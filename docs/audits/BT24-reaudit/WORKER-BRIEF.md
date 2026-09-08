@@ -14,6 +14,9 @@ Only edit the assigned card module, colocated test and report. Never edit engine
 
 ## Acceptance traps found in this restart
 
+- Ordinary security attacks finish with `securityChecked` plus `!observe(engine).isAttacking()`; `combatResolved` is supplied by Digimon battle resolution. Assert the relevant completion event and final state explicitly. Do not wait for two combatResolved events when only one attack was a Digimon battle.
+- A public play with no eligible placement-cost card proves an unavailable-cost boundary, not that On Play only works for effect-play. Keep test comments faithful to the printed trigger.
+- Barrier has its own `barrierPrompt` / `respondBarrier` decision. Generic optional automation does not answer it. Use a neutral higher-level host to isolate an inherited keyword.
 - Reread every requested correction in the actual final file before reporting it fixed. Reports must describe actual code, not intentions.
 - `settle(predicate)` can time out without failing. Assert the expected endpoint explicitly afterward; do not use predicates already true at initial state.
 - Public security attack by seat 0 removes seat 1 security. Capture checked instance IDs; assert the correct owner's exact trash endpoint.
