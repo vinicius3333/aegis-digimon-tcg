@@ -37,6 +37,37 @@ describe("BT24-064 Ouryumon", () => {
     expect(allTurns?.actions?.[0]).toMatchObject({ actions: [{ kind: "DeDigivolve", amount: 2 }] });
   });
 
+  it("publicly triggers when an opponent effect suspends a Tamer", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-064", as: "ouryumon" }],
+          hand: [{ card: "BT24-051", as: "suspender" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-051", as: "target" },
+            { card: "BT24-086", as: "tamer" },
+            { card: "BT24-051", as: "otherTarget", dp: 12000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("tamer").topCard.instanceId, s.perm("otherTarget").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tamer").isSuspended && !observe(s.engine).isAttacking());
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("has Piercing and Blocker", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT24-064", as: "ouryumon" }] } });
     await s.ready();
@@ -187,6 +218,45 @@ describe("BT24-064 Ouryumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("miss2").instanceId,
       s.inst("miss3").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly refuses the matching trait when its play cost exceeds 7", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: "BT24-064", as: "ouryumon" }],
+          deck: [
+            { card: "BT1-013", as: "draw" },
+            { card: "BT24-064", as: "tooExpensive" },
+            { card: "BT1-015", as: "miss1" },
+            { card: "BT1-016", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ouryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("ouryumon").instanceId);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("draw").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("tooExpensive").instanceId,
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
     ]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
