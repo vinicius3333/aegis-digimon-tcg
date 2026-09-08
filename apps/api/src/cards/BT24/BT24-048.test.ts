@@ -206,6 +206,108 @@ describe("BT24-048 Deramon", () => {
     expect(s.perm("host").isSuspended).toBe(false);
   });
 
+  it("suppresses a same-turn second battle trigger and resets on the next owner turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-049", as: "host", under: ["BT24-048"], dp: 9000 }],
+          hand: [
+            { card: "BT24-050", as: "firstUnsuspender" },
+            { card: "BT24-050", as: "secondUnsuspender" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstVictim", suspended: true, dp: 3000 },
+            { card: "BT1-009", as: "secondVictim", suspended: true, dp: 3000 },
+            { card: "BT1-009", as: "thirdVictim", suspended: true, dp: 3000 },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          hand: [{ card: "BT24-047", as: "suspender" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const hostId = s.perm("host").permanentId;
+    const firstVictimId = s.perm("firstVictim").permanentId;
+    const secondVictimId = s.perm("secondVictim").permanentId;
+    const thirdVictimId = s.perm("thirdVictim").permanentId;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: firstVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstVictimId));
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    preferred.push(hostId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstUnsuspender").instanceId),
+    );
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: secondVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondVictimId));
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    preferred.splice(0, preferred.length, thirdVictimId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("thirdVictim").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondUnsuspender").instanceId),
+    );
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: thirdVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === thirdVictimId));
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+  });
+
   it("inherited effect does not activate for a different battle winner", async () => {
     const s = setupEngine({
       0: {
