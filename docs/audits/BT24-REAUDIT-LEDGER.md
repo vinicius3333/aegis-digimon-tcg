@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 723/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 725/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -30,7 +30,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-020 | Gomamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-020.md). Root9green: public exact search/add/bottom boundaries, hand-size threshold, natural unsuspend with same-turn suppression/reset, and legal normal/alternate egg evolutions. Typed IR; delivery pending. |
 | BT24-021 | SnowGoblimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-021.md). Root13green: exact dual search/bottom filters, paid Titamon discard evolution/refusal, inherited suppression/reset, normal/alternate egg routes and invalid boundaries. Typed IR; delivery pending. |
 | BT24-022 | Ikkakumon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-022.md). Root13green: public play/source-trash, Jamming combat, unsuspend suppression/reset, suspend restriction enforcement/expiry, evolution and filter boundaries. Typed IR; delivery pending. |
-| BT24-023 | Calmaramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-023.md). Public effect-play origin, exact bottom deck order, Decode effect/battle/refusal, inherited Jamming combat and paid routes pass. Root15green; exact Lanamon correction. Public Blocker, restriction enforcement/expiry and remaining route comparisons pending. |
+| BT24-023 | Calmaramon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-023.md). Root15green: public effect-play/bottom order, Blocker decisions, restriction enforcement/expiry, exact Lanamon Decode, Jamming combat, paid alternate routes and refusal. Delivery pending. |
 | BT24-024 | Submarimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-024.md). Public Tamer play/refusal and non-TS rejection, same-turn suppression/reset, Armor Purge acceptance/explicit zero-card refusal, normal blue and alternate routes with draw/stack pass. Root15green; normal yellow comparison and final peer/delivery acceptance pending. |
 | BT24-025 | Shellmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-025.md). Public Q5603-5605 cost/legality/Active timing, legal inherited Jamming combat and EOT acceptance/refusal pass. Root13green; public trait/self boundaries, Venusmon refusal, frequency/reset and route negative pending. |
 | BT24-026 | Hyogamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-026.md). Public inherited072-P209-081 chain proves exact costs, stacks, same-turn suppression and owner reset. Root11green; Q5607 and shared own-effect frequency still partly injected; normal/alternate026 routes and broader refusals pending. |
