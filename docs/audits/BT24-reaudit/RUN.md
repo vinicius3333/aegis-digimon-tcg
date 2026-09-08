@@ -759,3 +759,15 @@ Petrification Tokens, scaling/expiry and keyword paths support8/10; committed
 `aaf1b0824`. Aggregate695/1020; only016 remains a zero row, and no card is
 10/10. The freed lane begins completion work on low-score012 while089 and016
 continue. No publication has occurred.
+
+Root016 at11:17:42 passed11/11 after adding a natural direct attack path for
+the exact opponent-hand-to-security/top-security-trash sequence. Typed Main,
+shared OPT/order, inherited public removal/play and stack boundaries support
+8/10; committed `78ddb310d`. This eliminates the final zero row.
+
+Root012 at11:18:58 passed10/10. Typed replacement assertions plus public
+simultaneous protection/refusal, Blocker decisions, inherited removal OPT and
+legal evolution evidence raise012 from4/10 to8/10 in `354479c2b`.
+Aggregate707/1020; every one of102 cards now has an independent score, but
+none is10/10. Completion lanes proceed through014,013 and the remaining089
+Q5680/entry-age gaps. No publication has occurred.
