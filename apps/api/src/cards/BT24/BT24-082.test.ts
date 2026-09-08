@@ -9,20 +9,29 @@ import "../index.js";
 describe("BT24-082 Owen Dreadnought", () => {
   it("returns itself to deck bottom and gates the chained Elizamon play", () => {
     const start = BT24_082.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase");
-    expect(start?.actions?.[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      target: { filter: { nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }] } },
-      cost: { kind: "return", to: "deckBottom" },
-      from: ["hand"],
+    const gate = start?.actions?.[0];
+    expect(gate?.kind).toBe("CostGatedBlock");
+    if (gate?.kind !== "CostGatedBlock") throw new Error("Start-of-Main action is not a CostGatedBlock");
+    expect(gate).toMatchObject({
+      kind: "CostGatedBlock",
+      cost: { kind: "return", to: "deckBottom", target: { filter: { isSelfRef: true } } },
+      optional: true,
       abortOnDecline: true,
     });
-    expect(start?.actions?.[1]).toMatchObject({
+    expect(gate.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: { filter: { nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }] } },
+      from: ["hand"],
+    });
+    expect(gate.actions[1]).toMatchObject({
       kind: "PlayWithoutCost",
       target: { filter: { nameOrTrait: [{ tokens: ["Elizamon"], match: "nameExact" }] } },
       from: ["trash"],
-      condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
     });
-    const watcher = BT24_082.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as any;
+    expect(gate.actions[1].condition.kind).toBe("youHaveNone");
+    const watcher = BT24_082.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("Your Turn action is not a SubTrigger");
     expect(watcher).toMatchObject({ event: "whenOneOfYoursDigivolves", cost: { kind: "suspend" } });
     expect(watcher.actions).toEqual(
       expect.arrayContaining([
@@ -62,23 +71,55 @@ describe("BT24-082 Owen Dreadnought", () => {
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT24-082")).toBe(true);
   });
 
+  it("does not bypass the return cost when no Owen is in hand (Q5663)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-082", as: "source" }],
+          hand: [{ card: "BT1-009", as: "neutral" }],
+          trash: [{ card: "BT24-008", as: "elizamon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sourceId = s.inst("source").instanceId;
+    const elizamonId = s.inst("elizamon").instanceId;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === elizamonId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sourceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === elizamonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === elizamonId)).toBe(false);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(sourceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("does not process the Elizamon tail when the return-and-play cost is declined (Q5663)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT24-082", as: "source" }],
-          hand: [{ card: "BT21-081", as: "replacement" }],
+          hand: [{ card: "BT1-009", as: "neutral" }],
           trash: [{ card: "BT24-008", as: "elizamon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoDeclineOptional: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
-
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("source").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("elizamon").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("Q5664: does not activate a start-of-main effect on the Owen played during that window", async () => {
@@ -95,7 +136,8 @@ describe("BT24-082 Owen Dreadnought", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireGlobal(EffectTiming.StartOfYourMainPhase);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(0);
     expect(
@@ -103,6 +145,8 @@ describe("BT24-082 Owen Dreadnought", () => {
         (permanent) => permanent.topCard.instanceId === s.inst("replacement").instanceId,
       ),
     ).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("runs the Start of Your Main Phase effect through the natural turn window", async () => {
@@ -226,5 +270,9 @@ describe("BT24-082 Owen Dreadnought", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("owen").instanceId),
     );
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("owen").instanceId,
+    );
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("owen").instanceId);
   });
 });
