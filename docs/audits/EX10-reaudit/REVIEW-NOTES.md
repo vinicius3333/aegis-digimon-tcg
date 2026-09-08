@@ -129,3 +129,80 @@ See ENGINE-LANE-1.md. Fixed: seams 16, 19, 23, 12 (+30), 7 (parts 1-2). Seam 1 d
 - Seam 5 settled: a generic "When attack targets change" watcher (no "this Digimon's") fires for any target switch on its printed turn; only cards printing "this Digimon's attack target" (BT11-008, EX9-054) carry the attacker-is-self gate. EX10-002 and EX10-008 keep their unscoped IR; the 008 lane adds the comparative peer case.
 - Rubric ceiling policy: a `[Once Per Turn]` or turn gate that no sequence of public intents can exercise twice in one turn, because the rules themselves forbid the second occurrence (documented with the rule reference and a structural proof), does not withhold the Behaviour point. Applies only after a lane has searched the catalog for a second public trigger and recorded the search.
 33. `once-per-turn-consumed-before-condition` (EX10-008 round 3, out-of-set peer BT11-008): a watcher's [Once Per Turn] budget is consumed by a switch that its `triggerAttackerIsSelf` condition then rejects, so a later qualifying switch pays nothing (frequency decremented before the per-action condition in `interpreter/actions/subTrigger.ts` / `runAction`). Misprices BT11-008/010/014. Priority 2; no EX10 card affected.
+
+## Session 2 (2026-09-08): out-of-scope seams closed
+
+Engine lanes (one Opus agent each, mechanism docs alongside this file):
+
+- Seam 9 (`simultaneous-when-attacking / when-digivolving ordering`) and seam 21 (`pending-activation-lapses-when-source-leaves`): SEAM-9-21-MECHANISM.md. A mandatory triggered effect with no legal board target now still triggers and enters `orderTriggers` (CR 15-4-2), fizzling at resolution; the `whenAttacking` watcher bus now fires inside the `OnUseAttack` window, so `identityAtFirstCollect` retires a stale entry. Deferred trigger queues get the residency gate; seam 21's own red is outstanding (no public-intent fixture reaches it yet). EX10-009 and EX10-023 reds flipped; BT24-078 lost its `@ts-nocheck`; BT3-014's A3 test now asserts the ruling.
+- Seam 15 (`unaffectable-still-choosable`): SEAM-15-MECHANISM.md. New `Target.allowUnaffectableChoice` forces the `chooseTargets` prompt when the only candidate is immune. Set on BT1-070 (the chooser in the EX10-021 fixture). EX10-021 red flipped. 219 "choose 1, then ..." candidates listed, not edited.
+- Seam 25 (`whole-clause-cost-gate`): SEAM-25-MECHANISM.md. New `CardEffect.cost`, paid once in `runEffect` before any action; `canActivateEffect` refuses an unpayable clause. EX10-052 re-authored, red flipped. 19 migration candidates listed, not edited.
+- Seam 33 (`once-per-turn-consumed-before-condition`): SEAM-33-MECHANISM.md. A watcher whose action gates all reject (and that paid no activation cost) rolls back its provisional once-per-turn mark. BT11-008 public-intent proof added.
+- Seam 32 (`settle-silent-timeout`): SEAM-32-MECHANISM.md. `settle(predicate)` throws when the predicate never holds; `drainMicrotasks(maxTicks)` is the explicit drain. The throw reddened 453 tests in 347 files, all repaired by test-only lanes (categories: disguised negative proof, wrong milestone, late milestone) except the category-4 list below. Recurring root causes: `combatResolved` only fires for Digimon-vs-Digimon battles (player attacks end with `securityChecked`); idle `pendingDecision` is `undefined`, never `null`; block windows are intents (`declineBlock`), not decisions; digivolving draws 1 before `[When Digivolving]`; De-Digivolve floors at level 3; tests that import no card index register only the modules they import.
+- P-107 (Q5092): P-107-FIX.md. Trailing `wouldDigivolve reduceCost` Replacement folded into `Digivolve.reduceCost: 2` (P-108 pattern); the ＜Delay＞ turn gate was already intrinsic. EX10-032 reds flipped. P-106 has the same trailing-Replacement leak; not fixed.
+- Catalog: persisted IR resynced for BT10/11/12/14/19/21/EX10/P (the ＜Save＞ `position: "bottom"` normaliser output is the persisted form; BT21-catalog-sync now compares the runtime record like BT10 does). Link DP baselines in BT22-009, BT23-009 and appFusionLinkPlacement corrected (engine was right after seam 7 part 2).
+
+## Engine seam queue (session 2, from the strict-settle sweep)
+
+Retained red, test-only lanes may not fix them. Each has a reproduction in the lane report; file paths under apps/api/src.
+
+34. `unsuspend-then-sametarget-skips-ready-target` (BT1-095, Q963): `Unsuspend` excludes ready candidates, so a following `sameTarget` GainKeyword resolves to nothing. Priority 2.
+35. `inherited-when-attacking-below-further-digivolution` (BT10 jesmon-gx deck): ST12-08's inherited `[When Attacking]` never fires once the stack digivolves past it; also the test's Blitz premise needs review. Investigate.
+36. `revealadd-scaling-field-mismatch` (BT11-056): module sets `scaling`, `runRevealAdd` reads `revealScaling`. Card-authoring defect. Priority 2.
+37. `bt11-069-trait-as-nameexact` (BT11-069): "X Antibody" encoded under `match: "nameExact"`. Card-authoring defect. Priority 2.
+38. `subtrigger-gate-ignores-superlative` (BT11-074): `permanentMatchesFilter` never evaluates `filter.superlative`, so the redirect fires for any attacker. Engine, priority 2.
+39. `cost-fused-with-digivolve-target` (BT13-010, Q2269): Kristy return cost is skipped when no Garudamon is in hand. Card-authoring. Priority 3.
+40. `restriction-beBlocked-unimplemented` (BT14-020, Q2390): `Restrict beBlocked` has no interpreter consumer; should be `GrantStatic unblockable`. Card-authoring. Priority 2.
+41. `attack-action-target-is-attacker` (BT17-040): `Attack.target` names the attacking subject, card sets the defender filter. Card-authoring. Priority 2.
+42. `play-from-trash-stacks-on-host` (BT17-049): `PlayWithoutCost` from trash lands on the attacker's permanent instead of a new one. Engine, priority 1.
+43. `deletion-reactions-drop-transient-candidates` (BT17-053, BT15-073): `GameEngine.ts` hook wiring drops the third argument `combat/controller.ts` passes, so inherited `[On Deletion]` after combat never resolves. Engine, priority 1.
+44. `whenattacking-sourcefilter-vs-triggerfilter` (BT17-064): SubTrigger gated with `sourceFilter` where `triggerFilter` is required. Card-authoring. Priority 2.
+45. `trash-return-cost-no-namedCounts` (BT18-019): `costs.ts` trash-zone `return` never writes `ctx.namedCounts`, so `namedCount` scaling reads 0. Engine, priority 2.
+46. `zero-dp-check-ignores-cannot-be-deleted` (BT18-086): `anyZeroDpDigimon` loops against a protected 0 DP Digimon until the engine declares a draw. Engine, priority 1.
+47. `link-orfilters-ignored-for-selfref` (BT25-093, BT25-101; Q6441/Q6443): `candidateLooseInstancesIncludingReserved` (`targeting/loose.ts:238`) returns on `isSelfRef` before reading `orFilters`. Engine, priority 2.
+48. `replacement-prevention-preempts-on-deletion` (EX3-013, Q2212): a leave-prevention Replacement intercepts before the gained `[On Deletion]` trigger is evaluated. Engine, priority 2.
+49. `batched-suspend-fires-one-watcher` (EX3-038): `verb.suspend([a, b])` fires only one of two `whenEffectSuspends` watchers. Engine, priority 2.
+50. `trait-token-exact-vs-contains` (EX4-058): `match: "trait"` against compound trait "Mysterious Bird"; should be `traitContains`. Card-authoring. Priority 3.
+51. `whenSecurityRemoved-default-seat` (EX5-014): SubTrigger lacks `sourceFilter`, so it watches the controller's own security. Card-authoring. Priority 2.
+52. `opponent-option-vanishes-in-recompute` (P-179): the opponent's Option leaves the board during the continuous recompute after a digivolve, so the trash-1-Option cost fails. Engine, unexplained. Priority 1.
+
+## Session 2 gate
+
+```
+vitest run src/cards src/engine --maxWorkers=1 --no-file-parallelism
+  -> Test Files 21 failed | 10703 passed (10724); Tests 24 failed | 36517 passed (36541)
+  -> logs/final-suite.log, logs/final-failures.txt; the 24 failures are exactly seams 34-52
+pnpm typecheck -> exit 0; oxlint/oxfmt clean on changed files (GameEngine.ts:4 unused import pre-existing)
+node tools/sync-effects-from-card-modules.mjs --check --set <BT1|BT20|BT21|BT24|EX10|P> -> synchronized
+```
+
+- Worker-state leak fixed in `engine/effects/capabilities.test.ts`: a synthetic module built under the real id BT20-045 evicted Examon from the module-level Blast DNA keyword set, so BT20-025/042/045 and blastDnaCounter failed whenever that file ran first. Synthetic modules in engine tests must not reuse real card ids; `registerBlastDigivolveFromEffects` is keyed by id and runs on every `irCardModule` call.
+- Cross-file registration is the dominant flake source now that `settle` is strict: a card test that plays a card it never imports gets the default behaviour alone and the real module in the suite (P-076, BT2-078, BT25-049, BT14-041, BT17-035, ST9-13 this session). Convention: import every card module the test plays.
+
+## Session 2, round 2 (2026-09-08): seams 34-52 closed
+
+Five Opus lanes; mechanism docs: LANE-CARD-AUTHORING-MECHANISMS.md (36, 37, 39, 40, 41, 44, 50, 51), SEAM-34-45-47-MECHANISM.md, SEAM-43-46-48-MECHANISM.md, SEAM-38-42-49-35-MECHANISM.md, SEAM-52-MECHANISM.md.
+
+- Card-authoring fixes (36, 37, 39, 40, 41, 44, 50, 51): modules corrected, persisted IR resynced. Engine gap noted: a clause-level `CardEffect.cost` (seam 25) cannot be paid when the clause's only payload is `Digivolve`/`DnaDigivolve`/`PlaceUnder`/`MindLink`, because `canActivateEffect`'s intrinsic gate runs first; BT13-010 uses a leading `Return` instead.
+- 34: `Unsuspend` keeps ready candidates when the next action chains on the same target (`ctx.nextActionChainsSameTarget`); covers BT1-095 and BT24-047.
+- 45: trash-return costs now write `namedCounts`.
+- 47: loose targets union `orFilters` with an `isSelfRef` primary. BT25-093 also needed a breeding scope on its link recipient.
+- 43: the filed cause was wrong (transient candidates are forwarded); the combat deletion trigger lacked `deletedTopCardId`, and the matcher now resolves the source's own host. BT15-073 was a test defect (inherited clause tested on a top card).
+- 46: rule-check predicates skip permanents under a `beDeleted` prohibition.
+- 48 (Q2212): a permanent's own deletion clause fires before leave-prevention. Follow-up after an EX1-073 regression (Q6030/Q6037): the pre-prevention fire is scoped to watchers anchored on the endangered permanent (`SubTriggerSourceScope`), so third-party "when deleted" counters only see permanents that left.
+- 38: `triggerFilter.superlative` evaluated against the board pool in the sub-trigger gate.
+- 49: batched suspends fire each watcher whose anchor is in the batch.
+- 42: not a stacking bug; the optional-play preflight now counts a `deleteOwn` cost's product as a trash candidate. Test also needed `preferTriggerKeys`.
+- 35: no engine gap; the deck test never imported ST12-08. Blitz stays false because memory rests on the controller's side after Ciel.
+- 52: harness gap; `buildPermanent` now seeds pure Options with `placedByEffect: true` (override with `placedByEffect: false` to test the §17-1-3-2-2 sweep).
+- Fixture repairs from the fixes: BT17-073 attacked with BT17-064 (now deletes a sourceless target); BT17-064 and EX1-073 played cards they never imported.
+- Open rules note (BT17-064): "when this Digimon attacks an opponent's Digimon with no digivolution cards" is evaluated at resolution, not at declaration; an inherited [When Attacking] that strips the last source first makes the delete fire. Needs a ruling before an engine change.
+
+Gate:
+
+```
+vitest run src/cards src/engine --maxWorkers=1 --no-file-parallelism
+  -> Test Files 10733 passed (10733); Tests 36554 passed (36554)   (logs/final-suite.log)
+pnpm typecheck -> exit 0
+sync --check on BT1 BT11 BT13 BT14 BT17 BT20 BT21 BT24 BT25 EX4 EX5 EX10 P -> synchronized
+```
