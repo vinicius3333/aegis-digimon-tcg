@@ -23,6 +23,7 @@ import {
   setTopCard,
   type CardZone,
 } from "../state/access.js";
+import { internalsOf } from "./internals.js";
 
 /**
  * Shared test harness for engine behavioral suites (A3 mechanic tests, KB conformance
@@ -426,6 +427,15 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
 
   const aliases: AliasTable = new Map();
   if (board !== undefined) layBoard(state, board, aliases);
+  // A seeded link card carries printed `linkDp` that only reaches `currentDP` through
+  // `ModifierLedger.recomputeDP` (CR 4-2-4), which nothing runs for a hand-laid board — so a
+  // Board Spec with links used to start on a DP baseline no real board ever has. This is the
+  // narrow DP refresh, not the continuous recompute the comment below deliberately withholds.
+  for (const seat of [0, 1] as const) {
+    for (const permanent of state.players[seat]?.battleArea ?? []) {
+      if (permanent.linked.length > 0) internalsOf(engine).modifiers.recomputeDP(state, permanent.permanentId);
+    }
+  }
   // Deliberately NOT recomputed here. A hand-laid board has no continuous effects installed
   // until something recomputes, which is why a hand card's colour waiver and a `[Your Turn]`
   // watcher look absent to a test's first intent — three failures were misdiagnosed as engine

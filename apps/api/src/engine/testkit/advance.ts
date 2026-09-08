@@ -247,6 +247,17 @@ export function advance(engine: GameEngine) {
         await internals.recomputeContinuousEffects();
         return removed;
       },
+      /**
+       * Grant ＜Link +N＞ headroom through the production primitive (`fx.grantLinkMax`, the verb
+       * every ＜Link +N＞ clause compiles to). Board Specs can seed link cards but nothing in the
+       * public intent surface raises a Digimon's link maximum, so a test proving link-cap
+       * behaviour needs this affordance rather than a reach-through to `continuous`.
+       */
+      async grantLinkMax(permanentId: string, delta: number, duration: EffectDuration): Promise<void> {
+        await internals.recomputeContinuousEffects();
+        internals.primitives.grantLinkMax(permanentId, delta, duration);
+        await internals.recomputeContinuousEffects();
+      },
       async modifyDP(permanentId: string, delta: number, duration: EffectDuration): Promise<void> {
         await internals.recomputeContinuousEffects();
         internals.primitives.modifyDP(permanentId, delta, duration);
