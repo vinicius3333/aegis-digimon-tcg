@@ -329,6 +329,26 @@ describe("BT24-072 SkullGreymon", () => {
     expect(s.perm("invalid").topCard.instanceId).toBe(sourceId);
   });
 
+  it("rejects a public alternate evolution from a non-Demon, non-TS source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-051", as: "invalid" }], hand: [{ card: "BT24-072", as: "skullgreymon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalid").permanentId,
+        instanceId: s.inst("skullgreymon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("invalid").topCard.instanceId).toBe(s.inst("invalid").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("skullgreymon").instanceId);
+  });
+
   it("pays the hand-trash cost to grant Blocker and Retaliation to the same eligible Digimon", async () => {
     const s = setupEngine(
       {
