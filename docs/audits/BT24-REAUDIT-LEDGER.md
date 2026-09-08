@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 679/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 687/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -22,7 +22,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-012 | Dimetromon | 2 | 2 | 0 | 0 | 0 | 4/10 | in_progress; [record](BT24-reaudit/BT24-012.md). Public opponent deletion replacement and inherited security-removal proof drafted; focused execution pending. |
 | BT24-013 | Fugamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-013.md). 10 focused tests passed; lead review and full clause/stack completeness pending. |
 | BT24-014 | Aegiochusmon | 2 | 2 | 1 | 0 | 0 | 5/10 | in_progress; Pending record. Natural Decode and Security Attack tests in correction; focused rerun pending. |
-| BT24-015 | MetalGreymon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-015 | MetalGreymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-015.md). Root13green: Security level boundary, public Blocker/refusal and target-switch lowest-DP deletion, inherited Blocker deletion/OPT, both alternate evolution routes and invalid route. Typed IR; delivery pending. |
 | BT24-016 | Lamiamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-017 | Medusamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-018 | Styracomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-018.md). Public security removal, paid evolution/draw, leave prevention and refusal pass. Root12green; both OPT effects still need public same-turn suppression/reset and Q5599 completion. |
