@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 781/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 783/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -46,12 +46,12 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-036 | Medicmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-036.md). Root9green: public Security/On Play/On Deletion/linked DP effects, Q5615 cancellation, paid evolution/invalid Link and natural turn-duration reset. Delivery pending. |
 | BT24-037 | Silphymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-037.md). Root12green: full public behavior and replacement/evolution-stack evidence; typed replacement assertions and compiled IR. Collection delivery gates pending. |
 | BT24-038 | Biomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-038.md). Root15green: public Q5620, Link isolation, zero-DP/Fortitude/AppFusion and linked -7000 duration/expiry. Public linked OPT reset and invalid App Fusion source remain open; delivery pending. |
-| BT24-039 | Piximon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-039.md). Public security battle-area/breeding level boundary, Blocker plus Barrier, inherited recovery and paid TS evolution pass. Normal/illegal evolution and keyword refusal boundaries remain open. |
+| BT24-039 | Piximon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-039.md). Root14green: public Security conditions, Blocker/Barrier acceptance and refusal, inherited recovery, exact normal/TS evolution and invalid-source boundary. Collection delivery pending. |
 | BT24-040 | Venusmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-040.md). Root17green: public Q5621-Q5622/Q5781, security order/routes, optional replacement refusal and own-effect removal negative. Q5624-Q5626 blocked-OPT/reset distinctions remain open; delivery pending. |
 | BT24-041 | Minervamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-041.md). Root15green: Q5627/Q5629, exact evolution, natural opponent-turn Reboot, public On Deletion and Blocker acceptance/refusal. Q5628 immunity/interleaving remains open because no natural public fixture grants opposing effect immunity; delivery pending. |
 | BT24-042 | Goblimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-042.md). Root12green: public battle-area reduction/Q5630 breeding negative, inherited paid evolution/filter boundaries, both alternate routes and Q5631 attack-time evolution. Typed IR; delivery pending. |
 | BT24-043 | Tapirmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-043.md). Root10green: public search including all-miss trait boundary, inherited suspension frequency/reset, exact evolution routes and normal/alternate invalid egg rejection. Collection delivery pending. |
-| BT24-044 | Muchomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-044.md). Public suspend-gated search and opponent negative, paid egg route, inherited battle survival/deletion contrast and same-source frequency/reset. Root8green; refusal, level7 exclusion, illegal egg and full search-trait matrix remain open. |
+| BT24-044 | Muchomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-044.md). Root11green: public suspension refusal/level7 exclusion, Avian/Bird/Vortex search coverage, exact valid/invalid egg routes and inherited battle frequency/reset. Collection delivery pending. |
 | BT24-045 | Ogremon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-045.md). Root12green: public On Play/When Attacking cost, suspend/lock/refusal, Q5634-Q5635 draw boundary, inherited reduced evolution/filter and all evolution routes. Delivery pending. |
 | BT24-046 | Garurumon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-046.md). Root12green: public Jamming/entry suspension, exact evolution routes/invalid source and completed inherited attack target endpoint. Direct same-turn OPT suppression and natural reset remain open; delivery pending. |
 | BT24-047 | Kokatorimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-047.md). Public suspend/unsuspend/attack sequence, opponent negative, refusal and paid normal evolution top/stack/draw. Root9green; inherited same-source frequency/reset and wider trait/route boundaries remain open. |
