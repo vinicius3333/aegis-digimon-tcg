@@ -1,7 +1,7 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const tsColor = {
+const tsColor: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   colors: ["Green", "Yellow"],
