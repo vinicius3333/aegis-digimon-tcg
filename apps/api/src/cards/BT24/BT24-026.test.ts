@@ -33,7 +33,13 @@ describe("BT24-026 Hyogamon", () => {
 
   it("requires the hand-trash cost before granting Jamming and Blocker", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
-      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as any[];
+      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as unknown as Array<{
+        cost?: unknown;
+        optional?: boolean;
+        abortOnDecline: boolean;
+        target: { sameTarget?: boolean };
+        keyword: { keyword: string };
+      }>;
       expect(actions[0].cost).toMatchObject({ kind: "trash" });
       expect(actions[0].optional).toBeUndefined();
       expect(actions[0].abortOnDecline).toBe(true);
@@ -43,7 +49,19 @@ describe("BT24-026 Hyogamon", () => {
   });
 
   it("retains the once-per-turn trash-triggered Titamon digivolution", () => {
-    const inherited = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
+    const inherited = compiled.effects.find((effect) => effect.trigger === "YourTurn") as unknown as {
+      actions: Array<{
+        sourceFilter: unknown;
+        actions: Array<{
+          kind: string;
+          from: string[];
+          payCost: boolean;
+          reduceCost: number;
+          optional: boolean;
+          into: { nameOrTrait: unknown };
+        }>;
+      }>;
+    };
     const action = inherited.actions[0].actions[0];
     expect(action).toMatchObject({
       kind: "Digivolve",
@@ -139,6 +157,73 @@ describe("BT24-026 Hyogamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Jamming")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ineligible"), "Blocker")).toBe(false);
+  });
+
+  it("refuses the public keyword grant when its hand-trash cost has no card", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-026", as: "hyogamon" }],
+        battleArea: [{ card: "BT24-042", as: "eligible" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("hyogamon").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Jamming")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker")).toBe(false);
+  });
+
+  it("uses public Jamming in a losing security battle after paying the grant cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-026", as: "hyogamon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+          security: [],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { security: [{ card: "BT1-081", as: "securityDigimon" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("hyogamon").topCard.instanceId === s.inst("hyogamon").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("hyogamon"), "Jamming")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hyogamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("hyogamon").permanentId)).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 
   it("shares one use between its on-play and when-attacking timings", async () => {
@@ -354,5 +439,53 @@ describe("BT24-026 Hyogamon", () => {
     );
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
+  });
+
+  it("evolves publicly through the catalog normal blue level-3 route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-031", as: "blueBase" }],
+        hand: [{ card: "BT24-026", as: "hyogamon" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("hyogamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueBase").topCard.instanceId === s.inst("hyogamon").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("blueBase").stack.map((card) => card.instanceId)).toEqual([s.inst("blueBase").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("evolves publicly through the alternate TS/Demon route for exactly two memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-021", as: "tsBase" }],
+        hand: [{ card: "BT24-026", as: "hyogamon" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("hyogamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("hyogamon").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("tsBase").stack.map((card) => card.instanceId)).toEqual([s.inst("tsBase").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 });
