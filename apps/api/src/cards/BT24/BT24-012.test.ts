@@ -8,23 +8,28 @@ import "../index.js";
 
 describe("BT24-012 Dimetromon", () => {
   it("only protects other Reptile/Dragonkin Digimon from opponent effects", () => {
-    const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions?.[0] as any;
+    const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns");
     expect(replacement).toMatchObject({
-      kind: "Replacement",
-      event: "wouldLeavePlay",
-      leaveCause: "byOpponentEffect",
-      affectsAll: true,
-      target: { filter: { controller: "mine", excludeSelf: true }, upTo: true },
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "byOpponentEffect",
+          affectsAll: true,
+          target: { filter: { controller: "mine", excludeSelf: true }, upTo: true },
+          actions: [{ kind: "Prevent", cost: { kind: "return" } }],
+        },
+      ],
     });
-    expect(replacement.actions[0]).toMatchObject({ kind: "Prevent", cost: { kind: "return" } });
   });
 
   it("retains Blocker and inherited once-per-turn memory gain", () => {
     expect(compiled.effects[0]?.keywords?.[0]?.keyword).toBe("Blocker");
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
-    expect(inherited.frequency).toBe("OncePerTurn");
-    expect(inherited.actions[0].sourceFilter).toEqual({ controller: "opponent" });
-    expect(inherited.actions[0].actions[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
+    const inherited = compiled.effects.find((effect) => effect.isInherited);
+    expect(inherited).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ sourceFilter: { controller: "opponent" }, actions: [{ kind: "GainMemory", amount: 1 }] }],
+    });
   });
 
   it("returns itself once to protect all simultaneously leaving Reptile and Dragonkin Digimon", async () => {
