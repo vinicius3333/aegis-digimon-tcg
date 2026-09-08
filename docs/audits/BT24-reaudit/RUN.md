@@ -794,6 +794,22 @@ protection/refusal/Q5599, evolution and keyword routes raise it6→8 in
 completion and the confirmed098 reactive payload dispatch seam. No publication
 has occurred.
 
+Root028 at12:01:01 passed15/15 after narrowing the only compatibility cast to
+GainKeyword.additionalEffect; `627634f8b` raises it6→8. Root029 at12:02:17
+passed18/18 after public refusal and cost/source negatives; `0525a27b4` raises
+it7→8. Root030 at12:03:14 passed15/15 after public suppression/reset;
+`6bb14a761` raises it7→8.
+
+Stale-ledger reconciliation raised035 and042 from6→8 after root6/6 and12/12
+reruns (`05bbb67b8`, `f5328b198`). Root034 at12:07:08 passed16/16 including
+public Barrier accept/refuse and entered8 in `935fa76aa`. Root036 first moved
+6→7 with its public endpoints, then passed9/9 with natural DP expiry and reached
+8 in `7df041c65`. Root038 remains7 after public duration and invalid App Fusion
+proof (`7ffc8166d`, `398aec5b2`). Root040 remains7 after public replacement
+refusal/own-effect negative (`bcf7c7828`). Root041 remains7 while Blocker/Q5628
+are being closed;045 reached8 after12/12 in `32b976017`. Aggregate753/1020,
+0 cards at10/10; no publication has occurred.
+
 Root025 at11:50:01 and11:54:04 passed15 then16 tests. Public self/color/TS
 trigger negatives, Venusmon refusal and illegal normal evolution raise it6→7→8
 in `f280df9ba` and `9edea106f`. Root026 at11:53:07 passed15/15; public grant
