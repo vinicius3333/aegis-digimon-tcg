@@ -241,6 +241,41 @@ describe("BT24-046 Garurumon", () => {
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
   });
 
+  it("selects the preferred suspended target while preserving the other candidate and source stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-046"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget", suspended: false },
+            { card: "BT1-010", as: "secondTarget", suspended: false },
+          ],
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+    preferred.push(secondTargetId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondTarget").isSuspended && !observe(s.engine).isAttacking());
+    expect(s.perm("secondTarget").permanentId).toBe(secondTargetId);
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
+    expect(s.perm("firstTarget").permanentId).toBe(firstTargetId);
+    expect(s.perm("firstTarget").isSuspended).toBe(false);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-046"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("suppresses a second same-turn inherited suspension after a public unsuspend", async () => {
     const s = setupEngine(
       {
