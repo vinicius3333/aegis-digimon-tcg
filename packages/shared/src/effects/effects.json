@@ -93710,7 +93710,7 @@
               "upTo": true
             },
             "affectsAll": true,
-            "triggerCondition": "byOpponentEffect",
+            "leaveCause": "byOpponentEffect",
             "actions": [
               { "kind": "Replacement", "event": "wouldLeavePlay", "mode": "prevent", "raw": "they don't leave" }
             ],
@@ -94170,7 +94170,7 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
-                "fromHost": "self",
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               }
@@ -94200,7 +94200,7 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
-                "fromHost": "self",
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               }

@@ -32,7 +32,7 @@ describe("BT24-037 Silphymon", () => {
       expect(play).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["digivolutionCards"],
-        fromHost: "self",
+        fromOwnDigivolutionStack: true,
         optional: true,
       });
       expect(play.target.filter).toMatchObject({
@@ -227,6 +227,40 @@ describe("BT24-037 Silphymon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+  });
+
+  it("does not play a neighboring host's eligible source on opponent-effect removal", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-037", as: "departed", dp: 1000, under: [{ card: "ST1-07", as: "ownEligible" }] },
+            { card: "BT24-037", as: "neighbor", dp: 13000, under: [{ card: "BT24-035", as: "neighborEligible" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("neighbor").stack[0]!.instanceId, s.perm("departed").stack[0]!.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const departedId = s.perm("departed").permanentId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === departedId));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(departedId);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toContain(s.inst("neighborEligible").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("ownEligible").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 
   it("uses the inherited leave effect to play a qualifying card from its host's stack (Q5619)", async () => {

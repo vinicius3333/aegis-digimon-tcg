@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -119,7 +118,7 @@ export const compiled: CompiledCard = {
             upTo: true,
           },
           affectsAll: true,
-          triggerCondition: "byOpponentEffect",
+          leaveCause: "byOpponentEffect",
           actions: [
             {
               kind: "Replacement",
