@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 747/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 749/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -49,7 +49,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-039 | Piximon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-039.md). Public security battle-area/breeding level boundary, Blocker plus Barrier, inherited recovery and paid TS evolution pass. Normal/illegal evolution and keyword refusal boundaries remain open. |
 | BT24-040 | Venusmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-040.md). Public Q5622 suppression, Q5621 simultaneous protection and Q5781 self-cost, security order and paid routes. Root15green; Q5623-26 distinctions, replacement refusal/frequency/reset and peer boundaries open. |
 | BT24-041 | Minervamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-041.md). Public Q5627 refusal, Q5629 DP-zero ordering and exact paid evolution routes. Root12green after entrant currentDP fix; Q5628 immunity interleaving, On Deletion and public Reboot/Blocker still open. |
-| BT24-042 | Goblimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-042.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
+| BT24-042 | Goblimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-042.md). Root12green: public battle-area reduction/Q5630 breeding negative, inherited paid evolution/filter boundaries, both alternate routes and Q5631 attack-time evolution. Typed IR; delivery pending. |
 | BT24-043 | Tapirmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-043.md). Public Beast/Shaman search, same-source inherited suspension frequency/reset, normal and alternate egg cost/stack/draw. Root8green; illegal egg and full trait/refusal matrix plus delivery remain open. |
 | BT24-044 | Muchomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-044.md). Public suspend-gated search and opponent negative, paid egg route, inherited battle survival/deletion contrast and same-source frequency/reset. Root8green; refusal, level7 exclusion, illegal egg and full search-trait matrix remain open. |
 | BT24-045 | Ogremon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-045.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
