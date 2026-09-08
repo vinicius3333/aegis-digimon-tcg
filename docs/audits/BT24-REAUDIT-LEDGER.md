@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 787/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 789/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -69,8 +69,8 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-059 | Sharkmon | 2 | 2 | 1 | 2 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-059.md). Legal inherited host with exact bottom-source placement/refusal and public same-turn suppression/owner-turn reset. Paid Blue/Aqua/SeaAnimal/TS routes with stack/draw; root12green. Public deletion cost8/refusal, normalBlack/invalid routes and delivery open. |
 | BT24-060 | Hisyaryumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-060.md). Public MindLink/Alliance and Q5782 positive/refusal now pass; missing inherited OPT/reset, exact free-payment identity, evolution bonus draws, public attack refusal and deck-end choice boundaries. Independent focused acceptance pending full clauses. |
 | BT24-061 | Vademon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-061.md). Root9green: public Digimon/Tamer return, cost-limit refusal, exact normal/TS evolution stack/draw and inherited same-turn suppression plus next-owner reset. Collection delivery pending. |
-| BT24-062 | MasterBlimpmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-062.md). Root15green: public Armor Purge and Blocker, exact evolution routes, source-play same-turn suppression and actual opponent-end reset preserving neighbor stack; inherited target-lock comparison. Full trait/invalid-route boundaries pending. |
-| BT24-063 | Locomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-063.md). Public own/inherited Collision forces block and rejects decline, exact combat/security; cost6 TS negative and explicit revealed-play refusal, paid routes with separate bonus draw and actual Tamer play. Root12green; cost5 accepted/Machine-Cyborg matrix and delivery open. |
+| BT24-062 | MasterBlimpmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-062.md). Root16green: public Armor Purge and Blocker, exact normal/alternate evolution routes, source-play same-turn suppression and actual opponent-end reset preserving neighbor stack, inherited target-lock comparison, and public nonmatching stacked-source rejection. Delivery pending. |
+| BT24-063 | Locomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-063.md). Root14green: public own/inherited Collision, exact combat/security, Machine/Cyborg/TS/Tamer reveal-play positives, all-miss/cost6 negatives, selection/refusal, bottom order, and paid evolution routes. Delivery pending. |
 | BT24-064 | Ouryumon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-064.md). Root12green: public Piercing/Blocker, exact evolution draw and reveal destinations, legal DeDigivolve stacks and public same-turn/opponent-turn reset. Tamer suspension and full trait/route matrix pending. |
 | BT24-065 | Diaboromon (X Antibody) | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-065.md). Root11green: public Overclock/Blocker, scaled De-Digivolve and highest-cost removal, normal/alternate routes, Q5644-Q5645, exact-source replacement/refusal and name/source/own-effect/simultaneity negatives. Typed IR/assertions; Q5646 opponent-turn temporal boundary remains collection follow-up; delivery pending. |
 | BT24-066 | Guilmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-066.md). Root14green: five positive search traits/Tamer, mandatory second destination, public all-miss negative, exact evolution routes and inherited public deletion frequency/reset. Collection delivery pending. |
