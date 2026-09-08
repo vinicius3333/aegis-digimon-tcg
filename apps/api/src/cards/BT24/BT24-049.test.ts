@@ -32,7 +32,7 @@ describe("BT24-049 Parrotmon", () => {
   it("trashes the opponent's top security after a battle deletion once per turn", () => {
     const inherited = BT24_049.effects?.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn" });
-    expect((inherited?.actions?.[0] as any).event).toBe("whenDeletesInBattle");
+    expect(inherited?.actions?.[0]).toMatchObject({ event: "whenDeletesInBattle" });
   });
 
   it("exposes Fortitude but does not bounce through a normal public play", async () => {
@@ -176,6 +176,26 @@ describe("BT24-049 Parrotmon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       s.inst("higher").instanceId,
     );
+  });
+
+  it("publicly declines both optional On Play actions without changing the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-049", as: "parrotmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("parrotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-049"));
+    expect(s.perm("target").permanentId).toBe(targetId);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("replays the same Parrotmon instance through Fortitude after public Happy Bullet deletion", async () => {
