@@ -182,6 +182,85 @@ describe("BT24-047 Kokatorimon", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("suppresses a same-turn second battle deletion and resets on the next owner turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-071", as: "host", under: ["BT24-047"], dp: 9000 }],
+          hand: [
+            { card: "BT24-050", as: "unsuspender" },
+            { card: "BT24-044", as: "suspender" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim1", suspended: true, dp: 3000 },
+            { card: "BT1-010", as: "victim2", suspended: true, dp: 3000 },
+            { card: "BT1-014", as: "victim3", suspended: true, dp: 3000 },
+          ],
+          security: ["BT1-013", "BT1-014", "BT1-015"],
+          deck: ["BT1-016", "BT1-017", "BT1-018"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 9;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const victims = ["victim1", "victim2", "victim3"].map((alias) => s.perm(alias).permanentId);
+    const attack = async (victimId: string): Promise<void> => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: hostId,
+          target: { kind: "permanent", permanentId: victimId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId) && !observe(s.engine).isAttacking(),
+      );
+    };
+    const beforeFirst = s.state.memory;
+    await attack(victims[0]!);
+    expect(s.state.memory).toBe(beforeFirst + 1);
+    preferred.push(hostId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    const beforeSecond = s.state.memory;
+    await attack(victims[1]!);
+    expect(s.state.memory).toBe(beforeSecond);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    preferred.splice(0, preferred.length, victims[2]!);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim3").isSuspended);
+    const beforeThird = s.state.memory;
+    const memoryEventsBefore = s.events.filter((event) => event.kind === "memoryChanged").length;
+    await attack(victims[2]!);
+    expect(
+      s.events
+        .filter((event) => event.kind === "memoryChanged")
+        .slice(memoryEventsBefore)
+        .some((event) => event.to === beforeThird + 1),
+    ).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+  });
+
   it("Q5637: inherited effect does not activate when its host is deleted in the same battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT24-048", as: "host", under: ["BT24-047"], dp: 9000 }] },
