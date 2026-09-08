@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -214,7 +214,7 @@ describe("BT24-013 Fugamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-013"] }],
+          battleArea: [{ card: "BT24-072", as: "host", under: [{ card: "BT24-013", as: "inherited" }] }],
           hand: [{ card: "BT1-009", as: "discard" }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
@@ -352,5 +352,112 @@ describe("BT24-013 Fugamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawOne").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawTwo").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("activationDraw").instanceId);
+  });
+
+  it("publicly suppresses the inherited second trigger, then resets after the opponent turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-013"] }],
+          hand: [
+            { card: "BT24-013", as: "play1" },
+            { card: "BT24-013", as: "play2" },
+            { card: "BT1-009", as: "fodder1" },
+            { card: "BT1-009", as: "fodder2" },
+          ],
+          trash: [
+            { card: "P-209", as: "firstTitamon" },
+            { card: "BT24-081", as: "secondTitamon" },
+          ],
+          security: ["BT1-013", "BT1-013"],
+          deck: [
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+            "BT1-019",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+            "BT1-019",
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target1", dp: 3000 },
+            { card: "BT1-009", as: "target2", dp: 3000 },
+            { card: "BT1-009", as: "target3", dp: 3000 },
+          ],
+          security: ["BT1-013"],
+          deck: [
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+            "BT1-019",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+            "BT1-019",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("fodder1").instanceId, s.inst("fodder2").instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const hostBaseId = s.perm("host").topCard.instanceId;
+    const inheritedId = s.perm("host").stack[0]!.instanceId;
+    const stackWithTop = () => [
+      ...s.perm("host").stack.map((card) => card.instanceId),
+      s.perm("host").topCard.instanceId,
+    ];
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play1").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("firstTitamon").instanceId);
+    expect(stackWithTop()).toEqual([inheritedId, hostBaseId, s.inst("firstTitamon").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder1").instanceId);
+    expect(s.state.memory).toBe(4);
+
+    preferred.splice(0, preferred.length, s.inst("fodder2").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play2").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.map((card) => card.instanceId).includes(s.inst("fodder2").instanceId));
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("firstTitamon").instanceId);
+    expect(s.state.memory).toBe(0);
+    const play3 = s.give(0, Zone.Hand, { card: "BT24-013", as: "play3" });
+    const fodder3 = s.give(0, Zone.Hand, { card: "BT1-009", as: "fodder3" });
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, fodder3.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: play3.instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("secondTitamon").instanceId);
+    expect(stackWithTop()).toEqual([
+      inheritedId,
+      hostBaseId,
+      s.inst("firstTitamon").instanceId,
+      s.inst("secondTitamon").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(fodder3.instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("secondTitamon").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
   });
 });
