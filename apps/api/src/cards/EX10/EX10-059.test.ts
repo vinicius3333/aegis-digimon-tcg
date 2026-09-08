@@ -1,12 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-059.js";
 import "../index.js";
 
 const CARD_ID = "EX10-059";
 
+/**
+ * EX10-059 DarknessBagramon, Lv.7 Purple/Black [Composite] [Bagra Army].
+ *
+ * Printed:
+ *   [On Play] [When Digivolving] Choose 1 card in your opponent's hand without looking and
+ *   place it as any of their Digimon's bottom digivolution card or under any of their Tamers.
+ *   Then, by placing 3 [Bagra Army] trait Digimon cards from your trash as this Digimon's top
+ *   digivolution cards, delete 1 of their Digimon or Tamers with cards under it.
+ *   [All Turns] This Digimon gains all [All Turns] effects on all level 6 [Bagra Army] trait
+ *   Digimon cards in its digivolution cards.
+ *   [DigiXros -3] [Bagramon] x [DarkKnightmon]
+ *
+ * Every behavioural test below reaches the card through a public intent: a `playCard` with a
+ * `digiXros` plan, or a `digivolve` onto a legally seeded Lv.6 purple source. Nothing is fired
+ * through the injected-timing seam.
+ */
 describe("EX10-059 DarknessBagramon", () => {
   it("records the exact catalog and evolution routes", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -25,9 +40,10 @@ describe("EX10-059 DarknessBagramon", () => {
   });
 
   it("has complete compiled coverage and the printed DigiXros recipe", () => {
-    expect(compiled).toBeDefined();
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    // `count` is the PER-MATERIAL cost reduction (see DigiXrosRequirement), so `[DigiXros -3]`
+    // is `count: 3`. Two distinct named slots cap the play at two materials.
     expect(compiled.digiXrosRequirement).toEqual([
       {
         materials: [{ names: ["Bagramon"] }, { names: ["DarkKnightmon"] }],
@@ -37,32 +53,41 @@ describe("EX10-059 DarknessBagramon", () => {
     ]);
   });
 
-  it("requires all 3 Bagra Army trash cards before the deletion effect resolves", () => {
+  it("maps both printed windows to the same two-step action list", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
-      const effect = compiled.effects!.find((entry) => entry.trigger === trigger);
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect).toBeDefined();
       expect(effect!.actions).toMatchObject([
         {
           kind: "PlaceUnder",
+          blind: true,
           target: { filter: { isOpponentHand: true, controller: "opponent", zone: "hand" }, count: 1, from: ["hand"] },
           underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
           position: "bottom",
         },
         {
           kind: "PlaceUnder",
-          target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 3, from: ["trash"] },
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+            },
+            count: 3,
+            from: ["trash"],
+          },
           position: "top",
           optional: true,
           abortOnDecline: true,
         },
-        { kind: "Delete", target: { filter: { controller: "opponent", hasDigivolutionCards: true } } },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], hasDigivolutionCards: true } },
+        },
       ]);
     }
-  });
-
-  it("copies All Turns effects from level 6 Bagra Army cards in its stack", () => {
-    const allTurns = compiled.effects!.find((entry) => entry.trigger === "AllTurns");
-    expect(allTurns).toMatchObject({
+    expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
       actions: [
         {
           kind: "GrantStatic",
@@ -80,201 +105,26 @@ describe("EX10-059 DarknessBagramon", () => {
     });
   });
 
-  it("runs and preserves a copied All Turns effect from a valid mixed evolution stack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: CARD_ID,
-              as: "darkness",
-              under: [{ card: "EX10-058", as: "lilithmon" }, { card: "EX10-057", as: "piedmon" }, "BT1-009", "BT1-010"],
-            },
-          ],
-          trash: [{ card: "BT10-071", as: "payoff" }],
-        },
-        1: { battleArea: [{ card: "AD1-001", as: "victim" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
+  // --- [DigiXros -3] [Bagramon] x [DarkKnightmon] ------------------------------------------
 
-    for (const turnSeat of [1, 0] as const) {
-      s.state.turnSeat = turnSeat;
-      await advance(s.engine).recompute();
-      const conferrals = advance(s.engine).ledgers.continuous.listStackEffectConferrals();
-      expect(conferrals).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            targetPermanentId: s.perm("darkness").permanentId,
-            stackInstanceId: s.inst("lilithmon").instanceId,
-          }),
-        ]),
-      );
-      expect(conferrals.some(({ stackInstanceId }) => stackInstanceId === s.inst("piedmon").instanceId)).toBe(false);
-    }
-
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT10-071"));
-
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT10-071")).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("payoff").instanceId)).toBe(false);
-    expect(s.perm("darkness").stack).toHaveLength(2);
-  });
-
-  it("confers only the stack card's [All Turns] effects, never its [On Play]", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: CARD_ID, as: "darkness", under: [{ card: "EX10-058", as: "lilithmon" }] }],
-        },
-        1: { battleArea: [{ card: "AD1-001", as: "recipient" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).recompute();
-
-    // EX10-058's [On Play] grants an opposing permanent "[End of Your Turn] Delete 1 of your
-    // Digimon". It is NOT an [All Turns] effect, so firing this card's own [On Play] must not
-    // resolve it. Without `copyTrigger` the conferral is trigger-unrestricted and the granted
-    // end-of-turn watcher appears on the opposing Digimon.
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
-    await settle(() => s.state.pendingDecision === null);
-    expect(
-      advance(s.engine).ledgers.subTriggers.subscriptionsFor("endOfTurn", s.perm("recipient").permanentId),
-    ).toHaveLength(0);
-
-    // The [All Turns] conferral from the level-6 [Bagra Army] stack card is still live and tagged.
-    const conferrals = advance(s.engine).ledgers.continuous.listStackEffectConferrals();
-    expect(
-      conferrals.some(
-        ({ stackInstanceId, trigger }) => stackInstanceId === s.inst("lilithmon").instanceId && trigger === "AllTurns",
-      ),
-    ).toBe(true);
-  });
-
-  it("Q5162 places a random opposing hand card only under an opposing host at the bottom", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: CARD_ID, as: "darkness" },
-            { card: "EX10-064", as: "ownTamer" },
-          ],
-        },
-        1: {
-          hand: [{ card: "BT1-009", as: "handCard" }],
-          battleArea: [{ card: "EX10-026", as: "host", under: [{ card: "BT1-010", as: "existing" }] }],
-        },
-      },
-      { autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.perm("host").permanentId);
-    await s.ready();
-    expect(getCompiledCard(CARD_ID)?.effects[0]?.actions?.[1]).toMatchObject({ kind: "PlaceUnder", optional: true });
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
-    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("handCard").instanceId,
-      s.inst("existing").instanceId,
-    ]);
-    expect(s.perm("ownTamer").stack).toHaveLength(0);
-  });
-
-  it("Q5162 keeps opposing hand identities hidden while exposing only opaque pick ids", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "darkness" }] },
-      1: {
-        hand: [
-          { card: "BT1-009", as: "firstHand", faceUp: false },
-          { card: "BT1-010", as: "secondHand", faceUp: false },
-        ],
-        battleArea: [{ card: "EX10-026", as: "host" }],
-      },
-    });
-    await s.ready();
-    const pending = advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-
-    const decision = s.state.pendingDecision;
-    expect(decision?.kind).toBe("selectCards");
-    expect(decision?.seat).toBe(0);
-    const payload = JSON.parse(decision!.payloadJson) as {
-      candidateInstanceIds?: string[];
-      visibleInstanceIds?: string[];
-      visibleCards?: { instanceId: string; cardId: string }[];
-    };
-    expect(payload.candidateInstanceIds).toEqual(
-      expect.arrayContaining([s.inst("firstHand").instanceId, s.inst("secondHand").instanceId]),
-    );
-    expect(payload.visibleInstanceIds).toEqual(payload.candidateInstanceIds);
-    expect(payload.visibleCards ?? []).toEqual([]);
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: decision!.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("secondHand").instanceId] },
-      }).ok,
-    ).toBe(false);
-    expect(s.state.pendingDecision?.decisionId).toBe(decision!.decisionId);
-    expect(s.state.players[1]!.hand).toHaveLength(2);
-
-    const accepted = s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision!.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("firstHand").instanceId] },
-    });
-    expect(accepted).toEqual({ ok: true });
-    await pending;
-    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("firstHand").instanceId]);
-    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondHand").instanceId]);
-    expect(s.state.pendingDecision == null).toBe(true);
-  });
-
-  it("Q5163 cannot place the opposing hand card under a host that isn't affected by effects", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: CARD_ID, as: "darkness" }] },
-        1: {
-          hand: [{ card: "BT1-009", as: "handCard" }],
-          battleArea: [{ card: "EX10-026", as: "host" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    // Q5163: the opponent's only Digimon is unaffectable and they control no Tamers, so the card
-    // may be chosen but cannot be placed.
-    advance(s.engine).ledgers.continuous.addRestriction(
-      s.perm("host").permanentId,
-      "beAffected",
-      EffectDuration.Permanent,
-      { fromSourceKind: ["Digimon"] },
-    );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
-    await settle(() => s.state.pendingDecision === null);
-
-    expect(s.perm("host").stack).toHaveLength(0);
-    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handCard").instanceId);
-  });
-
-  it("DigiXroses only the printed Bagramon and DarkKnightmon pair for 6 less", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [
-            { card: CARD_ID, as: "darkness" },
-            { card: "EX10-056", as: "bagramon" },
-            { card: "EX10-031", as: "darkknight" },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
+  /**
+   * A DigiXros board with no opposing permanent and no [Bagra Army] card in the trash, so the
+   * [On Play] resolves to nothing and the assertions read the DigiXros itself.
+   */
+  function xrosBoard(hand: { card: string; as: string }[]) {
+    const s = setupEngine({ 0: { hand } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 16;
+    return s;
+  }
+
+  it("DigiXroses from hand for 3 less per material and stacks both materials", async () => {
+    const s = xrosBoard([
+      { card: CARD_ID, as: "darkness" },
+      { card: "BT11-088", as: "bagramon" },
+      { card: "BT7-063", as: "darkknight" },
+    ]);
     await s.ready();
+
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -282,63 +132,592 @@ describe("EX10-059 DarknessBagramon", () => {
         digiXros: { materialInstanceIds: [s.inst("bagramon").instanceId, s.inst("darkknight").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+    // 16 printed - 2 materials x 3 = 10 paid.
     expect(s.state.memory).toBe(6);
+    // Loose hand materials are each placed at the bottom of the growing stack, so the last
+    // declared material ends up beneath the first. Material order is the player's own choice
+    // (§7-2-2-7), so only the membership is a rules fact.
+    expect(s.perm("darkness").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bagramon").instanceId, s.inst("darkknight").instanceId]),
+    );
+    expect(s.perm("darkness").stack).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.pendingDecision == null).toBe(true);
   });
 
-  it("Q5161 places exactly 3 Bagra Army cards as top sources before deleting only a permanent with cards under it", async () => {
+  it("DigiXroses a battle-area Digimon as a material and removes it from the battle area", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "darkness" }],
+          hand: [
+            { card: CARD_ID, as: "darkness" },
+            { card: "BT11-088", as: "bagramon" },
+          ],
+          battleArea: [{ card: "BT7-063", as: "darkknight" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 16;
+    await s.ready();
+    const fieldMaterialPermanentId = s.perm("darkknight").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkness").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("bagramon").instanceId, s.perm("darkknight").topCard!.instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
+      fieldMaterialPermanentId,
+    );
+    expect(s.perm("darkness").stack.map(({ cardId }) => cardId)).toEqual(["BT11-088", "BT7-063"]);
+  });
+
+  it("refuses every material set the printed recipe does not name", async () => {
+    const s = xrosBoard([
+      { card: CARD_ID, as: "darkness" },
+      { card: "BT11-088", as: "bagramon" },
+      { card: "BT7-063", as: "darkknight" },
+      { card: "EX10-056", as: "secondBagramon" },
+      { card: "BT1-009", as: "stranger" },
+    ]);
+    s.give(0, Zone.Trash, { card: "BT19-063", as: "trashKnight" });
+    await s.ready();
+
+    const play = (materialInstanceIds: string[]) =>
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkness").instanceId,
+        digiXros: { materialInstanceIds },
+      });
+
+    // A card that matches no printed slot.
+    expect(play([s.inst("bagramon").instanceId, s.inst("stranger").instanceId])).toEqual({
+      ok: false,
+      reason: "invalid-material",
+    });
+    // Two [Bagramon]: the second cannot occupy the [DarkKnightmon] slot.
+    expect(play([s.inst("bagramon").instanceId, s.inst("secondBagramon").instanceId])).toEqual({
+      ok: false,
+      reason: "invalid-material",
+    });
+    // Material cap: the recipe has exactly two slots, so a third material is illegal even when
+    // it would match one of them by name.
+    expect(
+      play([s.inst("bagramon").instanceId, s.inst("darkknight").instanceId, s.inst("secondBagramon").instanceId]),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    // The trash is not a legal source for this card: it prints no trash allowance and no
+    // expander Tamer is in play.
+    expect(play([s.inst("bagramon").instanceId, s.inst("trashKnight").instanceId])).toEqual({
+      ok: false,
+      reason: "invalid-material",
+    });
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(16);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain(CARD_ID);
+  });
+
+  it("buys with the reduction a memory total that cannot buy the printed cost", async () => {
+    const s = xrosBoard([
+      { card: CARD_ID, as: "darkness" },
+      { card: "BT11-088", as: "bagramon" },
+      { card: "BT7-063", as: "darkknight" },
+    ]);
+    // At 0 memory the gauge affords 10, so the printed 16 is out of reach and the reduced 10 is
+    // exactly reachable — the discount is the whole difference between the two results.
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkness").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkness").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("bagramon").instanceId, s.inst("darkknight").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+    expect(s.state.memory).toBe(-10);
+  });
+
+  it("refuses a DigiXros declaration with no materials at all", async () => {
+    const s = xrosBoard([{ card: CARD_ID, as: "darkness" }]);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkness").instanceId,
+        digiXros: { materialInstanceIds: [] },
+      }),
+    ).toEqual({ ok: false, reason: "no-materials" });
+  });
+
+  // --- [On Play] [When Digivolving] --------------------------------------------------------
+
+  /**
+   * The public [When Digivolving] route: BT3-089 Boltmon is a Lv.6 purple Digimon with no
+   * printed text, so it satisfies the "Purple Lv.6 : 6" EvoCost row and contributes nothing of
+   * its own — and, not being [Bagra Army], it confers nothing through the [All Turns] clause
+   * either.
+   */
+  async function digivolveIntoDarkness(s: ReturnType<typeof setupEngine>): Promise<void> {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("darkness").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === CARD_ID && s.state.pendingDecision == null);
+  }
+
+  it("Q5161 places the hidden hand card, pays 3 [Bagra Army] trash cards on top, and deletes", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
           trash: [
-            { card: "BT10-073", as: "first" },
-            { card: "BT10-077", as: "second" },
-            { card: "EX10-027", as: "third" },
+            { card: "BT10-073", as: "firstPay" },
+            { card: "BT10-077", as: "secondPay" },
+            { card: "EX10-027", as: "thirdPay" },
           ],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-010"] }],
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "BT1-014", as: "host", under: [{ card: "BT1-013", as: "existing" }] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 6;
     await s.ready();
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId, s.inst("third").instanceId]),
+    const hostPermanentId = s.perm("host").permanentId;
+
+    await digivolveIntoDarkness(s);
+
+    // The opponent's hand card left their hand for the bottom of the host's digivolution cards,
+    // and the host was then deleted, so both cards are in the opponent's trash.
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(hostPermanentId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("handCard").instanceId, s.inst("existing").instanceId]),
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
-    await settle(() => s.perm("darkness").stack.length === 3);
-    expect(
-      s
-        .perm("darkness")
-        .stack.map(({ instanceId }) => instanceId)
-        .slice(-3),
-    ).toEqual(
-      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId, s.inst("third").instanceId]),
-    );
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    // The 3 [Bagra Army] cards left the trash and sit as the TOP digivolution cards — directly
+    // beneath this Digimon and above the Lv.6 source it digivolved from.
+    const paid = ["firstPay", "secondPay", "thirdPay"].map((alias) => s.inst(alias).instanceId);
+    const stack = s.perm("source").stack.map(({ instanceId }) => instanceId);
+    expect(stack).toHaveLength(4);
+    expect(stack.slice(1)).toEqual(expect.arrayContaining(paid));
+    expect(stack[0]).toBe(s.inst("source").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toEqual(expect.arrayContaining(paid));
+    expect(s.state.pendingDecision == null).toBe(true);
   });
 
-  it("Q5161 cannot pay the deletion condition with only 2 matching trash cards", async () => {
+  it("Q5161 refuses to part-pay the deletion condition with only 2 matching trash cards", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "darkness" }],
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
           trash: [
-            { card: "BT10-073", as: "first" },
-            { card: "BT10-073", as: "second" },
+            { card: "BT10-073", as: "firstPay" },
+            { card: "BT10-077", as: "secondPay" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-010"] }] },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "BT1-014", as: "host", under: [{ card: "BT1-013", as: "existing" }] }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 6;
     await s.ready();
-    const targetId = s.perm("stacked").permanentId;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
-    await settle(() => s.state.pendingDecision === null);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(targetId);
+    const hostPermanentId = s.perm("host").permanentId;
+
+    await digivolveIntoDarkness(s);
+
+    // The mandatory first sentence still resolved…
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("handCard").instanceId,
+      s.inst("existing").instanceId,
+    ]);
+    // …but the "by placing 3" condition cannot be part-paid, so nothing was placed and nothing
+    // was deleted.
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostPermanentId);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstPay").instanceId, s.inst("secondPay").instanceId]),
+    );
+  });
+
+  it("deletes only a permanent that has cards under it", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+          trash: [
+            { card: "BT10-073", as: "firstPay" },
+            { card: "BT10-077", as: "secondPay" },
+            { card: "EX10-027", as: "thirdPay" },
+          ],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [
+            { card: "BT17-083", as: "tamer" },
+            { card: "BT1-014", as: "bare" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    // Steer the placement onto the Tamer so the opposing Digimon keeps an empty stack.
+    preferInstanceIds.push(s.perm("tamer").permanentId);
+    const barePermanentId = s.perm("bare").permanentId;
+
+    await digivolveIntoDarkness(s);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([barePermanentId]);
+    expect(s.perm("bare").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("handCard").instanceId, s.inst("tamer").instanceId]),
+    );
+  });
+
+  it("Q5162 places the card at the very bottom of a Tamer that already has cards under it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [
+            {
+              card: "BT17-083",
+              as: "tamer",
+              under: [
+                { card: "BT1-013", as: "lower" },
+                { card: "BT1-014", as: "upper" },
+              ],
+            },
+          ],
+        },
+      },
+      // No [Bagra Army] card in the trash, so the "by placing 3" condition cannot be met and
+      // the Tamer survives to be inspected.
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    await digivolveIntoDarkness(s);
+
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("handCard").instanceId,
+      s.inst("lower").instanceId,
+      s.inst("upper").instanceId,
+    ]);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+  });
+
+  it("Q5163 cannot place the card under an opposing Digimon that effects can't affect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          // BT15-047 Kabuterimon prints "[All Turns] While this Digimon is suspended, it isn't
+          // affected by the effects of your opponent's Digimon" — and the opponent controls no
+          // Tamer, so there is no other legal host.
+          battleArea: [{ card: "BT15-047", as: "immune", suspended: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    await digivolveIntoDarkness(s);
+
+    expect(s.perm("immune").stack).toHaveLength(0);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("handCard").instanceId]);
+  });
+
+  /**
+   * Q5164 / Q5165 control: a DIGIMON that receives the placed card does gain its inherited
+   * effect. EX10-026 SkullKnightmon's inherited effect is ＜Blocker＞, so the host opens a block
+   * window it could not open before.
+   */
+  it("a Digimon host gains the placed card's inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+        },
+        1: {
+          hand: [{ card: "EX10-026", as: "handCard" }],
+          battleArea: [{ card: "BT1-014", as: "host" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    await digivolveIntoDarkness(s);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("handCard").instanceId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("host").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("Q5164 a Tamer host does not gain the placed card's inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+        },
+        1: {
+          hand: [{ card: "EX10-026", as: "handCard" }],
+          // The opponent's only permanent is a Tamer, so it is the only legal host.
+          battleArea: [{ card: "BT17-083", as: "tamer" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    await digivolveIntoDarkness(s);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("handCard").instanceId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    // No ＜Blocker＞ reached the Tamer: no block window ever opened, and with none open the
+    // opponent's decline is out of phase.
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("tamer").permanentId);
+  });
+
+  /**
+   * Q5165: a [Marcus Damon] that BT17-087's [On Play] is treating as a Digimon DOES gain the
+   * placed card's inherited effect, until it stops being treated as one.
+   *
+   * Not reachable through public intents. BT17-087 grants `kinds: ["Digimon"]` only from its own
+   * [On Play], so the opponent must play it on THEIR turn; the grant's duration is
+   * `untilOpponentTurnEnd`. The ruling's observable half is BT12-038's inherited effect, which
+   * is printed `[Your Turn] [Once Per Turn] If one of your yellow or red Tamers becomes
+   * suspended…` — "your turn" being the Tamer controller's turn. So the only turn on which the
+   * inherited effect can fire is the opponent's, and the only turn on which this card can place
+   * the material is ours. The two windows never overlap, and no public intent suspends an
+   * opponent's Tamer on their own turn.
+   *
+   * The half that is testable is proved above: a Digimon host gains the placed card's inherited
+   * effect ("a Digimon host gains…"), a plain Tamer host does not (Q5164). The report records
+   * this ruling as untestable through public intents for the reason above.
+   */
+  // --- [All Turns] conferral from level 6 [Bagra Army] digivolution cards -------------------
+
+  it("Q5166 a [Bagramon] DigiXros material is already in the stack, so its [All Turns] fires", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "darkness" },
+            { card: "EX10-056", as: "bagramon" },
+            { card: "BT7-063", as: "darkknight" },
+          ],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "BT1-014", as: "host" }],
+          security: ["BT1-009", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 16;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkness").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("bagramon").instanceId, s.inst("darkknight").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    // The [On Play] placed the opponent's hand card under their Digimon; the conferred EX10-056
+    // watcher saw that placement and paid 2 digivolution cards to trash their top security card.
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("handCard").instanceId]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("darkness").stack).toHaveLength(0);
+  });
+
+  it("Q5167 a [Bagramon] placed BY this effect does not fire for the placement that preceded it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+          trash: [
+            { card: "EX10-056", as: "bagramon" },
+            { card: "BT10-073", as: "secondPay" },
+            { card: "BT10-077", as: "thirdPay" },
+          ],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "BT1-014", as: "host", under: [{ card: "BT1-013", as: "existing" }] }],
+          security: ["BT1-009", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    await digivolveIntoDarkness(s);
+
+    // EX10-056 only reached the stack as part of the "by placing 3" payment, after the hand-card
+    // placement had already resolved, so no security card was trashed.
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("bagramon").instanceId);
+    expect(s.perm("source").stack).toHaveLength(4);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("Q5168 a [Lilithmon] placed BY this effect fires for the deletion that follows it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+          trash: [
+            { card: "EX10-058", as: "lilithmon" },
+            { card: "BT10-073", as: "secondPay" },
+            { card: "BT10-077", as: "thirdPay" },
+            // The payoff of the conferred [All Turns]: a purple level 4 Digimon card, played
+            // from the trash without paying the cost.
+            { card: "BT4-080", as: "payoff" },
+          ],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "BT1-014", as: "host", under: [{ card: "BT1-013", as: "existing" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    await digivolveIntoDarkness(s);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT4-080"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT4-080")).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("payoff").instanceId);
+    // The conferred effect paid with 2 of this Digimon's digivolution cards.
+    expect(s.perm("source").stack).toHaveLength(2);
+  });
+
+  it("Q5169 a [Tactimon] placed BY this effect prevents this Digimon from leaving in the interrupt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "source" }],
+          trash: [
+            { card: "EX10-055", as: "tactimon" },
+            { card: "BT10-073", as: "secondPay" },
+            { card: "BT10-077", as: "thirdPay" },
+          ],
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          // EX7-061 Lilithmon (X Antibody) prevents its own leaving "by deleting 1 other
+          // Digimon" while [Lilithmon] is in its digivolution cards — EX10-058 is named
+          // Lilithmon — and having cards under it also makes it a legal deletion target.
+          battleArea: [{ card: "EX7-061", as: "lilithX", under: [{ card: "EX10-058", as: "lilithSource" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    await digivolveIntoDarkness(s);
+
+    // The conferred [Tactimon] replacement kept this Digimon on the board, so EX7-061's own
+    // "by deleting 1 other Digimon" condition went unmet and EX7-061 was deleted after all.
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain(CARD_ID);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    // The prevention is not free: [Tactimon]'s conferred cost trashed 2 of the 4 digivolution
+    // cards. Without this the test would also pass if EX7-061's replacement never fired at all.
+    expect(s.perm("source").stack).toHaveLength(2);
   });
 });

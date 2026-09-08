@@ -29,6 +29,9 @@ const compiled: CompiledCard = {
           targetIsPermanent: true,
           // Q5143: a host that already has cards under it receives this one at the true bottom.
           position: "bottom",
+          // Q5145: the placed Digimon LEAVES the battle area, so only its top card becomes a
+          // digivolution card and its own digivolution cards are trashed at the same time.
+          shedOwnCards: true,
           optional: true,
         },
       ],
@@ -46,6 +49,7 @@ const compiled: CompiledCard = {
           underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
           targetIsPermanent: true,
           position: "bottom",
+          shedOwnCards: true,
           optional: true,
         },
       ],
@@ -57,7 +61,10 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          // "your opponent's Digimon OR TAMERS digivolve": a Tamer base digivolves as a Tamer,
+          // and the engine's `tamerDigivolvedGate` withholds a watcher whose kind list names
+          // only Digimon (Q6671/Q6708 precedent, BT18-010).
+          sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
           oncePerTurnKey: "EX10-056/all-turns",
           actions: [
             {
@@ -78,7 +85,10 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          // "or EFFECTS place cards under them": only an effect-driven placement counts. An
+          // ordinary digivolution also rides this bus and is covered by the sibling watcher;
+          // Q5148 needs no gate here because the link verb never posts this event at all.
+          sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"], byEffect: true },
           oncePerTurnKey: "EX10-056/all-turns",
           actions: [
             {

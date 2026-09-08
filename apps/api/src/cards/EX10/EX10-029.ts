@@ -11,18 +11,31 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
+      // "At the end of the battle": the security battle resolves first and this card reaches
+      // the trash, and only then is it played. Modelled exactly as BT21-015 Cyclonemon, which
+      // prints the same sentence. An immediate PlayWithoutCost pulls the card out of security
+      // before the battle, so the security battle never happens at all.
+      timing: "endOfBattle",
       isSecurity: true,
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
     },

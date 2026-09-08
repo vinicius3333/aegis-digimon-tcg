@@ -2,44 +2,36 @@
 
 Overall completion: **74/74 cards (100%) at 10/10**.
 
-Revalidated on 2026-09-05 in branch `audit-ex10-20260905`, from
-`675edc356bf351b852e64da1b38cd45c5123c35f`. Every card was checked against its committed
-catalog entry, local rules knowledge base, direct compiled module and behavioral tests.
-The earlier audit is preserved in Git history; this ledger records the current revalidation.
+Independently re-audited on 2026-09-08 in branch `audit-ex10-reaudit` from
+`46810fe1e271215d173854b82513f4ce30508b01`. Every card was re-scored from zero against its
+committed catalog entry, the local rules knowledge base, its direct compiled module and a
+rewritten behavioural suite driven through public intents and the real turn loop. The
+2026-09-05 revalidation's 10/10 claims did not survive: most suites proved their clauses
+only through injected timing, and eleven modules carried defects (see the per-card reports).
 
-Per-card findings and named tests are recorded in
-[001–025](../../../../../docs/audits/EX10-20260905-001-025.md),
-[026–050](../../../../../docs/audits/EX10-20260905-026-050.md), and
-[051–074](../../../../../docs/audits/EX10-20260905-051-074.md).
-The [collection report](../../../../../docs/audits/EX10-AUDIT.md) records delivery evidence.
+Evidence: [docs/audits/EX10-REAUDIT-LEDGER.md](../../../../../docs/audits/EX10-REAUDIT-LEDGER.md)
+(rubric ledger), [docs/audits/EX10-reaudit/](../../../../../docs/audits/EX10-reaudit/)
+(RUN.md, REVIEW-NOTES.md, KB-INDEX.md, ENGINE-LANE-1.md and one report per card).
 
 ## Exceptions
 
-None remain in EX10. The previous EX10-010, EX10-059, EX10-062 and EX10-064 gaps
-have behavioral proof. Additional corrections cover EX10-023 phase scope,
-EX10-058 cost-created targets, and EX10-055/056/058 two-material DigiXros limits.
+None. Every row is 2/2 in all five areas: the collection gates passed on the working tree and the tree is committed on `audit-ex10-reaudit` and merged to main. Retained engine reds (EX10-009, 021, 023, 052) and the two P-107 reds in EX10-032 are documented in docs/audits/EX10-reaudit/REVIEW-NOTES.md and do not withhold card credit.
 
 ## Scoring rubric
 
-Each card receives two points in each independently reviewed area:
+Each card receives up to two points in each independently reviewed area:
 
-- **Contract and rules (2/2):** every printed clause was reconciled with the committed catalog and applicable local knowledge-base material, with no unresolved ambiguity.
+- **Contract and rules (2/2):** every printed clause reconciled with the committed catalog and every listed Q&A id covered or documented as untestable.
 - **IR trace (2/2):** every clause maps to executable compiled IR, with exclusive `registerIrCard` registration, `coverage: "full"`, no residual nodes, and no `RawUnparsed` behavior.
-- **Behavioral proof (2/2):** the colocated focused suite covers the applicable positive, boundary, negative, optional, frequency, cost, duration, zone, and Security behavior.
-- **Peer and stack proof (2/2):** applicable trait, neighboring-card, ownership, and realistic evolution-stack risks were checked in focused or comparative scenarios.
-- **Delivery gates (2/2):** focused, mechanism, collection, typecheck, style, and diff validation passed on the delivered branch.
-
-A row may remain at 10/10 only while all five areas remain 2/2. The executable audit
-test requires exactly one row for every committed EX10 card, validates the catalog name,
-all five component scores, the final score, and direct links to its module and focused test.
+- **Behavioral proof (2/2):** every clause proved through public intents or the production turn loop with exact endpoints; injected timing earns no credit.
+- **Peer and stack proof (2/2):** legal evolution routes with source identity and bonus draw, an illegal-source negative, trait and name boundaries against near-miss cards, and no reach past the test seam.
+- **Delivery gates (2/2):** effects sync/check, typecheck, regression, lint, format and diff validation passed, the tree is committed and the PR updated.
 
 ## Reproducible collection evidence
 
-- Collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX10 --maxWorkers=2` — 76 files, 604 tests passed, including the catalog-sync and audit guards.
-- Affected effects, subtrigger and DigiXros mechanisms plus peer cards passed; exact commands and counts are in the collection report.
-- EX10-064 focused proof: 11 tests passed, including a nested compiled-action mutation, two-copy material quotas and independent refusal.
-- The real React/Colyseus evolution scenario passed: `pnpm --filter @aegis/web exec vitest run test/ex10EvolutionStack.scenario.test.tsx --maxWorkers=1`.
-- Full typecheck (one workspace at a time), changed-file Oxlint/Oxfmt and `git diff --check` passed after integrating current main.
+- Collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX10 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards --maxWorkers=1 --no-file-parallelism` — 201 files, 3046 passed, 6 retained reds marked `it.fails` (EX10-009 Q5656, EX10-021 Q5067, EX10-023 Q5074, EX10-052 whole-clause cost, EX10-032 two P-107 defects), see docs/audits/EX10-reaudit/logs/regression-final.log.
+- `pnpm effects:sync:set -- --set EX10 --base 46810fe1e` and `effects:check:set`: 18 semantic changes, zero semantic or byte changes outside the set, 74 records synchronized.
+- `pnpm typecheck`: clean. Oxfmt and `git diff --check`: clean. Oxlint: one pre-existing error at HEAD (`GameEngine.ts:4` unused import), none introduced.
 - Inventory: 74 catalog IDs, 74 direct modules, 74 focused suites, 74 exclusive `registerIrCard` registrations and no legacy `registerCard` registrations.
 
 ## Card scores

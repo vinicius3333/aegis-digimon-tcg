@@ -79,7 +79,9 @@ const compiled: CompiledCard = {
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               into: {
                 controllerDefault: "mine",
-                nameOrTrait: [{ tokens: ["Regulusmon"], match: "name" }],
+                // Printed "[Regulusmon]" is a bracketed EXACT name reference, unlike the
+                // "with [Gammamon] in its name" clause above, which is a substring match.
+                nameOrTrait: [{ tokens: ["Regulusmon"], match: "nameExact" }],
               },
               from: ["hand", "trash"],
               payCost: true,

@@ -526,6 +526,21 @@ export class GameEngine {
   private pendingWindowSubTriggers: ArmedSubTrigger[] = [];
   /** Printed timing effects triggered inside the currently resolving effect body. */
   private pendingNestedTimingEffects: CollectedEffect[] = [];
+  /**
+   * True while a play's pay-time window is running its reducers' costs. A Digimon deleted to
+   * pay a "when this card would be played, by deleting 1 of your Digimon, reduce the cost"
+   * clause is deleted as part of the play, so its [On Deletion] triggers SIMULTANEOUSLY with
+   * the played card's [On Play] (KB Q5131) and the turn player orders the two. Without this
+   * flag the deletion opens its own window during cost payment and resolves before the play
+   * even happens, so no ordering choice is ever offered.
+   */
+  private payingPlayCost = false;
+  /**
+   * [On Deletion] effects collected from a play-cost deletion, waiting for that play's entry
+   * window so the turn player orders them against the played card's [On Play] (Q5131). Kept
+   * apart from {@link pendingNestedTimingEffects}, which any outermost window may drain.
+   */
+  private pendingPlayCostDeletionEffects: CollectedEffect[] = [];
 
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   private readonly deferredSecurityRemovalTriggers: Array<{
@@ -624,16 +639,23 @@ export class GameEngine {
     return this.effectResolutionDepth > 0 && this.activeWindowToken !== undefined;
   }
 
+  private collectNestedTimingEffects(
+    timing: EffectTiming,
+    trigger: TriggerInfo,
+    candidateInstances: readonly CardInstance[],
+  ): CollectedEffect[] {
+    const capturedTrigger = { ...trigger };
+    return gatherTriggeredEffects(this.effectEnvironment(capturedTrigger), timing, candidateInstances).map(
+      (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
+    );
+  }
+
   private deferNestedTimingEffects(
     timing: EffectTiming,
     trigger: TriggerInfo,
     candidateInstances: readonly CardInstance[],
   ): void {
-    const capturedTrigger = { ...trigger };
-    const effects = gatherTriggeredEffects(this.effectEnvironment(capturedTrigger), timing, candidateInstances).map(
-      (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
-    );
-    this.pendingNestedTimingEffects.push(...effects);
+    this.pendingNestedTimingEffects.push(...this.collectNestedTimingEffects(timing, trigger, candidateInstances));
   }
 
   /**
@@ -2343,6 +2365,18 @@ export class GameEngine {
     trigger: TriggerInfo,
     transientCandidates: readonly CardInstance[] = [],
   ): Promise<void> {
+    // A play-cost deletion belongs to the play's own trigger batch (KB Q5131): collect its
+    // [On Deletion] effects at trigger time and hand them to the play's entry window, where
+    // they compete with the played card's [On Play] in one ordering prompt. Gated here rather
+    // than in `fireTiming` because a rule-check pass routes its pooled deletion window
+    // straight to this runner.
+    if (timing === EffectTiming.OnDestroyedAnyone && this.payingPlayCost) {
+      await this.recomputeContinuousEffects();
+      this.pendingPlayCostDeletionEffects.push(
+        ...this.collectNestedTimingEffects(timing, trigger, [...this.listCandidateInstances(), ...transientCandidates]),
+      );
+      return;
+    }
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
@@ -3842,6 +3876,7 @@ export class GameEngine {
     timing: EffectTiming,
     sourceInstanceId: string,
     trigger: TriggerInfo = {},
+    extraPending: readonly CollectedEffect[] = [],
   ): Promise<void> {
     if (this.shouldDeferNestedTiming()) {
       await this.recomputeContinuousEffects();
@@ -3854,7 +3889,10 @@ export class GameEngine {
       await runTiming(
         timing,
         this.effectEnvironment(trigger),
-        this.resolutionDeps(() => this.instancesById([sourceInstanceId]), { outermost: wasOutermostWindow }),
+        this.resolutionDeps(() => this.instancesById([sourceInstanceId]), {
+          outermost: wasOutermostWindow,
+          extraPending,
+        }),
       );
       if (wasOutermostWindow) {
         await this.flushDeferredTimingWindows();
@@ -3939,8 +3977,10 @@ export class GameEngine {
     sourceInstanceId: string,
     scopedTrigger: TriggerInfo = {},
   ): Promise<void> {
+    // Whatever a play-cost deletion triggered rides into this play's own window (Q5131).
+    const costDeletionEffects = this.pendingPlayCostDeletionEffects.splice(0);
     if (timing !== EffectTiming.OnPlay) {
-      await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
+      await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
@@ -3963,7 +4003,7 @@ export class GameEngine {
         // other when-played watchers still observe the event even if a 0-DP entrant is deleted
         // here and its own On Play source becomes ineligible (EX4-074 Q3523).
         await this.ruleProcess();
-        await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
+        await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
         await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
           ...(entryPermanentId !== undefined ? { subjectPermanentId: entryPermanentId } : {}),
           entryCause: "play",
@@ -4296,129 +4336,137 @@ export class GameEngine {
       );
       return Math.max(0, baseCost - selfReduction - interactiveReduction);
     }
-    for (const effect of effects) {
-      if (reductionBlocked && effect.isPlayCostReduction === true) continue;
-      if (!canTrigger(effect, ctx, this.tracker)) continue;
-      if (!canActivate(effect, ctx, this.tracker)) continue;
-      await effect.resolve(ctx);
-    }
-    // Generic battle-area pay-time watchers. Unlike the card being played, their
-    // EffectContext source is the physical resident carrying the effect; the imminent
-    // card identity is carried in TriggerInfo. This lets independent copies resolve and
-    // account OPT separately while accumulating their reductions in the shared cost window.
-    for (const { effect, source: residentSource } of residentEffects) {
-      if (reductionBlocked && effect.isPlayCostReduction === true) continue;
-      const residentCtx: EffectContext = {
-        ...this.buildEffectContext(residentSource, {
-          wouldBePlayedInstanceId: instance.instanceId,
-          wouldBePlayedCardId: instance.cardId,
-          wouldBePlayedAsOption: useAsOption,
-        }),
-        selections: new Map(),
-        playCostDelta: ctx.playCostDelta,
-      };
-      if (!canTrigger(effect, residentCtx, this.tracker)) continue;
-      if (!canActivate(effect, residentCtx, this.tracker)) continue;
-      const beforeDelta = residentCtx.playCostDelta ?? 0;
-      await effect.resolve(residentCtx);
-      ctx.playCostDelta = residentCtx.playCostDelta;
-      if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
-        this.tracker.register(residentSource.instanceId, effect.effectKey);
+    // Everything below actually PAYS the reducers' costs. Mark the window so a cost deletion's
+    // [On Deletion] joins this play's trigger batch instead of resolving in its own window.
+    const wasPayingPlayCost = this.payingPlayCost;
+    this.payingPlayCost = true;
+    try {
+      for (const effect of effects) {
+        if (reductionBlocked && effect.isPlayCostReduction === true) continue;
+        if (!canTrigger(effect, ctx, this.tracker)) continue;
+        if (!canActivate(effect, ctx, this.tracker)) continue;
+        await effect.resolve(ctx);
       }
-    }
-    // [Breeding] inherited pay-time effects are supplied by cards in the owner's
-    // breeding-area stack (the card being played is still in hand, so its own
-    // module cannot host the watcher). Resolve these against the same shared
-    // play-cost context so their reductions are paid before memory is charged.
-    for (const { effect, source: residentSource } of breedingResidentEffects) {
-      if (reductionBlocked && effect.isPlayCostReduction === true) continue;
-      const residentCtx: EffectContext = {
-        ...this.buildEffectContext(residentSource, {
-          wouldBePlayedInstanceId: instance.instanceId,
-          wouldBePlayedCardId: instance.cardId,
-          wouldBePlayedAsOption: useAsOption,
-        }),
-        selections: new Map(),
-        playCostDelta: ctx.playCostDelta,
-      };
-      if (!canTrigger(effect, residentCtx, this.tracker)) continue;
-      if (!canActivate(effect, residentCtx, this.tracker)) continue;
-      const beforeDelta = residentCtx.playCostDelta ?? 0;
-      await effect.resolve(residentCtx);
-      ctx.playCostDelta = residentCtx.playCostDelta;
-      if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
-        this.tracker.register(residentSource.instanceId, effect.effectKey);
+      // Generic battle-area pay-time watchers. Unlike the card being played, their
+      // EffectContext source is the physical resident carrying the effect; the imminent
+      // card identity is carried in TriggerInfo. This lets independent copies resolve and
+      // account OPT separately while accumulating their reductions in the shared cost window.
+      for (const { effect, source: residentSource } of residentEffects) {
+        if (reductionBlocked && effect.isPlayCostReduction === true) continue;
+        const residentCtx: EffectContext = {
+          ...this.buildEffectContext(residentSource, {
+            wouldBePlayedInstanceId: instance.instanceId,
+            wouldBePlayedCardId: instance.cardId,
+            wouldBePlayedAsOption: useAsOption,
+          }),
+          selections: new Map(),
+          playCostDelta: ctx.playCostDelta,
+        };
+        if (!canTrigger(effect, residentCtx, this.tracker)) continue;
+        if (!canActivate(effect, residentCtx, this.tracker)) continue;
+        const beforeDelta = residentCtx.playCostDelta ?? 0;
+        await effect.resolve(residentCtx);
+        ctx.playCostDelta = residentCtx.playCostDelta;
+        if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
+          this.tracker.register(residentSource.instanceId, effect.effectKey);
+        }
       }
-    }
-    // Resolve interactive would-be-played subscriptions only after resident effects have run:
-    // inherited [Breeding] reducers live in the breeding stack and install their subscription
-    // during this very pay-time pass, so consulting earlier would miss the current play entirely.
-    const interactiveReduction = reductionBlocked
-      ? 0
-      : await this.subTriggers.activateInteractiveReductionsFor(
-          "wouldBePlayed",
-          source.ownerSeat,
-          playTarget,
-          source.definition,
-          undefined,
-          (sourcePermanentId, sourceInstanceId) => {
-            const resident =
-              this.access.permanentById(sourcePermanentId) ??
-              (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
-                ? this.state.players[source.ownerSeat]?.breeding
-                : undefined);
-            return resident?.topCard === undefined
-              ? undefined
-              : this.buildEffectContext(
-                  this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
-                  {
-                    wouldBePlayedInstanceId: instance.instanceId,
-                    wouldBePlayedCardId: instance.cardId,
-                    wouldBePlayedAsOption: useAsOption,
-                  },
-                );
-          },
-          {
+      // [Breeding] inherited pay-time effects are supplied by cards in the owner's
+      // breeding-area stack (the card being played is still in hand, so its own
+      // module cannot host the watcher). Resolve these against the same shared
+      // play-cost context so their reductions are paid before memory is charged.
+      for (const { effect, source: residentSource } of breedingResidentEffects) {
+        if (reductionBlocked && effect.isPlayCostReduction === true) continue;
+        const residentCtx: EffectContext = {
+          ...this.buildEffectContext(residentSource, {
+            wouldBePlayedInstanceId: instance.instanceId,
+            wouldBePlayedCardId: instance.cardId,
+            wouldBePlayedAsOption: useAsOption,
+          }),
+          selections: new Map(),
+          playCostDelta: ctx.playCostDelta,
+        };
+        if (!canTrigger(effect, residentCtx, this.tracker)) continue;
+        if (!canActivate(effect, residentCtx, this.tracker)) continue;
+        const beforeDelta = residentCtx.playCostDelta ?? 0;
+        await effect.resolve(residentCtx);
+        ctx.playCostDelta = residentCtx.playCostDelta;
+        if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
+          this.tracker.register(residentSource.instanceId, effect.effectKey);
+        }
+      }
+      // Resolve interactive would-be-played subscriptions only after resident effects have run:
+      // inherited [Breeding] reducers live in the breeding stack and install their subscription
+      // during this very pay-time pass, so consulting earlier would miss the current play entirely.
+      const interactiveReduction = reductionBlocked
+        ? 0
+        : await this.subTriggers.activateInteractiveReductionsFor(
+            "wouldBePlayed",
+            source.ownerSeat,
+            playTarget,
+            source.definition,
+            undefined,
+            (sourcePermanentId, sourceInstanceId) => {
+              const resident =
+                this.access.permanentById(sourcePermanentId) ??
+                (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
+                  ? this.state.players[source.ownerSeat]?.breeding
+                  : undefined);
+              return resident?.topCard === undefined
+                ? undefined
+                : this.buildEffectContext(
+                    this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
+                    {
+                      wouldBePlayedInstanceId: instance.instanceId,
+                      wouldBePlayedCardId: instance.cardId,
+                      wouldBePlayedAsOption: useAsOption,
+                    },
+                  );
+            },
+            {
+              hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+              markFired: (key) => this.tracker.register(key, "replacement"),
+            },
+            undefined,
+            originZone,
+          );
+      if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
+      const passiveReduction = this.continuous.blocksCostReduction(source.ownerSeat, "play")
+        ? 0
+        : this.subTriggers.costReductionFor("wouldBePlayed", playTarget, source.definition, {
+            consume: true,
             hasFired: (key) => this.tracker.count(key, "replacement") > 0,
             markFired: (key) => this.tracker.register(key, "replacement"),
-          },
-          undefined,
-          originZone,
-        );
-    if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
-    const passiveReduction = this.continuous.blocksCostReduction(source.ownerSeat, "play")
-      ? 0
-      : this.subTriggers.costReductionFor("wouldBePlayed", playTarget, source.definition, {
-          consume: true,
-          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
-          markFired: (key) => this.tracker.register(key, "replacement"),
-        });
-    if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
-    // A prohibition nullifies the reduction, not the played card's own "by <cost>, reduce" clause:
-    // its cost may still be paid (KB Q4443 — under Psychemon the 2 Digimon are suspended and the
-    // original cost is paid), and the delta it earns is discarded below. A cost-less reducer has
-    // nothing to offer while blocked.
-    for (const reducer of selfReducers) {
-      const paysSomething =
-        reducer.cost !== undefined || reducer.pay !== undefined || reducer.costActions !== undefined;
-      if (reductionBlocked && !paysSomething) continue;
-      await applyWouldBePlayedSelfReducer(ctx, reducer);
+          });
+      if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
+      // A prohibition nullifies the reduction, not the played card's own "by <cost>, reduce" clause:
+      // its cost may still be paid (KB Q4443 — under Psychemon the 2 Digimon are suspended and the
+      // original cost is paid), and the delta it earns is discarded below. A cost-less reducer has
+      // nothing to offer while blocked.
+      for (const reducer of selfReducers) {
+        const paysSomething =
+          reducer.cost !== undefined || reducer.pay !== undefined || reducer.costActions !== undefined;
+        if (reductionBlocked && !paysSomething) continue;
+        await applyWouldBePlayedSelfReducer(ctx, reducer);
+      }
+      // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
+      // relocate under the played card's own permanent — which does not exist yet at this point. Stash
+      // it for `placePendingDigivolution` to relocate once it does (see `pendingSelfReducerRelocations`).
+      if (ctx.pendingSelfReducerRelocations && ctx.pendingSelfReducerRelocations.length > 0) {
+        const pending = this.pendingSelfReducerRelocations.get(instance.instanceId) ?? [];
+        this.pendingSelfReducerRelocations.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerRelocations]);
+      }
+      if (ctx.pendingSelfReducerPlacements && ctx.pendingSelfReducerPlacements.length > 0) {
+        const pending = this.pendingPlayReducerPlacements.get(instance.instanceId) ?? [];
+        this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
+      }
+      if (!reductionBlocked) await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
+      if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
+      const delta = Math.max(0, ctx.playCostDelta ?? 0);
+      return Math.max(0, baseCost - delta);
+    } finally {
+      this.payingPlayCost = wasPayingPlayCost;
     }
-    // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
-    // relocate under the played card's own permanent — which does not exist yet at this point. Stash
-    // it for `placePendingDigivolution` to relocate once it does (see `pendingSelfReducerRelocations`).
-    if (ctx.pendingSelfReducerRelocations && ctx.pendingSelfReducerRelocations.length > 0) {
-      const pending = this.pendingSelfReducerRelocations.get(instance.instanceId) ?? [];
-      this.pendingSelfReducerRelocations.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerRelocations]);
-    }
-    if (ctx.pendingSelfReducerPlacements && ctx.pendingSelfReducerPlacements.length > 0) {
-      const pending = this.pendingPlayReducerPlacements.get(instance.instanceId) ?? [];
-      this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
-    }
-    if (!reductionBlocked) await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
-    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
-    const delta = Math.max(0, ctx.playCostDelta ?? 0);
-    return Math.max(0, baseCost - delta);
   }
 
   /**

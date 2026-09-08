@@ -60,7 +60,11 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Koromon"],
+      // "[Digivolve] [Koromon]: Cost 0" brackets the whole name, so the source must BE
+      // Koromon. `names` is a substring match (see DigivolutionRequirement) and would also
+      // accept a future "...Koromon" print; `namesExact` is the printed gate. No released
+      // card has "Koromon" as a proper substring, so today the two behave alike.
+      namesExact: ["Koromon"],
       cost: 0,
       isAlternate: true,
     },

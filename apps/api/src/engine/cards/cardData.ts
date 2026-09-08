@@ -23,6 +23,7 @@ import {
   tamerOntoDigivolveLevel,
 } from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
+import { textMatchesToken } from "./keywordToken.js";
 
 /**
  * Engine-side card-data-model access layer.
@@ -513,7 +514,9 @@ function matchGatedRequirement(
         .filter((value): value is string => value !== undefined)
         .join(" ")
         .toLowerCase();
-      if (!req.texts.some((token) => textUnion.includes(token.toLowerCase()))) continue;
+      // A printed keyword token ("＜Save＞ in its text") is delimiter-anchored, so it no longer
+      // matches ＜Material Save＞ or a card named [Savemon] (EX10 seam 12).
+      if (!req.texts.some((token) => textMatchesToken(textUnion, token))) continue;
     }
 
     return req;

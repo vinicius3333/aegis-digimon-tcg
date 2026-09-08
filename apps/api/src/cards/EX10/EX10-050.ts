@@ -128,8 +128,11 @@ const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [
                 {
+                  // "[Beelzemon]" is a bracketed exact-name reference: "Beelzemon: Blast
+                  // Mode" is a different card name (KB Q1231/Q1232), so `name` (substring)
+                  // would wrongly offer it from the trash.
                   tokens: ["Beelzemon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-016.js";
@@ -133,7 +133,9 @@ describe("EX10-016 Mirrormon", () => {
     assertNoLoudGap(link);
   });
 
-  it("suspends 1 only when this Digimon gets linked and only once per turn", async () => {
+  it("suspends 1 only when this Digimon gets linked, refuses a second use, and resets next own turn", async () => {
+    // A live bias array: each step names the ONE opposing Digimon a firing would suspend, so a
+    // refused use cannot be confused with a use that re-suspended an already suspended target.
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -143,23 +145,35 @@ describe("EX10-016 Mirrormon", () => {
             { card: "BT21-009", as: "neighbor" },
           ],
           hand: [
-            { card: "BT24-053", as: "firstLink" },
             { card: "BT24-053", as: "neighborLink" },
+            { card: "BT24-053", as: "firstLink" },
+            { card: "BT24-053", as: "secondLink" },
+            { card: "BT24-053", as: "thirdLink" },
           ],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "firstTarget" },
             { card: "BT1-010", as: "secondTarget" },
+            { card: "BT1-011", as: "thirdTarget" },
           ],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011"],
+          hand: ["BT1-013"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.memory = 2;
-    preferred.push(s.perm("firstTarget").permanentId);
-    await s.ready();
+    const suspendedOpponents = () => s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended).length;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // The turn loop hands the turn player its own memory; top it up so the link declarations
+    // below never drive memory to zero and hand the turn over mid-test.
+    s.state.memory = 8;
 
+    // A card linked to a NEIGHBOUR is not this Digimon getting linked: the watcher stays quiet.
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -170,8 +184,12 @@ describe("EX10-016 Mirrormon", () => {
     await settle(() =>
       s.perm("neighbor").linked.some(({ instanceId }) => instanceId === s.inst("neighborLink").instanceId),
     );
-    expect(s.perm("firstTarget").isSuspended).toBe(false);
+    expect(suspendedOpponents()).toBe(0);
 
+    s.state.memory = 8;
+    preferred.length = 0;
+    preferred.push(s.perm("firstTarget").permanentId);
+    // First link onto Mirrormon: one opposing Digimon is suspended.
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -180,12 +198,121 @@ describe("EX10-016 Mirrormon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("firstTarget").isSuspended);
-    expect(s.perm("secondTarget").isSuspended).toBe(false);
+    expect(s.perm("mirrormon").linked).toHaveLength(1);
+    expect(suspendedOpponents()).toBe(1);
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("mirrormon").permanentId,
-    });
+    // Second link in the SAME turn, through a real ＜Link +1＞ grant and a real link intent:
+    // the once-per-turn gate refuses the second use, so the suspend count does not move.
+    await advance(s.engine).verb.grantLinkMax(s.perm("mirrormon").permanentId, 1, EffectDuration.UntilEachTurnEnd);
+    s.state.memory = 8;
+    preferred.length = 0;
+    preferred.push(s.perm("secondTarget").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("secondLink").instanceId,
+        targetPermanentId: s.perm("mirrormon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mirrormon").linked.length === 2);
     expect(s.perm("secondTarget").isSuspended).toBe(false);
+    expect(suspendedOpponents()).toBe(1);
+
+    // Round-trip the real turn loop. The opponent unsuspends on their own turn, so the board
+    // is clean again and any suspension seen afterwards is a fresh use of the reset gate.
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(suspendedOpponents()).toBe(0);
+
+    await advance(s.engine).verb.grantLinkMax(s.perm("mirrormon").permanentId, 1, EffectDuration.UntilEachTurnEnd);
+    s.state.memory = 8;
+    preferred.length = 0;
+    preferred.push(s.perm("thirdTarget").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("thirdLink").instanceId,
+        targetPermanentId: s.perm("mirrormon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("thirdTarget").isSuspended);
+    expect(suspendedOpponents()).toBe(1);
+    assertNoLoudGap(s);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("builds Mirrormon through a real breeding stack: hatch, digivolve in breeding, move out", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT1-007", as: "egg" }],
+          hand: [
+            { card: CARD_ID, as: "mirrormon" },
+            { card: "BT24-053", as: "link" },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT1-007");
+    const breedingPermanentId = s.state.players[0]!.breeding!.permanentId;
+    const eggInstanceId = s.state.players[0]!.breeding!.topCard!.instanceId;
+
+    // The green Lv.2 route is the printed evolution cost, taken inside breeding where it costs
+    // no memory. The stack identity below is what makes this a real build, not a seeded board.
+    s.state.phase = Phase.Main;
+    const memoryBeforeDigivolve = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: breedingPermanentId,
+        instanceId: s.inst("mirrormon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(memoryBeforeDigivolve);
+    expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    s.state.phase = Phase.Main;
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+
+    const bred = s.state.players[0]!.battleArea[0]!;
+    expect(bred.topCard!.cardId).toBe(CARD_ID);
+    expect(bred.stack.map(({ cardId }) => cardId)).toEqual(["BT1-007"]);
+    expect(bred.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+
+    // The self-linked watcher fires on the bred permanent, so the clause is proved on the card
+    // as it is actually built rather than on a seeded permanent.
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: bred.permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+
+    const linkedHost = s.state.players[0]!.battleArea[0]!;
+    expect(linkedHost.linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(linkedHost.stack.map(({ cardId }) => cardId)).toEqual(["BT1-007"]);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("target").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -216,17 +343,21 @@ describe("EX10-016 Mirrormon", () => {
     assertNoLoudGap(s);
   });
 
-  it("Q5046 may trash itself as cost and suspends exactly 2 of 3 opposing Digimon", async () => {
+  it("Q5046 may trash itself as cost on a real attack and suspends exactly 2 of 3 opposing Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-009", as: "host", linked: [{ card: CARD_ID, as: "mirror" }] }] },
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", dp: 20_000, linked: [{ card: CARD_ID, as: "mirror" }] }],
+          hand: ["BT1-013"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
             { card: "BT1-011", as: "third" },
           ],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -234,13 +365,22 @@ describe("EX10-016 Mirrormon", () => {
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    // Natural origin: a public attack intent opens the [When Attacking] window.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 0);
 
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("mirror").instanceId);
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(true);
     expect(s.perm("third").isSuspended).toBe(false);
+    assertNoLoudGap(s);
   });
 
   it("Q5047 may trash another card on the same Link +1 host, and the linked effect may be refused", async () => {
@@ -252,18 +392,21 @@ describe("EX10-016 Mirrormon", () => {
             {
               card: "BT21-009",
               as: "host",
+              dp: 20_000,
               linked: [
                 { card: CARD_ID, as: "mirror" },
                 { card: "BT26-010", as: "otherLink" },
               ],
             },
           ],
+          hand: ["BT1-013"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -273,16 +416,22 @@ describe("EX10-016 Mirrormon", () => {
       accepted.perm("first").permanentId,
       accepted.perm("second").permanentId,
     );
-    (
-      accepted.engine as unknown as {
-        continuous: {
-          addLinkMaxGrant(permanentId: string, delta: number, duration: EffectDuration): void;
-        };
-      }
-    ).continuous.addLinkMaxGrant(accepted.perm("host").permanentId, 1, EffectDuration.UntilEachTurnEnd);
+    await advance(accepted.engine).verb.grantLinkMax(
+      accepted.perm("host").permanentId,
+      1,
+      EffectDuration.UntilEachTurnEnd,
+    );
     await accepted.ready();
 
-    await advance(accepted.engine).fire(EffectTiming.OnUseAttack, accepted.perm("host"));
+    expect(
+      accepted.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: accepted.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => accepted.perm("host").linked.length === 1);
+
     expect(accepted.perm("host").linked.map(({ instanceId }) => instanceId)).toContain(
       accepted.inst("mirror").instanceId,
     );
@@ -291,23 +440,37 @@ describe("EX10-016 Mirrormon", () => {
     );
     expect(accepted.perm("first").isSuspended).toBe(true);
     expect(accepted.perm("second").isSuspended).toBe(true);
+    assertNoLoudGap(accepted);
 
     const declined = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-009", as: "host", linked: [{ card: CARD_ID, as: "mirror" }] }] },
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", dp: 20_000, linked: [{ card: CARD_ID, as: "mirror" }] }],
+          hand: ["BT1-013"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true },
     );
     await declined.ready();
-    await advance(declined.engine).fire(EffectTiming.OnUseAttack, declined.perm("host"));
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: declined.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.events.some((event) => event.kind === "combatResolved"));
+
     expect(declined.perm("host").linked).toHaveLength(1);
     expect(declined.perm("first").isSuspended).toBe(false);
     expect(declined.perm("second").isSuspended).toBe(false);
+    assertNoLoudGap(declined);
   });
 });
