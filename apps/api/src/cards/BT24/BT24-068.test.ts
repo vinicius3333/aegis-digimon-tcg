@@ -218,6 +218,37 @@ describe("BT24-068 DemiDevimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nearMatch").instanceId]);
   });
 
+  it("uses an overlapping Fallen Angel/Seven Great Demon Lords candidate once for both categories", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-068", as: "demidevimon" },
+            { card: "BT1-009", as: "handCost" },
+          ],
+          deck: [
+            { card: "EX10-009", as: "overlap" },
+            { card: "BT24-069", as: "evil" },
+            { card: "BT1-011", as: "nonmatch" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("demidevimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("overlap").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("evil").instanceId,
+      s.inst("nonmatch").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
+  });
+
   it("public attack trashes both players' top cards through the inherited effect", async () => {
     const s = setupEngine({
       0: {
