@@ -40,52 +40,117 @@ describe("BT24-014 Aegiochusmon", () => {
     const s = setupEngine(
       {
         0: {
-          security: 3,
-          battleArea: [{ card: "BT24-014", as: "aegiochusmon" }],
+          security: ["BT1-013", "BT1-013", "BT1-013"],
+          battleArea: [{ card: "P-194", as: "aegiomon" }],
+          hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+          deck: [{ card: "BT1-012", as: "bonusDraw" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 12000 }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("aegiochusmon"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("aegiochusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.perm("aegiomon").stack.map((card) => card.instanceId)).toEqual([s.inst("aegiomon").instanceId]);
+    expect(s.perm("aegiomon").topCard.instanceId).toBe(s.inst("aegiochusmon").instanceId);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not perform the deletion with four security cards", async () => {
     const s = setupEngine(
       {
         0: {
-          security: 4,
-          battleArea: [{ card: "BT24-014", as: "aegiochusmon" }],
+          security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+          battleArea: [{ card: "P-194", as: "aegiomon" }],
+          hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+          deck: [{ card: "BT1-012", as: "bonusDraw" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("aegiochusmon"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("aegiochusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("aegiomon").topCard.instanceId === s.inst("aegiochusmon").instanceId);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(2000);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.state.memory).toBe(2);
   });
 
-  it("expires the -5000 DP reduction at the real opponent turn boundary", async () => {
+  it("deletes a zero-DP target after the public effect resolves (Q5584)", async () => {
     const s = setupEngine({
-      0: { security: 4, battleArea: [{ card: "BT24-014", as: "aegiochusmon" }] },
+      0: {
+        security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        battleArea: [{ card: "P-194", as: "aegiomon" }],
+        hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("aegiochusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+  });
+
+  it("expires the -5000 DP reduction at the end of its owner turn", async () => {
+    const s = setupEngine({
+      0: {
+        security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        battleArea: [{ card: "P-194", as: "aegiomon" }],
+        hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+      },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }], deck: ["BT1-010", "BT1-011"] },
     });
     s.state.turnSeat = 0;
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("aegiochusmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("aegiochusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("aegiomon").topCard.instanceId === s.inst("aegiochusmon").instanceId);
     expect(s.perm("target").currentDP).toBe(2000);
 
-    s.state.turnSeat = 1;
     s.state.memory = 3;
-    await advance(s.engine).runTurn(1);
+    await advance(s.engine).runTurn(0);
     expect(s.perm("target").currentDP).toBe(7000);
   });
 
