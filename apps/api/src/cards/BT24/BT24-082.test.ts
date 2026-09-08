@@ -238,6 +238,43 @@ describe("BT24-082 Owen Dreadnought", () => {
     expect(s.perm("reptile").currentDP).toBe(evolvedBaseDp);
   });
 
+  it("publicly declines the suspension cost and leaves the evolved Digimon unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-082", as: "owen" },
+            { card: "BT1-009", as: "base" },
+          ],
+          hand: [{ card: "BT24-012", as: "evolved" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+        1: { security: [{ card: "BT1-011", as: "security" }], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const baseId = s.perm("base").permanentId;
+    const sourceId = s.inst("base").instanceId;
+    const evolvedId = s.inst("evolved").instanceId;
+    const securityId = s.inst("security").instanceId;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: baseId, instanceId: evolvedId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard.instanceId === evolvedId && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("owen").isSuspended).toBe(false);
+    expect(s.perm("base").topCard.instanceId).toBe(evolvedId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.perm("base").currentDP).toBe(getCardDefinition("BT24-012")!.dp);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("base"))).toBe(false);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([securityId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     ["Reptile", "BT24-012"],
     ["Dragonkin", "BT24-011"],
