@@ -233,6 +233,67 @@ describe("BT24-077 Revivemon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
   });
 
+  it("rejects an invalid public App Fusion pair without changing Revivemon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: "BT24-077", as: "revivemon" },
+          ],
+          hand: [
+            { card: "BT24-071", as: "wrongPair" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+          trash: [{ card: "BT24-077", as: "fusion" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const revivemonId = s.perm("revivemon").permanentId;
+    const revivemonTopId = s.perm("revivemon").topCard.instanceId;
+    const wrongPairId = s.inst("wrongPair").instanceId;
+    const fusionId = s.inst("fusion").instanceId;
+    const deckBefore = s.state.players[0]!.deck.map((card) => card.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, { type: "linkCard", instanceId: wrongPairId, targetPermanentId: revivemonId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-087");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const fusionDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-087");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: fusionDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore.slice(1));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(fusionId);
+    expect(s.perm("revivemon").permanentId).toBe(revivemonId);
+    expect(s.perm("revivemon").topCard.instanceId).toBe(revivemonTopId);
+    expect(s.perm("revivemon").stack).toHaveLength(0);
+    expect(s.perm("revivemon").linked.map((card) => card.instanceId)).toEqual([wrongPairId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("public evolution free-links only Revivemon's own source and leaves a neighboring stack unchanged", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
