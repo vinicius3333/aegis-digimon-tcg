@@ -433,4 +433,47 @@ describe("BT24-038 Biomon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([biomonInstanceId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionInstanceId);
   });
+
+  it("regression: a linked Appmon used as an EX10-038 cost leaves its host link exactly once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-009",
+              as: "host",
+              linked: [
+                { card: "BT24-038", as: "biomon" },
+                { card: "EX10-038", as: "copipemon" },
+              ],
+            },
+          ],
+          trash: [],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+    );
+    const biomonId = s.inst("biomon").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === biomonId));
+    expect(s.perm("host").linked.map((card) => card.instanceId)).not.toContain(biomonId);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: biomonId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === biomonId));
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(biomonId);
+  });
 });
