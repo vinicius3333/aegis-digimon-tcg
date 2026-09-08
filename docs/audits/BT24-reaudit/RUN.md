@@ -823,6 +823,29 @@ Aggregate733/1020,0 cards at10/10. The028 lane is narrowing an overly broad
 compatibility cast before acceptance;029 and030 continue. No publication has
 occurred.
 
+## 2026-09-08 — Luna continuation and bounded engine investigations
+
+Root accepted additional public evidence for BT24-038 (linked-card
+trash/hand/relink identity), BT24-040 (post-expiry When Attacking witness and
+control), and BT24-052 (simultaneous multi-target replacement and same-turn
+consumption). Focused acceptance passed 32/32 for 038+052 and 20/20 for 040;
+the full API typecheck and scoped format/lint/diff checks passed. Atomic commits
+are `9014c179c`, `c13524678`, `513ce0c5c`, `5f081d7fd`, `ac1daf37b`,
+`572f597d0`, and `0f638e100`. BT24-098 received an awaited failure-path cleanup
+in `a321b899a`; its card/mechanism acceptance remains 14 green plus one explicit
+expected failure.
+
+Three Luna lanes then investigated the remaining gaps without retaining unsafe
+patches. BT24-038 exposed a simultaneous linked-trigger zone-identity seam;
+BT24-052's candidate reset route encounters distinct De-Digivolve and Delete
+leave events; BT24-098 requires an optional Delay decision between quiescent
+trigger completion and turn closure, with provenance not currently carried by
+the turn controller. A proposed broad End-phase Delay exception was rejected
+after peer review because it bypassed Q5335 and did not prove a natural gauge
+crossing. BT24-038,040,052 remain7/10 and098 remains6/10. Aggregate stays
+811/1020,0 cards at10/10. No delivery points, push, or Orca completion action
+have occurred.
+
 ## 2026-09-08 — boundary closure and Security-fixture correction
 
 Three Luna lanes continued card-isolated public evidence work while root
