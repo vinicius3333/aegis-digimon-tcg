@@ -627,3 +627,28 @@ its isolated13 and proposed predecessor subsets passed. A minimal polluter
 is not yet known. The engine lane may instrument only the failing test
 temporarily to compare counter eligibility and registered state; no production
 runtime edits are authorized at this diagnostic stage.
+
+## Blast DNA isolation fixed, 2026-09-08 10:26 BRT
+
+Diagnostics identified the exact state difference: real BT20-045 remained in
+the catalog/module registry, but its Blast DNA keyword flag had been cleared.
+The synthetic `runMain("BT20-045", ...)` capability fixture calls irCardModule,
+which rescans keyword registration using its Main-only IR. The correction
+uses unique CAP-DNA IDs and asserts preservation of the real keyword flag.
+Restoring the old real-ID fixture made that preservation regression fail;
+the corrected fixture passes. No production runtime change was needed.
+
+Root fullengine at10:23:47 passed246 files /7252 tests. Root focused
+capabilities plus Blast at10:26:13 passed309 tests. Committed `5ad251080`
+with `BLAST-DNA-TEST-ISOLATION.md`; formatting/diff passed and the24 existing
+large-fixture lint warnings were baseline-compared, not suppressed. The engine
+lane now owns091 Main/Security evidence. The other lanes continue089 reactive
+Delay red-first proof and090 public Security plus Main filtering.
+
+Root090 first8 tests passed10:19:52, but no ledger credit is yet awarded:
+the old Security fixture injected timing and even claimed the checked Option
+stays in security. Public accepted/refused attacks must replace that claim,
+with exact checked-stack and cost endpoints. Root fulltypecheck is running
+with a4096MiB heap cap after the test-only engine change. Aggregate588/1020,
+18 cards at8/10,15 pending zero rows, no102 cards at10/10. Publication approval
+was requested asynchronously for eventual branch/PR closeout; no push yet.
