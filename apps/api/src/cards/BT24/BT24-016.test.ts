@@ -1,13 +1,27 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { effectsOf } from "../../engine/effects/collect.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-016.js";
 import "../index.js";
 
+function handMainEffectKey(s: ReturnType<typeof setupEngine>, instanceId: string): string | undefined {
+  const card = s.state.players[0]!.hand.find((entry) => entry.instanceId === instanceId);
+  if (!card) return undefined;
+  const source = (s.engine as unknown as { cardSourceOf(card: CardInstance): CardSource }).cardSourceOf(card);
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-016/"))
+    ?.effectKey;
+}
+
 describe("BT24-016 Lamiamon", () => {
   it("uses the Dimetromon placement cost to digivolve an Elizamon host", () => {
-    const main = compiled.effects.find((effect) => effect.trigger === "Main")?.actions?.[0] as any;
+    const main = compiled.effects.find((effect) => effect.trigger === "Main")?.actions?.[0] as unknown as {
+      cost: { target: { filter: { nameOrTrait: unknown } }; bindHostAs: string; position: string; kind: string };
+      target: { fromSelectionRef: string };
+    };
     expect(main).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
@@ -21,8 +35,14 @@ describe("BT24-016 Lamiamon", () => {
   });
 
   it("shares the once-per-turn opponent security manipulation", () => {
-    const digivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving") as any;
-    const attacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking") as any;
+    const digivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving") as unknown as {
+      sharedUseKey: string;
+      frequency: string;
+      actions: unknown;
+    };
+    const attacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking") as unknown as {
+      sharedUseKey: string;
+    };
     expect(digivolving.sharedUseKey).toBe(attacking.sharedUseKey);
     expect(digivolving.frequency).toBe("OncePerTurn");
     expect(digivolving.actions).toMatchObject([
@@ -32,7 +52,7 @@ describe("BT24-016 Lamiamon", () => {
   });
 
   it("scopes its inherited play trigger to the opponent security stack", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
+    const inherited = compiled.effects.find((effect) => effect.isInherited) as unknown as { actions: unknown[] };
     expect(inherited.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
@@ -57,7 +77,15 @@ describe("BT24-016 Lamiamon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("lamiamon"));
+    const effectKey = handMainEffectKey(s, s.inst("lamiamon").instanceId);
+    expect(effectKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("lamiamon").instanceId,
+        effectKey: effectKey!,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("elizamon").topCard.instanceId === s.inst("lamiamon").instanceId);
 
     expect(s.perm("elizamon").stack.map((card) => card.instanceId)).toContain(s.inst("dimetromon").instanceId);
@@ -143,6 +171,44 @@ describe("BT24-016 Lamiamon", () => {
     });
   });
 
+  it("publicly attacks and places one opponent hand card under Security before trashing its top card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
+        1: {
+          hand: [
+            { card: "BT4-022", as: "placed" },
+            { card: "BT4-022", as: "kept" },
+          ],
+          security: [
+            { card: "BT4-022", as: "trashed" },
+            { card: "BT4-022", as: "remaining1" },
+            { card: "BT4-022", as: "remaining2" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lamiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("lamiamon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("remaining2").instanceId,
+      s.inst("placed").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("shares one security-manipulation use between digivolving and attacking", async () => {
     const s = setupEngine(
       {
@@ -171,7 +237,7 @@ describe("BT24-016 Lamiamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-016"] }],
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-016"] }],
           hand: [
             { card: "BT24-012", as: "eligible" },
             { card: "BT24-016", as: "tooLarge" },
@@ -193,5 +259,33 @@ describe("BT24-016 Lamiamon", () => {
       s.inst("eligible").instanceId,
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooLarge").instanceId);
+  });
+
+  it("plays the inherited Reptile from a public attack removing opponent security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-016"] }],
+          hand: [{ card: "BT24-012", as: "eligible" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const securityId = s.inst("security").instanceId;
+    const playedId = s.inst("eligible").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT24-016");
   });
 });

@@ -8,6 +8,8 @@ import type { ActionBase } from "./base.js";
 
 export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";
+  /** Security-effect play enters the battle area without conducting a security battle. */
+  withoutBattle?: true;
   /** Restrict trash candidates to the cards moved by the current whenHandTrashed batch. */
   fromTriggerHandTrash?: boolean;
   playedByDecode?: boolean;

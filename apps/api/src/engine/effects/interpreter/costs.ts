@@ -800,14 +800,15 @@ export async function payCost(
           }
         }
         const candidates: LooseCandidate[] = [];
+        const candidateZones = new Map<string, "digivolutionCards" | "linked">();
         if (cost.target.filter.zone === "digivolutionCardsOrLinkCards") {
-          candidates.push(
-            ...candidateLooseInstances(
-              ctx,
-              { ...cost.target, filter: { ...cost.target.filter, zone: "digivolutionCards" } },
-              ["digivolutionCards"],
-            ),
+          const stackCandidates = candidateLooseInstances(
+            ctx,
+            { ...cost.target, filter: { ...cost.target.filter, zone: "digivolutionCards" } },
+            ["digivolutionCards"],
           );
+          candidates.push(...stackCandidates);
+          for (const candidate of stackCandidates) candidateZones.set(candidate.instanceId, "digivolutionCards");
         }
         for (const host of hosts) {
           for (const c of host.linked) {
@@ -817,6 +818,7 @@ export async function payCost(
               ownerSeat: c.ownerSeat,
               hostPermanentId: host.permanentId,
             });
+            candidateZones.set(c.instanceId, "linked");
           }
         }
         const n = linkTarget.count === "all" ? candidates.length : linkTarget.count;
@@ -831,6 +833,25 @@ export async function payCost(
           candidates,
         );
         if (chosen.length < n) return false;
+        // A simultaneous trigger may have selected this card from a snapshot taken before an
+        // earlier trigger moved it. Never let that stale id fall through `trash`, whose global
+        // lookup could otherwise find a same-id card in hand or another host. The cost is
+        // atomic: every selected id must be unique and still occupy its original host zone.
+        if (new Set(chosen).size !== n) return false;
+        const selectedCandidates = chosen.map((instanceId) =>
+          candidates.find((candidate) => candidate.instanceId === instanceId),
+        );
+        if (selectedCandidates.some((candidate) => candidate === undefined)) return false;
+        const selectedStillLive = selectedCandidates.every((candidate) => {
+          const hostId = candidate!.hostPermanentId;
+          const host = hostId === undefined ? undefined : ctx.game.permanentById(hostId);
+          const origin = candidateZones.get(candidate!.instanceId);
+          if (host === undefined || origin === undefined) return false;
+          return origin === "linked"
+            ? host.linked.some((card) => card.instanceId === candidate!.instanceId)
+            : host.stack.some((card) => card.instanceId === candidate!.instanceId);
+        });
+        if (!selectedStillLive) return false;
         const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         const movedIds = new Set(moved.map((card) => card.instanceId));
         if (moved.length !== n || chosen.some((instanceId) => !movedIds.has(instanceId))) return false;

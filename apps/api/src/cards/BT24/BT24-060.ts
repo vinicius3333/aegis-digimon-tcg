@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -142,7 +141,6 @@ export const compiled: CompiledCard = {
     {
       level: 4,
       traits: ["DigiPolice", "SEEKERS"],
-      traitsMatchAny: true,
       cost: 3,
       isAlternate: true,
     },

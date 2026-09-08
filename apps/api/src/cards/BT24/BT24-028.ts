@@ -1,6 +1,13 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+type UnsupportedGainKeywordExtension = {
+  additionalEffect: {
+    kind: "GrantStatic";
+    modifier: "cannotBeDeletedInBattle";
+    duration: "untilOpponentTurnEnd";
+  };
+};
 
 // Hand-authored IR for BT24-028 (Divermon).
 // [On Play][When Digivolving]: cost = place Lv.5-or-lower blue [TS] Digimon from hand as
@@ -30,11 +37,13 @@ export const compiled: CompiledCard = {
           },
           duration: "untilOpponentTurnEnd",
           abortOnDecline: true,
-          additionalEffect: {
-            kind: "GrantStatic",
-            modifier: "cannotBeDeletedInBattle",
-            duration: "untilOpponentTurnEnd",
-          },
+          ...({
+            additionalEffect: {
+              kind: "GrantStatic",
+              modifier: "cannotBeDeletedInBattle",
+              duration: "untilOpponentTurnEnd",
+            },
+          } as UnsupportedGainKeywordExtension),
           cost: {
             kind: "place",
             target: {
@@ -82,11 +91,13 @@ export const compiled: CompiledCard = {
           },
           duration: "untilOpponentTurnEnd",
           abortOnDecline: true,
-          additionalEffect: {
-            kind: "GrantStatic",
-            modifier: "cannotBeDeletedInBattle",
-            duration: "untilOpponentTurnEnd",
-          },
+          ...({
+            additionalEffect: {
+              kind: "GrantStatic",
+              modifier: "cannotBeDeletedInBattle",
+              duration: "untilOpponentTurnEnd",
+            },
+          } as UnsupportedGainKeywordExtension),
           cost: {
             kind: "place",
             target: {
@@ -137,7 +148,7 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
-                namesExact: ["Neptunemon"],
+                nameOrTrait: [{ tokens: ["Neptunemon"], match: "nameExact" }],
               },
               payCost: false,
               from: ["hand"],

@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -12,11 +12,31 @@ function primitivesOf(setup: EngineSetup): Primitives {
 }
 
 describe("BT24-045 Ogremon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-045")).toMatchObject({
+      cardId: "BT24-045",
+      nameEn: "Ogremon",
+      colors: ["Green", "Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Demon", "Titan", "TS"],
+    });
+  });
+
   it("requires the hand-trash cost and locks the suspended target until opponent turn end", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
       const effect = BT24_045.effects?.find((entry) => entry.trigger === trigger);
-      const suspend = effect?.actions?.[0] as any;
-      const restrict = effect?.actions?.[1] as any;
+      const suspend = effect?.actions?.[0] as unknown as { optional: boolean; abortOnDecline: boolean };
+      const restrict = effect?.actions?.[1] as unknown as {
+        kind: string;
+        restriction: string;
+        duration: string;
+        target: { sameTarget: boolean };
+      };
       expect(suspend).toMatchObject({ optional: true, abortOnDecline: true });
       expect(restrict).toMatchObject({
         kind: "Restrict",
@@ -51,6 +71,35 @@ describe("BT24-045 Ogremon", () => {
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
   });
 
+  it("resolves the hand cost and target lock from a public play intent", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-045", as: "ogremon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("cost").instanceId, s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogremon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
   it("may decline the hand-trash activation without suspending anything", async () => {
     const s = setupEngine(
       {
@@ -69,6 +118,31 @@ describe("BT24-045 Ogremon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+  });
+
+  it("resolves the hand-trash cost and lock from a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-045", as: "ogremon" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogremon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
   });
 
   it("Q5635: only the first of two trashed copies draws after the hand rises above five", async () => {
@@ -126,6 +200,31 @@ describe("BT24-045 Ogremon", () => {
     expect(s.perm("other").topCard.cardId).toBe("BT24-072");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("does not select a legal purple level-6 that is neither Titamon nor Titan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-045"] }],
+          hand: [
+            { card: "BT24-026", as: "hyogamon" },
+            { card: "BT1-009", as: "discardCost" },
+          ],
+          trash: [{ card: "BT10-069", as: "wrongTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discardCost").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT24-072");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongTarget").instanceId);
+    expect(s.state.memory).toBe(6);
   });
 
   it.each([

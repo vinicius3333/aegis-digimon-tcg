@@ -1,10 +1,6 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -35,62 +31,42 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
           sourceFilter: {
             controller: "mine",
             nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }],
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "Digivolve",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
                 },
                 count: 1,
-                isSelf: true,
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          kind: "Digivolve",
-          requiresDelayArmed: true,
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            or: [
-              { nameOrTrait: [{ tokens: ["Reptile"], match: "trait" }] },
-              {
-                and: [
-                  { nameOrTrait: [{ tokens: ["Dragonkin"], match: "trait" }] },
-                  { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                or: [
+                  { nameOrTrait: [{ tokens: ["Reptile"], match: "trait" }] },
+                  {
+                    and: [
+                      { nameOrTrait: [{ tokens: ["Dragonkin"], match: "trait" }] },
+                      { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+                    ],
+                  },
                 ],
               },
-            ],
-          },
-          from: ["hand"],
-          reduceCost: 3,
-          optional: true,
-        },
+              from: ["hand"],
+              payCost: true,
+              reduceCost: 3,
+              optional: true,
+            },
+          ],
+        } as unknown as Extract<Action, { kind: "SubTrigger" }>,
       ],
     },
     {

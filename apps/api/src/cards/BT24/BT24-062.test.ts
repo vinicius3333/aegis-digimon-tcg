@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -32,8 +32,11 @@ describe("BT24-062 MasterBlimpmon", () => {
     for (const effect of effects ?? []) {
       expect(effect.frequency).toBe("OncePerTurn");
       expect(effect.sharedUseKey).toBe("ir-shared-0");
-      expect(effect.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"] });
-      expect((effect.actions?.[0] as any).target.source).toBe("thisDigimon");
+      const action = effect.actions?.[0];
+      expect(action?.kind).toBe("PlayWithoutCost");
+      if (action?.kind !== "PlayWithoutCost") throw new Error("frequency action is not PlayWithoutCost");
+      expect(action).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"] });
+      expect(action.target.source).toBe("thisDigimon");
     }
   });
 
@@ -45,19 +48,48 @@ describe("BT24-062 MasterBlimpmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("master"), "Armor Purge")).toBe(true);
   });
 
-  it("Armor Purge keeps the underlying Digimon in play when deletion is attempted", async () => {
+  it.each([true, false])("public Happy Bullet Armor Purge accept=%s", async (accept) => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT24-062", as: "master", under: ["BT24-058"] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      {
+        0: { battleArea: [{ card: "BT24-062", as: "master", under: ["BT24-058"] }] },
+        1: { battleArea: [{ card: "BT1-020", as: "redSource" }], hand: [{ card: "BT6-095", as: "happyBullet" }] },
+      },
+      { autoSelectCards: accept, autoOrderTriggers: true },
     );
     const permanentId = s.perm("master").permanentId;
+    const topId = s.perm("master").topCard.instanceId;
+    const sourceId = s.perm("master").stack[0]!.instanceId;
+    const optionId = s.inst("happyBullet").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(0);
-    await settle(() => s.perm("master").topCard.cardId === "BT24-058");
-
-    expect(s.perm("master").permanentId).toBe(permanentId);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-062");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    if (!accept) {
+      const decision = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.events.some((event) => event.kind === "cardsMoved" && event.instanceIds.includes(optionId)));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    if (accept) {
+      expect(s.perm("master").permanentId).toBe(permanentId);
+      expect(s.perm("master").topCard.instanceId).toBe(sourceId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(topId);
+      expect(s.state.memory).toBe(0);
+    } else {
+      expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).not.toContain(permanentId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+        expect.arrayContaining([topId, sourceId]),
+      );
+    }
   });
 
   it.each([
@@ -71,10 +103,13 @@ describe("BT24-062 MasterBlimpmon", () => {
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: "BT24-062", as: "master" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 5;
     await s.ready();
+    const sourceId = s.inst("base").instanceId;
+    const drawId = s.inst("evolutionDraw").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -87,22 +122,84 @@ describe("BT24-062 MasterBlimpmon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("master").instanceId);
 
     expect(s.state.memory).toBe(5 - expectedCost);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("master").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawId);
   });
 
-  it("plays only from its own stack and shares once-per-turn use across both timings", async () => {
+  it("does not play a stacked low-cost Digimon without Machine, Cyborg, or TS", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-062", as: "master", under: [{ card: "BT1-009", as: "invalid" }] }] },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const invalidId = s.inst("invalid").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("master").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("master").stack.map((card) => card.instanceId)).toEqual([invalidId]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT24-062"]);
+  });
+
+  it("shares the public End of Attack and opponent-turn frequency across a real turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT24-062", as: "master", under: ["BT24-058", "BT24-058"] },
-            { card: "BT24-058", as: "neighbor", under: ["BT24-058"] },
+            {
+              card: "BT24-062",
+              as: "master",
+              under: [
+                { card: "BT2-052", as: "own3" },
+                { card: "BT24-058", as: "own4" },
+              ],
+            },
+            { card: "BT24-058", as: "neighbor", under: [{ card: "BT2-052", as: "neighbor3" }] },
           ],
+          hand: [{ card: "BT24-050", as: "unsuspender" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: {
+          security: [
+            { card: "BT1-013", as: "firstSecurity" },
+            { card: "BT1-014", as: "secondSecurity" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          hand: ["BT1-009", "BT1-010"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferInstanceIds: preferred,
+      },
     );
+    s.state.memory = 10;
     await s.ready();
+    const own3Id = s.perm("master").stack.find((card) => card.cardId === "BT2-052")!.instanceId;
+    const own4Id = s.perm("master").stack.find((card) => card.cardId === "BT24-058")!.instanceId;
+    const neighborId = s.perm("neighbor").permanentId;
+    const neighbor3Id = s.perm("neighbor").stack[0]!.instanceId;
+    const firstSecurityId = s.inst("firstSecurity").instanceId;
+    const secondSecurityId = s.inst("secondSecurity").instanceId;
+    preferred.push(own3Id);
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const masterId = s.perm("master").permanentId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -111,21 +208,165 @@ describe("BT24-062 MasterBlimpmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === own3Id));
     await settle(() => !observe(s.engine).isAttacking());
-    const masterStackAfterFirst = s.perm("master").stack.length;
-    const neighborStackAfterFirst = s.perm("neighbor").stack.length;
+    expect(s.perm("master").topCard.cardId).toBe("BT24-062");
+    expect(s.perm("master").stack.map((card) => card.instanceId)).toEqual([own4Id]);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === own3Id)).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(firstSecurityId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(neighborId);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual([neighbor3Id]);
 
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("master"));
+    preferred.push(masterId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("master").isSuspended);
+    expect(s.perm("master").permanentId).toBe(masterId);
+    expect(s.state.memory).toBe(3);
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(3);
-    expect(s.perm("master").stack).toHaveLength(masterStackAfterFirst);
-    expect(s.perm("neighbor").stack).toHaveLength(neighborStackAfterFirst);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: masterId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(secondSecurityId);
+    expect(s.perm("master").stack.map((card) => card.instanceId)).toEqual([own4Id]);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual([neighbor3Id]);
+
+    expect(s.perm("master").topCard.cardId).toBe("BT24-062");
+    expect(s.perm("master").stack.map((card) => card.instanceId)).toEqual([own4Id]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === own4Id));
+    await opponentTurn;
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === own4Id)).toBe(true);
+    expect(s.perm("master").topCard.cardId).toBe("BT24-062");
+    expect(s.perm("master").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(neighborId);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual([neighbor3Id]);
+  });
+
+  it("plays its stacked card at the end of a real opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-062", as: "master", under: [{ card: "BT24-058", as: "stacked" }] }] },
+        1: { security: ["BT1-013"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    const opponentTurn = s.engine.runOneTurn();
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("stacked").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("stacked").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("master").stack.map((card) => card.instanceId)).not.toContain(s.inst("stacked").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("stacked").instanceId);
+    await opponentTurn;
+  });
+
+  it("uses Blocker in a public battle and preserves security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-062", as: "blocker" }], security: [{ card: "BT1-013", as: "security" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const attackerId = s.perm("attacker").permanentId;
+    const securityId = s.inst("security").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([securityId]);
+  });
+
+  it("locks the attack target through a public attack, unlike the unstacked host", async () => {
+    const locked = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-028", as: "host", under: ["BT24-062"] }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "attacker" },
+          { card: "BT1-031", as: "blocker" },
+        ],
+        security: [{ card: "BT1-013", as: "security" }],
+      },
+    });
+    locked.state.turnSeat = 0;
+    const securityId = locked.inst("security").instanceId;
+    await locked.ready();
+    expect(
+      locked.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: locked.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => locked.events.some((event) => event.kind === "securityChecked") && !observe(locked.engine).isAttacking(),
+    );
+    expect(locked.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(locked.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityId);
+    expect(locked.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      locked.perm("host").permanentId,
+    );
+
+    const open = setupEngine({
+      0: { battleArea: [{ card: "BT10-028", as: "host" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "attacker" },
+          { card: "BT1-031", as: "blocker" },
+        ],
+        security: [{ card: "BT1-013", as: "security" }],
+      },
+    });
+    open.state.turnSeat = 0;
+    await open.ready();
+    expect(
+      open.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: open.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => open.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      open.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: open.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => open.events.some((event) => event.kind === "combatResolved") && !observe(open.engine).isAttacking(),
+    );
+    expect(open.state.players[1]!.trash.map((card) => card.instanceId)).toContain(open.inst("blocker").instanceId);
+    expect(open.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      open.perm("host").permanentId,
+    );
   });
 
   it("inherited attack-target lock exists only during its owner's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-063", as: "host", under: ["BT24-062"] }] },
+      0: { battleArea: [{ card: "BT10-028", as: "host", under: ["BT24-062"] }] },
     });
     await s.ready();
 

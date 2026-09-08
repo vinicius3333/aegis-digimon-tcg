@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-093.js";
 import "../index.js";
 
@@ -90,6 +91,51 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     ).toBe(true);
   });
 
+  it("publicly reveals Security and plays an exact Aegiomon from hand for free (Q5693)", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT24-093", as: "temple" }],
+          hand: [{ card: "BT24-034", as: "aegiomon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }],
+          security: ["BT1-013"],
+          hand: ["BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("aegiomon").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard.instanceId)).toContain(
+      s.inst("aegiomon").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("aegiomon").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
   it("moves the top security card to hand, recovers 1 from deck to security, and lands in the battle area", async () => {
     const s = setup(
       {
@@ -129,7 +175,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
       0: {
         battleArea: ["BT1-045"],
         hand: [{ card: "BT24-093", as: "option" }],
-        deck: [{ card: "BT1-001", as: "recovered" }],
+        deck: [{ card: "BT1-013", as: "recovered" }],
       },
     });
     s.state.memory = 2;
@@ -150,7 +196,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
             { card: "BT24-093", as: "option" },
             { card: "BT24-014", as: "host", under: [{ card: "BT24-034", as: "stacked" }] },
           ],
-          security: [{ card: "BT1-001", as: "removed" }],
+          security: [{ card: "BT1-013", as: "removed" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -170,5 +216,68 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
 
     expect(s.perm("host").topCard.cardId).toBe("BT24-014");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+  });
+
+  it("does not use Delay when no named Aegiochusmon or Jupitermon stack exists", async () => {
+    const s = setup({
+      0: {
+        battleArea: [
+          { card: "BT24-093", as: "option" },
+          { card: "BT24-014", as: "host", under: [{ card: "BT1-009", as: "nonMatching" }] },
+        ],
+        security: [{ card: "BT1-013", as: "removed" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010", "BT1-011"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    s.perm("option").placedByEffect = true;
+    const removedId = s.inst("removed").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(removedId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("nonMatching").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("nonMatching").instanceId);
+  });
+
+  it("uses an aged Delay option after a public security battle", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-093", as: "option" },
+            { card: "BT24-014", as: "host", under: [{ card: "BT24-034", as: "stacked" }] },
+          ],
+          security: [{ card: "BT1-013", as: "removed" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    s.perm("option").placedByEffect = true;
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stacked").instanceId);
+
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("stacked").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
   });
 });

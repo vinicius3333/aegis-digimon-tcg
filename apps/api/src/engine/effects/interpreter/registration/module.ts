@@ -182,7 +182,15 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         const effectKey =
           (effect as CardEffect & { effectKey?: string }).effectKey ??
           (effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`);
-        const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");
+        const isDelay =
+          (effect.keywords ?? []).some((kw) => kw.keyword === "Delay") ||
+          (effect.actions ?? []).some(
+            (action) =>
+              (action.kind === "SubTrigger" || action.kind === "Replacement") &&
+              ((action as Action & { keywords?: CardEffect["keywords"] }).keywords ?? []).some(
+                (kw) => kw.keyword === "Delay",
+              ),
+          );
         // The trash-to-activate Delay semantics apply to [Main] effects (routed to
         // OnDeclaration, below) AND to continuous-window triggers like AllTurns
         // (EffectTiming.None) — comprehensive rules §16-17-1 makes trashing the source card

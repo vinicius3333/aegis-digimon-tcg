@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, CostGatedBlockAction } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // BT24-082 Owen Dreadnought (Tamer)
@@ -26,16 +25,7 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
+          kind: "CostGatedBlock",
           cost: {
             kind: "return",
             to: "deckBottom",
@@ -48,28 +38,43 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Elizamon"], match: "nameExact" }],
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["trash"],
-          payCost: false,
-          condition: {
-            kind: "youHaveNone",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Elizamon"], match: "nameExact" }],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              condition: {
+                kind: "youHaveNone",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                },
+                raw: "you don't have a Digimon",
+              },
+              optional: true,
             },
-            raw: "you don't have a Digimon",
-          },
-          optional: true,
-        },
+          ],
+        } satisfies CostGatedBlockAction,
       ],
     },
     {
@@ -98,6 +103,7 @@ export const compiled: CompiledCard = {
               kind: "ModifyDP",
               target: {
                 sourceRef: "triggerSubject",
+                filter: {},
                 count: 1,
               },
               amount: 3000,
@@ -107,6 +113,7 @@ export const compiled: CompiledCard = {
               kind: "Attack",
               target: {
                 sourceRef: "triggerSubject",
+                filter: {},
                 count: 1,
               },
               withoutSuspending: false,

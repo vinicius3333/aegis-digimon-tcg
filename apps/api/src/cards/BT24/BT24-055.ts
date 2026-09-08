@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -44,7 +43,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "hand",
                 controller: "mine",
-                namesExact: ["Shuu Yulin"],
+                nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }],
               },
               count: 1,
               from: ["hand"],
@@ -86,7 +85,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "hand",
                 controller: "mine",
-                namesExact: ["Shuu Yulin"],
+                nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }],
               },
               count: 1,
               from: ["hand"],

@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-005.js";
 import "../index.js";
 
@@ -35,17 +35,17 @@ describe("BT24-005 Kyokyomon", () => {
     });
   });
 
-  it("reveals and returns all three cards without adding any to hand", async () => {
+  it("ignores a placement event when the named Tamer is still in hand", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-006", as: "host", under: ["BT24-005"] }],
+          battleArea: [{ card: "BT24-054", as: "host", under: ["BT24-005"] }],
           hand: [{ card: "BT24-085", as: "addedTamer" }],
           deck: [
             { card: "BT24-085", as: "revealedTamer" },
             { card: "BT24-066", as: "revealedDigimon" },
             { card: "BT1-009", as: "revealedNonMatch" },
-            { card: "BT1-001", as: "unrevealed" },
+            { card: "BT1-009", as: "unrevealed" },
           ],
         },
       },
@@ -58,6 +58,7 @@ describe("BT24-005 Kyokyomon", () => {
       addedDigivolutionCardInstanceIds: [s.inst("addedTamer").instanceId],
     });
 
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("addedTamer").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(originalDeckIds);
     expect(s.state.players[0]!.deck).toHaveLength(4);
@@ -68,14 +69,14 @@ describe("BT24-005 Kyokyomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT24-006", as: "host", under: ["BT24-005"] },
-          { card: "BT24-006", as: "otherHost" },
+          { card: "BT24-054", as: "host", under: ["BT24-005"] },
+          { card: "BT24-054", as: "otherHost" },
         ],
         hand: [
           { card: "BT24-085", as: "tamer" },
           { card: "BT24-066", as: "digimon" },
         ],
-        deck: [{ card: "BT1-001", as: "top" }, "BT1-002", "BT1-003"],
+        deck: [{ card: "BT1-009", as: "top" }, "BT1-010", "BT1-011"],
       },
     });
 
@@ -90,5 +91,284 @@ describe("BT24-005 Kyokyomon", () => {
 
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("top").instanceId);
     expect(s.state.players[0]!.deck.every((card) => card.faceUp === false)).toBe(true);
+  });
+
+  it("reaches Tamer placement through BT24-086's public play and Mind Link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-054", as: "host", under: ["BT24-005"] },
+            { card: "BT24-086", as: "mindLinker" },
+          ],
+          hand: [{ card: "BT24-054", as: "playedDigimon" }],
+          deck: [
+            { card: "BT1-013", as: "first" },
+            { card: "BT1-015", as: "second" },
+            { card: "BT1-045", as: "third" },
+            { card: "BT1-009", as: "unrevealed" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: false,
+        preferOptionIndex: 1,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.decisions.at(-1)!.req;
+    expect(orderDecision.kind).toBe("orderCards");
+    expect(orderDecision.options?.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("first").instanceId, cardId: "BT1-013" },
+        { instanceId: s.inst("second").instanceId, cardId: "BT1-015" },
+        { instanceId: s.inst("third").instanceId, cardId: "BT1-045" },
+      ]),
+    );
+    expect(orderDecision.options?.orderDestination).toBe("deckBottom");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: {
+          kind: "orderCards",
+          order: [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("mindLinker").instanceId));
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) =>
+        permanent.stack.some((card) => card.instanceId === s.inst("mindLinker").instanceId),
+      ),
+    ).toBe(true);
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT24-086")).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-045", "BT1-013", "BT1-015"]);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-013" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-015" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-045" },
+    ]);
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("mindLinker").instanceId],
+    });
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
+  });
+
+  it.each([
+    [0, ["BT1-045", "BT1-013", "BT1-015", "BT1-009"]],
+    [1, ["BT1-009", "BT1-045", "BT1-013", "BT1-015"]],
+  ])(
+    "reveals three cards and returns them to the %s of deck with visible order metadata",
+    async (optionIndex, expected) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-054", as: "host", under: ["BT24-005", { card: "BT24-085", as: "addedTamer" }] }],
+            deck: [
+              { card: "BT1-013", as: "first" },
+              { card: "BT1-015", as: "second" },
+              { card: "BT1-045", as: "third" },
+              { card: "BT1-009", as: "unrevealed" },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoOrderCards: false, preferOptionIndex: optionIndex },
+      );
+      await s.ready();
+      const trigger = advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+        subjectPermanentId: s.perm("host").permanentId,
+        addedDigivolutionCardInstanceIds: [s.inst("addedTamer").instanceId],
+      });
+      await settle(() => s.state.pendingDecision?.kind === "orderCards");
+      expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+        { kind: "cardRevealed", seat: 0, cardId: "BT1-013" },
+        { kind: "cardRevealed", seat: 0, cardId: "BT1-015" },
+        { kind: "cardRevealed", seat: 0, cardId: "BT1-045" },
+      ]);
+      const orderDecision = s.decisions.at(-1)!.req;
+      expect(orderDecision.kind).toBe("orderCards");
+      expect(orderDecision.options?.visibleCards).toEqual(
+        expect.arrayContaining([
+          { instanceId: s.inst("first").instanceId, cardId: "BT1-013" },
+          { instanceId: s.inst("second").instanceId, cardId: "BT1-015" },
+          { instanceId: s.inst("third").instanceId, cardId: "BT1-045" },
+        ]),
+      );
+      expect(orderDecision.options?.orderDestination).toBe(optionIndex === 0 ? "deckTop" : "deckBottom");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: orderDecision.decisionId,
+          response: {
+            kind: "orderCards",
+            order: [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId],
+          },
+        }),
+      ).toEqual({ ok: true });
+      await trigger;
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(expected);
+      expect(s.state.players[0]!.hand).toHaveLength(0);
+      expect(s.state.players[0]!.deck.every((card) => card.faceUp === false)).toBe(true);
+      await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+        subjectPermanentId: s.perm("host").permanentId,
+        addedDigivolutionCardInstanceIds: [s.inst("addedTamer").instanceId],
+      });
+      expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(expected);
+    },
+  );
+
+  it("does not trigger during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-054", as: "host", under: ["BT24-005", { card: "BT24-085", as: "tamer" }] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const before = s.state.players[0]!.deck.map((card) => card.instanceId);
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("tamer").instanceId],
+    });
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(before);
+  });
+
+  it("reaches Kyokyomon through a legal black egg-to-DigiPolice evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT24-005", as: "egg" },
+        hand: [{ card: "BT24-054", as: "ryudamon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    const eggId = s.perm("egg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("ryudamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-054");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-005"]);
+  });
+
+  it("resets Mind Link through public play across an intervening turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-054", as: "host", under: ["BT24-005"] },
+            { card: "BT24-086", as: "mindLinker" },
+          ],
+          hand: [
+            { card: "BT1-009", as: "playedDigimon" },
+            { card: "BT1-009", as: "secondPlay" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { deck: ["BT1-020", "BT1-021", "BT1-022", "BT1-023"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+      },
+    );
+    s.state.memory = 10;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.filter((event) => event.kind === "cardRevealed").length === 3);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("mindLinker").instanceId);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.filter((event) => event.kind === "cardRevealed").length === 6);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
+
+  it("suppresses same-turn public evolution placement after Mind Link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-054", as: "host", under: ["BT24-005"] },
+            { card: "BT24-086", as: "mindLinker" },
+          ],
+          hand: [
+            { card: "BT1-009", as: "playedDigimon" },
+            { card: "BT24-055", as: "evolution" },
+            { card: "BT15-087", as: "shuu" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.filter((event) => event.kind === "cardRevealed").length === 3);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("mindLinker").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
+    expect(s.state.memory).toBe(5);
+    const evolvedHost = s.perm("host");
+    expect(evolvedHost.topCard.instanceId).toBe(s.inst("evolution").instanceId);
+    expect(evolvedHost.topCard.cardId).toBe("BT24-055");
+    expect(evolvedHost.stack.some((card) => card.instanceId === s.inst("shuu").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("shuu").instanceId);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
   });
 });

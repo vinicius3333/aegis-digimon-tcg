@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
@@ -8,6 +8,17 @@ import { compiled as BT24_100 } from "./BT24-100.js";
 import "../index.js";
 
 describe("BT24-100 In-Between Theater", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-100")).toMatchObject({
+      cardId: "BT24-100",
+      nameEn: "In-Between Theater",
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["TS"],
+    });
+  });
+
   it("waives color requirements and reveals TS before entering the battle area", () => {
     expect(BT24_100.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0]).toMatchObject({
       kind: "WaiveColorRequirement",
@@ -81,5 +92,30 @@ describe("BT24-100 In-Between Theater", () => {
     const s = setupEngine({ 0: { security: [{ card: "BT24-100", as: "securityOption", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-100")).toBe(true);
+  });
+
+  it("places itself from security during a natural public security battle", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT24-100", as: "checkedOption", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("checkedOption").instanceId),
+    );
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(
+      s.inst("checkedOption").instanceId,
+    );
   });
 });

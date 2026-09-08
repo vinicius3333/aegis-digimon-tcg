@@ -20,6 +20,9 @@ const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
   // The committed BT11-009 text predates standardized `(Rule) Name:` wording.
   // Q2054 confirms both aliases apply unconditionally in every zone.
   "BT11-009": ["Shoutmon", "Starmons"],
+  // Printed `(Rule) Also treated as Name:` uses a different word order from
+  // the generic parser. Q5674 confirms the alias includes digivolution cards.
+  "BT24-086": ["Shuu Yulin"],
 };
 
 /** Names granted by printed "this card is also treated as [X]" text. */

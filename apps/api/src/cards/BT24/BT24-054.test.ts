@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,9 +6,35 @@ import { compiled as BT24_054 } from "./BT24-054.js";
 import "../index.js";
 
 describe("BT24-054 Ryudamon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-054")).toMatchObject({
+      cardId: "BT24-054",
+      nameEn: "Ryudamon",
+      colors: ["Black", "Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Beast", "X Antibody", "DigiPolice", "SEEKERS"],
+      evoCosts: [
+        { color: "Black", level: 2, memoryCost: 1 },
+        { color: "Green", level: 2, memoryCost: 1 },
+      ],
+    });
+    expect(BT24_054.digivolutionRequirement).toEqual([
+      { namesExact: ["Kyokyomon"], cost: 0, isAlternate: true },
+      { level: 2, traits: ["DigiPolice", "SEEKERS"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("limits the inherited suspension target by this Digimon's play cost", () => {
     const inherited = BT24_054.effects?.find((entry) => entry.isInherited);
-    expect((inherited?.actions?.[0] as any).actions?.[0]).toMatchObject({
+    const watcher = inherited?.actions?.[0] as unknown as {
+      actions: Array<{ kind: string; target: { filter: unknown } }>;
+    };
+    expect(watcher.actions[0]).toMatchObject({
       kind: "Suspend",
       target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], playCostLteTriggerSource: true } },
     });
@@ -15,7 +42,16 @@ describe("BT24-054 Ryudamon", () => {
   it("responds to your Shuu Yulin being played with optional Hisyaryumon digivolution", () => {
     const effect = BT24_054.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(effect?.actions?.[0]).toMatchObject({ kind: "SubTrigger", event: "whenPlayed" });
-    expect((effect?.actions?.[0] as any).actions?.[0]).toMatchObject({
+    const watcher = effect?.actions?.[0] as unknown as {
+      actions: Array<{
+        kind: string;
+        payCost: boolean;
+        costOverride: number;
+        ignoreRequirements: boolean;
+        optional: boolean;
+      }>;
+    };
+    expect(watcher.actions[0]).toMatchObject({
       kind: "Digivolve",
       payCost: true,
       costOverride: 3,
@@ -59,6 +95,7 @@ describe("BT24-054 Ryudamon", () => {
           hand: [
             { card: "BT15-087", as: "shuu" },
             { card: "BT24-060", as: "hisyaryumon" },
+            { card: "BT24-055", as: "wrongLevel" },
           ],
         },
       },
@@ -71,6 +108,32 @@ describe("BT24-054 Ryudamon", () => {
     await settle(() => s.perm("ryudamon").topCard.instanceId === s.inst("hisyaryumon").instanceId);
 
     expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongLevel").instanceId);
+  });
+
+  it("does not react to a public Monodramon play or select Ginryumon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-054", as: "ryudamon" }],
+          hand: [
+            { card: "BT1-009", as: "monodramon" },
+            { card: "BT24-055", as: "wrongLevel" },
+            { card: "BT15-087", as: "shuu" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("monodramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("ryudamon").topCard.cardId).toBe("BT24-054");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongLevel").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shuu").instanceId);
   });
 
   it("inherited effect suspends only a target within its host's play cost when that host suspends", async () => {
@@ -116,29 +179,82 @@ describe("BT24-054 Ryudamon", () => {
     expect(s.perm("target").isSuspended).toBe(false);
   });
 
-  it("uses the inherited suspension only once per turn", async () => {
+  it("uses inherited suspension once per turn and resets on the next public attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-055", as: "host", under: ["BT24-054"] }] },
+        0: {
+          battleArea: [{ card: "BT24-055", as: "host", under: ["BT24-054"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
         1: {
           battleArea: [
             { card: "BT1-088", as: "first" },
             { card: "BT1-089", as: "second" },
           ],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("first").isSuspended);
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
 
-    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
-    expect(s.perm("second").isSuspended).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, s.perm("second").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("second").isSuspended);
+    expect(s.perm("second").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
+
+  it("activates inherited suspension from a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-055", as: "host", under: ["BT24-054"] }] },
+      1: { security: ["BT1-010"], battleArea: [{ card: "BT1-088", as: "target" }] },
+    });
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
   });
 });

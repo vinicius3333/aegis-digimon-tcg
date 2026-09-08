@@ -25,7 +25,10 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
 
   it("limits the replacement play to this Digimon's digivolution cards", () => {
     const replacement = BT24_065.effects?.find((entry) => entry.trigger === "AllTurns");
-    const play = (replacement?.actions?.[0] as any)?.actions?.[0];
+    const replacementAction = replacement?.actions?.[0] as unknown as {
+      actions: Array<{ kind: string; from: string[]; target: { source: string; filter: unknown } }>;
+    };
+    const play = replacementAction.actions[0];
     expect(play).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand", "digivolutionCards"],
@@ -48,14 +51,14 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     const s = setupEngine(
       {
         0: {
-          hand: ["BT1-001"],
-          deck: ["BT1-001", "BT1-002"],
+          hand: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
           battleArea: [
             { card: "BT24-065", as: "xAntibody" },
             { card: "BT17-059", as: "fodder" },
           ],
         },
-        1: { hand: ["BT1-001"], deck: ["BT1-001", "BT1-002"], security: ["BT1-003"] },
+        1: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011"], security: ["BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -187,5 +190,96 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("payment").instanceId);
+  });
+
+  it("publicly replaces a departing Diaboromon with the exact hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-065", as: "host", dp: 1000 }],
+          hand: [{ card: "BT17-059", as: "replacement" }],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const hostInstanceId = s.inst("host").instanceId;
+    const replacementId = s.inst("replacement").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === replacementId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(hostInstanceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === replacementId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
+  it("public refusal lets the departing Diaboromon leave and keeps the exact hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-065", as: "host", dp: 1000 }],
+          hand: [{ card: "BT17-059", as: "replacement" }],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const hostInstanceId = s.inst("host").instanceId;
+    const replacementId = s.inst("replacement").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(replacementId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
+  it("own-stack departure play retains the exact source instance", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "host", dp: 1000, under: [{ card: "BT17-059", as: "stackedDiaboromon" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostInstanceId = s.inst("host").instanceId;
+    const stackedInstanceId = s.perm("host").stack[0]!.instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+
+    // The legal BT17-059 stack card is selected by the replacement before the host leaves,
+    // and the exact source instance is then played to the owner's battle area.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === stackedInstanceId)).toBe(
+      true,
+    );
   });
 });

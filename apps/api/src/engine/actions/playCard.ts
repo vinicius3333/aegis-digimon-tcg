@@ -143,6 +143,8 @@ export interface PlayCardDeps {
   ): boolean;
   /** Allocate a permanentId unique within the match. */
   nextPermanentId(): string;
+  /** Recompute derived DP after a new permanent enters, including player-wide modifiers. */
+  recomputeDP?(permanentId: string): void;
   /**
    * Fire a timing window for one source instance through the effect stack
    * (registry -> collect -> ordered resolve). play-card fires On Play for a newly
@@ -617,6 +619,7 @@ function placePermanent(
   permanent.isSuspended = false;
   permanent.inBreeding = false;
   appendPermanent(player, permanent);
+  deps.recomputeDP?.(permanent.permanentId);
   return permanent;
 }
 

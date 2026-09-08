@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -50,7 +49,7 @@ export const compiled: CompiledCard = {
                 controllerDefault: "mine",
                 nameOrTrait: [
                   {
-                    tokens: ["System", "Transmutation (App Name)"],
+                    tokens: ["System", "Transmutation"],
                     match: "trait",
                   },
                 ],

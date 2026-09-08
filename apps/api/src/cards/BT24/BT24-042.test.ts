@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +7,29 @@ import { compiled as BT24_042 } from "./BT24-042.js";
 import "../index.js";
 
 describe("BT24-042 Goblimon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-042")).toMatchObject({
+      cardId: "BT24-042",
+      nameEn: "Goblimon",
+      colors: ["Green", "Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Demon", "Titan", "TS"],
+      evoCosts: [
+        { color: "Green", level: 2, memoryCost: 1 },
+        { color: "Purple", level: 2, memoryCost: 1 },
+      ],
+    });
+    expect(BT24_042.digivolutionRequirement).toEqual([
+      { namesExact: ["Tsunomon"], cost: 0, isAlternate: true },
+      { level: 2, traits: ["TS"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("reduces Demon/Titan digivolution costs on your turn", () => {
     const replacement = BT24_042.effects?.find(
       (entry) => entry.trigger === "YourTurn" && entry.actions?.[0]?.kind === "Replacement",
@@ -36,6 +60,10 @@ describe("BT24-042 Goblimon", () => {
       },
       isSelf: true,
     });
+    expect(digivolve.into?.or).toEqual([
+      { nameOrTrait: [{ tokens: ["Titamon"], match: "nameExact" }] },
+      { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
+    ]);
   });
 
   it("uses exact Tsunomon and alternate TS egg routes", () => {
@@ -139,6 +167,31 @@ describe("BT24-042 Goblimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("titamon").instanceId);
   });
 
+  it("does not select a legal purple level-6 that is neither Titamon nor Titan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-042"] }],
+          hand: [
+            { card: "BT24-045", as: "discarder" },
+            { card: "BT1-009", as: "discardCost" },
+          ],
+          trash: [{ card: "BT10-069", as: "wrongTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discardCost").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT24-072");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongTarget").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
+
   it.each([
     ["exact Tsunomon", "ST2-01", 0],
     ["TS Digi-Egg", "BT24-002", 1],
@@ -164,5 +217,35 @@ describe("BT24-042 Goblimon", () => {
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("goblimon").instanceId);
 
     expect(s.state.memory).toBe(1);
+  });
+
+  it("does not retroactively open Alliance after hand-trash evolution during an attack (Q5631)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-042", "ST16-03"] }],
+          hand: [{ card: "BT1-009", as: "drawnTrash" }],
+          trash: [{ card: "P-209", as: "titamon" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-013"], deck: ["BT1-014", "BT1-015", "BT1-016"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "P-209" && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").topCard.cardId).toBe("P-209");
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

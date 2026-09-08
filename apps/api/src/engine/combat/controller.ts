@@ -153,7 +153,11 @@ export interface CombatHooks {
    * has to defer (an attack declared from INSIDE another effect's resolution) cannot, and the
    * caller then falls back to the legacy inline Alliance loop.
    */
-  fireAttackTiming?: (trigger: CombatTrigger, allianceCount: number) => Promise<boolean>;
+  fireAttackTiming?: (
+    trigger: CombatTrigger,
+    allianceCount: number,
+    opts?: { includeSubTriggers?: boolean; subTriggerPayload?: TriggerInfo },
+  ) => Promise<{ allianceResolvedInWindow: boolean; subTriggersResolvedInWindow: boolean }>;
   /** Whether the engine has attack-timing effects to combine with Alliance. */
   combineAllianceTiming?: (permanentId: string) => boolean;
   /** Resolve simultaneous [On Deletion]/<Ascension> reactions in controller-chosen order. */
@@ -257,6 +261,12 @@ export interface CombatHooks {
    */
   barrierFired?: (key: string) => boolean;
   markBarrierFired?: (key: string) => void;
+  /**
+   * Pay Barrier's security-trash cost through the shared security primitive so
+   * `whenSecurityRemoved` watchers observe the removal before battle continues.
+   * Minimal combat-unit fixtures may omit this and use the direct access fallback.
+   */
+  trashTopSecurityForBarrier?: (seat: Seat) => Promise<void>;
   /**
    * Ask `seat` to optionally choose ONE of `candidateInstanceIds` (each the topCard instance
    * of an eligible permanent), or decline. Backs the ＜Raid＞ redirect choice (§16-23) and the
@@ -623,15 +633,11 @@ export class CombatController {
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),
       };
-      const foldAttackSubTriggers = this.hooks.withPendingAttackSubTriggers;
-      const preparedWhenAttacking =
-        foldAttackSubTriggers === undefined
-          ? this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload)
-          : undefined;
-      const preparedWhenOpponentAttacks =
-        foldAttackSubTriggers === undefined
-          ? this.hooks.prepareSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload)
-          : undefined;
+      const preparedWhenAttacking = this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+      const preparedWhenOpponentAttacks = this.hooks.prepareSubTrigger?.(
+        "whenOpponentAttacks",
+        attackSubTriggerPayload,
+      );
       // ＜Alliance＞ triggers at the same time as the attacker's own [When Attacking]
       // effects, and each printed/granted instance is a separate trigger (Q5257). Order them
       // together in ONE window only when there is actually something to order: a second
@@ -641,19 +647,23 @@ export class CombatController {
       const allianceCount =
         this.hooks.allianceCount?.(attacker.permanentId) ?? (this.hasKeyword(attacker.permanentId, "Alliance") ? 1 : 0);
       const fireAttackTiming = this.hooks.fireAttackTiming;
-      const combineAllianceTiming =
+      const combineAttackTiming =
         fireAttackTiming !== undefined &&
-        allianceCount > 0 &&
-        (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false));
+        (preparedWhenAttacking !== undefined ||
+          preparedWhenOpponentAttacks !== undefined ||
+          (allianceCount > 0 &&
+            (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false))));
       let allianceResolvedInWindow = false;
-      const runAttackTimingWindows = async (): Promise<void> => {
-        if (combineAllianceTiming) allianceResolvedInWindow = await fireAttackTiming(attackTrigger, allianceCount);
-        else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
-        await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
-      };
-      if (foldAttackSubTriggers !== undefined)
-        await foldAttackSubTriggers(attackSubTriggerPayload, runAttackTimingWindows);
-      else await runAttackTimingWindows();
+      let subTriggersResolvedInWindow = false;
+      if (combineAttackTiming) {
+        const result = await fireAttackTiming(attackTrigger, allianceCount, {
+          includeSubTriggers: true,
+          subTriggerPayload: attackSubTriggerPayload,
+        });
+        allianceResolvedInWindow = result.allianceResolvedInWindow;
+        subTriggersResolvedInWindow = result.subTriggersResolvedInWindow;
+      } else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
+      if (!subTriggersResolvedInWindow) await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
 
       // SubTrigger bus (System B): armed "when this attacks" / "when an opponent's Digimon
       // attacks" watchers. Fired EXACTLY ONCE here (not at both OnUseAttack and OnAllyAttack)
@@ -661,7 +671,7 @@ export class CombatController {
       // installs from the System-A timing-collected attack builders, so there is no
       // cross-system double-fire (RESEARCH Pitfall 4 / Assumption A3). The attacker is the
       // event subject for both events; a watcher's captured sourceFilter gates on it.
-      if (foldAttackSubTriggers === undefined) {
+      if (!subTriggersResolvedInWindow) {
         if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
         else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
         if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
@@ -1326,22 +1336,13 @@ export class CombatController {
       if (this.hooks.barrierFired?.(barrierKey) === true) continue;
       const accepted = await this.runBarrierDecision(perm.controllerSeat, permanentId);
       if (accepted) {
-        const paid = this.access.flipTopSecurityToTrash(perm.controllerSeat);
+        if (this.hooks.trashTopSecurityForBarrier !== undefined) {
+          await this.hooks.trashTopSecurityForBarrier(perm.controllerSeat);
+        } else {
+          this.access.flipTopSecurityToTrash(perm.controllerSeat);
+        }
         this.hooks.markBarrierFired?.(barrierKey);
         barrieredIds.add(permanentId);
-        // Q5296: paying ＜Barrier＞ removes a card from the controller's own security stack, so
-        // the generic removal buses must carry it exactly as the primitive trash verb does
-        // (BT23-035's [All Turns] "when security stacks are removed from" reads them). The
-        // effect-only bus stays silent: the cost is a keyword payment, not an effect.
-        if (paid !== undefined) {
-          await this.hooks.fireSubTrigger?.("whenSecurityRemoved", {
-            removedFromSecuritySeat: perm.controllerSeat,
-          });
-          await this.hooks.fireSubTrigger?.("whenCardTrashedFromSecurity", {
-            removedFromSecuritySeat: perm.controllerSeat,
-            trashedFromSecurityInstanceIds: [paid.instanceId],
-          });
-        }
       }
     }
     const postBarrierDeletedIds = resolvedDeletedIds.filter((id) => !barrieredIds.has(id));

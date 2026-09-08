@@ -35,16 +35,27 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
   });
 
   it.each([
-    [3, 4],
+    [4, 5],
     [5, 5],
   ])("changes memory from %i to %i at the start-phase boundary", async (memory, expected) => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-085", as: "source" }] } });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-085", as: "source" }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-012"], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = memory;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
-
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(expected);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("suspends, uses a TS Option within the opponent-memory cap, then lets a TS Digimon attack", async () => {
@@ -58,23 +69,39 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
-        1: { security: ["BT1-001"] },
+        1: {
+          battleArea: [{ card: "BT3-089", as: "opponent" }],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("option").instanceId, s.perm("attacker").topCard.instanceId);
-    s.state.memory = -3;
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
 
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("option").instanceId);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponent").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+    expect(s.state.memory).toBe(-3);
   });
 
-  it("cannot use an Option above the opponent-memory cap but may still attack (Q5673)", async () => {
+  it("cannot use an Option above the opponent-memory cap but may still attack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -84,7 +111,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -98,6 +125,644 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 
+  it("uses the capped Option but declines the optional subsequent attack (Q5673)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [{ card: "BT24-092", as: "option" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: [{ card: "BT1-012", as: "security" }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const suspendPrompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
+    const optionPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 3);
+    const linkPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[2]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: linkPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 4);
+    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[3]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(false);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.state.memory).toBe(-3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
+  });
+
+  it("publicly links BT24-091 before its End-of-Turn attack (Q5686)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT3-089", as: "memoryPlay" },
+            { card: "BT24-091", as: "option" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-014", as: "high" },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("option").instanceId, s.perm("attacker").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(-6);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("low").instanceId));
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("low").instanceId, s.inst("high").instanceId]),
+    );
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("security").instanceId]),
+    );
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    await turn;
+  });
+
+  it("publicly uses BT24-097 after deleting the highest-level enemy (Q5708)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT3-089", as: "memoryPlay" },
+            { card: "BT24-097", as: "option" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "enemySix" },
+            { card: "BT1-020", as: "enemyFive" },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-015"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("option").instanceId, s.perm("attacker").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(-6);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("enemyFive").instanceId));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("enemySix").instanceId,
+        s.inst("enemyFive").instanceId,
+        s.inst("security").instanceId,
+      ]),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+  });
+
+  it("publicly uses Sonic Shot before the trailing TS attack (Q5701)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [{ card: "BT24-095", as: "sonicShot" }],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "enemy", dp: 6000 }],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("enemy").instanceId) &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toEqual([s.inst("sonicShot").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("sonicShot").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("enemy").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+  });
+
+  it("publicly uses Ignition Flare before the trailing TS attack (Q6442)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT3-089", as: "memoryPlay" },
+            { card: "BT25-093", as: "ignitionFlare" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowEnemy" },
+            { card: "BT1-020", as: "highEnemy" },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(-6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("highEnemy").instanceId) &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toEqual([s.inst("ignitionFlare").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("ignitionFlare").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("lowEnemy").instanceId,
+        s.inst("highEnemy").instanceId,
+        s.inst("security").instanceId,
+      ]),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+  });
+
+  it("continues 085's trailing attack after BT26-097 places it under Aegiomon (Q7171)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-034", as: "aegiomon" },
+            { card: "BT24-085", as: "source" },
+          ],
+          hand: [{ card: "BT26-097", as: "thunder" }],
+          security: [{ card: "BT1-009", as: "ownSecurity" }],
+        },
+        1: { security: [{ card: "BT1-012", as: "enemySecurity" }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const sourcePermanentId = s.perm("source").permanentId;
+    const aegiomonId = s.perm("aegiomon").topCard.instanceId;
+    s.state.memory = 6;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-034"),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourcePermanentId)).toBe(false);
+    const aegiomon = s.perm("aegiomon");
+    expect(aegiomon.topCard.instanceId).toBe(aegiomonId);
+    expect(aegiomon.stack.map((card) => card.instanceId)).toEqual([s.inst("source").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("thunder").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("ownSecurity").instanceId]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("enemySecurity").instanceId);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    await turn;
+  });
+
+  it("plays BT24-085 from Security through a public opponent attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT1-009", as: "remainingSecurity" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "attacker" }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
+        ) &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("remainingSecurity").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("source").instanceId,
+    ]);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.memory).toBe(3);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("keeps an above-cap BT24-097 in hand while still allowing the TS attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [{ card: "BT24-097", as: "option" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { security: [{ card: "BT1-012", as: "enemySecurity" }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        observe(s.engine).hasAttackedThisTurn(s.perm("attacker")) &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("enemySecurity").instanceId);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    await turn;
+  });
+
+  it("does not offer a non-TS Option or attack with a non-TS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT3-089", as: "boltmon" },
+          ],
+          hand: [{ card: "BT1-091", as: "option" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { security: [{ card: "BT1-012", as: "enemySecurity" }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("boltmon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("enemySecurity").instanceId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    await turn;
+  });
+
+  it("allows declining the payable suspension and skips both dependent clauses", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [{ card: "BT24-092", as: "option" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { security: [{ card: "BT1-012", as: "enemySecurity" }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("enemySecurity").instanceId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("allows using no Option after paying suspension, then accepts the trailing TS attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [{ card: "BT24-092", as: "option" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { security: [{ card: "BT1-012", as: "enemySecurity" }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional" && s.perm("source").isSuspended);
+    const optionDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId),
+    );
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("attacker").linked).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("enemySecurity").instanceId);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("skips both End-of-Turn tails when Security has already suspended this Tamer (Q5672)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attackerA" },
+            { card: "BT24-011", as: "readyB" },
+          ],
+          hand: [{ card: "BT24-092", as: "option" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          security: [
+            { card: "BT8-102", as: "samadhi" },
+            { card: "BT1-009", as: "remainingOne" },
+            { card: "BT1-010", as: "remainingTwo" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("source").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerA").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(() => s.perm("source").isSuspended);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("remainingOne").instanceId,
+      s.inst("remainingTwo").instanceId,
+    ]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("readyB").isSuspended).toBe(false);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("readyB"))).toBe(false);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("remainingOne").instanceId,
+      s.inst("remainingTwo").instanceId,
+    ]);
+  });
+
   it("processes neither trailing clause when the Tamer cannot pay the suspension cost (Q5672)", async () => {
     const s = setupEngine(
       {
@@ -108,7 +773,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -130,18 +795,20 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
             { card: "BT24-024", as: "attacker" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const source = s.perm("source");
+    const attacker = s.perm("attacker");
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    await settle(() => observe(s.engine).hasAttackedThisTurn(attacker));
+    expect(source.isSuspended).toBe(true);
+    expect(observe(s.engine).hasAttackedThisTurn(attacker)).toBe(true);
     await turn;
-    expect(s.perm("source").isSuspended).toBe(true);
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 
   it("plays itself from security without paying the cost", async () => {
@@ -152,5 +819,43 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
     );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("repeats the public End of Your Turn attack after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-012", "BT1-012", "BT1-012"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    expect(s.perm("source").isSuspended).toBe(true);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    expect(s.perm("source").isSuspended).toBe(true);
+    await secondTurn;
   });
 });

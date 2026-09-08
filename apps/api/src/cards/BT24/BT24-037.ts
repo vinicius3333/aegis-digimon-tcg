@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -166,7 +165,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
-              fromHost: "self",
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
             },
@@ -208,7 +207,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
-              fromHost: "self",
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
             },

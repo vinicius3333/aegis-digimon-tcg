@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT24-077 (Revivemon) — do not regenerate over this file.
 //
 // runtime-effect fix: "[When Digivolving] [On Deletion] You may link 1 level 4 or lower

@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,13 +7,39 @@ import { compiled as BT24_059 } from "./BT24-059.js";
 import "../index.js";
 
 describe("BT24-059 Sharkmon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-059")).toMatchObject({
+      cardId: "BT24-059",
+      nameEn: "Sharkmon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "Titan", "TS", "Aquatic"],
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+    });
+    expect(BT24_059.digivolutionRequirement).toEqual([
+      { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
+      { traits: ["TS"], cost: 3, isAlternate: true, level: 4 },
+    ]);
+  });
+
   it("models the inherited placement-and-unsuspend as an optional paid activation", () => {
     const inherited = BT24_059.effects?.find((entry) => entry.isInherited);
-    const action = inherited?.actions?.[0] as any;
     expect(inherited).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn" });
-    expect(action).toMatchObject({ kind: "Unsuspend", target: { filter: { isSelfRef: true } } });
-    expect(action).toMatchObject({ optional: true, abortOnDecline: true });
-    expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
+    expect(inherited?.actions?.[0]).toMatchObject({
+      kind: "Unsuspend",
+      target: { filter: { isSelfRef: true } },
+      optional: true,
+      abortOnDecline: true,
+      cost: { kind: "place", destination: "digivolutionStack", position: "bottom" },
+    });
   });
 
   it("public play pays 7 and De-Digivolves 1", async () => {
@@ -42,8 +69,8 @@ describe("BT24-059 Sharkmon", () => {
           battleArea: [{ card: "BT24-059", as: "sharkmon" }],
           deck: [
             { card: "BT24-046", as: "ts" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
           ],
         },
       },
@@ -67,7 +94,118 @@ describe("BT24-059 Sharkmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sharkmonId)).toBe(false);
   });
 
+  it("publicly refuses the eligible On Deletion play and trashes the full reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-059", as: "sharkmon" }],
+          deck: [
+            { card: "BT24-046", as: "candidate" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("sharkmon").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("sharkmon").instanceId,
+        s.inst("candidate").instanceId,
+        s.inst("miss1").instanceId,
+        s.inst("miss2").instanceId,
+      ]),
+    );
+  });
+
+  it("does not select a cost-8 TS card for the cost-7 On Deletion boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-059", as: "sharkmon" }],
+          deck: [
+            { card: "BT24-014", as: "tooExpensive" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("sharkmon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooExpensive").instanceId));
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("tooExpensive").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("tooExpensive").instanceId,
+        s.inst("miss1").instanceId,
+        s.inst("miss2").instanceId,
+      ]),
+    );
+  });
+
+  it("resolves On Deletion from an opponent's public When Digivolving deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-059", as: "sharkmon" }],
+          deck: [
+            { card: "BT24-046", as: "ts" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: "ST15-13", as: "hiandromon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hiandromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sharkmon").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ts").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("ts").instanceId)?.isSuspended,
+    ).toBe(true);
+  });
+
   it.each([
+    ["normal black level-4 requirement", "BT10-061", false, undefined, 4],
     ["normal blue level-4 requirement", "BT1-032", false, undefined, 4],
     ["Aquatic trait-substring requirement", "BT12-025", true, 0, 3],
     ["Sea Animal trait-substring requirement", "BT1-033", true, 0, 3],
@@ -80,6 +218,7 @@ describe("BT24-059 Sharkmon", () => {
           0: {
             battleArea: [{ card: baseCard, as: "base" }],
             hand: [{ card: "BT24-059", as: "sharkmon" }],
+            deck: [{ card: "BT1-015", as: "evolutionDraw" }],
           },
           1: { battleArea: [{ card: "BT24-051", as: "target", under: ["BT24-050"] }] },
         },
@@ -87,6 +226,8 @@ describe("BT24-059 Sharkmon", () => {
       );
       s.state.memory = 5;
       await s.ready();
+      const baseId = s.inst("base").instanceId;
+      const sharkmonId = s.inst("sharkmon").instanceId;
 
       expect(
         s.engine.applyIntent(0, {
@@ -100,23 +241,48 @@ describe("BT24-059 Sharkmon", () => {
       await settle(() => s.perm("target").topCard.cardId === "BT24-050");
 
       expect(s.state.memory).toBe(5 - expectedCost);
+      expect(s.perm("base").topCard.instanceId).toBe(sharkmonId);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     },
   );
+
+  it("rejects a normal evolution from an invalid green level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-071", as: "invalidSource" }], hand: [{ card: "BT24-059", as: "sharkmon" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const beforeTop = s.perm("invalidSource").topCard.instanceId;
+    const beforeMemory = s.state.memory;
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("invalidSource").permanentId,
+      instanceId: s.inst("sharkmon").instanceId,
+    });
+    expect(result.ok).toBe(false);
+    expect(s.perm("invalidSource").topCard.instanceId).toBe(beforeTop);
+    expect(s.state.memory).toBe(beforeMemory);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("sharkmon").instanceId);
+  });
 
   it("inherited attack may place another Digimon underneath to unsuspend its host", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: ["BT24-059"] },
+            { card: "BT10-028", as: "host", under: ["BT24-059"] },
             { card: "BT1-010", as: "cost" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const costId = s.perm("cost").permanentId;
+    const hostId = s.perm("host").permanentId;
+    const costCardId = s.inst("cost").instanceId;
+    const sharkmonSourceId = s.perm("host").stack[0]!.instanceId;
     await s.ready();
 
     expect(
@@ -131,7 +297,131 @@ describe("BT24-059 Sharkmon", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT1-010");
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costCardId, sharkmonSourceId]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
+  });
+
+  it("publicly declines the inherited placement and leaves the attacking host suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-028", as: "host", under: ["BT24-059"] },
+            { card: "BT1-010", as: "cost" },
+          ],
+          deck: ["BT1-015", "BT1-016", "BT1-017"],
+        },
+        1: { security: [{ card: "BT1-011", as: "security" }, { card: "BT1-012" }], deck: ["BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const costId = s.perm("cost").permanentId;
+    const sourceId = s.perm("host").stack[0]!.instanceId;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("suppresses the inherited placement on a same-turn repeat and resets next owner turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-028", as: "host", under: ["BT24-059"] },
+            { card: "BT1-010", as: "costA" },
+            { card: "BT1-015", as: "costB" },
+          ],
+          deck: ["BT1-016", "BT1-017", "BT1-018"],
+        },
+        1: {
+          security: [
+            { card: "BT1-011", as: "securityA" },
+            { card: "BT1-012", as: "securityB" },
+            { card: "BT1-013", as: "securityC" },
+          ],
+          deck: ["BT1-016", "BT1-017", "BT1-018"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.perm("host").stack[0]!.instanceId;
+    const costAId = s.inst("costA").instanceId;
+    const costBId = s.inst("costB").instanceId;
+    preferred.push(s.perm("costA").permanentId);
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        s.perm("host").stack.some((card) => card.instanceId === costAId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityA").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costAId, sourceId]);
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityB").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costAId, sourceId]);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, s.perm("costB").permanentId);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 3 &&
+        s.perm("host").stack.some((card) => card.instanceId === costBId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityC").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costBId, costAId, sourceId]);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
   });
 });

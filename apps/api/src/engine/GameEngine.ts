@@ -1,7 +1,6 @@
 import { peekCheckedCard } from "./security/checkedCard.js";
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
 import { isTimingActivationDisabled } from "./effects/timingActivation.js";
-import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
   CardKind,
@@ -852,7 +851,8 @@ export class GameEngine {
           ...this.combatTriggerInfo(trigger),
         });
       },
-      fireAttackTiming: async (trigger, allianceCount) => {
+      fireAttackTiming: async (trigger, allianceCount, opts = {}) => {
+        const includeSubTriggers = opts.includeSubTriggers === true;
         const attacker =
           trigger.attackerPermanentId === undefined
             ? undefined
@@ -864,7 +864,7 @@ export class GameEngine {
         // the combined window here and let the caller run the legacy inline Alliance loop.
         if (attacker === undefined || top === undefined || this.activeWindowToken !== undefined) {
           await this.fireTiming(EffectTiming.OnUseAttack, this.combatTriggerInfo(trigger));
-          return false;
+          return { allianceResolvedInWindow: false, subTriggersResolvedInWindow: false };
         }
         // Each ＜Alliance＞ instance enters the attacker's [When Attacking] window as one more
         // simultaneous trigger, so the controller orders it against the printed effects instead
@@ -895,13 +895,22 @@ export class GameEngine {
             resolve: async () => this.combat.resolveAllianceEffect(attacker.permanentId),
           },
         }));
-        await this.fireTimingForPermanent(
-          EffectTiming.OnUseAttack,
-          attacker,
-          this.combatTriggerInfo(trigger),
-          allianceEffects,
-        );
-        return true;
+        const attackPayload = opts.subTriggerPayload ?? this.combatTriggerInfo(trigger);
+        const attackEnvironment = buildResolutionEnv(this.effectEnvironment(attackPayload), this.resolutionDeps());
+        const allyAttackEffects = attackEnvironment.collect(EffectTiming.OnAllyAttack);
+        const pendingAttackEffects = [...allyAttackEffects, ...allianceEffects];
+        const timingWindow = async () =>
+          this.fireTimingForPermanent(EffectTiming.OnUseAttack, attacker, attackPayload, pendingAttackEffects);
+        const subTriggerPayload = opts.subTriggerPayload ?? this.combatTriggerInfo(trigger);
+        if (includeSubTriggers) {
+          await this.withPendingSubTriggers(["whenAttacking", "whenOpponentAttacks"], subTriggerPayload, timingWindow, {
+            onlyInitiallyArmed: true,
+            busTrigger: () => subTriggerPayload,
+          });
+        } else {
+          await timingWindow();
+        }
+        return { allianceResolvedInWindow: allianceCount > 0, subTriggersResolvedInWindow: includeSubTriggers };
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
@@ -948,6 +957,7 @@ export class GameEngine {
         this.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
+      trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
@@ -1094,6 +1104,7 @@ export class GameEngine {
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
       resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
+      trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         // A selected security card can still be face down in its origin zone.
@@ -2620,7 +2631,7 @@ export class GameEngine {
         ...payload,
       };
     }
-    if (this.ruleProcessing) {
+    if (this.ruleProcessing && !this.resolvingBarrierSecurityCost) {
       const subscriptions = subscriptionsFor();
       const contexts = new Map<number, EffectContext>();
       for (const sub of subscriptions) {
@@ -2654,6 +2665,7 @@ export class GameEngine {
     if (
       event === "whenSecurityRemoved" &&
       this.activeWindowToken !== undefined &&
+      !this.resolvingBarrierSecurityCost &&
       !this.flushingDeferredSecurityRemovalTriggers
     ) {
       const pending = [...this.subTriggers.subscriptionsFor(event)];
@@ -2668,7 +2680,7 @@ export class GameEngine {
     }
     // A would-be-returned reaction interrupts the causing effect before its target moves
     // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
-    if (event !== "wouldBeReturned" && this.shouldDeferNestedTiming()) {
+    if (event !== "wouldBeReturned" && this.shouldDeferNestedTiming() && !this.resolvingBarrierSecurityCost) {
       // The event subject can leave the board before the causing effect finishes. Bind each
       // context now, at trigger time, so the pending activation keeps the subject snapshot
       // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
@@ -2960,7 +2972,10 @@ export class GameEngine {
     events: readonly SubTriggerEventName[],
     payload: TriggerInfo | undefined,
     fireWindows: () => Promise<void>,
-    opts: { busTrigger?: () => TriggerInfo | undefined; onlyInitiallyArmed?: boolean } = {},
+    opts: {
+      busTrigger?: () => TriggerInfo | undefined;
+      onlyInitiallyArmed?: boolean;
+    } = {},
   ): Promise<void> {
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
     const armed =
@@ -4797,6 +4812,17 @@ export class GameEngine {
    * (a deletion can fire an [On Deletion] effect that itself drives `resolveTiming`, which
    */
   private ruleProcessing = false;
+  /** Barrier costs trigger security-removal effects before the current security battle continues. */
+  private resolvingBarrierSecurityCost = false;
+
+  private async payBarrierSecurityCost(seat: Seat): Promise<void> {
+    this.resolvingBarrierSecurityCost = true;
+    try {
+      await this.primitives.trashFromSecurity(seat, 1, { fromTop: true, cause: "barrierCost" });
+    } finally {
+      this.resolvingBarrierSecurityCost = false;
+    }
+  }
 
   /**
    * Triggered watcher events produced while a rule check is still reaching its fixpoint.
@@ -5769,6 +5795,7 @@ export class GameEngine {
           this.continuous.colorRequirementAlternatives(instance.instanceId),
         ),
       nextPermanentId: () => this.nextPermanentId(),
+      recomputeDP: (permanentId) => this.modifiers.recomputeDP(this.state, permanentId),
       // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
       // finalized cost. Runs in the async apply path BEFORE memory is paid (EX9-043 / BT25-076).

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type Seat, type ServerEvent } from "@aegis/shared";
+import { EffectTiming, type ServerEvent } from "@aegis/shared";
 import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { WinCheck } from "../security/winCheck.js";
@@ -208,6 +208,31 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
 
     expect(inSecurityDuringBattle).toBe(false); // already gone from security by battle time
     expect(h.state.players[1]?.security.some((c) => c.instanceId === card.instanceId)).toBe(false);
+  });
+
+  it("13-1-6: a pre-existing face-up checked card is removed before its check resolves", async () => {
+    cite(
+      "comprehensive-0153",
+      "13-1-6 a checked card is removed from the security stack and treated as not being in any particular area",
+    );
+
+    const card = makeSecurityCard(1, 0, "AD1-002");
+    card.faceUp = true;
+    let inSecurityDuringResolution: boolean | undefined;
+    const h = harness([card]);
+    h.deps.fireTiming = async (_timing, info) => {
+      if (info.securityInstanceId === card.instanceId) {
+        inSecurityDuringResolution = h.state.players[1]?.security.some(
+          (candidate) => candidate.instanceId === card.instanceId,
+        );
+      }
+    };
+
+    await runSecurityCheck(h.state, () => {}, h.win, h.deps, 1, attacker);
+
+    expect(inSecurityDuringResolution).toBe(false);
+    expect(h.state.players[1]?.security).toHaveLength(0);
+    expect(h.state.players[1]?.trash.map((candidate) => candidate.instanceId)).toEqual([card.instanceId]);
   });
 
   it("13-1-7/13-1-8-3-1: a checked Digimon card battles the attacker as a Security Digimon", async () => {

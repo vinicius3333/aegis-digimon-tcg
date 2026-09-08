@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,20 @@ import { compiled as BT24_086 } from "./BT24-086.js";
 import "../index.js";
 
 describe("BT24-086 The Crossroad Witch", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-086")).toMatchObject({
+      cardId: "BT24-086",
+      nameEn: "The Crossroad Witch",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["SEEKERS", "DigiPolice"],
+    });
+  });
+
   it("mind-links to the correct traits and scopes the inherited play to this stack", () => {
     const allTurns = BT24_086.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited);
     for (const action of allTurns?.actions ?? []) {
@@ -35,9 +49,9 @@ describe("BT24-086 The Crossroad Witch", () => {
         filter: { nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] },
       },
     });
-    expect((inherited?.actions?.[0] as any)?.target?.filter?.nameOrTrait).toEqual([
-      { tokens: ["Shuu Yulin"], match: "nameExact" },
-    ]);
+    expect(inherited?.actions?.[0]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] } },
+    });
   });
 
   it("self-scopes both inherited keywords to a qualifying host", () => {
@@ -105,9 +119,59 @@ describe("BT24-086 The Crossroad Witch", () => {
     expect(observe(s.engine).hasKeyword(s.perm("neighbor"), "Alliance")).toBe(false);
   });
 
+  it("uses inherited Alliance in combat and Reboot on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-063", as: "host", under: ["BT24-086"] },
+            { card: "BT24-020", as: "ally" },
+          ],
+          security: ["BT1-013"],
+        },
+        1: { security: ["BT1-009"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    const alliance = s.events.find((event) => event.kind === "alliancePrompt");
+    expect(alliance?.kind).toBe("alliancePrompt");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondAlliance",
+        allyPermanentId: s.perm("ally").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
+
   it("plays itself from its host's digivolution cards at end of all turns (Q5674)", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT15-087", as: "witch" }] }] } },
+      { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT24-086", as: "witch" }] }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -117,7 +181,50 @@ describe("BT24-086 The Crossroad Witch", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("witch").instanceId),
     );
 
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("witch").instanceId),
+    ).toBe(true);
     expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("witch").instanceId);
+  });
+
+  it("can decline the inherited End of All Turns play, then accept it on the next owner turn", async () => {
+    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT24-086", as: "witch" }] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"] },
+      },
+      options,
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const sourceId = s.inst("witch").instanceId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === sourceId)).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("gains memory only while the opponent has a Digimon", async () => {

@@ -1,88 +1,34 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost, CostGatedBlockAction, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const trashOneCard: Cost = {
+  kind: "trash",
+  target: { filter: { zone: "hand" as const, controller: "mine" as const }, count: 1 },
+  raw: "By trashing 1 card in your hand",
+};
+
+const deleteByLevel = (level: number): Action => {
+  const filter: Filter = { controller: "opponent", kind: ["Digimon"], levels: [level] };
+  return { kind: "Delete", target: { filter, count: 1 } };
+};
+
+const deleteTargets: CostGatedBlockAction = {
+  kind: "CostGatedBlock",
+  cost: trashOneCard,
+  optional: true,
+  abortOnDecline: true,
+  actions: [deleteByLevel(3), deleteByLevel(4)],
+};
 
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
-      actions: [
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [3],
-            },
-            count: 1,
-          },
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                zone: "hand",
-                controller: "mine",
-              },
-              count: 1,
-            },
-            raw: "By trashing 1 card in your hand",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-            count: 1,
-          },
-        },
-      ],
+      actions: [deleteTargets],
     },
     {
       trigger: "WhenDigivolving",
-      actions: [
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [3],
-            },
-            count: 1,
-          },
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                zone: "hand",
-                controller: "mine",
-              },
-              count: 1,
-            },
-            raw: "By trashing 1 card in your hand",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-            count: 1,
-          },
-        },
-      ],
+      actions: [deleteTargets],
     },
     {
       trigger: "YourTurn",

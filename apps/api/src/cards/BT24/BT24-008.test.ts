@@ -1,7 +1,8 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-008.js";
 import "../index.js";
 
@@ -52,11 +53,11 @@ describe("BT24-008 Elizamon", () => {
           battleArea: [{ card: "BT24-008", as: "elizamon" }],
           hand: [
             { card: "BT24-011", as: "dragonkin" },
-            { card: "BT1-001", as: "nonMatch" },
+            { card: "BT1-013", as: "nonMatch" },
           ],
           deck: [
-            { card: "BT1-002", as: "drawOne" },
-            { card: "BT1-003", as: "drawTwo" },
+            { card: "BT1-015", as: "drawOne" },
+            { card: "BT1-013", as: "drawTwo" },
           ],
         },
       },
@@ -79,23 +80,58 @@ describe("BT24-008 Elizamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-008", as: "elizamon" }],
-          hand: [{ card: "BT24-011", as: "dragonkin" }],
-          deck: ["BT1-002", "BT1-003"],
+          hand: [
+            { card: "BT24-008", as: "elizamon" },
+            { card: "BT24-011", as: "dragonkin" },
+          ],
+          deck: [
+            { card: "BT1-015", as: "drawOne" },
+            { card: "BT1-013", as: "drawTwo" },
+          ],
         },
       },
       { autoDeclineOptional: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("elizamon"));
-
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elizamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("dragonkin").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dragonkin").instanceId);
-    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("drawOne").instanceId,
+      s.inst("drawTwo").instanceId,
+    ]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
+  it("resolves On Play from a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-008", as: "elizamon" },
+            { card: "BT24-011", as: "dragonkin" },
+          ],
+          deck: ["BT1-015", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elizamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("dragonkin").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("dragonkin").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
   it("gains memory once only when the opponent's security is removed", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-008"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }] } });
     s.state.memory = 0;
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
@@ -106,5 +142,253 @@ describe("BT24-008 Elizamon", () => {
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     expect(s.state.memory).toBe(1);
+  });
+
+  it("gains memory from a natural player attack that removes opponent security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }] },
+      1: { security: ["BT1-013"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("resolves Security effects before the pending inherited gain (Q5578)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }] },
+      1: {
+        security: [
+          { card: "BT12-099", as: "securityOption" },
+          { card: "BT1-013", as: "remaining" },
+        ],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-015")).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not gain memory when the opponent removes their own security on their turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }] },
+      1: {
+        battleArea: ["BT1-045"],
+        hand: [{ card: "BT24-093", as: "temple" }],
+        security: [{ card: "BT1-013", as: "removed" }],
+        deck: ["BT1-015"],
+      },
+    });
+    s.state.memory = 5;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const templeId = s.inst("temple").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: templeId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === templeId));
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("removed").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("suppresses a same-turn second security gain and resets on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-010", as: "host", under: ["BT24-008", "BT24-001", "BT1-009", "BT1-014"] }],
+          hand: [{ card: "BT24-050", as: "unsuspender" }],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+        1: {
+          security: [
+            { card: "BT1-009", as: "firstSecurity" },
+            { card: "BT1-009", as: "secondSecurity" },
+            { card: "BT1-009", as: "thirdSecurity" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 7;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 0;
+    const firstBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.memory).toBe(firstBefore + 1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstSecurity").instanceId)).toBe(true);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    const secondBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).not.toBe(secondBefore + 1);
+    expect(s.state.players[1]!.security.length).toBe(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
+      true,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const thirdBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(thirdBefore + 1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("thirdSecurity").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
+
+  it("reaches Elizamon through a legal red egg evolution", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT24-001", as: "egg" },
+        hand: [
+          { card: "BT24-008", as: "elizamon" },
+          { card: "BT24-010", as: "greymon" },
+        ],
+        deck: [
+          { card: "BT1-013", as: "evolutionDraw1" },
+          { card: "BT1-015", as: "evolutionDraw2" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("elizamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.instanceId === s.inst("elizamon").instanceId);
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-001"]);
+    expect(s.perm("egg").stack[0]!.instanceId).toBe(s.inst("egg").instanceId);
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("elizamon").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw1").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.instanceId === s.inst("greymon").instanceId);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("egg").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("egg").instanceId,
+      s.inst("elizamon").instanceId,
+    ]);
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("greymon").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw2").instanceId)).toBe(true);
+  });
+
+  it("resets the inherited security-removal gain on its owner's later turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-015", as: "host", under: ["BT24-008"] }],
+          deck: ["BT1-013", "BT1-015", "BT1-045", "BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          security: ["BT1-012", "BT1-012", "BT1-012", "BT1-012"],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    const firstBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 3);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.state.memory).toBe(firstBefore + 1);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    await advance(s.engine).waitForMainPhase(0);
+    const secondBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.memory).toBe(secondBefore + 1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });

@@ -1,11 +1,11 @@
-// @ts-nocheck
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+import type { CompiledCard } from "@aegis/shared";
 
 // Rei Katsura. Start of Main: gain memory if the opponent has a Digimon. When
-// this Tamer's linked host gets linked on your turn, suspend this Tamer, draw,
+// any of your Digimon gets linked on your turn, suspend this Tamer, draw,
 // trash a hand card, then optionally App Fuse one of your Digimon into a System,
 // Life, or Transmutation card from the trash.
-export const compiled = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",

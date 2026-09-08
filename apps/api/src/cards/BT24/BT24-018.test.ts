@@ -9,28 +9,29 @@ import "../BT8/BT8-012.js";
 
 describe("BT24-018 Styracomon", () => {
   it("trashes an opponent security card and may unsuspend on digivolution", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any;
-    expect(effect.actions[0]).toMatchObject({
-      kind: "Trash",
-      optional: true,
-      target: { filter: { controller: "opponent", zone: "security" } },
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect).toMatchObject({
+      actions: [
+        { kind: "Trash", optional: true, target: { filter: { controller: "opponent", zone: "security" } } },
+        { kind: "Unsuspend", optional: true },
+      ],
     });
-    expect(effect.actions[1]).toMatchObject({ kind: "Unsuspend", optional: true });
   });
 
   it("uses an executable lowest-DP opponent deletion cost for leave prevention", () => {
     const replacement = compiled.effects.find(
       (entry) => entry.trigger === "AllTurns" && entry.actions?.[0]?.kind === "Replacement",
-    )?.actions?.[0] as any;
+    );
     expect(replacement).toMatchObject({
-      kind: "Replacement",
-      event: "wouldLeavePlay",
-      affectsAll: true,
-      target: { filter: { controller: "mine" }, upTo: true },
-    });
-    expect(replacement.cost).toMatchObject({
-      kind: "deleteOwn",
-      target: { filter: { controller: "opponent", superlative: "lowestDP" } },
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          affectsAll: true,
+          target: { filter: { controller: "mine" }, upTo: true },
+          cost: { kind: "deleteOwn", target: { filter: { controller: "opponent", superlative: "lowestDP" } } },
+        },
+      ],
     });
   });
 
@@ -41,9 +42,9 @@ describe("BT24-018 Styracomon", () => {
         0: { battleArea: [{ card: "BT24-018", as: "styracomon", suspended: true }] },
         1: {
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "chosen" },
-            { card: "BT1-003", as: "bottom" },
+            { card: "BT1-013", as: "top" },
+            { card: "BT1-015", as: "chosen" },
+            { card: "BT1-045", as: "bottom" },
           ],
         },
       },
@@ -70,6 +71,144 @@ describe("BT24-018 Styracomon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("styracomon"));
 
     expect(s.perm("styracomon").isSuspended).toBe(false);
+  });
+
+  it("resolves security trash and unsuspend through the public Owen/Lamiamon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-016", as: "lamiamon" },
+            { card: "BT24-082", as: "owen", suspended: true },
+          ],
+          hand: [{ card: "BT24-018", as: "styracomon" }],
+          deck: [{ card: "BT1-014", as: "evolutionDraw" }],
+        },
+        1: { security: [{ card: "BT1-013", as: "securityCard" }, "BT1-015"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lamiamon").permanentId,
+        instanceId: s.inst("styracomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("lamiamon").topCard.instanceId === s.inst("styracomon").instanceId &&
+        s.state.players[1]!.security.length === 1,
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-015"]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityCard").instanceId);
+    expect(s.perm("lamiamon").stack.map((card) => card.cardId)).toEqual(["BT24-016"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    await settle(() => !s.perm("lamiamon").isSuspended);
+    expect(s.perm("lamiamon").isSuspended).toBe(false);
+  });
+
+  it("publicly deletes an opponent Digimon after its security is removed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT1-015", as: "attacker" },
+          ],
+        },
+        1: { security: [{ card: "BT1-010", as: "security" }], battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const securityId = s.inst("security").instanceId;
+    const targetId = s.perm("target").permanentId;
+    const targetInstanceId = s.inst("target").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === securityId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([securityId, targetInstanceId]),
+    );
+  });
+
+  it("publicly pays the leave replacement by deleting the opponent's lowest-DP Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT24-012", as: "reptile", dp: 1000 },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentLow", dp: 1000 }],
+          hand: [{ card: "BT6-095", as: "option" }],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const reptileId = s.perm("reptile").permanentId;
+    const opponentLowId = s.perm("opponentLow").permanentId;
+    const opponentLowInstanceId = s.inst("opponentLow").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(reptileId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(opponentLowId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(opponentLowInstanceId);
+  });
+
+  it("public refusal lets a qualifying Digimon leave and keeps the opponent cost target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT24-012", as: "reptile", dp: 1000 },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentLow", dp: 1000 }],
+          hand: [{ card: "BT6-095", as: "option" }],
+          security: ["BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const reptileInstanceId = s.inst("reptile").instanceId;
+    const opponentLowId = s.perm("opponentLow").permanentId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === reptileInstanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(reptileInstanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(opponentLowId);
   });
 
   it("may delete one opposing Digimon only when opposing security is removed, once per turn", async () => {

@@ -1,11 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const avian = {
   or: [
-    { nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }] },
-    { nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }] },
+    { nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" as const }] },
+    { nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" as const }] },
   ],
 };
 

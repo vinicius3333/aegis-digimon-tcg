@@ -56,6 +56,20 @@ describe("BT24-102 Homeros", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
+  it("does not draw or suspend when the start-main-phase gain remains below five", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-102", as: "source" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("drawn").instanceId);
+  });
+
   it("runs the start-main-phase threshold through the production turn window", async () => {
     const s = setupEngine(
       {
@@ -170,6 +184,45 @@ describe("BT24-102 Homeros", () => {
 
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("resets the borrowed-effect activation on its owner's later turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+          security: ["BT4-022", "BT4-023", "BT4-024", "BT4-025", "BT4-026"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.players[0]!.security.length === 4);
+    expect(s.state.players[0]!.security).toHaveLength(4);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.players[0]!.security.length === 3);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    await secondTurn;
   });
 
   it("does not activate a foreign effect when the suspension cost cannot be paid", async () => {

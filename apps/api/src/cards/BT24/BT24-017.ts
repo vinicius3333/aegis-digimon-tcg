@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Cost, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const returnTwo = {
+const opponentDigimon: Filter = { controller: "opponent", kind: ["Digimon"] };
+const returnTwo: Cost = {
   kind: "return",
   target: { filter: { controller: "opponent", zone: "trash" }, count: 2 },
   to: "deckBottom",
@@ -46,7 +45,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 5, colors: ["Red"], cost: 3 }],
+  digivolutionRequirement: [{ level: 5, colors: ["Red"], cost: 3, isAlternate: false }],
 };
 
 registerIrCard("BT24-017", compiled);

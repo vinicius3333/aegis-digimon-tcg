@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,26 @@ import { compiled as BT24_035 } from "./BT24-035.js";
 import "../index.js";
 
 describe("BT24-035 Gatomon", () => {
+  it("matches the immutable catalog identity and evolution routes", () => {
+    expect(getCardDefinition("BT24-035")).toMatchObject({
+      cardId: "BT24-035",
+      nameEn: "Gatomon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast", "Iliad", "TS"],
+      evoCosts: [
+        { color: "Yellow", level: 3, memoryCost: 2 },
+        { color: "Red", level: 3, memoryCost: 2 },
+      ],
+    });
+    expect(BT24_035.digivolutionRequirement).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
+  });
+
   it("applies -3000 DP and conditionally offers Silphymon DNA digivolution", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = BT24_035.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
@@ -16,7 +36,7 @@ describe("BT24-035 Gatomon", () => {
         payCost: true,
         optional: true,
         condition: { kind: "isYourTurn" },
-        into: { namesExact: ["Silphymon"] },
+        into: { nameOrTrait: [{ tokens: ["Silphymon"], match: "nameExact" }] },
       });
     }
     expect(BT24_035.effects?.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Barrier");
@@ -26,11 +46,11 @@ describe("BT24-035 Gatomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          hand: [
             { card: "BT24-035", as: "gatomon" },
-            { card: "BT24-011", as: "redMaterial" },
+            { card: "BT16-012", as: "silphymon" },
           ],
-          hand: [{ card: "BT16-012", as: "silphymon" }],
+          battleArea: [{ card: "BT24-011", as: "redMaterial" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "zeroDp", dp: 3000 }] },
       },
@@ -38,7 +58,45 @@ describe("BT24-035 Gatomon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gatomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-012"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("silphymon").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("resolves When Digivolving from a public TS alternate digivolution (Q5614)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-020", as: "tsBase" },
+            { card: "BT24-011", as: "redMaterial" },
+          ],
+          hand: [
+            { card: "BT24-035", as: "gatomon" },
+            { card: "BT16-012", as: "silphymon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("gatomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-012"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
