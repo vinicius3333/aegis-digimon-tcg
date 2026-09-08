@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_036 } from "./BT24-036.js";
@@ -121,6 +122,33 @@ describe("BT24-036 Medicmon", () => {
     expect(s.perm("attacker").currentDP).toBe(5000);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === medicId)).toBe(false);
+  });
+
+  it("applies On Play DP loss to a surviving opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-036", as: "medicmon" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "target", dp: 6000 }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medicmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-036"));
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.perm("target").currentDP).toBe(3000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(6000);
   });
 
   it("links for cost 2 and applies -5000 when the linked host is deleted", async () => {

@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 746/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 747/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -43,7 +43,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-033 | Salamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-033.md). Public Barrier acceptance/refusal, exact cost/stack/draw on normal and alternate routes, illegal egg rejection and Q5612 breeding contrast pass. Opponent-turn replacement comparison and delivery remain open. |
 | BT24-034 | Aegiomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-034.md). Root16green: public entry routes, name boundaries, normal/illegal evolution and exact Barrier acceptance/refusal battle endpoints. Typed IR with narrow CostGatedBlock seam; delivery pending. |
 | BT24-035 | Gatomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-035.md). Root6green: public Q5614 Play/When Digivolving DNA routes and opponent-turn refusal, inherited Barrier, TS evolution and exact zero-DP cleanup sequencing. Typed IR; delivery pending. |
-| BT24-036 | Medicmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-036.md). Root8green: public Security/On Play/On Deletion/linked DP effects, Q5615 cancellation, paid evolution and invalid Link. Natural DP duration reset remains unproved; delivery pending. |
+| BT24-036 | Medicmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-036.md). Root9green: public Security/On Play/On Deletion/linked DP effects, Q5615 cancellation, paid evolution/invalid Link and natural turn-duration reset. Delivery pending. |
 | BT24-037 | Silphymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-037.md). Root12green: full public behavior and replacement/evolution-stack evidence; typed replacement assertions and compiled IR. Collection delivery gates pending. |
 | BT24-038 | Biomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-038.md). Root15green: public Q5620, Link isolation, zero-DP/Fortitude/AppFusion and linked -7000 duration/expiry. Public linked OPT reset and invalid App Fusion source remain open; delivery pending. |
 | BT24-039 | Piximon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-039.md). Public security battle-area/breeding level boundary, Blocker plus Barrier, inherited recovery and paid TS evolution pass. Normal/illegal evolution and keyword refusal boundaries remain open. |
