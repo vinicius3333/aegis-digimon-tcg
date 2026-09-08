@@ -27,9 +27,9 @@ describe("BT24-024 Submarimon", () => {
   });
 
   it("plays a TS Tamer from hand with a once-per-turn cost reduction", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "WhenAttacking") as any;
-    expect(effect.frequency).toBe("OncePerTurn");
-    expect(effect.actions[0]).toMatchObject({
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenAttacking");
+    expect(effect).toMatchObject({ frequency: "OncePerTurn" });
+    expect(effect?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand"],
       payCost: true,
