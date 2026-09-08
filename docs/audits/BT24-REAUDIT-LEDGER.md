@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 765/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 767/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -90,7 +90,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-080 | Megidramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-080.md). Root19 tests green: real trash EndTurn Dark/Evil Dragon routes, hand5 and wrongtrait/level denial, refusal, Q5662 activation recheck, public play/evolution/deletion and Blocker combat. Invalid normal route, fuller source-stack/deletion endpoints and delivery pending. |
 | BT24-081 | Titamon + SkullBaluchimon | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-081.md). Root20 tests green: legal Purple/Green routes and invalid Red, exact stack/draw, paid and refused costs, mixed exact-name and level/trait revival, real Rush/Piercing and Execute acceptance/refusal. Full collection/engine and typecheck green; delivery pending. |
 | BT24-082 | Owen Dreadnought | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-082.md). Root15 tests green: return-cost correction, public Reptile/Dragonkin evolution costs/stack/draw/owner-end expiry, nonmatching and suspended-cost negatives, completed public Security. Local checkpoint ec4483f85. Optional watcher refusal and stronger repeated-stack/draw endpoints remain pending. |
-| BT24-083 | Hiroko Sagisaka | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-083.md). Root10 tests green: real4/5 memory boundary, realQ5667, publicplay3 and Security reveal exactdestinations. Local7e47b4b9b. Public mixed DP/trait selection, optional refusal, fuller replacement sequence and delivery pending; oldprimitiveSecurity has noassertion lintwarning. |
+| BT24-083 | Hiroko Sagisaka | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-083.md). Root12green: real4/5 memory boundary, Q5667, exact public play/Security destinations, mixed DP/trait selection and optional replacement refusal. Typed IR; no engine/shared gap remains for printed clauses, collection delivery pending. |
 | BT24-084 | Inori Misono | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-084.md). Root14green: real4/5 memory boundary, Q5669 Security priority, Q5670 Barrier/free evolution with exact stack/draw, Security no-retrotrigger and public already-suspended cost refusal. Peer/collection delivery gates remain open. |
 | BT24-085 | Dan Yuki & Kanan Yuki | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-085.md). Public Security, exact cap/trait contrasts, independent cost/Option/attack refusals and all linked-Option rulings plus002/034 peer proofs. Root42green (08521); typed IR; delivery pending. |
 | BT24-086 | The Crossroad Witch | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-086.md). Root10green: official Shuu Yulin alias, exact scopes and Q5674 source-stack endpoint with typed IR/assertions. Natural next-owner-turn inherited reset and public Alliance/Reboot combat remain open; delivery pending. |

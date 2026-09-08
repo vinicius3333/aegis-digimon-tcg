@@ -93,7 +93,12 @@ describe("BT24-083 Hiroko Sagisaka", () => {
             { card: "BT24-083", as: "replacement" },
             { card: "BT24-011", as: "stillInHand" },
           ],
-          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: [
+            { card: "BT1-009", as: "deckA" },
+            { card: "BT1-010", as: "deckB" },
+            { card: "BT1-011", as: "deckC" },
+            { card: "BT1-012", as: "deckD" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -163,6 +168,78 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hiroko").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(s.inst("hiroko").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("publicly filters a mixed hand to the TS Digimon at 5000 DP or less", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-083", as: "source" }],
+          hand: [
+            { card: "BT24-022", as: "tooLarge" },
+            { card: "BT24-011", as: "eligible" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "deckA" },
+            { card: "BT1-010", as: "deckB" },
+            { card: "BT1-011", as: "deckC" },
+            { card: "BT1-012", as: "deckD" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("eligible").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("eligible").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooLarge").instanceId);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("source").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("publicly refuses the optional Start of Your Turn replacement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-083", as: "source" }],
+          hand: [{ card: "BT24-011", as: "eligible" }],
+          deck: [
+            { card: "BT1-009", as: "deckA" },
+            { card: "BT1-010", as: "deckB" },
+            { card: "BT1-011", as: "deckC" },
+            { card: "BT1-012", as: "deckD" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("source").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("deckA").instanceId,
+      s.inst("deckB").instanceId,
+      s.inst("deckC").instanceId,
+      s.inst("deckD").instanceId,
+    ]);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
@@ -243,6 +320,9 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("hiroko").instanceId),
     );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("hiroko").instanceId),
+    ).toBe(true);
   });
 
   it("publicly plays itself from security and resolves its reveal", async () => {
