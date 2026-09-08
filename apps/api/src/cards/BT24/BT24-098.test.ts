@@ -189,9 +189,8 @@ describe("BT24-098 Invasion of the Titans", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = -2;
+    s.state.memory = -5;
     await s.ready();
-    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
       ok: true,
     });
@@ -204,7 +203,7 @@ describe("BT24-098 Invasion of the Titans", () => {
       s.inst("target").instanceId,
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("target").instanceId);
-    expect(s.state.memory).toBe(-5);
+    expect(s.state.memory).toBe(-8);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
