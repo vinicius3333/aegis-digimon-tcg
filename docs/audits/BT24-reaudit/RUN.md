@@ -698,3 +698,16 @@ is typed and uses only registerIrCard. Committed `61b063e8f`;093 receives8/10.
 Aggregate617/1020, 11 pending zero rows, no card at10/10. Card lanes advance
 to094 and096 while the third Luna completes the dedicated reactive Delay
 engine regression. No publication has occurred.
+
+Root096 acceptance at10:56:40 passed9/9. The natural Security check activates
+Main without paying7 and proves exact three-card mill order/remainder; paid
+Main, delete/no-delete, real Creepymon X evolution, trash return cost, refusal
+and later-turn repetition remain green. Committed `49c8a321d`;096 receives8/10.
+
+Root094 acceptance at10:57:59 passed8/8 after replacing its injected Security
+claim with a natural opponent attack, exact Option trash destination and free
+level4 TS play from trash. Main refusal/filter, face-up auras/expiry and name
+boundaries remain green. Committed `c3a60c9bb`;094 receives8/10. Aggregate
+633/1020, 9 pending zero rows, no card at10/10. Card lanes advance to097 and
+098; engine Delay registration is still withheld until its real-card fixture
+restores both registry and shared compiled state. No publication has occurred.
