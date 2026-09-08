@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 716/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 718/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -27,7 +27,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-017 | Medusamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-017.md). Root card+mechanism10green: paid evolution, exact two-card cost/order, lowest-DP deletion, token creation/behavior, DP scaling/expiry, refusal/insufficient cost and Raid/Progress/Piercing. Typed IR/token registration; delivery pending. |
 | BT24-018 | Styracomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-018.md). Root12green: public security trash/unsuspend and empty continuation, paid evolution, removal OPT, simultaneous protection/refusal/Q5599 failed cost, keywords and Blocker routes. Typed IR; delivery pending. |
 | BT24-019 | Kamemon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-019.md). Public Jamming security battle, Q5601 breeding contrast, TS evolution routes with cost/stack/draw pass. Root7green; normal egg route and broader color/turn comparisons pending. |
-| BT24-020 | Gomamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-020.md). Public search and owner-turn unsuspend/reset plus normal and alternate egg routes pass. Root9green; public same-turn suppression and full search-boundary comparison pending. |
+| BT24-020 | Gomamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-020.md). Root9green: public exact search/add/bottom boundaries, hand-size threshold, natural unsuspend with same-turn suppression/reset, and legal normal/alternate egg evolutions. Typed IR; delivery pending. |
 | BT24-021 | SnowGoblimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-021.md). Public search, paid discard evolution/refusal, legal egg routes and neutral-host same-turn suppression/reset pass. Root13green; exact Titamon correction. Further own-turn/trait negatives and delivery pending. |
 | BT24-022 | Ikkakumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-022.md). Public play cost/source-trash, two real same-turn unsuspends and next-owner draw reset, normal route and alternate rejection pass. Root13green; direct Jamming combat, suspend restriction enforcement/expiry and full boundary proof pending. |
 | BT24-023 | Calmaramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-023.md). Public effect-play origin, exact bottom deck order, Decode effect/battle/refusal, inherited Jamming combat and paid routes pass. Root15green; exact Lanamon correction. Public Blocker, restriction enforcement/expiry and remaining route comparisons pending. |
