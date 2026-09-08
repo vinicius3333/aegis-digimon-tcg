@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 714/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 716/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -25,7 +25,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-015 | MetalGreymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-015.md). Root13green: Security level boundary, public Blocker/refusal and target-switch lowest-DP deletion, inherited Blocker deletion/OPT, both alternate evolution routes and invalid route. Typed IR; delivery pending. |
 | BT24-016 | Lamiamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-016.md). Root11green: public hand Main route, direct attack security manipulation, shared OPT/order, inherited public security-removal play, exact cost/refusal and trait/DP/stack boundaries. Typed IR; delivery pending. |
 | BT24-017 | Medusamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-017.md). Root card+mechanism10green: paid evolution, exact two-card cost/order, lowest-DP deletion, token creation/behavior, DP scaling/expiry, refusal/insufficient cost and Raid/Progress/Piercing. Typed IR/token registration; delivery pending. |
-| BT24-018 | Styracomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-018.md). Public security removal, paid evolution/draw, leave prevention and refusal pass. Root12green; both OPT effects still need public same-turn suppression/reset and Q5599 completion. |
+| BT24-018 | Styracomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-018.md). Root12green: public security trash/unsuspend and empty continuation, paid evolution, removal OPT, simultaneous protection/refusal/Q5599 failed cost, keywords and Blocker routes. Typed IR; delivery pending. |
 | BT24-019 | Kamemon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-019.md). Public Jamming security battle, Q5601 breeding contrast, TS evolution routes with cost/stack/draw pass. Root7green; normal egg route and broader color/turn comparisons pending. |
 | BT24-020 | Gomamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-020.md). Public search and owner-turn unsuspend/reset plus normal and alternate egg routes pass. Root9green; public same-turn suppression and full search-boundary comparison pending. |
 | BT24-021 | SnowGoblimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-021.md). Public search, paid discard evolution/refusal, legal egg routes and neutral-host same-turn suppression/reset pass. Root13green; exact Titamon correction. Further own-turn/trait negatives and delivery pending. |

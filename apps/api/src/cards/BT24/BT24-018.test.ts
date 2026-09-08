@@ -9,28 +9,29 @@ import "../BT8/BT8-012.js";
 
 describe("BT24-018 Styracomon", () => {
   it("trashes an opponent security card and may unsuspend on digivolution", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any;
-    expect(effect.actions[0]).toMatchObject({
-      kind: "Trash",
-      optional: true,
-      target: { filter: { controller: "opponent", zone: "security" } },
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect).toMatchObject({
+      actions: [
+        { kind: "Trash", optional: true, target: { filter: { controller: "opponent", zone: "security" } } },
+        { kind: "Unsuspend", optional: true },
+      ],
     });
-    expect(effect.actions[1]).toMatchObject({ kind: "Unsuspend", optional: true });
   });
 
   it("uses an executable lowest-DP opponent deletion cost for leave prevention", () => {
     const replacement = compiled.effects.find(
       (entry) => entry.trigger === "AllTurns" && entry.actions?.[0]?.kind === "Replacement",
-    )?.actions?.[0] as any;
+    );
     expect(replacement).toMatchObject({
-      kind: "Replacement",
-      event: "wouldLeavePlay",
-      affectsAll: true,
-      target: { filter: { controller: "mine" }, upTo: true },
-    });
-    expect(replacement.cost).toMatchObject({
-      kind: "deleteOwn",
-      target: { filter: { controller: "opponent", superlative: "lowestDP" } },
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          affectsAll: true,
+          target: { filter: { controller: "mine" }, upTo: true },
+          cost: { kind: "deleteOwn", target: { filter: { controller: "opponent", superlative: "lowestDP" } } },
+        },
+      ],
     });
   });
 
