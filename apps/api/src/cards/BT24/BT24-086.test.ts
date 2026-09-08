@@ -49,9 +49,9 @@ describe("BT24-086 The Crossroad Witch", () => {
         filter: { nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] },
       },
     });
-    expect((inherited?.actions?.[0] as any)?.target?.filter?.nameOrTrait).toEqual([
-      { tokens: ["Shuu Yulin"], match: "nameExact" },
-    ]);
+    expect(inherited?.actions?.[0]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] } },
+    });
   });
 
   it("self-scopes both inherited keywords to a qualifying host", () => {
