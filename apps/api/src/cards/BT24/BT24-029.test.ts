@@ -169,6 +169,32 @@ describe("BT24-029 Whamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
   });
 
+  it("rejects a matching cost-6 placement card at the public cost-5 boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-029", as: "whamon" },
+            { card: "BT24-022", as: "tooExpensive" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-083", as: "candidate" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("whamon").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooExpensive").instanceId);
+    expect(observe(s.engine).isRestricted(s.perm("candidate"), "suspend")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("plays a cost-5 TS card only from Whamon's own stack at end of attack", async () => {
     const s = setupEngine(
       {
