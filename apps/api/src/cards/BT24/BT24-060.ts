@@ -141,7 +141,6 @@ export const compiled: CompiledCard = {
     {
       level: 4,
       traits: ["DigiPolice", "SEEKERS"],
-      traitsMatchAny: true,
       cost: 3,
       isAlternate: true,
     },
