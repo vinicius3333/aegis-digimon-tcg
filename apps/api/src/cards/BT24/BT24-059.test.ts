@@ -94,6 +94,37 @@ describe("BT24-059 Sharkmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sharkmonId)).toBe(false);
   });
 
+  it("does not select a cost-8 TS card for the cost-7 On Deletion boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-059", as: "sharkmon" }],
+          deck: [
+            { card: "BT24-014", as: "tooExpensive" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("sharkmon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooExpensive").instanceId));
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("tooExpensive").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("tooExpensive").instanceId,
+        s.inst("miss1").instanceId,
+        s.inst("miss2").instanceId,
+      ]),
+    );
+  });
+
   it("resolves On Deletion from an opponent's public When Digivolving deletion", async () => {
     const s = setupEngine(
       {
@@ -136,6 +167,7 @@ describe("BT24-059 Sharkmon", () => {
   });
 
   it.each([
+    ["normal black level-4 requirement", "BT10-061", false, undefined, 4],
     ["normal blue level-4 requirement", "BT1-032", false, undefined, 4],
     ["Aquatic trait-substring requirement", "BT12-025", true, 0, 3],
     ["Sea Animal trait-substring requirement", "BT1-033", true, 0, 3],
@@ -176,6 +208,25 @@ describe("BT24-059 Sharkmon", () => {
       expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     },
   );
+
+  it("rejects a normal evolution from an invalid green level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-071", as: "invalidSource" }], hand: [{ card: "BT24-059", as: "sharkmon" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const beforeTop = s.perm("invalidSource").topCard.instanceId;
+    const beforeMemory = s.state.memory;
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("invalidSource").permanentId,
+      instanceId: s.inst("sharkmon").instanceId,
+    });
+    expect(result.ok).toBe(false);
+    expect(s.perm("invalidSource").topCard.instanceId).toBe(beforeTop);
+    expect(s.state.memory).toBe(beforeMemory);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("sharkmon").instanceId);
+  });
 
   it("inherited attack may place another Digimon underneath to unsuspend its host", async () => {
     const s = setupEngine(
