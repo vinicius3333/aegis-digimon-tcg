@@ -53,7 +53,7 @@ describe("BT24-026 Hyogamon", () => {
       optional: true,
     });
     expect(action.into.nameOrTrait).toEqual([
-      { tokens: ["Titamon"], match: "name" },
+      { tokens: ["Titamon"], match: "nameExact" },
       { tokens: ["Titan"], match: "trait" },
     ]);
     expect(inherited.actions[0].sourceFilter).toEqual({ controller: "mine" });
@@ -241,7 +241,7 @@ describe("BT24-026 Hyogamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-026", "ST16-03"] }],
+          battleArea: [{ card: "BT24-072", as: "host", under: ["ST16-03", "BT24-026"] }],
           hand: [{ card: "BT1-009", as: "attackTrash" }],
           trash: [{ card: "P-209", as: "titamon" }],
           deck: ["BT1-010", "BT1-011", "BT1-012"],
@@ -266,5 +266,93 @@ describe("BT24-026 Hyogamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
     expect(s.state.memory).toBe(8);
+  });
+
+  it("public inherited evolution retains the exact 072 source stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-026"] }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT24-026", as: "discarder2" },
+            { card: "BT24-026", as: "discarder3" },
+            { card: "BT1-009", as: "fodder1" },
+            { card: "BT1-010", as: "fodder2" },
+            { card: "BT1-011", as: "fodder3" },
+            { card: "BT1-012", as: "fodder4" },
+            { card: "BT1-019", as: "fodder5" },
+          ],
+          trash: [
+            { card: "P-209", as: "titamon" },
+            { card: "BT24-081", as: "next" },
+          ],
+          deck: [
+            { card: "BT1-013", as: "firstEvolutionDraw" },
+            { card: "BT1-014", as: "normalDraw" },
+            { card: "BT1-015", as: "secondEvolutionDraw" },
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    const original072Id = s.perm("host").topCard.instanceId;
+    const original026Id = s.perm("host").stack[0]!.instanceId;
+    preferred.push(
+      s.inst("fodder1").instanceId,
+      s.inst("titamon").instanceId,
+      s.inst("fodder2").instanceId,
+      s.inst("fodder3").instanceId,
+      s.inst("fodder4").instanceId,
+      s.inst("fodder5").instanceId,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "P-209"));
+    const host = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "P-209")!;
+    expect(host.topCard?.instanceId).toBe(s.inst("titamon").instanceId);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("firstEvolutionDraw").instanceId);
+    const firstMemory = s.state.memory;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder2").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder3").instanceId));
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("titamon").instanceId);
+    expect(s.state.memory).toBe(firstMemory - 4);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder3").instanceId);
+    expect(host.stack.map((card) => card.instanceId)).toEqual([original026Id, original072Id]);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder3").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("next").instanceId);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("next").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([
+      original026Id,
+      original072Id,
+      s.inst("titamon").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder4").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("normalDraw").instanceId, s.inst("secondEvolutionDraw").instanceId]),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });
