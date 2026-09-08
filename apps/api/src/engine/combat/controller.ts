@@ -153,7 +153,11 @@ export interface CombatHooks {
    * has to defer (an attack declared from INSIDE another effect's resolution) cannot, and the
    * caller then falls back to the legacy inline Alliance loop.
    */
-  fireAttackTiming?: (trigger: CombatTrigger, allianceCount: number) => Promise<boolean>;
+  fireAttackTiming?: (
+    trigger: CombatTrigger,
+    allianceCount: number,
+    opts?: { includeSubTriggers?: boolean; subTriggerPayload?: TriggerInfo },
+  ) => Promise<{ allianceResolvedInWindow: boolean; subTriggersResolvedInWindow: boolean }>;
   /** Whether the engine has attack-timing effects to combine with Alliance. */
   combineAllianceTiming?: (permanentId: string) => boolean;
   /** Resolve simultaneous [On Deletion]/<Ascension> reactions in controller-chosen order. */
@@ -635,14 +639,23 @@ export class CombatController {
       const allianceCount =
         this.hooks.allianceCount?.(attacker.permanentId) ?? (this.hasKeyword(attacker.permanentId, "Alliance") ? 1 : 0);
       const fireAttackTiming = this.hooks.fireAttackTiming;
-      const combineAllianceTiming =
+      const combineAttackTiming =
         fireAttackTiming !== undefined &&
-        allianceCount > 0 &&
-        (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false));
+        (preparedWhenAttacking !== undefined ||
+          preparedWhenOpponentAttacks !== undefined ||
+          (allianceCount > 0 &&
+            (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false))));
       let allianceResolvedInWindow = false;
-      if (combineAllianceTiming) allianceResolvedInWindow = await fireAttackTiming(attackTrigger, allianceCount);
-      else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
-      await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
+      let subTriggersResolvedInWindow = false;
+      if (combineAttackTiming) {
+        const result = await fireAttackTiming(attackTrigger, allianceCount, {
+          includeSubTriggers: true,
+          subTriggerPayload: attackSubTriggerPayload,
+        });
+        allianceResolvedInWindow = result.allianceResolvedInWindow;
+        subTriggersResolvedInWindow = result.subTriggersResolvedInWindow;
+      } else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
+      if (!subTriggersResolvedInWindow) await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
 
       // SubTrigger bus (System B): armed "when this attacks" / "when an opponent's Digimon
       // attacks" watchers. Fired EXACTLY ONCE here (not at both OnUseAttack and OnAllyAttack)
@@ -650,10 +663,12 @@ export class CombatController {
       // installs from the System-A timing-collected attack builders, so there is no
       // cross-system double-fire (RESEARCH Pitfall 4 / Assumption A3). The attacker is the
       // event subject for both events; a watcher's captured sourceFilter gates on it.
-      if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
-      else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
-      if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
-      else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
+      if (!subTriggersResolvedInWindow) {
+        if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
+        else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+        if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
+        else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
+      }
       // A suspension paid as the cost of an effect-driven forced attack triggers at the
       // same time as the attack declaration. Resolve the turn player's When Attacking
       // effects first, then the deferred non-turn suspension watchers (EX3-024/074,

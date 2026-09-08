@@ -65,6 +65,7 @@ interface Harness {
   securityCalls: { defenderSeat: Seat; attackerPermanentId: string }[];
   firedSubTriggers: { event: string; payload: TriggerInfo }[];
   timeline: string[];
+  attackPayloads: TriggerInfo[];
 }
 
 function harness(opts?: {
@@ -72,6 +73,7 @@ function harness(opts?: {
   piercingChange?: { initial: boolean; afterDeletion: boolean };
   piercingWhenOpponentGone?: boolean;
   piercingReactionEvent?: "whenBattleWon" | "onDeletionOf";
+  captureAttackPayloads?: TriggerInfo[];
 }): Harness {
   const state = makeState();
   const access = new GameStateAccess(state);
@@ -80,6 +82,7 @@ function harness(opts?: {
   const securityCalls: Harness["securityCalls"] = [];
   const firedSubTriggers: Harness["firedSubTriggers"] = [];
   const timeline: string[] = [];
+  const attackPayloads = opts?.captureAttackPayloads ?? [];
   let hasPiercing = opts?.piercingChange?.initial ?? false;
 
   const hooks: CombatHooks = {
@@ -105,6 +108,13 @@ function harness(opts?: {
         timeline.push(`sub:${event}`);
       };
     },
+    fireAttackTiming:
+      opts?.captureAttackPayloads === undefined
+        ? undefined
+        : async (_trigger, _alliance, options) => {
+            attackPayloads.push(options?.subTriggerPayload ?? {});
+            return { allianceResolvedInWindow: false, subTriggersResolvedInWindow: false };
+          },
     consultLeavePrevention: async (permanentIds) => {
       timeline.push("replacement:consultLeavePrevention");
       return opts?.preventBattleDeletion === true ? new Set(permanentIds) : new Set<string>();
@@ -123,6 +133,7 @@ function harness(opts?: {
     securityCalls,
     firedSubTriggers,
     timeline,
+    attackPayloads,
   };
 }
 
@@ -396,6 +407,22 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     expect(h.firedTimings).toContain(EffectTiming.OnUseAttack);
     expect(h.firedTimings).toContain(EffectTiming.OnAllyAttack);
     expect(h.firedTimings).toContain(EffectTiming.OnEndAttack);
+  });
+
+  it("passes the declaration-time attack payload into the combined trigger window", async () => {
+    const payloads: TriggerInfo[] = [];
+    const h = harness({ captureAttackPayloads: payloads });
+    const first = digimon(0, 9000);
+    const second = digimon(0, 7000);
+    h.state.players[0]?.battleArea.push(first, second);
+
+    await h.combat.resolveAttack(0, first, { kind: "player" });
+    await h.combat.resolveAttack(0, second, { kind: "player" });
+
+    expect(payloads).toHaveLength(2);
+    expect(payloads.map((payload) => payload.attackerDPAtDeclaration)).toEqual([9000, 7000]);
+    expect(payloads.map((payload) => payload.attackSequence)).toEqual([1, 2]);
+    expect(payloads.every((payload) => payload.attackerPermanentId !== undefined)).toBe(true);
   });
 });
 

@@ -815,7 +815,8 @@ export class GameEngine {
           ...this.combatTriggerInfo(trigger),
         });
       },
-      fireAttackTiming: async (trigger, allianceCount) => {
+      fireAttackTiming: async (trigger, allianceCount, opts = {}) => {
+        const includeSubTriggers = opts.includeSubTriggers === true;
         const attacker =
           trigger.attackerPermanentId === undefined
             ? undefined
@@ -827,7 +828,7 @@ export class GameEngine {
         // the combined window here and let the caller run the legacy inline Alliance loop.
         if (attacker === undefined || top === undefined || this.activeWindowToken !== undefined) {
           await this.fireTiming(EffectTiming.OnUseAttack, this.combatTriggerInfo(trigger));
-          return false;
+          return { allianceResolvedInWindow: false, subTriggersResolvedInWindow: false };
         }
         // Each ＜Alliance＞ instance enters the attacker's [When Attacking] window as one more
         // simultaneous trigger, so the controller orders it against the printed effects instead
@@ -858,13 +859,22 @@ export class GameEngine {
             resolve: async () => this.combat.resolveAllianceEffect(attacker.permanentId),
           },
         }));
-        await this.fireTimingForPermanent(
-          EffectTiming.OnUseAttack,
-          attacker,
-          this.combatTriggerInfo(trigger),
-          allianceEffects,
-        );
-        return true;
+        const attackPayload = opts.subTriggerPayload ?? this.combatTriggerInfo(trigger);
+        const attackEnvironment = buildResolutionEnv(this.effectEnvironment(attackPayload), this.resolutionDeps());
+        const allyAttackEffects = attackEnvironment.collect(EffectTiming.OnAllyAttack);
+        const pendingAttackEffects = [...allyAttackEffects, ...allianceEffects];
+        const timingWindow = async () =>
+          this.fireTimingForPermanent(EffectTiming.OnUseAttack, attacker, attackPayload, pendingAttackEffects);
+        const subTriggerPayload = opts.subTriggerPayload ?? this.combatTriggerInfo(trigger);
+        if (includeSubTriggers) {
+          await this.withPendingSubTriggers(["whenAttacking", "whenOpponentAttacks"], subTriggerPayload, timingWindow, {
+            onlyInitiallyArmed: true,
+            busTrigger: () => subTriggerPayload,
+          });
+        } else {
+          await timingWindow();
+        }
+        return { allianceResolvedInWindow: allianceCount > 0, subTriggersResolvedInWindow: includeSubTriggers };
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
@@ -2877,7 +2887,10 @@ export class GameEngine {
     events: readonly SubTriggerEventName[],
     payload: TriggerInfo | undefined,
     fireWindows: () => Promise<void>,
-    opts: { busTrigger?: () => TriggerInfo | undefined; onlyInitiallyArmed?: boolean } = {},
+    opts: {
+      busTrigger?: () => TriggerInfo | undefined;
+      onlyInitiallyArmed?: boolean;
+    } = {},
   ): Promise<void> {
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
     const armed =
