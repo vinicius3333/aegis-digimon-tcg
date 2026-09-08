@@ -461,6 +461,125 @@ describe("BT24-077 Revivemon", () => {
     await optionTurn;
   });
 
+  it("publicly refuses both optional On Deletion effects and preserves candidates", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-077", as: "revivemon", under: [{ card: "BT24-070", as: "ownSource" }] },
+            { card: "BT21-023", as: "recipient" },
+          ],
+          trash: [
+            { card: "BT24-036", as: "link" },
+            { card: "BT24-032", as: "appmon" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "optionSource" }],
+          hand: [{ card: "BT6-095", as: "option" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const hostCardId = s.inst("revivemon").instanceId;
+    const linkId = s.inst("link").instanceId;
+    const appmonId = s.inst("appmon").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    const optionTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostCardId));
+
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const linkDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-077");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: linkDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const playDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-077");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hostCardId, linkId, appmonId]),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === appmonId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await optionTurn;
+  });
+
+  it("publicly preserves an invalid mixed On Deletion link candidate while reviving the exact Appmon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-077", as: "revivemon", under: [{ card: "BT24-070", as: "ownSource" }] },
+            { card: "BT21-023", as: "recipient" },
+          ],
+          trash: [
+            { card: "BT24-035", as: "invalidLink" },
+            { card: "BT24-036", as: "validLink" },
+            { card: "BT24-032", as: "appmon" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "optionSource" }],
+          hand: [{ card: "BT6-095", as: "option" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("validLink").instanceId, s.inst("appmon").instanceId);
+    const hostCardId = s.inst("revivemon").instanceId;
+    const invalidLinkId = s.inst("invalidLink").instanceId;
+    const validLinkId = s.inst("validLink").instanceId;
+    const appmonId = s.inst("appmon").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    const optionTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === appmonId));
+
+    const revived = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === appmonId);
+    expect(revived).toBeDefined();
+    expect(revived!.topCard.instanceId).toBe(appmonId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(hostCardId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(invalidLinkId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(validLinkId);
+    expect(s.perm("recipient").linked.map((card) => card.instanceId)).toContain(validLinkId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await optionTurn;
+  });
+
   it("accepts Revivemon's public Blocker interception", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT24-077", as: "blocker" }], security: [{ card: "BT1-013", as: "security" }] },
