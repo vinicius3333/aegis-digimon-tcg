@@ -114,6 +114,49 @@ describe("BT24-060 Hisyaryumon", () => {
   });
 
   it.each([
+    ["top", 0, ["miss1", "miss2", "miss3", "untouched"]],
+    ["bottom", 1, ["untouched", "miss1", "miss2", "miss3"]],
+  ] as const)("publicly orders declined reveals to the deck %s with an unrevealed tail", async (_label, optionIndex, expected) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
+          deck: [
+            { card: "BT1-013", as: "miss1" },
+            { card: "BT1-015", as: "miss2" },
+            { card: "BT1-016", as: "miss3" },
+            { card: "BT1-017", as: "untouched" },
+          ],
+        },
+        1: { security: [{ card: "BT1-011", as: "security" }] },
+      },
+      {
+        autoDeclineOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferOptionIndex: optionIndex,
+      },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hisyaryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expected.map((label) => s.inst(label).instanceId),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
     ["normal black level-4 requirement", "BT10-062", false, 4],
     ["normal green level-4 requirement", "BT1-069", false, 4],
     ["alternate DigiPolice/SEEKERS requirement", "BT24-055", true, 3],
@@ -276,6 +319,7 @@ describe("BT24-060 Hisyaryumon", () => {
       true,
     );
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("happyBullet").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 
   it("Q5782 refusal allows both simultaneous qualifying departures", async () => {
