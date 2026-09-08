@@ -9,7 +9,7 @@ import "../index.js";
 describe("BT24-034 Aegiomon", () => {
   it("uses the executable top-security-to-hand cost for all three entry timings", () => {
     for (const trigger of ["WhenMoving", "OnPlay", "WhenDigivolving"]) {
-      const action = BT24_034.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0] as any;
+      const action = BT24_034.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0];
       expect(action).toMatchObject({
         kind: "CostGatedBlock",
         optional: true,
@@ -301,5 +301,106 @@ describe("BT24-034 Aegiomon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       s.inst("tamer").instanceId,
     );
+  });
+
+  it("uses the normal blue level-3 evolution route for cost 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-009", as: "base" }], hand: [{ card: "BT24-034", as: "aegiomon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aegiomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("aegiomon").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+  });
+
+  it("rejects a normal evolution from a non-blue level-3 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT24-034", as: "aegiomon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aegiomon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("aegiomon").instanceId);
+  });
+
+  it("accepts Barrier in a public losing battle by trashing the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-034", as: "aegiomon", suspended: true }],
+          security: [{ card: "BT1-009", as: "barrierCost" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 6000 }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("aegiomon").permanentId;
+    const costId = s.inst("barrierCost").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(hostId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(costId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("refuses Barrier in a public losing battle and deletes the host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-034", as: "aegiomon", suspended: true }],
+          security: [{ card: "BT1-009", as: "barrierCost" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 6000 }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("aegiomon").permanentId;
+    const costId = s.inst("barrierCost").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: false })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("aegiomon").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([costId]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

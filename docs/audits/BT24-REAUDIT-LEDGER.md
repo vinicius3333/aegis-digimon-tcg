@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 742/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 744/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -41,7 +41,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-031 | Elecmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-031.md). Public Q5611 zero/one/two-security boundaries, exact recovery, legal host, same-turn suppression/reset and normal/alternate/illegal egg routes pass. Mixed search trait-negative coverage and delivery remain open. |
 | BT24-032 | Pipomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-032.md). Corrected Transmutation token with scoped red proof; public search, paid Link, zero-DP deletion, owner-turn expiry and normal/alternate egg routes pass. Further isolated search nonmatch/route peer coverage and delivery remain open. |
 | BT24-033 | Salamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-033.md). Public Barrier acceptance/refusal, exact cost/stack/draw on normal and alternate routes, illegal egg rejection and Q5612 breeding contrast pass. Opponent-turn replacement comparison and delivery remain open. |
-| BT24-034 | Aegiomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-034.md). Public Q5613 refusal, Q6713 distinct Dan, moving/play/evolution entry effects and paid alternate stack/draw pass. Public Barrier, duplicate-name exclusion and normal/illegal route comparisons remain open. |
+| BT24-034 | Aegiomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-034.md). Root16green: public entry routes, name boundaries, normal/illegal evolution and exact Barrier acceptance/refusal battle endpoints. Typed IR with narrow CostGatedBlock seam; delivery pending. |
 | BT24-035 | Gatomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-035.md). Root6green: public Q5614 Play/When Digivolving DNA routes and opponent-turn refusal, inherited Barrier, TS evolution and exact zero-DP cleanup sequencing. Typed IR; delivery pending. |
 | BT24-036 | Medicmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-036.md). Public security play and DP, battle deletion, linked HappyBullet deletion, Q5615 public Link/host return and paid normal evolution pass. DP-duration/zero boundaries and ordering contrasts remain open. |
 | BT24-037 | Silphymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-037.md). Root12green: full public behavior and replacement/evolution-stack evidence; typed replacement assertions and compiled IR. Collection delivery gates pending. |
