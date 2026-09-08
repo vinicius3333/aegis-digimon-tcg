@@ -190,6 +190,7 @@ describe("BT24-046 Garurumon", () => {
     s.state.memory = 3;
     const laterTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("target").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -220,6 +221,27 @@ describe("BT24-046 Garurumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
+  });
+
+  it("rejects an alternate evolution from a nonmatching level-3 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT24-046", as: "garurumon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("garurumon").instanceId);
   });
 });

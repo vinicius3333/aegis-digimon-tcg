@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 753/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 754/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -53,7 +53,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-043 | Tapirmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-043.md). Public Beast/Shaman search, same-source inherited suspension frequency/reset, normal and alternate egg cost/stack/draw. Root8green; illegal egg and full trait/refusal matrix plus delivery remain open. |
 | BT24-044 | Muchomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-044.md). Public suspend-gated search and opponent negative, paid egg route, inherited battle survival/deletion contrast and same-source frequency/reset. Root8green; refusal, level7 exclusion, illegal egg and full search-trait matrix remain open. |
 | BT24-045 | Ogremon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-045.md). Root12green: public On Play/When Attacking cost, suspend/lock/refusal, Q5634-Q5635 draw boundary, inherited reduced evolution/filter and all evolution routes. Delivery pending. |
-| BT24-046 | Garurumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-046.md). Public Jamming combat, entry suspension and normal/Gabumon/TS cost/top/stack/draw plus illegal source. Root11green; inherited same-turn suppression, fully completed reset combat and remaining route negatives open. |
+| BT24-046 | Garurumon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-046.md). Root12green: public Jamming/entry suspension, exact evolution routes/invalid source and completed inherited attack target endpoint. Direct same-turn OPT suppression and natural reset remain open; delivery pending. |
 | BT24-047 | Kokatorimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-047.md). Public suspend/unsuspend/attack sequence, opponent negative, refusal and paid normal evolution top/stack/draw. Root9green; inherited same-source frequency/reset and wider trait/route boundaries remain open. |
 | BT24-048 | Deramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-048.md). Public Blocker, hatch/refusal, free breeding evolution with exact draw/stack/payment and legal-route non-Avian negative. Root10green; inherited frequency/reset, normal paid evolution and target boundaries open. |
 | BT24-049 | Parrotmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-049.md). Public Fortitude replay/no-source contrast, natural lowest-DP bounce, paid routes, legal inherited host and security-trash frequency/reset. Root13green; optional refusals and wider route/target boundaries remain open. |
