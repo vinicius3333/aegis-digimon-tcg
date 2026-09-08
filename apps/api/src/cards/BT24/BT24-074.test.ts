@@ -53,7 +53,7 @@ describe("BT24-074 SkullSeadramon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001", "BT1-002"] }] },
+        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009", "BT1-010"] }] },
       },
       { autoSelectCards: true },
     );
@@ -84,7 +84,7 @@ describe("BT24-074 SkullSeadramon", () => {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-074", as: "skullseadramon" }],
         },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001"] }] },
+        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009"] }] },
       },
       { autoSelectCards: true },
     );
@@ -111,7 +111,7 @@ describe("BT24-074 SkullSeadramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001", "BT1-002", "BT1-003"] }] },
+        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }] },
       },
       { autoSelectCards: true },
     );
@@ -128,7 +128,7 @@ describe("BT24-074 SkullSeadramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001"] }] },
+        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009"] }] },
       },
       { autoSelectCards: true },
     );
@@ -157,10 +157,76 @@ describe("BT24-074 SkullSeadramon", () => {
     );
     await s.ready();
 
+    const hostInstanceId = s.inst("skullseadramon").instanceId;
+    const revivedInstanceId = s.inst("revive").instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("skullseadramon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
     await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === revivedInstanceId),
     );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(hostInstanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      revivedInstanceId,
+    );
+  });
+
+  it("Q5652: public opponent deletion revives the exact eligible trash instance", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-074", as: "skullseadramon", dp: 1000 }],
+          trash: [{ card: "BT15-025", as: "revive" }],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostInstanceId = s.inst("skullseadramon").instanceId;
+    const revivedInstanceId = s.inst("revive").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === revivedInstanceId),
+    );
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(hostInstanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      revivedInstanceId,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
+  it("Q5652: public refusal leaves the eligible revival card in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-074", as: "skullseadramon", dp: 1000 }],
+          trash: [{ card: "BT15-025", as: "revive" }],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const hostInstanceId = s.inst("skullseadramon").instanceId;
+    const revivedInstanceId = s.inst("revive").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hostInstanceId, revivedInstanceId]),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
   });
 
   it("Q5652: does not play a near-matching level 4 Sea Beast", async () => {
@@ -189,7 +255,7 @@ describe("BT24-074 SkullSeadramon", () => {
             { card: "BT1-009", as: "cost" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
