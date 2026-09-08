@@ -52,8 +52,12 @@ describe("BT24-027 Lanamon", () => {
       leaveCause: "otherThanBattle",
       sourceFilter: { isSelfRef: true },
     });
-    expect(decode.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"], optional: true });
-    expect(decode.actions[0].target.filter.nameOrTrait).toEqual([{ tokens: ["Calmaramon"], match: "nameExact" }]);
+    expect(decode.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["digivolutionCards"],
+      optional: true,
+      target: { filter: { nameOrTrait: [{ tokens: ["Calmaramon"], match: "nameExact" }] } },
+    });
   });
 
   it("uses an exact Calmaramon evolution requirement", () => {

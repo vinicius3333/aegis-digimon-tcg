@@ -37,7 +37,7 @@ describe("BT24-037 Silphymon", () => {
           target: { filter: unknown };
         }>;
       };
-      const play = replacement.actions[0];
+      const play = replacement.actions[0]!;
       expect(replacement.leaveCause).toBe("otherThanYourEffect");
       expect(play).toMatchObject({
         kind: "PlayWithoutCost",

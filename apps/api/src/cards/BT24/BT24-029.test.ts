@@ -28,7 +28,14 @@ describe("BT24-029 Whamon", () => {
       const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as unknown as {
         kind: string;
         target: { filter: { kind: string[] } };
-        cost: { kind: string; destination: string; position: string; target: { filter: { nameOrTrait: unknown } } };
+        cost: {
+          kind: string;
+          destination: string;
+          position: string;
+          optional?: unknown;
+          abortOnDecline?: unknown;
+          target: { filter: { nameOrTrait: unknown } };
+        };
         abortOnDecline: boolean;
       };
       expect(action.kind).toBe("Restrict");
