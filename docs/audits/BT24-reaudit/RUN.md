@@ -794,6 +794,19 @@ protection/refusal/Q5599, evolution and keyword routes raise it6→8 in
 completion and the confirmed098 reactive payload dispatch seam. No publication
 has occurred.
 
+Root025 at11:50:01 and11:54:04 passed15 then16 tests. Public self/color/TS
+trigger negatives, Venusmon refusal and illegal normal evolution raise it6→7→8
+in `f280df9ba` and `9edea106f`. Root026 at11:53:07 passed15/15; public grant
+refusal/Jamming, inherited reset and exact normal/alternate routes raise it6→8
+in `61df49192`. Root027 at11:51:47 passed21/21; normal/illegal evolution and
+inherited natural reset raise it6→8 in `b1f2ebbd7`.
+
+Root029 at11:56:02 passed16/16; typed normal evolution evidence raises it6→7
+in `6cb13adee`, with public frequency/refusal/route boundaries still open.
+Aggregate733/1020,0 cards at10/10. The028 lane is narrowing an overly broad
+compatibility cast before acceptance;029 and030 continue. No publication has
+occurred.
+
 Root020 at11:31:40 passed9/9; exact search/hand threshold, public unsuspend OPT
 reset and egg routes raise it6→8 in `a98dfdbcd`. Root021 at11:34:39 and
 11:36:24 passed13/13; exact search, Titamon discard evolution/refusal, inherited
