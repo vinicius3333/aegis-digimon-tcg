@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-093.js";
 import "../index.js";
 
@@ -88,6 +89,51 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("target").instanceId),
     ).toBe(true);
+  });
+
+  it("publicly reveals Security and plays an exact Aegiomon from hand for free (Q5693)", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT24-093", as: "temple" }],
+          hand: [{ card: "BT24-034", as: "aegiomon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }],
+          security: ["BT1-013"],
+          hand: ["BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("aegiomon").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard.instanceId)).toContain(
+      s.inst("aegiomon").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("aegiomon").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("moves the top security card to hand, recovers 1 from deck to security, and lands in the battle area", async () => {
