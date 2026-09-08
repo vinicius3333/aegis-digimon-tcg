@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -49,7 +49,13 @@ describe("BT24-061 Vademon", () => {
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.perm("high").topCard.instanceId, s.perm("low").topCard.instanceId);
     s.state.memory = 6;
@@ -75,11 +81,13 @@ describe("BT24-061 Vademon", () => {
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: "BT24-061", as: "vademon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
       1: { battleArea: [{ card: "BT1-088", as: "low" }] },
     });
     s.state.memory = 5;
     await s.ready();
+    const baseId = s.perm("base").topCard.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -93,6 +101,9 @@ describe("BT24-061 Vademon", () => {
     await settle(() => s.state.players[1]!.deck[0]?.instanceId === s.inst("low").instanceId);
 
     expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("vademon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 
   it("does not return an opponent Digimon above the printed play-cost-3 boundary", async () => {
@@ -111,22 +122,53 @@ describe("BT24-061 Vademon", () => {
     expect(s.state.players[1]!.deck.some((c) => c.instanceId === targetId)).toBe(false);
   });
 
+  it("publicly returns an opposing play-cost-3-or-lower Tamer to deck top", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-061", as: "vademon" }] },
+        1: {
+          battleArea: [{ card: "BT1-088", as: "tamer" }],
+          deck: [{ card: "BT1-009", as: "deckRest" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const tamerId = s.inst("tamer").instanceId;
+    const restId = s.inst("deckRest").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vademon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.deck[0]?.instanceId === tamerId);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([tamerId, restId]);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === tamerId)).toBe(false);
+  });
+
   it("public attack activates inherited De-Digivolve 1 on one opponent", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-061"] }] },
+        0: { battleArea: [{ card: "BT10-028", as: "host", under: ["BT24-061"] }] },
         1: {
           battleArea: [
-            { card: "BT24-051", as: "first", under: ["BT24-050"] },
+            { card: "BT24-051", as: "first", under: [{ card: "BT24-050", as: "firstSource" }] },
             { card: "BT24-051", as: "second", under: ["BT24-050"] },
           ],
           security: ["BT1-013", "BT1-015"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId);
+    const firstId = s.inst("first").instanceId;
+    const firstSourceId = s.inst("firstSource").instanceId;
     await s.ready();
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT24-061"]);
 
@@ -140,6 +182,8 @@ describe("BT24-061 Vademon", () => {
     await settle(() => s.perm("first").topCard.cardId === "BT24-050");
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("first").topCard.cardId).toBe("BT24-050");
+    expect(s.perm("first").topCard.instanceId).toBe(firstSourceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(firstId);
     expect(s.perm("second").topCard.cardId).toBe("BT24-051");
   });
 
@@ -148,22 +192,40 @@ describe("BT24-061 Vademon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-061"] }],
+          battleArea: [{ card: "BT10-028", as: "host", under: ["BT24-061"] }],
+          hand: [{ card: "BT24-050", as: "unsuspend" }],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [
-            { card: "BT24-051", as: "first", under: ["BT24-050"] },
-            { card: "BT24-051", as: "second", under: ["BT24-050"] },
+            { card: "BT24-051", as: "first", under: [{ card: "BT24-050", as: "firstSource" }] },
+            { card: "BT24-051", as: "second", under: [{ card: "BT24-050", as: "secondSource" }] },
           ],
-          security: ["BT1-013", "BT1-015", "BT1-016"],
+          security: [
+            { card: "BT1-009", as: "security1" },
+            { card: "BT1-013", as: "security2" },
+            { card: "BT1-015", as: "security3" },
+          ],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.perm("first").topCard.instanceId);
-    s.state.memory = 3;
+    const firstId = s.inst("first").instanceId;
+    const firstSourceId = s.inst("firstSource").instanceId;
+    const secondId = s.inst("second").instanceId;
+    const secondSourceId = s.inst("secondSource").instanceId;
+    const security1Id = s.inst("security1").instanceId;
+    const security2Id = s.inst("security2").instanceId;
+    const security3Id = s.inst("security3").instanceId;
+    s.state.memory = 10;
     await s.ready();
 
     const firstTurn = s.engine.runOneTurn();
@@ -176,6 +238,33 @@ describe("BT24-061 Vademon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("first").topCard.cardId === "BT24-050");
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("first").topCard.instanceId).toBe(firstSourceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(firstId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(security1Id);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([security2Id, security3Id]);
+
+    preferred.splice(0, preferred.length, s.perm("host").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspend").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(3);
+
+    preferred.splice(0, preferred.length, s.perm("second").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("second").topCard.instanceId).toBe(secondId);
+    expect(s.perm("second").stack.map((card) => card.instanceId)).toEqual([secondSourceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(security2Id);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([security3Id]);
+
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
 
@@ -195,7 +284,12 @@ describe("BT24-061 Vademon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("second").topCard.cardId === "BT24-050");
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("second").topCard.cardId).toBe("BT24-050");
+    expect(s.perm("second").topCard.instanceId).toBe(secondSourceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(secondId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(security3Id);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await laterTurn;
   });
