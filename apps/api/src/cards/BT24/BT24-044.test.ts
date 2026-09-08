@@ -76,6 +76,35 @@ describe("BT24-044 Muchomon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
+  it("publicly accepts the Vortex Warriors search branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-044", as: "source" }],
+          deck: [
+            { card: "P-133", as: "shoto" },
+            { card: "EX11-032", as: "vortex" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vortex").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("shoto").instanceId,
+      s.inst("vortex").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+  });
+
   it("digivolves publicly from a legal green Digi-Egg for cost 0 with the source stack intact", async () => {
     const s = setupEngine(
       {
@@ -106,6 +135,30 @@ describe("BT24-044 Muchomon", () => {
     expect(s.perm("egg").topCard.instanceId).toBe(s.inst("muchomon").instanceId);
     expect(s.perm("egg").stack.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shoto").instanceId);
+  });
+
+  it("rejects evolution from a non-green Digi-Egg without moving cards", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT24-002", as: "egg" },
+        hand: [{ card: "BT24-044", as: "muchomon" }],
+        deck: [{ card: "BT1-009", as: "unchanged" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("muchomon").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("muchomon").instanceId]);
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("egg").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("unchanged").instanceId]);
   });
 
   it("does not reveal when a public play suspends an opponent Digimon", async () => {
@@ -146,7 +199,9 @@ describe("BT24-044 Muchomon", () => {
     expect(refusal.engine.applyIntent(0, { type: "playCard", instanceId: refusal.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => refusal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-044"));
+    await settle(() =>
+      refusal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-044"),
+    );
     expect(refusal.perm("source").isSuspended).toBe(false);
     expect(refusal.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(refusalDeck);
 
@@ -161,7 +216,9 @@ describe("BT24-044 Muchomon", () => {
     expect(level7.engine.applyIntent(0, { type: "playCard", instanceId: level7.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => level7.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-044"));
+    await settle(() =>
+      level7.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-044"),
+    );
     expect(level7.perm("level7").isSuspended).toBe(false);
     expect(level7.state.players[0]!.deck).toHaveLength(3);
   });
