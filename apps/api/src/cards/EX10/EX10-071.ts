@@ -170,6 +170,11 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              // The printed clause is "1 Digimon with [Lucemon] in its name"; the catalog's
+              // securityEffectText drops the "Digimon with" (see EX10-071.md). Without the
+              // kind gate the clause would also offer a non-Digimon Lucemon card — none is
+              // printed today, so this is fidelity, not an observable behaviour change.
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Lucemon"],

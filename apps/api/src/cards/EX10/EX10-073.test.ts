@@ -1,16 +1,11 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
-import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-073.js";
 // Boot side-effect: self-register every compiled-IR card module (so EX10-073's real IR loads).
 import "../index.js";
-
-function primitivesOf(s: { engine: unknown }): Primitives {
-  return (s.engine as unknown as { primitives: Primitives }).primitives;
-}
 
 const COST3 = "BT1-010"; // a real cost-3 Digimon
 const COST5 = "AD1-001"; // a real cost-5 Digimon
@@ -61,71 +56,125 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     }
   });
 
-  it("Q5396 links one legal card from hand and one legal source only to Deusmon", async () => {
+  it("Q5396 + [When Digivolving] + [App Fusion]: the public appFusion intent fuses at cost 0 and links two legal cards", async () => {
+    // ONE fully public route proving four printed clauses at once. `appFusion` is a real
+    // digivolution intent, so it fires EX10-073's [When Digivolving] the way a game does —
+    // no injected timing.
+    //  * [App Fusion] [Warudamon] & [Cometmon]: Cost 0 — Warudamon on top, Cometmon linked.
+    //  * [When Digivolving] link 1 from HAND + 1 from THIS Digimon's digivolution cards.
+    //  * Q5396 — a card without ＜Link＞ (BT1-009, no `linkRequirement`) is never eligible,
+    //    even though `preferInstanceIds` offers it FIRST.
+    //  * "without paying the cost" — both link cards print [Link] ... Cost 3, so a paying
+    //    implementation would spend 6 memory; memory stays at 0.
+    //  * ＜Link +1＞ — base linkMax is 1, so a second link only survives the rule-check
+    //    sweep because of the printed +1.
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX10-073", as: "deusmon", under: [{ card: "BT24-036", as: "sourceLink" }] },
-            { card: "BT21-009", as: "neighbor" },
-          ],
+          battleArea: [{ card: "EX10-019", as: "warudamon", linked: [{ card: "EX10-030", as: "cometmon" }] }],
           hand: [
+            { card: "EX10-073", as: "deusmon" },
             { card: "BT26-010", as: "handLink" },
             { card: "BT1-009", as: "noLink" },
           ],
+          deck: ["BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("noLink").instanceId, s.inst("handLink").instanceId, s.inst("sourceLink").instanceId);
-    await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("deusmon"));
-    expect(new Set(s.perm("deusmon").linked.map(({ instanceId }) => instanceId))).toEqual(
-      new Set([s.inst("handLink").instanceId, s.inst("sourceLink").instanceId]),
-    );
-    expect(s.perm("neighbor").linked).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("noLink").instanceId);
-  });
-
-  it("[App Fusion] [Warudamon] & [Cometmon]: Cost 0 fuses from hand onto the linked pair", async () => {
-    // The printed header needs BOTH names covered by the fusing permanent's top card and its
-    // link cards. Warudamon on top, Cometmon linked => cost 0 and Deusmon takes the top slot.
-    // FAILS-WHEN-REVERTED: change either name or the cost in `appFusionRequirement` and
-    // `appFusionCostFor` returns undefined, so `appFuseInto` refuses and returns undefined.
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX10-019", as: "warudamon", linked: [{ card: "EX10-030", as: "cometmon" }] }],
-          hand: [{ card: "EX10-073", as: "deusmon" }],
-          deck: ["BT1-009", "BT1-010"],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
+    preferred.push(s.inst("noLink").instanceId, s.inst("handLink").instanceId);
     await s.ready();
     s.state.memory = 0;
 
-    const fused = await advance(s.engine).verb.appFuseInto(
-      s.perm("warudamon").permanentId,
-      s.inst("deusmon").instanceId,
-    );
-    await settle(() => s.perm("warudamon").topCard.cardId === "EX10-073");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("warudamon").permanentId,
+        instanceId: s.inst("deusmon").instanceId,
+        linkedInstanceId: s.inst("cometmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("warudamon").topCard.cardId === "EX10-073" && s.perm("warudamon").linked.length === 2);
 
-    expect(fused).toBeDefined();
-    expect(s.perm("warudamon").topCard.cardId).toBe("EX10-073");
-    expect(s.perm("warudamon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-019", "EX10-030"]);
-    expect(s.perm("warudamon").linked).toHaveLength(0);
-    // Cost 0: no memory was spent. CR 8-4-3-3: the fusion procedure itself draws 1.
+    const deusmon = s.perm("warudamon");
+    expect(deusmon.topCard.cardId).toBe("EX10-073");
+    // The hand link landed, and the second link came out of Deusmon's OWN digivolution cards:
+    // the fusion left [EX10-019, EX10-030] beneath it, and exactly one of them moved to `linked`.
+    const linkedIds = deusmon.linked.map(({ instanceId }) => instanceId);
+    expect(linkedIds).toContain(s.inst("handLink").instanceId);
+    expect(linkedIds).toHaveLength(2);
+    const stackIds = deusmon.stack.map(({ instanceId }) => instanceId);
+    expect(stackIds).toHaveLength(1);
+    expect([s.inst("warudamon").instanceId, s.inst("cometmon").instanceId]).toContain(stackIds[0]);
+    expect(linkedIds).toContain(
+      stackIds[0] === s.inst("warudamon").instanceId ? s.inst("cometmon").instanceId : s.inst("warudamon").instanceId,
+    );
+    // Q5396: the ＜Link＞-less card was offered first and still never left the hand.
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("noLink").instanceId);
+    // Cost 0 fusion + two cost-free links. CR 8-4-3-3: the fusion procedure itself draws 1.
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("[App Fusion] refuses when only one of the two required names is present", async () => {
+  it("＜Link +1＞: both links survive the rule-check sweep at an attack", async () => {
+    // The LinkedMax sweep (CR §4-8-5 / §17-1-3-2-5) runs at rule check and trims links above
+    // linkMax(recipient). Base linkMax is 1.
+    // FAILS-WHEN-REVERTED: drop the ＜Link +1＞ keyword effect and the sweep trashes the excess
+    // link on this attack, so `linked` drops to 1.
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX10-019", as: "warudamon" }],
+          battleArea: [
+            {
+              card: "EX10-073",
+              as: "deusmon",
+              linked: [
+                { card: "BT21-009", as: "linkA" },
+                { card: "BT21-041", as: "linkB" },
+              ],
+            },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    // ＜Link +1＞ is NOT a `grantedKeywords` entry: `board.ts` routes the "Link" keyword to
+    // `grantLinkMax`, and `mindLink.linkMax` sums that delta onto the base 1 (mindLink.ts
+    // BASE_LINK_MAX). So the observable is the linkMax delta, not the keyword list.
+    expect(observe(s.engine).linkMaxDelta(s.perm("deusmon"))).toBe(1);
+    expect(s.engine.linkMaxOf(s.perm("deusmon"))).toBe(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("deusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 400);
+
+    expect(s.perm("deusmon").linked.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("linkA").instanceId,
+      s.inst("linkB").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("linkB").instanceId);
+  });
+
+  it("[App Fusion] refuses through the public intent when only one required name is present", async () => {
+    // Warudamon on top, but the linked material is Calendamon, not Cometmon => the printed
+    // [Warudamon] & [Cometmon] header is unmet.
+    // FAILS-WHEN-REVERTED: change either name in `appFusionRequirement` to [Calendamon] and
+    // `appFusionCostFor` returns a cost, so the intent is accepted instead of refused.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-019", as: "warudamon", linked: [{ card: "BT21-041", as: "wrongMaterial" }] }],
           hand: [{ card: "EX10-073", as: "deusmon" }],
           deck: ["BT1-009"],
         },
@@ -133,25 +182,29 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const handBefore = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
 
-    const fused = await advance(s.engine).verb.appFuseInto(
-      s.perm("warudamon").permanentId,
-      s.inst("deusmon").instanceId,
-    );
-
-    expect(fused).toBeUndefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("warudamon").permanentId,
+        instanceId: s.inst("deusmon").instanceId,
+        linkedInstanceId: s.inst("wrongMaterial").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
     expect(s.perm("warudamon").topCard.cardId).toBe("EX10-019");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX10-073"]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(handBefore);
   });
 
-  it("[End of Opponent's Turn] runs the same two-zone link clause as [When Digivolving]", async () => {
-    // Deusmon sits on seat 1, so seat 0's turn IS "the opponent's turn" for it and
-    // `turnOwnerGuard("EndOfOpponentsTurn")` passes.
+  it("[End of Opponent's Turn] fires in the REAL turn loop, at the end of the opponent's turn only", async () => {
+    // Deusmon sits on seat 1, so seat 0's turn IS "the opponent's turn" for it. Nothing is
+    // injected: `startTurnLoop` runs seat 0's turn and its own end step fires the clause.
     // FAILS-WHEN-REVERTED: drop the EndOfOpponentsTurn twin (the printed clause carries BOTH
     // timings) and nothing links in this window.
     const preferred: string[] = [];
     const s = setupEngine(
       {
+        0: { deck: ["BT1-013", "BT1-014", "BT1-009"], hand: ["BT1-013"], security: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "EX10-073", as: "deusmon", under: [{ card: "BT24-036", as: "sourceLink" }] },
@@ -161,21 +214,34 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
             { card: "BT26-010", as: "handLink" },
             { card: "BT1-009", as: "noLink" },
           ],
+          deck: ["BT1-013", "BT1-014", "BT1-009"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("noLink").instanceId, s.inst("handLink").instanceId, s.inst("sourceLink").instanceId);
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("deusmon"));
-    await settle(() => s.perm("deusmon").linked.length === 2, 200);
+    // Nothing has fired yet: seat 0's turn has not ended.
+    expect(s.perm("deusmon").linked).toHaveLength(0);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.perm("deusmon").linked.length === 2, 2000);
 
     expect(new Set(s.perm("deusmon").linked.map(({ instanceId }) => instanceId))).toEqual(
       new Set([s.inst("handLink").instanceId, s.inst("sourceLink").instanceId]),
     );
+    // "from THIS Digimon's digivolution cards" / recipient is THIS Digimon: the neighbour is
+    // neither a source nor a recipient.
     expect(s.perm("neighbor").linked).toHaveLength(0);
+    expect(s.perm("deusmon").stack).toHaveLength(0);
+    // Q5396 again: the ＜Link＞-less hand card was preferred first and still stayed put.
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("noLink").instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("grants itself ＜Security A. +1＞ as a live continuous grant carrying the printed +1", async () => {
@@ -190,30 +256,46 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
   });
 
   it("takes the second link ONLY from its own digivolution stack, never another Digimon's", async () => {
-    // Two friendly Digimon each carry a ＜Link＞-capable card in their digivolution stack. The
-    // printed clause is "from THIS Digimon's digivolution cards", encoded as
-    // `hostFilter: { isSelfRef: true }` on the `from: ["digivolutionCards"]` Link.
-    // FAILS-WHEN-REVERTED: drop the hostFilter => `candidateLooseInstances` pools every
-    // permanent's stack, `preferInstanceIds` steers the auto-selection to the NEIGHBOUR's card,
+    // Public route: the same `appFusion` intent, but now a NEIGHBOUR also holds a ＜Link＞-capable
+    // card in its digivolution stack, and `preferInstanceIds` offers that foreign card FIRST.
+    // No ＜Link＞ card sits in hand, so the hand Link finds nothing and only the
+    // "from THIS Digimon's digivolution cards" Link has anything to do.
+    // FAILS-WHEN-REVERTED: drop `hostFilter: { isSelfRef: true }` => `candidateLooseInstances`
+    // pools every permanent's stack, the preference steers the pick to the NEIGHBOUR's card,
     // and both assertions below go red.
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX10-073", as: "deusmon", under: [{ card: "BT21-009", as: "ownSource" }] },
+            { card: "EX10-019", as: "warudamon", linked: [{ card: "EX10-030", as: "cometmon" }] },
             { card: "BT1-009", as: "neighbor", under: [{ card: "BT21-041", as: "foreignSource" }] },
           ],
+          hand: [{ card: "EX10-073", as: "deusmon" }],
+          deck: ["BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("foreignSource").instanceId, s.inst("ownSource").instanceId);
+    preferred.push(s.inst("foreignSource").instanceId);
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("deusmon"));
 
-    expect(s.perm("deusmon").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("ownSource").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("warudamon").permanentId,
+        instanceId: s.inst("deusmon").instanceId,
+        linkedInstanceId: s.inst("cometmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("warudamon").topCard.cardId === "EX10-073" && s.perm("warudamon").linked.length === 1);
+
+    const linkedIds = s.perm("warudamon").linked.map(({ instanceId }) => instanceId);
+    expect(linkedIds).toHaveLength(1);
+    expect(linkedIds).not.toContain(s.inst("foreignSource").instanceId);
+    expect([s.inst("warudamon").instanceId, s.inst("cometmon").instanceId]).toContain(linkedIds[0]);
     expect(s.perm("neighbor").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("foreignSource").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("[Once Per Turn]: a second link-card trash in the same turn deletes nothing more", async () => {
@@ -245,9 +327,9 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     const oppHighId = s.perm("oppHigh").permanentId;
     await s.engine.recomputeContinuousEffects();
 
-    await primitivesOf(s).trash([s.inst("linkA").instanceId]);
+    await advance(s.engine).verb.trash([s.inst("linkA").instanceId]);
     await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === oppLowId) === undefined, 200);
-    await primitivesOf(s).trash([s.inst("linkB").instanceId]);
+    await advance(s.engine).verb.trash([s.inst("linkB").instanceId]);
     await settle(() => false, 60);
 
     // FAILS-WHEN-REVERTED: drop `frequency: "OncePerTurn"` => the second trash fires the watcher
@@ -282,7 +364,7 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     await s.engine.recomputeContinuousEffects();
 
     // Trash THIS Digimon's link card via the REAL production seam (fires whenLinkTrashed).
-    await primitivesOf(s).trash([linkCard.instanceId]);
+    await advance(s.engine).verb.trash([linkCard.instanceId]);
     await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === oppLowId) === undefined, 200);
 
     expect(deusmon.linked.length).toBe(0); // the link card genuinely left the linked list
@@ -320,7 +402,7 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
 
     await s.engine.recomputeContinuousEffects();
 
-    await primitivesOf(s).trash([otherLink.instanceId]);
+    await advance(s.engine).verb.trash([otherLink.instanceId]);
     await settle(() => false, 40);
 
     // The trashed link card belonged to a DIFFERENT Digimon, not EX10-073 => the watcher must NOT
@@ -331,22 +413,29 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
   });
 
   it("Q5188 does not trigger when link-limit replacement trashes one of Deusmon's links", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          {
-            card: "EX10-073",
-            as: "deusmon",
-            linked: [
-              { card: "BT24-036", as: "oldLink1" },
-              { card: "BT26-010", as: "oldLink2" },
-            ],
-          },
-        ],
-        hand: [{ card: "BT24-036", as: "newLink" }],
+    // The auto-responders are load-bearing: the §17-1-3-2-5 sweep asks the controller WHICH
+    // excess link card to give up (`GameEngine.chooseExcessLinkCards`, Q6370). Without them
+    // that decision hangs, the trim never happens, and the "opponent survived" assertion
+    // below would pass for the wrong reason.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX10-073",
+              as: "deusmon",
+              linked: [
+                { card: "BT24-036", as: "oldLink1" },
+                { card: "BT26-010", as: "oldLink2" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT24-036", as: "newLink" }],
+        },
+        1: { battleArea: [{ card: COST3, as: "opponent" }] },
       },
-      1: { battleArea: [{ card: COST3, as: "opponent" }] },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
     await s.ready();
     expect(
@@ -357,6 +446,116 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("deusmon").linked.some(({ instanceId }) => instanceId === s.inst("newLink").instanceId));
+    await settle(() => s.perm("deusmon").linked.length === 2, 200);
+
+    // The premise must be REAL, or the survival assertion below is vacuous: the third link
+    // pushed Deusmon over its linkMax (1 base + ＜Link +1＞ = 2), so the rule sweep trimmed one
+    // of the OLD links into the trash. That is a genuine trash of one of THIS Digimon's link
+    // cards — and Q5188 says the [All Turns] watcher still must not fire, because a by-rule
+    // link-limit trim is suppressed at the trash seam (primitives.ts, whenLinkTrashed).
+    expect(s.perm("deusmon").linked).toHaveLength(2);
+    const trashedIds = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(
+      trashedIds.filter((id) => id === s.inst("oldLink1").instanceId || id === s.inst("oldLink2").instanceId),
+    ).toHaveLength(1);
+    // Q5188: no delete. The opponent's Digimon is untouched.
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === COST3)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  // ---------------------------------------------------------------------------------------
+  // Peer comparison on ONE board. EX10-030 Cometmon prints the SAME shape as Deusmon's
+  // clause 5 — `[All Turns] [Once Per Turn]` -> SubTrigger `whenLinkTrashed` with
+  // `sourceFilter: { isSelfRef: true }` — but a different payload (-8000 DP for the turn
+  // instead of "delete the lowest play cost"). Both sit on the same field, each carrying its
+  // own link card, and exactly ONE link card is trashed per test. Only the owning Digimon's
+  // watcher may fire, in both directions.
+  //
+  // `preferInstanceIds` names the cost-5 Digimon so that IF Cometmon's watcher wrongly fired
+  // in the Deusmon direction it would land on the card the assertion reads — the isolation
+  // assertion is decisive, not lucky. Deusmon's own Delete is narrowed to `lowestPlayCost`,
+  // so the same preference cannot steer it.
+  const crossFireBoard = () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX10-073",
+              dp: 12_000,
+              as: "deusmon",
+              linked: [{ card: "BT1-009", as: "deusLink" }],
+            },
+            {
+              card: "EX10-030",
+              dp: 12_000,
+              as: "cometmon",
+              linked: [{ card: "BT1-013", as: "cometLink" }],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: COST3, dp: 20_000, as: "oppLow" },
+            { card: COST5, dp: 20_000, as: "oppHigh" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    return { s, preferred };
+  };
+
+  it("peer isolation: trashing DEUSMON's link card fires Deusmon's delete and NOT Cometmon's -8000", async () => {
+    // FAILS-WHEN-REVERTED: drop `isSelfRef` from EITHER card's `whenLinkTrashed` sourceFilter
+    // and the neighbouring watcher cross-fires — Cometmon's -8000 lands on the cost-5 Digimon.
+    const { s, preferred } = crossFireBoard();
+    preferred.push(s.perm("oppHigh").permanentId);
+    const oppLowId = s.perm("oppLow").permanentId;
+    const oppHighId = s.perm("oppHigh").permanentId;
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).verb.trash([s.inst("deusLink").instanceId]);
+    await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === oppLowId) === undefined, 300);
+    await settle(() => false, 60);
+
+    // Deusmon's payload ran: the lowest-play-cost Digimon is gone.
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([oppHighId]);
+    // Cometmon's payload did NOT run: the survivor keeps its printed DP even though it was the
+    // preferred pick for any -8000 that had fired.
+    expect(s.perm("oppHigh").currentDP).toBe(20_000);
+    // Only Deusmon lost a link card; Cometmon's own link is untouched.
+    expect(s.perm("deusmon").linked).toHaveLength(0);
+    expect(s.perm("cometmon").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("cometLink").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("deusLink").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
+  it("peer isolation: trashing COMETMON's link card fires Cometmon's -8000 and NOT Deusmon's delete", async () => {
+    // The other direction on the same board. FAILS-WHEN-REVERTED: drop `isSelfRef` from
+    // Deusmon's `whenLinkTrashed` sourceFilter and the cost-3 Digimon is wrongly deleted here.
+    const { s, preferred } = crossFireBoard();
+    preferred.push(s.perm("oppHigh").permanentId);
+    const oppLowId = s.perm("oppLow").permanentId;
+    const oppHighId = s.perm("oppHigh").permanentId;
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).verb.trash([s.inst("cometLink").instanceId]);
+    await settle(() => s.perm("oppHigh").currentDP === 12_000, 300);
+    await settle(() => false, 60);
+
+    // Cometmon's payload ran on the preferred target, for the turn.
+    expect(s.perm("oppHigh").currentDP).toBe(12_000);
+    // Deusmon's payload did NOT run: nothing was deleted, and the cost-3 Digimon — the one
+    // Deusmon's `lowestPlayCost` Delete would have taken — is still on the board at full DP.
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([oppLowId, oppHighId]);
+    expect(s.perm("oppLow").currentDP).toBe(20_000);
+    // Only Cometmon lost a link card; Deusmon's own link is untouched.
+    expect(s.perm("cometmon").linked).toHaveLength(0);
+    expect(s.perm("deusmon").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("deusLink").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cometLink").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 });
