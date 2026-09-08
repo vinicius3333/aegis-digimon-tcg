@@ -30,6 +30,29 @@ describe("BT24-073 SkullSatamon", () => {
     });
   });
 
+  it("publicly uses Blocker to redirect an opponent attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-073", as: "blocker", dp: 8000 }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+  });
+
   it("makes the inherited Security Attack bonus an alternative to milling", () => {
     const inherited = BT24_073.effects?.find((entry) => entry.trigger === "WhenAttacking");
     expect(inherited?.actions?.[0]).toMatchObject({
