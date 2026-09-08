@@ -2,14 +2,14 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 764/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 765/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
 | Card     | Name                             | Catalog/rules | IR  | Behavior | Peer/stack | Delivery | Total | Status / evidence                                                                                                                                                                                                                                              |
 | -------- | -------------------------------- | ------------- | --- | -------- | ---------- | -------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | BT24-001 | Gigimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-001.md). Public refusal, security priority, paid two-step evolution, same-turn suppression and next-own-turn reset. Root focused acceptance green; collection delivery gates pending. |
-| BT24-002 | Bukamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-002.md). Public refusal, Q5575 ordering, paid egg route and owner-turn reset passed root acceptance (9 tests); public color/trait negative and delivery still pending. |
+| BT24-002 | Bukamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-002.md). Root9green: public payment/refusal, self/color/trait boundaries, same-turn suppression and next-owner-turn reset, paid evolution stack and Q5575 simultaneous ordering. Typed IR/assertions; collection delivery pending. |
 | BT24-003 | Tsunomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-003.md). Public Shaman filter/refusal, legal egg routes, Barrier Q5576 and extra check Q5585, frequency/reset. Root focused acceptance green; collection delivery gates pending. |
 | BT24-004 | Wanyamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-004.md). Public non-Iliad negative, legal green egg route, distinct evolution/normal/inherited draw identities and same-turn suppression/reset. Rootfocused8green; delivery pending. |
 | BT24-005 | Kyokyomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-005.md). Root11green: natural Mind Link reveal visibility/order/top-bottom, same-turn suppression/reset, legal egg/evolution fixtures and host/Tamer/opponent-turn negatives. Typed IR; delivery pending. |
