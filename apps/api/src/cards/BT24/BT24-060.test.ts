@@ -35,9 +35,9 @@ describe("BT24-060 Hisyaryumon", () => {
         into: { nameOrTrait: [{ tokens: ["DigiPolice", "SEEKERS"], match: "trait" }] },
       },
     });
-    const placement = BT24_060.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited)
-      ?.actions?.[0] as any;
-    expect(placement).toMatchObject({
+    expect(
+      BT24_060.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited)?.actions?.[0],
+    ).toMatchObject({
       event: "onAddDigivolutionCards",
       triggerFilter: { isSelfRef: true },
       addedDigivolutionCardFilter: { kind: ["Tamer"] },
