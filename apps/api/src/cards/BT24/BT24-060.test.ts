@@ -116,45 +116,48 @@ describe("BT24-060 Hisyaryumon", () => {
   it.each([
     ["top", 0, ["miss1", "miss2", "miss3", "untouched"]],
     ["bottom", 1, ["untouched", "miss1", "miss2", "miss3"]],
-  ] as const)("publicly orders declined reveals to the deck %s with an unrevealed tail", async (_label, optionIndex, expected) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
-          deck: [
-            { card: "BT1-013", as: "miss1" },
-            { card: "BT1-015", as: "miss2" },
-            { card: "BT1-016", as: "miss3" },
-            { card: "BT1-017", as: "untouched" },
-          ],
+  ] as const)(
+    "publicly orders declined reveals to the deck %s with an unrevealed tail",
+    async (_label, optionIndex, expected) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-060", as: "hisyaryumon" }],
+            deck: [
+              { card: "BT1-013", as: "miss1" },
+              { card: "BT1-015", as: "miss2" },
+              { card: "BT1-016", as: "miss3" },
+              { card: "BT1-017", as: "untouched" },
+            ],
+          },
+          1: { security: [{ card: "BT1-011", as: "security" }] },
         },
-        1: { security: [{ card: "BT1-011", as: "security" }] },
-      },
-      {
-        autoDeclineOptional: true,
-        autoSelectCards: true,
-        autoChooseOption: true,
-        autoOrderCards: true,
-        preferOptionIndex: optionIndex,
-      },
-    );
-    s.state.memory = 3;
-    await s.ready();
+        {
+          autoDeclineOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          autoOrderCards: true,
+          preferOptionIndex: optionIndex,
+        },
+      );
+      s.state.memory = 3;
+      await s.ready();
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("hisyaryumon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("hisyaryumon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
-      expected.map((label) => s.inst(label).instanceId),
-    );
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
+      expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+        expected.map((label) => s.inst(label).instanceId),
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 
   it.each([
     ["normal black level-4 requirement", "BT10-062", false, 4],
@@ -343,5 +346,88 @@ describe("BT24-060 Hisyaryumon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("publicly suppresses a second replacement in-turn and pays the second Tamer after reset", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT24-064",
+              as: "host",
+              under: ["BT24-060", { card: "BT24-086", as: "firstTamer" }, { card: "BT15-087", as: "secondTamer" }],
+            },
+            { card: "BT24-054", as: "firstVictim", dp: 1000 },
+            { card: "BT24-054", as: "secondVictim", dp: 2000 },
+            { card: "BT24-054", as: "thirdVictim", dp: 3000 },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "attacker", dp: 12000 }],
+          hand: [
+            { card: "BT6-095", as: "firstOption" },
+            { card: "BT6-095", as: "secondOption" },
+            { card: "BT6-095", as: "thirdOption" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("firstTamer").instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 15;
+    await s.ready();
+    const firstVictimId = s.inst("firstVictim").instanceId;
+    const secondVictimId = s.inst("secondVictim").instanceId;
+    const thirdVictimId = s.inst("thirdVictim").instanceId;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstTamer").instanceId),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(firstVictimId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(firstVictimId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("firstTamer").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("firstTamer").instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === firstVictimId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(firstVictimId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(secondVictimId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("secondTamer").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    const resetTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(thirdVictimId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("thirdOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondTamer").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(thirdVictimId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("secondTamer").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("secondTamer").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await resetTurn;
   });
 });
