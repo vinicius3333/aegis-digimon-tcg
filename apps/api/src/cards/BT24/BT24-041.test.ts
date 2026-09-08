@@ -148,6 +148,46 @@ describe("BT24-041 Minervamon", () => {
     );
   });
 
+  it("resolves the On Deletion play and De-Digivolve sequence publicly", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-041", as: "minervamon", suspended: true }],
+          hand: [{ card: "BT24-011", as: "iliad" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "attacker", dp: 15000, under: ["BT1-068", "BT1-077"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const minervamonId = s.inst("minervamon").instanceId;
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("minervamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === minervamonId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("iliad").instanceId),
+    );
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(minervamonId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("iliad").instanceId,
+    );
+    expect(s.perm("attacker").stack).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+  });
+
   it("keeps the optional play and following De-Digivolve in one ordered effect (Q5629)", async () => {
     const s = setupEngine(
       {
@@ -307,6 +347,57 @@ describe("BT24-041 Minervamon", () => {
     await s.ready();
     await advance(s.engine).runTurn(1);
     expect(s.perm("minervamon").isSuspended).toBe(false);
+  });
+
+  it("publicly accepts and declines the opponent-turn Blocker window", async () => {
+    const accepted = setupEngine({
+      0: { battleArea: [{ card: "BT24-041", as: "minervamon" }], security: ["BT1-011"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], deck: ["BT1-010"] },
+    });
+    accepted.state.turnSeat = 1;
+    await accepted.ready();
+    expect(
+      accepted.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: accepted.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => accepted.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      accepted.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: accepted.perm("minervamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => accepted.events.some((event) => event.kind === "combatResolved"));
+    expect(accepted.perm("minervamon").isSuspended).toBe(true);
+    expect(accepted.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
+      accepted.inst("attacker").instanceId,
+    );
+    expect(accepted.state.players[0]!.security).toHaveLength(1);
+
+    const declined = setupEngine({
+      0: { battleArea: [{ card: "BT24-041", as: "minervamon" }], security: [{ card: "BT1-011", as: "checked" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }], deck: ["BT1-010"] },
+    });
+    declined.state.turnSeat = 1;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: declined.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(declined.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => declined.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => !observe(declined.engine).isAttacking());
+    expect(declined.perm("minervamon").isSuspended).toBe(false);
+    expect(declined.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      declined.inst("checked").instanceId,
+    );
   });
 
   it.each([
