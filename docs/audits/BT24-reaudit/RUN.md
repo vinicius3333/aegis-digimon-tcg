@@ -784,3 +784,12 @@ payment/deletion raise it6→7 in `5f5188c0b`, while inherited public OPT reset
 remains open. Aggregate712/1020,0 cards at10/10. Investigation showed098's
 expected failure used memory-2 despite claiming opponent memory5; no engine bug
 is inferred, and the lane is correcting it to-5. No publication has occurred.
+
+Root005 at11:26:46 passed11/11. Natural Mind Link reveal visibility/order,
+top-bottom placement, suppression/reset and legal egg/host boundaries raise it
+6→8 in `2302d74a4`. Root018 at11:28:58 passed12/12. Typed security/replacement
+assertions plus public security trash/unsuspend, removal OPT, simultaneous
+protection/refusal/Q5599, evolution and keyword routes raise it6→8 in
+`2fb8b6738`. Aggregate716/1020,0 cards at10/10. Lanes continue020,013 OPT
+completion and the confirmed098 reactive payload dispatch seam. No publication
+has occurred.
