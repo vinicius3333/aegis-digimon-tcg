@@ -49,11 +49,11 @@ describe("BT24-046 Garurumon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT24-046", as: "garurumon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: [{ card: "BT24-051", as: "security" }] },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 4;
+    s.state.memory = 5;
     await s.ready();
 
     expect(
@@ -66,7 +66,8 @@ describe("BT24-046 Garurumon", () => {
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT24-046")!;
     expect(observe(s.engine).hasKeyword(played, "Jamming")).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it.each([
@@ -81,6 +82,7 @@ describe("BT24-046 Garurumon", () => {
           0: {
             battleArea: [{ card: baseCard, as: "base" }],
             hand: [{ card: "BT24-046", as: "garurumon" }],
+            deck: [{ card: "BT1-013", as: "evolutionDraw" }],
           },
           1: { battleArea: [{ card: "BT1-009", as: "target" }] },
         },
@@ -88,6 +90,7 @@ describe("BT24-046 Garurumon", () => {
       );
       s.state.memory = 5;
       await s.ready();
+      const sourceId = s.inst("base").instanceId;
 
       expect(
         s.engine.applyIntent(0, {
@@ -101,14 +104,57 @@ describe("BT24-046 Garurumon", () => {
       await settle(() => s.perm("target").isSuspended);
 
       expect(s.state.memory).toBe(5 - expectedCost);
+      expect(s.perm("base").topCard.instanceId).toBe(s.inst("garurumon").instanceId);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     },
   );
+
+  it("lets a pre-existing Garurumon attack higher-DP security through Jamming", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-046", as: "attacker" }] },
+      1: { security: [{ card: "BT24-051", as: "security" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const securityId = s.inst("security").instanceId;
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(attackerId);
+  });
+
+  it("rejects a public evolution from a nonmatching level-3 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "invalidBase" }],
+        hand: [{ card: "BT24-046", as: "garurumon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("garurumon").instanceId);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-009");
+  });
 
   it("inherited suspension resets on the owner's next public attack", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-047", as: "host", under: ["BT24-046"] }],
+          battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-046"] }],
           deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
@@ -160,7 +206,7 @@ describe("BT24-046 Garurumon", () => {
 
   it("activates inherited suspension from a public attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-047", as: "host", under: ["BT24-046"] }] },
+      0: { battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-046"] }] },
       1: { security: ["BT1-010"], battleArea: [{ card: "BT1-009", as: "target", suspended: false }] },
     });
     const targetId = s.perm("target").permanentId;
