@@ -344,6 +344,25 @@ describe("BT24-080 Megidramon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("megidramon").instanceId);
   });
 
+  it("rejects a public normal evolution from a non-Purple level-5 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-023", as: "invalidSource" }], hand: [{ card: "BT24-080", as: "megidramon" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.perm("invalidSource").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("megidramon").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("invalidSource").topCard.instanceId).toBe(sourceId);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("megidramon").instanceId);
+  });
+
   it("rechecks the hand gate before resolving a second trash copy after the bonus draw (Q5662)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
