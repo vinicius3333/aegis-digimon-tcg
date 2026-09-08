@@ -254,6 +254,58 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
+  it("publicly protects a simultaneous multi-target removal, then is spent on the second origin", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "hostA", dp: 1000, under: ["BT24-052"] },
+            { card: "BT24-065", as: "hostB", dp: 1000, under: ["BT24-052"] },
+            { card: "BT17-059", as: "costA" },
+            { card: "BT17-059", as: "costB" },
+          ],
+          security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT24-085", as: "redSource" }],
+          hand: [
+            { card: "BT6-095", as: "firstRemoval" },
+            { card: "BT6-095", as: "secondRemoval" },
+          ],
+          security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstRemoval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT24-065").length === 2,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("costA").instanceId, s.inst("costB").instanceId]),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstRemoval").instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondRemoval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT24-065").length === 2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("hostA").instanceId, s.inst("hostB").instanceId]),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondRemoval").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("may decline the deletion cost and let the host leave", async () => {
     const s = setupEngine(
       {
