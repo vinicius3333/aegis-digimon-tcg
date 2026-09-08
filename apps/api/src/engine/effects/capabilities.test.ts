@@ -32,10 +32,12 @@ import { gatherTriggeredEffects, type EffectEnvironment } from "./context.js";
 import { ContinuousEffectLedger } from "./continuous.js";
 import { UseTracker } from "./kernel.js";
 import { matchingAlternateDigivolutionRequirement } from "../cards/cardData.js";
+import { hasBlastDnaDigivolveKeyword } from "./interpreter/registration/keywords.js";
 // Side-effect import: registers BT19-038 in the global effect module registry so
 // gatherTriggeredEffects can find its WhenDigivolving effect in the CAP-A4 tests.
 import "../../cards/BT19/BT19-038.js";
 import "../../cards/BT19/BT19-097.js";
+import "../../cards/BT20/BT20-045.js";
 import "../../cards/LM/LM-031.js";
 import "../../cards/LM/LM-032.js";
 
@@ -889,19 +891,28 @@ describe("condition.isDnaDigivolving (BT20-045, P-221, EX9-021)", () => {
   }
 
   it("fires only when the WhenDigivolving window was reached via a DNA digivolve", async () => {
-    const src = source("BT20-045", perm("SRC", 0 as Seat, "SRC"));
+    const src = source("CAP-DNA-045", perm("SRC", 0 as Seat, "SRC"));
 
     // DNA path: trigger carries isDnaDigivolve => the DNA-only branch resolves.
     const dna = makeCtx({ source: src, own: [src.permanent()!] });
     dna.ctx.trigger.isDnaDigivolve = true;
-    await runMain("BT20-045", gated({ kind: "isDnaDigivolving" }), dna.ctx, src);
+    await runMain("CAP-DNA-045", gated({ kind: "isDnaDigivolving" }), dna.ctx, src);
     expect(dna.ctx.trigger.isDnaDigivolve).toBe(true);
     expect(dna.sink.dp.map((d) => d.id)).toContain("SRC");
 
     // Single-digivolve path: no flag => the DNA-only branch is skipped.
     const single = makeCtx({ source: src, own: [src.permanent()!] });
-    await runMain("BT20-045b", gated({ kind: "isDnaDigivolving" }), single.ctx, src);
+    await runMain("CAP-DNA-045B", gated({ kind: "isDnaDigivolving" }), single.ctx, src);
     expect(single.sink.dp).toEqual([]);
+  });
+
+  it("does not clear a real card's Blast DNA keyword when using a synthetic DNA fixture", async () => {
+    expect(hasBlastDnaDigivolveKeyword("BT20-045")).toBe(true);
+    const src = source("CAP-DNA-045-CHECK", perm("SRC", 0 as Seat, "SRC"));
+    const ctx = makeCtx({ source: src, own: [src.permanent()!] });
+    await runMain("CAP-DNA-045-CHECK", gated({ kind: "isDnaDigivolving" }), ctx.ctx, src);
+    expect(hasBlastDnaDigivolveKeyword("BT20-045")).toBe(true);
+    expect(hasBlastDnaDigivolveKeyword("CAP-DNA-045-CHECK")).toBe(false);
   });
 });
 
