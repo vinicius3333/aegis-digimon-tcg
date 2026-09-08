@@ -24,6 +24,17 @@ export interface Target {
   filter: Filter;
   /** Force the public chooser even when the candidate pool exactly matches count. */
   forceSelection?: boolean;
+  /**
+   * Offer the public choice whenever the candidate pool holds a permanent this source cannot
+   * affect, even when the pool otherwise matches count and would resolve without a prompt.
+   *
+   * Comprehensive Rules §15-15-5-3: an "isn't affected by effects" permanent can still be CHOSEN;
+   * the effect then does nothing to it. Without this flag a pool of one immune candidate is
+   * resolved silently and the player never sees the choice they are entitled to make. Set it on
+   * shapes where burning the effect on an immune permanent is a real decision ("choose 1, then
+   * …"); plain mandatory targeting keeps the quieter auto-resolve.
+   */
+  allowUnaffectableChoice?: boolean;
   /** Default 1. `"all"` for "all ...". */
   count: number | "all";
   /** Who makes a non-trivial choice. Defaults to the effect's controller. */
