@@ -1,10 +1,8 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for BT24-091 "Tidal Stream". The engine's generic return-result
-// binding is not available to card conditions, so the unsuspend leg uses the
-// post-resolution equivalent (the opponent has no Digimon remaining).
+// Hand-fixed IR for BT24-091 "Tidal Stream". The return action binds its result
+// so the unsuspend leg only resolves when a Digimon was returned.
 export const compiled: CompiledCard = {
   effects: [
     {

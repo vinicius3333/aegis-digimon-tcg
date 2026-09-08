@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 594/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 601/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -98,7 +98,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-088 | Asuna Shiroki | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-088.md). Natural start-turn exact bottom-deck replacement, memory4/5, mixed and no-target controls, no-retro Q5679, public OnPlay cost/refusal and Security with optional draw. Root16green; typed IR; delivery pending. |
 | BT24-089 | Unique Emblem: Blazing Conductor | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-089.md). Root11green public Main cost/placement/refusal and Security. Delay timing remains under semantic review; injected suspension and edited entry age are not public proof. Delivery pending. |
 | BT24-090 | Abyss Sanctuary: Throne Room | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-090.md). Root13green: public color waiver, exact bottom-security swap, paid reduced Main/refusal, Security accepted/refused hand play. Public trash/filter and actual Blocker/Alliance/expiry still pending; typed IR. |
-| BT24-091 | Tidal Stream | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-091 | Tidal Stream | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-091.md). Public paid Main and Security paths, exact tied-lowest bounce/unsuspend/link behavior, Q5682/Q5684-Q5686 interactions, linked once-per-turn suppression and next-owner-turn reset pass. Q5683 comparative consumer and delivery remain pending. Root focused acceptance green. |
 | BT24-092 | Shock Plasma | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-093 | Temple of Beginnings | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-094 | Central Town: Throne Room | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |

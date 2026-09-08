@@ -202,5 +202,216 @@ describe("BT24-091 Tidal Stream", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("option"));
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("low").instanceId));
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("low").instanceId);
+  });
+
+  it("publicly pays Main cost, returns every tied lowest level, unsuspends, and links", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "attacker", suspended: false, dp: 25000 }],
+          hand: [{ card: "BT24-091", as: "option" }],
+          security: [],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-045", as: "low1" },
+            { card: "BT1-046", as: "low2" },
+            { card: "BT1-080", as: "high", suspended: true, dp: 20000 },
+          ],
+          security: [{ card: "BT1-012", as: "checkedSecurity" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("checkedSecurity").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("attacker").linked.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("low1").instanceId, s.inst("low2").instanceId]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("high").instanceId);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+  });
+
+  it("publicly activates Main from Security without paying, with exact remaining Security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-091", as: "option" },
+            { card: "BT1-013", as: "remaining" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-045", as: "attacker" }],
+          hand: ["BT1-009"],
+          security: ["BT1-013"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("attacker").instanceId));
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("links despite a public Option-use prohibition, while ordinary Option play is refused (Q5684)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-009", as: "host" }],
+        hand: [{ card: "BT24-091", as: "option" }],
+      },
+      1: {
+        battleArea: [{ card: "BT11-095", as: "whiteSource" }],
+        hand: [{ card: "EX1-072", as: "shutdown" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("shutdown").instanceId));
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("option").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("enforces linked OPT publicly, then resets it after the next owner turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-014", as: "host", linked: [{ card: "BT24-091", as: "optionLink" }] }],
+          hand: [{ card: "BT24-050", as: "unsuspender" }],
+          security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "target1", suspended: true },
+            { card: "BT1-020", as: "target2", suspended: true },
+          ],
+          security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const target2Id = s.perm("target2").permanentId;
+    const optionLinkId = s.inst("optionLink").instanceId;
+    const initialDp = s.perm("host").currentDP;
+    preferred.push(s.perm("target1").permanentId);
+    s.state.turnSeat = 0;
+    s.state.memory = 7;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target1").instanceId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === target2Id)).toBe(true);
+    preferred.splice(0, preferred.length, s.perm("target2").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === target2Id)).toBe(true);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([optionLinkId]);
+    expect(s.perm("host").currentDP).toBe(initialDp);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target2").instanceId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === target2Id)).toBe(false);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([optionLinkId]);
+    expect(s.perm("host").currentDP).toBe(initialDp);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
   });
 });
