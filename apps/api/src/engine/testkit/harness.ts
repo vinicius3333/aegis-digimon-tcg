@@ -12,6 +12,7 @@ import {
   type DecisionRequest,
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
+import { peekCheckedCard } from "../security/checkedCard.js";
 import {
   fillZone,
   insertCard,
@@ -491,6 +492,10 @@ function findPermanentById(state: GameState, permanentId: string): Permanent | u
 }
 
 function findInstanceById(state: GameState, instanceId: string): CardInstance | undefined {
+  // A card being checked from security has no area while its check resolves (CR 13-1-6); it
+  // is still in the match, so a test predicate polling `inst()` mid-check must find it.
+  const checked = peekCheckedCard(state, instanceId);
+  if (checked !== undefined) return checked.card;
   for (const player of state.players) {
     for (const zone of [player.hand, player.deck, player.eggDeck, player.trash, player.security, player.delayZone]) {
       const found = zone.find((card) => card.instanceId === instanceId);

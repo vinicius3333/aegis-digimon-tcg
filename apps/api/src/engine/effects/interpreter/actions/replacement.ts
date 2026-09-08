@@ -26,6 +26,15 @@ const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = 
 };
 
 /**
+ * Cards whose `wouldBePlayed reduceCost` clause is paid and scaled by the engine's verified
+ * cross-permanent play reducer (`GameEngine.crossPermanentPlayReducerWatchers`): BT10-093 places
+ * purple Digimon from under the player's Tamers and reduces the cost per card placed. The IR keeps
+ * the printed flat `amount` for audit tooling; installing it here as well would add a free,
+ * unscaled reduction on top of the paid one.
+ */
+const CROSS_PERMANENT_PLAY_REDUCER_CARDS = new Set(["BT10-093"]);
+
+/**
  * Install a replacement effect. `reduceCost` records a cost delta the play/digivolve
  * cost step subtracts; `instead`/`prevent` run a payload when the engine consults the
  * replacement before the replaced event. A "raw" event is a loud gap.
@@ -87,6 +96,7 @@ export async function runReplacement(
     return;
   }
   if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
+  if (event === "wouldBePlayed" && CROSS_PERMANENT_PLAY_REDUCER_CARDS.has(ctx.source.cardId)) return;
   // A self-scoped replacement explicitly restricted to the battle area is inactive while
   // its source is in breeding. Other sourceFilter shapes describe the event subject and must
   // remain deferred to the replacement's appliesTo predicate.
@@ -631,12 +641,20 @@ export async function runReplacement(
       const expansionCountBefore = tracksDigiXrosExpansion
         ? subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId)
         : undefined;
+      const nestedActions = action.actions ?? [];
+      const dnaDigivolveActions = nestedActions.filter(
+        (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
+      );
+      // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
+      // DNA to offer never replaces the event, so it must not claim the one replacement slot a
+      // leave event carries (KB Q5352) ahead of another card's reaction (BT17-084 Davis & Ken).
+      const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
+      if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
+        return false;
+      }
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
         const delaySource = subCtx.source.permanent();
         if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-        const dnaDigivolveActions = (action.actions ?? []).filter(
-          (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
-        );
         if (
           dnaDigivolveActions.length > 0 &&
           !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
@@ -653,10 +671,12 @@ export async function runReplacement(
       ) {
         return false;
       }
-      for (const a of action.actions ?? []) {
+      for (const a of nestedActions) {
         const abort = await runAction(subCtx, a);
         if (abort) break;
       }
+      // A declined or unresolvable DNA merge left the event unreplaced.
+      if (onlyDnaDigivolves) return subCtx.lastDigivolveResult === true;
       if (tracksDigiXrosExpansion && expansionCountBefore !== undefined) {
         return (
           (subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId) ??

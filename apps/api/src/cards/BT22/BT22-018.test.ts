@@ -26,7 +26,7 @@ describe("BT22-018 Sangomon", () => {
     });
     expect(onPlay?.actions[1]).toMatchObject({
       kind: "Restrict",
-      target: { filter: { isSelfRef: true }, isSelf: true },
+      target: { filter: { boundRef: "sangomonHost" } },
       restriction: "beDeletedInBattle",
       duration: "untilOpponentTurnEnd",
     });

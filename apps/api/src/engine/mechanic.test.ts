@@ -2010,16 +2010,15 @@ describe("A3 ReactivateEffect — EX2-038 [When Attacking] re-runs its [When Dig
 describe("A3 Trash — stack-mill via BT21-030 [On Play]", () => {
   // CONVERTED (07-03): the IR mismodeled BT21-030's [On Play] as a permanent-Trash
   // (Delete-equivalent of the whole opponent Digimon). The faithful behavior is a STACK-MILL
-  // — trash up to 10 digivolution cards from the TOP of the chosen opponent Digimon's stack,
-  // leaving the Digimon itself in play (KB Q4540: once 1 card remains it has no "stacked
-  // cards", so milling stops). BT21-030.ts is now a hand-IR override carrying
-  // TrashDigivolution amount:10 fromTop:true on an opponent-Digimon target (documented behavior
-  // ITrashStack(selectedPermanent, 10); target IsPermanentExistsOnOpponentBattleAreaDigimon).
+  // from the TOP card downward (KB Q4540: "the top card is trashed until there are no more
+  // stacked cards; once 1 card is left it isn't considered to have stacked cards"), so the
+  // permanent stays in play with its bottom card promoted to the top. BT21-030.ts is a hand-IR
+  // override carrying TrashTopStackedCards amount:10 on an opponent-Digimon target.
   //
   // FAILS-WHEN-REVERTED lever: revert the OnPlay action in BT21-030.ts back to
   // { "kind": "Trash", target: opponent Digimon, count: 1 } (the old permanent-Trash). Then
   // the WHOLE opponent permanent is deleted (battleArea loses it) instead of its stack being
-  // milled — the "permanent still in play" + "stack milled to 0, top intact" assertions go RED.
+  // milled — the "permanent still in play" + "bottom card promoted" assertions go RED.
   it("BT21-030 [On Play] mills an opponent Digimon's stack (does NOT delete the permanent)", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p1 = s.state.players[1] as PlayerState;
@@ -2027,6 +2026,7 @@ describe("A3 Trash — stack-mill via BT21-030 [On Play]", () => {
     // An opponent Lv.4 Digimon with 3 digivolution (stacked) cards. After the mill, the stack
     // is empty (3 <= 10), the Digimon's TOP card is untouched, and the permanent stays in play.
     const target = digimon(1, 8000, "AD1-001"); // top: AD1-001 (the Digimon itself)
+    const originalTop = target.topCard!;
     const under1 = instance("BT1-009", 1, true);
     const under2 = instance("BT1-010", 1, true);
     const under3 = instance("BT1-011", 1, true);
@@ -2042,14 +2042,18 @@ describe("A3 Trash — stack-mill via BT21-030 [On Play]", () => {
     });
     await settle(() => target.stack.length === 0);
 
-    // Stack milled to 0; the Digimon's top card is intact; the permanent is STILL in play
-    // (a stack-mill, NOT a permanent delete).
+    // Milled from the top card down until one card remains: the bottom card (BT1-009) is
+    // promoted to the top, the stack is empty, and the permanent is STILL in play (a
+    // stack-mill, NOT a permanent delete).
     expect(target.stack).toHaveLength(0);
-    expect(target.topCard?.cardId).toBe("AD1-001");
+    expect(target.topCard?.instanceId).toBe(under1.instanceId);
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
-    // The three milled source cards went to their owner's trash.
-    expect(p1.trash.some((c) => c.instanceId === under1.instanceId)).toBe(true);
+    // The three milled cards (the original top and the two upper stack cards) went to their
+    // owner's trash; the bottom card stayed.
+    expect(p1.trash.some((c) => c.instanceId === originalTop.instanceId)).toBe(true);
+    expect(p1.trash.some((c) => c.instanceId === under2.instanceId)).toBe(true);
     expect(p1.trash.some((c) => c.instanceId === under3.instanceId)).toBe(true);
+    expect(p1.trash.some((c) => c.instanceId === under1.instanceId)).toBe(false);
     assertNoLoudGap(s);
   });
 });

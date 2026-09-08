@@ -949,8 +949,22 @@ export async function runSubTrigger(
     event === "onDigivolutionCardsDiscardedBatch" && action.requireFaceDownDigivolutionCardTrashed === true
       ? (subCtx: EffectContext): boolean => (subCtx.trigger.trashedFaceDownDigivolutionInstanceIds?.length ?? 0) > 0
       : undefined;
+  // KB Q2957/Q6671/Q6708: a Tamer digivolves as a Tamer, not as a Digimon. A watcher whose
+  // sourceFilter describes only Digimon ("when one of your Digimon digivolves") stays silent for
+  // that evolution; one that names Tamers — `kind` includes Tamer (BT18-010 "Digimon or Tamers")
+  // or `digivolutionStackKind` includes Tamer (BT7-081 "one of your Tamers digivolves") — fires.
+  // The subject is already a Digimon by fire time, so the generic subject filter cannot tell the
+  // two apart on its own.
+  const tamerDigivolvedGate =
+    event === "whenOneOfYoursDigivolves" || event === "whenAnyDigivolves"
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.tamerDigivolved !== true ||
+          sourceFilter?.kind?.includes("Tamer") === true ||
+          sourceFilter?.digivolutionStackKind?.includes("Tamer") === true
+      : undefined;
   const gates = [
     filterMatch,
+    tamerDigivolvedGate,
     digivolutionTrashByEffectGate,
     addDigivolutionByEffectGate,
     digimonReturnsToHandGate,

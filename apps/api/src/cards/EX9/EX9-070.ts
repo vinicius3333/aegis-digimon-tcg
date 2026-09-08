@@ -21,6 +21,9 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
+              // The printed text names the breeding area explicitly (KB Q4832); ordinary counts
+              // stop at the battle area (CR 3-4-7-7/8).
+              zone: ["battleArea", "breeding"],
               nameOrTrait: [
                 {
                   tokens: ["DM"],

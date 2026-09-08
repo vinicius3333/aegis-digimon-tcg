@@ -1,5 +1,5 @@
 import { CardInstance, Zone, type GameState, type PlayerState, type Permanent, type Seat } from "@aegis/shared";
-import { extractCardAt, findPermanentInPlayer, pushOnStack, setTopCard } from "../state/access.js";
+import { extractCardAt, extractLinkedById, findPermanentInPlayer, pushOnStack, setTopCard } from "../state/access.js";
 
 /**
  * Small, pure, source-faithful state helpers the digivolve action composes from
@@ -89,9 +89,8 @@ export function pushDigivolution(permanent: Permanent, newTop: CardInstance): Ca
 
 /** Place the selected App Fusion link above the prior top, preserving all other links. */
 export function moveLinkOntoStack(permanent: Permanent, instanceId: string): CardInstance | undefined {
-  const index = permanent.linked.findIndex((card) => card.instanceId === instanceId);
-  if (index < 0) return undefined;
-  const card = permanent.linked.splice(index, 1)[0]!;
+  const card = extractLinkedById(permanent, instanceId);
+  if (card === undefined) return undefined;
   card.faceUp = true;
   pushOnStack(permanent, card);
   return card;

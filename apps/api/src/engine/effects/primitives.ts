@@ -27,6 +27,7 @@ import {
   GameStateAccess,
   applyOverflow,
   extractCardAt,
+  extractLinkedById,
   extractPermanentAt,
   findPermanentInState,
   insertCard,
@@ -1547,17 +1548,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // CR 8-2-2-1-2: each material's own linked cards are trashed immediately before it
     // becomes a digivolution card under the DNA-digivolved result — they do NOT carry
     // over (mirrors GameStateAccess.deletePermanent's stack/top/linked-to-trash pattern).
-    const stackCards: CardInstance[] = [];
+    const materialStackCards: CardInstance[] = [];
     const trashedLinked: CardInstance[] = [];
     // The materials' own top cards, kept for the `cardPlayed` announcement: the cut-in flanks
     // the result with the two faces that merged (JogressEffectObject.cs:24), and they are about
     // to be buried in the new stack where the client can no longer tell them from older cards.
-    const sourceCardIds: string[] = [];
+    const materialSourceCardIds: string[] = [];
     for (const mat of materials) {
-      for (const c of mat.stack) stackCards.push(c);
+      for (const c of mat.stack) materialStackCards.push(c);
       if (mat.topCard !== undefined) {
-        sourceCardIds.push(mat.topCard.cardId);
-        stackCards.push(mat.topCard);
+        materialSourceCardIds.push(mat.topCard.cardId);
+        materialStackCards.push(mat.topCard);
       }
       for (const c of mat.linked) {
         insertCard(player(c.ownerSeat), Zone.Trash, c);
@@ -1577,13 +1578,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         extraStackCards.push(extra);
       }
     }
-    if (opts?.extraMaterialsOnBottom) {
-      stackCards.unshift(...extraStackCards);
-      sourceCardIds.unshift(...extraStackCards.map((card) => card.cardId));
-    } else {
-      stackCards.push(...extraStackCards);
-      sourceCardIds.push(...extraStackCards.map((card) => card.cardId));
-    }
+    const extraSourceCardIds = extraStackCards.map((card) => card.cardId);
+    const stackCards = opts?.extraMaterialsOnBottom
+      ? [...extraStackCards, ...materialStackCards]
+      : [...materialStackCards, ...extraStackCards];
+    const sourceCardIds = opts?.extraMaterialsOnBottom
+      ? [...extraSourceCardIds, ...materialSourceCardIds]
+      : [...materialSourceCardIds, ...extraSourceCardIds];
     // <Overflow> (CR §4-18): each material's linked cards just left the field for trash — a
     // genuine leave. The materials' own stack/top cards are NOT included here: they become
     // digivolution cards under the new result (moving TO under a card, excluded by §4-18-4).
@@ -1803,7 +1804,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
     const previousLevel = requireCardDefinition(priorTop.cardId).level;
-    const partner = permanent.linked.splice(afterWouldPartnerIndex, 1)[0];
+    const partner = extractLinkedById(permanent, selectedPartnerId);
     pushOnStack(permanent, priorTop);
     if (partner !== undefined) pushOnStack(permanent, partner);
     setTopCard(permanent, instance);

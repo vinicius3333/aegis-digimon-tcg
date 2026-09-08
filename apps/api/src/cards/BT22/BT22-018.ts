@@ -57,10 +57,9 @@ export const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             filter: {
-              isSelfRef: true,
+              boundRef: "sangomonHost",
             },
             count: 1,
-            isSelf: true,
           },
           restriction: "beDeletedInBattle",
           duration: "untilOpponentTurnEnd",

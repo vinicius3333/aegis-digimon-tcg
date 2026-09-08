@@ -50,14 +50,17 @@ function dnaFixture(fieldCard: "BT20-044" | "BT20-027", handCard: "BT20-027" | "
 }
 
 describe("BT20-045 Examon Blast DNA Counter", () => {
+  // BT20-045 prints [DNA Digivolve] Green Lv.6 + Blue Lv.6: Cost 0, so Breakdramon + Slayerdramon
+  // is a legal Main-phase DNA pair. Dracomon (Red Lv.3) fails that recipe; the Blast keyword's
+  // Counter-only procedure cannot stand in for it, whichever way the legacy flag is sent.
   it.each([false, true])(
-    "rejects Main DNA without printed DNA requirements (Blast flag %s)",
+    "rejects Main DNA whose materials miss the printed DNA requirement (Blast flag %s)",
     async (useBlastDigivolve) => {
       const s = setupEngine({
         0: {
           battleArea: [
             { card: "BT20-044", as: "break" },
-            { card: "BT20-027", as: "slayer" },
+            { card: "BT20-007", as: "dracomon" },
           ],
           hand: [{ card: "BT20-045", as: "examon" }],
         },
@@ -66,7 +69,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
       expect(
         s.engine.applyIntent(0, {
           type: "dnaDigivolve",
-          materialPermanentIds: [s.perm("break").permanentId, s.perm("slayer").permanentId],
+          materialPermanentIds: [s.perm("break").permanentId, s.perm("dracomon").permanentId],
           instanceId: s.inst("examon").instanceId,
           useBlastDigivolve,
         }),
@@ -74,7 +77,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-045"]);
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
         "BT20-044",
-        "BT20-027",
+        "BT20-007",
       ]);
     },
   );

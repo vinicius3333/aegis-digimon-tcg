@@ -19,9 +19,10 @@ const bounce: { actions: Action[] } = {
     },
     {
       kind: "Return",
+      // "Trash all of the digivolution cards of that Digimon": the rule-based disposal on a
+      // return to hand. `returnDigivolutionCardsFirst` would send them to the deck bottom instead.
       target: { filter: { controller: "opponent", kind: ["Digimon"], levelEq: "selectedHybridLevel" }, count: 1 },
       to: "hand",
-      returnDigivolutionCardsFirst: true,
     },
   ],
 };

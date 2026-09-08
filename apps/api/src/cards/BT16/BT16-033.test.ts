@@ -73,7 +73,10 @@ describe("BT16-033 Harpymon", () => {
     expect(s.state.players[0]?.deck).toHaveLength(0);
   });
 
-  it("activates before the revealed Security effect removes the attacker", async () => {
+  // KB Q6085/Q2221/Q4284: the revealed [Security] effect activates immediately, before every
+  // other effect that triggered on the check. Once it has deleted Harpymon, Harpymon is a new
+  // card in the trash and its pending check effect can no longer activate (CR 15-4-4-3).
+  it("loses its check effect when the revealed Security effect deletes it first", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: HARPYMON, as: "harpymon" }],
@@ -92,7 +95,7 @@ describe("BT16-033 Harpymon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 

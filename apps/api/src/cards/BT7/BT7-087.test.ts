@@ -5,6 +5,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT7-029.js";
 import "./BT7-087.js";
 
 describe("BT7-087 Koji Minamoto", () => {
@@ -51,14 +52,17 @@ describe("BT7-087 Koji Minamoto", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("magna").instanceId);
+    await s.ready();
 
-    // There is no opponent Digimon with a matching level, so MagnaGarurumon's
-    // optional return cannot be activated and Koji's inherited trigger has no
-    // event to observe. The dedicated test below supplies that event.
-    expect(s.state.memory).toBe(0);
-    // Five placed Hybrids plus the evolved-from Tamer remain as sources.
-    expect(s.perm("koji").stack).toHaveLength(6);
-    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT7-021")).toHaveLength(0);
+    // MagnaGarurumon's [When Digivolving] is an optional processing condition ("return a
+    // Hybrid to hand to return an opposing Digimon"). Rule 15-7-5 lets the player execute it
+    // even though no opposing Digimon of that level exists, so one Hybrid comes back to hand,
+    // which fires Koji's inherited +1 memory and can't-be-blocked.
+    expect(s.state.memory).toBe(1);
+    // Four remaining Hybrids plus the evolved-from Tamer remain as sources.
+    expect(s.perm("koji").stack).toHaveLength(5);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT7-021")).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("koji"), "cantBeBlocked")).toBe(true);
   });
 
   it("does not ignore MagnaGarurumon's printed blue level-5 evolution requirement", async () => {

@@ -492,11 +492,15 @@ export function gatherTriggeredEffects(
       conferralGranterInstanceId,
     });
 
-  const base = collectTriggeredEffects(timing, sources, (s, e) => makeContext(s, e), env.tracker);
+  let base = collectTriggeredEffects(timing, sources, (s, e) => makeContext(s, e), env.tracker);
   // Keyword grants disappear when the holder leaves the field. Combat carries
   // the event-time identity after every prevention so the mandatory reaction
   // can share the normal On Deletion ordering and effect-deletion semantics.
   if (timing === EffectTiming.OnDestroyedAnyone && env.triggerInfo?.removalCause === "byBattle") {
+    // Offered ahead of the card's printed [On Deletion] effects: the controller still orders the
+    // set, but a default order that resolves a same-card ＜Save＞ first moves the card out of the
+    // trash and retires the pending ＜Retaliation＞ with it (CR 15-4-4-3; BT14-059).
+    const retaliations: typeof base = [];
     for (const source of sources) {
       const target = env.triggerInfo.retaliationTargetsByInstanceId?.[source.instanceId];
       if (target === undefined || !env.triggerInfo.deletedInstanceIds?.includes(source.instanceId)) continue;
@@ -509,8 +513,9 @@ export function gatherTriggeredEffects(
           await ctx.fx.deletePermanent([target], "byEffect");
         },
       });
-      if (canTrigger(effect, makeContext(source, effect), env.tracker)) base.push({ source, effect, timing });
+      if (canTrigger(effect, makeContext(source, effect), env.tracker)) retaliations.push({ source, effect, timing });
     }
+    base = [...retaliations, ...base];
   }
 
   // Fortitude is a mandatory triggered effect, not a post-window replay. Its event-time

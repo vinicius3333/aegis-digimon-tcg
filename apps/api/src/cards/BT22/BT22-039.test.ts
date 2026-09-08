@@ -50,7 +50,7 @@ describe("BT22-039 Ouranosmon", () => {
     expect(allTurns?.actions[0]).not.toHaveProperty("sourceFilter.excludeSelf");
   });
 
-  it("Q4892 does not relink App Fusion materials without Link after playing an Appmon", async () => {
+  it("relinks 1 Link-carrying App Fusion material after playing an Appmon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -65,11 +65,41 @@ describe("BT22-039 Ouranosmon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.appFuseInto(s.perm("ouranosmon").permanentId, s.inst("fusion").instanceId);
-    // When Digivolving plays Effecmon and reaches the All Turns watcher. Neither
-    // recipe material has Link; Q4892 therefore excludes both, despite their Appmon trait.
+    // When Digivolving plays Effecmon and reaches the All Turns watcher. Both recipe
+    // materials print "[Link] [Appmon] trait: Cost 3", so the count-1 link takes one of them
+    // from this Digimon's digivolution cards and leaves the other in the stack.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-009")).toBe(true);
-    expect(s.perm("ouranosmon").stack.map((card) => card.cardId)).toEqual(["BT22-035", "BT22-075"]);
+    const linkedIds = [...s.state.players[0]!.battleArea].flatMap((permanent) =>
+      [...permanent.linked].map((card) => card.cardId),
+    );
+    expect(linkedIds).toHaveLength(1);
+    expect([...s.perm("ouranosmon").stack.map((card) => card.cardId), ...linkedIds].sort()).toEqual([
+      "BT22-035",
+      "BT22-075",
+    ]);
+  });
+
+  it("Q4892 does not relink an Appmon digivolution card without Link after playing a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-039", as: "ouranosmon", under: [{ card: "BT21-101", as: "gaiamon" }] }],
+          hand: [{ card: "BT22-032", as: "played" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    // Gaiamon has the [Appmon] trait but prints no ＜Link＞ header, so Q4892 excludes it.
     expect(s.state.players[0]!.battleArea.every((permanent) => permanent.linked.length === 0)).toBe(true);
+    expect(s.perm("ouranosmon").stack.map((card) => card.cardId)).toEqual(["BT21-101"]);
   });
 
   it("does not link an eligible Appmon from another Digimon's evolution stack", async () => {

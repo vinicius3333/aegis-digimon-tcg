@@ -412,12 +412,19 @@ export interface TriggerInfo {
   digivolvedFromZone?: ZoneRef;
   /**
    * True when the card the WhenDigivolving window's subject digivolved FROM is a Tamer
-   * (BT23-101's "digivolve from a Tamer" requirement). Per KB Q6708 the base digivolves as a
-   * Tamer, so no Digimon digivolved: the engine withholds `whenOneOfYoursDigivolves` /
-   * `whenAnyDigivolves` entirely for such an entry, and this flag lets an effect that DOES want
-   * to know read the distinction from inside the subject's own [When Digivolving] window.
+   * (BT23-101's "digivolve from a Tamer" requirement), read from the printed card kind so an
+   * effect can see the distinction from inside the subject's own [When Digivolving] window.
    */
   digivolvedFromTamer?: boolean;
+  /**
+   * True when the base digivolved AS a Tamer (KB Q2957/Q6671/Q6708): a printed Tamer that no
+   * effect currently treats as a Digimon. `whenOneOfYoursDigivolves` / `whenAnyDigivolves` still
+   * fire — the digivolution happened — but a watcher reading "when a Digimon digivolves" must
+   * stay silent, while one that names Tamers ("when one of your Tamers digivolves", "when your
+   * Digimon or Tamers digivolve") fires. The SubTrigger gate reads this flag against the
+   * watcher's `sourceFilter`.
+   */
+  tamerDigivolved?: boolean;
   /**
    * The rules-relevant use cost of the Option whose use fired this event: after card-level
    * changes, but before payment-only reductions (BT10-032 Q1956/Q1957).

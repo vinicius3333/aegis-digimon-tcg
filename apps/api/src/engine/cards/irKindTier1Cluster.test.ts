@@ -545,15 +545,15 @@ describe("IR-02 Tier-1 — Digivolve (BT16-093 [Main] digivolve into the named [
 //     GameEngine play path (a friendly Digimon's play arms BT22-039's whenPlayed link).
 // ---------------------------------------------------------------------------
 describe("IR-02 Tier-1 — Link (BT22-039 links an [Appmon] <Link> card, gated by linkEligible)", () => {
-  it("links BT21-009 (Appmon + <Link>) and does NOT link BT22-016 (Appmon, no <Link>)", async () => {
+  it("links BT21-009 (Appmon + <Link>) and does NOT link BT21-101 (Appmon, no <Link>)", async () => {
     const s = setupEngine(
       {
         0: {
-          // BT22-039 on the field carrying two Appmon digivolution cards: BT22-016 (no <Link>)
+          // BT22-039 on the field carrying two Appmon digivolution cards: BT21-101 (no <Link>)
           // FIRST so it is the first candidate, then BT21-009 (<Link>). Without the linkEligible
-          // guard the count:1 link would pick the ineligible BT22-016.
+          // guard the count:1 link would pick the ineligible BT21-101.
           battleArea: [
-            { card: "BT22-039", dp: 4000, as: "ouranosmon", under: ["BT22-016", "BT21-009"] },
+            { card: "BT22-039", dp: 4000, as: "ouranosmon", under: ["BT21-101", "BT21-009"] },
             // A friendly recipient for the linked card.
             { card: "BT1-009", dp: 4000, as: "recipient" },
           ],
@@ -578,13 +578,13 @@ describe("IR-02 Tier-1 — Link (BT22-039 links an [Appmon] <Link> card, gated b
 
     // The <Link>-carrying Appmon card was linked; the no-<Link> card was NOT.
     expect(linkedCardIds()).toContain("BT21-009");
-    expect(linkedCardIds()).not.toContain("BT22-016");
+    expect(linkedCardIds()).not.toContain("BT21-101");
     assertNoLoudGap(s);
   });
 
   // REVERT-CONFIRM-RED: remove the `.filter(...linkEligible...)` wire-up in runLink (interpreter.ts)
   // — already RED-proven in linkEligible.test.ts. The count:1 link then picks the FIRST candidate
-  // (BT22-016) -> `not.toContain("BT22-016")` goes RED.
+  // (BT21-101) -> `not.toContain("BT21-101")` goes RED.
 });
 
 // ---------------------------------------------------------------------------

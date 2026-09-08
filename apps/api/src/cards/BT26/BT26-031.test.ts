@@ -138,7 +138,7 @@ describe("BT26-031 compiled fidelity", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("theirs").instanceId);
   });
 
-  it("does not pay the recovery cost from a face-up bottom card beneath a Tamer", async () => {
+  it("pays the recovery cost with the first face-down card above a face-up bottom (Q4785)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -169,12 +169,10 @@ describe("BT26-031 compiled fidelity", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
-    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("faceUpBottom").instanceId,
-      s.inst("faceDownUpper").instanceId,
-    ]);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("recovery").instanceId);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("faceUpBottom").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("faceDownUpper").instanceId);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("recovery").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
   it("shares the recovery once-per-turn use between When Digivolving and When Attacking", async () => {

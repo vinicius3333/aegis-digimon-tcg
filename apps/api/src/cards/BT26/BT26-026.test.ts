@@ -125,7 +125,7 @@ describe("BT26-026 Cougarmon", () => {
     );
   });
 
-  it("cannot use a higher face-down Tamer card when the bottom card is face up", async () => {
+  it("pays the first face-down Tamer card above a face-up bottom (Q4785)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -150,13 +150,16 @@ describe("BT26-026 Cougarmon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), {
       attackerPermanentId: s.perm("cougarmon").permanentId,
     });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    );
 
-    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("bottomFaceUp").instanceId,
-      s.inst("higherFaceDown").instanceId,
-    ]);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
-    expect(s.state.memory).toBe(1);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottomFaceUp").instanceId]);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("higherFaceDown").instanceId, faceUp: true }),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 
   it("may pay the security cost and then decline the independent Option use", async () => {

@@ -1959,24 +1959,22 @@ export class GameEngine {
         // all of them in a single prompt — Destromon's own [When Digivolving] against the two
         // Xeno EX11-066 watchers, for example — instead of the printed effects always
         // resolving before the watchers.
-        // Q6708: digivolving from a Tamer base is not a Digimon digivolving, so the
-        // "when a Digimon digivolves" watchers are not armed for this window at all. The
-        // subject's own [When Digivolving] effects and the enter-field windows still fire.
+        // Q6671/Q6708: a Tamer base digivolves as a Tamer, not as a Digimon. The watcher events
+        // still fire — "when one of your Tamers digivolves" (BT7-081) and "when your Digimon or
+        // Tamers digivolve" (BT18-010) are real triggers — but the payload is tagged so the
+        // SubTrigger gate withholds plain "when a Digimon digivolves" watchers. The caller's
+        // report reads EFFECTIVE kinds, so a Tamer currently treated as a Digimon is not tagged
+        // and keeps every watcher; a Digi-Egg base is not a Tamer and is never tagged.
         const fromTamer = digivolvedFromTamerBase(permanent);
+        const tamerDigivolved = fromTamer && baseWasDigimon !== true;
         const digivolveTrigger = {
           subjectPermanentId: permanent.permanentId,
           previousDigivolutionLevel: previousLevel,
           ...(fromTamer ? { digivolvedFromTamer: true } : {}),
+          ...(tamerDigivolved ? { tamerDigivolved: true } : {}),
         };
         await this.withPendingSubTriggers(
-          // Q6671/Q6708: a non-Digimon source does not emit Digimon-evolution watcher events;
-          // the destination card still resolves its own When Digivolving effect. The caller's
-          // report wins where given — it reads EFFECTIVE kinds, so a Tamer currently treated as
-          // a Digimon keeps its watchers. The printed-base check is the fallback for callers
-          // (App Fusion) that report nothing.
-          (baseWasDigimon === undefined ? fromTamer : baseWasDigimon === false)
-            ? []
-            : ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
+          ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
           digivolveTrigger,
           async () => {
             // Scope [When Digivolving] to the permanent that just digivolved (its top card
@@ -4074,27 +4072,22 @@ export class GameEngine {
         enteredByEffect: ownerSeat,
         ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
-      // Q6671/Q6708: a Tamer base digivolves as a Tamer, so no Digimon digivolved and the
-      // "when a Digimon digivolves" watchers stay silent. The caller's report wins where given
-      // (it reads EFFECTIVE kinds, so a Tamer treated as a Digimon keeps its watchers); the
-      // printed-base check is the fallback. The entering card's own [When Digivolving] window
-      // above, and the bonus draw (Q6709), are unaffected.
-      const baseWasTamer =
-        opts?.baseWasDigimon === undefined ? digivolvedFromTamerBase(subjectPermanent) : opts.baseWasDigimon === false;
-      if (!baseWasTamer) {
-        await this.fireSubTrigger("whenOneOfYoursDigivolves", {
-          subjectPermanentId,
-          enteredByEffect: ownerSeat,
-          ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
-          ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
-        });
-        await this.fireSubTrigger("whenAnyDigivolves", {
-          subjectPermanentId,
-          enteredByEffect: ownerSeat,
-          ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
-          ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
-        });
-      }
+      // Q6671/Q6708: a Tamer base digivolves as a Tamer, so the payload is tagged and the
+      // SubTrigger gate withholds plain "when a Digimon digivolves" watchers while Tamer-naming
+      // watchers still fire. The caller's report reads EFFECTIVE kinds, so a Tamer treated as a
+      // Digimon is not tagged; callers that report nothing (App Fusion) fall back to the printed
+      // base. The entering card's own [When Digivolving] window above, and the bonus draw
+      // (Q6709), are unaffected.
+      const tamerDigivolved = digivolvedFromTamerBase(subjectPermanent) && opts?.baseWasDigimon !== true;
+      const watcherTrigger = {
+        subjectPermanentId,
+        enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
+        ...(tamerDigivolved ? { tamerDigivolved: true } : {}),
+      };
+      await this.fireSubTrigger("whenOneOfYoursDigivolves", watcherTrigger);
+      await this.fireSubTrigger("whenAnyDigivolves", watcherTrigger);
     }
   }
 
@@ -4404,8 +4397,15 @@ export class GameEngine {
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
     if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
-    if (!reductionBlocked) {
-      for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
+    // A prohibition nullifies the reduction, not the played card's own "by <cost>, reduce" clause:
+    // its cost may still be paid (KB Q4443 — under Psychemon the 2 Digimon are suspended and the
+    // original cost is paid), and the delta it earns is discarded below. A cost-less reducer has
+    // nothing to offer while blocked.
+    for (const reducer of selfReducers) {
+      const paysSomething =
+        reducer.cost !== undefined || reducer.pay !== undefined || reducer.costActions !== undefined;
+      if (reductionBlocked && !paysSomething) continue;
+      await applyWouldBePlayedSelfReducer(ctx, reducer);
     }
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at this point. Stash
@@ -5465,7 +5465,11 @@ export class GameEngine {
           } finally {
             this.pendingWindowSubTriggers = enclosing;
             this.subTriggerWindowDepth -= 1;
-            if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
+            // A nested check (an attack declared inside a resolving effect) folds the ENCLOSING
+            // window's pending watchers into its own ordering. Those watchers stay queued in the
+            // enclosing window, so their consumed identities must outlive this inner window or the
+            // enclosing collect fires them a second time (BT26-086: link seven, then attack).
+            if (outermost && this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
             this.endResolvingWindow(outermost);
           }
         };
@@ -6185,9 +6189,13 @@ export class GameEngine {
     // Once entry is finalized the engine SERIALIZES main verbs through `continueMainVerb`
     // instead, so a verb issued while some other effect window happens to be open is queued,
     // not rejected — refusing those would break the ordinary "act again immediately" path.
+    // An open decision is the more specific refusal: each verb's own gate reports
+    // `decision-pending` for it, so both readiness checks here yield to that gate.
+    const noDecisionOpen = this.state.pendingDecision === undefined;
     if (
       this.mainEntryPending &&
       mainActionWhileResolving &&
+      noDecisionOpen &&
       ["playCard", "appFusion", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve"].includes(
         intent.type,
       )
@@ -6197,7 +6205,7 @@ export class GameEngine {
     // Q5335 (BT23-065): activating an effect is refused outright while ANOTHER effect is still
     // resolving, at any point in the turn. This one verb keeps the broad condition — it is a
     // rules restriction on activation timing, not the start-of-main readiness case above.
-    if (mainActionWhileResolving && intent.type === "activateEffect") {
+    if (mainActionWhileResolving && noDecisionOpen && intent.type === "activateEffect") {
       return { ok: false, reason: "wrong-phase" };
     }
     // A voluntary pass is DEFERRED, not refused, while the start-of-main entry is in flight.

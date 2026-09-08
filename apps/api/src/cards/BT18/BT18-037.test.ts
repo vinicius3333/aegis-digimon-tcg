@@ -90,10 +90,12 @@ describe("BT18-037 Lobomon", () => {
         s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId &&
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("hybridSecurity").instanceId) &&
         s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("recoveryCard").instanceId) &&
-        s.state.memory === 5,
+        s.state.memory === 4,
     );
 
-    expect(s.state.memory).toBe(5);
+    // 5 - 2 (cost) + 1 (Koji's inherited "effect adds a card to your hand"). BT16-049's "when one
+    // of your other Digimon digivolves" stays silent: a Tamer digivolves as a Tamer (KB Q2957).
+    expect(s.state.memory).toBe(4);
     expect(s.perm("koji").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("koji").instanceId]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId)).toBe(
       true,

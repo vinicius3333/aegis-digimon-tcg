@@ -25,32 +25,60 @@ export function advance(engine: GameEngine) {
       // only a few microtasks wide; a macrotask yield drains every pending microtask at once
       // and steps straight over it. Yield a real timer only once the engine has genuinely
       // stopped progressing, so engine work that does need a timer is not starved either.
-      // Readiness deliberately does NOT wait on the engine's `mainEntryPending` flag: a
-      // start-of-main effect may be waiting on input that only this caller's test will supply,
-      // so requiring entry to be finalized here would deadlock those turns.
+      // Ready means the engine would ACCEPT a main verb: entry is finalized (`mainEntryPending`
+      // cleared, nothing resolving), or a start-of-main effect is parked on a decision that
+      // only this caller's test can answer. Requiring finalized entry alone would deadlock
+      // those turns; ignoring `mainEntryPending` returns in the microtask gap between Main
+      // opening and its start-of-main timing starting, and the caller's first verb is then
+      // refused as `wrong-phase`. A decision counts only once it has sat unanswered across
+      // many polls, so one the harness auto-responder answers a microtask later is not
+      // mistaken for input the test must supply.
+      // A seat with no legal main action is auto-passed by the entry finalizer itself, so its
+      // Main is never open AND finalized; that turn counts as ready the moment its Main has
+      // been observed open and then closed again (`endMainPhaseIfOpen` tolerates the auto-end).
+      // Polling every microtask observes that window because the turn loop never parks on a
+      // timer between phases.
       let signature = "";
       let stalled = 0;
-      const ready = () =>
-        internals.mainPhase.seat === seat &&
-        internals.state.phase === Phase.Main &&
+      let observedOpen = false;
+      const inMain = () => internals.mainPhase.seat === seat && internals.state.phase === Phase.Main;
+      const idle = () =>
+        !internals.mainEntryPending &&
         internals.activeWindowToken === undefined &&
         internals.effectResolutionDepth === 0 &&
         internals.optionResolutionDepth === 0;
+      // A block or counter window is input too: a start-of-main attack parks its resolution
+      // on the defending seat's `declareBlock` / `declineBlock` intent, not on a decision.
+      const awaitingInput = () =>
+        internals.state.pendingDecision !== undefined ||
+        internals.combat.hasOpenBlockWindow ||
+        internals.combat.hasOpenCounterWindow;
+      const awaitingTestInput = () => awaitingInput() && stalled >= 50;
+      const ready = () => {
+        if (!inMain()) return observedOpen;
+        observedOpen = true;
+        return idle() || awaitingTestInput();
+      };
+      // The stall count must describe the state `ready()` is about to judge: a decision that
+      // opened this tick resets it, so the count carried over from the engine's previous quiet
+      // stretch cannot pass a decision the harness auto-responder answers a microtask later.
       for (let i = 0; i < 20000; i += 1) {
-        if (ready()) break;
-        const next = `${internals.state.phase}/${internals.mainPhase.seat}/${internals.activeWindowToken}/${internals.effectResolutionDepth}/${internals.optionResolutionDepth}`;
+        const next = `${internals.state.phase}/${internals.mainPhase.seat}/${internals.mainEntryPending}/${internals.activeWindowToken}/${internals.effectResolutionDepth}/${internals.optionResolutionDepth}/${internals.state.pendingDecision?.decisionId}/${internals.combat.hasOpenBlockWindow}/${internals.combat.hasOpenCounterWindow}`;
         if (next === signature) stalled += 1;
         else {
           signature = next;
           stalled = 0;
         }
+        if (ready()) break;
         if (stalled >= 200) {
           stalled = 0;
           await new Promise((resolve) => setTimeout(resolve, 0));
         } else await Promise.resolve();
       }
       if (!ready()) {
-        throw new Error(`Seat ${seat}'s Main phase did not become ready`);
+        throw new Error(
+          `Seat ${seat}'s Main phase did not become ready (phase/seat/entryPending/window/effectDepth/optionDepth/decision/blockWindow/counterWindow = ${signature})`,
+        );
       }
       // TurnStateMachine deliberately opens Main before its asynchronous start-of-main
       // timing finishes. Wait through any in-flight continuous rebuild so a caller that
