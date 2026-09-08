@@ -969,3 +969,17 @@ ledger commits are `ebfbb2690` and `92f68e01f`. All 102 cards now have
 reproducible 8/10 pre-delivery evidence; aggregate **816/1020**, 0 cards at
 10/10. Full collection gates, delivery scoring, publication, and Orca
 completion remain open.
+
+Local closing gates (2026-09-08): the BT24/engine collection command passed
+231 files and 3518 tests after correcting two stale test-harness assumptions
+in `0f2179003` and `8c3d6a3b1`. `pnpm typecheck` passed for shared, web, and
+API. `effects:check:set` reported 102 synchronized records, four semantic BT24
+changes, and zero semantic or byte changes outside the set. Oxlint completed
+for all 214 changed JavaScript/TypeScript files with warnings only; Oxfmt
+passed those 214 files after the isolated BT24-017 formatting commit
+`c1ead2c66`; `git diff --check` passed and the BT24 probe-file sweep was empty.
+The repository-wide formatter remains red on 414 historical files outside the
+audit's changed-code gate and was not mass-reformatted. Local delivery credit
+is now 1/2 for every card: aggregate **918/1020**, 0 cards at 10/10.
+Publication/PR update is still required for 2/2 delivery and collection
+completion.
