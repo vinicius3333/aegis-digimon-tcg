@@ -371,3 +371,109 @@ outsideBT24. Scoped078/082 lint and formatting pass;077 keeps its existing
 structural-any warning. Diff check passes. The next required gate follows the
 engine correction;082's remaining public watcher/duration proof is in progress,
 and079 preparation is read-only while its lane handles that engine priority.
+
+## Continued Luna review, 2026-09-08 06:02 BRT
+
+Root focused rerun: BT24-081 and BT24-082, 2 files / 27 tests passed
+(14 and 13 respectively). Fresh `pnpm typecheck` passed shared, API and web;
+the transient082 structural-test narrowing error is resolved. Diff check passed.
+Ledger now535/1020, zero102 at10/10; delivery remains zero.
+
+081 receives6, not the worker's proposed8: public normal Purple/Green6 routes
+and cost negatives are useful, but the current deletion proofs invoke a primitive,
+and Rush/Piercing/Execute are not yet demonstrated through combat. Its report's
+level/color and public-deletion claims were returned for correction.
+082 receives7 after both Reptile and Dragonkin public evolution cases, an invalid
+trait comparison, exact security endpoints and real owner-turn bonus expiry.
+
+Attack ordering is still unaccepted WIP. Mechanism tests now distinguish candidate
+breeding versus trash, but root requires a dedicated own OnAllyAttack versus
+opponent watcher priority regression under CR15-4-3-5. Legacy firing tests alone
+do not establish that priority. The card's retained red also used a preference
+string absent from the actual System-B trigger key; its lane is correcting the
+selection without weakening the zone assertions. No closing gate, push or
+completion status has been claimed.
+
+## Card checkpoint, 2026-09-08 06:14 BRT
+
+Root reran081/083: 2 files /27 tests passed (17/10); fresh API typecheck
+passed. Earlier078/082 rerun passed37 tests (22/15). Local checkpoints:
+082 public watcher/security `ec4483f85`;083 public turn/reveal/security
+`7e47b4b9b`. Both remain partial evidence, not collection completion.
+083 scoped lint retains a pre-existing assertion-free primitive Security test
+warning; the new public Security test has explicit exact endpoints. Formatting
+and diff checks passed. Effects check:18 semantic differences againstda5c7733c,
+102 synchronized records, zero semantic/byte differences outsideBT24.
+Catalog and ledger each contain102 unique cards. No stray probe filenames found.
+
+Ledger542/1020, zero102 at10/10:081 now7 after public exact Titamon and separate
+level5 Titan revival/refusal with legal source-stack disposal and mixed excluded
+candidates;083 starts at6 because public mixed DP/trait and refusal boundaries
+remain missing.084 is in progress, and the attack-window engine fix is still
+under review. No push, PR or Orca completion update.
+
+## Rejected attack snapshot regression, 2026-09-08 06:20:49 BRT
+
+Root fresh078 run:21 passed,1 failed of22. Q5775 at test line351 expected
+EX10-009 to remain top, but actual top wasBT24-078. The engine lane's new
+`prepareSubTrigger` early undefined return for an empty subscription list caused
+the controller to fall back to a live bus after the inherited attack effect put078
+in trash. This is a newly introduced regression, not a bad fixture or a pre-existing
+failure. The engine-local counterpart had been skipped; root rejected that skip
+and required restoration of the original always-present empty snapshot callback,
+removal of unnecessary map state, and fresh card/mechanism tests. The shared
+change remains uncommitted and unaccepted.
+
+Disk pressure interrupted writes. Root removed regenerable API dist source maps
+(19,394 files;45,360,547 logical bytes). No source/report was removed. API dist
+fell from203MiB to103MiB; shared APFS container still has only about184MB free.
+
+## User-authorized cache cleanup and restart, 2026-09-08 08:59 BRT
+
+User explicitly authorized Gradle/iOS/cache cleanup and requested a goal to finish
+the full audit. Root removed only Xcode's ModuleCache.noindex (1.2GiB) and the
+HojeTPago DerivedData Build directory (3.5GiB), after resolving exact paths and
+checking no xcodebuild/swift-frontend/GradleDaemon was active. Source projects,
+app data, archives and signing assets were untouched. These build artifacts are
+regenerable. Available disk space increased from2.3GiB to7.0GiB.
+
+Restart focused gate:078/081/084/085 plus attack-ordering/controller, six files,
+99 passed and1 failed of100. The sole failure is085's incorrect trash assertion
+for the used092 Option, which can finish linked. The restored078 and engine
+snapshot tests pass; no speculative snapshot map or skip is accepted. Ledger
+still542/1020, zero102 at10/10;102 catalog and102 unique ledger rows confirmed.
+Full typecheck started independently; its result is recorded after completion.
+The same three Luna lanes resume after this measured checkpoint.
+
+Restart typecheck: shared and web passed; API failed at085.test.ts:17 with
+TS2554 (expect receives two arguments). This belongs to the unfinished085 lane,
+not a pre-existing engine issue. The correction is returned with the linked-zone
+assertion to the same worker.
+
+## Restored engine and collection checkpoint, 2026-09-08 09:04:56 BRT
+
+After correcting the unfinished085 fixture and restoring the declaration-time
+snapshot, root ran `pnpm --filter @aegis/api exec vitest run src/cards/BT24 src/engine --maxWorkers=1 --no-file-parallelism`:
+351 files,8558 tests passed in42.45s. This includes the entire engine, not only
+the required mechanism subsets. `pnpm typecheck` passed shared, API and web.
+`pnpm effects:check:set -- --set BT24 --base da5c7733c` confirmed18 semantic
+differences,102 synchronized records and zero semantic/byte differences outside
+BT24. Scoped Oxlint/Oxfmt and `git diff --check` passed for the frozen engine,
+078,081 and084 changes. The legacy AD1-002 unsupported-effect log occurred in
+a passing baseline fixture and is not a failed test.
+
+The engine lane also compared the six new ordering tests against pristine
+`git archive HEAD` (2d79f54a7): four failed for missing joint ordering prompts,
+two compatibility cases passed; the current implementation passes all six.
+Q5775 late entry is covered without a skip. The scratch archive was removed.
+This is a local checkpoint, not collection completion or delivery-gate credit.
+079 and085 continue in isolated card lanes; ledger updates follow root review.
+
+Root final focused rerun at09:14:31: engine ordering/controller plus078/081/084,
+five files/94 tests passed. Engine scoped lint/format and diff check passed.
+Dependency-ordered local commits: `a24221486` engine ordering and mechanism proof;
+`f4e3bc8f9`078 paired public choices; `5d8ecaee9`081 Execute and endpoints;
+`a75ff69a3`084 public Security priority and no-retrotrigger. Ledger recalculated
+to550/1020, zero102 at10/10. These commits are local; no push or PR mutation.
+The same Luna engine worker now owns only087's three card files while079/085
+continue bounded evidence work. Engine production is frozen.

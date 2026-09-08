@@ -135,6 +135,23 @@ with public both-order and late-trash regressions, Alliance/forced-attack
 compatibility, full gates and ATTACK-TRIGGER-ORDERING-MECHANISM.md. No card-local
 timing hack is authorized. This seam remains open until independent proof.
 
+### Attack-window review continuation
+
+The first combined-window draft resolved opponent watchers before the active player's
+separate `OnAllyAttack` call. Its replacement draft moved `OnAllyAttack` ahead of all
+other attack effects. Root rejected that hardcoded reversal as well: CR15-4-3-4 and
+15-4-3-5 require controller choice among simultaneous own effects and turn-player
+priority, not an arbitrary timing-class order. Resolving `OnAllyAttack` before taking
+the new watcher snapshot could also admit a late source retroactively. The engine
+lane must pool the initially collected ally effects with own attack effects, Alliance
+and initially armed watchers, preserving granted effects and declaration payloads.
+Acceptance requires selectable own order, opponent priority and late-entry regression.
+
+The ordering harness matches key strings, not card metadata. The078 card lane now
+uses the public order decision's paired card IDs and keys; both card cases pass with
+different breeding/trash endpoints. This focused result does not accept the still-WIP
+shared engine change or waive its remaining regression requirements.
+
 ## 077 rejected Link-engine diagnosis
 
 The public Happy Bullet trace showed036 move trash-to-link and subsequently
@@ -183,3 +200,24 @@ matches CR13-1-8-3 and14-2-5. Root independently passed13 files /85 tests across
 036,057,ST17-13,security and battle conformance; strong-attacker survival and
 weak-attacker deletion now accompany Docmon's final placement. Full collection
 gates and remaining public restriction expiry/route evidence are still open.
+
+## Accepted attack-window ordering checkpoint, 2026-09-08
+
+The final minimal engine change pools OnUseAttack, collected OnAllyAttack,
+Alliance and initially armed attack subscriptions into a controller-ordered
+window. Root rejected the earlier empty-snapshot fallback regression and the
+hardcoded OnAlly-first shortcut. The accepted version retains empty prepared
+callbacks, declaration payloads and the existing nested-window fallback.
+Pristine2d79f54a7 fails four of six new tests for missing joint ordering prompts;
+the current six pass. Q5775 late-entry and opponent priority remain green.
+Root full BT24 plus engine:351 files/8558 tests passed; full typecheck passed.
+See ATTACK-TRIGGER-ORDERING-MECHANISM.md for scope and commands. Nested forced
+attack choice is not claimed newly covered by this checkpoint.
+
+078 receives peer/stack2 after both public Q5656 orders pass with exact source,
+draw, breeding/trash and security endpoints. 081 receives peer/stack2 after
+legal two-color routes, invalid source, mixed exact-name/level/trait revival,
+real Rush/Piercing and Execute acceptance/refusal. Unspecified broader matrices
+are not treated as a concrete missing printed clause. 084 remains6 because
+public mixed-name/refusal boundaries are still incomplete. Aggregate550/1020;
+zero102 cards at10/10. No delivery credit or collection completion claimed.
