@@ -36,7 +36,9 @@ describe("BT24-024 Submarimon", () => {
       reduceCostBy: 2,
       optional: true,
     });
-    expect(effect.actions[0].target.filter).toMatchObject({
+    const play = effect?.actions?.[0];
+    if (play?.kind !== "PlayWithoutCost") throw new Error("When Attacking action is not a play action");
+    expect(play.target.filter).toMatchObject({
       kind: ["Tamer"],
       nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
     });

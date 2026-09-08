@@ -229,11 +229,14 @@ describe("BT24-002 Bukamon", () => {
     await settle(() => s.decisions.some(({ req }) => req.kind === "orderTriggers"));
     const ordering = s.decisions.map(({ req }) => req).find((req) => req.kind === "orderTriggers");
     if (ordering === undefined || ordering.kind !== "orderTriggers") throw new Error("order trigger decision missing");
-    expect(ordering.options.triggerKeys.length).toBeGreaterThanOrEqual(2);
-    const bukamonKey = ordering.options.triggerKeys.find((key) => key.includes("BT24-002"));
-    const danKey = ordering.options.triggerKeys.find((key) => key.includes("BT24-085"));
+    const triggerKeys = ordering.options?.triggerKeys;
+    if (triggerKeys === undefined) throw new Error("trigger keys missing");
+    expect(triggerKeys.length).toBeGreaterThanOrEqual(2);
+    const bukamonKey = triggerKeys.find((key) => key.includes("BT24-002"));
+    const danKey = triggerKeys.find((key) => key.includes("BT24-085"));
     expect(bukamonKey).toBeDefined();
     expect(danKey).toBeDefined();
+    if (bukamonKey === undefined) throw new Error("Bukamon trigger key missing");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

@@ -15,7 +15,7 @@ describe("BT24-019 Kamemon", () => {
       sourceFilter: { isSelfRef: true, zone: "battleArea" },
     });
     expect(replacement.into).toMatchObject({ colors: ["Blue"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] });
-    expect(replacement.actions[0]).toMatchObject({
+    expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldDigivolve",
       mode: "reduceCost",
