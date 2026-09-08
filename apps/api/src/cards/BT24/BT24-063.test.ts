@@ -70,6 +70,38 @@ describe("BT24-063 Locomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("publicly plays a cost-5 Machine candidate from the reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-063", as: "locomon" }],
+          deck: [
+            { card: "BT24-058", as: "machine" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-058"));
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("machine").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("accepts an explicit bottom-order decision after selecting the matching reveal", async () => {
     const s = setupEngine(
       {
