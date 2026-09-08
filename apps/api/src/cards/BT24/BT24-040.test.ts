@@ -412,6 +412,53 @@ describe("BT24-040 Venusmon", () => {
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("second").instanceId);
   });
 
+  it("may refuse the All Turns replacement and lets the TS Digimon leave", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-040", as: "venusmon" },
+            { card: "BT24-034", as: "leaving" },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT6-007", as: "colorSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.topCard.cardId !== "BT24-034"));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("venusmon").permanentId,
+    );
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not replace a TS Digimon removed by its controller's own effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT24-040", as: "venusmon" },
+          { card: "BT24-034", as: "leaving" },
+        ],
+        security: [{ card: "BT1-012", as: "security" }],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("venusmon").permanentId,
+    ]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+  });
+
   it.each([
     ["normal yellow requirement", false, 4],
     ["alternate TS requirement (Q5604)", true, 3],
