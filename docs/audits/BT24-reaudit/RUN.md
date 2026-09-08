@@ -866,3 +866,29 @@ passed12/12 independently (25/25 together with052), replaced broad structural
 casts in `b95f3351b`, and rose6→8 in `b87c2667d` with public frequency/reset and
 route boundaries. Aggregate758/1020,0 cards at10/10. Three Luna lanes proceed
 through055,060 and065. No publication has occurred.
+
+Root055 and060 passed22/22 together. Public inherited combat and play-cost
+ceiling raised055 from6→8 in `00edfbe55`;060 received typed cleanup only in
+`aefbaf15f` and remains6 with its natural reset/payment/draw/choice gaps.
+Root065 passed11/11, received typed cleanup in `e4363d637`, and stale evidence
+reconciliation raised it6→8 with055 in `1a5ccd0d7`. Root084 passed14/14 with a
+public already-suspended refusal and rose6→7 in `903500bbd`;086 passed10/10,
+received typed cleanup in `de51a164e`, and rose6→7 while its inherited reset and
+Alliance/Reboot combat gaps remain. Their ledger reconciliation is
+`9f8548847`.
+
+Root083 passed12/12 and rose6→8 in `793a054a9` after public mixed filtering and
+optional refusal. Root002 and007 passed23/23 together: typed cleanup and full
+public boundaries raised002 from7→8 (`e99d93527`, `51d785180`), while007 stays
+7 after its report was corrected to exclude supplemental same-turn proof in
+`14b29a27e`. Root009 passed18/18 and rose7→8 after typed cleanup
+(`ad6c28242`, `cf728bfe6`); root011 passed9/9 and stale reconciliation in the
+same ledger commit raised it7→8.
+
+Root019 passed8/8 with a public red-TS no-reduction boundary and rose7→8 in
+`a2ac27c02`/`7ed700235`. Root024 passed15/15, received typed cleanup, and rose
+7→8 in `f1b887cc3`/`7ed700235`. Root031 passed16/16 and rose7→8 in `b5b95243a`
+after a fully ineligible public search pool. Root032 passed13/13 with typed
+assertions but remains7 because its isolated mixed-trait peer boundary is still
+open (`66a3fe161`). Root033 passed11/11 and stale reconciliation raised it7→8
+in `b34171496`. Aggregate773/1020,0 cards at10/10. No publication has occurred.
