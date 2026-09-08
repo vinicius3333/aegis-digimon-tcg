@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 712/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 714/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -12,7 +12,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-002 | Bukamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-002.md). Public refusal, Q5575 ordering, paid egg route and owner-turn reset passed root acceptance (9 tests); public color/trait negative and delivery still pending. |
 | BT24-003 | Tsunomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-003.md). Public Shaman filter/refusal, legal egg routes, Barrier Q5576 and extra check Q5585, frequency/reset. Root focused acceptance green; collection delivery gates pending. |
 | BT24-004 | Wanyamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-004.md). Public non-Iliad negative, legal green egg route, distinct evolution/normal/inherited draw identities and same-turn suppression/reset. Rootfocused8green; delivery pending. |
-| BT24-005 | Kyokyomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-005.md). Natural Mind Link path needs full ordering/visibility assertions; OPT reset and collection delivery open. |
+| BT24-005 | Kyokyomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-005.md). Root11green: natural Mind Link reveal visibility/order/top-bottom, same-turn suppression/reset, legal egg/evolution fixtures and host/Tamer/opponent-turn negatives. Typed IR; delivery pending. |
 | BT24-006 | Tapmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-006.md). Public Link replacement, exact draw/trash and paid costs, legal breeding promotion, frequency/reset. Root focused acceptance green; collection delivery gates pending. |
 | BT24-007 | Tsunomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-007.md). Public discard/refusal, legal breeding promotion, trait matrix and owner-turn reset pass; same-turn suppression still uses a primitive trigger. Root14green; delivery pending. |
 | BT24-008 | Elizamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-008.md). Public discard/refusal, Q5578 priority, exact evolution draws/costs and public inherited frequency/reset. Root focused acceptance green; collection delivery gates pending. |
