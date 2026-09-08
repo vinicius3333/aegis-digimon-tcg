@@ -66,6 +66,35 @@ describe("BT24-072 SkullGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Blocker")).toBe(true);
   });
 
+  it("publicly selects a Titan target and excludes a neighboring nonmatching Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-013", as: "titan" },
+            { card: "BT1-009", as: "neighbor" },
+          ],
+          hand: [
+            { card: "BT24-072", as: "skullgreymon" },
+            { card: "BT1-010", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullgreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("titan"), "Retaliation"));
+    expect(observe(s.engine).hasKeyword(s.perm("titan"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("titan"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("neighbor"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("neighbor"), "Retaliation")).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+  });
+
   it.each([
     ["normal purple level-4 requirement", "BT24-070", false],
     ["alternate Demon requirement without matching color", "BT1-069", true],
