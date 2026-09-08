@@ -4,6 +4,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-016.js";
 import "../index.js";
 
@@ -17,7 +18,10 @@ function handMainEffectKey(s: ReturnType<typeof setupEngine>, instanceId: string
 
 describe("BT24-016 Lamiamon", () => {
   it("uses the Dimetromon placement cost to digivolve an Elizamon host", () => {
-    const main = compiled.effects.find((effect) => effect.trigger === "Main")?.actions?.[0] as any;
+    const main = compiled.effects.find((effect) => effect.trigger === "Main")?.actions?.[0] as unknown as {
+      cost: { target: { filter: { nameOrTrait: unknown } }; bindHostAs: string; position: string; kind: string };
+      target: { fromSelectionRef: string };
+    };
     expect(main).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
@@ -31,8 +35,14 @@ describe("BT24-016 Lamiamon", () => {
   });
 
   it("shares the once-per-turn opponent security manipulation", () => {
-    const digivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving") as any;
-    const attacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking") as any;
+    const digivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving") as unknown as {
+      sharedUseKey: string;
+      frequency: string;
+      actions: unknown;
+    };
+    const attacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking") as unknown as {
+      sharedUseKey: string;
+    };
     expect(digivolving.sharedUseKey).toBe(attacking.sharedUseKey);
     expect(digivolving.frequency).toBe("OncePerTurn");
     expect(digivolving.actions).toMatchObject([
@@ -42,7 +52,7 @@ describe("BT24-016 Lamiamon", () => {
   });
 
   it("scopes its inherited play trigger to the opponent security stack", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
+    const inherited = compiled.effects.find((effect) => effect.isInherited) as unknown as { actions: unknown[] };
     expect(inherited.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
@@ -159,6 +169,44 @@ describe("BT24-016 Lamiamon", () => {
       to: "security",
       seat: 1,
     });
+  });
+
+  it("publicly attacks and places one opponent hand card under Security before trashing its top card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
+        1: {
+          hand: [
+            { card: "BT4-022", as: "placed" },
+            { card: "BT4-022", as: "kept" },
+          ],
+          security: [
+            { card: "BT4-022", as: "trashed" },
+            { card: "BT4-022", as: "remaining1" },
+            { card: "BT4-022", as: "remaining2" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lamiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("lamiamon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("remaining2").instanceId,
+      s.inst("placed").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("shares one security-manipulation use between digivolving and attacking", async () => {
