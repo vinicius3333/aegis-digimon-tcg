@@ -27,8 +27,18 @@ describe("BT24-037 Silphymon", () => {
     const replacements = BT24_037.effects?.filter((entry) => entry.trigger === "AllTurns");
     expect(replacements).toHaveLength(2);
     for (const effect of replacements ?? []) {
-      const play = (effect.actions?.[0] as any).actions?.[0];
-      expect((effect.actions?.[0] as any).leaveCause).toBe("otherThanYourEffect");
+      const replacement = effect.actions?.[0] as unknown as {
+        leaveCause: string;
+        actions: Array<{
+          kind: string;
+          from: string[];
+          fromOwnDigivolutionStack: boolean;
+          optional: boolean;
+          target: { filter: unknown };
+        }>;
+      };
+      const play = replacement.actions[0];
+      expect(replacement.leaveCause).toBe("otherThanYourEffect");
       expect(play).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["digivolutionCards"],
