@@ -86,6 +86,7 @@ describe("BT24-049 Parrotmon", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-049", as: "parrotmon" }],
+          deck: [{ card: "BT1-009", as: "evolutionDraw" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
@@ -106,6 +107,9 @@ describe("BT24-049 Parrotmon", () => {
     await settle(() => s.perm("target").isSuspended);
 
     expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("parrotmon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
   });
 
   it("returns the lowest-DP suspended Digimon when played by an effect", async () => {
@@ -174,9 +178,68 @@ describe("BT24-049 Parrotmon", () => {
     );
   });
 
+  it("replays the same Parrotmon instance through Fortitude after public Happy Bullet deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-049", as: "parrotmon", under: [{ card: "BT24-047", as: "source" }] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "redSource", dp: 6000 },
+            { card: "BT1-009", as: "lowest", suspended: true, dp: 2000 },
+            { card: "BT1-010", as: "higher", suspended: true, dp: 4000 },
+          ],
+          hand: [{ card: "BT6-095", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const parrotmonId = s.inst("parrotmon").instanceId;
+    const sourceId = s.inst("source").instanceId;
+    const optionId = s.inst("option").instanceId;
+    const originalPermanentId = s.perm("parrotmon").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === parrotmonId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lowest").instanceId),
+    );
+    const replayed = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === parrotmonId)!;
+    expect(replayed.permanentId).not.toBe(originalPermanentId);
+    expect(replayed.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sourceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("lowest").instanceId);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("higher").instanceId);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("redSource").instanceId);
+  });
+
+  it("does not replay Parrotmon through Fortitude after public deletion without a source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-049", as: "parrotmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const parrotmonId = s.inst("parrotmon").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === parrotmonId));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([parrotmonId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
   it("inherited effect trashes security only when its own host wins and survives", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-049"], dp: 9000 }] },
+      0: { battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-049"], dp: 9000 }] },
       1: {
         battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 3000 }],
         security: [{ card: "BT1-010", as: "security" }],
@@ -198,9 +261,125 @@ describe("BT24-049 Parrotmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
   });
 
+  it("suppresses inherited security trash on a same-turn repeat and resets next owner turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-049"], dp: 9000 }],
+          hand: [
+            { card: "BT24-050", as: "unsuspender" },
+            { card: "BT24-044", as: "suspender" },
+          ],
+          deck: ["BT1-016", "BT1-017", "BT1-018"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim1", suspended: true, dp: 3000 },
+            { card: "BT1-010", as: "victim2", suspended: true, dp: 3000 },
+            { card: "BT1-014", as: "victim3", dp: 3000 },
+          ],
+          security: [
+            { card: "BT1-011", as: "securityA" },
+            { card: "BT1-012", as: "securityB" },
+            { card: "BT1-013", as: "securityC" },
+          ],
+          deck: ["BT1-016", "BT1-017", "BT1-018"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const victim1Id = s.perm("victim1").permanentId;
+    const victim2Id = s.perm("victim2").permanentId;
+    const victim3Id = s.perm("victim3").permanentId;
+    const hostId = s.perm("host").permanentId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: victim1Id },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === victim1Id) &&
+        s.events.filter((e) => e.kind === "combatResolved").length >= 1 &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(s.inst("securityA").instanceId);
+    expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([
+      s.inst("securityB").instanceId,
+      s.inst("securityC").instanceId,
+    ]);
+    preferred.splice(0, preferred.length, hostId);
+    const beforeUnsuspend = s.state.memory;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(beforeUnsuspend - 7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: victim2Id },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === victim2Id) &&
+        s.events.filter((e) => e.kind === "combatResolved").length >= 2 &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([
+      s.inst("securityB").instanceId,
+      s.inst("securityC").instanceId,
+    ]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, victim3Id);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim3").isSuspended && !s.perm("host").isSuspended);
+    expect(s.perm("victim3").isSuspended).toBe(true);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: victim3Id },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === victim3Id) &&
+        s.events.filter((e) => e.kind === "combatResolved").length >= 3 &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual([s.inst("securityC").instanceId]);
+    expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(s.inst("securityB").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(hostId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
+
   it("Q5639: tied battle deletion does not trash security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-049"], dp: 9000 }] },
+      0: { battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-049"], dp: 9000 }] },
       1: {
         battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 9000 }],
         security: [{ card: "BT1-010", as: "security" }],
