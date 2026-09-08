@@ -307,6 +307,30 @@ describe("BT24-029 Whamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("publicly declines the optional End of Attack play without moving its source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-029", as: "whamon", under: [{ card: "BT24-083", as: "source" }] }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("whamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("whamon").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("source").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("source").instanceId);
+  });
+
   it("inherited play is limited to a level-4 blue TS card in the attacking host's stack", async () => {
     const s = setupEngine(
       {
