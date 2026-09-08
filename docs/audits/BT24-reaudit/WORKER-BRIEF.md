@@ -45,6 +45,9 @@ Only edit the assigned card module, colocated test and report. Never edit engine
 - Playing a digivolution source creates a new permanent; it does not promote that source to the original host's top card. Assert the original host and neighboring stacks remain correct.
 - Public battle-area attack targets use `kind: "permanent"`, not `kind: "digimon"`; runtime acceptance alone does not prove a typed legal intent.
 - A real turn with a playable hand may stay in Main. Await Main and explicitly end it before awaiting End of Turn effects or the turn promise.
+- Calling From the Darkness returns up to two Purple Digimon. In Q5648, both the Hackmon host and Raidramon link qualify: manually return only the host to prove cancellation while the link remains in trash. Auto-selecting both does not isolate the ruling.
+- Thresholds based on trash count must include battle-deleted Digimon and checked security, not only cards milled by the audited effect. SkullSatamon's repeated-attack fixture starts at six, reaches nine after mill plus one battle deletion, then ten after the second battle deletion before next-turn reset.
+- The first owner turn in these fixtures skips its normal draw; the next owner turn does not. Name mill and natural-draw cards according to their actual deck positions. Never alter expected IDs to mirror the observed array without explaining the sequence.
 - `settle` can time out silently. Assert its intended endpoint, and do not use a pre-existing event or unchanged deck length as proof that a new effect has completed.
 
 Run focused vitest with --maxWorkers=1 --no-file-parallelism; lint and format assigned files. Report clauses/Q&A mapping, exact results, remaining gaps and next useful card. Coordinator independently runs acceptance and full gates. Do not claim collection completion.

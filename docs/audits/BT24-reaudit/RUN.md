@@ -252,3 +252,44 @@ explicitly pending. The next072/073/074 baseline passed3 files/36 tests;
 catalog and KB queries were inspected (073 Q5649–Q5651,074 Q5652,072 none).
 No push, PR update or Orca completion was performed. Work resumes in bounded
 Luna lanes on069 frequency,070 hand-size/evolution, and071 fusion routes.
+
+## Continuation verification, 2026-09-08 04:27 BRT
+
+The same three Luna workers remain assigned to071–073. Root reran these
+changed suites: **3 files /54 tests passed**. Fresh `pnpm typecheck` passed
+shared, API and web. This is a restart gate, not a frozen collection gate.
+Root review still requires precise071 owner-turn expiry and eligible-neighbor
+assertions, public072 deletion/filter proof, and exact073 inherited zone
+identities. Worker completion messages are not accepted as collection proof.
+
+Local commits `93452a65c` (069,12 tests) and `bed7a9229` (070,11 tests)
+deliver the previous bounded corrections. Their ledger rows bring the
+aggregate to457/1020, zero102 at10/10. No delivery points are awarded.
+Disk availability is289 MiB; no user files or build artifacts were deleted.
+No push, PR update or Orca completion was performed.
+
+## Frozen 071–073 checkpoint, 2026-09-08 04:37 BRT
+
+Root accepted071 (22 tests),072 (22), and073 (13), each at7/10 with explicit
+remaining boundary/combat coverage. Local commits: `093eecae0` Raidramon,
+`e3bc79635` SkullGreymon, `b42a301a4` SkullSatamon. Aggregate **478/1020**,
+zero102 at10/10; catalog and ledger both contain102 unique BT24 cards.
+
+The frozen collection/mechanism command passed **228 files /3270 tests**
+at04:36:39. The preceding run had one failure in uncommitted074: its new
+public effect-play expectation omitted the deleted target's top card from
+trash. After correcting that expectation, the full command was rerun green.
+No engine defect was inferred from this fixture failure. The known AD1-002
+unsupported legacy diagnostic remains inside a passing test.
+
+Fresh `pnpm typecheck` passed shared/API/web. Both `effects:sync:set` and
+`effects:check:set` against da5c7733c passed:16 semantic changes,102 records
+already synchronized, zero semantic/byte changes outside BT24. Scoped lint
+has only conditional-expect warnings in071/073;074/076 are clean. Root
+formatted the074 WIP test after the format gate identified it. Diff check
+passes, and no probe files or new legacy registrations were found.
+
+This gate includes paused, uncommitted074 and076 test-only work (focused16
+and10 respectively), not accepted whole-card reports.075 was clean during
+the freeze. Resume those three bounded lanes after the gate. No push,
+PR update or Orca completion was performed; delivery remains unawarded.

@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 448/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 478/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -76,11 +76,11 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-066 | Guilmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-066.md). Root13green: five search trait/Tamer positives, mandatory second destination, exact egg evolution, legal inherited public deletion frequency/reset with security endpoints. Full negative and insufficient-candidate search boundaries pending. |
 | BT24-067 | Hackmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-067.md). Root16green: public Link/Retaliation, exact 0/1/2 Tamer and source boundaries, refusal, explicit Rei-watcher decline and Link cleanup through real turn reset, exact breeding and invalid evolution/Link routes. Delivery pending. |
 | BT24-068 | DemiDevimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-068.md). Root9green: Evil/FallenAngel search positives, legal Purple4 inherited host, public mill suppression/reset distinguishing normal draws, exact breeding evolution and invalid Blue egg. Missing-category/overlap and no-match final trash pending. |
-| BT24-069 | Vilemon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-069.md). Root8green: public breeding promotion accepts/refuses opponent discard with exact mill fallback, 10-trash Blocker battle, legal Purple5 inherited host. Public frequency/reset, 9-trash and exact evolution boundaries pending. |
-| BT24-070 | Growlmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-071 | Raidramon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-072 | SkullGreymon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-073 | SkullSatamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-069 | Vilemon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-069.md). Root12green: public promotion/evolution discard acceptance and refusal, 9/10-trash combat boundary, exact evolution and invalid color, inherited mill suppression/reset preserving legal stack and normal draws. Delivery pending. |
+| BT24-070 | Growlmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-070.md). Root11green: exact 4/5 post-evolution hand gates with real Main drain, public Tamer refusal/color/cost boundaries, legal inherited deletion suppression/reset and exact security/source endpoints. Invalid normal route and delivery pending. |
+| BT24-071 | Raidramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-071.md). Root22 green: six public Q5647 fusion routes, Q5648 exact host-only return cancellation, public deletion and trait/expiry proof. Invalid source/filter boundaries and delivery remain pending. |
+| BT24-072 | SkullGreymon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-072.md). Root22 green: legal evo/inherited hosts, Shaman and Demon Blocker/Retaliation combat, opponent-turn expiry, public revival/refusal/filter negatives. Broader invalid-route and inherited turn-ownership contrasts plus delivery remain pending. |
+| BT24-073 | SkullSatamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-073.md). Root13 green: public 6/7/10/11 thresholds, deletion accept/refuse, legal inherited host and real turn reset with named draws/decks. Blocker combat, revival filter and invalid evolution boundaries plus delivery pending. |
 | BT24-074 | SkullSeadramon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-075 | SkullBaluchimon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-076 | WarGrowlmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
