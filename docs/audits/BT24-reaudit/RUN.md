@@ -892,3 +892,22 @@ after a fully ineligible public search pool. Root032 passed13/13 with typed
 assertions but remains7 because its isolated mixed-trait peer boundary is still
 open (`66a3fe161`). Root033 passed11/11 and stale reconciliation raised it7→8
 in `b34171496`. Aggregate773/1020,0 cards at10/10. No publication has occurred.
+
+The accumulated API typecheck initially exposed39 strict diagnostics across
+audited modules and tests. Root narrowings for002/019/024 passed45 focused tests
+with046 (`83310dd5e`);046 added a public unsuspend and second same-turn attack,
+passing13/13 while remaining7 because its natural next-owner reset is open
+(`1eab85ebe`). Shared `PlayWithoutCostAction` now types the persisted
+`withoutBattle` marker,060 dropped a redundant `traitsMatchAny` marker, and102
+uses typed reusable targets/filters;060+102 passed26/26 and shared typecheck
+passed (`c5feb523c`).
+
+Three Luna type lanes then corrected013/015/017,022/026, and027/029/037 without
+behavioral changes. Root acceptance passed8 files /116 tests; full API typecheck
+passed after rebuilding shared declarations; shared typecheck and
+`git diff --check` also passed. Atomic commits are `fd560e007`, `55b30c329`, and
+`0e7aa367b`. Root043/044 passed19/19: all-miss search and invalid egg routes
+raised043 from7→8 (`7407569a1`, `de35a6246`);044 remains7 after public refusal
+and level-7 exclusion (`a2be37472`). Root039 passed11/11 with typed cleanup but
+remains7 (`faa04f831`). Aggregate774/1020,0 cards at10/10. No publication has
+occurred.
