@@ -408,6 +408,75 @@ describe("BT24-080 Megidramon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(secondMegidramonId);
   });
 
+  it("reactivates the trash evolution on the owner's later End of Your Turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-076", as: "host" }],
+          hand: ["BT1-009", "BT1-010"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+          trash: [{ card: "BT24-080", as: "megidramon" }],
+        },
+        1: {
+          hand: [{ card: "BT1-017", as: "opponentPlay" }],
+          security: ["BT1-020", "BT1-021", "BT1-022"],
+          deck: ["BT1-018", "BT1-019"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const sourceId = s.perm("host").topCard.instanceId;
+    const megidramonId = s.inst("megidramon").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-080");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("host").topCard.instanceId).toBe(sourceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(megidramonId);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand.length).toBeLessThanOrEqual(4);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const secondDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-080");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === megidramonId);
+
+    expect(s.perm("host").topCard.instanceId).toBe(megidramonId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(megidramonId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    await secondTurn;
+  });
+
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving, EffectTiming.OnDeletion])(
     "deletes all opposing Digimon tied for lowest level on %s",
     async (timing) => {
