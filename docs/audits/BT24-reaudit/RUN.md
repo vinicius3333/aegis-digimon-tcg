@@ -737,3 +737,14 @@ scaling, public DP/security/recovery, removal OPT, simultaneous prevention and
 natural battle protection support8/10. Committed `4d476175e`. Aggregate
 665/1020, five pending zero rows (015-017,098,102), no card at10/10. Lanes
 continue089 completion,098 public Delay and102; no publication has occurred.
+
+Root102 at11:10:27 passed15/15. Typed IR plus threshold phase behavior, TS
+aura, natural borrowed Olympos timing/refusal/reset, lender OPT and Security
+play support8/10; committed `4a7e30bee`.
+
+Root098 at11:11:28 passed6 tests with one named expected failure. Natural
+Security play is exact, but a public Titan play consumes the aged Delay source
+without playing the eligible level5 Titan from trash. The injected Q5710 recheck
+remains supplemental only, so098 receives an honest6/10 in `34c68ecf8`.
+Aggregate679/1020, three pending zero rows (015-017), no card at10/10. Lanes
+continue015,016 and089; no publication has occurred.
