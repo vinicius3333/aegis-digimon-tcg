@@ -187,6 +187,46 @@ describe("BT24-086 The Crossroad Witch", () => {
     expect(s.perm("host").stack.map((card) => card.instanceId)).not.toContain(s.inst("witch").instanceId);
   });
 
+  it("can decline the inherited End of All Turns play, then accept it on the next owner turn", async () => {
+    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT24-086", as: "witch" }] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"] },
+      },
+      options,
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const sourceId = s.inst("witch").instanceId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === sourceId)).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("gains memory only while the opponent has a Digimon", async () => {
     const withOpponent = setupEngine({
       0: { battleArea: [{ card: "BT24-086", as: "witch" }] },
