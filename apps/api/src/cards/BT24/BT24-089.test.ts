@@ -108,6 +108,46 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("does not activate Delay when the Option was placed earlier in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-008", as: "base" },
+            { card: "BT24-008", as: "untouched" },
+          ],
+          hand: [
+            { card: "BT24-089", as: "option" },
+            { card: "BT24-082", as: "owen" },
+            { card: "BT24-012", as: "evolution" },
+            { card: "BT1-013", as: "spare" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    const untouchedId = s.perm("untouched").topCard.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("owen").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("owen").instanceId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolution").instanceId);
+    expect(s.perm("untouched").topCard.instanceId).toBe(untouchedId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(optionId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(2);
+  });
+
   it("reacts to a public Owen-triggered suspension and Delay-evolves the other host for zero", async () => {
     const preferred: string[] = [];
     const options = { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred };
@@ -123,6 +163,8 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
             { card: "BT24-082", as: "owen" },
             { card: "BT24-012", as: "firstEvolution" },
             { card: "BT24-012", as: "secondEvolution" },
+            { card: "BT24-011", as: "dragonkinOnly" },
+            { card: "BT23-064", as: "liberatorOnly" },
             { card: "BT1-013", as: "spare" },
           ],
           deck: [
@@ -226,6 +268,9 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("secondEvolution").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("dragonkinOnly").instanceId, s.inst("liberatorOnly").instanceId]),
+    );
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
