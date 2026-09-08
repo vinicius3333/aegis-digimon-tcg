@@ -102,6 +102,25 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
+  it("rejects a public evolution from a purple level-2 Digi-Egg source", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT17-006", as: "wrongColorEgg" }, hand: [{ card: "BT24-052", as: "xAntibody" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongColorEgg").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("wrongColorEgg").topCard.instanceId).toBe(s.inst("wrongColorEgg").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("xAntibody").instanceId);
+  });
+
   it("public When Moving plays a Diaboromon Token", async () => {
     const s = setupEngine(
       { 0: { breeding: { card: "BT24-052", as: "mover" } } },
