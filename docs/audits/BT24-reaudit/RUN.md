@@ -983,3 +983,21 @@ audit's changed-code gate and was not mass-reformatted. Local delivery credit
 is now 1/2 for every card: aggregate **918/1020**, 0 cards at 10/10.
 Publication/PR update is still required for 2/2 delivery and collection
 completion.
+
+Publication checkpoint (2026-09-08): `origin/main` advanced by seven commits
+and was merged normally into the audit branch as `d4cfb586f`, without rebase or
+history rewriting. Six conflicts were resolved by retaining the stronger BT24
+fixtures while composing the new mainline trigger provenance, cost, Barrier,
+and attack-window behavior. Main's strict `settle()` then exposed 20 historical
+never-held predicates across 16 BT24 test files; the three Luna lanes replaced
+them with observable public milestones, and the Docmon On Deletion proof now
+selects its exact restriction target through the decision API. Post-merge
+verification passed: effects sync/check (102 records, 23 BT24 semantic changes,
+zero changes outside the set), monorepo typecheck, 232 collection/mechanism
+files and 3528 tests, six focused merge-mechanism files and 444 tests, Oxlint
+and Oxfmt on all 213 changed code files, clean `git diff --check`, and an empty
+probe sweep. The user explicitly authorized a local merge into `main` and a
+direct push to `main`, replacing the normal PR publication step for this
+delivery. Final delivery credit is 2/2: aggregate **1020/1020**, all **102/102
+cards at 10/10**. Remote push confirmation and Orca completion are the only
+remaining terminal actions.
