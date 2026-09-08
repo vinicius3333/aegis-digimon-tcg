@@ -188,6 +188,43 @@ describe("BT24-039 Piximon", () => {
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
   });
 
+  it("publicly refuses Barrier after Blocker declaration in a losing battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-039", as: "piximon" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 13000 }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const blockerId = s.perm("piximon").permanentId;
+    const piximonId = s.inst("piximon").instanceId;
+    const securityId = s.inst("security").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: blockerId, accept: false })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(piximonId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([securityId]);
+  });
+
   it("recovers the deck top when its inherited host is deleted", async () => {
     const s = setupEngine({
       0: {
@@ -244,5 +281,47 @@ describe("BT24-039 Piximon", () => {
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("piximon").instanceId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+  });
+
+  it("digivolves through the normal yellow level-4 route for cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-051", as: "base" }],
+        hand: [{ card: "BT24-039", as: "piximon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    const sourceId = s.perm("base").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("piximon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("piximon").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+  });
+
+  it("rejects a public evolution from a non-yellow, non-TS level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "base" }], hand: [{ card: "BT24-039", as: "piximon" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("piximon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("piximon").instanceId);
   });
 });
