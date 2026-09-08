@@ -74,6 +74,26 @@ describe("BT24-068 DemiDevimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
+  it("still trashes a hand card when the reveal has no eligible category", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT24-068", as: "demidevimon" },
+          { card: "BT1-009", as: "handCost" },
+        ],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("demidevimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
   it("uses the normal purple level-2 evolution route for cost 0", async () => {
     const s = setupEngine({
       0: {
