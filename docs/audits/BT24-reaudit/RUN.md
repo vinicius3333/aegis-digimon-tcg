@@ -542,3 +542,24 @@ The repeated effects check completed successfully after the earlier exit137:
 or byte changes outsideBT24. Disk20GiB free. No shared runtime change was made
 by the current card-only follow-up lanes; their in-progress tests remain outside
 any closing collection-gate claim.
+
+## Public interaction follow-ups, 2026-09-08 10:00 BRT
+
+Committed `7b2da6a3c` for087's public legal wrong-trait contrast and paired
+Rei fusion evidence. Root077/087 passed28 tests;087 receives8/10 with
+delivery still0. Committed `8b76146ae` for079's same-turn suppression and
+next-owner-turn reset, with explicit Blocker refusal during the intervening
+opponent attack. Root079 passed15 tests. Ledger571/1020, zero102 at10/10.
+
+The next root079/085/088 checkpoint passed48 tests (17/19/12) at10:00:03.
+079 adds public own-source Link selection and illegal normal evolution;
+085 adds public Security, cap/trait negatives and Q6442/Q7171 continuation;
+088 converts initial Start-of-Turn cases to natural turns. These remain
+in-progress evidence:088 still needs exact positive endpoints and public
+On Play/Security follow-ups;079 needs stronger Overclock and invalid fusion;
+085 needs independent payable-cost and Option refusals before final review.
+
+The full typecheck started09:53:03 failed only085.ts24/25 after nocheck removal:
+its unannotated Option/Digimon filter constants widened kind to string[].
+The lane added Filter annotations; a fresh full result is required. This was
+current audit WIP, not a pre-existing error or a production behavior change.

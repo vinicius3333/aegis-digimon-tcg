@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 570/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 571/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -94,7 +94,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-084 | Inori Misono | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-084.md). Root13 tests green: real4/5 memory boundary, Q5669 Security priority, Q5670 Barrier/free evolution with exact stack/draw and public Security no-retrotrigger. Public mixed-name/refusal boundaries remain partial; delivery pending. |
 | BT24-085 | Dan Yuki & Kanan Yuki | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-085.md). Root11 tests green: real4/5 memory boundary, Q5672 public Security suspension blocks both tails, Q5673 accepted Option/refused attack, Q5691 newlinked092 double6k deletion and exact security. Public Security/cap/traits and remaining QAs pending. |
 | BT24-086 | The Crossroad Witch | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-086.md). Restored official Shuu Yulin rule-name alias; shared identity and Q5674/public005 reset regressions green. Fullcard public clause review and delivery pending. |
-| BT24-087 | Rei Katsura | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-087.md). Root10 tests green: typedIR, public Link/fusion with two named draws, Q5675 suspended-cost negative, payable refusal, realStartMain and publicSecurityplay. PublicopponentLink/mixedfusionfilters and paidtailrefusal remain partial. |
+| BT24-087 | Rei Katsura | 2 | 2 | 2 | 2 | 0 | 8/10 | in_progress; [record](BT24-reaudit/BT24-087.md). Root13tests plus077peer15 green: publiccost/refusals/Security/memory, Life038fusion, System077 andTransmutation079 peer routes with exactsources/draws, wrongSocialtargetlegalpair rejected. Allprintedclauses mapped; closingdelivery pending. |
 | BT24-088 | Asuna Shiroki | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-089 | Unique Emblem: Blazing Conductor | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-090 | Abyss Sanctuary: Throne Room | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
