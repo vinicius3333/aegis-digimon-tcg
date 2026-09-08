@@ -1,7 +1,5 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { effectsOf } from "../../engine/effects/collect.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -128,6 +126,52 @@ describe("BT24-094 Central Town: Throne Room", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-024")).toBe(true);
   });
 
+  it("refuses the optional Main play and excludes non-TS candidates", async () => {
+    const refused = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-094", as: "source" },
+            { card: "BT24-024", as: "eligible" },
+          ],
+          security: [{ card: "BT1-009", as: "bottom" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    refused.state.memory = 10;
+    await refused.ready();
+    expect(refused.engine.applyIntent(0, { type: "playCard", instanceId: refused.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => refused.state.players[0]!.security.some((card) => card.faceUp));
+    expect(refused.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      refused.inst("eligible").instanceId,
+    );
+    expect(refused.state.players[0]!.battleArea).toHaveLength(0);
+
+    const invalid = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-094", as: "source" },
+            { card: "BT1-045", as: "nonTs" },
+          ],
+          security: [{ card: "BT1-009", as: "bottom" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    invalid.state.memory = 10;
+    await invalid.ready();
+    expect(invalid.engine.applyIntent(0, { type: "playCard", instanceId: invalid.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => invalid.state.players[0]!.security.some((card) => card.faceUp));
+    expect(invalid.state.players[0]!.hand.map((card) => card.instanceId)).toContain(invalid.inst("nonTs").instanceId);
+    expect(invalid.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
   it("plays a level 4 green or yellow TS Digimon from Security", async () => {
     const s = setupEngine(
       {
@@ -144,5 +188,47 @@ describe("BT24-094 Central Town: Throne Room", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
     );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
+    ).toBe(true);
+  });
+
+  it("publicly resolves Security play from trash after an opponent check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-094", as: "town" }],
+          trash: [{ card: "BT24-034", as: "digimon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-045", as: "attacker", dp: 15000 }],
+          security: ["BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const townId = s.inst("town").instanceId;
+    const digimonId = s.inst("digimon").instanceId;
+    await s.ready();
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(townId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(digimonId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === digimonId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 });
