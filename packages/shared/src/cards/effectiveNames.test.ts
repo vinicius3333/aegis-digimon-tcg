@@ -3,6 +3,10 @@ import { effectiveStaticNames } from "./effectiveNames.js";
 import { getCardDefinition } from "./registry.js";
 
 describe("effectiveStaticNames", () => {
+  it("includes Crossroad Witch's printed Shuu Yulin identity (Q5674)", () => {
+    expect(effectiveStaticNames(getCardDefinition("BT24-086")!)).toEqual(["The Crossroad Witch", "Shuu Yulin"]);
+  });
+
   it.each([
     ["EX12-041", ["Thundermon", "Mamemon"]],
     ["BT15-012", ["Shoutmon", "Ballistamon"]],
