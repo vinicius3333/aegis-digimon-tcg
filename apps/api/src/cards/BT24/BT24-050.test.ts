@@ -49,9 +49,14 @@ describe("BT24-050 WereGarurumon", () => {
   it("keeps the inherited once-per-turn hand play filter", () => {
     const inherited = BT24_050.effects?.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn" });
-    expect((inherited?.actions?.[0] as any).target.filter).toMatchObject({
-      dp: { op: "lte", value: 4000 },
-      excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
+    expect(inherited?.actions?.[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          dp: { op: "lte", value: 4000 },
+          excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
+        },
+      },
     });
   });
 
@@ -316,14 +321,12 @@ describe("BT24-050 WereGarurumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "cardsMoved" && event.instanceIds.includes(optionId)));
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
-    if (accept) {
-      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(permanentId);
-      expect(s.perm("weregarurumon").isSuspended).toBe(true);
-      expect(s.state.memory).toBe(0);
-    } else {
-      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(permanentId);
-      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("weregarurumon").instanceId);
-      expect(s.state.memory).toBe(0);
-    }
+    const battleAreaIds = s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId);
+    const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
+    const remaining = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId);
+    expect(battleAreaIds.includes(permanentId)).toBe(accept);
+    expect(remaining?.isSuspended ?? false).toBe(accept);
+    expect(trashIds.includes(s.inst("weregarurumon").instanceId)).toBe(!accept);
+    expect(s.state.memory).toBe(0);
   });
 });
