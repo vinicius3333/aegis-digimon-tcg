@@ -32,6 +32,39 @@ describe("BT24-010 Greymon", () => {
     expect(compiled.digivolutionRequirement ?? []).toHaveLength(2);
   });
 
+  it("intercepts an opposing public attack with Blocker", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT24-010", as: "blocker" }], security: ["BT1-013"] },
+    });
+    const attackerId = s.perm("attacker").permanentId;
+    const blockerId = s.perm("blocker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blocked"));
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toContain(blockerId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("refuses Blocker and lets the public attack continue", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT24-010", as: "blocker" }], security: ["BT1-013"] },
+    });
+    const attackerId = s.perm("attacker").permanentId;
+    const blockerId = s.perm("blocker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("De-Digivolves exactly one opposing stack when deleted", async () => {
     const s = setupEngine(
       {
@@ -82,7 +115,11 @@ describe("BT24-010 Greymon", () => {
     ["non-red TS", "BT24-019"],
   ])("accepts the public %s level-3 alternate route", async (_label, source) => {
     const s = setupEngine({
-      0: { battleArea: [{ card: source, as: "base" }], hand: [{ card: "BT24-010", as: "greymon" }] },
+      0: {
+        battleArea: [{ card: source, as: "base" }],
+        hand: [{ card: "BT24-010", as: "greymon" }],
+        deck: [{ card: "BT1-012", as: "bonusDraw" }],
+      },
     });
     s.state.memory = 5;
     await s.ready();
@@ -95,7 +132,10 @@ describe("BT24-010 Greymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("greymon").instanceId);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("greymon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
   it("rejects a non-Agumon, non-TS level-3 source", async () => {
@@ -141,6 +181,29 @@ describe("BT24-010 Greymon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("victim").instanceId);
     expect(s.perm("stack").topCard.cardId).toBe("BT24-009");
     expect(s.perm("other").topCard.cardId).toBe("BT24-010");
+  });
+
+  it("publicly evolves from Greymon into Aegiochusmon with exact cost and stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-010", as: "greymon" }],
+        hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+        deck: [{ card: "BT1-012", as: "bonusDraw" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greymon").permanentId,
+        instanceId: s.inst("aegiochusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greymon").topCard.instanceId === s.inst("aegiochusmon").instanceId);
+    expect(s.perm("greymon").stack.map((card) => card.instanceId)).toEqual([s.inst("greymon").instanceId]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
 
   it("uses inherited Raid on a public attack against the opponent's highest DP Digimon", async () => {
