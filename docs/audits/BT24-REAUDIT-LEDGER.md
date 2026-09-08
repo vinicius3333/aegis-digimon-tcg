@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 641/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 649/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -106,7 +106,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-096 | Seventh Graviton | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-096.md). Root9green: public paid Main and Security attack, exact delete/mill branches and deck order, real Creepymon X evolution/from-trash cost, refusal and later-turn repetition. Typed IR; delivery pending. |
 | BT24-097 | Soul Fear | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-097.md). Root9green: public Main and natural Security attack, exact deletion/link routes and boundaries, linked attack OPT/reset, breeding/Q5704-Q5708 peer interactions, typed IR. Delivery pending. |
 | BT24-098 | Invasion of the Titans | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-099 | Super Hacking | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-099 | Super Hacking | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-099.md). Root7green: public Main cost/refusal/atomicity, draw and placement, deletion-armed Delay link/refusal/pre-arm rejection, Security placement and typed IR. Delivery pending. |
 | BT24-100 | In-Between Theater | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-101 | Jupitermon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-102 | Homeros | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
