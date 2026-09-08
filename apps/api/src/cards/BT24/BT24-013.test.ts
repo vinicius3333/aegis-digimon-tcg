@@ -9,7 +9,13 @@ import "../index.js";
 describe("BT24-013 Fugamon", () => {
   it("requires the hand-trash cost before deleting a 6000-DP-or-less opponent Digimon", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
-      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as any[];
+      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as unknown as Array<{
+        target: { filter: { dp: unknown } };
+        kind: string;
+        optional: boolean;
+        abortOnDecline: boolean;
+        cost: unknown;
+      }>;
       expect(actions[0]).toMatchObject({
         kind: "Delete",
         optional: true,
@@ -21,7 +27,9 @@ describe("BT24-013 Fugamon", () => {
   });
 
   it("scopes inherited trash-triggered digivolution to this Demon/Titan Digimon", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
+    const inherited = compiled.effects.find((effect) => effect.isInherited) as unknown as {
+      actions: Array<{ actions: Array<{ target: unknown; condition: unknown }> }>;
+    };
     const action = inherited.actions[0].actions[0];
     expect(action.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
     expect(action.condition).toMatchObject({ kind: "selfHasTrait" });
@@ -115,6 +123,42 @@ describe("BT24-013 Fugamon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("tooLarge").permanentId,
     ]);
+  });
+
+  it("publicly plays Fugamon, pays its hand-trash cost, and deletes only the 6000-DP target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-013", as: "fugamon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+          battleArea: [{ card: "BT24-009", as: "source" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "boundary", dp: 6000 },
+            { card: "BT1-009", as: "tooLarge", dp: 6001 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fugamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("tooLarge").permanentId,
+    ]);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("fugamon").instanceId),
+    ).toBe(true);
   });
 
   it("may decline the On Play hand-trash cost", async () => {
