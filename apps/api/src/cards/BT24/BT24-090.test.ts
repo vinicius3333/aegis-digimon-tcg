@@ -63,6 +63,204 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Alliance")).toBe(false);
   });
 
+  it("publicly uses the face-up security Blocker aura", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-090", as: "sanctuary", faceUp: true }, { card: "BT1-013" }],
+        battleArea: [{ card: "BT24-020", as: "blocker" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }], security: ["BT1-013"] },
+    });
+    const blockerId = s.perm("blocker").permanentId;
+    await s.ready();
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("offers Blocker only to qualifying TS Digimon and permits a public refusal", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-090", as: "sanctuary", faceUp: true }, { card: "BT1-013" }],
+        battleArea: [
+          { card: "BT24-020", as: "qualifying" },
+          { card: "BT24-011", as: "redTs" },
+          { card: "BT1-032", as: "blueNonTs" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }], security: ["BT1-013"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("qualifying").permanentId],
+    });
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.events.some((event) => event.kind === "blocked")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("publicly accepts Alliance from the face-up security aura", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-090", faceUp: true }],
+        battleArea: [
+          { card: "BT24-020", as: "attacker" },
+          { card: "BT24-020", as: "ally" },
+          { card: "BT5-030", as: "neptunemon" },
+        ],
+      },
+      1: { security: [{ card: "BT1-090", as: "security" }], deck: ["BT1-009", "BT1-010"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    const prompt = s.events.find((event) => event.kind === "alliancePrompt");
+    expect(prompt?.kind).toBe("alliancePrompt");
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.perm("neptunemon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("publicly declines Alliance while retaining the ally unsuspended", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-090", faceUp: true }],
+        battleArea: [
+          { card: "BT24-020", as: "attacker" },
+          { card: "BT24-020", as: "ally" },
+          { card: "BT5-030", as: "neptunemon" },
+        ],
+      },
+      1: { security: [{ card: "BT1-090", as: "security" }], deck: ["BT1-009", "BT1-010"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.perm("ally").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it.fails("expires Blocker and Alliance after a public face-up security check", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: "BT24-090", as: "sanctuary", faceUp: true },
+          { card: "BT1-013", as: "remaining" },
+        ],
+        battleArea: [{ card: "BT24-020", as: "qualifying" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-020", as: "attacker" }],
+        security: [{ card: "BT1-013" }],
+        deck: ["BT1-011", "BT1-012"],
+      },
+    });
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    await s.ready();
+    s.state.turnSeat = 1;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(sanctuaryId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+    s.state.turnSeat = 0;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length >= 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
+  });
+
   it("does not grant Alliance without an exact Neptunemon or Venusmon", async () => {
     const s = setupEngine({
       0: {
@@ -282,6 +480,86 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("publicly plays an eligible level-4 TS Digimon from trash on Security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT1-013", as: "untouched" },
+          ],
+          trash: [{ card: "BT24-024", as: "candidate" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], security: ["BT1-013"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    const candidateId = s.inst("candidate").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === candidateId));
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(sanctuaryId);
+    expect(s.state.players[0]!.security.map((c) => c.instanceId)).toEqual([s.inst("untouched").instanceId]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("does not play invalid mixed-color or non-TS Security candidates", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            { card: "BT24-090", as: "sanctuary" },
+            { card: "BT1-013", as: "untouched" },
+          ],
+          hand: [
+            { card: "BT24-028", as: "highTs" },
+            { card: "BT1-032", as: "blueNonTs" },
+            { card: "BT24-011", as: "redTs" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], security: ["BT1-013"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(sanctuaryId);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("highTs").instanceId, s.inst("blueNonTs").instanceId, s.inst("redTs").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
   });
