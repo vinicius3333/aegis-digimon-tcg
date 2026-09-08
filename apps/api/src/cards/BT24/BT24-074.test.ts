@@ -53,11 +53,19 @@ describe("BT24-074 SkullSeadramon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009", "BT1-010"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-043", as: "target", under: ["BT1-028", "BT1-032", "BT1-038"] },
+            { card: "BT1-043", as: "neighbor", under: ["BT1-028", "BT1-032", "BT1-038"] },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
     const targetId = s.perm("target").permanentId;
+    const neighborId = s.perm("neighbor").permanentId;
+    const sourceIds = s.perm("target").stack.map((card) => card.instanceId);
+    const neighborStackIds = s.perm("neighbor").stack.map((card) => card.instanceId);
     s.state.memory = 8;
     await s.ready();
 
@@ -68,7 +76,9 @@ describe("BT24-074 SkullSeadramon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(targetId);
-    expect(s.state.players[1]!.trash).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(neighborId);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual(neighborStackIds);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([...sourceIds].reverse());
   });
 
   it.each([
@@ -83,52 +93,88 @@ describe("BT24-074 SkullSeadramon", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-074", as: "skullseadramon" }],
+          deck: [{ card: "BT1-009", as: "evolutionDraw" }],
         },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009"] }] },
+        1: { battleArea: [{ card: "BT1-043", as: "target", under: ["BT1-028", "BT1-032", "BT1-038"] }] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 6;
     await s.ready();
+    const sourceId = s.perm("base").topCard.instanceId;
+    const targetSourceIds = s.perm("target").stack.map((card) => card.instanceId);
+    const evolvedId = s.inst("skullseadramon").instanceId;
+    const drawId = s.inst("evolutionDraw").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("skullseadramon").instanceId,
-        ...(alternateRequirementIndex === undefined ? {} : { alternateRequirementIndex }),
+        ...(alternateRequirementIndex === undefined ? {} : { useAlternateCost: true, alternateRequirementIndex }),
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("skullseadramon").instanceId);
     await settle(() => s.perm("target").stack.length === 0);
 
     expect(s.state.memory).toBe(6 - cost);
-    expect(s.perm("base").topCard.instanceId).toBe(s.inst("skullseadramon").instanceId);
+    expect(s.perm("base").topCard.instanceId).toBe(evolvedId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([...targetSourceIds].reverse());
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("deletes the emptied Digimon when played by an effect", async () => {
+  it("public Dead or Alive effect-play trashes sources before deleting the emptied target", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }] },
+        0: {
+          battleArea: [
+            { card: "BT1-043", as: "target", under: ["BT1-028", "BT1-032", "BT1-038"] },
+            { card: "BT1-043", as: "neighbor", under: ["BT1-028", "BT1-032", "BT1-038"] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT10-071", as: "source" }],
+          trash: [{ card: "BT24-074", as: "skullseadramon" }],
+          hand: [{ card: "BT7-109", as: "deadOrAlive" }],
+        },
       },
       { autoSelectCards: true },
     );
     const targetId = s.perm("target").permanentId;
+    const neighborId = s.perm("neighbor").permanentId;
+    const targetTopId = s.perm("target").topCard.instanceId;
+    const sourceIds = s.perm("target").stack.map((card) => card.instanceId);
+    const neighborStackIds = s.perm("neighbor").stack.map((card) => card.instanceId);
+    const optionId = s.inst("deadOrAlive").instanceId;
+    const playedId = s.inst("skullseadramon").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("skullseadramon"), { enteredByEffect: 0 });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId));
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
-    expect(s.state.players[1]!.trash).toHaveLength(4);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(neighborId);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual(neighborStackIds);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      [...sourceIds].reverse().concat(targetTopId),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(playedId);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("when digivolving only trashes sources even when entered by an effect", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-009"] }] },
+        1: { battleArea: [{ card: "BT1-043", as: "target", under: ["BT1-028", "BT1-032", "BT1-038"] }] },
       },
       { autoSelectCards: true },
     );
@@ -139,7 +185,7 @@ describe("BT24-074 SkullSeadramon", () => {
     });
 
     expect(s.perm("target").stack).toHaveLength(0);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(3);
   });
 
   it.each([
@@ -246,34 +292,144 @@ describe("BT24-074 SkullSeadramon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
-  it("inherited attack places another Digimon at the bottom to unsuspend its host", async () => {
+  it("inherited attack suppresses a same-turn repeat and resets on the next owner turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT1-080", as: "host", under: ["BT24-074"] },
-            { card: "BT1-009", as: "cost" },
+            { card: "BT3-089", as: "host", under: ["BT24-074"] },
+            { card: "BT1-009", as: "costA" },
+            { card: "BT1-015", as: "costB" },
           ],
+          deck: ["BT1-016", "BT1-017"],
         },
-        1: { security: ["BT1-009", "BT1-010"] },
+        1: {
+          security: [
+            { card: "BT1-011", as: "securityA" },
+            { card: "BT1-012", as: "securityB" },
+            { card: "BT1-013", as: "securityC" },
+          ],
+          deck: ["BT1-016", "BT1-017"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    const costPermanentId = s.perm("cost").permanentId;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const hostTopId = s.perm("host").topCard.instanceId;
+    const sourceId = s.perm("host").stack[0]!.instanceId;
+    const costAId = s.inst("costA").instanceId;
+    const costBId = s.inst("costB").instanceId;
+    const securityIds = ["securityA", "securityB", "securityC"].map((alias) => s.inst(alias).instanceId);
 
+    preferred.push(s.perm("costA").permanentId);
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
+        attackerPermanentId: hostId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costPermanentId));
-    await settle(() => !observe(s.engine).isAttacking());
-
-    expect(s.perm("host").stack[0]?.instanceId).toBe(s.inst("cost").instanceId);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(costPermanentId);
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityIds[0]);
+    expect(s.perm("host").topCard.instanceId).toBe(hostTopId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costAId, sourceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === costAId)).toBe(false);
     expect(s.perm("host").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityIds[1]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costAId, sourceId]);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, s.perm("costB").permanentId);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 3 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityIds[2]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("host").topCard.instanceId).toBe(hostTopId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([costBId, costAId, sourceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === costBId)).toBe(false);
+    expect(s.perm("host").isSuspended).toBe(false);
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+  });
+
+  it("public inherited refusal leaves the host suspended and the offered cost in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-089", as: "host", under: ["BT24-074"] },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+        1: { security: [{ card: "BT1-011", as: "security" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.perm("host").stack[0]!.instanceId;
+    const costId = s.perm("cost").permanentId;
+    const securityId = s.inst("security").instanceId;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 && !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([securityId]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(costId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });
