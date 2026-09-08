@@ -32,8 +32,11 @@ describe("BT24-062 MasterBlimpmon", () => {
     for (const effect of effects ?? []) {
       expect(effect.frequency).toBe("OncePerTurn");
       expect(effect.sharedUseKey).toBe("ir-shared-0");
-      expect(effect.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"] });
-      expect((effect.actions?.[0] as any).target.source).toBe("thisDigimon");
+      const action = effect.actions?.[0];
+      expect(action?.kind).toBe("PlayWithoutCost");
+      if (action?.kind !== "PlayWithoutCost") throw new Error("frequency action is not PlayWithoutCost");
+      expect(action).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"] });
+      expect(action.target.source).toBe("thisDigimon");
     }
   });
 
