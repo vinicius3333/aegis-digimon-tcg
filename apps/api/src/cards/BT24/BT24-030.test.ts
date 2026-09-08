@@ -230,6 +230,69 @@ describe("BT24-030 Neptunemon", () => {
     expect(s.perm("neptunemon").isSuspended).toBe(true);
   });
 
+  it("suppresses a second same-turn unsuspend and resets on its next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-030", as: "neptunemon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const neptunemonId = s.perm("neptunemon").permanentId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: neptunemonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("neptunemon").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: neptunemonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("neptunemon").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: neptunemonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("neptunemon").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
+  });
+
   it("does not protect from an owner-effect removal when no opponent provenance is present", async () => {
     const s = setupEngine(
       {
