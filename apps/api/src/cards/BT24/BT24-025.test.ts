@@ -24,25 +24,23 @@ describe("BT24-025 Shellmon", () => {
   });
 
   it("digivolves on another blue TS Digimon's unsuspend, ignoring only level", () => {
-    const sub = compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions?.[0] as any;
-    expect(sub).toMatchObject({
-      kind: "SubTrigger",
-      event: "whenUnsuspended",
-      sourceFilter: { excludeSelf: true, colors: ["Blue"] },
-    });
-    expect(sub.actions[0]).toMatchObject({
-      kind: "Digivolve",
-      from: ["hand"],
-      payCost: true,
-      ignoreLevelRequirement: true,
-      optional: true,
+    expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          sourceFilter: { excludeSelf: true, colors: ["Blue"] },
+          actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, ignoreLevelRequirement: true, optional: true }],
+        },
+      ],
     });
   });
 
   it("keeps the once-per-turn end-of-turn unsuspend and inherited Jamming", () => {
-    const end = compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn") as any;
-    expect(end.frequency).toBe("OncePerTurn");
-    expect(end.actions[0]).toMatchObject({ kind: "Unsuspend", optional: true });
+    expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Unsuspend", optional: true }],
+    });
     expect(compiled.effects.find((effect) => effect.isInherited)?.keywords?.[0]?.keyword).toBe("Jamming");
   });
 
@@ -175,6 +173,55 @@ describe("BT24-025 Shellmon", () => {
     );
     expect(sourceTrashIndex).toBeGreaterThanOrEqual(0);
     expect(sourceTrashIndex).toBeLessThan(drawPhaseIndex);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("does not react to self, red TS, or non-TS unsuspends in a public turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-025", as: "shellmon", suspended: true },
+            { card: "BT24-011", as: "redTs", suspended: true },
+            { card: "BT1-009", as: "nonTs", suspended: true },
+          ],
+          hand: [{ card: "BT24-040", as: "venusmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => !s.perm("shellmon").isSuspended && !s.perm("redTs").isSuspended);
+    expect(s.perm("shellmon").topCard.cardId).toBe("BT24-025");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("publicly refuses Venusmon evolution after a qualifying unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-025", as: "shellmon" },
+            { card: "BT24-020", as: "trigger", suspended: true },
+          ],
+          hand: [{ card: "BT24-040", as: "venusmon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => !s.perm("trigger").isSuspended);
+    expect(s.perm("shellmon").topCard.cardId).toBe("BT24-025");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
