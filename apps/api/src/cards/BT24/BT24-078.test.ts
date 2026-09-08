@@ -204,61 +204,10 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     );
   });
 
-  it.each([["EX10-009 attack first", ["EX10-009"], true]])(
-    "Q5656 public simultaneous order: %s",
-    async (_label, preferredTriggerKeys, candidateInBreeding) => {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [{ card: "EX10-009", as: "creepymon" }],
-            trash: [
-              { card: "BT24-078", as: "creepymonX" },
-              { card: "BT1-009", as: "breedingCandidate" },
-            ],
-            deck: [{ card: "BT1-010", as: "bonusDraw" }],
-          },
-          1: {
-            security: [
-              { card: "BT1-009", as: "securityEffect" },
-              { card: "BT1-010", as: "securityChecked" },
-              { card: "BT1-011", as: "securityRemaining" },
-            ],
-            trash: Array.from({ length: 10 }, () => "BT1-012"),
-          },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: preferredTriggerKeys },
-      );
-      const sourceId = s.inst("creepymon").instanceId;
-      const candidateId = s.inst("breedingCandidate").instanceId;
-      const memoryBefore = s.state.memory;
-      await s.ready();
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: s.perm("creepymon").permanentId,
-          target: { kind: "player" },
-        }),
-      ).toEqual({ ok: true });
-      await settle(
-        () =>
-          !observe(s.engine).isAttacking() && s.events.filter((event) => event.kind === "securityChecked").length === 1,
-      );
-      expect(s.state.memory).toBe(memoryBefore);
-      expect(s.perm("creepymon").topCard.instanceId).toBe(s.inst("creepymonX").instanceId);
-      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
-      expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
-        s.inst("securityRemaining").instanceId,
-      ]);
-      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
-        expect.arrayContaining([s.inst("securityEffect").instanceId, s.inst("securityChecked").instanceId]),
-      );
-      expect(s.state.players[0]!.breeding?.topCard?.instanceId === candidateId).toBe(candidateInBreeding);
-      expect(s.state.players[0]!.trash.map((card) => card.instanceId).includes(candidateId)).toBe(!candidateInBreeding);
-      expect(s.perm("creepymon").stack.map((card) => card.instanceId)).toEqual([sourceId]);
-    },
-  );
-
-  it.fails("Q5656 trash-evolution-first public order currently fails its endpoint", async () => {
+  it.each([
+    ["BT24-078 trash evolution first", "BT24-078", false],
+    ["EX10-009 attack first", "EX10-009", true],
+  ] as const)("Q5656 public simultaneous order: %s", async (_label, firstCardId, candidateInBreeding) => {
     const s = setupEngine(
       {
         0: {
@@ -269,10 +218,20 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
           ],
           deck: [{ card: "BT1-010", as: "bonusDraw" }],
         },
-        1: { security: ["BT1-009", "BT1-010", "BT1-011"], trash: Array.from({ length: 10 }, () => "BT1-012") },
+        1: {
+          security: [
+            { card: "BT1-009", as: "securityEffect" },
+            { card: "BT1-010", as: "securityChecked" },
+            { card: "BT1-011", as: "securityRemaining" },
+          ],
+          trash: Array.from({ length: 10 }, () => "BT1-012"),
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT24-078"] },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
+    const sourceId = s.inst("creepymon").instanceId;
+    const candidateId = s.inst("breedingCandidate").instanceId;
+    const memoryBefore = s.state.memory;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -281,8 +240,41 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
-    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBeUndefined();
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const ordering = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === ordering.decisionId)!.req;
+    const triggerCardIds = request.options?.triggerCardIds ?? [];
+    const triggerKeys = request.options?.triggerKeys ?? [];
+    expect(triggerCardIds).toEqual(expect.arrayContaining(["EX10-009", "BT24-078"]));
+    expect(triggerCardIds).toHaveLength(2);
+    const firstIndex = triggerCardIds.indexOf(firstCardId);
+    expect(firstIndex).toBeGreaterThanOrEqual(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderTriggers", order: [triggerKeys[firstIndex]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() && s.events.filter((event) => event.kind === "securityChecked").length === 1,
+    );
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.perm("creepymon").topCard.instanceId).toBe(s.inst("creepymonX").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("securityRemaining").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("securityEffect").instanceId, s.inst("securityChecked").instanceId]),
+    );
+    expect(s.state.players[0]!.breeding?.topCard?.instanceId === candidateId).toBe(candidateInBreeding);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).includes(candidateId)).toBe(!candidateInBreeding);
+    expect(s.perm("creepymon").stack.map((card) => card.instanceId)).toEqual([sourceId]);
   });
 
   it("does not trigger from trash below 10 cards in the opponent's trash", async () => {
