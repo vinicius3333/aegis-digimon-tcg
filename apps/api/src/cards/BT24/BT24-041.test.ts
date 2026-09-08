@@ -148,6 +148,48 @@ describe("BT24-041 Minervamon", () => {
     );
   });
 
+  it("Q5628 boundary: respects a public De-Digivolve immunity on the selected top", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-034", as: "other" }],
+          hand: [{ card: "BT24-041", as: "minervamon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-018", as: "target", under: [{ card: "BT1-009", as: "targetSource" }] }],
+          hand: [{ card: "P-162", as: "protector" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("target").topCard.instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("protector").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cantBeDeDigivolved"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cantBeDeDigivolved")).toBe(true);
+    const targetStack = s.perm("target").stack.map((card) => card.instanceId);
+    const targetTop = s.perm("target").topCard.instanceId;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("target").topCard.instanceId).toBe(targetTop);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual(targetStack);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("targetSource").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("resolves the On Deletion play and De-Digivolve sequence publicly", async () => {
     const s = setupEngine(
       {
