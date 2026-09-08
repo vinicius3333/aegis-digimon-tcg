@@ -4,6 +4,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_089 } from "./BT24-089.js";
 import "../index.js";
 
@@ -48,6 +49,96 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
         ],
       },
     });
+  });
+
+  it.each([
+    ["Elizamon from hand", "BT24-008", "hand"],
+    ["Owen Dreadnought from trash", "BT24-082", "trash"],
+  ])("publicly plays the exact %s and places the Option in battle", async (_label, targetCard, zone) => {
+    const board = {
+      0: {
+        battleArea: [{ card: "BT1-009", as: "redSource" }],
+        hand: [
+          { card: "BT24-089", as: "option" },
+          ...(zone === "hand" ? [{ card: targetCard, as: "target" }] : []),
+          { card: "BT1-009", as: "spare" },
+        ],
+        ...(zone === "trash" ? { trash: [{ card: targetCard, as: "target" }] } : {}),
+      },
+    } as Parameters<typeof setupEngine>[0];
+    const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    const targetId = s.inst("target").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-089"),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(optionId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(targetId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(optionId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(targetId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("places itself when no exact-target Main play is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [
+            { card: "BT24-089", as: "option" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          trash: [{ card: "BT24-010", as: "wrongName" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-089"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT24-089");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongName").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("places itself after refusing an available exact-target Main play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [
+            { card: "BT24-089", as: "option" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          trash: [{ card: "BT24-008", as: "elizamon" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(optionId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("elizamon").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("plays an exact Elizamon or Owen and places itself in the battle area", async () => {
@@ -196,13 +287,29 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
           security: [{ card: "BT24-089", as: "option" }],
           trash: [{ card: "BT24-008", as: "elizamon" }],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("option"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-089"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-089")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-008")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
