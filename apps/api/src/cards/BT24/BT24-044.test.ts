@@ -22,7 +22,7 @@ describe("BT24-044 Muchomon", () => {
       condition: { kind: "lastSuspendedIsMine" },
       rest: "deckBottom",
     });
-    expect((reveal as any).add).toHaveLength(2);
+    expect(reveal).toMatchObject({ add: [{}, {}] });
     expect(compiled.effects[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn" });
   });
 
@@ -112,7 +112,7 @@ describe("BT24-044 Muchomon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT24-044", as: "source" }], deck: ["P-133", "ST1-02", "BT1-009"] },
+        0: { hand: [{ card: "BT24-044", as: "source" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
         1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
@@ -131,6 +131,39 @@ describe("BT24-044 Muchomon", () => {
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("refuses the optional suspension and excludes an opposing level-7 Digimon", async () => {
+    const refusal = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-044", as: "source" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    const refusalDeck = refusal.state.players[0]!.deck.map((card) => card.instanceId);
+    await refusal.ready();
+    expect(refusal.engine.applyIntent(0, { type: "playCard", instanceId: refusal.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => refusal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-044"));
+    expect(refusal.perm("source").isSuspended).toBe(false);
+    expect(refusal.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(refusalDeck);
+
+    const level7 = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-044", as: "source" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        1: { battleArea: [{ card: "BT19-074", as: "level7" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await level7.ready();
+    expect(level7.engine.applyIntent(0, { type: "playCard", instanceId: level7.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => level7.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-044"));
+    expect(level7.perm("level7").isSuspended).toBe(false);
+    expect(level7.state.players[0]!.deck).toHaveLength(3);
   });
 
   it("inherited effect gains memory when its host deletes an opponent in battle and survives", async () => {
