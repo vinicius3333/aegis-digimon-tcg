@@ -363,14 +363,16 @@ describe("BT24-079 Hadesmon", () => {
         0: {
           battleArea: [
             { card: "BT24-079", as: "hadesmon" },
-            { card: "BT24-032", as: "fodder" },
+            { card: "BT21-009", as: "fodder" },
           ],
         },
-        1: { security: ["BT1-013"] },
+        1: { security: [{ card: "BT1-090", as: "checkedSecurity" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const fodderId = s.perm("fodder").permanentId;
+    const fodderCardId = s.inst("fodder").instanceId;
+    const checkedSecurityId = s.inst("checkedSecurity").instanceId;
     await s.ready();
 
     const turn = s.engine.runOneTurn();
@@ -382,6 +384,75 @@ describe("BT24-079 Hadesmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === fodderId)).toBe(false);
     expect(s.perm("hadesmon").isSuspended).toBe(false);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(checkedSecurityId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(fodderCardId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("may refuse Overclock before deleting an other-Appmon cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "BT24-032", as: "fodder" },
+          ],
+          security: ["BT1-013"],
+        },
+        1: { security: ["BT1-014"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const fodderId = s.perm("fodder").permanentId;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await settle(() => (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase.isOpen);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === fodderId)).toBe(true);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("pays Overclock with the supported Token fixture and completes its attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "TOKEN-Petrification-Token", as: "token" },
+          ],
+        },
+        1: {
+          security: [{ card: "BT1-090", as: "checkedSecurity" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const tokenId = s.perm("token").permanentId;
+    const tokenCardId = s.inst("token").instanceId;
+    const securityId = s.inst("checkedSecurity").instanceId;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await settle(() => (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase.isOpen);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === tokenId));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await turn;
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === tokenId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(tokenCardId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityId);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("hadesmon").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("plays a System Digimon and then free-links an Appmon card to a chosen Digimon", async () => {
@@ -426,6 +497,159 @@ describe("BT24-079 Hadesmon", () => {
       ),
     ).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
+  });
+
+  it("publicly links Hadesmon's own source to a neighboring Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-077", as: "base", under: [{ card: "BT24-071", as: "ownSource" }] },
+            { card: "BT24-077", as: "neighbor", under: [{ card: "BT24-071", as: "otherSource" }] },
+          ],
+          hand: [{ card: "BT24-079", as: "hadesmon" }],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false },
+    );
+    const baseId = s.perm("base").permanentId;
+    const neighborId = s.perm("neighbor").permanentId;
+    const ownSourceId = s.inst("ownSource").instanceId;
+    const otherSourceId = s.inst("otherSource").instanceId;
+    const bonusDrawId = s.inst("bonusDraw").instanceId;
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: baseId,
+        instanceId: s.inst("hadesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("hadesmon").instanceId);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const linkOptional = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-079");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: linkOptional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const recipientDecision = s.state.pendingDecision!;
+    expect(recipientDecision.payloadJson).toContain(neighborId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: recipientDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [neighborId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const sourceDecision = s.state.pendingDecision!;
+    expect(sourceDecision.payloadJson).toContain(ownSourceId);
+    expect(sourceDecision.payloadJson).not.toContain(otherSourceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: sourceDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [ownSourceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard.cardId === "BT24-079");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(bonusDrawId);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("hadesmon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual([otherSourceId]);
+    expect(s.perm("neighbor").linked.map((card) => card.instanceId)).toEqual([ownSourceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("rejects an invalid public App Fusion pair without changing the fusion target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: "BT24-077", as: "revivemon" },
+          ],
+          hand: [
+            { card: "BT24-071", as: "wrongPair" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+          trash: [{ card: "BT24-079", as: "fusion" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const revivemonId = s.perm("revivemon").permanentId;
+    const revivemonTopId = s.perm("revivemon").topCard.instanceId;
+    const wrongPairId = s.inst("wrongPair").instanceId;
+    const fusionId = s.inst("fusion").instanceId;
+    const deckBefore = s.state.players[0]!.deck.map((card) => card.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "linkCard", instanceId: wrongPairId, targetPermanentId: revivemonId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-087");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const fusionDecision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT24-087");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: fusionDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore.slice(1));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(fusionId);
+    expect(s.perm("revivemon").permanentId).toBe(revivemonId);
+    expect(s.perm("revivemon").topCard.instanceId).toBe(revivemonTopId);
+    expect(s.perm("revivemon").stack).toHaveLength(0);
+    expect(s.perm("revivemon").linked.map((card) => card.instanceId)).toEqual([wrongPairId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("rejects an illegal neutral-red level-5 evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-020", as: "neutralRed" }],
+        hand: [{ card: "BT24-079", as: "hadesmon" }],
+      },
+    });
+    const permanentId = s.perm("neutralRed").permanentId;
+    const handId = s.inst("hadesmon").instanceId;
+    const topId = s.perm("neutralRed").topCard.instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: handId })).toEqual({
+      ok: false,
+      reason: "invalid-evolution",
+    });
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("neutralRed").topCard.instanceId).toBe(topId);
+    expect(s.perm("neutralRed").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(handId);
   });
 
   it("only free-links from Hadesmon's own digivolution cards", async () => {
@@ -758,5 +982,43 @@ describe("BT24-079 Hadesmon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("hadesmon"), "Overclock")).toBe(true);
     expect(observe(s.engine).linkMaxDelta(s.perm("hadesmon"))).toBe(1);
+  });
+
+  it("publicly retains two paid Appmon links with Link +1 capacity", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-079", as: "hadesmon" }],
+        hand: [
+          { card: "BT24-071", as: "firstLink" },
+          { card: "BT24-032", as: "secondLink" },
+        ],
+      },
+    });
+    const hostId = s.perm("hadesmon").permanentId;
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("firstLink").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hadesmon").linked.some((card) => card.instanceId === s.inst("firstLink").instanceId));
+    expect(s.state.memory).toBe(8);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("secondLink").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hadesmon").linked.some((card) => card.instanceId === s.inst("secondLink").instanceId));
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("hadesmon").linked.map((card) => card.instanceId)).toEqual([
+      s.inst("secondLink").instanceId,
+      s.inst("firstLink").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
