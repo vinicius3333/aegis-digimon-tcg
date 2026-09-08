@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -39,7 +39,7 @@ describe("BT24-055 Ginryumon", () => {
       expect(action.cost).toMatchObject({
         kind: "place",
         position: "bottom",
-        target: { filter: { namesExact: ["Shuu Yulin"] } },
+        target: { filter: { nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] } },
       });
     }
   });
@@ -117,21 +117,48 @@ describe("BT24-055 Ginryumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT24-054", as: "target" }],
+          hand: [
             { card: "BT24-055", as: "ginryumon" },
-            { card: "BT24-054", as: "target" },
+            { card: "BT15-087", as: "shuu" },
           ],
-          hand: [{ card: "BT15-087", as: "shuu" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ginryumon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ginryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ginryumon").topCard.instanceId === s.inst("ginryumon").instanceId);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shuu").instanceId);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "cantBeDeDigivolved", "Digimon")).toBe(false);
+  });
+
+  it("does not accept a wrong-name Tamer as the placement cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-055", as: "ginryumon" },
+            { card: "BT1-089", as: "wrongTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ginryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("ginryumon").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongTamer").instanceId);
+    expect(s.perm("ginryumon").stack).toHaveLength(0);
   });
 
   it("inherited effect responds only when its own host suspends", async () => {

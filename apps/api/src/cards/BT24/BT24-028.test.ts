@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -49,7 +49,7 @@ describe("BT24-028 Divermon", () => {
   it("uses an exact Neptunemon target for the free unsuspend evolution", () => {
     const action = (compiled.effects.find((effect) => effect.trigger === "YourTurn") as any).actions[0].actions[0];
     expect(action).toMatchObject({ kind: "Digivolve", from: ["hand"], payCost: false, optional: true });
-    expect(action.into.namesExact).toEqual(["Neptunemon"]);
+    expect(action.into.nameOrTrait).toEqual([{ tokens: ["Neptunemon"], match: "nameExact" }]);
   });
 
   it("pays the placement cost before granting Blocker and battle-deletion immunity", async () => {
@@ -81,12 +81,13 @@ describe("BT24-028 Divermon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("divermon").permanentId], "byBattle")).toBe(1);
   });
 
-  it("free-evolves into Neptunemon in the unsuspend trigger window (Q5608)", async () => {
+  it("publicly free-evolves into exact Neptunemon during the Active phase (Q5608)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-028", as: "divermon" }],
+          battleArea: [{ card: "BT24-028", as: "divermon", suspended: true }],
           hand: [{ card: "BT24-030", as: "neptunemon" }],
+          deck: [{ card: "BT1-014", as: "evolutionDraw" }, "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -94,12 +95,42 @@ describe("BT24-028 Divermon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenUnsuspended", {
-      unsuspendedPermanentId: s.perm("divermon").permanentId,
-    });
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.perm("divermon").topCard.instanceId === s.inst("neptunemon").instanceId);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId));
 
     expect(s.state.memory).toBe(5);
+    expect(s.perm("divermon").topCard.instanceId).toBe(s.inst("neptunemon").instanceId);
+    expect(s.perm("divermon").stack.map((card) => card.instanceId)).toEqual([s.inst("divermon").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("does not free-evolve into another legal level-6 target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-028", as: "divermon", suspended: true }],
+          hand: [{ card: "BT24-029", as: "wrongTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.phase === Phase.Main);
+
+    expect(s.perm("divermon").topCard.instanceId).toBe(s.inst("divermon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongTarget").instanceId);
+    expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("inherited play removes a level 4 blue TS card from this stack only once", async () => {

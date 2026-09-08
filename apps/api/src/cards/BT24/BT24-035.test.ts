@@ -36,7 +36,7 @@ describe("BT24-035 Gatomon", () => {
         payCost: true,
         optional: true,
         condition: { kind: "isYourTurn" },
-        into: { namesExact: ["Silphymon"] },
+        into: { nameOrTrait: [{ tokens: ["Silphymon"], match: "nameExact" }] },
       });
     }
     expect(BT24_035.effects?.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Barrier");

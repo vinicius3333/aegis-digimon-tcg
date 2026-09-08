@@ -83,6 +83,7 @@ describe("BT24-054 Ryudamon", () => {
           hand: [
             { card: "BT15-087", as: "shuu" },
             { card: "BT24-060", as: "hisyaryumon" },
+            { card: "BT24-055", as: "wrongLevel" },
           ],
         },
       },
@@ -95,6 +96,32 @@ describe("BT24-054 Ryudamon", () => {
     await settle(() => s.perm("ryudamon").topCard.instanceId === s.inst("hisyaryumon").instanceId);
 
     expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongLevel").instanceId);
+  });
+
+  it("does not react to a public Monodramon play or select Ginryumon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-054", as: "ryudamon" }],
+          hand: [
+            { card: "BT1-009", as: "monodramon" },
+            { card: "BT24-055", as: "wrongLevel" },
+            { card: "BT15-087", as: "shuu" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("monodramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("ryudamon").topCard.cardId).toBe("BT24-054");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongLevel").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shuu").instanceId);
   });
 
   it("inherited effect suspends only a target within its host's play cost when that host suspends", async () => {

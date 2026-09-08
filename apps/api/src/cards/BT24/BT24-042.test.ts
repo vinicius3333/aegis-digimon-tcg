@@ -60,6 +60,10 @@ describe("BT24-042 Goblimon", () => {
       },
       isSelf: true,
     });
+    expect(digivolve.into?.or).toEqual([
+      { nameOrTrait: [{ tokens: ["Titamon"], match: "nameExact" }] },
+      { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
+    ]);
   });
 
   it("uses exact Tsunomon and alternate TS egg routes", () => {
@@ -161,6 +165,31 @@ describe("BT24-042 Goblimon", () => {
 
     expect(s.perm("host").topCard.cardId).toBe("BT24-046");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("titamon").instanceId);
+  });
+
+  it("does not select a legal purple level-6 that is neither Titamon nor Titan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-042"] }],
+          hand: [
+            { card: "BT24-045", as: "discarder" },
+            { card: "BT1-009", as: "discardCost" },
+          ],
+          trash: [{ card: "BT10-069", as: "wrongTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discardCost").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT24-072");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongTarget").instanceId);
+    expect(s.state.memory).toBe(6);
   });
 
   it.each([

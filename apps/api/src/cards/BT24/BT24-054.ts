@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,7 @@ export const compiled: CompiledCard = {
           event: "whenPlayed",
           sourceFilter: {
             controller: "mine",
-            namesExact: ["Shuu Yulin"],
+            nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }],
           },
           actions: [
             {
@@ -29,7 +28,7 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
-                namesExact: ["Hisyaryumon"],
+                nameOrTrait: [{ tokens: ["Hisyaryumon"], match: "nameExact" }],
               },
               payCost: true,
               from: ["hand"],

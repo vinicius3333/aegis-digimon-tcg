@@ -172,6 +172,31 @@ describe("BT24-045 Ogremon", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("does not select a legal purple level-6 that is neither Titamon nor Titan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-045"] }],
+          hand: [
+            { card: "BT24-026", as: "hyogamon" },
+            { card: "BT1-009", as: "discardCost" },
+          ],
+          trash: [{ card: "BT10-069", as: "wrongTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discardCost").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT24-072");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongTarget").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
+
   it.each([
     ["normal green requirement", "BT1-065", false, 3],
     ["alternate Demon requirement", "BT11-021", true, 2],

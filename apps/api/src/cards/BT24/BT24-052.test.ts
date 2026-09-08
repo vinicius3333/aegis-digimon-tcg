@@ -34,11 +34,20 @@ describe("BT24-052 Keramon (X Antibody)", () => {
   });
   it("requires the exact Diaboromon name for its optional paid replacement", () => {
     const inherited = BT24_052.effects?.find((entry) => entry.isInherited);
-    const replacement = inherited?.actions?.[0] as any;
+    const replacement = inherited?.actions?.[0] as {
+      actions?: Array<{
+        cost?: { kind?: string; raw?: string; target?: { filter?: Record<string, unknown> } };
+        optional?: boolean;
+        abortOnDecline?: boolean;
+      }>;
+    };
     const prevent = replacement.actions?.[0];
+    if (prevent?.cost?.target?.filter === undefined) throw new Error("replacement cost target filter missing");
     expect(prevent.cost).toMatchObject({ kind: "deleteOwn", raw: "by deleting 1 of your other [Diaboromon]" });
     expect(prevent).toMatchObject({ optional: true, abortOnDecline: true });
-    expect(prevent.cost.target.filter).toMatchObject({ namesExact: ["Diaboromon"] });
+    expect(prevent.cost.target.filter).toMatchObject({
+      nameOrTrait: [{ tokens: ["Diaboromon"], match: "nameExact" }],
+    });
   });
 
   it("digivolves from Keramon for cost 0 and plays a Diaboromon Token", async () => {
@@ -132,6 +141,98 @@ describe("BT24-052 Keramon (X Antibody)", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
+  });
+
+  it("publicly protects the host by paying with an exact Diaboromon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "host", dp: 1000, under: ["BT24-052"] },
+            { card: "BT17-059", as: "exactCost", dp: 13000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const exactCostId = s.inst("exactCost").instanceId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === exactCostId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+
+  it("publicly leaves the host when the only other permanent has the wrong name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "host", dp: 1000, under: ["BT24-052"] },
+            { card: "BT1-009", as: "wrongName", dp: 13000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const wrongNameId = s.perm("wrongName").permanentId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === wrongNameId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+
+  it("publicly allows departure when the replacement cost is refused", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "host", dp: 1000, under: ["BT24-052"] },
+            { card: "BT17-059", as: "exactCost", dp: 13000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const exactCostId = s.perm("exactCost").permanentId;
+    const optionId = s.inst("option").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === exactCostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
   it("may decline the deletion cost and let the host leave", async () => {

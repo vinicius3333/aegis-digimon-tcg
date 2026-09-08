@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -33,7 +32,7 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            namesExact: ["Silphymon"],
+            nameOrTrait: [{ tokens: ["Silphymon"], match: "nameExact" }],
           },
           payCost: true,
           condition: {
@@ -70,7 +69,7 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            namesExact: ["Silphymon"],
+            nameOrTrait: [{ tokens: ["Silphymon"], match: "nameExact" }],
           },
           payCost: true,
           condition: {

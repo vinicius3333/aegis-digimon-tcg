@@ -93459,7 +93459,10 @@
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "into": { "controllerDefault": "mine", "namesExact": ["Neptunemon"] },
+                "into": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Neptunemon"], "match": "nameExact" }]
+                },
                 "payCost": false,
                 "from": ["hand"],
                 "optional": true
@@ -93984,7 +93987,7 @@
           {
             "kind": "DnaDigivolve",
             "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "namesExact": ["Silphymon"] },
+            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Silphymon"], "match": "nameExact" }] },
             "payCost": true,
             "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
             "optional": true
@@ -94003,7 +94006,7 @@
           {
             "kind": "DnaDigivolve",
             "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "namesExact": ["Silphymon"] },
+            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Silphymon"], "match": "nameExact" }] },
             "payCost": true,
             "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
             "optional": true
@@ -94659,7 +94662,10 @@
                 "into": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "or": [{ "namesExact": ["Titamon"] }, { "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }] }]
+                  "or": [
+                    { "nameOrTrait": [{ "tokens": ["Titamon"], "match": "nameExact" }] },
+                    { "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }] }
+                  ]
                 },
                 "from": ["trash"],
                 "payCost": true,
@@ -94883,7 +94889,10 @@
                 "into": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "or": [{ "namesExact": ["Titamon"] }, { "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }] }]
+                  "or": [
+                    { "nameOrTrait": [{ "tokens": ["Titamon"], "match": "nameExact" }] },
+                    { "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }] }
+                  ]
                 },
                 "from": ["trash"],
                 "payCost": true,
@@ -95394,7 +95403,11 @@
                 "cost": {
                   "kind": "deleteOwn",
                   "target": {
-                    "filter": { "controller": "mine", "excludeSelf": true, "namesExact": ["Diaboromon"] },
+                    "filter": {
+                      "controller": "mine",
+                      "excludeSelf": true,
+                      "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "raw": "by deleting 1 of your other [Diaboromon]"
@@ -95434,12 +95447,18 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controller": "mine", "namesExact": ["Shuu Yulin"] },
+            "sourceFilter": {
+              "controller": "mine",
+              "nameOrTrait": [{ "tokens": ["Shuu Yulin"], "match": "nameExact" }]
+            },
             "actions": [
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "into": { "controllerDefault": "mine", "namesExact": ["Hisyaryumon"] },
+                "into": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Hisyaryumon"], "match": "nameExact" }]
+                },
                 "payCost": true,
                 "from": ["hand"],
                 "costOverride": 3,
@@ -95505,7 +95524,11 @@
             "cost": {
               "kind": "place",
               "target": {
-                "filter": { "zone": "hand", "controller": "mine", "namesExact": ["Shuu Yulin"] },
+                "filter": {
+                  "zone": "hand",
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["Shuu Yulin"], "match": "nameExact" }]
+                },
                 "count": 1,
                 "from": ["hand"]
               },
@@ -95538,7 +95561,11 @@
             "cost": {
               "kind": "place",
               "target": {
-                "filter": { "zone": "hand", "controller": "mine", "namesExact": ["Shuu Yulin"] },
+                "filter": {
+                  "zone": "hand",
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["Shuu Yulin"], "match": "nameExact" }]
+                },
                 "count": 1,
                 "from": ["hand"]
               },
