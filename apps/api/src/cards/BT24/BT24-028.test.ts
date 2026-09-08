@@ -25,7 +25,12 @@ describe("BT24-028 Divermon", () => {
 
   it("requires the qualifying hand placement on entry", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as any;
+      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as {
+        kind: string;
+        cost: { kind: string; destination: string; position: string; optional?: unknown; abortOnDecline?: unknown };
+        abortOnDecline?: unknown;
+        additionalEffect?: unknown;
+      };
       expect(action.kind).toBe("GainKeyword");
       expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
       expect(action.cost.optional).toBeUndefined();
@@ -36,7 +41,13 @@ describe("BT24-028 Divermon", () => {
   });
 
   it("keeps the inherited TS play effect scoped to this stack", () => {
-    const action = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")?.actions?.[0] as any;
+    const action = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")?.actions?.[0] as {
+      kind: string;
+      from?: string[];
+      fromOwnDigivolutionStack?: boolean;
+      optional?: boolean;
+      target: { filter: unknown };
+    };
     expect(action).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],
@@ -47,7 +58,19 @@ describe("BT24-028 Divermon", () => {
   });
 
   it("uses an exact Neptunemon target for the free unsuspend evolution", () => {
-    const action = (compiled.effects.find((effect) => effect.trigger === "YourTurn") as any).actions[0].actions[0];
+    const action = (
+      compiled.effects.find((effect) => effect.trigger === "YourTurn") as {
+        actions: Array<{
+          actions: Array<{
+            kind: string;
+            from?: string[];
+            payCost?: boolean;
+            optional?: boolean;
+            into: { nameOrTrait?: unknown };
+          }>;
+        }>;
+      }
+    ).actions[0]!.actions[0]!;
     expect(action).toMatchObject({ kind: "Digivolve", from: ["hand"], payCost: false, optional: true });
     expect(action.into.nameOrTrait).toEqual([{ tokens: ["Neptunemon"], match: "nameExact" }]);
   });
@@ -192,5 +215,80 @@ describe("BT24-028 Divermon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("divermon").instanceId);
 
     expect(s.state.memory).toBe(2);
+  });
+
+  it("uses the normal blue level-4 evolution route for cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-027", as: "base" }],
+        hand: [
+          { card: "BT24-028", as: "divermon" },
+          { card: "BT24-027", as: "placed" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("divermon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("divermon").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("placed").instanceId,
+      s.inst("base").instanceId,
+    ]);
+  });
+
+  it("rejects a normal evolution from a non-blue level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "base" }], hand: [{ card: "BT24-028", as: "divermon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("divermon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("divermon").instanceId);
+  });
+
+  it("plays the inherited level-4 blue TS card through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT24-030",
+              as: "host",
+              under: [{ card: "BT24-027", as: "played" }, "BT24-028"],
+            },
+          ],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("played").instanceId);
   });
 });
