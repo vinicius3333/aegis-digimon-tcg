@@ -92584,7 +92584,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "colors": ["Red"], "cost": 3 }]
+    "digivolutionRequirement": [{ "level": 5, "colors": ["Red"], "cost": 3, "isAlternate": false }]
   },
   "BT24-018": {
     "effects": [
@@ -95967,9 +95967,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [
-      { "level": 4, "traits": ["DigiPolice", "SEEKERS"], "traitsMatchAny": true, "cost": 3, "isAlternate": true }
-    ]
+    "digivolutionRequirement": [{ "level": 4, "traits": ["DigiPolice", "SEEKERS"], "cost": 3, "isAlternate": true }]
   },
   "BT24-061": {
     "effects": [
@@ -98093,52 +98091,41 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
             "sourceFilter": {
               "controller": "mine",
               "nameOrTrait": [{ "tokens": ["Owen Dreadnought"], "match": "nameExact" }]
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Digivolve",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "or": [
+                    { "nameOrTrait": [{ "tokens": ["Reptile"], "match": "trait" }] },
+                    {
+                      "and": [
+                        { "nameOrTrait": [{ "tokens": ["Dragonkin"], "match": "trait" }] },
+                        { "nameOrTrait": [{ "tokens": ["LIBERATOR"], "match": "trait" }] }
+                      ]
+                    }
+                  ]
+                },
+                "from": ["hand"],
+                "payCost": true,
+                "reduceCost": 3,
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "requiresDelayArmed": true,
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "or": [
-                { "nameOrTrait": [{ "tokens": ["Reptile"], "match": "trait" }] },
-                {
-                  "and": [
-                    { "nameOrTrait": [{ "tokens": ["Dragonkin"], "match": "trait" }] },
-                    { "nameOrTrait": [{ "tokens": ["LIBERATOR"], "match": "trait" }] }
-                  ]
-                }
-              ]
-            },
-            "from": ["hand"],
-            "reduceCost": 3,
-            "optional": true
           }
         ]
       },
@@ -98844,6 +98831,7 @@
       },
       {
         "trigger": "YourTurn",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
@@ -98855,40 +98843,27 @@
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 5 },
+                    "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "from": ["trash"],
+                "payCost": false,
+                "condition": {
+                  "kind": "memoryAtLeast",
+                  "value": 5,
+                  "controller": "opponent",
+                  "raw": "your opponent has 5 or more memory"
+                },
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "kind": "PlayWithoutCost",
-            "requiresDelayArmed": true,
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "levelComparison": { "op": "lte", "value": 5 },
-                "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["trash"],
-            "payCost": false,
-            "condition": {
-              "kind": "memoryAtLeast",
-              "value": 5,
-              "controller": "opponent",
-              "raw": "your opponent has 5 or more memory"
-            },
-            "optional": true
           }
         ]
       },
