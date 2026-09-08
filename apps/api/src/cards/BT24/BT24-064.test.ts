@@ -184,6 +184,52 @@ describe("BT24-064 Ouryumon", () => {
     },
   );
 
+  it("publicly plays a cost-7 SEEKERS-only reveal with exact destinations", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: "BT24-064", as: "ouryumon" }],
+          deck: [
+            { card: "BT1-009", as: "bonusDraw" },
+            { card: "BT20-034", as: "seekersOnly" },
+            { card: "BT1-013", as: "miss1" },
+            { card: "BT1-015", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const sourceId = s.perm("base").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ouryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("seekersOnly").instanceId),
+    );
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([
+      s.inst("ouryumon").instanceId,
+      s.inst("seekersOnly").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("publicly refuses a reveal containing no DigiPolice or SEEKERS candidate", async () => {
     const s = setupEngine(
       {
