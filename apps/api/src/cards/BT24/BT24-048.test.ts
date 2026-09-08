@@ -248,4 +248,39 @@ describe("BT24-048 Deramon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
   });
+
+  it("uses the normal green level-4 evolution route for cost 3", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-047", as: "base" }], hand: [{ card: "BT24-048", as: "deramon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("deramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("deramon").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+  });
+
+  it("rejects evolution from a non-green level-4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "base" }], hand: [{ card: "BT24-048", as: "deramon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("deramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("deramon").instanceId);
+  });
 });

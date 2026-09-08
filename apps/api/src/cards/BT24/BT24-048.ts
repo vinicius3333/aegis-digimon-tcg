@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored: fix hatch to use Hatch action; add zone:breedingArea to Digivolve target.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

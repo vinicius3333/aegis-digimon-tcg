@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 754/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 755/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -55,7 +55,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-045 | Ogremon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-045.md). Root12green: public On Play/When Attacking cost, suspend/lock/refusal, Q5634-Q5635 draw boundary, inherited reduced evolution/filter and all evolution routes. Delivery pending. |
 | BT24-046 | Garurumon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-046.md). Root12green: public Jamming/entry suspension, exact evolution routes/invalid source and completed inherited attack target endpoint. Direct same-turn OPT suppression and natural reset remain open; delivery pending. |
 | BT24-047 | Kokatorimon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-047.md). Public suspend/unsuspend/attack sequence, opponent negative, refusal and paid normal evolution top/stack/draw. Root9green; inherited same-source frequency/reset and wider trait/route boundaries remain open. |
-| BT24-048 | Deramon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-048.md). Public Blocker, hatch/refusal, free breeding evolution with exact draw/stack/payment and legal-route non-Avian negative. Root10green; inherited frequency/reset, normal paid evolution and target boundaries open. |
+| BT24-048 | Deramon | 2 | 2 | 1 | 2 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-048.md). Root12green: public Blocker, hatch/refusal, free breeding evolution with exact draw/stack/payment, normal green level-4 evolution and non-green rejection. Inherited same-turn frequency/reset remains open; delivery pending. |
 | BT24-049 | Parrotmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-049.md). Public Fortitude replay/no-source contrast, natural lowest-DP bounce, paid routes, legal inherited host and security-trash frequency/reset. Root13green; optional refusals and wider route/target boundaries remain open. |
 | BT24-050 | WereGarurumon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-050.md). Public Evade acceptance/refusal, paid routes with exact stack/draw, Q5640 trait union and neutral-host inherited same-turn suppression/owner-turn reset. Root11green; unsuspend-restriction expiry and complete trait/DP matrix remain open. |
 | BT24-051 | Merukimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-051.md). Public Q5641 Rush/Piercing mandatory attack and DP expiry, cost boundary, exact paid routes and When Attacking frequency/reset. Root11green; shared When Digivolving counter contrast and buff refusal/target matrix open. |
