@@ -54,12 +54,12 @@ describe("EX10-052 Lucemon: Chaos Mode", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Lucemon"], cost: 5, isAlternate: true }]);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
+        cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
         actions: [
           {
             kind: "Delete",
             controller: "opponent",
             target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
-            cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
             optional: true,
             allowCostWithoutTarget: true,
           },
@@ -321,15 +321,10 @@ describe("EX10-052 Lucemon: Chaos Mode", () => {
     expect(s.state.pendingDecision ?? null).toBeNull();
   });
 
-  // RETAINED RED — engine seam. `Action.cost` gates only the action that carries it: with an
-  // empty hand the Delete is skipped (correct), but the following `ifThisEffectDidNotDelete`
-  // SecurityManipulation still resolves, so the card recovers without ever paying its printed
-  // cost. Comprehensive §5-3 (activation costs) says an unpayable cost stops the whole clause.
-  // Seam: apps/api/src/engine/effects/interpreter/effect.ts `runEffect` / `actions/runAction.ts`
-  // — there is no IR field that gates a whole `CardEffect` on one action's cost
-  // (`CardEffect` in packages/shared/src/effects/ir/card.ts has `condition` but no `cost`).
-  // Expected: security stays empty. Actual: one card is recovered.
-  it.fails("skips the whole clause when the hand cost cannot be paid", async () => {
+  // The printed cost gates the whole clause (Comprehensive §5-3): with an empty hand neither the
+  // deletion offer nor the `ifThisEffectDidNotDelete` ＜Recovery +1＞ happens. Carried by
+  // `CardEffect.cost`, preflighted and paid once in `runEffect`.
+  it("skips the whole clause when the hand cost cannot be paid", async () => {
     const s = setupEngine(
       {
         0: {

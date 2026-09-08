@@ -1412,6 +1412,13 @@ export async function payCost(
           }
           await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
           bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
+          // The "all distinct levels/names" pool is only known at pay time, so a dependent
+          // `scaling: { unit: "namedCount" }` reads the count from here (BT18-019 gains 1
+          // memory per returned level), exactly as the place and hand branches do.
+          if (cost.trackCount !== undefined) {
+            ctx.namedCounts ??= new Map();
+            ctx.namedCounts.set(cost.trackCount, chosen.length);
+          }
           if (out) out.paidCount = chosen.length;
           return true;
         }

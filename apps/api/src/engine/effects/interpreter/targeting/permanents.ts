@@ -463,9 +463,18 @@ export async function resolvePermanentTargets(
   }
 
   const want = effectiveTargetCount(ctx, target);
+  // §15-15-5-3: with `allowUnaffectableChoice` the player still makes the choice when an immune
+  // permanent is in the pool, even though every branch below strips it from the result.
+  const holdsUnaffectableCandidate =
+    target.allowUnaffectableChoice === true &&
+    filterAffectable(
+      ctx,
+      candidates.map((p) => p.permanentId),
+    ).length < candidates.length;
   if (
     candidates.length <= want &&
     !target.upTo &&
+    !holdsUnaffectableCandidate &&
     (target as Target & { forceSelection?: boolean }).forceSelection !== true
   ) {
     const result = finalize(candidates.map((p) => p.permanentId));

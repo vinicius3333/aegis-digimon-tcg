@@ -84,6 +84,8 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
             },
+            // KB Q6441/Q6443: this [Main] link may also target a Digimon in the breeding area.
+            orFilters: [{ controller: "mine", kind: ["Digimon"], zone: "breeding" }],
             count: 1,
           },
           allowBreedingRecipient: true,

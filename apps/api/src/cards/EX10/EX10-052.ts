@@ -5,6 +5,17 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
+      cost: {
+        kind: "trash",
+        target: {
+          filter: {
+            zone: "hand",
+            controller: "mine",
+          },
+          count: 1,
+        },
+        raw: "By trashing 1 card in your hand",
+      },
       actions: [
         {
           kind: "Delete",
@@ -18,17 +29,6 @@ const compiled: CompiledCard = {
           optional: true,
           controller: "opponent",
           allowCostWithoutTarget: true,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                zone: "hand",
-                controller: "mine",
-              },
-              count: 1,
-            },
-            raw: "By trashing 1 card in your hand",
-          },
         },
         {
           kind: "SecurityManipulation",
@@ -45,6 +45,17 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      cost: {
+        kind: "trash",
+        target: {
+          filter: {
+            zone: "hand",
+            controller: "mine",
+          },
+          count: 1,
+        },
+        raw: "By trashing 1 card in your hand",
+      },
       actions: [
         {
           kind: "Delete",
@@ -58,17 +69,6 @@ const compiled: CompiledCard = {
           optional: true,
           controller: "opponent",
           allowCostWithoutTarget: true,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                zone: "hand",
-                controller: "mine",
-              },
-              count: 1,
-            },
-            raw: "By trashing 1 card in your hand",
-          },
         },
         {
           kind: "SecurityManipulation",
