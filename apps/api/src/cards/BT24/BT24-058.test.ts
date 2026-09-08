@@ -73,6 +73,70 @@ describe("BT24-058 Blimpmon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it.each([
+    ["Cyborg", "BT24-019"],
+    ["TS", "BT24-083"],
+  ])("publicly adds an eligible %s candidate from the reveal", async (_label, candidate) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-058", as: "blimpmon" }],
+          deck: [
+            { card: candidate, as: "candidate" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blimpmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("keeps an all-ineligible reveal out of hand while returning all cards to the deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-058", as: "blimpmon" }],
+          deck: [
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+            { card: "BT1-011", as: "miss3" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blimpmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-058"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+      s.inst("miss3").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("publicly places the selected eligible card under a Machine Digimon", async () => {
     const s = setupEngine(
       {

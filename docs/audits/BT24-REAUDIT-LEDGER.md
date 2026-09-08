@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 786/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 787/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -65,7 +65,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-055 | Ginryumon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-055.md). Root11green: exact Shuu placement, protection/refusal, normal/alternate evolution, public inherited suspension and high-cost ceiling negative. Typed structural assertions; collection delivery pending. |
 | BT24-056 | Dezipmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-056.md). Public owner-turn protection and opponent hand/deck returns, exact Blocker combat/refusal, Link deletion cost boundary, normal/Standard routes with stack/draw; typed module. Root17green; complete protected-trait public matrix and delivery remain open. |
 | BT24-057 | Docmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-057.md). Root13green: corrected end-of-battle Security entry, public restriction and opponent-turn expiry, exact/invalid evolution, paid Link/deletion and Q5643 host-return cancellation. Collection delivery pending. |
-| BT24-058 | Blimpmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-058.md). Public reveal-to-hand and bottom-source destinations with exact ordered deck ends and prior source stack; paid normal/TS routes and actual opponent-turn inherited Reboot. Root8green; complete eligibility/invalid-host matrix and delivery remain open. |
+| BT24-058 | Blimpmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-058.md). Root11green: public Machine/Cyborg/TS/Tamer positives, all-ineligible contrast, hand/source destinations, exact deck order, normal/TS evolution and opponent-turn Reboot. Collection delivery pending. |
 | BT24-059 | Sharkmon | 2 | 2 | 1 | 2 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-059.md). Legal inherited host with exact bottom-source placement/refusal and public same-turn suppression/owner-turn reset. Paid Blue/Aqua/SeaAnimal/TS routes with stack/draw; root12green. Public deletion cost8/refusal, normalBlack/invalid routes and delivery open. |
 | BT24-060 | Hisyaryumon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-060.md). Public MindLink/Alliance and Q5782 positive/refusal now pass; missing inherited OPT/reset, exact free-payment identity, evolution bonus draws, public attack refusal and deck-end choice boundaries. Independent focused acceptance pending full clauses. |
 | BT24-061 | Vademon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-061.md). Root9green: public Digimon/Tamer return, cost-limit refusal, exact normal/TS evolution stack/draw and inherited same-turn suppression plus next-owner reset. Collection delivery pending. |
