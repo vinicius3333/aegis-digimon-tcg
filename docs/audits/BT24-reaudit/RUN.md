@@ -823,6 +823,26 @@ Aggregate733/1020,0 cards at10/10. The028 lane is narrowing an overly broad
 compatibility cast before acceptance;029 and030 continue. No publication has
 occurred.
 
+## 2026-09-08 — boundary closure and Security-fixture correction
+
+Three Luna lanes continued card-isolated public evidence work while root
+reproduced every accepted score change. BT24-032,039,044,048,049,050,051,
+058,061,062,063,071,073,084, and086 reached8/10 through focused route,
+selection, frequency/reset, and invalid-boundary proofs. BT24-059,064,068,
+072,074,077,080, and082 gained evidence but remain conservatively at7/10
+with their named peer/selection/reset gaps intact. Full API typecheck remained
+green after the typed test corrections.
+
+BT24-089 now proves Q5680's Reptile-positive versus Dragonkin-only and
+LIBERATOR-only boundaries plus a natural same-turn Delay rejection, reaching
+8/10. BT24-092's apparent Security runtime failure was disproved: its test used
+`runOneTurn()` and asserted a `forTheTurn` DP modifier after the turn had ended.
+A direct public attack keeps the timing observable and passes all6 focused
+tests, including exact checked-Option link placement;092 therefore reaches
+8/10 without an engine change. Aggregate **794/1020**,0 cards at10/10.
+Delivery credit, collection gates, publication, and Orca completion remain
+open.
+
 Root020 at11:31:40 passed9/9; exact search/hand threshold, public unsuspend OPT
 reset and egg routes raise it6→8 in `a98dfdbcd`. Root021 at11:34:39 and
 11:36:24 passed13/13; exact search, Titamon discard evolution/refusal, inherited
