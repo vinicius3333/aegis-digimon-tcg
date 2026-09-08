@@ -11,7 +11,9 @@ import "../BT19/BT19-020.js";
 describe("BT24-017 Medusamon", () => {
   it("deletes the lowest-DP Digimon, pays the exact two-card trash cost, and scales DP", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, colors: ["Red"], cost: 3 }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, colors: ["Red"], cost: 3, isAlternate: false },
+    ]);
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")!;
     expect(effect.actions?.[0]).toMatchObject({
       kind: "Delete",

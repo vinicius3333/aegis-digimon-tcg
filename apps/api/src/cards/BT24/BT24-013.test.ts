@@ -9,31 +9,31 @@ import "../index.js";
 describe("BT24-013 Fugamon", () => {
   it("requires the hand-trash cost before deleting a 6000-DP-or-less opponent Digimon", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
-      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as unknown as Array<{
-        target: { filter: { dp: unknown } };
-        kind: string;
-        optional: boolean;
-        abortOnDecline: boolean;
-        cost: unknown;
-      }>;
-      expect(actions[0]).toMatchObject({
+      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0];
+      expect(action?.kind).toBe("Delete");
+      if (action?.kind !== "Delete") throw new Error(`${trigger} action is not Delete`);
+      expect(action).toMatchObject({
         kind: "Delete",
         optional: true,
         abortOnDecline: true,
         cost: { kind: "trash" },
       });
-      expect(actions[0].target.filter.dp).toEqual({ op: "lte", value: 6000 });
+      expect(action.target.filter.dp).toEqual({ op: "lte", value: 6000 });
     }
   });
 
   it("scopes inherited trash-triggered digivolution to this Demon/Titan Digimon", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as unknown as {
-      actions: Array<{ actions: Array<{ target: unknown; condition: unknown }> }>;
-    };
-    const action = inherited.actions[0].actions[0];
-    expect(action.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
-    expect(action.condition).toMatchObject({ kind: "selfHasTrait" });
-    expect(action).toMatchObject({
+    const inherited = compiled.effects.find((effect) => effect.isInherited);
+    const watcher = inherited?.actions?.[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("inherited action is not SubTrigger");
+    const action = watcher.actions[0];
+    expect(action?.kind).toBe("Digivolve");
+    if (action?.kind !== "Digivolve") throw new Error("inherited nested action is not Digivolve");
+    const nested = action;
+    expect(nested.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
+    expect(nested.condition).toMatchObject({ kind: "selfHasTrait" });
+    expect(nested).toMatchObject({
       kind: "Digivolve",
       from: ["trash"],
       payCost: true,
