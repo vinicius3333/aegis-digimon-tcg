@@ -159,6 +159,24 @@ describe("BT24-057 Docmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 
+  it("rejects a public evolution from a non-black level-3 source without mutation", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT24-057", as: "docmon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("docmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("docmon").instanceId);
+  });
+
   it("On Play prevents an opposing Digimon from attacking players", async () => {
     const s = setupEngine(
       {
@@ -191,6 +209,25 @@ describe("BT24-057 Docmon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
 
     expect(s.state.memory).toBe(1);
+  });
+
+  it("expires the On Play attack restriction at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT24-057", as: "docmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("docmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(false);
   });
 
   it("a public opponent When Digivolving deletion applies the On Deletion restriction", async () => {
