@@ -87,3 +87,11 @@ Root focused acceptance passed **3 files / 42 tests** (029:15,031:15,034:12). Fu
 Atomic commits `cebb0c88b`, `b0eed5bda`, and `13c36b90b` record Whamon public placement/restriction expiry, Elecmon Q5611 recovery/frequency/reset, and Aegiomon public Q5613/Q6713/moving/evolution endpoints. The incorrect Whamon effect-play-only interpretation was a cost-unavailable fixture and has been removed. Illegal same-level inherited hosts were replaced with legal neutral hosts.031's unnecessary module typecheck suppression is removed.
 
 Aggregate **278/1020**, zero102 at10/10. Remaining public boundary/peer gaps are explicit; no collection completion or delivery credit. Next Luna lanes036/038/039 have a root baseline with040 of **4 files / 37 tests passed**. No push, PR update or Orca completion action has been performed.
+
+## Stable 036/038/039 checkpoint, 2026-09-08 02:08 BRT
+
+Root focused acceptance passed **3 files / 33 tests** (036:8,038:14,039:11); full collection/mechanism gate passed **228 files / 3183 tests**. Fresh `pnpm typecheck` passed shared/API/web. Effects sync/check remain 15 semantic changes, 102 synchronized records, zero outside-set changes. Scoped formatting/diff checks pass and Oxlint retains only two structural-any warnings. Known AD1-002 diagnostic remains inside a passing test.
+
+Atomic commits `cad00637c`, `d92669ae0`, and `49de3132d` record public Medicmon deletion/Q5615 Link cancellation, Biomon App Fusion/source isolation/Fortitude boundaries, and Piximon security/Blocker/Barrier/inherited Recovery.036/038 module typecheck suppressions were removed; no new behavior or engine change was necessary. A redundant036 normal evolution requirement was rejected because the catalog already supplies it. Fortitude is mandatory (CR16-27-3), and Piximon's Barrier is not inherited: earlier contrary fixture assumptions were corrected, not treated as engine bugs.
+
+Aggregate **297/1020**, zero102 at10/10. Full collection remains in progress with explicit duration/frequency/peer boundaries. Next Luna lanes040/041/043 have a root baseline with044 of **4 files / 37 tests passed**. No push, PR update or Orca completion action performed.
