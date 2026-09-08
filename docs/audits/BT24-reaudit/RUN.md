@@ -71,3 +71,11 @@ Root focused024 passed15 tests;025+026 passed24 tests. Full collection/mechanism
 `03afd019f` records025/026 exact names, public timing/decision/stack proofs and generated effects. `efd02270c` records024 public Tamer frequency and explicit Armor Purge refusal. The proposed026 source-stack seam was a missing chooseOption response, not an engine defect. Armor Purge's min-zero selection was incorrectly auto-accepted by the earlier fixture; explicit empty public selection while the opponent remains active proves refusal. No engine changes retained.
 
 Aggregate239/1020, zero102 at10/10; public boundary and route gaps remain explicit. Luna next lanes027/032/033;031/032/033 independent baseline passed23 tests. Collection remains in progress with local commits, no push or Orca completion action.
+
+## Stable 027/032/033 checkpoint, 2026-09-08 01:48 BRT
+
+Root focused acceptance passed **3 files / 42 tests** (027:18,032:13,033:11). Full collection/mechanism gate passed **228 files / 3165 tests**, including the collection catalog-sync suite. Fresh `pnpm typecheck` passed shared/API/web. Effects sync/check against da5c7733c report **15 semantic changes**, 102 synchronized records, zero semantic/byte changes outside BT24. Scoped Oxfmt and diff checks pass; Oxlint retains three structural-any warnings and no errors. The known AD1-002 diagnostic is still emitted in a passing test.
+
+`90b7587c2` isolates024's Armor Purge attacker. `c6447b5d7` corrects027's exact Calmaramon name and032's executable Transmutation trait, with public proofs and generated records. Salamon's separate checkpoint proves public Barrier acceptance/refusal and exact normal/alternate/breeding evolution endpoints;032/033 no longer need module typecheck suppression. No engine change was required. In027, security attacks and Digimon battles have different completion events; treating both as combatResolved caused a false fixture discrepancy, now corrected.
+
+Aggregate **259/1020**, zero102 at10/10. Remaining public frequency, route and peer gaps are explicitly retained in the coordinator ledger. Next queued Luna batch029/031/034 has a root baseline (with036) of40 passing tests. No branch push, PR update or Orca completion performed; full collection audit remains in progress.

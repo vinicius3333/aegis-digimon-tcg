@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 239/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 259/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -34,13 +34,13 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-024 | Submarimon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-024.md). Public Tamer play/refusal and non-TS rejection, same-turn suppression/reset, Armor Purge acceptance/explicit zero-card refusal, normal blue and alternate routes with draw/stack pass. Root15green; normal yellow comparison and final peer/delivery acceptance pending. |
 | BT24-025 | Shellmon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-025.md). Public Q5603-5605 cost/legality/Active timing, legal inherited Jamming combat and EOT acceptance/refusal pass. Root13green; public trait/self boundaries, Venusmon refusal, frequency/reset and route negative pending. |
 | BT24-026 | Hyogamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-026.md). Public inherited072-P209-081 chain proves exact costs, stacks, same-turn suppression and owner reset. Root11green; Q5607 and shared own-effect frequency still partly injected; normal/alternate026 routes and broader refusals pending. |
-| BT24-027 | Lanamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-027 | Lanamon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-027.md). Exact Calmaramon Decode, public placement/cost/draw, protection expiry and inherited hand7/8 boundary pass; public inherited frequency/reset and normal/illegal evolution routes remain open. |
 | BT24-028 | Divermon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-028.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
 | BT24-029 | Whamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-030 | Neptunemon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-030.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
 | BT24-031 | Elecmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-032 | Pipomon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-033 | Salamon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-032 | Pipomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-032.md). Corrected Transmutation token with scoped red proof; public search, paid Link, zero-DP deletion, owner-turn expiry and normal/alternate egg routes pass. Further isolated search nonmatch/route peer coverage and delivery remain open. |
+| BT24-033 | Salamon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-033.md). Public Barrier acceptance/refusal, exact cost/stack/draw on normal and alternate routes, illegal egg rejection and Q5612 breeding contrast pass. Opponent-turn replacement comparison and delivery remain open. |
 | BT24-034 | Aegiomon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-035 | Gatomon | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-035.md). Resumed public regression and direct IR review completed for the current checkpoint; full clause, frequency, stack and delivery acceptance remains open. See coordinator notes for corrected field or fixture. |
 | BT24-036 | Medicmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
