@@ -275,6 +275,94 @@ describe("BT24-082 Owen Dreadnought", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("resets Owen on the next owner turn and repeats the public stack/draw endpoint", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-082", as: "owen" },
+            { card: "BT1-009", as: "firstBase" },
+            { card: "BT1-009", as: "secondBase" },
+          ],
+          hand: [
+            { card: "BT24-082", as: "replacementOwen" },
+            { card: "BT24-012", as: "firstEvolved" },
+            { card: "BT24-011", as: "secondEvolved" },
+          ],
+          security: [{ card: "BT1-013", as: "ownSecurity" }],
+          deck: [
+            { card: "BT1-014", as: "firstDraw" },
+            { card: "BT1-015", as: "secondDraw" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "opponentAttacker" }],
+          security: [{ card: "BT1-011", as: "security" }, "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstBaseId = s.perm("firstBase").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: firstBaseId,
+        instanceId: s.inst("firstEvolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("firstBase")));
+    expect(s.perm("owen").isSuspended).toBe(true);
+    expect(s.perm("firstBase").stack.map((card) => card.instanceId)).toEqual([s.inst("firstBase").instanceId]);
+    expect(s.perm("firstBase").currentDP).toBe(getCardDefinition("BT24-012")!.dp + 3000);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("firstDraw").instanceId);
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("replacementOwen").isSuspended).toBe(false);
+    const secondBaseId = s.perm("secondBase").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: secondBaseId,
+        instanceId: s.inst("secondEvolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("secondBase")));
+
+    expect(s.perm("replacementOwen").isSuspended).toBe(true);
+    expect(s.perm("secondBase").stack.map((card) => card.instanceId)).toEqual([s.inst("secondBase").instanceId]);
+    expect(s.perm("secondBase").currentDP).toBe(getCardDefinition("BT24-011")!.dp + 3000);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondDraw").instanceId);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+  });
+
   it.each([
     ["Reptile", "BT24-012"],
     ["Dragonkin", "BT24-011"],
