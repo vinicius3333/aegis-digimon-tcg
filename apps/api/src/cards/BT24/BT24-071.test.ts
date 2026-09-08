@@ -402,15 +402,14 @@ describe("BT24-071 Raidramon", () => {
     await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
     const returnDecision = [...s.decisions].reverse().find(({ req }) => req.kind === "selectCards")?.req;
     expect(returnDecision?.kind).toBe("selectCards");
-    if (returnDecision?.kind === "selectCards") {
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: returnDecision.decisionId,
-          response: { kind: "selectCards", instanceIds: [hostCardId] },
-        }),
-      ).toEqual({ ok: true });
-    }
+    if (returnDecision?.kind !== "selectCards") throw new Error("Calling decision is not selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [hostCardId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === hostCardId));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === callingId));
 
