@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -19,8 +19,7 @@ describe("BT24-009 Shamanmon", () => {
   });
 
   it("requires trashing the qualifying hand card before drawing two", () => {
-    const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions?.[0] as any;
-    expect(action).toMatchObject({
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
       kind: "Draw",
       amount: 2,
       optional: true,
@@ -30,17 +29,19 @@ describe("BT24-009 Shamanmon", () => {
   });
 
   it("scopes inherited trash-triggered digivolution to this Demon/Titan Digimon", () => {
-    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
-    const action = inherited.actions[0].actions[0];
-    expect(action.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
-    expect(action.condition).toMatchObject({ kind: "selfHasTrait" });
-    expect(action).toMatchObject({
-      kind: "Digivolve",
-      from: ["trash"],
-      payCost: true,
-      useAlternateCost: true,
-      reduceCost: 1,
-      optional: true,
+    expect(compiled.effects.find((effect) => effect.isInherited)?.actions?.[0]).toMatchObject({
+      actions: [
+        {
+          target: { filter: { isSelfRef: true }, isSelf: true },
+          condition: { kind: "selfHasTrait" },
+          kind: "Digivolve",
+          from: ["trash"],
+          payCost: true,
+          useAlternateCost: true,
+          reduceCost: 1,
+          optional: true,
+        },
+      ],
     });
   });
 
