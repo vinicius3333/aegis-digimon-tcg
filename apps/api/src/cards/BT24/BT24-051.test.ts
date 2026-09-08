@@ -115,6 +115,40 @@ describe("BT24-051 Merukimon", () => {
     expect(s.perm("merukimon").currentDP).toBe(12000);
   });
 
+  it("publicly declines the optional buff and attack while still suspending two opponent card types", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-051", as: "merukimon" }],
+          battleArea: [{ card: "BT1-009", as: "ownDigimon", dp: 4000 }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "opponentDigimon", dp: 2000 },
+            { card: "BT24-083", as: "opponentTamer" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const ownDp = s.perm("ownDigimon").currentDP;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merukimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("merukimon").instanceId),
+    );
+    await settle(() => s.perm("opponentDigimon").isSuspended && s.perm("opponentTamer").isSuspended);
+
+    expect(s.perm("opponentDigimon").isSuspended).toBe(true);
+    expect(s.perm("opponentTamer").isSuspended).toBe(true);
+    expect(s.perm("ownDigimon").currentDP).toBe(ownDp);
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     ["normal green/blue requirement", "BT1-077", false, 4],
     ["alternate Beastkin/TS requirement", "BT24-050", true, 3],
@@ -259,6 +293,46 @@ describe("BT24-051 Merukimon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(securityIds));
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
+  });
+
+  it("shares the once-per-turn counter from When Digivolving into a later attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-050", as: "base", suspended: true }],
+          hand: [{ card: "BT24-051", as: "merukimon" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("merukimon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("merukimon").instanceId);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("grants Rush and Piercing to Iliad Digimon only during its owner's turn", async () => {
