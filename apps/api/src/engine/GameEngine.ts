@@ -1,7 +1,6 @@
 import { peekCheckedCard } from "./security/checkedCard.js";
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
 import { isTimingActivationDisabled } from "./effects/timingActivation.js";
-import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
   CardKind,
@@ -5666,6 +5665,7 @@ export class GameEngine {
           this.continuous.colorRequirementAlternatives(instance.instanceId),
         ),
       nextPermanentId: () => this.nextPermanentId(),
+      recomputeDP: (permanentId) => this.modifiers.recomputeDP(this.state, permanentId),
       // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
       // finalized cost. Runs in the async apply path BEFORE memory is paid (EX9-043 / BT25-076).

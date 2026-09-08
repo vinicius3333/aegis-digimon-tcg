@@ -379,6 +379,18 @@ describe("primitives: playFromHand / playFromSecurity (BT7-089 style)", () => {
     expect(h.events.some((e) => e.kind === "cardPlayed")).toBe(true);
   });
 
+  it.each([
+    [-3000, 2000],
+    [3000, 8000],
+  ])("applies an already-active player-wide DP modifier (%i) to a newly played permanent", async (delta, expected) => {
+    const h = harness({ board: { 0: { hand: [{ card: DIGIMON, as: "entrant" }] } } });
+    h.ledger.addPlayerDpModifier(h.state, 0, delta, EffectDuration.UntilEachTurnEnd);
+
+    const created = await h.fx.playFromHand([h.s.inst("entrant").instanceId]);
+
+    expect(created[0]!.currentDP).toBe(expected);
+  });
+
   it("does not play an Option as a permanent (not a permanent kind)", async () => {
     const h = harness({ board: { 0: { hand: [{ card: OPTION, as: "c" }] } } });
     const created = await h.fx.playFromHand([h.s.inst("c").instanceId]);
@@ -424,6 +436,37 @@ describe("primitives: playFromHand / playFromSecurity (BT7-089 style)", () => {
     expect(h.state.players[0]!.security).toHaveLength(0);
     expect(h.state.players[0]!.battleArea).toHaveLength(1);
     expect(permanent!.topCard.faceUp).toBe(true);
+  });
+
+  it("applies a negative player-wide DP modifier to a security-played entrant", async () => {
+    const h = harness({ board: { 0: { security: [{ card: DIGIMON, as: "security-entrant" }] } } });
+    h.ledger.addPlayerDpModifier(h.state, 0, -3000, EffectDuration.UntilEachTurnEnd);
+
+    const permanent = await h.fx.playFromSecurity(h.s.inst("security-entrant").instanceId);
+
+    expect(permanent?.currentDP).toBe(2000);
+  });
+
+  it("restores a fresh entrant to printed DP when the player-wide duration expires", async () => {
+    const h = harness({
+      board: {
+        0: {
+          hand: [
+            { card: DIGIMON, as: "expiring-entrant" },
+            { card: DIGIMON, as: "after-expiry" },
+          ],
+        },
+      },
+    });
+    h.ledger.addPlayerDpModifier(h.state, 0, -3000, EffectDuration.UntilEachTurnEnd);
+    const permanent = (await h.fx.playFromHand([h.s.inst("expiring-entrant").instanceId]))[0]!;
+
+    expect(permanent.currentDP).toBe(2000);
+    h.ledger.sweep(h.state, "eachTurnEnd", 0);
+    expect(permanent.currentDP).toBe(5000);
+
+    const afterExpiry = (await h.fx.playFromHand([h.s.inst("after-expiry").instanceId]))[0]!;
+    expect(afterExpiry.currentDP).toBe(5000);
   });
 });
 

@@ -6077,6 +6077,7 @@ function placePermanent(
   permanent.inBreeding = false;
   permanent.enterFieldTurnCount = engine.state.turnCount;
   appendPermanent(owner, permanent);
+  engine.modifiers.recomputeDP(engine.state, permanent.permanentId);
   return permanent;
 }
 
