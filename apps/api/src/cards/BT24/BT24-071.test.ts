@@ -194,6 +194,25 @@ describe("BT24-071 Raidramon", () => {
     );
   });
 
+  it("rejects a public evolution from a non-purple, non-red level-3 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-027", as: "base" }], hand: [{ card: "BT24-071", as: "raidramon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("raidramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("raidramon").instanceId);
+  });
+
   it.each([
     ["BT24-067", "BT24-053"],
     ["BT24-067", "BT24-032"],
@@ -249,6 +268,26 @@ describe("BT24-071 Raidramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("reiDraw").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fusionBonusDraw").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("reiDiscard").instanceId);
+  });
+
+  it("rejects a public link from a non-Appmon source without mutation", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-067", as: "host" }], hand: [{ card: "BT1-009", as: "invalidLink" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const invalidId = s.inst("invalidLink").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: invalidId,
+        targetPermanentId: hostId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(invalidId);
   });
 
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
