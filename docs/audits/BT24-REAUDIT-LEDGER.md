@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 772/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 773/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -38,7 +38,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-028 | Divermon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-028.md). Root15green: public normal/invalid evolution, On Play/When Digivolving cost and protection, inherited public attack/stack play and exact boundaries. Typed IR with narrow additionalEffect compatibility seam; delivery pending. |
 | BT24-029 | Whamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-029.md). Root18green: public placement/Q5609, paid evolution, EOA refusal, illegal source and exact cost6 restriction boundary. A natural second same-turn attack is unavailable in this fixture; delivery pending. |
 | BT24-030 | Neptunemon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-030.md). Root15green: natural On Play tied-lowest-source boundary and public attack sequence proving same-turn suppression and next-owner reset. Full clause/stack evidence green; delivery pending. |
-| BT24-031 | Elecmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-031.md). Public Q5611 zero/one/two-security boundaries, exact recovery, legal host, same-turn suppression/reset and normal/alternate/illegal egg routes pass. Mixed search trait-negative coverage and delivery remain open. |
+| BT24-031 | Elecmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-031.md). Root16green: public Q5611 zero/one/two-security boundaries, exact recovery, legal host, suppression/reset, evolution routes and a fully ineligible mixed search pool with exact bottom order. Collection delivery pending. |
 | BT24-032 | Pipomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-032.md). Corrected Transmutation token with scoped red proof; public search, paid Link, zero-DP deletion, owner-turn expiry and normal/alternate egg routes pass. Further isolated search nonmatch/route peer coverage and delivery remain open. |
 | BT24-033 | Salamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-033.md). Root11green: public Barrier acceptance/refusal, exact normal/alternate evolution cost/stack/draw, illegal egg rejection, Iliad/non-Iliad boundaries and Q5612 breeding contrast. Collection delivery pending. |
 | BT24-034 | Aegiomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-034.md). Root16green: public entry routes, name boundaries, normal/illegal evolution and exact Barrier acceptance/refusal battle endpoints. Typed IR with narrow CostGatedBlock seam; delivery pending. |

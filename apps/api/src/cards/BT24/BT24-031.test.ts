@@ -9,9 +9,10 @@ import "../index.js";
 describe("BT24-031 Elecmon", () => {
   it("recovers only after the optional top-security add leaves zero security", () => {
     const inherited = BT24_031.effects?.find((entry) => entry.isInherited);
-    const recovery = inherited?.actions?.[1] as any;
+    const recovery = inherited?.actions?.[1];
     expect(recovery).toMatchObject({ kind: "SecurityManipulation", op: "addTop", source: "deck" });
-    expect(recovery.condition).toMatchObject({
+    const condition = recovery?.kind === "SecurityManipulation" ? recovery.condition : undefined;
+    expect(condition).toMatchObject({
       kind: "zoneCount",
       seat: "mine",
       zone: "security",
@@ -20,9 +21,10 @@ describe("BT24-031 Elecmon", () => {
     });
   });
   it("reveals the two printed search pools on play", () => {
-    const reveal = BT24_031.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0] as any;
+    const reveal = BT24_031.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0];
     expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
-    expect(reveal.add).toHaveLength(2);
+    const add = reveal?.kind === "RevealAdd" ? reveal.add : undefined;
+    expect(add).toHaveLength(2);
   });
 
   it("adds distinct Iliad and TS cards from the top three and bottoms the miss", async () => {
@@ -74,6 +76,36 @@ describe("BT24-031 Elecmon", () => {
       expect.arrayContaining([s.inst("iliad").instanceId, s.inst("ts").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
+  it("publicly bottoms three cards when none match either search trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-031", as: "elecmon" }],
+          deck: [
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-009", as: "miss2" },
+            { card: "BT1-009", as: "miss3" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-031"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+      s.inst("miss3").instanceId,
+    ]);
   });
 
   it("may recover from the deck while starting at zero security (Q5611)", async () => {
