@@ -652,3 +652,18 @@ with exact checked-stack and cost endpoints. Root fulltypecheck is running
 with a4096MiB heap cap after the test-only engine change. Aggregate588/1020,
 18 cards at8/10,15 pending zero rows, no102 cards at10/10. Publication approval
 was requested asynchronously for eventual branch/PR closeout; no push yet.
+
+Root fulltypecheck with4096MiB completed shared/web but failed three current
+089 WIP diagnostics: test Action union lacked a SubTrigger narrowing; BoardSpec
+was accidentally cast as setup options; reactive Digivolve lacked payCost:true.
+The lane is correcting these while building the public reactive Delay proof.
+They are not pre-existing diagnostics and are not hidden by the earlier green
+API checkpoint. No089 semantic fix has been accepted or effects-synchronized.
+
+Root090 at10:28:22 passed13 tests. Committed `2072a174e` for Main/color and
+public Security hand acceptance/refusal;090 receives6/10, aggregate594/1020.
+Public Security from trash/mixed level-color-trait negatives and actual aura
+Blocker/Alliance/source-expiry decisions remain open. The090 lane continues
+those bounded cases;089 continues red-first reactive Delay;091 has begun
+Main/Security public-proof review.18 cards have8/10,14 rows remain zero,
+and none has10/10. Disk18GiB free at the latest check; no further cache removal.
