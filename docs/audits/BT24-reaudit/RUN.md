@@ -806,3 +806,16 @@ The090 engine investigation added a generalized face-up security removal
 conformance regression and found no runtime defect: the card-specific expected
 failure stalled at the Blocker decision before any security check. The lane is
 correcting that public decision flow. No publication has occurred.
+
+Root022 at11:42:20 passed13/13; typed IR plus public Jamming, restriction
+expiry, unsuspend OPT reset and route boundaries raise it6→8 in `b5b207f2e`.
+Root023 at11:43:15 passed15/15; public Blocker/restriction, exact Lanamon
+Decode, Jamming, bottom order and evolution routes raise it6→8 in `c83e763de`.
+
+The generalized chapter13 face-up check regression was committed as
+`cfdd35135`. Root090 plus security suites passed3 files /55 tests: explicit
+Blocker refusal lets the check remove090 and its Blocker/Alliance auras expire
+immediately. `9ea54d2ef` raises090 from7→8. The corrected098 memory fixture is
+preserved as a real expected payload failure in `363fc6a05`; its score remains6.
+Aggregate726/1020,0 cards at10/10. Lanes advance through025-027; no publication
+has occurred.
