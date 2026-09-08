@@ -72,6 +72,7 @@ describe("BT24-046 Garurumon", () => {
 
   it.each([
     ["normal green requirement", "BT1-065", false, undefined, 3],
+    ["normal blue requirement", "BT1-027", false, undefined, 3],
     ["Gabumon in name requirement", "BT2-069", true, 0, 2],
     ["TS requirement", "BT24-031", true, 1, 2],
   ])(
@@ -155,10 +156,14 @@ describe("BT24-046 Garurumon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-046"] }],
+          security: ["BT1-010"],
           deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "target" }],
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-020", as: "opponentAttacker" },
+          ],
           security: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           deck: ["BT1-015", "BT1-016", "BT1-017", "BT1-018"],
         },
@@ -185,7 +190,18 @@ describe("BT24-046 Garurumon", () => {
 
     s.state.turnSeat = 1;
     s.state.memory = 3;
-    await advance(s.engine).runTurn(1);
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     s.state.turnSeat = 0;
     s.state.memory = 3;
     const laterTurn = s.engine.runOneTurn();
