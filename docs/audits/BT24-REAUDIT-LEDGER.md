@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 813/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 814/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -45,7 +45,7 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-035 | Gatomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-035.md). Root6green: public Q5614 Play/When Digivolving DNA routes and opponent-turn refusal, inherited Barrier, TS evolution and exact zero-DP cleanup sequencing. Typed IR; delivery pending. |
 | BT24-036 | Medicmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-036.md). Root9green: public Security/On Play/On Deletion/linked DP effects, Q5615 cancellation, paid evolution/invalid Link and natural turn-duration reset. Delivery pending. |
 | BT24-037 | Silphymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-037.md). Root12green: full public behavior and replacement/evolution-stack evidence; typed replacement assertions and compiled IR. Collection delivery gates pending. |
-| BT24-038 | Biomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-038.md). Root15green: public Q5620, Link isolation, zero-DP/Fortitude/AppFusion and linked -7000 duration/expiry. Public linked OPT reset and invalid App Fusion source remain open; delivery pending. |
+| BT24-038 | Biomon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-038.md). Root44green: public Q5620, Link, Fortitude/App Fusion, DP duration and same-instance trash-to-hand-relink; red/green stale-cost guards plus generic OncePerTurn reset/per-instance mechanisms cover peer/stack identity. Same-fixture suppression/reset remains mechanism-backed; delivery pending. |
 | BT24-039 | Piximon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-039.md). Root14green: public Security conditions, Blocker/Barrier acceptance and refusal, inherited recovery, exact normal/TS evolution and invalid-source boundary. Collection delivery pending. |
 | BT24-040 | Venusmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-040.md). Root69green: public restriction/replacement/refusal/security/evolution, same-turn suppression and next-turn reset; generic subtrigger rollback/reset and per-copy turn-ledger mechanisms cover Q5623-Q5626 timing boundaries. Delivery pending. |
 | BT24-041 | Minervamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-041.md). Root16green: Q5627/Q5629, exact evolution, multi-peel endpoints, canonical P-162 Q5628 De-Digivolve immunity, natural Reboot, public On Deletion, and Blocker acceptance/refusal. Delivery pending. |
