@@ -954,3 +954,18 @@ raised043 from7→8 (`7407569a1`, `de35a6246`);044 remains7 after public refusal
 and level-7 exclusion (`a2be37472`). Root039 passed11/11 with typed cleanup but
 remains7 (`faa04f831`). Aggregate774/1020,0 cards at10/10. No publication has
 occurred.
+
+Coordinator closeout checkpoint (2026-09-08): latest `main` was merged at
+`143677a9c`. Regenerable local caches were removed to recover approximately
+4.5 GB; the protected React Native DevTools cache (approximately 258 MB) was
+left in Trash. The generalized linked-cost stale-selection guard and its four
+red/green regressions landed in `1386f861a`, with mechanism evidence in
+`2d96034ec`. BT24-052, BT24-040, and BT24-038 were independently promoted to
+8/10 after focused and mechanism verification. BT24-098's printed triggered
+Delay was corrected to the canonical intrinsic representation in `77d2a590b`;
+9/9 focused tests, 103 catalog-sync tests, formatting, lint, diff checking, API
+typecheck, and the set effects synchronization check passed. Evidence and
+ledger commits are `ebfbb2690` and `92f68e01f`. All 102 cards now have
+reproducible 8/10 pre-delivery evidence; aggregate **816/1020**, 0 cards at
+10/10. Full collection gates, delivery scoring, publication, and Orca
+completion remain open.
