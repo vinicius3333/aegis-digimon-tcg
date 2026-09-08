@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -110,11 +110,11 @@ describe("BT24-069 Vilemon", () => {
     await turn;
   });
 
-  it("mills two opposing cards when the opponent declines the discard", async () => {
+  it("publicly mills two opposing cards when the opponent declines the discard during promotion", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-069", as: "vilemon" }],
+          breeding: { card: "BT24-069", as: "vilemon" },
           hand: [{ card: "BT1-009", as: "ownCard" }],
         },
         1: {
@@ -122,14 +122,20 @@ describe("BT24-069 Vilemon", () => {
           deck: [
             { card: "BT1-011", as: "firstDeck" },
             { card: "BT1-012", as: "secondDeck" },
+            { card: "BT1-013", as: "untouched" },
           ],
         },
       },
-      { autoDeclineOptional: true },
+      { autoSelectCards: false },
     );
+    s.state.turnSeat = 0;
     await s.ready();
 
-    const resolving = advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("vilemon"));
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("vilemon").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const discardChoice = s.state.pendingDecision!;
     expect(
@@ -139,13 +145,19 @@ describe("BT24-069 Vilemon", () => {
         response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("firstDeck").instanceId, s.inst("secondDeck").instanceId]),
     );
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("untouched").instanceId]);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("vilemon").instanceId),
+    ).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("gains Blocker and 2000 DP at 10 cards in the opponent's trash", async () => {
@@ -159,10 +171,41 @@ describe("BT24-069 Vilemon", () => {
     expect(s.perm("vilemon").currentDP).toBe(6000);
   });
 
+  it("publicly blocks a stronger attack after the opponent reaches the 10-trash threshold", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-069", as: "vilemon" }] },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "attacker", dp: 6000 }],
+          trash: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const vilemonInstanceId = s.inst("vilemon").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("vilemon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(vilemonInstanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+  });
+
   it("public attack trashes both players' top cards through the inherited effect", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-032", as: "host", under: ["BT24-069"] }],
+        battleArea: [{ card: "BT2-075", as: "host", under: ["BT24-069"] }],
         deck: ["BT1-009", "BT1-010"],
       },
       1: {
