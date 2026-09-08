@@ -60,7 +60,7 @@ describe("BT24-039 Piximon", () => {
       },
       1: {
         battleArea: [
-          { card: "BT1-010", as: "attacker" },
+          { card: "BT1-020", as: "attacker", dp: 4000 },
           { card: "BT24-030", as: "level6", suspended: true },
         ],
       },
@@ -74,6 +74,7 @@ describe("BT24-039 Piximon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
+        !observe(s.engine).isAttacking() &&
         s.state.players[0]!.security.length === 0 &&
         s.state.players[0]!.battleArea.some(
           (permanent) => permanent.topCard.instanceId === s.inst("piximon").instanceId,
@@ -83,19 +84,57 @@ describe("BT24-039 Piximon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       s.inst("piximon").instanceId,
     );
-    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(attackerId);
   });
 
   it("does not play from security when the opponent has only level 5 Digimon", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT24-039", as: "piximon" }] },
-      1: { battleArea: [{ card: "BT24-038", as: "level5" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-020", as: "attacker", dp: 4000 },
+          { card: "BT24-038", as: "level5" },
+        ],
+      },
     });
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("piximon"));
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("piximon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("piximon").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+  });
+
+  it("does not play from security when level 6 exists only in breeding", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT24-039", as: "piximon" }] },
+      1: {
+        battleArea: [{ card: "BT1-020", as: "attacker", dp: 4000 }],
+        breeding: { card: "BT24-030", as: "breedingLevel6" },
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("piximon").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
   });
 
   it("exposes Blocker and Barrier", async () => {
@@ -106,19 +145,67 @@ describe("BT24-039 Piximon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("piximon"), "Barrier")).toBe(true);
   });
 
+  it("uses Blocker and Barrier together in a public battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-039", as: "piximon" }], security: [{ card: "BT1-009", as: "cost" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 13000 }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const blockerId = s.perm("piximon").permanentId;
+    const costId = s.inst("cost").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: blockerId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.perm("piximon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(blockerId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(costId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+  });
+
   it("recovers the deck top when its inherited host is deleted", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-040", as: "host", under: ["BT24-039"] }],
+        battleArea: [{ card: "ST3-10", as: "host", suspended: true, under: ["BT24-039"] }],
         deck: [{ card: "BT1-009", as: "recovered" }],
       },
+      1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 20000 }] },
     });
+    s.state.turnSeat = 1;
     await s.ready();
-
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.security.length === 1);
-
+    const hostId = s.perm("host").permanentId;
+    const hostCardId = s.perm("host").topCard.instanceId;
+    const sourceId = s.perm("host").stack[0]!.instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hostCardId, sourceId]),
+    );
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovered").instanceId);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
   it("digivolves from a level-4 TS Digimon for cost 3", async () => {
@@ -126,6 +213,7 @@ describe("BT24-039 Piximon", () => {
       0: {
         battleArea: [{ card: "BT24-011", as: "base" }],
         hand: [{ card: "BT24-039", as: "piximon" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 5;
@@ -143,5 +231,8 @@ describe("BT24-039 Piximon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("piximon").instanceId);
 
     expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("piximon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 });
