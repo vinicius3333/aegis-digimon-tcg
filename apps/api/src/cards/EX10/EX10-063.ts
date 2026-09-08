@@ -40,7 +40,11 @@ const compiled: CompiledCard = {
             kind: "allOf",
             conditions: [
               { kind: "ifThisEffectActed" },
-              { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"] } },
+              // "if you don't have a Digimon" reads the BATTLE AREA only: CR 3-4-5-8 forbids
+              // referencing information on cards in the breeding area, so a bred Digimon must
+              // not block the tail. `zone: "battleArea"` states that rather than relying on
+              // `countMatching`'s default scan happening to skip breeding.
+              { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
             ],
           },
         },

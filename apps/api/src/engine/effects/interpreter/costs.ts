@@ -1006,10 +1006,19 @@ export async function payCost(
         // NOT Infinity (a finite pool is never >= Infinity, which made every "all"-shaped
         // cost unpayable; engine-audit finding 6). An empty pool is unpayable outright
         // (n <= 0), matching the isSelfRef branch above.
+        // `upTo` (with its optional `minimum`) makes the printed count a MAXIMUM: "by trashing
+        // up to 3 ... from any of your Digimon's digivolution cards" (EX10-033) is payable with
+        // 1 or 2 candidates, and with 4 the controller still chooses how many. Reading
+        // `count` as a hard requirement made it an all-or-nothing 3 — the `isSelfRef` branch
+        // above already reads `upTo` this way.
         const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : zoneList(trashStackZone);
         let candidates = candidateLooseInstances(ctx, cost.target, zones);
-        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
-        if (n <= 0 || candidates.length < n) return false;
+        const requested = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (requested <= 0) return false;
+        const isUpTo = cost.target.upTo === true;
+        const n = isUpTo ? Math.min(requested, candidates.length) : requested;
+        const minCount = isUpTo ? Math.min(cost.target.minimum ?? 0, n) : requested;
+        if (candidates.length < minCount || n < minCount) return false;
         if (cost.target.filter.sameHost === true) {
           const byHost = new Map<string, LooseCandidate[]>();
           for (const candidate of candidates) {
@@ -1058,7 +1067,7 @@ export async function payCost(
           }
         }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
-        if (chosen.length < n) return false;
+        if (chosen.length < minCount) return false;
         if (cost.target.filter.sameLevelPair === true) {
           const selectedLevels = chosen.map((id) => {
             const candidate = candidates.find((entry) => entry.instanceId === id);
@@ -1083,10 +1092,10 @@ export async function payCost(
             instanceIds.map((instanceId) => ({ hostPermanentId, instanceId })),
           );
           if (ctx.fx.trashDigivolutionCardsAtomic !== undefined) {
-            const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
+            const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, chosen.length, {
               byEffectSeat: ctx.source.ownerSeat,
             });
-            if (moved.length !== n) return false;
+            if (moved.length !== chosen.length) return false;
           } else {
             // Lightweight/internal primitive implementations may predate the atomic seam.
             // Preserve the per-host watcher path for them; production uses the atomic
@@ -1098,7 +1107,7 @@ export async function payCost(
               });
               movedCount += moved.length;
             }
-            if (movedCount !== n) return false;
+            if (movedCount !== chosen.length) return false;
           }
         } else {
           if (chosen.some((instanceId) => ctx.fx.canTrashDigivolutionCard?.(instanceId) === false)) return false;

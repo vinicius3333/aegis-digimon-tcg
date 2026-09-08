@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Belphemon: Rage Mode"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -82,7 +82,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Belphemon: Rage Mode"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

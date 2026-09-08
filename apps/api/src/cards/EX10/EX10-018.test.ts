@@ -25,8 +25,8 @@ describe("EX10-018 Astamon", () => {
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Psychemon"], cost: 5, isAlternate: true },
-      { level: 4, texts: ["Save"], cost: 3, isAlternate: true },
+      { namesExact: ["Psychemon"], cost: 5, isAlternate: true },
+      { level: 4, texts: ["＜Save＞", "<Save>"], cost: 3, isAlternate: true },
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
@@ -102,7 +102,7 @@ describe("EX10-018 Astamon", () => {
             { card: "BT1-085", as: "tamer", under: [{ card: "BT10-029", as: "eligible" }] },
           ],
           hand: [{ card: CARD_ID, as: "astamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -132,7 +132,7 @@ describe("EX10-018 Astamon", () => {
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: CARD_ID, as: "astamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-014"],
       },
     });
     s.state.memory = cost;
@@ -147,6 +147,161 @@ describe("EX10-018 Astamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === CARD_ID);
     expect(s.state.memory).toBe(0);
+  });
+
+  // KB Q5050: "＜Save＞ in its text" covers the whole card — name, traits, effects, inherited
+  // effects and the digivolution/DigiXros requirement headers. BT12-061 Ganemon prints ＜Save＞
+  // only inside its own digivolution requirement ("Digivolve: 2 from Lv.3 w/＜Save＞ in text"),
+  // so it is a legal base even though it never gains the keyword.
+  it("Q5050: a level 4 whose only ＜Save＞ is in its digivolution requirement is a legal base", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-061", as: "base" }],
+        hand: [{ card: CARD_ID, as: "astamon" }],
+        deck: ["BT1-014"],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("astamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT12-061"]);
+  });
+
+  // KB Q5050 negative: a different keyword or a name that merely contains the letters "save"
+  // is not ＜Save＞. ＜Material Save 1＞ (BT10-111) and [Savemon] (BT21-059) are both level 4,
+  // so only the token spelling keeps them out of the cost-3 route.
+  it.each([
+    ["＜Material Save 1＞ is not ＜Save＞", "BT10-111"],
+    ["[Savemon] in text is not ＜Save＞", "BT21-059"],
+  ])("Q5050: rejects the Save-text route when %s", async (_label, baseCard) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: CARD_ID, as: "astamon" }],
+        deck: ["BT1-014"],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("astamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.perm("base").topCard.cardId).toBe(baseCard);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("plays nothing from under an opponent's Tamer: the clause reads only your Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-085", as: "myTamer" }],
+          hand: [{ card: CARD_ID, as: "astamon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "theirTamer", under: [{ card: "BT10-029", as: "theirs" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("astamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
+
+    expect(s.perm("theirTamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("theirs").instanceId]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-085", CARD_ID]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("replays through Fortitude after losing a battle it entered with a digivolution card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "astamon", under: [{ card: "BT1-071", as: "source" }] }],
+      },
+      1: {
+        battleArea: [{ card: "BT1-013", as: "wall", dp: 20_000, suspended: true }],
+        security: ["BT1-010"],
+      },
+    });
+    await s.ready();
+    const astamonId = s.inst("astamon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("astamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === astamonId));
+
+    // Astamon lost the battle, its digivolution card went to the trash, and Fortitude put the
+    // card itself back into the battle area free of cost and with an empty stack.
+    const replayed = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === astamonId)!;
+    expect(replayed.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-013"]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("the Fortitude replay is a play, so [On Play] runs again and can play a Save card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "astamon", under: [{ card: "BT1-071", as: "source" }] },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT10-029", as: "eligible" }] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "wall", dp: 20_000, suspended: true }],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("eligible").instanceId);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("astamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("eligible").instanceId),
+    );
+
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
+      ["BT10-029", "BT1-085", CARD_ID].sort(),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
   });
 
   it("rejects the Save-text route from an off-color level 4 without Save and allows refusing the play", async () => {
@@ -175,7 +330,7 @@ describe("EX10-018 Astamon", () => {
             { card: "BT1-085", as: "tamer", under: [{ card: "BT10-029", as: "eligible" }] },
           ],
           hand: [{ card: CARD_ID, as: "astamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-014"],
         },
       },
       { autoDeclineOptional: true },
@@ -226,7 +381,11 @@ describe("EX10-018 Astamon", () => {
           { card: CARD_ID, as: "astamon" },
           { card: "BT1-080", as: "titamon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-013", "BT1-014"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-013", as: "victim", dp: 3000, suspended: true }],
+        security: ["BT1-010", "BT1-011"],
       },
     });
     s.state.memory = 4;
@@ -250,6 +409,23 @@ describe("EX10-018 Astamon", () => {
 
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-071", CARD_ID]));
     expect([...s.perm("base").keywords]).toContain("Piercing");
+
+    // Behavioural proof of the inherited ＜Piercing＞: Titamon (12000 DP) deletes the 3000 DP
+    // Digimon it attacked and survives, so the attack goes on to check 1 security card.
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-011"]);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-080");
+    expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
 });

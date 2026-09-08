@@ -83,6 +83,11 @@ const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
+          // Comprehensive Rules 4-3: a card placed under a card that already has cards
+          // stacked under it goes to the BOTTOM. `runPlaceUnder` reads
+          // `belowTop: action.position !== "bottom"`, so a positionless ＜Save＞ would tuck
+          // this card directly beneath the Tamer instead of under the existing cards.
+          position: "bottom",
           optional: true,
         },
       ],

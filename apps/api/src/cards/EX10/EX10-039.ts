@@ -66,6 +66,11 @@ const compiled: CompiledCard = {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          // Comprehensive Rules 4-3 and KB Q5119: a card placed under a Tamer that already
+          // has cards under it goes to the BOTTOM. `runPlaceUnder` reads
+          // `belowTop: action.position !== "bottom"`, so a positionless ＜Save＞ would tuck the
+          // saved card directly beneath the Tamer instead. Matches EX10-026 / EX10-027.
+          position: "bottom",
           optional: true,
         },
       ],

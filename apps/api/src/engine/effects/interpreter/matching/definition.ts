@@ -1,6 +1,7 @@
 // Matching a filter against a CARD DEFINITION, with no board state involved.
 
 import { runtimeCompiledCard } from "../compiledCards.js";
+import { isPrintedKeywordToken, textPrintsKeyword } from "../../../cards/keywordToken.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { CardColor, CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { CardDefinition, Filter } from "@aegis/shared";
@@ -359,6 +360,10 @@ export function matchNameOrTrait(
     if (ref.match !== undefined && ref.match !== "text" && ref.match !== "any") return false;
     // a card NAMED/TRAITED X "has [X] in its text" too, so "text" is the full union
     // (identical to "any"), not effectText-only.
+    // A printed keyword token ("with ＜Save＞ in its text") is delimiter-anchored and reads the
+    // printed text only: a card merely NAMED [Savemon], or one printing ＜Material Save＞, does
+    // not have ＜Save＞ (EX10 seam 12).
+    if (isPrintedKeywordToken(rawToken)) return textPrintsKeyword(text, rawToken);
     return (
       names.some((name) => name.includes(nameToken)) ||
       traits.some((x) => x.includes(normalizeTrait(rawToken))) ||

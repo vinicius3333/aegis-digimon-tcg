@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // turn-end self-delete ON THE PLAYED PERMANENT. The DelayedDeletePlayed therefore fires ONLY on
 // this reduced-cost play path (KB Q5737), NOT on a normal [On Play] — so it is modeled inside the
 // activated effect, not under OnPlay. RestrictDigivolveInto ([Apocalymon]) is authored + A3-proven
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",

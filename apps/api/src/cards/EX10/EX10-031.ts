@@ -17,8 +17,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the DP buff ran a SECOND independent selection and could land on a different Digimon. Rebuilt on
 // the SelectBind + `Target.fromSelectionRef` pair the same set's EX10-029 already proves, which is
 // also the only typed encoding. `byOpponentEffectsOnly` records the printed "THEIR <De-Digivolve>
-// effects"; the de-digivolve site (primitives.ts deDigivolve) currently reads the restriction
-// without passing `byOpponentEffect`, so it over-blocks the controller's own <De-Digivolve> too.
+// effects": primitives.ts `peelStackTops` reads the restriction through `isRestricted`, which
+// derives `byOpponentEffect` from the acting seat, so the controller's own <De-Digivolve> still
+// works on the protected Digimon. Proved behaviourally in the colocated test.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -114,7 +115,9 @@ const compiled: CompiledCard = {
                   playCostLte: 4,
                   // "from ITS digivolution cards": scope the pool to this Digimon's own stack.
                   // Without a host gate the loose-card search offers every controlled Digimon's
-                  // stack (targeting/loose.ts only self-scopes on an explicit hostFilter).
+                  // stack: interpreter/targeting/loose.ts self-scopes only on an explicit
+                  // hostFilter, and interpreter/actions/play.ts adds one by default for
+                  // ＜Decode＞ plays only (applyDecodeHostScope).
                   hostFilter: { isSelfRef: true },
                 },
                 count: 1,

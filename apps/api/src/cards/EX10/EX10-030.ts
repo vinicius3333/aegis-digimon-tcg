@@ -100,14 +100,12 @@ const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
-    // Recorded as `isInherited` because the catalog carries this clause in
-    // `inheritedEffectText`. KB Q5086/Q5089 call it "this card's LINK effect", and EX10-030 is
-    // the only card in the whole catalog with a `linkRequirement` and an `inheritedEffectText`
-    // but no `linkEffect`, so the catalog field is probably a scrape error. The distinction is
-    // behaviourally moot here and the test proves it: the engine collects this effect from BOTH
-    // residencies, so the replacement fires whether Cometmon sits in the host's digivolution
-    // stack or in its link zone, and Q5086/Q5089 are satisfied either way. The module therefore
-    // follows the committed catalog with no loss of printed behaviour.
+    // The lower box is Cometmon's [Link] effect (catalog field `linkEffect`), which KB Q5086 and
+    // Q5089 both call "this card's link effect". `isLinked: true` is the residency flag every
+    // other link card uses (BT23-052, EX10-029); the kernel gates on it
+    // (engine/effects/kernel.ts: `if (effect.isLinked) return wasLinkedCard`), so the replacement
+    // is granted only while Cometmon sits in a host's link zone — never from its digivolution
+    // stack, which an inherited effect would wrongly do.
     {
       trigger: "AllTurns",
       actions: [
@@ -135,7 +133,7 @@ const compiled: CompiledCard = {
           ],
         },
       ],
-      isInherited: true,
+      isLinked: true,
       frequency: "OncePerTurn",
     },
   ],

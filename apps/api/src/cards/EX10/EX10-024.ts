@@ -1,9 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q5076/Q5077: the link card itself may pay the cost, and another link card on
-// the same host may be selected. `sameHost` plus `hostFilter` binds the cost
-// to this linked card's host, while still allowing this card itself.
+// Q5076/Q5077: the link card itself may pay the cost, and another link card on the same host
+// may be selected too. `zone: "linked"` with `isSelfRef: true` makes the cost enumerate the
+// link cards of the SOURCE's host permanent (costs.ts), which is exactly "this Digimon's link
+// cards" — this card included.
 const compiled: CompiledCard = {
   effects: [
     {
