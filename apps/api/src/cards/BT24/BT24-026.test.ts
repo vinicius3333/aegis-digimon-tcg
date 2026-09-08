@@ -40,11 +40,11 @@ describe("BT24-026 Hyogamon", () => {
         target: { sameTarget?: boolean };
         keyword: { keyword: string };
       }>;
-      expect(actions[0].cost).toMatchObject({ kind: "trash" });
-      expect(actions[0].optional).toBeUndefined();
-      expect(actions[0].abortOnDecline).toBe(true);
-      expect(actions[1].target.sameTarget).toBe(true);
-      expect(actions[1].keyword.keyword).toBe("Blocker");
+      expect(actions[0]!.cost).toMatchObject({ kind: "trash" });
+      expect(actions[0]!.optional).toBeUndefined();
+      expect(actions[0]!.abortOnDecline).toBe(true);
+      expect(actions[1]!.target.sameTarget).toBe(true);
+      expect(actions[1]!.keyword.keyword).toBe("Blocker");
     }
   });
 
@@ -62,7 +62,7 @@ describe("BT24-026 Hyogamon", () => {
         }>;
       }>;
     };
-    const action = inherited.actions[0].actions[0];
+    const action = inherited.actions[0]!.actions[0]!;
     expect(action).toMatchObject({
       kind: "Digivolve",
       from: ["trash"],
@@ -74,7 +74,7 @@ describe("BT24-026 Hyogamon", () => {
       { tokens: ["Titamon"], match: "nameExact" },
       { tokens: ["Titan"], match: "trait" },
     ]);
-    expect(inherited.actions[0].sourceFilter).toEqual({ controller: "mine" });
+    expect(inherited.actions[0]!.sourceFilter).toEqual({ controller: "mine" });
   });
 
   it("draws only when each trashed copy activates with 5 or fewer cards in hand (Q5607)", async () => {

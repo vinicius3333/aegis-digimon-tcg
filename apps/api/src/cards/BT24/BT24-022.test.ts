@@ -35,7 +35,7 @@ describe("BT24-022 Ikkakumon", () => {
       }>;
       expect(actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 2, fromTop: true });
       expect(actions[1]).toMatchObject({ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" });
-      expect(actions[1].target.filter.digivolutionCardsCompareToSource).toBe("lte");
+      expect(actions[1]!.target.filter.digivolutionCardsCompareToSource).toBe("lte");
     }
   });
 
@@ -43,9 +43,9 @@ describe("BT24-022 Ikkakumon", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as unknown as {
       actions: Array<{ kind: string; event: string; actions: Array<{ condition: unknown }> }>;
     };
-    const sub = inherited.actions[0];
+    const sub = inherited.actions[0]!;
     expect(sub).toMatchObject({ kind: "SubTrigger", event: "whenUnsuspended" });
-    expect(sub.actions[0].condition).toMatchObject({
+    expect(sub.actions[0]!.condition).toMatchObject({
       kind: "zoneCount",
       seat: "mine",
       zone: "hand",
