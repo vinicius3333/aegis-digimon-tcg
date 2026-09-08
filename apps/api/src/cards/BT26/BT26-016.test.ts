@@ -135,7 +135,12 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
+    // "recovery" (BT1-012) is the only explicitly-seeded deck card, so it is what the
+    // effect's own preceding draw step takes to hand — the security recovery step then
+    // pulls from what remains of the deck (the harness's auto-filled padding), not
+    // "recovery" itself. The real milestone is the security count the later assertion
+    // already checks.
+    await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -164,7 +169,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
+    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(1);

@@ -11,7 +11,7 @@ describe("BT1-048 Patamon", () => {
           hand: [{ card: "BT1-048", as: "patamon" }],
           deck: [
             { card: "BT1-087", as: "yellowTamerA" },
-            { card: "BT1-088", as: "yellowTamerB" },
+            { card: "BT10-089", as: "yellowTamerB" },
             { card: "BT1-085", as: "redTamer" },
             { card: "BT1-049", as: "digimon" },
           ],

@@ -64,11 +64,11 @@ describe("BT6 Titamon historical deck gauntlet", () => {
     await settle(
       () =>
         s.perm("rebellimon").topCard.instanceId === s.inst("titamon").instanceId &&
-        s
-          .perm("rebellimon")
-          .stack.some(({ instanceId }) => instanceId === s.inst("discardedSkullGreymon").instanceId) &&
         s.state.players[0]!.battleArea.some(
-          ({ topCard, stack }) => topCard.instanceId === s.inst("promote").instanceId && stack.length === 2,
+          ({ topCard, stack }) =>
+            topCard.instanceId === s.inst("promote").instanceId &&
+            stack.some(({ instanceId }) => instanceId === s.inst("discardedSkullGreymon").instanceId) &&
+            stack.length === 3,
         ) &&
         s.state.players[0]!.hand.length === 3 &&
         s.state.memory === 2 &&

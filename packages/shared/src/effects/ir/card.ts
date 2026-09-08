@@ -3,6 +3,7 @@
 import type { Action } from "./actions/action.js";
 import type { KeywordRef } from "./keywords.js";
 import type { Condition } from "./predicates/conditions.js";
+import type { Cost } from "./predicates/costs.js";
 import type { BaseGrantedDigivolve, DigivolutionRequirement } from "./requirements/digivolve.js";
 import type { AppFusionRequirement, AssemblyRequirement, DnaDigivolveRequirement } from "./requirements/fusion.js";
 import type { DigiXrosRequirement, LinkRequirement, MindLinkRequirement } from "./requirements/xrosLink.js";
@@ -68,6 +69,13 @@ export interface CardEffect {
   optional?: boolean;
   /** Whole-effect gate — a leading "If ..." / "While ...". */
   condition?: Condition;
+  /**
+   * Whole-clause activation cost — a leading "By trashing 1 card in your hand, ..." that gates
+   * every action of the clause, not just the first one (EX10-052). Paid once before any action
+   * runs; when it cannot be paid the whole clause is skipped (Comprehensive §5-3). An action's
+   * own {@link Action.cost} still gates only that action.
+   */
+  cost?: Cost;
   /** Keyword abilities declared at this window, e.g. ＜Blocker＞ before the prose. */
   keywords?: KeywordRef[];
   actions: Action[];

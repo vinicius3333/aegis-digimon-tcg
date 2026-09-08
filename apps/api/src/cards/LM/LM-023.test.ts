@@ -50,13 +50,7 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "LM-023", as: "maid" },
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-          ],
+          battleArea: [{ card: "LM-023", as: "maid" }, "BT1-087", "BT1-087", "BT1-087", "BT1-087"],
           hand: [{ card: "BT2-099", as: "reduced-option" }],
         },
       },
@@ -86,7 +80,7 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
 
     // Three Yellow Tamers reduce Glorious Burst from 9 to 6, so it remains ineligible.
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT2-099")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT2-099")).toBe(true);
@@ -107,7 +101,7 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     s.state.memory = 6;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT10-104")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-104")).toBe(true);
@@ -126,7 +120,7 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-107")).toBe(true);
@@ -166,7 +160,7 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     expect(s.perm("victim").currentDP).toBe(printed - 6000);
 
     await advance(s.engine).fireSubTrigger("whenOptionUsed", {});
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
     expect(s.perm("victim").currentDP).toBe(printed - 6000);
   });
 

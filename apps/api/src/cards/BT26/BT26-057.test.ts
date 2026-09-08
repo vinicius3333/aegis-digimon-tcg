@@ -186,7 +186,12 @@ describe("BT26-057 Bearcatmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-035", as: "glowingDawn" }],
+          // Level 3, not 4: satisfies the WaiveColorRequirement's "have a [Glowing Dawn]
+          // card" condition without ALSO matching BT26-057's own (level 4) alternate
+          // digivolution requirement — a level-4 Glowing Dawn host here would offer a real
+          // Arts Digivolve, autoAcceptOptional would take it, and the card would never
+          // resolve as a plain Option at all.
+          battleArea: [{ card: "BT25-046", as: "glowingDawn" }],
           hand: [{ card: "BT26-057", as: "option" }],
         },
         1: {

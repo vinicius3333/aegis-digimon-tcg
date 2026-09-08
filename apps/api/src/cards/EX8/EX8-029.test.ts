@@ -183,6 +183,10 @@ describe("EX8-029", () => {
             { card: "EX8-029", as: "aegis" },
           ],
         },
+        // Plesiomon's own WhenPlayed effect DNA digivolves into a DS Digimon and then
+        // attacks; give the defender security so that incidental attack does not end
+        // the game before EX8-029's own WhenDigivolving effect gets to resolve.
+        1: { security: 1 },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );

@@ -67,7 +67,7 @@ describe("LM-018 Gyuukimon", () => {
     s.state.memory = 7;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gyuukimon").instanceId });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Gyuukimon-Token")).toBe(false);
@@ -83,7 +83,7 @@ describe("LM-018 Gyuukimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gyuukimon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Gyuukimon-Token")).toBe(false);
   });
@@ -99,7 +99,7 @@ describe("LM-018 Gyuukimon", () => {
     s.state.memory = 7;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gyuukimon").instanceId });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Gyuukimon-Token")).toBe(false);
   });

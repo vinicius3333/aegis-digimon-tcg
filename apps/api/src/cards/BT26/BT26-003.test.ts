@@ -47,6 +47,11 @@ describe("BT26-003 Kyaromon", () => {
   });
 
   it("trashes the bottom face-down Tamer card and redirects to Glowing Dawn", async () => {
+    // "host" (BT26-052) also carries the [Glowing Dawn] trait, so without a bias it is an
+    // equally legal redirect target and autoSelectCards may pick it over "redirect" — which
+    // then loses the battle outright (2000 DP vs. the attacker's 7000) instead of the intended
+    // 12000-DP redirect killing the attacker. Prefer "redirect" explicitly.
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -65,10 +70,11 @@ describe("BT26-003 Kyaromon", () => {
         },
         1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 1;
     const redirectId = s.perm("redirect").permanentId;
+    preferred.push(redirectId);
     const attackerId = s.perm("attacker").topCard.instanceId;
     expect(
       s.engine.applyIntent(1, {
@@ -141,6 +147,10 @@ describe("BT26-003 Kyaromon", () => {
   });
 
   it("Q6952 redirects a Progress attacker even while it is unaffected by opposing effects", async () => {
+    // "host" also carries [Glowing Dawn], so bias the redirect choice toward "redirect" —
+    // otherwise autoSelectCards may pick "host" instead, and this scenario is about the
+    // 8000-DP redirect target, not host's own battle outcome.
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -153,9 +163,10 @@ describe("BT26-003 Kyaromon", () => {
         },
         1: { battleArea: [{ card: "BT21-025", as: "progressAttacker", dp: 7000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 1;
+    preferred.push(s.perm("redirect").permanentId);
 
     expect(
       s.engine.applyIntent(1, {
@@ -171,6 +182,9 @@ describe("BT26-003 Kyaromon", () => {
   });
 
   it("uses the inherited redirect only once per turn across two opponent attacks", async () => {
+    // "host" also carries [Glowing Dawn]; bias the redirect choice toward "redirect" (8000 DP)
+    // so the first attacker actually dies to the redirect, per this scenario's intent.
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -195,9 +209,10 @@ describe("BT26-003 Kyaromon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 1;
+    preferred.push(s.perm("redirect").permanentId);
 
     expect(
       s.engine.applyIntent(1, {

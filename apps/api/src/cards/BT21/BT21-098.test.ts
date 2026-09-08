@@ -101,6 +101,11 @@ describe("BT21-098 Ragnarok Cannon", () => {
     const highId = s.perm("high").permanentId;
     const optionId = s.perm("option").topCard.instanceId;
     await s.ready();
+    // Board Specs lay the permanent directly, bypassing the real on-play resolution that marks
+    // it `placedByEffect` and ages it past the turn it entered — both required for its `<Delay>`
+    // to be legally activatable (see the "publicly ages a placed Option" test below).
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    s.perm("option").placedByEffect = true;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

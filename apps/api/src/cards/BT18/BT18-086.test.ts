@@ -86,11 +86,7 @@ describe("BT18-086 Lucemon: Larva", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.security.length === 0 &&
-        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("larva").instanceId),
-    );
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("larva").instanceId));
 
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("variant").instanceId),

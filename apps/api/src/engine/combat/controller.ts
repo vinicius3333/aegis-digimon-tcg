@@ -183,6 +183,14 @@ export interface CombatHooks {
    * [When Attacking] effects resolve first.
    */
   prepareSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
+  /**
+   * Run the attack-declaration timing windows with this event's `whenAttacking` /
+   * `whenOpponentAttacks` watchers folded into them, so a printed [When Attacking] effect and a
+   * watcher that reacts to the same declaration reach ONE ordering prompt (CR §15-4). Watchers
+   * the windows did not resolve still fire afterwards. Absent => the legacy sequence below runs
+   * the windows first and the watcher bus second.
+   */
+  withPendingAttackSubTriggers?: (payload: TriggerInfo, runWindows: () => Promise<void>) => Promise<void>;
   /** Capture event-time eligibility before battle losers leave, without resolving reactions. */
   prepareFrozenSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
   /** Refresh passive effects at the battle-deletion boundary, before reactions activate. */
@@ -1663,6 +1671,9 @@ export class CombatController {
         deletedControllerSeat: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === deleted[0])
           ?.controllerSeat,
         deletedPermanentSnapshots,
+        // Printed top card of the first deleted permanent, captured before it left play, so
+        // an [On Deletion] condition about "this Digimon" can still read its host.
+        deletedTopCardId: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === deleted[0])?.topCardId,
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedWasLinkedInstanceIds,

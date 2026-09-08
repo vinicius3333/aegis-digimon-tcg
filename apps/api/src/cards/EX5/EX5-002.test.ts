@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-002.js";
 import "../index.js";
 
@@ -31,7 +31,10 @@ describe("EX5-002 Moonmon", () => {
   });
 
   it("digivolves after a matching Tamer is played, but not after an unrelated Tamer", async () => {
-    const resolve = async (tamer: string) => {
+    // A matching Tamer settles on the real digivolve milestone; an unrelated Tamer never
+    // triggers Moonmon's inherited ability, so that case can only be proven by draining the
+    // queue and asserting the digivolve did NOT happen (a disguised negative proof otherwise).
+    const resolve = async (tamer: string, expectDigivolve: boolean) => {
       const s = setupEngine(
         {
           0: {
@@ -49,11 +52,15 @@ describe("EX5-002 Moonmon", () => {
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({
         ok: true,
       });
-      await settle(() => s.perm("host").topCard?.cardId === "BT1-032", 300);
+      if (expectDigivolve) {
+        await settle(() => s.perm("host").topCard?.cardId === "BT1-032", 300);
+      } else {
+        await drainMicrotasks(300);
+      }
       return s.perm("host").topCard?.cardId === "BT1-032";
     };
 
-    expect(await resolve("EX5-065")).toBe(true);
-    expect(await resolve("BT1-087")).toBe(false);
+    expect(await resolve("EX5-065", true)).toBe(true);
+    expect(await resolve("BT1-087", false)).toBe(false);
   });
 });

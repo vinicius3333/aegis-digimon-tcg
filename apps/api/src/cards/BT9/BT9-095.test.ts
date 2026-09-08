@@ -7,22 +7,47 @@ import "./BT9-095.js";
 describe("BT9-095 Gaia Force ZERO", () => {
   it("matches catalog values and exact-source reduction, attack, and security IR", () => {
     expect(getCardDefinition("BT9-095")).toMatchObject({
-      colors: ["Red"], kinds: ["Option"], playCost: 8,
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 8,
       securityEffectText: "[Security] Delete 1 of your opponent's Digimon.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         {
           trigger: "Static",
-          actions: [{
-            kind: "Replacement", event: "wouldBePlayed",
-            actions: [{
-              kind: "Replacement", mode: "reduceCost", amount: 2,
-              condition: { kind: "youHave", filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] } },
-            }],
-          }],
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              actions: [
+                {
+                  kind: "Replacement",
+                  mode: "reduceCost",
+                  amount: 2,
+                  condition: {
+                    kind: "youHave",
+                    filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
+                  },
+                },
+              ],
+            },
+          ],
         },
-        { trigger: "Main", actions: [{ kind: "Delete", target: { filter: { dp: { op: "lte", value: 13000 } } } }, { kind: "Attack", attackPlayer: true, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } } }] },
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "Delete", target: { filter: { dp: { op: "lte", value: 13000 } } } },
+            {
+              kind: "Attack",
+              attackPlayer: true,
+              optional: true,
+              target: { filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } },
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete" }] },
       ],
     });
@@ -43,12 +68,15 @@ describe("BT9-095 Gaia Force ZERO", () => {
   });
 
   it("does not reduce its cost for an X-Antibody-form source name", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT9-016", as: "host", under: ["BT9-015"] }],
-        hand: [{ card: "BT9-095", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-016", as: "host", under: ["BT9-015"] }],
+          hand: [{ card: "BT9-095", as: "option" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 6;
     await s.ready();
 
@@ -60,12 +88,15 @@ describe("BT9-095 Gaia Force ZERO", () => {
   });
 
   it("reduces its cost when the exact X Antibody Option is in a Digimon's sources", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT9-016", as: "host", under: ["BT9-109"] }],
-        hand: [{ card: "BT9-095", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-016", as: "host", under: ["BT9-109"] }],
+          hand: [{ card: "BT9-095", as: "option" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 6;
     await s.ready();
 

@@ -45,7 +45,7 @@ describe("EX3-005 Vorvomon", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hina1").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hina2").instanceId })).toEqual({ ok: true });
     await settle(
       () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "EX3-065").length === 2,

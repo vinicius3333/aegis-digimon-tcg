@@ -68,7 +68,7 @@ type TestEngine = Pick<GameEngine, "applyIntent" | "seatPlayer"> & {
  * is biased into `preferInstanceIds` so the chooseTargets decision hook selects it as the grant
  * target deterministically (not the freshly-evolved RB1-030).
  */
-async function setupGranted(costCardId: string | undefined) {
+async function setupGranted(costCardId: string | undefined, expectGrant = costCardId !== undefined) {
   // Bias the grant-target chooseTargets decision toward the recipient (mutated below once its
   // instance id is known — the same array reference is read at decision time).
   const preferInstanceIds: string[] = [];
@@ -116,9 +116,8 @@ async function setupGranted(costCardId: string | undefined) {
   });
   // Settle until RB1-030 is on the field AND the [When Digivolving] grant has fully resolved
   // (the grant resolves in the digivolve continuation, AFTER the evolved permanent appears).
-  // When no cost card is supplied (negative case) the grant never installs, so also stop once
-  // the cost card has either been trashed or the decision flow has quiesced.
-  const expectGrant = costCardId !== undefined;
+  // When the cost card doesn't qualify (or none is supplied) the grant never installs, so
+  // also stop once the cost card has either been trashed or the decision flow has quiesced.
   await settle(() => {
     const evolved = p0.battleArea.some((p) => p.topCard?.cardId === RB1_030);
     if (!evolved) return false;
@@ -210,7 +209,7 @@ describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Dig
   });
 
   it("NEGATIVE (cost): no Gammamon-text card in hand => no grant => deletion deletes nothing", async () => {
-    const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(NON_GAMMAMON_OPTION);
+    const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(NON_GAMMAMON_OPTION, false);
     expect(evolvedRB).toBe(true);
 
     // The trash cost is unpayable (the only hand card has no "Gammamon" in its text) -> no grant.

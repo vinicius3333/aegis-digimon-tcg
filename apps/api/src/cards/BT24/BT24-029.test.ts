@@ -356,6 +356,15 @@ describe("BT24-029 Whamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const prompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: prompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.perm("whamon").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("source").instanceId)).toBe(

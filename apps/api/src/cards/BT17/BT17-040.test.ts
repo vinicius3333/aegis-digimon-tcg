@@ -31,7 +31,8 @@ describe("BT17-040 Kazuchimon", () => {
       actions: [
         { condition: { kind: "securityAtLeast", value: 3 } },
         { kind: "SecurityManipulation", op: "addTop", amount: 1 },
-        { kind: "Attack", optional: true, target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+        // `Attack.target` names the attacker; the defender is chosen at declaration.
+        { kind: "Attack", optional: true, target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
       ],
     });
   });

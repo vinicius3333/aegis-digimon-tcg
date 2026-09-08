@@ -56,7 +56,11 @@ describe("EX7-008 ToyAgumon", () => {
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("toyAgumon"));
-    await settle(() => s.state.players[0]!.deck.length === 3);
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.cardId === "EX7-059") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "EX7-070"),
+    );
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX7-059", "EX7-070"]));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX7-069");

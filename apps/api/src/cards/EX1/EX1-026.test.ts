@@ -67,7 +67,7 @@ describe("EX1-026 Gatomon", () => {
       });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 3000);
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",

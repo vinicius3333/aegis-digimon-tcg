@@ -103,7 +103,7 @@ describe("BT8-020 Patamon", () => {
       EffectTiming.OnEndTurn,
       s.perm("red").stack.find((card) => card.cardId === "BT8-020")!,
     );
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {

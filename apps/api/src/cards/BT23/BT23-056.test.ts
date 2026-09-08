@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-056.js";
@@ -53,7 +53,7 @@ describe("BT23-056 WereGarurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "declareBlock");
+    await settleAcrossTimers(() => s.state.pendingDecision?.kind === "declareBlock");
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("were").permanentId })).toEqual({
       ok: true,
     });
@@ -280,11 +280,12 @@ describe("BT23-056 WereGarurumon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "declareBlock");
+      await settleAcrossTimers(() => s.state.pendingDecision?.kind === "declareBlock");
       expect(
         s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm(blocker).permanentId }),
       ).toEqual({ ok: true });
-      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      await settle();
     };
 
     /** The card ids the de-digivolve target still carries: top card plus digivolution cards. */

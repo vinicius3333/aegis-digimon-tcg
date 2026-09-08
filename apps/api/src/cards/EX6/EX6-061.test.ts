@@ -95,7 +95,7 @@ describe("EX6-061 Leviamon", () => {
         response: { kind: "chooseTargets", instanceIds: [stacklessPermanentId] },
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
     await playPromise;
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
@@ -133,7 +133,7 @@ describe("EX6-061 Leviamon", () => {
     await s.ready();
     const stackedPermanentId = s.perm("stacked").permanentId;
     const firstPlayPromise = advance(s.engine).verb.playInstances([s.inst("demonOne").instanceId]);
-    await settle(() => s.state.pendingDecision !== null);
+    await settle(() => s.state.pendingDecision !== undefined);
     const firstDecision = s.state.pendingDecision!;
     let response;
     if (firstDecision.kind === "selectCards") {
@@ -150,7 +150,7 @@ describe("EX6-061 Leviamon", () => {
       } as never);
     }
     expect(response).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
     await firstPlayPromise;
     await advance(s.engine).verb.playInstances([s.inst("demonTwo").instanceId]);
 

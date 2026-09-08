@@ -73,7 +73,7 @@ describe("BT15-051", () => {
         instanceId: s.inst("lillymon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT15-051" && s.state.players[0]!.hand.length === 2);
+    await settle(() => s.perm("base").topCard?.cardId === "BT15-051" && s.state.players[0]!.deck.length === 0);
 
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.deck).toHaveLength(0);
@@ -108,7 +108,7 @@ describe("BT15-051", () => {
         instanceId: s.inst("lillymon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT15-051" && s.state.players[0]!.hand.length === 0);
+    await settle(() => s.perm("base").topCard?.cardId === "BT15-051" && s.state.players[0]!.deck.length === 1);
 
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.deck).toHaveLength(1);

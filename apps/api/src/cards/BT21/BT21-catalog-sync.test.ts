@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { CompiledEffects } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled as bt21001 } from "./BT21-001.js";
 import { compiled as bt21002 } from "./BT21-002.js";
 import { compiled as bt21003 } from "./BT21-003.js";
@@ -244,9 +245,9 @@ describe("BT21 persisted IR", () => {
   });
 
   it("keeps every record synchronized with its authoritative module", () => {
-    const mismatches = Object.entries(authoritative)
-      .filter(([cardId, compiled]) => JSON.stringify(catalog[cardId]) !== JSON.stringify(compiled))
-      .map(([cardId]) => cardId);
+    const mismatches = Object.keys(authoritative)
+      .filter((cardId) => JSON.stringify(catalog[cardId]) !== JSON.stringify(runtimeCompiledCard(cardId)))
+      .map((cardId) => cardId);
 
     expect(mismatches).toEqual([]);
   });

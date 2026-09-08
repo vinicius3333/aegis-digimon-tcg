@@ -66,7 +66,7 @@ export type { SubTriggerSubscription, ReplacementSubscription } from "./subtrigg
 // (documented behavior + documented behavior). `resolveTiming` runs a timing window
 // against a ResolutionEnv the engine binds; `orderTurnPlayerFirst` is the pure
 // ordering helper.
-export { resolveTiming, orderTurnPlayerFirst } from "./stack.js";
+export { resolveTiming, orderTurnPlayerFirst, permanentIdentityOf } from "./stack.js";
 export type { ResolutionEnv } from "./stack.js";
 // Composition root: bind the resolver to the framework collection chain + engine
 // state. `runTiming` is the one call GameEngine.fireTiming delegates to.

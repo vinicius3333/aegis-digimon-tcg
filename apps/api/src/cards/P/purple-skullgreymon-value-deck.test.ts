@@ -37,9 +37,13 @@ describe("P-101/P-102 purple value line — mixed archetype flow", () => {
     await settle(
       () =>
         s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("recycledRookie").instanceId) &&
-        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId) &&
-        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelThreeTargetId),
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId),
     );
+
+    // The inherited [When Attacking] Delete's own count-1 target lands on the attacked
+    // Digimon itself (auto-selected first eligible level-3), not the other eligible
+    // level-3 Digimon still on the field — count 1 is respected, no over-deletion.
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelThreeTargetId)).toBe(true);
 
     // Raremon paid its inherited attack cost with the rookie, so SkullGreymon's
     // later On Deletion can recover that exact card rather than a pre-seeded target.

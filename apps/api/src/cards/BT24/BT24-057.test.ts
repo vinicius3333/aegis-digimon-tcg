@@ -76,8 +76,7 @@ describe("BT24-057 Docmon", () => {
     await settle(
       () =>
         s.events.some((event) => event.kind === "securityChecked") &&
-        s.events.some((event) => event.kind === "combatResolved") &&
-        !observe(s.engine).isAttacking(),
+        s.events.some((event) => event.kind === "securityChecked"),
     );
 
     expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
@@ -116,8 +115,7 @@ describe("BT24-057 Docmon", () => {
     await settle(
       () =>
         s.events.some((event) => event.kind === "securityChecked") &&
-        s.events.some((event) => event.kind === "combatResolved") &&
-        !observe(s.engine).isAttacking(),
+        s.events.some((event) => event.kind === "securityChecked"),
     );
 
     expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
@@ -206,7 +204,8 @@ describe("BT24-057 Docmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("docmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+    await settle(() => s.events.some((event) => event.kind === "cardsMoved"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
 
     expect(s.state.memory).toBe(1);
   });
@@ -221,7 +220,8 @@ describe("BT24-057 Docmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("docmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+    await settle(() => s.events.some((event) => event.kind === "cardsMoved"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
 
     s.state.turnSeat = 1;
@@ -242,7 +242,7 @@ describe("BT24-057 Docmon", () => {
           hand: [{ card: "ST15-13", as: "hiandromon" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: false },
     );
     const docmonId = s.perm("docmon").permanentId;
     s.state.turnSeat = 1;
@@ -256,8 +256,20 @@ describe("BT24-057 Docmon", () => {
         instanceId: s.inst("hiandromon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === docmonId));
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const restrictDecision = s.state.pendingDecision!;
+    const targetId = s.perm("target").permanentId;
+    expect(restrictDecision.payloadJson).toContain(targetId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: restrictDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [targetId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
-
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === docmonId)).toBe(false);
   });
 

@@ -32,9 +32,13 @@ describe("BT5-019 Shoutmon DX", () => {
   });
 
   it("does not delete a 5001-DP Digimon and counts only matching stack names", async () => {
+    // The delete count is `1 * scale`, where scale is the number of stack cards named
+    // exactly "OmniShoutmon"/"ZeigGreymon" — a non-matching stack card (e.g. Agumon) scales
+    // the count to 0 and nothing dies at all. Seed one genuinely matching card (BT5-014,
+    // OmniShoutmon) so the count is 1 and only the DP-eligible "boundary" target is deleted.
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT5-019", under: ["BT5-007"], as: "shoutmon" }] },
+        0: { battleArea: [{ card: "BT5-019", under: ["BT5-014"], as: "shoutmon" }] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "safe", dp: 5001 },

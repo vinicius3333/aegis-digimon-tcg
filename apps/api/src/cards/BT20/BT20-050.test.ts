@@ -127,7 +127,9 @@ describe("BT20-050 HoverEspimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 1);
+    // Player-directed, unblocked attacks resolve through a security check rather than
+    // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 1);
     expect(s.state.players[0]!.hand).toHaveLength(3);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstGarurumon").instanceId })).toEqual({
@@ -143,7 +145,7 @@ describe("BT20-050 HoverEspimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 2);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 2);
     expect(s.state.players[0]!.hand).toHaveLength(2);
 
     s.state.turnSeat = 1;
@@ -167,7 +169,7 @@ describe("BT20-050 HoverEspimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 3);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 3);
     expect(s.state.players[0]!.hand).toHaveLength(3);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;

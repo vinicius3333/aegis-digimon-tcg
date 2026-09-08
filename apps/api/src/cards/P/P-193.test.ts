@@ -74,15 +74,13 @@ describe("P-193 The Wicked God Emerges!", () => {
     );
     s.state.memory = 20;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+    const optionId = s.inst("option").instanceId;
+    const costId = s.inst("cost").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({
       ok: true,
     });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((perm) =>
-        perm.stack.some((card) => card.instanceId === s.inst("option").instanceId),
-      ),
-    );
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === optionId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
   });
 

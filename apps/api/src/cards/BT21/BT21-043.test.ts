@@ -124,7 +124,6 @@ describe("BT21-043 compiled implementation", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.cardId === "BT21-043"));
-    await settle(() => s.perm("target").currentDP === 3000);
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000);

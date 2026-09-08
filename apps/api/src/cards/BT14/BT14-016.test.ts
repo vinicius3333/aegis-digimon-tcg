@@ -69,7 +69,7 @@ describe("BT14-016", () => {
         0: { battleArea: [{ card: "BT14-016", as: "triceramon" }] },
         1: { battleArea: [{ card: "BT14-068", as: "highest", dp: 12000 }], security: ["BT1-085"] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true },
     );
     const highestId = s.perm("highest").permanentId;
     expect(
@@ -79,6 +79,17 @@ describe("BT14-016", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const raidDecision = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: raidDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-016")).toBe(true);

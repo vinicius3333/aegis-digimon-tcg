@@ -466,7 +466,7 @@ describe("EX10-016 Mirrormon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => declined.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => declined.events.some((event) => event.kind === "securityChecked"));
 
     expect(declined.perm("host").linked).toHaveLength(1);
     expect(declined.perm("first").isSuspended).toBe(false);

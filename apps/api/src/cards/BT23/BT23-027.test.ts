@@ -814,7 +814,8 @@ describe("BT23-027 Angemon", () => {
       const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
       await settle(() => combat.hasOpenBarrierDecision);
       expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: targetId, accept })).toEqual({ ok: true });
-      await settle(() => !observe(s.engine).isAttacking());
+      await settleAcrossTimers(() => !observe(s.engine).isAttacking());
+      await settle();
       let replacementResponse = { ok: true };
       // Accepting ＜Barrier＞ prevents the deletion but does NOT cancel Shakkoumon's sibling
       // "play 1 Digimon from this Digimon's digivolution cards" replacement on the same event

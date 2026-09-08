@@ -7,6 +7,9 @@ import {
   Phase,
   Zone,
   getCardDefinition,
+  isDigiEgg,
+  isDigimon,
+  isOption,
   type Seat,
   type ServerEvent,
   type DecisionRequest,
@@ -103,6 +106,12 @@ export interface PermanentSpec {
   under?: CardSpec[];
   /** Linked cards (Link mechanic). */
   linked?: CardSpec[];
+  /**
+   * §17-1-3-2-2 marker. Defaults to `true` for a pure-Option card seeded onto the battle
+   * area, because that is the only way such a permanent can legally exist; set it to
+   * `false` to seed the illegal state the rule sweep exists to clean up.
+   */
+  placedByEffect?: boolean;
 }
 
 export interface SeatSpec {
@@ -160,8 +169,10 @@ export interface SetupEngineOptions {
    */
   autoOrderTriggers?: boolean;
   /**
-   * Bias `autoOrderTriggers`' answer: the first offered trigger key CONTAINING one of these
-   * substrings is put first instead of the engine's own first key. Lets a test name the branch
+   * Bias `autoOrderTriggers`' answer: the first offered trigger whose KEY or whose source CARD ID
+   * contains one of these substrings is put first instead of the engine's own first key. The card
+   * id is the only handle a test has on a SubTrigger watcher, whose key is an opaque subscription
+   * id. Lets a test name the branch
    * it wants (a specific card's would-leave replacement, say) without turning off the
    * auto-responder and hand-answering every prompt in the flow. No match leaves the offered
    * order alone, so adding this never changes an unrelated prompt.
@@ -226,6 +237,10 @@ function buildPermanent(spec: PermanentSpec | string, seat: Seat, aliases: Alias
   const permanent = makeDigimon(seat, dp, resolved.card);
   permanent.isSuspended = resolved.suspended ?? false;
   permanent.enterFieldTurnCount = resolved.enteredThisTurn === true ? 0 : ESTABLISHED_TURN;
+  const definition = getCardDefinition(resolved.card);
+  const isPureOption =
+    definition !== undefined && isOption(definition) && !isDigimon(definition) && !isDigiEgg(definition);
+  permanent.placedByEffect = resolved.placedByEffect ?? isPureOption;
   for (const under of resolved.under ?? []) pushOnStack(permanent, buildInstance(under, seat, true, aliases));
   for (const linked of resolved.linked ?? []) linkCard(permanent, buildInstance(linked, seat, true, aliases), "bottom");
   if (resolved.as !== undefined) {
@@ -331,9 +346,14 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
       }
       if (opts?.autoOrderTriggers !== false && req.kind === "orderTriggers") {
         const triggerKeys = req.options?.triggerKeys ?? [];
-        const preferred = triggerKeys.find((key) =>
-          (opts?.preferTriggerKeys ?? []).some((wanted) => key.includes(wanted)),
+        const triggerCardIds = req.options?.triggerCardIds ?? [];
+        const wantedKeys = opts?.preferTriggerKeys ?? [];
+        const preferredIndex = triggerKeys.findIndex(
+          (key, index) =>
+            wantedKeys.some((wanted) => key.includes(wanted)) ||
+            wantedKeys.some((wanted) => (triggerCardIds[index] ?? "").includes(wanted)),
         );
+        const preferred = preferredIndex === -1 ? undefined : triggerKeys[preferredIndex];
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
             type: "respondDecision",
@@ -557,6 +577,9 @@ function findPermanentForDecisionId(state: GameState, id: string): Permanent | u
  * Tick the microtask queue until a predicate holds (bounded). Omit the predicate (or pass
  * `() => false`) to just flush pending microtasks for `maxTicks` iterations.
  *
+ * Only the drain-only form tolerates exhausting the bound; a real predicate that never holds
+ * throws.
+ *
  * The bound exists to stop a never-satisfied predicate hanging the suite, not to assert how
  * many ticks a flow costs — so it is set generously. It was raised from 200 when combat
  * suspension gained its `whenSuspended` fire (each fire trails a continuous recompute), which
@@ -571,8 +594,39 @@ function findPermanentForDecisionId(state: GameState, id: string): Permanent | u
 /**
  * Tick the microtask queue until `predicate` holds, or `maxTicks` elapse. The predicate is read
  * for truthiness, so an optional-chained probe that can yield `undefined` is a legal predicate.
+ *
+ * A predicate that never holds throws instead of returning quietly: a silent timeout turns a
+ * test into a passing assertion about nothing. The drain-only form — no predicate, or the
+ * literal `() => false` that reads as "just run the queue" — is the one exception, and
+ * {@link drainMicrotasks} states that intent without the sentinel.
  */
-export async function settle(predicate: () => boolean | undefined = () => false, maxTicks = 500): Promise<void> {
+export async function settle(predicate: () => boolean | undefined = neverHolds, maxTicks = 500): Promise<void> {
+  const held = await tickUntil(predicate, maxTicks);
+  if (held) return;
+  if (isDrainSentinel(predicate)) return;
+  throw new Error(
+    `settle: predicate never held within ${maxTicks} ticks (${maxTicks * 10} microtask polls). ` +
+      `Predicate: ${String(predicate).replace(/\s+/g, " ").slice(0, 300)}. ` +
+      "If the flow legitimately needs more ticks, raise this call's maxTicks; if the milestone " +
+      "lies past a timer boundary use settleAcrossTimers; if you only meant to run the queue " +
+      "use drainMicrotasks.",
+  );
+}
+
+/** Run the microtask queue for `maxTicks` iterations without asserting any milestone. */
+export async function drainMicrotasks(maxTicks = 500): Promise<void> {
+  await tickUntil(neverHolds, maxTicks);
+}
+
+function neverHolds(): boolean {
+  return false;
+}
+
+function isDrainSentinel(predicate: () => boolean | undefined): boolean {
+  return predicate === neverHolds || String(predicate).replace(/\s+/g, "") === "()=>false";
+}
+
+async function tickUntil(predicate: () => boolean | undefined, maxTicks: number): Promise<boolean> {
   // Awaiting the same fulfilled promise still yields one microtask per tick, without
   // allocating another promise for every step of the drain.
   const tick = Promise.resolve();
@@ -584,9 +638,10 @@ export async function settle(predicate: () => boolean | undefined = () => false,
       // that continuation one turn through the microtask queue before callers inspect state.
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
       for (let flush = 0; flush < 20; flush += 1) await tick;
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 /**
@@ -599,7 +654,7 @@ export async function settle(predicate: () => boolean | undefined = () => false,
  */
 export async function settleAcrossTimers(predicate: () => boolean | undefined, maxRounds = 200): Promise<void> {
   for (let round = 0; round < maxRounds; round += 1) {
-    await settle(predicate, 5);
+    await tickUntil(predicate, 5);
     if (predicate() === true) return;
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }

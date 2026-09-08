@@ -96,7 +96,7 @@ describe("BT24-024 Submarimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
 
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tamer").instanceId);
@@ -148,7 +148,7 @@ describe("BT24-024 Submarimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("nonTsTamer").instanceId]);
   });
@@ -180,7 +180,7 @@ describe("BT24-024 Submarimon", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.state.memory).toBe(9);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       s.inst("firstTamer").instanceId,
@@ -195,7 +195,10 @@ describe("BT24-024 Submarimon", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 2);
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length >= 2 && !observe(s.engine).isAttacking(),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondTamer").instanceId);
 
     s.state.turnSeat = 1;

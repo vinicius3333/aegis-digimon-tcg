@@ -205,9 +205,11 @@ describe("Tier-2 A3 — SetBaseDP (BT3-014 overwrite original DP to 1000)", () =
     expect(setCalls[0]!.args[2]).toBe(EffectDuration.UntilEachTurnEnd);
   });
 
-  it("REVERT-CONFIRM-RED: a Lv.5 opponent Digimon is NOT eligible -> no setBaseDP", async () => {
+  it("REVERT-CONFIRM-RED: a Lv.5 opponent Digimon is NOT eligible -> the mandatory trigger resolves as a no-op", async () => {
     // The fails-when-reverted lever: the target filter is opponent Digimon at Lv.4 or lower.
-    // A Lv.5-only board yields no candidate -> the effect does not activate -> no setBaseDP.
+    // Per CR 15-4-2 (seam 9), a mandatory triggered clause with no legal target still triggers and
+    // takes its place in the ordered set; it fizzles at resolution. So activation stays true and the
+    // proof is that nothing is overwritten: no setBaseDP call, and the Lv.5 Digimon keeps its DP.
     // (Reverting BT3-014.ts's resolve body to the documented no-op would also drop the call —
     //  this asserts the REAL gated effect: a real overwrite happens only for an eligible target.)
     const oppLv5 = makePermanent("opp-lv5", 1, "OPP-LV5", { dp: 11000 });
@@ -221,7 +223,7 @@ describe("Tier-2 A3 — SetBaseDP (BT3-014 overwrite original DP to 1000)", () =
 
     const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, ctx.source);
     for (const effect of effects) {
-      expect(effect.canActivate(ctx), "no Lv.4-or-lower target -> not activatable").toBe(false);
+      expect(effect.canActivate(ctx), "a mandatory trigger activates even with no legal target").toBe(true);
       await effect.resolve(ctx);
     }
 
@@ -229,6 +231,7 @@ describe("Tier-2 A3 — SetBaseDP (BT3-014 overwrite original DP to 1000)", () =
       recorder.calls.filter((c) => c.verb === "setBaseDP"),
       "no eligible target -> no base-DP overwrite",
     ).toHaveLength(0);
+    expect(oppLv5.currentDP, "the ineligible Lv.5 Digimon keeps its printed DP").toBe(11000);
   });
 });
 

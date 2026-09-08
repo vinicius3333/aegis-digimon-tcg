@@ -14,7 +14,10 @@ describe("BT7-078 AncientSphinxmon", () => {
           ],
           hand: [{ card: "BT7-078", as: "evolving" }],
         },
-        1: { battleArea: [{ card: "BT2-047", as: "target" }] },
+        // BT2-045 is level 4, matching the level of the Hybrid material (BT7-073)
+        // paid as this effect's cost: the Delete target's level bound is relative
+        // to that deleted card's level, so the target must be level <=4.
+        1: { battleArea: [{ card: "BT2-045", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );

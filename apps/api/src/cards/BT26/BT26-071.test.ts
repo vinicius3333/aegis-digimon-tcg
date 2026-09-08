@@ -146,6 +146,10 @@ describe("BT26-071 Flarerizamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The block window is a raw applyIntent, not a pendingDecision — the redirected target
+    // (raidTarget) is offered as its own blocker; decline so the battle proceeds.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.security).toHaveLength(1);

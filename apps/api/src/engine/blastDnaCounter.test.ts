@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "./testkit/observe.js";
-import { setupEngine, settle } from "./testkit/harness.js";
+import { setupEngine, settle, drainMicrotasks } from "./testkit/harness.js";
 import "../cards/BT20/index.js";
 import "../cards/BT19/BT19-073.js";
+
+// BT20-044 (Breakdramon) prints ＜Blocker＞, so an attack into a field carrying it opens a
+// block window before anything else; decline it so the attack proceeds to its next window.
+async function declineOpenBlock(s: ReturnType<typeof setupEngine>) {
+  const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+  await drainMicrotasks(500);
+  if (!combat.hasOpenBlockWindow) return;
+  const result = s.engine.applyIntent(0, { type: "declineBlock" });
+  expect(result).toEqual({ ok: true });
+}
 
 async function openCounter(s: ReturnType<typeof setupEngine>) {
   expect(
@@ -12,6 +22,7 @@ async function openCounter(s: ReturnType<typeof setupEngine>) {
       target: { kind: "player" },
     }),
   ).toEqual({ ok: true });
+  await declineOpenBlock(s);
   await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
   const opened = s.events.find((event) => event.kind === "counterWindowOpened");
   if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
@@ -102,10 +113,11 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
         effectKey: eligible!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-045"),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-045"));
+    // Examon itself prints ＜Blocker＞, so it re-opens a block window for the still-resolving
+    // attack the moment it forms; decline it (the assertions below expect it did not block).
+    await declineOpenBlock(s);
+    await settle(() => !observe(s.engine).isAttacking());
     const result = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT20-045")!;
     expect(result.permanentId).not.toBe(oldPermanentId);
     expect(result.isSuspended).toBe(false);
@@ -142,6 +154,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await declineOpenBlock(s);
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
   });
@@ -173,6 +186,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await declineOpenBlock(s);
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
   });
@@ -210,6 +224,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
+      await declineOpenBlock(s);
       await settle(() => !observe(s.engine).isAttacking());
       expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
     }
@@ -230,6 +245,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
     ).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("examon").instanceId);
     expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+    await declineOpenBlock(s);
     await settle(() => !observe(s.engine).isAttacking());
   });
 
@@ -308,6 +324,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await declineOpenBlock(s);
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-027", "BT20-045"]);
@@ -339,6 +356,7 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
     await s.ready();
     await openCounter(s);
     expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+    await declineOpenBlock(s);
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-027", "BT20-045"]);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-044")).toBe(true);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Phase, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-002.js";
@@ -50,7 +50,7 @@ describe("EX8-002", () => {
     s.state.phase = Phase.Main;
     s.state.turnSeat = 0;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.state.memory !== memory);
+    await drainMicrotasks();
     expect(s.state.memory).toBe(memory);
   });
 });

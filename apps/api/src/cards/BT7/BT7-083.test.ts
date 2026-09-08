@@ -41,7 +41,7 @@ describe("BT7-083 Sistermon Ciel (Awakened)", () => {
           ],
         },
         1: {
-          battleArea: [{ card: "BT7-047", as: "target" }],
+          battleArea: [{ card: "BT1-034", as: "target" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

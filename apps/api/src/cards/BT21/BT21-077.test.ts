@@ -63,11 +63,11 @@ describe("BT21-077 Regulusmon", () => {
     preferred.push(s.inst("cost").instanceId, s.perm("target").permanentId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("regulusmon"));
-    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Collision"));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
-    expect(observe(s.engine).customEffectGrants(s.perm("other"))).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "Collision")).toBe(false);
   });
 
   it("resolves the printed grant through a public play intent", async () => {
@@ -96,12 +96,12 @@ describe("BT21-077 Regulusmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Collision"));
 
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gammamon-cost").instanceId)).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
-    expect(observe(s.engine).customEffectGrants(s.perm("other"))).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "Collision")).toBe(false);
   });
 
   it("publicly triggers the selected opponent's gained attack at their next main phase", async () => {
@@ -135,7 +135,7 @@ describe("BT21-077 Regulusmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Collision"));
     const regulusmonId = s.perm("regulusmon").permanentId;
     // Resolve Collision through its public block decision on the opponent turn.
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -156,7 +156,6 @@ describe("BT21-077 Regulusmon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(false);
-    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
   });
 
   it.each([

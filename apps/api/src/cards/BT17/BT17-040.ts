@@ -39,7 +39,14 @@ export const compiled: CompiledCard = {
           condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
           amount: 1,
         },
-        { kind: "Attack", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, optional: true },
+        // "1 of your Digimon may attack an opponent's Digimon": `Attack.target` names the
+        // ATTACKER (see AttackAction in the shared IR), not the defender.
+        {
+          kind: "Attack",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          attackPlayer: false,
+          optional: true,
+        },
       ],
       frequency: "OncePerTurn",
     },

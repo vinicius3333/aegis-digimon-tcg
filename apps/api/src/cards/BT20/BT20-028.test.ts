@@ -246,7 +246,7 @@ describe("BT20-028 GigaSeadramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("mega").stack).toHaveLength(3);
     expect(s.perm("mega").isSuspended).toBe(true);
@@ -280,10 +280,9 @@ describe("BT20-028 GigaSeadramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.events.filter((event) => event.kind === "combatResolved").length === 2 && !observe(s.engine).isAttacking(),
-    );
+    // Security Attack +2 checks 2 cards per attack, so this second attack's own
+    // security checks land on top of the 2 the first attack already produced.
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
     expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT9-109"]);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-026")).toBe(true);
     expect(s.perm("target").topCard.cardId).toBe("BT20-008");

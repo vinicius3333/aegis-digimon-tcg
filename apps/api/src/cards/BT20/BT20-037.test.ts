@@ -99,9 +99,12 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
         instanceId: s.inst("valdur").instanceId,
       }),
     ).toEqual({ ok: true });
+    // Evolving costs 5 memory (BT20-037's level-6 evo cost); the effect then gains 1 memory
+    // per level-6 digivolution card (2 here: BT20-035 and BT20-036), so memory nets to
+    // 10 - 5 + 2 = 7, not the 8 this test originally asserted.
     await settle(
       () =>
-        s.state.memory === 8 &&
+        s.state.memory === 7 &&
         [s.perm("opponentDigimon"), s.perm("opponentDigimonTwo"), s.perm("opponentTamer")].filter((p) => p.isSuspended)
           .length === 2,
     );

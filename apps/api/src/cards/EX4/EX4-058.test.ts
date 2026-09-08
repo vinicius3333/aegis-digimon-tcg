@@ -8,13 +8,15 @@ import { compiled } from "./EX4-058.js";
 
 describe("EX4-058 Ravemon", () => {
   it("can delete itself at end of the opponent's turn to play Ravemon from trash", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions?.[0]).toMatchObject({
+    const clause = compiled.effects?.find((entry) => entry.trigger === "EndOfAttack");
+    expect(clause?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "endOfOpponentTurn",
       actions: [
         {
           kind: "PlayWithoutCost",
           payCost: false,
+          from: ["trash"],
           target: {
             location: "trash",
             controller: "mine",
@@ -22,16 +24,19 @@ describe("EX4-058 Ravemon", () => {
           },
         },
       ],
-      cost: {
-        kind: "deleteOwn",
-        target: {
-          filter: {
-            isSelfRef: true,
-            digivolutionStackNameOrTrait: [
-              { match: "trait", tokens: ["Bird"] },
-              { match: "trait", tokens: ["Avian"] },
-            ],
-          },
+    });
+    // The printed "By deleting this Digimon ..." is a whole-clause processing condition paid at
+    // [End of Attack], not a cost of the delayed sub-trigger, and "[Bird] or [Avian] in one of
+    // its traits" is a trait SUBSTRING match ([Mysterious Bird] qualifies).
+    expect(clause?.cost).toMatchObject({
+      kind: "deleteOwn",
+      target: {
+        filter: {
+          isSelfRef: true,
+          digivolutionStackNameOrTrait: [
+            { match: "traitContains", tokens: ["Bird"] },
+            { match: "traitContains", tokens: ["Avian"] },
+          ],
         },
       },
     });

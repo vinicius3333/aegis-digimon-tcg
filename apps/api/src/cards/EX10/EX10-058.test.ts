@@ -112,7 +112,7 @@ describe("EX10-058 Lilithmon", () => {
     );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lilithmon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
 
     const watchers = observe(s.engine);
     expect(watchers.subscriptions("endOfTurn", s.perm("recipient").permanentId)).toHaveLength(1);
@@ -169,7 +169,7 @@ describe("EX10-058 Lilithmon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("lilithmon").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("payoff").instanceId);
@@ -200,7 +200,7 @@ describe("EX10-058 Lilithmon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("first").instanceId,
@@ -301,7 +301,7 @@ describe("EX10-058 Lilithmon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
 
     const played = s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId);
     expect(played).not.toContain(s.inst("tooHigh").instanceId);
@@ -340,7 +340,7 @@ describe("EX10-058 Lilithmon", () => {
       { byEffectOnly: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("first").instanceId,
@@ -382,7 +382,7 @@ describe("EX10-058 Lilithmon", () => {
       subjectPermanentId: s.perm("entrant").permanentId,
       entryCause: "play",
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("lilithmon").stack).toHaveLength(2);
   });
 
@@ -510,7 +510,7 @@ describe("EX10-058 Lilithmon", () => {
     // "Unaffected by your opponent's effects", arranged before the grant is given.
     await advance(s.engine).verb.restrict(s.perm("immune").permanentId, "beAffected", EffectDuration.Permanent);
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lilithmon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
 
     // Q5158 first half: the grant CAN be given to such a Digimon.
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("immune").permanentId)).toHaveLength(1);
@@ -518,7 +518,7 @@ describe("EX10-058 Lilithmon", () => {
     // Q5158 second half: it is still unaffected at the trigger timing, so nothing is deleted.
     s.state.turnSeat = 1;
     await advance(s.engine).fireSubTrigger("endOfTurn");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
 
@@ -533,7 +533,7 @@ describe("EX10-058 Lilithmon", () => {
     );
     await control.ready();
     await advance(control.engine).fireForPermanent(EffectTiming.OnPlay, control.perm("lilithmon"));
-    await settle(() => control.state.pendingDecision === null);
+    await settle(() => control.state.pendingDecision === undefined);
     control.state.turnSeat = 1;
     await advance(control.engine).fireSubTrigger("endOfTurn");
     await settle(() => control.state.players[1]!.battleArea.length === 0);

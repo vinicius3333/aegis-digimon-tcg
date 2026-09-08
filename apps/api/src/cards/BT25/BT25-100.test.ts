@@ -166,7 +166,10 @@ describe("BT25-100 Iron Slash", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId, useAs: "option" } as never)).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("opponent").stack.length === 2);
+    // De-Digivolve 2 removes both cards from the top in one atomic move (BT25-075's
+    // top card and BT25-009 beneath it), so the stack goes straight from 3 to 1 — it
+    // never transits through 2.
+    await settle(() => s.perm("opponent").stack.length === 1);
     expect(s.perm("opponent").stack).toHaveLength(1);
     expect(s.perm("opponent").topCard.cardId).toBe("BT25-011");
     expect(s.perm("host").linked.map((card) => card.instanceId)).not.toContain(optionId);

@@ -89,7 +89,7 @@ it("reduces its play cost by 3 by placing one blue Digimon under another", async
   s.state.memory = 6;
 
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-029" && p.stack.length > 1));
+  await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === movedPermanentId));
 
   expect(s.state.memory).toBe(0);
   expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === movedPermanentId)).toBe(false);

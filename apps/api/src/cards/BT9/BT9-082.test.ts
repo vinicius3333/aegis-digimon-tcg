@@ -8,19 +8,56 @@ import "./BT9-082.js";
 describe("BT9-082 Ordinemon", () => {
   it("matches catalog values and the DNA-only delete, recovery, and replay IR", () => {
     expect(getCardDefinition("BT9-082")).toMatchObject({
-      colors: ["Purple", "Yellow"], level: 7, playCost: 15, dp: 15000,
-      evoCosts: [{ color: "Purple", level: 6, memoryCost: 6 }, { color: "Yellow", level: 6, memoryCost: 6 }], types: ["Fallen Angel"],
+      colors: ["Purple", "Yellow"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Purple", level: 6, memoryCost: 6 },
+        { color: "Yellow", level: 6, memoryCost: 6 },
+      ],
+      types: ["Fallen Angel"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [],
-      dnaDigivolveRequirement: [{ cost: 0, materials: [{ color: "Purple", level: 6 }, { color: "Yellow", level: 6 }], }],
+      coverage: "full",
+      residual: [],
+      dnaDigivolveRequirement: [
+        {
+          cost: 0,
+          materials: [
+            { color: "Purple", level: 6 },
+            { color: "Yellow", level: 6 },
+          ],
+        },
+      ],
       effects: [
-        { trigger: "WhenDigivolving", condition: { kind: "isDnaDigivolving" }, actions: [
-          { kind: "Delete", target: { filter: { levelComparison: { op: "gte", value: 6 } }, count: 1 } },
-          { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 5 } }, count: "all" } },
-          { kind: "SecurityManipulation", op: "addTop", source: "deck", scaling: { unit: "deletedThisEffect", per: 1 } },
-        ] },
-        { trigger: "OnDeletion", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { isSelfRef: true } }, cost: { kind: "trash" } }] },
+        {
+          trigger: "WhenDigivolving",
+          condition: { kind: "isDnaDigivolving" },
+          actions: [
+            { kind: "Delete", target: { filter: { levelComparison: { op: "gte", value: 6 } }, count: 1 } },
+            { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 5 } }, count: "all" } },
+            {
+              kind: "SecurityManipulation",
+              op: "addTop",
+              source: "deck",
+              scaling: { unit: "deletedThisEffect", per: 1 },
+            },
+          ],
+        },
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              target: { filter: { isSelfRef: true } },
+              cost: { kind: "trash" },
+            },
+          ],
+        },
       ],
     });
   });
@@ -34,7 +71,10 @@ describe("BT9-082 Ordinemon", () => {
             { card: "AD1-016", as: "yellow" },
           ],
           hand: [{ card: "BT9-082", as: "ordinemon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          // DNA digivolving draws 1 card (rule §16-11-1) before [When Digivolving]
+          // opens, so lead with a filler card and leave exactly 3 behind for the
+          // security-manipulation scaling (1 + 2 deletions) to consume.
+          deck: ["BT1-004", "BT1-001", "BT1-002", "BT1-003"],
         },
         1: { battleArea: ["BT6-111", "BT2-047", "BT1-015"] },
       },

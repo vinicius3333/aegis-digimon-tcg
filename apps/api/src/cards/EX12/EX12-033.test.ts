@@ -178,6 +178,7 @@ describe("EX12-033 Amphimon", () => {
   });
 
   it("trashes four cards across opponent Digimon/Tamer stacks and returns an empty Tamer", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-061", as: "ds" }], hand: [{ card: cardId, as: "option" }] },
@@ -189,10 +190,14 @@ describe("EX12-033 Amphimon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 10;
     await s.ready();
+    // The Return clause's candidates include every opponent permanent left with no
+    // digivolution cards (both emptied Digimon plus the already-empty Tamer): bias the
+    // selection toward the Tamer so the test proves the printed "returns a Tamer" text.
+    preferred.push(s.perm("emptyTamer").topCard.instanceId);
 
     expect(
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),

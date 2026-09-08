@@ -248,6 +248,9 @@ describe("BT21-069 GulusGammamon", () => {
     security.state.memory = 0;
     await security.ready();
     await advance(security.engine).fireForInstance(EffectTiming.SecuritySkill, security.inst("gulus"));
+    await advance(security.engine).fireSubTrigger("whenSecurityBattleEnded", {
+      securityInstanceId: security.inst("gulus").instanceId,
+    });
     await settle(() => security.state.players[0]!.battleArea.length === 1);
     expect(security.state.memory).toBe(0);
 

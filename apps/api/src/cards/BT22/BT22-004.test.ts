@@ -138,33 +138,6 @@ describe("BT22-004 Wanyamon", () => {
     });
     expect(activation).toEqual({ ok: true });
     await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
-    for (let attempt = 0; attempt < 8; attempt += 1) {
-      let answered = false;
-      for (const decision of [...s.decisions].reverse()) {
-        const response =
-          decision.req.kind === "optional"
-            ? { kind: "optional" as const, accept: true }
-            : decision.req.kind === "chooseOption"
-              ? { kind: "chooseOption" as const, optionIndex: 0 }
-              : decision.req.kind === "orderTriggers"
-                ? { kind: "orderTriggers" as const, order: (decision.req.options?.triggerKeys ?? []).slice(0, 1) }
-                : undefined;
-        if (response === undefined) continue;
-        const result = s.engine.applyIntent(decision.seat, {
-          type: "respondDecision",
-          decisionId: decision.req.decisionId,
-          response,
-        });
-        if (result.ok) {
-          answered = true;
-          break;
-        }
-      }
-      if (!answered) break;
-      await Promise.resolve();
-    }
-    await settle(() => host.topCard?.cardId === "BT22-043");
     await settle(() => host.topCard?.cardId === "BT22-047");
 
     expect(host.stack.map((card) => card.cardId)).toEqual(["BT22-046", "BT22-004", "BT22-043"]);

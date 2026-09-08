@@ -66,7 +66,13 @@ import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
 import { ContinuousEffectLedger, effectiveKinds, effectiveNames } from "./continuous.js";
 import { isTimingActivationDisabled } from "./timingActivation.js";
 import { SubTriggerRegistry, type DnaMemoryGain, type SubTriggerRootZone } from "./subtriggers.js";
-import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
+import type {
+  EffectContext,
+  Primitives,
+  Restriction,
+  SubTriggerInstall,
+  SubTriggerSourceScope,
+} from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
 import { canAttackerDeclare, canAttackTarget } from "../combat/legality.js";
 import { createBreedingVerbs } from "./breeding.js";
@@ -163,6 +169,7 @@ export interface PrimitivesEngine {
   fireSubTrigger?: (
     event: import("./EffectContext.js").SubTriggerEventName,
     payload?: import("./EffectContext.js").TriggerInfo,
+    sourceScope?: SubTriggerSourceScope,
   ) => Promise<void>;
   /** Pay Barrier's security cost through the generic removal bus before deletion continues. */
   trashTopSecurityForBarrier?(seat: Seat): Promise<void>;
@@ -3277,6 +3284,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * "can't be deleted by your opponent's effects" reaction does NOT wrongly fire on
    * a rule-based DP-0 deletion (RESEARCH Pitfall 5).
    */
+  /** Top-card snapshot of live permanents, captured before they move out of the battle area. */
+  const snapshotDeletedPermanents = (permanentIds: readonly string[]) =>
+    permanentIds.flatMap((permanentId) => {
+      const permanent = access.permanentById(permanentId);
+      return permanent?.topCard === undefined
+        ? []
+        : [{ permanentId, controllerSeat: permanent.controllerSeat, topCardId: permanent.topCard.cardId }];
+    });
+
   const deletePermanent = async (
     permanentIds: string[],
     cause: import("./EffectContext.js").RemovalCause = "byEffect",
@@ -3306,6 +3322,41 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           engine.fireTiming!(EffectTiming.WhenPermanentWouldBeDeleted, { deletedPermanentId: permanentId }),
         ),
       );
+    }
+    // Q2212 (EX3-013 under BT12-072): a leave-prevention replacement does NOT pre-empt the
+    // deletion triggers OF THE PERMANENT IT SAVES. The ruling resolves that permanent's own
+    // "if this Digimon is deleted, trash the top card of your opponent's security stack"
+    // FIRST and then uses the prevention, so fire its self-anchored deletion watchers over
+    // the whole endangered set, before any prevention can remove a permanent from it.
+    //
+    // Only self-anchored watchers move: a THIRD party's "when a Digimon is deleted" watcher
+    // (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon deleted") must
+    // still see the permanents that actually left, and a prevented permanent was never
+    // deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions and
+    // yields no memory). Those fire below, over `toDelete`, as they always did. So do
+    // `whenLeavesPlay` / `whenTrashedByEffect`: a prevented permanent never leaves play.
+    const deletionWatchersFired = new Set<string>();
+    if (engine.fireSubTrigger && engine.consultLeavePrevention) {
+      const endangeredSnapshots = snapshotDeletedPermanents(permanentIds);
+      for (const permanentId of permanentIds) {
+        const deleted = access.permanentById(permanentId);
+        if (deleted?.topCard === undefined) continue;
+        deletionWatchersFired.add(permanentId);
+        await engine.fireSubTrigger(
+          "onDeletionOf",
+          {
+            deletedPermanentId: permanentId,
+            deletedPermanentIds: permanentIds,
+            deletedPermanentSnapshots: endangeredSnapshots,
+            deletedControllerSeat: deleted.controllerSeat,
+            deletedTopCardId: deleted.topCard.cardId,
+            removalCause: cause,
+            removalMechanic: opts?.mechanic,
+            deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
+          },
+          "selfSourceOnly",
+        );
+      }
     }
     // Leave-the-battle-area PREVENT reactions: a card may prevent some of these effect-deletions
     // by paying a cost. Consult them and drop the prevented permanents from the deletion set.
@@ -3549,18 +3600,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       if (scapegoatSaved.size > 0) toDelete = toDelete.filter((id) => !scapegoatSaved.has(id));
     }
-    const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
-      const permanent = access.permanentById(permanentId);
-      return permanent?.topCard === undefined
-        ? []
-        : [
-            {
-              permanentId,
-              controllerSeat: permanent.controllerSeat,
-              topCardId: permanent.topCard.cardId,
-            },
-          ];
-    });
+    const deletedPermanentSnapshots = snapshotDeletedPermanents(toDelete);
     // SubTrigger bus (System B): "when [a matching Digimon] is deleted" watchers fire over
     // the to-be-deleted set, co-located with the deletion. Fired here — while each subject is
     // STILL a live permanent — so a watcher's captured sourceFilter ("a [Puppet] Digimon")
@@ -3570,16 +3610,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
-        await engine.fireSubTrigger("onDeletionOf", {
-          deletedPermanentId: permanentId,
-          deletedPermanentIds: toDelete,
-          deletedPermanentSnapshots,
-          deletedControllerSeat: deleted.controllerSeat,
-          deletedTopCardId: deleted.topCard?.cardId,
-          removalCause: cause,
-          removalMechanic: opts?.mechanic,
-          deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
-        });
+        // The pre-prevention pass above already ran this permanent's self-anchored watchers;
+        // only the third-party ones are still owed a fire.
+        await engine.fireSubTrigger(
+          "onDeletionOf",
+          {
+            deletedPermanentId: permanentId,
+            deletedPermanentIds: toDelete,
+            deletedPermanentSnapshots,
+            deletedControllerSeat: deleted.controllerSeat,
+            deletedTopCardId: deleted.topCard?.cardId,
+            removalCause: cause,
+            removalMechanic: opts?.mechanic,
+            deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
+          },
+          deletionWatchersFired.has(permanentId) ? "excludeSelfSource" : undefined,
+        );
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
         await engine.fireSubTrigger("whenLeavesPlay", {
           deletedPermanentId: permanentId,

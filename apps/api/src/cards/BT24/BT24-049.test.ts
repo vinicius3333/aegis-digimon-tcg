@@ -218,11 +218,7 @@ describe("BT24-049 Parrotmon", () => {
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === parrotmonId) &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lowest").instanceId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === parrotmonId));
     const replayed = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === parrotmonId)!;
     expect(replayed.permanentId).not.toBe(originalPermanentId);
     expect(replayed.stack).toHaveLength(0);

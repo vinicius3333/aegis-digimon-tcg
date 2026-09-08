@@ -202,7 +202,14 @@ describe("AD1-003 WarGrowlmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("gallantmon").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT12-089") &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT12-007"),
+    );
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-089")).toBe(true);

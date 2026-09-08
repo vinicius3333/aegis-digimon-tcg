@@ -42,7 +42,9 @@ describe("BT4-031 MarinChimairamon", () => {
     const costId = s.perm("cost").permanentId;
     const targetId = s.perm("target").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-031"), 5000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === costId)).toBe(true);
@@ -64,8 +66,10 @@ describe("BT4-031 MarinChimairamon", () => {
     const costId = s.perm("cost").permanentId;
     const targetId = s.perm("target").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {

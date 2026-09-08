@@ -200,9 +200,13 @@ describe("EX10-039 ChuuChuumon", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    await settle(() => s.perm("bagraTamer").stack.length === 1);
-    const deckAfterPlacement = s.state.players[0]!.deck.length;
-    await settle(() => s.state.players[0]!.deck.length < deckAfterPlacement, 40);
+    // The peer Tamer's draw fires off the same placement, in the same continuation, so by the
+    // time the placement settles the draw has already happened — there is no later deck-size
+    // drop to wait for.
+    await settle(
+      () =>
+        s.perm("bagraTamer").stack.length === 1 && s.state.players[0]!.hand.some((card) => card.cardId === "BT14-059"),
+    );
 
     expect(s.perm("bagraTamer").stack.map((card) => card.cardId)).toEqual(["BT14-057"]);
     // BT10-093: "When a purple card is placed under this Tamer, ＜Draw 1＞ and gain 1 memory."

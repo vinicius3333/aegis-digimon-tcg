@@ -55,7 +55,7 @@ describe("LM-040 Vikemon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("vikemon").isSuspended).toBe(true);
   });
@@ -89,7 +89,7 @@ describe("LM-040 Vikemon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
     await settle(() => observe(s.engine).securityDp(1) === -6000, 2000);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(observe(s.engine).securityDp(1)).toBe(-6000);
   });

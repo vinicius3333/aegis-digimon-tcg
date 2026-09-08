@@ -145,6 +145,8 @@ describe("BT24-064 Ouryumon", () => {
           0: {
             battleArea: [{ card: baseCard, as: "base" }],
             hand: [{ card: "BT24-064", as: "ouryumon" }],
+            // Digivolving draws 1 card first (engine step (6)), so the top deck card is drawn to
+            // hand before this reveal ever runs; the reveal itself sees whatever is under it.
             deck: [
               { card: "BT1-009", as: "bonusDraw" },
               { card: "BT24-060", as: "played" },

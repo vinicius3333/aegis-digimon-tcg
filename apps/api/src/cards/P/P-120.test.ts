@@ -12,6 +12,10 @@ describe("P-120 Gatomon", () => {
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: id, target: { kind: "player" } })).toEqual({
       ok: true,
     });
+    // Barrier opens its own decision channel (`barrierPrompt` / `respondBarrier`), not
+    // `state.pendingDecision`; the flow stalls without an explicit accept.
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: id, accept: true })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0 && s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === id)).toBe(true);
     assertNoLoudGap(s);

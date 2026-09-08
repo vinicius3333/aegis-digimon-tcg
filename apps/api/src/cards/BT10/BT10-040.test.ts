@@ -45,7 +45,10 @@ describe("BT10-040 Achillesmon", () => {
       0: {
         battleArea: [{ card: "AD1-015", as: "base" }],
         hand: [{ card: "BT10-040", as: "evolving" }],
-        deck: ["BT1-001"],
+        // Digivolving always draws 1 card first (the standard rule); a second deck
+        // card is needed here so the WhenDigivolving Recovery effect still has a
+        // card left to move onto security.
+        deck: ["BT1-001", "BT1-001"],
         security: 2,
       },
     });

@@ -115,7 +115,7 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 1);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 1);
     expect(s.state.players[0]!.hand).toHaveLength(8);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstGarurumon").instanceId })).toEqual({
       ok: true,
@@ -129,7 +129,7 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 2);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 2);
     expect(s.state.players[0]!.hand).toHaveLength(7);
 
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -156,7 +156,7 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 3);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 3);
     expect(s.state.players[0]!.hand).toHaveLength(8);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
@@ -181,7 +181,7 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => over.events.filter((event) => event.kind === "combatResolved").length >= 1);
+    await settle(() => over.events.filter((event) => event.kind === "securityChecked").length >= 1);
     expect(over.state.players[0]!.hand).toHaveLength(8);
   });
 });

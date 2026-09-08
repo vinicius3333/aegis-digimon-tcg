@@ -237,17 +237,34 @@ function candidateLooseInstancesIncludingReserved(
   }
   if (target.filter.isSelfRef === true && !hostedZone) {
     const self = findLooseCandidateByInstance(ctx, ctx.source.instanceId);
+    const selfCandidates: LooseCandidate[] = [];
     if (
-      self === undefined ||
-      (!(zones.includes("security") && peekCheckedCard(ctx.game.state, ctx.source.instanceId) !== undefined) &&
-        !zones.some((zone) =>
+      self !== undefined &&
+      ((zones.includes("security") && peekCheckedCard(ctx.game.state, ctx.source.instanceId) !== undefined) ||
+        zones.some((zone) =>
           looseCardsInZone(ctx, self.ownerSeat, zone).some((card) => card.instanceId === ctx.source.instanceId),
         ))
     ) {
-      return [];
+      const { isSelfRef: _isSelfRef, ...definitionFilter } = target.filter;
+      if (definitionMatches(definitionFilter, ctx.game.definitionOf({ cardId: self.cardId })))
+        selfCandidates.push(self);
     }
-    const { isSelfRef: _isSelfRef, ...definitionFilter } = target.filter;
-    return definitionMatches(definitionFilter, ctx.game.definitionOf({ cardId: self.cardId })) ? [self] : [];
+    // "Link this card OR 1 matching card in your trash" (BT25-101): the self reference is only
+    // the primary branch. Each `orFilters` alternative is a separate, non-self pool and must be
+    // resolved through the general path, then unioned with the self candidate.
+    const alternatives = [...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
+    if (alternatives.length === 0) return selfCandidates;
+    const seenSelfRefUnion = new Set(selfCandidates.map((candidate) => candidate.instanceId));
+    const union = [...selfCandidates];
+    for (const alternative of alternatives) {
+      const branchTarget: Target = { ...target, filter: alternative, orFilters: undefined };
+      for (const candidate of candidateLooseInstancesIncludingReserved(ctx, branchTarget, zones)) {
+        if (seenSelfRefUnion.has(candidate.instanceId)) continue;
+        seenSelfRefUnion.add(candidate.instanceId);
+        union.push(candidate);
+      }
+    }
+    return union;
   }
   if (target.fromSelectionRef !== undefined) {
     const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);

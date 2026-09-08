@@ -41,7 +41,9 @@ describe("P-092 Dracomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "ST8-04", as: "host", under: ["P-092"] }],
+          // Wingdramon (ST8-07) requires a Blue level-4 host; ST8-04 (Veemon) is only
+          // level 3, so BT1-032 stands in as the real legal level-4 Blue Digimon.
+          battleArea: [{ card: "BT1-032", as: "host", under: ["P-092"] }],
           hand: [
             { card: "BT1-020", as: "groundramon" },
             { card: "ST8-07", as: "wingdramon" },

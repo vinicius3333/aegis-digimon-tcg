@@ -108,7 +108,7 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
 
     s.perm("bond").isSuspended = true;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("bond"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
     expect(s.perm("bond").isSuspended).toBe(true);
   });
 
@@ -120,7 +120,7 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("bond"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("bond").isSuspended).toBe(true);
   });

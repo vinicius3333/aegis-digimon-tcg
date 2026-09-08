@@ -61,6 +61,9 @@ describe("ST7-09 Gallantmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+    await settle(() => combat.hasOpenBlockWindow);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("gallant").currentDP).toBe(11000);

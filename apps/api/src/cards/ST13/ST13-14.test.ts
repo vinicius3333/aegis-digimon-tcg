@@ -12,7 +12,10 @@ describe("ST13-14 BryweLudramon", () => {
         0: {
           battleArea: [{ card: "ST13-13", as: "base" }],
           hand: [{ card: "ST13-14", as: "brywe" }],
-          deck: ["BT1-009", "ST13-07", "BT1-010", "BT1-011"],
+          // Ludomon: a Digimon with the [Legend-Arms] trait and a play cost of 3 — eligible
+          // for the reveal-and-play. ST13-07 has no [Legend-Arms] trait (used as the
+          // uniformly-ineligible reveal in the decline test below).
+          deck: ["BT1-009", "ST13-09", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
@@ -25,7 +28,7 @@ describe("ST13-14 BryweLudramon", () => {
         instanceId: s.inst("brywe").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-07"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-09"));
     expect(s.perm("base").topCard.cardId).toBe("ST13-14");
   });
 

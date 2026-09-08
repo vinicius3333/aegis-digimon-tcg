@@ -329,6 +329,52 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
     // EXPECTED (per §15-15-5-3): the immune permanent is STILL a legal candidate.
     expect(candidateIds).toContain(immune.permanentId);
   });
+
+  it("offers the choice even when the immune permanent is the ONLY candidate", async () => {
+    cite(
+      "comprehensive-0204",
+      "15-15-5-3: the choice exists whether or not another target is available. With one " +
+        "opponent Digimon that isn't affected by effects, 'Suspend 1 of your opponent's " +
+        "Digimon' still asks the player to choose it; the effect then does nothing to it. " +
+        "Target.allowUnaffectableChoice keeps resolvePermanentTargets from silently " +
+        "auto-resolving a pool that holds only unaffectable permanents.",
+    );
+
+    const s = setup();
+    const p0 = s.state.players[0]!;
+    const p1 = s.state.players[1]!;
+    const kuwagamon = instance("BT1-070", 0, false);
+    p0.hand.push(kuwagamon);
+    const immune = digimon(1, 5000, "AD1-001");
+    p1.battleArea.push(immune);
+    s.state.memory = requireCardDefinition("BT1-070").playCost;
+
+    (
+      s.engine as unknown as {
+        continuous: {
+          addRestriction(id: string, r: string, d: number, opts?: { fromSourceKind?: string[] }): void;
+        };
+      }
+    ).continuous.addRestriction(immune.permanentId, "beAffected", 8 /* EffectDuration.Permanent */, {
+      fromSourceKind: [CardKind.Digimon],
+    });
+
+    s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
+    await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 5000);
+
+    const targetDecision = s.decisions.find((d) => d.req.kind === "chooseTargets");
+    expect(targetDecision?.req.options?.candidateInstanceIds ?? []).toEqual([immune.permanentId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision!.req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [immune.permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 30);
+    expect(immune.isSuspended).toBe(false);
+  });
 });
 
 describe('§4-24 "With Different Names" (comprehensive-0094, picked up from ch04)', () => {

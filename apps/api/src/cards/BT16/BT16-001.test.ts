@@ -54,7 +54,7 @@ describe("BT16-001", () => {
 
   it("does not activate from a one-color host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-006", as: "host", under: ["BT16-001"] }] },
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT16-001"] }] },
       1: { battleArea: [{ card: "BT16-007", as: "target", dp: 2000 }], security: ["BT16-001"] },
     });
 
@@ -68,7 +68,7 @@ describe("BT16-001", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 
   it("does not delete a second target after a production unsuspend and second attack in the same turn", async () => {

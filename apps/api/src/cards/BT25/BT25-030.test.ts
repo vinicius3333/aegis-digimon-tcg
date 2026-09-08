@@ -210,7 +210,7 @@ describe("BT25-030 Elecmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-030"));
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);

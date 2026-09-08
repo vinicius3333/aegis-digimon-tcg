@@ -133,7 +133,7 @@ describe("EX1-013 Veemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
     const memoryBeforeSecondUnsuspend = s.state.memory;
     expect(
       s.engine.applyIntent(0, {

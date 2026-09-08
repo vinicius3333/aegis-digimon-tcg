@@ -208,7 +208,6 @@ describe("BT24-063 Locomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-063"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -293,6 +292,8 @@ describe("BT24-063 Locomon", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-063", as: "locomon" }],
+          // Digivolving draws 1 card first (engine step (6)), so the top deck card is drawn to
+          // hand before this reveal ever runs; the reveal itself sees whatever is under it.
           deck: [
             { card: "BT1-015", as: "bonusDraw" },
             { card: "BT24-083", as: "tamer" },

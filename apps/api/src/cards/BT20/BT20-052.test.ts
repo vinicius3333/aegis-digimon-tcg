@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-052.js";
 import "./index.js";
@@ -171,15 +171,20 @@ describe("BT20-052 Oblivimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    // The inherited "attack target can't be switched" restriction makes a block itself an
+    // illegal attack-target switch (see combat/legality.ts's `attackTargetChange` check), so
+    // no eligible blocker exists and the window never opens at all — it is not merely that a
+    // declared block gets rejected. Drain the queue and prove the negative directly: no
+    // window event fires, and the attack proceeds straight through to security.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(
       s.engine.applyIntent(1, {
         type: "declareBlock",
         blockerPermanentId: s.perm("blocker").permanentId,
       }),
     ).toMatchObject({ ok: false });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-047")).toBe(true);
   });
 });

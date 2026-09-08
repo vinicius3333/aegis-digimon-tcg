@@ -18,7 +18,10 @@ describe("ST13-11 TiaLudomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("host").permanentId, s.perm("recipient").permanentId);
+    // Only bias the Reboot-grant target: the placement cost's underFilter (red or
+    // Legend-Arms) already makes "host" the sole legal choice there, so including it here
+    // would also make it tie-preferred for the grant decision and win on candidate order.
+    preferred.push(s.perm("recipient").permanentId);
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tia").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("recipient"), "Reboot"));

@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT2-078.js";
+// BT2-079 (the digivolution host used below) carries <Security Attack +1>, checking 2
+// security cards per attack. Imported explicitly so this file's outcome does not depend
+// on whether another test file has already registered BT2-079's module in this worker.
+import "./BT2-079.js";
 
 describe("BT2-078 WereGarurumon", () => {
   it("deletes another own Digimon to unsuspend its attacking host", async () => {
@@ -120,7 +124,9 @@ describe("BT2-078 WereGarurumon", () => {
             { card: "BT2-070", as: "secondCost" },
           ],
         },
-        1: { security: ["BT1-010", "BT1-011"] },
+        // BT2-079 carries <Security Attack +1>, so each attack checks 2 security cards;
+        // 3 cards let the first attack land on exactly 1 remaining.
+        1: { security: ["BT1-010", "BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

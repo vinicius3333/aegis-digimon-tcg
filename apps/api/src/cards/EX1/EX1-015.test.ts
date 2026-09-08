@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "./EX1-015.js";
 
@@ -122,7 +122,7 @@ describe("EX1-015 Garurumon", () => {
       });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -131,9 +131,12 @@ describe("EX1-015 Garurumon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.perm("attacker").isSuspended);
     expect(attack()).toEqual({ ok: true });
-    await settle(
-      () => s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015").length >= 2,
-    );
+    // Once-per-turn: the second attack does not re-trigger EX1-015 at all, so there is no
+    // second `effectResolved` to wait on — the proof is that the card never fires again.
+    await drainMicrotasks();
+    expect(
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"),
+    ).toHaveLength(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt2").instanceId)).toBe(true);
   });

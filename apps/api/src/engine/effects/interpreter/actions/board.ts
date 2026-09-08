@@ -104,9 +104,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // "Unsuspend 1" can only act on a suspended permanent. Excluding already-active
       // candidates before the prompt prevents an automatic or human selection from
       // wasting the effect on a card whose orientation cannot change (BT15-063).
-      const ids = await resolvePermanentTargets(ctx, action.target, {
-        eligible: (permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === true,
-      });
+      // A chained sibling ("...; it gains <Blocker>", BT1-095) makes the choice matter
+      // beyond the orientation, so the printed pool stands there (KB Q963).
+      const ids = await resolvePermanentTargets(
+        ctx,
+        action.target,
+        ctx.nextActionChainsSameTarget === true
+          ? {}
+          : { eligible: (permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === true },
+      );
       if (ids.length > 0) {
         await ctx.fx.unsuspend(ids);
         if (action.target.bindAs !== undefined) {

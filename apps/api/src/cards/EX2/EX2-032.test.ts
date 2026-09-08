@@ -127,10 +127,13 @@ describe("EX2-032 Strikedramon", () => {
   });
 
   it("does not gain memory from its inherited effect with fewer than two black Tamers", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX2-034", as: "host", under: ["EX2-032"] }, "EX2-062"] },
-      1: { security: ["BT1-001"] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-034", as: "host", under: ["EX2-032"] }, "EX2-062"] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 3;
     await s.ready();
     expect(

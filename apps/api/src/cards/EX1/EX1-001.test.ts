@@ -62,7 +62,7 @@ describe("EX1-001 Agumon", () => {
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT11-046")).toBe(true);
 
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -90,13 +90,17 @@ describe("EX1-001 Agumon", () => {
             { card: "EX1-001", as: "rookie" },
             { card: "EX1-003", as: "host" },
           ],
-          deck: ["ST1-12", "BT1-011", "BT1-012"],
+          // Each digivolve draws 1 card (rule §16-11-1). Lead with two non-matching
+          // fillers so those mandatory draws don't consume the Tamer/Agumon target
+          // before the inherited RevealAdd gets to look at the top 3.
+          deck: ["BT1-013", "BT1-014", "ST1-12", "BT1-011", "BT1-012"],
         },
         1: { security: ["BT1-001", "BT1-001"] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 6;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -120,7 +124,7 @@ describe("EX1-001 Agumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.length === 1);
-    expect(s.state.players[0]!.hand[0]!.cardId).toBe("ST1-12");
+    await settle(() => s.state.players[0]!.hand.length === 3);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014", "ST1-12"]);
   });
 });

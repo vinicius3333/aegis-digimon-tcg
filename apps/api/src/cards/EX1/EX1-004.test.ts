@@ -163,7 +163,7 @@ describe("EX1-004 Greymon", () => {
       });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {

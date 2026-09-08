@@ -18,7 +18,11 @@ describe("ST9-13 GranKuwagamon", () => {
         instanceId: s.inst("gran").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").currentDP === s.perm("base").baseDP + 4000);
+    // ST9-11's inherited "[Your Turn] +1000 DP for each of its colors" also applies to the
+    // stack (GranKuwagamon is 1 color), so the real milestone is +4000 (digivolving) plus
+    // that +1000, not +4000 alone.
+    await settle(() => s.perm("base").currentDP === s.perm("base").baseDP + 5000);
+    expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP + 5000);
     expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
   });
 

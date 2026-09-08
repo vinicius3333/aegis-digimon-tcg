@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { setupEngine, settle } from "./testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "./testkit/harness.js";
 
 /**
  * A3 behavioral proof that the ＜Blocker＞ keyword works through the full
@@ -81,7 +81,9 @@ describe("Blocker A3 behavioral proof (KEYW-02)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+    // No eligible blocker exists, so combat never opens a block window at all.
+    await drainMicrotasks();
+    expect(s.events.some((e) => e.kind === "blockWindowOpened")).toBe(false);
 
     // Seat 1 tries to block with a non-Blocker Digimon — rejected by canBlock → hasBlocker.
     const block = s.engine.applyIntent(1, {
@@ -108,7 +110,9 @@ describe("Blocker A3 behavioral proof (KEYW-02)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+    // The only 〈Blocker〉 is suspended, so combat never opens a block window at all.
+    await drainMicrotasks();
+    expect(s.events.some((e) => e.kind === "blockWindowOpened")).toBe(false);
 
     // Seat 1 tries to block with a suspended Blocker — rejected by canBlock (blocker.isSuspended).
     const block = s.engine.applyIntent(1, {

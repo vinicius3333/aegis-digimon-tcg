@@ -197,6 +197,19 @@ describe("BT26-017 Zanbamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The block window is a raw applyIntent, not a pendingDecision — the defender must
+    // explicitly declare Zanbamon as the blocker before the battle can proceed.
+    await settle(
+      () =>
+        blocking.state.pendingDecision === undefined &&
+        blocking.events.some((event) => event.kind === "blockWindowOpened"),
+    );
+    expect(
+      blocking.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: blocking.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !blocking.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === attackerId));
     expect(blocking.state.players[0]!.security).toHaveLength(1);
     expect(blocking.state.players[0]!.battleArea).toHaveLength(1);

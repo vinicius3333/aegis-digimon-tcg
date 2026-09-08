@@ -49,9 +49,11 @@ describe("BT6-015 SaviorHuckmon", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
+    // Player-directed attack: it resolves through a security check, not a Digimon-vs-Digimon
+    // battle, so "combatResolved" (only emitted by resolveDigimonBattle) never fires.
     await settle(
       () =>
-        s.events.some((event) => event.kind === "combatResolved") &&
+        s.events.some((event) => event.kind === "securityChecked") &&
         !host.isSuspended &&
         !observe(s.engine).hasAttackedThisTurn(host),
       5000,

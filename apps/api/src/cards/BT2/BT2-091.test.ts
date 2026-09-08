@@ -40,7 +40,7 @@ describe("BT2-091 Volcanic Flare", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const selection = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === selection.decisionId)!.req;
 

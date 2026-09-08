@@ -2,7 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled as BT24_060 } from "./BT24-060.js";
 import "../index.js";
 
@@ -108,7 +108,8 @@ describe("BT24-060 Hisyaryumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking());
+    await settle();
 
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT24-064", "BT1-013", "BT1-015"]);
   });
@@ -313,7 +314,9 @@ describe("BT24-060 Hisyaryumon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("happyBullet").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-087"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === stackTamerId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === otherId)).toBe(true);

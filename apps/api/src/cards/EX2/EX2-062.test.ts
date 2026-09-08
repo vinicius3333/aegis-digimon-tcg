@@ -58,7 +58,7 @@ describe("EX2-062 Ryo Akiyama", () => {
         response: { kind: "orderCards", order },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === order[0]);
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck[1]?.instanceId === order[0]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("untouched").instanceId, ...order]);
   });
 

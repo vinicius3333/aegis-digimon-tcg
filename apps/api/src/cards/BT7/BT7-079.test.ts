@@ -44,9 +44,9 @@ describe("BT7-079 Cherubimon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT2-047", as: "first" },
-            { card: "BT2-047", as: "second" },
-            { card: "BT2-047", as: "third" },
+            { card: "BT1-014", as: "first" },
+            { card: "BT1-014", as: "second" },
+            { card: "BT1-014", as: "third" },
           ],
         },
       },

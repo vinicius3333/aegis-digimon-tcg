@@ -42,9 +42,10 @@ describe("BT7-066 AncientVolcanomon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").stack.length === 1);
-    // `under` is declared bottom-most first. Removing AncientVolcanomon and the next
-    // 2 cards therefore exposes the last declared source, BT1-011.
+    await settle(() => s.perm("target").stack.length === 3);
+    // De-Digivolve stops once the exposed top would be level 3 or lower (CR §7-9-2's
+    // level floor), so only AncientVolcanomon itself is peeled off here, exposing the
+    // level-3 BT1-011.
     expect(s.perm("target").topCard?.cardId).toBe("BT1-011");
   });
 });

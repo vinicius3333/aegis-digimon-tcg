@@ -100,7 +100,7 @@ describe("EX11-026 Pteromon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
     expect(decision.options?.candidateInstanceIds).toContain(s.perm("opponent").permanentId);
     expect(
@@ -144,7 +144,7 @@ describe("EX11-026 Pteromon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const suspendDecision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
     expect(
       s.engine.applyIntent(0, {
@@ -154,7 +154,7 @@ describe("EX11-026 Pteromon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const buffDecision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
     const candidates = buffDecision.options?.candidateInstanceIds ?? [];
     expect(candidates).toEqual(expect.arrayContaining([s.perm("source").permanentId, s.perm("vortex").permanentId]));

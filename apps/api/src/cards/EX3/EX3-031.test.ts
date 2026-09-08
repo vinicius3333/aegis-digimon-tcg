@@ -296,7 +296,7 @@ describe("EX3-031 Veedramon", () => {
       s.events.some(
         (event) =>
           event.kind === "cardsMoved" &&
-          event.to === "deck" &&
+          event.to === "deckBottom" &&
           event.instanceIds.length === 4 &&
           event.instanceIds.every((instanceId, index) => instanceId === order[index]),
       ),
@@ -368,7 +368,7 @@ describe("EX3-031 Veedramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
     expect(s.state.players[1]!.security).toHaveLength(1);
 
     await advance(s.engine).runTurn(0);

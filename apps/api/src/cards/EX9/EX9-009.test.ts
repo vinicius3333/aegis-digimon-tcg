@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-009.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-009", () => {
@@ -90,8 +90,11 @@ describe("EX9-009", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.length > 0);
+    // An empty deck leaves no legal cost payment, so the optional gain is never
+    // offered as a decision at all; just drain and assert the no-op.
+    await drainMicrotasks();
 
+    expect(s.decisions).toHaveLength(0);
     expect(source.stack).toHaveLength(0);
     expect(source.currentDP).toBe(before);
   });

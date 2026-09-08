@@ -17,8 +17,12 @@ export const compiled: CompiledCard = {
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 },
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["MetalGreymon", "X Antibody"], match: "nameExact" }] },
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["MetalGreymon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
+            raw: "[MetalGreymon] or [X Antibody] is in this Digimon's digivolution cards",
           },
         },
       ],

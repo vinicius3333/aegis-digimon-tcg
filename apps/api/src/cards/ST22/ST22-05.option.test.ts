@@ -41,13 +41,38 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
           ],
         },
       },
-      { autoDeclineOptional: true },
+      {},
     );
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
       ok: true,
     });
+    // Accept the token creation, then decline the Option use — a blanket
+    // autoDeclineOptional would also decline the (also optional) token creation, so both
+    // prompts are answered explicitly here.
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const createToken = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: createToken.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.promptText === "Use option without cost",
+    );
+    const useOption = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: useOption.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId.includes("TOKEN")));
     expect(
       s.decisions.some(

@@ -31,7 +31,7 @@ import { canAttemptDigivolve } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
-import { canPayCost } from "./costs.js";
+import { canPayCost, payCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
@@ -554,6 +554,16 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       : effect.isSecurity
         ? sourceDefinition?.securityEffectText
         : sourceDefinition?.effectText);
+  // A whole-clause cost is an activation cost for every action below it (Comprehensive §5-3):
+  // preflight it before anything resolves and pay it once. An action inside the clause that
+  // aborts — an opponent declining an optional — does not refund it.
+  if (effect.cost !== undefined) {
+    const paid = canPayCost(ctxWithSelections, effect.cost) && (await payCost(ctxWithSelections, effect.cost));
+    if (!paid) {
+      ctxWithSelections.effectRestrictions = outerRestrictions;
+      return;
+    }
+  }
   const actions = effect.actions ?? [];
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
@@ -625,12 +635,16 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       // makes a Reboot Digimon stand back up immediately after declaring an attack.
       if (isRebootMarker && action.kind === "Unsuspend") continue;
       const outerActionPath = ctxWithSelections.activeActionPath;
+      const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
       ctxWithSelections.activeActionPath = `${actionIndex}`;
+      ctxWithSelections.nextActionChainsSameTarget =
+        (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
       let abort: boolean;
       try {
         abort = await runAction(ctxWithSelections, action);
       } finally {
         ctxWithSelections.activeActionPath = outerActionPath;
+        ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
       }
       if (abort) break;
     }
@@ -681,11 +695,29 @@ function dependsOnSelection(actions: readonly Action[], name: string): boolean {
   return referenced.test(JSON.stringify(actions));
 }
 
-export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
+/**
+ * How the caller is asking. A mandatory triggered effect still triggers when its only
+ * board-targeted action currently finds nothing (CR §15-4-2, and the ＜Alliance＞ precedent in
+ * `GameEngine`): it takes its place in the ordered set and fizzles at resolution if it is
+ * still targetless. A player-facing declaration — a `[Main]` activation or a "you may" prompt
+ * — keeps the empty-board gate, so the UI never offers a choice with no legal outcome.
+ */
+export interface ActivationGateOptions {
+  readonly collectsMandatoryTrigger?: boolean;
+}
+
+export function canActivateEffect(
+  ctx: EffectContext,
+  effect: CardEffect,
+  options: ActivationGateOptions = {},
+): boolean {
   // An unparsed condition is not evidence that the effect is activatable. Treat it as
   // restrictive here, matching runAction's resolution behavior; otherwise the UI offers an
   // effect that resolution will silently skip.
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
+  // A whole-clause cost is a processing condition for every action below it, so an unpayable
+  // one refuses the declaration outright — the same gate `runEffect` applies at resolution.
+  if (effect.cost !== undefined && !canPayCost(ctx, effect.cost)) return false;
   type ParsedAction = Exclude<Action, { kind: "RawUnparsed" }>;
   const relevantActions = (effect.actions ?? []).filter(
     (action): action is ParsedAction => action.kind !== "RawUnparsed",
@@ -779,6 +811,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   };
   const boardTargeted = relevantActions.filter((action) => boardTargetOf(action) !== undefined);
   if (
+    options.collectsMandatoryTrigger !== true &&
     boardTargeted.length > 0 &&
     boardTargeted.length === relevantActions.length &&
     boardTargeted.every(isBoardEmptyFor)

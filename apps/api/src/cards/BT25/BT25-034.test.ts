@@ -399,13 +399,16 @@ describe("BT25-034 Angemon", () => {
   });
 
   it("allows inherited Barrier refusal and no-security deletion", async () => {
-    const refused = setupEngine({
-      0: {
-        battleArea: [{ card: "BT25-039", as: "host", under: ["BT25-034"], suspended: true }],
-        security: ["BT1-001"],
+    const refused = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-039", as: "host", under: ["BT25-034"], suspended: true }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
       },
-      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
-    });
+      { autoDeclineOptional: true },
+    );
     refused.state.turnSeat = 1;
     await refused.ready();
     expect(
@@ -426,10 +429,13 @@ describe("BT25-034 Angemon", () => {
     await settle(() => !observe(refused.engine).isAttacking());
     expect(refused.state.players[0]!.battleArea).toHaveLength(0);
 
-    const unpaid = setupEngine({
-      0: { battleArea: [{ card: "BT25-039", as: "host", under: ["BT25-034"], suspended: true }] },
-      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
-    });
+    const unpaid = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-039", as: "host", under: ["BT25-034"], suspended: true }] },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
+      },
+      { autoDeclineOptional: true },
+    );
     unpaid.state.turnSeat = 1;
     await unpaid.ready();
     expect(

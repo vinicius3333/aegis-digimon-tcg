@@ -328,7 +328,7 @@ describe("BT24-023 Calmaramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostPermanentId)).toBe(true);
   });

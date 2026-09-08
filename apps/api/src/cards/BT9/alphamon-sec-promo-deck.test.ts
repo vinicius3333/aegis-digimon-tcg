@@ -61,20 +61,10 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => {
-      const request = s.decisions.at(-1)?.req;
-      return request?.kind === "selectCards" && request.sourceCardId === "BT9-109";
-    });
-    const selection = s.decisions.at(-1)!.req;
-    expect(selection.options?.effectText).toBe(optional.options?.effectText);
-    expect(selection.options?.timing).toBe("WhenAttacking");
-    const selectionResult = s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: selection.decisionId,
-      response: { kind: "selectCards", instanceIds: [ouryukenId] },
-    });
-    expect([true, "decision-pending"]).toContain(selectionResult.ok ? true : selectionResult.reason);
-
+    // With a single legal digivolve-into card in hand (Ouryuken), the loose-target
+    // resolver auto-picks it (see `pickLoose`'s single-candidate shortcut) instead of
+    // raising a further `selectCards` decision, so accepting the optional above already
+    // completes the digivolution.
     await settle(
       () =>
         s.perm("alphamon").topCard.cardId === "BT9-111" &&

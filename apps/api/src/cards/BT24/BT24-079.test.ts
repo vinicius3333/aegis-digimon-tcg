@@ -538,7 +538,7 @@ describe("BT24-079 Hadesmon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const recipientDecision = s.state.pendingDecision!;
     expect(recipientDecision.payloadJson).toContain(neighborId);
     expect(

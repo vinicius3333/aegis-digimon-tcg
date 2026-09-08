@@ -252,7 +252,7 @@ describe("BT24-006 Tapmon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("startingHand").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.memory).toBe(2);
-    await settle(() => s.decisions.length === 0, 1000);
+    await settle(() => s.state.pendingDecision === undefined);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
   });

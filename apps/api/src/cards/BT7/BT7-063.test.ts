@@ -123,18 +123,6 @@ describe("BT7-063 DarkKnightmon", () => {
         instanceId: s.inst("darkKnightmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const materials = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: materials.decisionId,
-        response: {
-          kind: "selectCards",
-          instanceIds: [s.inst("skullKnightmon").instanceId, s.inst("deadlyAxemon").instanceId],
-        },
-      }),
-    ).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;

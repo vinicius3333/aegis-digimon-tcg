@@ -317,7 +317,7 @@ describe("EX3-051 Tankdramon", () => {
         s.state.players[1]!.security.length === 1 &&
         !observe(s.engine).isAttacking(),
     );
-    await settle(() => s.events.filter(({ kind }) => kind === "combatResolved").length === 1);
+    await settle(() => s.events.filter(({ kind }) => kind === "securityChecked").length === 1);
 
     expect(
       s.engine.applyIntent(0, {

@@ -73,7 +73,7 @@ describe("BT9-002 Puyoyomon", () => {
     });
     await s.ready();
     const baseline = s.perm("host").currentDP;
-    await advance(s.engine).verb.draw(0, 1);
+    await (s.engine as any).primitives.draw(0, 1);
     await settle(() => s.perm("host").currentDP === baseline + 1000);
     await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
     await settle();
@@ -144,9 +144,11 @@ describe("BT9-002 Puyoyomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("puyoyomon").topCard.instanceId === s.inst("elecmon").instanceId);
     s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("puyoyomon").permanentId })).toEqual({
-      ok: true,
-    });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("puyoyomon").permanentId })).toEqual(
+      {
+        ok: true,
+      },
+    );
     await settle(() => s.state.players[0]!.breeding === undefined);
 
     const baseline = s.perm("puyoyomon").currentDP;

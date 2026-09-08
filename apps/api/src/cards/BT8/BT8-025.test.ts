@@ -12,7 +12,9 @@ describe("BT8-025 Hookmon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 3;
-    const bottomId = s.perm("target").stack.at(-1)!.instanceId;
+    // `stack` is ordered bottom-most first, so index 0 is the bottom digivolution
+    // source that this effect (`fromTop: false`) trashes.
+    const bottomId = s.perm("target").stack[0]!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -68,7 +68,8 @@ describe("BT13-108 BT13-108", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-108"));
+    // BT13-108 is an Option: it resolves its Main effect and is trashed, not placed on the field.
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-108"));
 
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();

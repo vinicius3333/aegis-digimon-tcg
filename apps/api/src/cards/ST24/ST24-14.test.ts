@@ -18,7 +18,9 @@ describe("ST24-14 Yoshino & Keenan", () => {
     );
     s.state.memory = 0;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1);
+    // Playing ST24-14 costs 4 memory (0 -> -4); the mandatory "gain 1 memory" then brings
+    // it to -3, not 1.
+    await settle(() => s.state.memory === -3);
     const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "ST24-14");
     expect(tamer?.stack).toContainEqual(expect.objectContaining({ cardId: "BT1-001", faceUp: false }));
     expect(s.state.memory).toBe(-3);

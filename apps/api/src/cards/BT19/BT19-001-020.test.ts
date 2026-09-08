@@ -33,9 +33,8 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const handBefore = (s.state.players[0] as PlayerState).hand.length;
     await fireTiming(s, EffectTiming.OnUseAttack, "host");
-    await settle(() => (s.state.players[0] as PlayerState).hand.length < handBefore);
+    await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-016"));
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT19-016")).toBe(true);
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT19-081")).toBe(false);
   });

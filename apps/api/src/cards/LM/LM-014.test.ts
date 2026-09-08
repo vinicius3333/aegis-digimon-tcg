@@ -39,7 +39,9 @@ describe("LM-014 Espimon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("espimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("espimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-031"), 2000);
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-031")).toBe(true);
@@ -59,7 +61,7 @@ describe("LM-014 Espimon", () => {
     s.state.memory = 3;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("espimon").instanceId });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(3);
@@ -83,7 +85,7 @@ describe("LM-014 Espimon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
 
     await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {});
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
@@ -101,7 +103,7 @@ describe("LM-014 Espimon", () => {
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {});
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

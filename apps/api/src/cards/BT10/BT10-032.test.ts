@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, drainMicrotasks } from "../../engine/testkit/harness.js";
 import "../ST1/ST1-13.js";
 import "../ST1/ST1-14.js";
 import "../BT1/BT1-102.js";
@@ -334,8 +334,10 @@ describe("BT10-032 Renamon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("taomon"));
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "ST1-14"));
+    await drainMicrotasks(500);
 
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "ST1-14")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST1-14")).toBe(false);
     expect(s.perm("target").currentDP).toBe(15000);
   });
 

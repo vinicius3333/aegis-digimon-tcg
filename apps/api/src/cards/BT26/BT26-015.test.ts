@@ -81,7 +81,10 @@ describe("BT26-015 compiled fidelity", () => {
         permanentId: legal.perm("tsEgg").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.state.phase === Phase.Main && legal.perm("tsEgg").topCard.cardId === "BT26-015");
+    // `moveFromBreeding` relocates the permanent into the battle area; it does not itself
+    // drive the turn state machine, so the phase stays exactly what the test forced it to
+    // (Breeding) — check the real milestone (battle-area membership) instead.
+    await settle(() => legal.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-015"));
 
     const illegal = setupEngine({
       0: {
@@ -242,7 +245,10 @@ describe("BT26-015 compiled fidelity", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // This is a player-directed attack: it resolves through a security check, not a
+    // Digimon-vs-Digimon battle, so "combatResolved" (only emitted by resolveDigimonBattle)
+    // never fires here — "securityChecked" is the real end-of-attack milestone.
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(5);

@@ -8,12 +8,33 @@ import "./BT9-105.js";
 describe("BT9-105 Soul Digitalization", () => {
   it("matches catalog values and reveal-budget, then-placement, and security IR", () => {
     expect(getCardDefinition("BT9-105")).toMatchObject({
-      colors: ["Black"], kinds: ["Option"], playCost: 5,
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 5,
       securityEffectText: "[Security] Activate this card's [Main] effect.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "RevealChooseDeleteBudget", revealCount: 3, revealController: "mine", chooseFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] }, deleteCount: 1, returnRevealed: "trash" }, { kind: "PlaceUnder", target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }, underFilter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "RevealChooseDeleteBudget",
+              revealCount: 3,
+              revealController: "mine",
+              chooseFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+              deleteCount: 1,
+              returnRevealed: "trash",
+            },
+            {
+              kind: "PlaceUnder",
+              target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+              underFilter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
       ],
     });
@@ -65,7 +86,7 @@ describe("BT9-105 Soul Digitalization", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "selectTargets");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const deletionChoice = s.decisions.at(-1)!.req;
     expect(deletionChoice.sourceCardId).toBe("BT9-105");
     expect(deletionChoice.options).toMatchObject({ min: 1, max: 1 });

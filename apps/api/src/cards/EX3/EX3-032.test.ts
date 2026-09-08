@@ -1,7 +1,7 @@
 import { EffectDuration, getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-032.js";
 
@@ -150,7 +150,9 @@ describe("EX3-032 Majiramon", () => {
     expect(
       s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // Net Security Attack is -1, which floors at 0 real checks: no security event fires at all.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
 
     expect(s.state.players[0]!.security).toHaveLength(2);
   });

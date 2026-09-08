@@ -7,7 +7,7 @@ describe("BT8-059 Kokuwamon", () => {
   it("prevents the opponent from ignoring digivolution requirements", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-059", as: "kokuwamon" }] },
+        0: { battleArea: [{ card: "BT8-059", as: "kokuwamon" }], security: ["BT8-035"] },
         1: {
           battleArea: [{ card: "BT8-081", as: "fury" }],
           hand: [{ card: "BT7-040", as: "rasenmon" }],
@@ -26,7 +26,10 @@ describe("BT8-059 Kokuwamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    // A player-directed attack has no Digimon-vs-Digimon battle, so `combatResolved`
+    // (emitted only by `resolveDigimonBattle`) never fires; the attack's real
+    // completion milestone here is the security check.
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("rasenmon").instanceId)).toBe(true);
   });
@@ -56,7 +59,10 @@ describe("BT8-059 Kokuwamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    // A player-directed attack has no Digimon-vs-Digimon battle, so `combatResolved`
+    // (emitted only by `resolveDigimonBattle`) never fires; the attack's real
+    // completion milestone here is the security check.
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rasenmon").instanceId)).toBe(true);

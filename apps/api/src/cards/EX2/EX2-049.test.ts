@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 // A3 for EX2-049 (ADR-02=Searcher) — [Main] by suspending this Digimon, reveal the top 5 cards of
@@ -180,7 +180,8 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
         effectKey: "EX2-049/ir-27-0",
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX2-049"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX2-049")).toBe(false);
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.perm("mother").stack).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore);

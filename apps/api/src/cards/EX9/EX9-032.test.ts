@@ -174,7 +174,7 @@ describe("EX9-032", () => {
         instanceId: refusedNext.instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => refused.perm("base").topCard.cardId === "BT10-083");
+    await settle(() => refused.perm("base").topCard.cardId === "BT3-089");
     const refusedHost = refused.perm("base").permanentId;
     expect(await advance(refused.engine).verb.deletePermanent([refusedHost], "byBattle")).toBe(1);
     expect(refused.state.players[0]!.battleArea).toHaveLength(2);

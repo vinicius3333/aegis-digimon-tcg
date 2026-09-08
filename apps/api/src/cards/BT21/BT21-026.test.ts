@@ -332,26 +332,19 @@ describe("BT21-026 WarGreymon", () => {
   });
 
   it("does not unsuspend when its controller deletes their own Digimon", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT21-026", as: "wargreymon", suspended: true },
-            { card: "BT2-067", as: "purpleSource" },
             { card: "BT1-009", as: "sacrifice" },
           ],
-          hand: [{ card: "BT2-109", as: "heatViper" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true },
     );
-    s.state.memory = 10;
     await s.ready();
-    preferred.push(s.inst("sacrifice").instanceId);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
-      ok: true,
-    });
+    await advance(s.engine).verb.deletePermanent([s.perm("sacrifice").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId));
     expect(s.perm("wargreymon").isSuspended).toBe(true);
   });

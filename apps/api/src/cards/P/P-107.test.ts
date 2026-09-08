@@ -419,9 +419,11 @@ describe("P-107 (Defense Training)", () => {
   });
 
   it(// documented behavior DigivolveIntoHandOrTrashCard: reduceCostTuple = (reduceCost: 2, reduceCostCardCondition: null).
-  // Now PASSES: runDigivolve forwards the IR's costDelta:-2 to digivolveFromInstance, which
-  // applies it to the paid digivolution cost (floored at 0).
-  "OnDeclaration <Delay> reduces the digivolution cost by 2 (documented behavior reduceCostTuple reduceCost:2)", async () => {
+  // The reduction is folded into the Digivolve action itself (`reduceCost: 2`), so it reaches
+  // the digivolution this clause performs and nothing else: runDigivolve forwards it as
+  // `costDelta: -2` to digivolveFromInstance. Modelling it as a sibling `wouldDigivolve`
+  // Replacement cannot reach this digivolve and outlives the trashed Option.
+  "OnDeclaration <Delay> reduces its OWN digivolution cost by 2 and installs no replacement", async () => {
     const recorder: Recorder = { calls: [] };
     const blackDigimon = { instanceId: "INST#BLACK-D2", cardId: "BLACK-DIGIMON-2", ownerSeat: 0 as Seat };
 
@@ -437,9 +439,10 @@ describe("P-107 (Defense Training)", () => {
 
     await digivolveClause().resolve(ctx);
 
-    const reductions = recorder.calls.filter((c) => c.verb === "subscribeReplacement");
-    expect(reductions.length).toBeGreaterThanOrEqual(1);
-    expect((reductions[0]!.args[0] as Record<string, unknown>).amount).toBe(2);
+    const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
+    expect(digivolves).toHaveLength(1);
+    expect((digivolves[0]!.args[2] as Record<string, unknown>).costDelta).toBe(-2);
+    expect(recorder.calls.filter((c) => c.verb === "subscribeReplacement")).toHaveLength(0);
   });
 
   it("OnDeclaration <Delay> does NOT digivolve when the player declines (Q4195: choosing not to is allowed)", async () => {
@@ -530,5 +533,119 @@ describe("P-107 (Defense Training)", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").topCard.cardId).toBe("BT10-061");
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // Public-intent proof of the ＜Delay＞ reduction's scope. The card is played from hand with
+  // `playCard`, its ＜Delay＞ is activated with `activateEffect` on a later turn, and the
+  // memory endpoints show the −2 reaching this digivolution and no other.
+  // Board chain: BT3-067 Tankmon (Lv.4 Black, no printed text) digivolves into BT10-064
+  // Gogmamon (Lv.5 Black, no printed text, digivolution cost 3), so the reduced cost is 1.
+  // ---------------------------------------------------------------------------------------
+  const delaySetup = (preferInstanceIds: string[]) =>
+    setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-067", as: "host" },
+            { card: "BT3-067", as: "spare" },
+          ],
+          hand: [
+            { card: "P-107", as: "training" },
+            { card: "BT10-064", as: "target" },
+            { card: "BT10-064", as: "later" },
+          ],
+          // Neither revealed card is black, so the first [Main] clause adds nothing to hand and
+          // the ＜Delay＞ candidates stay exactly the two Gogmamon placed above.
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+
+  it("＜Delay＞ cannot be activated on the turn the Option enters play", async () => {
+    const s = delaySetup([]);
+    await s.ready();
+    const trainingId = s.inst("training").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trainingId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(JSON.parse(s.perm("training").activatableEffectsJson || "[]")).toEqual([]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: trainingId,
+        effectKey: "P-107/ir-OnDeclaration-1",
+      }),
+    ).not.toEqual({ ok: true });
+    expect(s.perm("host").topCard.cardId).toBe("BT3-067");
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("＜Delay＞ digivolves on a later turn for its cost reduced by 2, and the reduction does not leak", async () => {
+    const preferred: string[] = [];
+    const s = delaySetup(preferred);
+    await s.ready();
+    preferred.push(s.inst("target").instanceId, s.perm("host").topCard.instanceId);
+    const trainingId = s.inst("training").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trainingId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    s.state.memory = 5;
+    const ability = JSON.parse(s.perm("training").activatableEffectsJson || "[]") as { effectKey: string }[];
+    expect(ability).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: trainingId,
+        effectKey: ability[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT10-064" && s.state.pendingDecision === undefined);
+
+    // Printed digivolution cost 3, reduced by 2: memory 5 -> 4.
+    expect(s.state.memory).toBe(4);
+    // The Option paid itself as the ＜Delay＞ cost and left the battle area.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId)).toBe(false);
+
+    // A later, ordinary digivolution pays the FULL printed cost: the spent −2 is gone with the
+    // Option instead of staying armed for the next digivolution.
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("spare").permanentId,
+        instanceId: s.inst("later").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("spare").topCard.cardId === "BT10-064" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(2);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-030.js";
@@ -68,7 +68,7 @@ describe("BT23-030 Etemon", () => {
         effectKey: effectKey!,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 4 && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
     await s.ready();
     expect(s.state.memory).toBe(4);
     expect(s.perm("recipient").currentDP).toBe(3000);
@@ -316,7 +316,10 @@ describe("BT23-030 Etemon", () => {
   });
 
   it("rejects a same-source Main reactivation in the same turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-030", as: "etemon" }], deck: ["BT1-010", "BT1-011"] } });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT23-030", as: "etemon" }], deck: ["BT1-010", "BT1-011"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 5;
     const advertised = JSON.parse(s.perm("etemon").activatableEffectsJson ?? "[]") as Array<{ effectKey?: string }>;

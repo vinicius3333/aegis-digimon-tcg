@@ -189,7 +189,7 @@ describe("BT24-037 Silphymon", () => {
         instanceId: s.inst("silphymon").instanceId,
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(targetCardId);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);

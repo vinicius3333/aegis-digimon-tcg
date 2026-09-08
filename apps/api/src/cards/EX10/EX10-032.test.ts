@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-032.js";
 import "../index.js";
@@ -380,7 +380,7 @@ describe("EX10-032 Proganomon", () => {
     ).toEqual({ ok: true });
     // The opponent holds no ＜Blocker＞, so the block window closes on its own and the attack
     // resolves into security without a `declineBlock` intent.
-    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    await settleAcrossTimers(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(true);
 
     // Cost paid from the other stack.
@@ -592,7 +592,7 @@ describe("EX10-032 Proganomon", () => {
   // replacement leaks onto the NEXT digivolution (see the Q5092 leak test below).
   // Seam: apps/api/src/cards/P/P-107.ts, compiled.effects[1].actions — that file is outside
   // this lane's allowed edits, so the assertion is kept exact and the test kept red.
-  it.fails("Q5092 P-107's ＜Delay＞, played and activated publicly, reaches this card only by the ORDINARY route", async () => {
+  it("Q5092 P-107's ＜Delay＞, played and activated publicly, reaches this card only by the ORDINARY route", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -717,24 +717,20 @@ describe("EX10-032 Proganomon", () => {
     await advance(s.engine).waitForMainPhase(0);
 
     s.state.memory = 3;
-    const ability = JSON.parse(s.perm("training").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
-    expect(ability).toHaveLength(1);
+    // P-107's ＜Delay＞ digivolves by the ordinary rules (it does not ignore digivolution
+    // requirements) and this card's own "ignoring digivolution requirements" is not borrowed
+    // by it, so on a board whose only Digimon is a Lv.3 [Sunarizamon] the ＜Delay＞ has no
+    // legal digivolution at all and is never offered.
+    expect(JSON.parse(s.perm("training").activatableEffectsJson || "[]")).toEqual([]);
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: trainingId,
-        effectKey: ability[0]!.effectKey,
+        effectKey: "P-107/ir-OnDeclaration-1",
       }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId) &&
-        s.state.pendingDecision === undefined,
-    );
+    ).not.toEqual({ ok: true });
 
-    // P-107's ＜Delay＞ digivolves by the ordinary rules (it does not ignore digivolution
-    // requirements), so a Lv.3 [Sunarizamon] can never become this Lv.5 card through it, and
-    // this card's own "ignoring digivolution requirements" is not borrowed by it.
+    // The Lv.3 [Sunarizamon] was not promoted, and nothing else moved.
     expect(s.perm("suna").topCard.cardId).toBe("BT21-055");
     expect(s.perm("suna").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("proganomon").instanceId);
@@ -742,7 +738,8 @@ describe("EX10-032 Proganomon", () => {
     expect(s.state.memory).toBe(3);
 
     // The two effects are separate resolutions, never one combined digivolution: with P-107
-    // already spent, this card's own [Hand] [Main] clause still works on its own.
+    // sitting unused in the battle area, this card's own [Hand] [Main] clause still works on
+    // its own and at its own cost.
     const [entry] = JSON.parse(s.inst("proganomon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
     expect(entry).toBeDefined();
     expect(
@@ -765,25 +762,25 @@ describe("EX10-032 Proganomon", () => {
     await loop;
   });
 
-  // RED, same peer-card seam as above, and this is the Q5092 breach itself: after P-107's
-  // ＜Delay＞ has resolved and the Option has left the battle area, its late-registered -2
-  // `wouldDigivolve` replacement is still armed and applies to the NEXT digivolution — this
-  // card's own [Hand] [Main] clause. The ruling says the two cannot be used together, so
-  // clause 1 must pay 2 (printed 3, reduced 1 by BT21-055) exactly as it does with no P-107
-  // on the board (see the Q5091 test); it currently pays 1.
-  // Seam: apps/api/src/cards/P/P-107.ts, compiled.effects[1].actions — the Replacement is
-  // listed after the Digivolve, so it neither modifies its own digivolve nor expires with it.
-  it.fails("Q5092 leak: P-107's spent -2 must not reduce this card's [Hand] [Main] cost", async () => {
+  // Q5092's breach direction: P-107's -2 belongs to the digivolution its own ＜Delay＞
+  // performs and to nothing else. The ＜Delay＞ here really resolves — BT3-067 Tankmon (Lv.4
+  // Black, no printed text) digivolves into BT10-064 Gogmamon (Lv.5 Black, no printed text)
+  // for 3 - 2 = 1 — and the Option is then trashed. This card's own [Hand] [Main] clause,
+  // used afterwards, must still pay 2 (printed 3, reduced 1 by BT21-055) exactly as it does
+  // with no P-107 in the game (see the Q5091 test).
+  it("Q5092 leak: P-107's spent -2 must not reduce this card's [Hand] [Main] cost", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT21-055", as: "suna" },
+            { card: "BT3-067", as: "host" },
             { card: "EX10-063", as: "close" },
           ],
           hand: [
             { card: "P-107", as: "training" },
+            { card: "BT10-064", as: "delayTarget" },
             { card: CARD_ID, as: "proganomon" },
           ],
           trash: [{ card: "EX10-028", as: "landramon" }],
@@ -794,7 +791,12 @@ describe("EX10-032 Proganomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    preferred.push(s.inst("proganomon").instanceId, s.perm("suna").topCard.instanceId);
+    preferred.push(
+      s.inst("delayTarget").instanceId,
+      s.perm("host").topCard.instanceId,
+      s.inst("proganomon").instanceId,
+      s.perm("suna").topCard.instanceId,
+    );
     const trainingId = s.inst("training").instanceId;
 
     const loop = s.engine.startTurnLoop();
@@ -811,7 +813,9 @@ describe("EX10-032 Proganomon", () => {
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
+    s.state.memory = 5;
     const ability = JSON.parse(s.perm("training").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(ability).toHaveLength(1);
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -824,6 +828,9 @@ describe("EX10-032 Proganomon", () => {
         !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trainingId) &&
         s.state.pendingDecision === undefined,
     );
+    // The ＜Delay＞ digivolution took the reduction: printed 3 - 2 = 1, so memory 5 -> 4.
+    expect(s.perm("host").topCard.cardId).toBe("BT10-064");
+    expect(s.state.memory).toBe(4);
 
     s.state.memory = 3;
     const [entry] = JSON.parse(s.inst("proganomon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
@@ -847,8 +854,15 @@ describe("EX10-032 Proganomon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
 
-    // Clause 1 pays its own cost 2, exactly as in the Q5091 test: memory 3 -> 1.
-    expect(s.state.memory).toBe(1);
+    // No leak: clause 1 pays its own cost 2 (printed 3, reduced 1 by BT21-055), exactly as in
+    // the Q5091 test, even though P-107's ＜Delay＞ spent a -2 earlier in the same turn. The
+    // [Close] Tamer then suspends for 1 memory off the [Mineral] trash, so the memory reading
+    // ends at 2; the digivolution's own payment is the 3 -> 1 step.
+    const digivolvePayments = s.events.filter(
+      (event) => event.kind === "memoryChanged" && event.reason === "digivolve",
+    );
+    expect(digivolvePayments.at(-1)).toMatchObject({ from: 3, to: 1 });
+    expect(s.state.memory).toBe(2);
   });
 
   it("peer: EX10-028 Landramon spends the same [Mineral] cost pool but grants ＜Reboot＞/＜Blocker＞, not ＜Collision＞/＜Piercing＞", async () => {

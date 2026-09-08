@@ -106,10 +106,11 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("chosenSkullKnightmon").instanceId) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("chosenDeadlyAxemon").instanceId) &&
         s.state.players[0]!.battleArea.some(
-          ({ topCard }) => topCard.instanceId === s.inst("chosenDeadlyAxemon").instanceId,
-        ) && s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("darkKnightmon").instanceId),
+          ({ topCard }) => topCard.instanceId === s.inst("chosenSkullKnightmon").instanceId,
+        ) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("darkKnightmon").instanceId),
       5000,
     );
     expect(await deletion).toBe(1);

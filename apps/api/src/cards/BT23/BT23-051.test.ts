@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "../EX11/EX11-024.js";
@@ -12,7 +12,9 @@ const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 /** Golemon carries ＜Alliance＞, so any attack it declares with an untapped ally opens a prompt. */
 async function declineAllianceIfPrompted(s: ReturnType<typeof setupEngine>, seat: 0 | 1) {
   const before = s.events.filter((event) => event.kind === "alliancePrompt").length;
-  await settle(() => s.events.filter((event) => event.kind === "alliancePrompt").length > before, 100);
+  // Not every attack has an eligible ally, so the prompt may legitimately never appear;
+  // drain instead of asserting a milestone that is sometimes false by design.
+  await drainMicrotasks(100);
   const prompted = s.events.filter((event) => event.kind === "alliancePrompt").length > before;
   const declined = prompted ? s.engine.applyIntent(seat, { type: "respondAlliance" }) : { ok: true };
   expect(declined).toEqual({ ok: true });

@@ -2,6 +2,7 @@ import { getCardDefinition, type DecisionRequest } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import {
+  drainMicrotasks,
   setupEngine,
   settle,
   type BoardSpec,
@@ -100,7 +101,9 @@ async function answerOptionals(
   const answered: DecisionRequest[] = [];
   const seen = new Set<string>();
   for (let round = 0; round < rounds; round += 1) {
-    await settle(() => s.state.pendingDecision !== undefined, 4);
+    // Not every round yields a fresh decision — the loop is a fixed-budget poll, not a wait on
+    // a milestone that is guaranteed to hold, so this drains rather than asserts.
+    await drainMicrotasks(4);
     const pending = s.state.pendingDecision;
     if (pending === undefined || seen.has(pending.decisionId)) continue;
     const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)?.req;

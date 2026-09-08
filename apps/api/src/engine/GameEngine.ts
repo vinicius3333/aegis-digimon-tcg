@@ -108,6 +108,7 @@ import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
 import {
   buildResolutionEnv,
+  permanentIdentityOf,
   resolveTiming,
   runTiming,
   type EffectEnvironment,
@@ -140,6 +141,7 @@ import type {
   TriggerInfo,
   RemovalCause,
   SubTriggerEventName,
+  SubTriggerSourceScope,
 } from "./effects/EffectContext.js";
 import { TurnStateMachine, type TurnFlowHooks, type DurationBoundary as TurnBoundary } from "./TurnStateMachine.js";
 import { log, logError } from "../logger.js";
@@ -526,6 +528,14 @@ export class GameEngine {
   /** Printed timing effects triggered inside the currently resolving effect body. */
   private pendingNestedTimingEffects: CollectedEffect[] = [];
   /**
+   * What each parked nested trigger's source card WAS when the trigger was collected (see
+   * `permanentIdentityOf`), or `null` when it was not on a permanent at all. CR §15-4-4-3/-5
+   * retire a pending trigger whose source left its area before activation; the resolver already
+   * enforces that inside the window it is draining, but a trigger parked BETWEEN windows is
+   * replayed from a captured list, so the residency check has to happen again at flush time.
+   */
+  private readonly nestedTriggerSourceIdentity = new WeakMap<CollectedEffect, string | null>();
+  /**
    * True while a play's pay-time window is running its reducers' costs. A Digimon deleted to
    * pay a "when this card would be played, by deleting 1 of your Digimon, reduce the cost"
    * clause is deleted as part of the play, so its [On Deletion] triggers SIMULTANEOUSLY with
@@ -654,7 +664,11 @@ export class GameEngine {
     trigger: TriggerInfo,
     candidateInstances: readonly CardInstance[],
   ): void {
-    this.pendingNestedTimingEffects.push(...this.collectNestedTimingEffects(timing, trigger, candidateInstances));
+    const collected = this.collectNestedTimingEffects(timing, trigger, candidateInstances);
+    for (const entry of collected) {
+      this.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
+    }
+    this.pendingNestedTimingEffects.push(...collected);
   }
 
   /**
@@ -900,6 +914,10 @@ export class GameEngine {
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
+      withPendingAttackSubTriggers: (payload, runWindows) =>
+        this.withPendingSubTriggers(["whenAttacking", "whenOpponentAttacks"], payload, runWindows, {
+          onlyInitiallyArmed: true,
+        }),
       prepareFrozenSubTrigger: (event, payload) => this.prepareFrozenSubTrigger(event, payload),
       refreshContinuousEffects: () => this.recomputeContinuousEffects(),
       resolveDeletionReactions: async (trigger, candidates, transientCandidates = []) =>
@@ -1085,7 +1103,7 @@ export class GameEngine {
       win: this.win,
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
       resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
-      fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
+      fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
@@ -2586,7 +2604,23 @@ export class GameEngine {
     return watcherSource.isOnBreedingArea?.() !== true;
   }
 
-  private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
+  /**
+   * @param sourceScope Restricts the fire to watchers anchored ON the event subject
+   *   (`selfSourceOnly`) or anchored anywhere else (`excludeSelfSource`). Omitted => every
+   *   armed watcher runs, which is what all callers but the deletion seam want.
+   */
+  private async fireSubTrigger(
+    event: SubTriggerEventName,
+    payload: TriggerInfo = {},
+    sourceScope?: SubTriggerSourceScope,
+  ): Promise<void> {
+    const scopedOut = (sub: SubTriggerSubscription): boolean => {
+      if (sourceScope === undefined) return false;
+      const isSelfSource = sub.sourcePermanentId === payload.deletedPermanentId;
+      return sourceScope === "selfSourceOnly" ? !isSelfSource : isSelfSource;
+    };
+    const subscriptionsFor = (): SubTriggerSubscription[] =>
+      this.subTriggers.subscriptionsFor(event).filter((sub) => !scopedOut(sub));
     const deletedPermanent =
       payload.deletedPermanentId === undefined ? undefined : this.access.permanentById(payload.deletedPermanentId);
     if (deletedPermanent !== undefined) {
@@ -2598,7 +2632,7 @@ export class GameEngine {
       };
     }
     if (this.ruleProcessing && !this.resolvingBarrierSecurityCost) {
-      const subscriptions = this.subTriggers.subscriptionsFor(event);
+      const subscriptions = subscriptionsFor();
       const contexts = new Map<number, EffectContext>();
       for (const sub of subscriptions) {
         const context = this.buildSubTriggerContext(sub, payload);
@@ -2650,7 +2684,7 @@ export class GameEngine {
       // The event subject can leave the board before the causing effect finishes. Bind each
       // context now, at trigger time, so the pending activation keeps the subject snapshot
       // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
-      const subscriptions = this.subTriggers.subscriptionsFor(event);
+      const subscriptions = subscriptionsFor();
       const contexts = new Map<number, EffectContext>();
       for (const sub of subscriptions) {
         const ctx = this.buildSubTriggerContext(sub, payload);
@@ -2677,7 +2711,7 @@ export class GameEngine {
       // simultaneous triggers is fixed when the event happens anyway. The single-watcher case
       // keeps the plain pass below — no snapshot, no prompt, and a `matches` gate that only
       // becomes true once an earlier body has resolved still gets its chance.
-      const armed = this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload);
+      const armed = this.armedSubTriggers(subscriptionsFor(), payload);
       if (event === "whenLinked" || armed.length > 1) {
         await this.runSubTriggersInChosenOrder(armed);
       } else {
@@ -2693,7 +2727,7 @@ export class GameEngine {
           // while still firing once per genuinely separate top-level resolution.
           this.activeWindowToken,
           this.subTriggerTurnLedger(),
-          (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+          (sub) => scopedOut(sub) || this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
           (sub, ctx) => this.announceSubTrigger(sub, ctx),
         );
       }
@@ -2891,6 +2925,20 @@ export class GameEngine {
    * `fireOneSubTrigger`, so its `matches` / `once` / `oncePerTiming` / `[Once Per Turn]` ledgers
    * behave exactly as they do on the SubTrigger bus.
    */
+  /**
+   * CR §15-4-4-3/-5 at the between-windows boundary: a parked trigger whose source card is no
+   * longer the same thing on the same permanent it was when the trigger was collected can no
+   * longer activate. A source that was never on a permanent (a trash- or hand-resident clause,
+   * or an [On Deletion] whose card is already gone) makes no residency claim and is left alone —
+   * the play-cost deletion list (`pendingPlayCostDeletionEffects`) is deliberately not filtered
+   * here at all, since its source was deleted to pay the cost by design (Q5131).
+   */
+  private nestedTriggerSourceStillResident(pending: CollectedEffect): boolean {
+    const identityAtDefer = this.nestedTriggerSourceIdentity.get(pending);
+    if (identityAtDefer === undefined || identityAtDefer === null) return true;
+    return permanentIdentityOf(pending.source) === identityAtDefer;
+  }
+
   private pendingWindowCollected(): CollectedEffect[] {
     const subTriggers = this.pendingWindowSubTriggers
       .filter(
@@ -2905,7 +2953,10 @@ export class GameEngine {
           effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item, { announce: false }) },
         };
       });
-    return [...this.pendingNestedTimingEffects, ...subTriggers];
+    return [
+      ...this.pendingNestedTimingEffects.filter((pending) => this.nestedTriggerSourceStillResident(pending)),
+      ...subTriggers,
+    ];
   }
 
   /**
@@ -5077,14 +5128,32 @@ export class GameEngine {
    */
   private anyNegativeDpToTrash(): boolean {
     return this.battleAreaPermanents().some(
-      (p) => this.access.isBattleAreaDigimon(p) && this.modifiers.rawDp(this.state, p.permanentId) < 0,
+      (p) =>
+        this.access.isBattleAreaDigimon(p) &&
+        this.modifiers.rawDp(this.state, p.permanentId) < 0 &&
+        !this.protectedFromRuleDeletion(p.permanentId),
     );
+  }
+
+  /**
+   * A "can't be deleted" prohibition takes precedence over the deletion (CR §15-1-3), and
+   * `deletePermanent` drops those permanents from a byRule deletion set. The rule-check
+   * predicates must agree, or a protected Digimon keeps the fixpoint from converging and the
+   * match is wrongly declared a draw (BT18-086 Lucemon: Larva). A rule deletion has no
+   * controlling effect, so opponent-scoped prohibitions do not apply — the same scope
+   * `deletePermanent` uses for byRule.
+   */
+  private protectedFromRuleDeletion(permanentId: string): boolean {
+    return this.continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false });
   }
 
   /** #4 predicate — a battle-area Digimon at exactly raw DP 0. */
   private anyZeroDpDigimon(): boolean {
     return this.battleAreaPermanents().some(
-      (p) => this.access.isBattleAreaDigimon(p) && this.modifiers.rawDp(this.state, p.permanentId) === 0,
+      (p) =>
+        this.access.isBattleAreaDigimon(p) &&
+        this.modifiers.rawDp(this.state, p.permanentId) === 0 &&
+        !this.protectedFromRuleDeletion(p.permanentId),
     );
   }
 

@@ -71,7 +71,14 @@ describe("BT20-035 Kazuchimon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("suspendTarget").permanentId, s.perm("restrictTarget").permanentId);
+    const suspendId = s.perm("suspendTarget").permanentId;
+    const restrictId = s.perm("restrictTarget").permanentId;
+    // The Suspend and Restrict candidates are the same pair of opponent permanents, so a
+    // static preference order would auto-select the same one for both. Bias dynamically
+    // instead: prefer whichever candidate the Suspend action has not already claimed, so
+    // the two independent chooseTargets prompts land on distinct cards and prove Q4343's
+    // "may be different cards" ruling deterministically.
+    preferred.includes = (id: string) => (id === suspendId ? !s.perm("suspendTarget").isSuspended : id === restrictId);
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("kazuchimon"), "Fortitude")).toBe(true);
     // The first When Digivolving choice suspends the Digimon; the second choice

@@ -187,6 +187,7 @@ describe("BT24-099 Super Hacking", () => {
   });
 
   it("may refuse the armed Delay link after a public opponent deletion", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -200,8 +201,9 @@ describe("BT24-099 Super Hacking", () => {
         },
         1: { hand: [{ card: "BT24-076", as: "deleter" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("victim").instanceId);
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
     s.perm("option").placedByEffect = true;
     s.state.turnSeat = 1;

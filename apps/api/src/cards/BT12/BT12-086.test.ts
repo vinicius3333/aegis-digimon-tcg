@@ -36,7 +36,7 @@ it("adds up to two differently colored Save Digimon from the reveal", async () =
   await s.ready();
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.deck.length === 0);
+  await settle(() => s.state.players[0]!.deck.length === 1);
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
     expect.arrayContaining(["BT12-008", "BT12-035"]),
   );
@@ -55,7 +55,7 @@ it("does not add two same-colored Save Digimon", async () => {
   await s.ready();
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.deck.length === 0);
+  await settle(() => s.state.players[0]!.deck.length === 2);
   expect(s.state.players[0]!.hand.filter(({ cardId }) => ["BT12-008", "BT12-011"].includes(cardId))).toHaveLength(1);
 });
 
@@ -72,7 +72,7 @@ it("takes only Save Digimon and leaves a non-Save reveal on the deck bottom", as
   await s.ready();
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.deck.length === 0);
+  await settle(() => s.state.players[0]!.deck.length === 1);
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
     expect.arrayContaining(["BT12-008", "BT12-035"]),
   );

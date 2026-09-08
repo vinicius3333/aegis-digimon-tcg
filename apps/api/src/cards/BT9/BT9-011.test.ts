@@ -96,7 +96,11 @@ describe("BT9-011 Growlmon (X Antibody)", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
-    for (const alias of ["guilmonX", "growlmonX", "warGrowlmon"] as const) {
+    // WhenDigivolving effects don't fire for a digivolution still inside the breeding
+    // slot (§4-8-4), so build the Growlmon (X Antibody) stack there, then move it to
+    // the battle area before the final digivolve into WarGrowlmon so its [When
+    // Digivolving] deletion actually triggers.
+    for (const alias of ["guilmonX", "growlmonX"] as const) {
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -106,6 +110,19 @@ describe("BT9-011 Growlmon (X Antibody)", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("egg").topCard.instanceId === s.inst(alias).instanceId);
     }
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding === undefined);
+    s.state.phase = Phase.Main;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("warGrowlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toContain("BT9-011");
   });

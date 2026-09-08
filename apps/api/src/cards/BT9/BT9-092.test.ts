@@ -7,13 +7,42 @@ import "./BT9-092.js";
 describe("BT9-092 Cool Boy", () => {
   it("matches catalog values and the reveal, same-level, and security IR", () => {
     expect(getCardDefinition("BT9-092")).toMatchObject({
-      colors: ["White"], kinds: ["Tamer"], playCost: 2,
+      colors: ["White"],
+      kinds: ["Tamer"],
+      playCost: 2,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }, { filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }] }] },
-        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", fireCondition: { kind: "triggerDigivolvedSameLevel" }, actions: [{ kind: "GainMemory", amount: 1, abortOnDecline: true, cost: { kind: "suspend" } }, { kind: "Draw", amount: 1 }] }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                { filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+                { filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+              ],
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenOneOfYoursDigivolves",
+              fireCondition: { kind: "triggerDigivolvedSameLevel" },
+              actions: [
+                { kind: "GainMemory", amount: 1, abortOnDecline: true, cost: { kind: "suspend" } },
+                { kind: "Draw", amount: 1 },
+              ],
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });
@@ -40,14 +69,19 @@ describe("BT9-092 Cool Boy", () => {
   });
 
   it("suspends, gains memory, and draws after a same-level X Antibody digivolution", async () => {
+    // BT9-008 (used previously) carries its own [WhenDigivolving] deck-reveal, racing
+    // Cool Boy's post-trigger draw over the same top-of-deck cards. BT2-009 (Guilmon)
+    // digivolving into BT9-009 (Guilmon (X Antibody)) is the same same-level, 0-cost,
+    // X-Antibody alternate-digivolution shape, but BT9-009's own [WhenDigivolving] only
+    // deletes an opponent Digimon (none present here), so it never touches the deck.
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT9-092", as: "coolBoy" },
-            { card: "BT5-007", as: "agumon" },
+            { card: "BT2-009", as: "guilmon" },
           ],
-          hand: [{ card: "BT9-008", as: "agumonX" }],
+          hand: [{ card: "BT9-009", as: "guilmonX" }],
           deck: [
             { card: "BT1-001", as: "evolutionDraw" },
             { card: "BT1-002", as: "coolBoyDraw" },
@@ -61,8 +95,8 @@ describe("BT9-092 Cool Boy", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("agumon").permanentId,
-        instanceId: s.inst("agumonX").instanceId,
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("guilmonX").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("coolBoyDraw").instanceId));

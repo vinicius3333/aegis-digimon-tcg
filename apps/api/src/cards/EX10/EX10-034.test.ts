@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import compiled from "./EX10-034.js";
 import "../index.js";
@@ -264,8 +264,8 @@ describe("EX10-034 Blastmon", () => {
     ).toEqual({ ok: true });
     // Blastmon suspended itself blocking the first attack, so the second block window opens
     // with no eligible blocker and closes on its own; the attack goes straight to security.
-    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
-    await settle(() => s.state.players[0]!.security.length === 1);
+    await settleAcrossTimers(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
+    await settleAcrossTimers(() => s.state.players[0]!.security.length === 1);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.trash.length).toBeGreaterThanOrEqual(2);
     expect(s.perm("blast").stack).toHaveLength(3);

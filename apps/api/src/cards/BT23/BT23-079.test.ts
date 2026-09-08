@@ -369,6 +369,13 @@ describe("BT23-079 Eri Karan", () => {
       until: () => s.perm("host").topCard?.cardId === "BT23-021",
     });
     await settle(() => s.perm("host").topCard?.cardId === "BT23-021", 1000);
+    // App Fusion lands Dosukomon (BT23-021) as the new top, which immediately offers its OWN
+    // [When Digivolving] "may link" prompt (same source card, a later decision than the one
+    // `answerPrompts` above stopped watching for). Decline it too, out of scope for this test.
+    await answerPrompts(s, {
+      declineSourceCardIds: ["BT23-021"],
+      until: () => s.state.pendingDecision === undefined,
+    });
     await settle(() => s.state.pendingDecision === undefined, 200);
 
     expect(s.perm("eri").isSuspended).toBe(true);

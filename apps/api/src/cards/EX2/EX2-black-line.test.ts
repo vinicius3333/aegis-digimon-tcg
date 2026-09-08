@@ -67,6 +67,8 @@ describe("EX2 mixed black Tamer and Cyborg line", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.memory).toBe(3);

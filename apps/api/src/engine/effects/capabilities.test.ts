@@ -896,13 +896,15 @@ describe("condition.isDnaDigivolving (BT20-045, P-221, EX9-021)", () => {
     // DNA path: trigger carries isDnaDigivolve => the DNA-only branch resolves.
     const dna = makeCtx({ source: src, own: [src.permanent()!] });
     dna.ctx.trigger.isDnaDigivolve = true;
-    await runMain("CAP-DNA-045", gated({ kind: "isDnaDigivolving" }), dna.ctx, src);
+    // A synthetic module registered under the real id would evict BT20-045 from the
+    // module-level Blast DNA keyword set for every later test in this worker.
+    await runMain("TEST-BT20-045", gated({ kind: "isDnaDigivolving" }), dna.ctx, src);
     expect(dna.ctx.trigger.isDnaDigivolve).toBe(true);
     expect(dna.sink.dp.map((d) => d.id)).toContain("SRC");
 
     // Single-digivolve path: no flag => the DNA-only branch is skipped.
     const single = makeCtx({ source: src, own: [src.permanent()!] });
-    await runMain("CAP-DNA-045B", gated({ kind: "isDnaDigivolving" }), single.ctx, src);
+    await runMain("TEST-BT20-045b", gated({ kind: "isDnaDigivolving" }), single.ctx, src);
     expect(single.sink.dp).toEqual([]);
   });
 

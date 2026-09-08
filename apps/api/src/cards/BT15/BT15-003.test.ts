@@ -111,7 +111,7 @@ describe("BT15-003", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
       },
-      { autoAcceptOptional: false },
+      { autoDeclineOptional: true },
     );
     s.state.memory = 0;
 

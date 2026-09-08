@@ -153,7 +153,15 @@ describe("BT25-054 GreatGrizzlymon", () => {
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sinkId));
+    // "sink" is suspended, so it is never an eligible blocker (only source, BT25-054's own
+    // <Blocker>, is offered) and the forced attack targets the player directly rather than
+    // any permanent — declining the only real block sends the attack straight to a security
+    // check. Neither sink nor source is a combatant here; both stay on the field, and the
+    // top security card is the one that resolves the attack.
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sinkId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId)).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;

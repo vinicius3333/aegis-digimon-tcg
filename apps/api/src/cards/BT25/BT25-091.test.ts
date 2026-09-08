@@ -163,9 +163,13 @@ describe("BT25-091 Monica Simmons", () => {
   });
 
   it("does not react when a non-TS Option is used", async () => {
+    // BT25-038 is a Digimon-only card (no Option kind, and it even carries [TS] itself), so
+    // it cannot stand in for "a non-TS Option card" — playing it as `useAs: "option"` is a
+    // no-op and it is placed as a permanent, never reaching trash. BT2-103 is a genuine
+    // Black, non-[TS] Option ("1 of your Digimon gets +3000 DP for the turn").
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT25-038", as: "nonTsOption" }], battleArea: [{ card: "BT25-091", as: "monica" }] },
+        0: { hand: [{ card: "BT2-103", as: "nonTsOption" }], battleArea: [{ card: "BT25-091", as: "monica" }] },
         1: { battleArea: [{ card: "AD1-001", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -210,7 +214,9 @@ describe("BT25-091 Monica Simmons", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tsOption").instanceId));
+    // BT25-094's own [Main] text places itself face up as the bottom security card — it
+    // never reaches trash.
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("tsOption").instanceId));
     expect(s.perm("monica").isSuspended).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
   });

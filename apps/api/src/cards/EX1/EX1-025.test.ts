@@ -25,7 +25,7 @@ describe("EX1-025 Salamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",

@@ -308,7 +308,10 @@ describe("BT25-059 Ceresmon", () => {
           response: { kind: "chooseTargets", instanceIds: [s.perm(targetAlias).permanentId] },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.pendingDecision !== undefined);
+      // The optional DnaDigivolve tail has no legal materials when the opponent controls no
+      // Digimon (this scenario), so no further decision follows the target choice — drain
+      // instead of asserting one exists; the loop below already handles both cases.
+      await settle();
       while (s.state.pendingDecision !== undefined) {
         const followup = s.state.pendingDecision;
         if (followup.kind === "optional") {
@@ -320,7 +323,7 @@ describe("BT25-059 Ceresmon", () => {
             }),
             { ok: true },
           );
-          await settle(() => s.state.pendingDecision !== undefined);
+          await settle();
           continue;
         }
         if (followup.kind !== "chooseTargets") break;
@@ -337,7 +340,7 @@ describe("BT25-059 Ceresmon", () => {
             response: { kind: "chooseTargets", instanceIds: [candidates[0]!] },
           }),
         ).toEqual({ ok: true });
-        await settle(() => s.state.pendingDecision !== undefined);
+        await settle();
       }
       if (targetAlias === "ownTs") ok(!s.perm("ownTs").isSuspended);
       advance(s.engine).endMainPhaseIfOpen(1);
@@ -374,7 +377,7 @@ describe("BT25-059 Ceresmon", () => {
           }),
           { ok: true },
         );
-        await settle(() => s.state.pendingDecision !== undefined);
+        await settle();
         while (s.state.pendingDecision !== undefined) {
           const followup = s.state.pendingDecision;
           if (followup.kind === "optional") {
@@ -386,7 +389,7 @@ describe("BT25-059 Ceresmon", () => {
               }),
               { ok: true },
             );
-            await settle(() => s.state.pendingDecision !== undefined);
+            await settle();
             continue;
           }
           if (followup.kind !== "chooseTargets") break;
@@ -404,7 +407,7 @@ describe("BT25-059 Ceresmon", () => {
             }),
             { ok: true },
           );
-          await settle(() => s.state.pendingDecision !== undefined);
+          await settle();
         }
         ok(s.perm("ownTs").isSuspended);
         advance(s.engine).endMainPhaseIfOpen(1);

@@ -87,10 +87,11 @@ describe("EX4-022 ZeedGarurumon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
+    const level6PermanentId = s.perm("level6").permanentId;
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("zeed"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("level6").permanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6PermanentId)).toBe(false);
     expect(s.state.players[1]!.hand).toHaveLength(9);
   });
 

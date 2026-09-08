@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -135,7 +135,8 @@ describe("BT25-003 Frimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard?.cardId === "BT25-035" && !observe(s.engine).isAttacking());
+    await settleAcrossTimers(() => s.perm("host").topCard?.cardId === "BT25-035" && !observe(s.engine).isAttacking());
+    await settle();
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("restoredSecurity").instanceId);
   });
 

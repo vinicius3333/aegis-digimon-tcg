@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-010.js";
 import "../index.js";
 
@@ -37,7 +37,7 @@ describe("EX5-010 Sandiramon", () => {
   });
 
   it("draws and puts a unique Deva into breeding, while rejecting a duplicate name", async () => {
-    const resolve = async (candidate: string) => {
+    const resolve = async (candidate: string, expectPlacement: boolean) => {
       const s = setupEngine(
         {
           0: {
@@ -55,12 +55,17 @@ describe("EX5-010 Sandiramon", () => {
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sandiramon").instanceId })).toEqual({
         ok: true,
       });
-      await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId, 500);
+      if (expectPlacement) {
+        await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId, 500);
+      } else {
+        await drainMicrotasks(500);
+        expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+      }
       return s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId;
     };
 
-    expect(await resolve("EX5-009")).toBe(true);
-    expect(await resolve("EX5-010")).toBe(false);
+    expect(await resolve("EX5-009", true)).toBe(true);
+    expect(await resolve("EX5-010", false)).toBe(false);
   });
 
   it("deletes an opposing Digimon at exactly 5000 DP but preserves one above the boundary", async () => {

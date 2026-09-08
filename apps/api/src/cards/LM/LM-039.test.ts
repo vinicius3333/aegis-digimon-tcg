@@ -98,7 +98,7 @@ describe("LM-039 Valkyrimon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1, 2000);
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("valkyrimon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

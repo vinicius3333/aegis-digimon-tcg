@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-007.js";
 
 describe("BT2-007 Pagumon", () => {
@@ -38,7 +38,9 @@ describe("BT2-007 Pagumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // A player-directed attack resolves through the security check, not a
+    // Digimon-vs-Digimon battle, so `combatResolved` never fires here.
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
     expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);
   });

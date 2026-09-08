@@ -418,25 +418,36 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
     expect(s.perm("secondEligible")).toBeDefined();
   });
   it("naturally deletes an opposing Digimon after a security check within the source DP limit", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT20-020", as: "fighter" }] },
-        1: {
-          security: ["BT1-010"],
-          battleArea: [
-            { card: "BT20-014", dp: 10000, as: "eligible" },
-            { card: "BT20-014", dp: 14000, as: "tooLarge" },
-          ],
-        },
+    // `tooLarge` (14000 DP) outguns the 13000-DP fighter, so with `autoSelectCards`
+    // Raid's mandatory highest-DP redirect (§16-23-4) always sends the attack at
+    // `tooLarge` instead of the player, and the fighter dies in that battle before
+    // any security check ever happens. Decline the Raid redirect explicitly so the
+    // attack actually goes at the player and exercises the security-removed power.
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-020", as: "fighter" }] },
+      1: {
+        security: ["BT1-010"],
+        battleArea: [
+          { card: "BT20-014", dp: 10000, as: "eligible" },
+          { card: "BT20-014", dp: 14000, as: "tooLarge" },
+        ],
       },
-      { autoSelectCards: true },
-    );
+    });
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("fighter").permanentId,
         target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const raidDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: raidDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(

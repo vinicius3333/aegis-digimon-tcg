@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX2-032.js";
 import "./EX2-035.js";
 import "./EX2-038.js";
@@ -68,7 +69,6 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
     await settle();
 
     const deleteTargetPermanentId = s.perm("deleteTarget").permanentId;
-    const firstCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -107,12 +107,16 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       }),
     ).toEqual({ ok: true });
 
+    // This attack targets the player directly and never faces a blocker, so it resolves
+    // through the security-check path (combat/controller.ts's checkSecurity hook), not
+    // resolveDigimonBattle — combatResolved is only emitted for a Digimon-vs-Digimon battle,
+    // so it never fires here.
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetPermanentId) &&
         s.state.players[1]!.security.length === 1 &&
-        s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
-        s.state.pendingDecision === undefined,
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
       5000,
     );
 
@@ -126,7 +130,6 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "EX2-030")).toBe(true);
 
     const decisionCountBeforeSecondAttack = s.decisions.length;
-    const secondCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -134,12 +137,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[1]!.security.length === 0 &&
-        s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount,
-      5000,
-    );
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking(), 5000);
 
     expect(s.decisions).toHaveLength(decisionCountBeforeSecondAttack);
     expect(s.perm("justimonBase").isSuspended).toBe(true);

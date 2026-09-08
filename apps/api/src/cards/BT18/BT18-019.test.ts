@@ -64,8 +64,8 @@ describe("BT18-019 Millenniummon", () => {
           hand: [{ card: "BT18-019", as: "millennium" }],
         },
         1: {
-          battleArea: [{ card: "BT1-030", as: "level3" }],
           trash: [
+            { card: "BT1-030", as: "level3" },
             { card: "BT1-032", as: "level4" },
             { card: "BT1-021", as: "level5" },
           ],

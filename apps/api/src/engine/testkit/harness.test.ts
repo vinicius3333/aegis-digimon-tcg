@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Zone, type PlayerState, type Seat } from "@aegis/shared";
 import { advance } from "./advance.js";
-import { setupEngine, settle, type EngineSetup } from "./harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "./harness.js";
 import "../../cards/index.js";
 
 const player = (s: EngineSetup, seat: Seat): PlayerState => s.state.players[seat] as PlayerState;
@@ -127,5 +127,18 @@ describe("automatic decision responders", () => {
     expect(mainPhase.isOpen).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await turn;
+  });
+});
+
+describe("settle tick-budget exhaustion", () => {
+  it("throws with the tick count and predicate when a predicate never holds", async () => {
+    const s = setupEngine({ 0: { hand: [] } });
+    await expect(settle(() => s.decisions.length > 0, 2)).rejects.toThrow(/predicate never held within 2 ticks/);
+  });
+
+  it("stays quiet for the drain-only forms", async () => {
+    await expect(settle(() => false, 1)).resolves.toBeUndefined();
+    await expect(settle(undefined, 1)).resolves.toBeUndefined();
+    await expect(drainMicrotasks(1)).resolves.toBeUndefined();
   });
 });

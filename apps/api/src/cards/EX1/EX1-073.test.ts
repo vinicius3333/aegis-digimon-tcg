@@ -11,6 +11,7 @@ import "./EX1-047.js";
 import "./EX1-048.js";
 import "./EX1-049.js";
 import "./EX1-050.js";
+import "./EX1-069.js";
 import "./EX1-073.js";
 
 describe("EX1-073 Machinedramon", () => {

@@ -221,6 +221,7 @@ describe("BT24-091 Tidal Stream", () => {
               { card: "BT24-032", as: "systemTarget", suspended: true },
               ...(withProtection ? [] : [{ card: "BT1-051", as: "higher" }]),
             ],
+            security: ["BT1-013"],
             ...(withProtection ? { hand: [{ card: "BT24-056", as: "protector" }] } : {}),
             deck: ["BT1-012", "BT1-013", "BT1-015"],
           },
@@ -264,6 +265,15 @@ describe("BT24-091 Tidal Stream", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((event) => event.kind === "blockWindowOpened") ||
+          s.events.some((event) => event.kind === "securityChecked"),
+      );
+      const declineResult = s.events.some((event) => event.kind === "blockWindowOpened")
+        ? s.engine.applyIntent(1, { type: "declineBlock" })
+        : { ok: true };
+      expect(declineResult).toEqual({ ok: true });
       await settle(() => !observe(s.engine).isAttacking());
       if (withProtection) {
         advance(s.engine).endMainPhaseIfOpen(0);

@@ -475,7 +475,11 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("onmon").linked.length === 2);
+    // Onmon's link limit is 1 (CR §4-8-5): linking a new card trashes the one
+    // already there, at the same time as the new card lands.
+    await settle(
+      () => s.perm("onmon").linked.length === 1 && s.perm("onmon").linked[0]?.instanceId === s.inst("tool").instanceId,
+    );
     expect(s.state.memory).toBe(2);
     expect(
       s.engine.applyIntent(0, {
@@ -484,7 +488,9 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         targetPermanentId: s.perm("onmon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("onmon").linked.length === 3);
+    await settle(
+      () => s.perm("onmon").linked.length === 1 && s.perm("onmon").linked[0]?.instanceId === s.inst("game").instanceId,
+    );
     expect(s.state.memory).toBe(1);
   });
 
@@ -522,7 +528,12 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         targetPermanentId: s.perm("onmon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("onmon").linked.length === 2);
+    // Onmon's link limit is 1 (CR §4-8-5): linking a new card trashes the one
+    // already there, at the same time as the new card lands.
+    await settle(
+      () =>
+        s.perm("onmon").linked.length === 1 && s.perm("onmon").linked[0]?.instanceId === s.inst("second").instanceId,
+    );
     expect(s.state.memory).toBe(3);
 
     s.state.turnSeat = 1;
@@ -543,7 +554,9 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
         targetPermanentId: s.perm("onmon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("onmon").linked.length === 3);
+    await settle(
+      () => s.perm("onmon").linked.length === 1 && s.perm("onmon").linked[0]?.instanceId === s.inst("third").instanceId,
+    );
     expect(s.state.memory).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;

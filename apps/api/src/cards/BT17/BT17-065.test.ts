@@ -48,7 +48,7 @@ describe("BT17-065 DexDorugamon", () => {
           hand: [{ card: "BT1-001", as: "discarded" }],
           deck: [{ card: "BT1-011", as: "notDrawn" }],
         },
-        1: { battleArea: [{ card: "BT17-025", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

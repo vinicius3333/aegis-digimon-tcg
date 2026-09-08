@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-002.js";
 import "../index.js";
 
@@ -39,7 +40,10 @@ describe("EX4-002 Kokomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    // This attack targets the player directly with no blocker in play, so it resolves
+    // through the security-check path rather than a Digimon-vs-Digimon battle;
+    // combatResolved is only emitted for the latter, so it never fires here.
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });

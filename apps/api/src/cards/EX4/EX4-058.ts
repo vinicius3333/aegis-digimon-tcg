@@ -26,34 +26,34 @@ export const compiled: CompiledCard = {
                 location: "trash",
                 controller: "mine",
               },
+              from: ["trash"],
               payCost: false,
             },
           ],
-          cost: {
-            kind: "deleteOwn",
-            target: {
-              filter: {
-                isSelfRef: true,
-                digivolutionStackNameOrTrait: [
-                  {
-                    tokens: ["Bird"],
-                    match: "trait",
-                  },
-                  {
-                    tokens: ["Avian"],
-                    match: "trait",
-                  },
-                ],
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "By deleting this Digimon that has a digivolution card with [Bird] or [Avian] in one of its traits",
-          },
-          optional: true,
-          abortOnDecline: true,
         },
       ],
+      cost: {
+        kind: "deleteOwn",
+        target: {
+          filter: {
+            isSelfRef: true,
+            digivolutionStackNameOrTrait: [
+              {
+                tokens: ["Bird"],
+                match: "traitContains",
+              },
+              {
+                tokens: ["Avian"],
+                match: "traitContains",
+              },
+            ],
+          },
+          count: 1,
+          isSelf: true,
+        },
+        optional: true,
+        raw: "By deleting this Digimon that has a digivolution card with [Bird] or [Avian] in one of its traits",
+      },
     },
     {
       trigger: "OnDeletion",

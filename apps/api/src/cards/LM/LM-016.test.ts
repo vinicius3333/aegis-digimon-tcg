@@ -45,7 +45,7 @@ describe("LM-016 Gammamon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("ally").permanentId], "byBattle");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("gammamon").topCard?.cardId).toBe("LM-016");
   });
@@ -64,7 +64,7 @@ describe("LM-016 Gammamon", () => {
     const gammamonId = s.perm("gammamon").permanentId;
 
     await advance(s.engine).verb.deletePermanent([gammamonId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === gammamonId)).toBe(false);
   });
@@ -98,7 +98,7 @@ describe("LM-016 Gammamon", () => {
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("stack").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-080")).toBe(true);
   });

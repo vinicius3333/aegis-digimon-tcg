@@ -19,6 +19,7 @@ import {
   makeDigimon as digimon,
   setupEngine as setup,
   settle,
+  drainMicrotasks,
   findPermanent,
   assertNoLoudGap,
   type EngineSetup as Setup,
@@ -1628,7 +1629,7 @@ describe("A3 SubTrigger — onDeletionOf fires ONLY when a watched Digimon is de
     await settle(() => !p0.battleArea.some((p) => p.permanentId === weakAttacker.permanentId));
     // The only deleted Digimon is the host's OWN attacker (controller "mine"), so the
     // controller:"opponent" sourceFilter rejected it: no draw, deck untouched.
-    await settle(() => p0.deck.length < deckBefore, 50);
+    await drainMicrotasks(50);
     expect(p0.deck.length).toBe(deckBefore);
     assertNoLoudGap(s);
   });
@@ -1871,7 +1872,7 @@ describe("A3 Piercing — a winning piercing attacker then checks security (BLK-
     ).toEqual({ ok: true });
 
     await settle(() => !p1.battleArea.some((p) => p.permanentId === defender.permanentId));
-    await settle(() => p1.security.length < securityBefore, 50);
+    await drainMicrotasks(50);
     expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(false);
     expect(p1.security.length).toBe(securityBefore); // security untouched — no pierce
     assertNoLoudGap(s);
@@ -1938,7 +1939,7 @@ describe("A3 strike — Security Attack +1 makes the defender check 2 security c
     ).toEqual({ ok: true });
 
     await settle(() => p1.security.length < securityBefore);
-    await settle(() => p1.security.length < securityBefore - 1, 50);
+    await drainMicrotasks(50);
     expect(p1.security.length).toBe(securityBefore - 1); // base strike 1
     assertNoLoudGap(s);
   });
@@ -2690,7 +2691,10 @@ describe("INRT-01 — no dead stores: each wired store fails-if-empty (anti-dead
         ok: true,
       });
       await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT1-088"));
-      await settle(() => p0.deck.length < deckBefore, 80);
+      // Only the armed case ever draws; the empty-store case never reaches
+      // `deck.length < deckBefore`, so drain instead of waiting on a predicate that is a
+      // disguised negative proof for that branch.
+      await drainMicrotasks(80);
       assertNoLoudGap(s);
       return deckBefore - p0.deck.length;
     }
@@ -2721,9 +2725,12 @@ describe("INRT-01 — no dead stores: each wired store fails-if-empty (anti-dead
         }),
       ).toEqual({ ok: true });
       await settle(() => !p1.battleArea.some((p) => p.permanentId === defender.permanentId));
-      // Extra settle headroom: OnBattleDeleteOpponent timing fires before pierce-security
-      // check, adding async depth. 200 ticks is sufficient for the full pipeline.
-      await settle(() => p1.security.length < securityBefore, 200);
+      // Only the pierce-granted case ever checks security; the empty-store case never
+      // reaches `security.length < securityBefore`, so drain instead of waiting on a
+      // predicate that is a disguised negative proof for that branch. OnBattleDeleteOpponent
+      // timing fires before the pierce-security check, adding async depth — 200 ticks of
+      // drain is sufficient for the full pipeline.
+      await drainMicrotasks(200);
       assertNoLoudGap(s);
       return securityBefore - p1.security.length;
     }
@@ -2782,10 +2789,13 @@ describe("INRT-01 — no dead stores: each wired store fails-if-empty (anti-dead
             target: { kind: "player" },
           }),
         ).toEqual({ ok: true });
-        // The card leaves security at the check; the battle is the later step
-        // (CR 13-1-8-3), so wait for the deletion itself rather than for the removal.
-        await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId));
-        await settle(() => false, 40);
+        // The card leaves security at the check; the security battle that may delete the
+        // attacker is the later step (CR 13-1-8-3). Only the delta>0 case actually deletes
+        // the attacker, so wait on the shared milestone both branches reach — the security
+        // check completing — rather than on the deletion itself (a disguised negative proof
+        // for the delta=0 branch, which never deletes the attacker).
+        await settle(() => s.events.some((e) => e.kind === "securityChecked"));
+        await drainMicrotasks(40);
         assertNoLoudGap(s);
         return !p0.battleArea.some((p) => p.permanentId === attacker.permanentId);
       } finally {

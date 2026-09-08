@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-020.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("EX9-020", () => {
   it("has Blast Digivolve, Alliance, and Blocker and bottom-decks an opposing level 5 or lower Digimon on play and digivolving", () => {
@@ -218,7 +218,11 @@ describe("EX9-020", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    // The host's attackTargetChange restriction (inherited from EX9-020) also blocks
+    // the Blocker keyword's redirect, so no block window ever opens — the attack goes
+    // straight through to security.
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
     ).toEqual({ ok: false, reason: "wrong-phase" });

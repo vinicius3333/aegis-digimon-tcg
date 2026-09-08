@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-102.js";
 import "../index.js";
@@ -174,11 +174,14 @@ describe("BT21-102 Tai Kamiya", () => {
         effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toEqual({ ok: true });
-    await settle(
+    // The background `runOneTurn()` turn loop parks on a timer between phases, so this
+    // resolution's milestone lies past a timer boundary `settle` alone cannot cross.
+    await settleAcrossTimers(
       () =>
         s.state.players[0]!.deck.at(-1)?.instanceId === taiInstanceId &&
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"),
     );
+    await settle();
     expect(s.state.memory).toBe(10);
 
     expect(
@@ -217,7 +220,12 @@ describe("BT21-102 Tai Kamiya", () => {
         effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"));
+    // The background `runOneTurn()` turn loop parks on a timer between phases, so this
+    // resolution's milestone lies past a timer boundary `settle` alone cannot cross.
+    await settleAcrossTimers(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"),
+    );
+    await settle();
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-102")).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("tai").instanceId);
     advance(s.engine).endMainPhaseIfOpen(0);

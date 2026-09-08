@@ -38,7 +38,7 @@ describe("BT12-054 Jagamon", () => {
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("jagamon").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT12-052");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT1-009");

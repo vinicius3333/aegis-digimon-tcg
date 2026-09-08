@@ -369,11 +369,9 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
   });
 
   // KB Q5067 / CR 15-15-5-3: a card that isn't affected by effects can still be CHOSEN.
-  // The engine filters unaffectable permanents out of opponent-effect candidate lists
-  // (apps/api/src/engine/effects/interpreter/targeting/permanents.ts:138, via
-  // matching/permanent.ts `isPermanentUnaffectable`), so the choice is never offered.
-  // The observable end state is still correct (see the test above); only the choice differs.
-  it.fails("KB Q5067: an immune Digimon is still offered as a candidate for an opponent's effect", async () => {
+  // BT1-070's Suspend target carries `allowUnaffectableChoice`, so the immune Digimon is offered
+  // even as the only candidate; the effect then does nothing to it.
+  it("KB Q5067: an immune Digimon is still offered as a candidate for an opponent's effect", async () => {
     const s = setupEngine(
       {
         0: {
@@ -404,7 +402,9 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
       .slice(before)
       .filter((entry) => entry.req.kind === "chooseTargets")
       .flatMap((entry) => entry.req.options?.candidateInstanceIds ?? []);
-    expect(offered).toContain(s.perm("sleep").topCard!.instanceId);
+    // A permanent-target decision addresses permanentIds, not top-card instanceIds.
+    expect(offered).toContain(s.perm("sleep").permanentId);
+    expect(s.perm("sleep").isSuspended).toBe(false);
   });
 
   // KB Q5070 / CR 15-15-5-2: once the "effects don't affect" window closes, the card can be

@@ -422,7 +422,10 @@ describe("EX12-028 Gusokumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    // The redirect budget is already spent, so this second attack is never redirected: it
+    // goes straight through to player 0's (already empty) security and ends the game.
+    await settle(() => s.events.some((event) => event.kind === "gameOver"));
+    expect(s.events.at(-1)).toMatchObject({ kind: "gameOver", result: { outcome: "win", winnerSeat: 1 } });
 
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX12-023")).toHaveLength(
       1,

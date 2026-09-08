@@ -53,7 +53,7 @@ describe("LM-015 Ryudamon", () => {
       attackerPermanentId: s.perm("ryudamon").permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("ryudamon").topCard?.cardId).toBe("LM-015");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT15-058")).toBe(true);
@@ -80,7 +80,7 @@ describe("LM-015 Ryudamon", () => {
       attackerPermanentId: s.perm("ryudamon").permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("ryudamon").topCard?.cardId).toBe("LM-015");
   });

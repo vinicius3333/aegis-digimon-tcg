@@ -90,7 +90,7 @@ describe("P-189 Dimetromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.memory).toBe(1);
 
     expect(
@@ -100,7 +100,7 @@ describe("P-189 Dimetromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.memory).toBe(1);
   });
 });

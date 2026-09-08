@@ -45,6 +45,7 @@ describe("EX2-025 Terriermon", () => {
   });
 
   it("gains inherited DP when an opponent's Digimon becomes suspended", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -63,15 +64,18 @@ describe("EX2-025 Terriermon", () => {
           deck: ["BT1-001"],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     await s.ready();
+    preferred.push(s.perm("target1").topCard.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("host").currentDP === 7000);
     expect(s.perm("host").currentDP).toBe(7000);
+    preferred.length = 0;
+    preferred.push(s.perm("target2").topCard.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
       ok: true,
     });

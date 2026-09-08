@@ -203,8 +203,15 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     );
     await s.ready();
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    // Board Specs lay the permanent directly, bypassing the real on-play resolution that marks
+    // it `placedByEffect`. Without that marker, the §17-1-3-2-2 rule sweep trashes this Option
+    // the moment anything recomputes continuous effects, before its Delay ever gets to fire.
+    s.perm("option").placedByEffect = true;
 
-    await advance(s.engine).verb.trash([s.inst("removed").instanceId]);
+    // `trashFromSecurity` (not the generic `verb.trash`) routes through the effect-driven
+    // security-removal bus and its normal between-effects flush, which is what actually
+    // arms this reactive Delay watcher for `whenSecurityRemoved`.
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
     await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stacked").instanceId);
 
     expect(s.perm("host").topCard.cardId).toBe("BT24-014");

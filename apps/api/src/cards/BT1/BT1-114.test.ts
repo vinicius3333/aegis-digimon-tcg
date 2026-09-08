@@ -29,10 +29,7 @@ describe("BT1-114 MetalGreymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () =>
-        s.state.memory === -3 &&
-        s.state.players[1]!.security.length === 1 &&
-        s.events.some(({ kind }) => kind === "combatResolved"),
+      () => s.state.memory === -3 && s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking(),
       5000,
     );
 

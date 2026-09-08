@@ -96,7 +96,7 @@ describe("EX1-002 Biyomon", () => {
       });
     expect(attack()).toEqual({ ok: true });
     await settle(() => p0.hand.length === 2);
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",

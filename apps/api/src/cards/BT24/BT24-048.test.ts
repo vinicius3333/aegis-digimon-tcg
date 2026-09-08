@@ -212,6 +212,7 @@ describe("BT24-048 Deramon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-049", as: "host", under: ["BT24-048"], dp: 9000 }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
           hand: [
             { card: "BT24-050", as: "firstUnsuspender" },
             { card: "BT24-050", as: "secondUnsuspender" },
@@ -224,6 +225,7 @@ describe("BT24-048 Deramon", () => {
             { card: "BT1-009", as: "secondVictim", suspended: true, dp: 3000 },
             { card: "BT1-009", as: "thirdVictim", suspended: true, dp: 3000 },
           ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
           deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
           hand: [{ card: "BT24-047", as: "suspender" }],
         },

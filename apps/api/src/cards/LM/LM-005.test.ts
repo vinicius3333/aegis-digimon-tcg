@@ -96,7 +96,7 @@ describe("LM-005 Amphimon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("amphimon"));
-    await settle(() => s.state.pendingDecision === null);
+    await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("stacked").stack).toHaveLength(1);

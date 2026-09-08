@@ -6,6 +6,7 @@ import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { describeAction, describeCost } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
@@ -96,6 +97,33 @@ function trashCostCanCreatePlayTarget(
   );
   const payableIds = new Set(payable.map(({ instanceId }) => instanceId));
   return potentialTargets.some((candidate) => payableIds.has(candidate.instanceId));
+}
+
+/**
+ * "By deleting 1 of your other suspended Digimon, play 1 level 3 [Beast] from your trash"
+ * (BT17-049): the cost DELETES a Digimon, so its top card reaches the trash before the play
+ * chooses a target — the deleted Digimon may itself be the card replayed. Like the trash-cost
+ * exception above, the optional-play preflight must therefore count the prospective trash
+ * arrivals, otherwise an empty trash silently skips the whole clause. Kept narrow: only a
+ * `deleteOwn` cost feeding a play whose source zones include the trash.
+ */
+function deleteOwnCostCanCreatePlayTarget(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlayWithoutCost" }>,
+  cost: Cost,
+): boolean {
+  if (!action.from?.includes("trash") || cost.kind !== "deleteOwn" || cost.target === undefined) return false;
+  const deletable = candidatePermanents(ctx, cost.target);
+  if (deletable.length === 0 || !canPayCost(ctx, cost)) return false;
+  // The play target is matched against the post-payment trash, so ignore the literal zone
+  // marker and test each prospective trash arrival against the target's card predicates.
+  const prospectiveFilter = { ...action.target.filter, zone: undefined };
+  return deletable.some((permanent) => {
+    const top = permanent.topCard;
+    if (top === undefined) return false;
+    if (ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, top.cardId, "play") === true) return false;
+    return definitionMatches(prospectiveFilter, ctx.game.definitionOf(top));
+  });
 }
 
 /**
@@ -495,7 +523,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       structuredCost?.kind === "trash" &&
       structuredCost.target?.filter.zone === "digivolutionCards" &&
       ((structuredCost.target.filter.faceDown === true && canPayCost(ctx, structuredCost)) ||
-        trashCostCanCreatePlayTarget(ctx, action, structuredCost)));
+        trashCostCanCreatePlayTarget(ctx, action, structuredCost))) ||
+    (action.kind === "PlayWithoutCost" &&
+      structuredCost !== undefined &&
+      deleteOwnCostCanCreatePlayTarget(ctx, action, structuredCost));
   const nestedRequiredOptionUse =
     action.kind === "CostGatedBlock" &&
     action.actions.length === 1 &&

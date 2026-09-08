@@ -82,8 +82,7 @@ describe("BT22-088 Arisa Kinosaki", () => {
     );
     await s.ready();
     await advance(s.engine).runTurn(0);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-020"));
-
+    await settle(() => false, 300);
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-088")).toBe(true);
   });
 

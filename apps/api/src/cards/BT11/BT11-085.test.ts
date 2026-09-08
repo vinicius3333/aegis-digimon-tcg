@@ -6,7 +6,12 @@ import { compiled } from "./BT11-085.js";
 describe("BT11-085 WaruSeadramon", () => {
   it("maps catalog facts and every printed effect to IR", () => {
     expect(getCardDefinition("BT11-085")).toMatchObject({
-      cardId: "BT11-085", colors: ["Purple", "Blue"], level: 5, playCost: 8, dp: 8000, types: ["Aquatic"],
+      cardId: "BT11-085",
+      colors: ["Purple", "Blue"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      types: ["Aquatic"],
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"] }] },
@@ -23,7 +28,7 @@ describe("BT11-085 WaruSeadramon", () => {
           hand: [{ card: "BT11-085", as: "waru" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(
@@ -46,7 +51,7 @@ describe("BT11-085 WaruSeadramon", () => {
           hand: [{ card: "BT11-085", as: "waru" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(

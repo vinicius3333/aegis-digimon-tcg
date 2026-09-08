@@ -108,6 +108,11 @@ describe("EX9-010", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     await settle();
 
+    // The once-per-turn budget was already spent on the digivolve above, so the
+    // attack's Delete offer never opens a new decision; the milestone is the
+    // engine returning to idle, not an ever-empty decision log (past decisions
+    // from the digivolve already sit in `s.decisions`).
+    const decisionsBeforeAttack = s.decisions.length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -115,8 +120,9 @@ describe("EX9-010", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
 
+    expect(s.decisions).toHaveLength(decisionsBeforeAttack);
     expect(s.perm("source").stack).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-011")).toBe(true);
   });
@@ -166,11 +172,12 @@ describe("EX9-010", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-021") &&
-        s.state.players[0]!.battleArea.length === 0,
-    );
+    // Raid redirects the attack onto the strongest opposing Digimon (9000 DP vs.
+    // the host's own DP); the attacker loses and is deleted in the same combat
+    // resolution that removes the redirect target, so the transient state with
+    // BT1-021 still present and player[0]'s battle area already empty never
+    // exists as a settled tick — wait for the actual end state instead.
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
   });
 });

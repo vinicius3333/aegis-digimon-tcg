@@ -32,7 +32,7 @@ describe("BT13-017 Jesmon", () => {
         },
         1: { battleArea: [{ card: "BT1-024", as: "tenK" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 20;
     await s.ready();
@@ -40,14 +40,16 @@ describe("BT13-017 Jesmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
       ok: true,
     });
+    // Budget is 6000 base + 2000 per other ally (2 allies) = 10000, exactly MetalTyrannomon's DP.
     await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
 
     const tooLarge = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-012" }, { card: "BT1-015" }], hand: [{ card: "BT13-017", as: "jesmon" }] },
         1: { battleArea: [{ card: "BT1-025", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     tooLarge.state.memory = 20;
     await tooLarge.ready();
@@ -70,7 +72,7 @@ describe("BT13-017 Jesmon", () => {
         },
         1: { battleArea: [{ card: "BT1-021", as: "sevenK" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -92,7 +94,7 @@ describe("BT13-017 Jesmon", () => {
         },
         1: { battleArea: [{ card: "BT1-059" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     tooLarge.state.memory = 10;
     await tooLarge.ready();

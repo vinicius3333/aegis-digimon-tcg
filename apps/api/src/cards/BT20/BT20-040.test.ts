@@ -200,13 +200,16 @@ describe("BT20-040 Coredramon", () => {
   });
 
   it("uses Raid and grants its inherited host +2000 DP only on its controller's turn", async () => {
-    const raid = setupEngine({
-      0: { battleArea: [{ card: "BT20-040", dp: 5000, as: "coredramon" }] },
-      1: {
-        battleArea: [{ card: "BT20-010", dp: 1000, as: "raidTarget" }],
-        security: ["BT1-010"],
+    const raid = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-040", dp: 5000, as: "coredramon" }] },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 1000, as: "raidTarget" }],
+          security: ["BT1-010"],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     expect(
       raid.engine.applyIntent(0, {
         type: "attack",

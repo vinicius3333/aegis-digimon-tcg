@@ -60,7 +60,6 @@ describe("BT10/EX2 Justimon Arm-swap deck gauntlet", () => {
     expect(s.perm("blitzArmBase").stack).toHaveLength(0);
     expect(s.state.memory).toBe(3);
 
-    const combatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -71,7 +70,7 @@ describe("BT10/EX2 Justimon Arm-swap deck gauntlet", () => {
     await settle(
       () =>
         s.perm("blitzArmBase").topCard.instanceId === blitzArmId &&
-        s.events.filter(({ kind }) => kind === "combatResolved").length > combatCount &&
+        s.state.players[1]!.security.length === 0 &&
         !observe(s.engine).isAttacking(),
       5000,
     );

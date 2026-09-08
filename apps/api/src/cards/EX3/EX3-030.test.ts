@@ -164,7 +164,7 @@ describe("EX3-030 Gatomon", () => {
       s.events.some(
         (event) =>
           event.kind === "cardsMoved" &&
-          event.to === "deck" &&
+          event.to === "deckBottom" &&
           event.instanceIds.length === restOrder.length &&
           event.instanceIds.every((instanceId, index) => instanceId === restOrder[index]),
       ),
@@ -281,7 +281,7 @@ describe("EX3-030 Gatomon", () => {
       s.events.some(
         (event) =>
           event.kind === "cardsMoved" &&
-          event.to === "deck" &&
+          event.to === "deckBottom" &&
           event.instanceIds.every((instanceId, index) => instanceId === order[index]),
       ),
     );
@@ -323,7 +323,7 @@ describe("EX3-030 Gatomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     await advance(s.engine).verb.playInstances([s.inst("secondDragon").instanceId]);
     const secondDragon = s.state.players[0]!.battleArea.find(

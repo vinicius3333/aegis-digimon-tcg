@@ -406,6 +406,7 @@ describe("BT25-080 Witchmon", () => {
   });
 
   it("fires the inherited effect from a public Option use that trashes its controller's hand", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -419,8 +420,12 @@ describe("BT25-080 Witchmon", () => {
         },
         1: { battleArea: [{ card: "BT1-013", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // BT25-101 may link itself OR a [TS] card with a link requirement from the trash, and the
+      // card trashed to pay its cost is such a card. Pin the link to BT25-101 itself so this test
+      // keeps asserting the cost payment rather than the link choice.
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("option").instanceId);
     s.state.memory = 3;
     const targetId = s.perm("target").permanentId;
     await s.ready();

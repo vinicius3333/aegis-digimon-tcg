@@ -9,18 +9,42 @@ import "./BT9-091.js";
 describe("BT9-076 Maycrackmon: Vicious Mode", () => {
   it("matches catalog and Q1869/Q1870 discarded-card and effective-color IR", () => {
     expect(getCardDefinition("BT9-076")).toMatchObject({
-      cardId: "BT9-076", nameEn: "Maycrackmon: Vicious Mode", colors: ["Purple", "Yellow"], kinds: ["Digimon"], level: 5,
-      playCost: 6, dp: 6000,
-      evoCosts: [{ color: "Purple", level: 4, memoryCost: 4 }, { color: "Yellow", level: 4, memoryCost: 4 }],
-      forms: ["Ultimate"], attributes: ["Unknown"], types: ["Unknown"],
+      cardId: "BT9-076",
+      nameEn: "Maycrackmon: Vicious Mode",
+      colors: ["Purple", "Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Yellow", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Unknown"],
+      types: ["Unknown"],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{ kind: "Trash", bindResultAs: "discardedCard", optional: true }, { kind: "Delete", condition: { kind: "bindingContains" } }, { kind: "ModifyDP", amount: -3000, condition: { kind: "bindingContains" } }],
+        actions: [
+          { kind: "Trash", bindResultAs: "discardedCard", optional: true },
+          { kind: "Delete", condition: { kind: "bindingContains" } },
+          { kind: "ModifyDP", amount: -3000, condition: { kind: "bindingContains" } },
+        ],
       });
     }
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [expect.anything(), expect.anything(), { trigger: "OnDeletion", isInherited: true, actions: [{ kind: "GainMemory", amount: 2, condition: { kind: "selfColorCount", value: 2 } }] }],
+      coverage: "full",
+      residual: [],
+      effects: [
+        expect.anything(),
+        expect.anything(),
+        {
+          trigger: "OnDeletion",
+          isInherited: true,
+          actions: [{ kind: "GainMemory", amount: 2, condition: { kind: "selfColorCount", value: 2 } }],
+        },
+      ],
     });
   });
 
@@ -164,7 +188,7 @@ describe("BT9-076 Maycrackmon: Vicious Mode", () => {
         instanceId: s.inst("source").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT9-076"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT9-076"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("kept").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toContain(target);

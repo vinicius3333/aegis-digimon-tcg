@@ -198,3 +198,31 @@ describe("§17-1-3-2-6 / §17-1-3-2-7 link requirement / link category mismatch 
 // rule checks are possible") has no standalone behavior of its own to assert beyond what
 // §17-1-2-1/§17-1-2-2 above and the §17-1-3 sub-clauses (ruleProcess.test.ts) already prove —
 // it is the header sentence those tests collectively demonstrate, not a separate testable claim.
+
+describe("§17-1-3-2-2 board-laid Option seeding (comprehensive-0265)", () => {
+  it("spares a harness-seeded battle-area Option by default and sweeps one seeded with placedByEffect: false", async () => {
+    cite(
+      "comprehensive-0265",
+      "17-1-3-2-2 exempts 'Option cards placed in the battle area by an effect'. A test board " +
+        "that lays an Option onto the battle area is reproducing that legal state, so the " +
+        "harness marks it `placedByEffect` by default; the illegal, sweep-eligible state stays " +
+        "reachable through an explicit `placedByEffect: false`.",
+    );
+
+    const s = setup({
+      0: { hand: [{ card: "BT1-009", as: "trigger" }], battleArea: [{ card: "P-155", as: "placed" }] },
+      1: { battleArea: [{ card: "P-155", as: "stray", placedByEffect: false }] },
+    });
+    s.state.memory = 2;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    const placedId = s.perm("placed").permanentId;
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === placedId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "P-155")).toBe(false);
+    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "P-155")).toBe(true);
+  });
+});

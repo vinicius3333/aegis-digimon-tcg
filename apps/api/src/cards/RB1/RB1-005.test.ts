@@ -14,7 +14,10 @@ describe("RB1-005 Gammamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gammamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.deck.length === 0);
+    // Only "Hiro Amanokawa" is found among the revealed cards — neither BT1-009 nor
+    // BT1-014 has "Gammamon" in its text — so that slot's add fails and both unmatched
+    // cards return to the deck bottom instead of leaving it.
+    await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "RB1-032")).toBe(true);
   });

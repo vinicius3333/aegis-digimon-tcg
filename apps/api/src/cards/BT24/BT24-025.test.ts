@@ -259,7 +259,7 @@ describe("BT24-025 Shellmon", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(attackerId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);

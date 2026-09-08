@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-009.js";
 import "../index.js";
 
@@ -38,7 +38,7 @@ describe("EX5-009 Indramon", () => {
   });
 
   it("draws and puts a unique Deva into breeding, while rejecting a duplicate name", async () => {
-    const resolve = async (candidate: string) => {
+    const resolve = async (candidate: string, expectPlacement: boolean) => {
       const s = setupEngine(
         {
           0: {
@@ -56,12 +56,17 @@ describe("EX5-009 Indramon", () => {
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("indramon").instanceId })).toEqual({
         ok: true,
       });
-      await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId, 500);
+      if (expectPlacement) {
+        await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId, 500);
+      } else {
+        await drainMicrotasks(500);
+        expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+      }
       return s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId;
     };
 
-    expect(await resolve("BT10-079")).toBe(true);
-    expect(await resolve("EX5-009")).toBe(false);
+    expect(await resolve("BT10-079", true)).toBe(true);
+    expect(await resolve("EX5-009", false)).toBe(false);
   });
 
   it("grants inherited Security Attack only to a Four Sovereigns host", async () => {

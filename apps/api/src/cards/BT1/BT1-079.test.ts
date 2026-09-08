@@ -108,6 +108,8 @@ describe("BT1-079 Lillymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.perm("grantedBlocker").isSuspended).toBe(false);

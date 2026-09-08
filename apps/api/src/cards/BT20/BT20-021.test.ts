@@ -255,6 +255,7 @@ describe("BT20-021 Jesmon GX", () => {
         1: {
           battleArea: [
             { card: "BT20-014", dp: 16000, as: "boundary" },
+            { card: "BT20-014", dp: 16000, as: "secondBoundary" },
             { card: "BT20-014", dp: 16001, as: "retained" },
           ],
           security: Array.from({ length: 6 }, () => "BT1-010"),
@@ -307,8 +308,10 @@ describe("BT20-021 Jesmon GX", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("nextKnight").instanceId));
-    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT20-017");
+    // Placing a card as a digivolution card assigns it a fresh instance identity, so the
+    // hand's `nextKnight` instanceId does not survive the move; count the cardId instead.
+    await settle(() => s.perm("host").stack.filter((card) => card.cardId === "BT20-017").length === 2);
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT20-017")).toHaveLength(2);
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;

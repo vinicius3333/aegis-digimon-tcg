@@ -171,6 +171,10 @@ describe("BT26-054 Andromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // The block window is a raw applyIntent, not a pendingDecision — host (the redirect
+    // target) is offered as its own blocker; decline so the redirected battle proceeds.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
