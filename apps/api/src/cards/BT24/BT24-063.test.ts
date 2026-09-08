@@ -26,12 +26,18 @@ describe("BT24-063 Locomon", () => {
     const effects = BT24_063.effects?.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger));
     expect(effects).toHaveLength(2);
     for (const effect of effects ?? []) {
-      expect(effect.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" });
-      expect((effect.actions?.[0] as any).add?.[0]).toMatchObject({
-        count: 1,
-        to: "play",
-        optional: true,
-        filter: { playCostLte: 5, nameOrTrait: [{ tokens: ["Machine", "Cyborg", "TS"], match: "trait" }] },
+      expect(effect.actions?.[0]).toMatchObject({
+        kind: "RevealAdd",
+        revealCount: 3,
+        rest: "deckTopOrBottom",
+        add: [
+          {
+            count: 1,
+            to: "play",
+            optional: true,
+            filter: { playCostLte: 5, nameOrTrait: [{ tokens: ["Machine", "Cyborg", "TS"], match: "trait" }] },
+          },
+        ],
       });
     }
   });
