@@ -121,7 +121,7 @@ describe("EX12-039 Takinmon", () => {
           { card: cardId, as: "top" },
           { card: "BT1-051", as: "host", under: [cardId] },
         ],
-        security: ["BT1-005"],
+        security: ["BT1-010"],
       },
     });
     await s.ready();

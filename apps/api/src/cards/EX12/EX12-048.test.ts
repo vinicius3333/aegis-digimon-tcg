@@ -117,7 +117,7 @@ describe("EX12-048 SeitenGokuumon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX12-048", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 8000 }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 8000 }], security: ["BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -64,6 +64,16 @@ describe("EX12-004 Onibimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Execute")).toBe(false);
   });
 
+  it("expires the turn-scoped Execute grant when the turn passes", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX12-046", as: "host", under: ["EX12-004"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Execute")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Execute")).toBe(false);
+  });
+
   it("Q6728: may resolve Shishimamon first, play from hand, then delete by Execute", async () => {
     const s = await resolveQ6728WithFirst("EX12-046");
 

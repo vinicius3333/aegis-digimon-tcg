@@ -154,7 +154,7 @@ describe("EX12-058 HiAndromon", () => {
             { card: "BT1-014", as: "restTwo" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
