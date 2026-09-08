@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 767/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 769/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -16,9 +16,9 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-006 | Tapmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-006.md). Public Link replacement, exact draw/trash and paid costs, legal breeding promotion, frequency/reset. Root focused acceptance green; collection delivery gates pending. |
 | BT24-007 | Tsunomon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-007.md). Public discard/refusal, legal breeding promotion, trait matrix and owner-turn reset pass; same-turn suppression still uses a primitive trigger. Root14green; delivery pending. |
 | BT24-008 | Elizamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-008.md). Public discard/refusal, Q5578 priority, exact evolution draws/costs and public inherited frequency/reset. Root focused acceptance green; collection delivery gates pending. |
-| BT24-009 | Shamanmon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-009.md). Root18 tests pass: public refusals, Q5579, isolated inherited frequency/reset, paid egg route. Non-active invalid play does not isolate own-turn trigger gating; further peer/trait boundary proof and delivery pending. |
+| BT24-009 | Shamanmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-009.md). Root18green: public cost/refusal, exact trait filters, Q5579, inherited frequency/reset, paid evolution routes with stack/draw and own-turn boundary. Typed IR/assertions; collection delivery pending. |
 | BT24-010 | Greymon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-010.md). Public Blocker intercept/refusal, deletion DeDigivolve, alternate route coststackdraw and public inherited Raid. Rootfocused13green; delivery pending. |
-| BT24-011 | Cyclonemon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-011.md). Public Rush, Raid redirection/refusal and inherited Raid; paid TS and legal Lv5 routes include exact stack/draw. Root9green; normal base-route comparison and delivery pending. |
+| BT24-011 | Cyclonemon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-011.md). Root9green: public Rush/Raid redirection and refusal, inherited Raid on a legal stack, exact paid TS/normal evolution routes and public non-TS alternate rejection. Collection delivery gates pending. |
 | BT24-012 | Dimetromon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-012.md). Root10green: public simultaneous replacement/refusal/nonmatching paths, Blocker acceptance/decline, inherited security-removal OPT and legal evolution/stack boundaries. Typed IR; delivery pending. |
 | BT24-013 | Fugamon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-013.md). Root15green: public paid deletion/refusal and DP/draw boundaries, evolution/payment, Q5582-Q5583, plus inherited same-turn suppression and next-owner reset with exact stacks/trash/memory. Delivery pending. |
 | BT24-014 | Aegiochusmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-014.md). Root13green: public Decode acceptance/refusal and inherited path, Security Attack +1, paid/invalid evolution, exact DP/security boundary, zero-DP deletion and expiry. Typed IR; delivery pending. |
