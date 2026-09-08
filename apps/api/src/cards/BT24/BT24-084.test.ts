@@ -224,6 +224,39 @@ describe("BT24-084 Inori Misono", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("aegiochusmon").instanceId);
   });
 
+  it("publicly refuses the security-removal evolution when Inori is already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-084", as: "inori", suspended: true },
+            { card: "BT24-034", as: "aegiomon" },
+          ],
+          hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+          security: [{ card: "BT1-009", as: "remaining" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], deck: ["BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.perm("inori").isSuspended).toBe(true);
+    expect(s.perm("aegiomon").topCard.instanceId).toBe(s.inst("aegiomon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("aegiochusmon").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT24-084", as: "inori" }] },
