@@ -125,6 +125,46 @@ describe("BT24-007 Tsunomon", () => {
     expect(s.state.memory).toBe(8);
   });
 
+  it("suppresses a second public hand-trash trigger in one turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
+          hand: [
+            { card: "BT24-026", as: "firstDiscarder" },
+            { card: "BT1-069", as: "firstDemon" },
+            { card: "BT24-026", as: "secondDiscarder" },
+            { card: "BT1-069", as: "secondDemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("firstDemon").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstDiscarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstDemon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstDemon").instanceId)).toBe(
+      true,
+    );
+    preferred.splice(0, preferred.length, s.inst("secondDemon").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDiscarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondDemon").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondDemon").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.filter((p) => p.topCard?.instanceId === s.inst("secondDemon").instanceId),
+    ).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("reacts to a hand trash produced by a public play intent", async () => {
     const s = setupEngine(
       {
