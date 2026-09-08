@@ -351,16 +351,29 @@ describe("BT24-007 Tsunomon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-009", as: "host", under: ["BT24-007"] }],
-          trash: [{ card: "BT24-045", as: "candidate" }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT24-045", as: "candidate" },
+          ],
         },
       },
-      { autoDeclineOptional: true },
+      { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", {
-      handTrashedSeat: 0,
-      handTrashedInstanceIds: [s.inst("candidate").instanceId],
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const prompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: prompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId));
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId)).toBe(
