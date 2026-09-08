@@ -441,6 +441,132 @@ describe("BT24-040 Venusmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("does not spend the replacement twice in one turn and resets on the next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-040", as: "venusmon" },
+            { card: "BT24-034", as: "first", suspended: true, dp: 5000 },
+            { card: "BT24-034", as: "second", suspended: true, dp: 5000 },
+            { card: "BT24-034", as: "third", suspended: true, dp: 5000 },
+            { card: "BT1-020", as: "cost", dp: 10000 },
+          ],
+          security: [{ card: "BT1-012", as: "initialSecurity" }],
+          deck: ["BT1-016", "BT1-017", "BT1-018", "BT1-019", "BT1-020"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAttacker", dp: 10000 },
+            { card: "BT1-010", as: "secondAttacker", dp: 10000 },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-016", "BT1-017", "BT1-018"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("cost").permanentId);
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    const thirdId = s.perm("third").permanentId;
+    const costCardId = s.inst("cost").instanceId;
+    const firstAttackerId = s.perm("firstAttacker").permanentId;
+    const secondAttackerId = s.perm("secondAttacker").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: firstAttackerId,
+        target: { kind: "permanent", permanentId: firstId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: firstId, accept: false })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(firstId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(costCardId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: secondAttackerId,
+        target: { kind: "permanent", permanentId: secondId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "barrierPrompt").length >= 2);
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: secondId, accept: false })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(secondId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("second").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(expect.arrayContaining([costCardId]));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: thirdId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("third").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: firstAttackerId,
+        target: { kind: "permanent", permanentId: thirdId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "barrierPrompt").length >= 3);
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: thirdId, accept: false })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 3);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(thirdId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(costCardId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
+  });
+
   it("does not replace a TS Digimon removed by its controller's own effect", async () => {
     const s = setupEngine({
       0: {
