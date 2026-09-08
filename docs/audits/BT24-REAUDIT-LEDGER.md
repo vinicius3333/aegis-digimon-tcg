@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 665/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 673/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -109,4 +109,4 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-099 | Super Hacking | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-099.md). Root7green: public Main cost/refusal/atomicity, draw and placement, deletion-armed Delay link/refusal/pre-arm rejection, Security placement and typed IR. Delivery pending. |
 | BT24-100 | In-Between Theater | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-100.md). Root5green: public reveal/add/bottom/self-placement, TS waiver, aged Delay activation/memory/consumption and natural Security placement. Typed IR; delivery pending. |
 | BT24-101 | Jupitermon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-101.md). Root10green: evolution-cost scaling, public On Play/When Digivolving DP/security/recovery, security-removal OPT, simultaneous TS departure prevention and natural battle protection. Typed IR; delivery pending. |
-| BT24-102 | Homeros | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-102 | Homeros | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-102.md). Root15green: threshold phase behavior, TS aura, natural borrowed Olympos effects/refusal/reset/timing and OPT lender budget, plus natural Security play. Typed IR; delivery pending. |
