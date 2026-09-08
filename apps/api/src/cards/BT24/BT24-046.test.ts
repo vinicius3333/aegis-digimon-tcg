@@ -225,6 +225,49 @@ describe("BT24-046 Garurumon", () => {
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === targetId)!.isSuspended).toBe(true);
   });
 
+  it("suppresses a second same-turn inherited suspension after a public unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-050", as: "host", under: ["BT24-046"] }],
+          hand: [{ card: "BT24-050", as: "unsuspender" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").isSuspended && !observe(s.engine).isAttacking());
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unsuspender").instanceId),
+    );
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("rejects an alternate evolution from a nonmatching level-3 source", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT24-046", as: "garurumon" }] },
