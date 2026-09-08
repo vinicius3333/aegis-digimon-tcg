@@ -94,6 +94,44 @@ describe("BT24-059 Sharkmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sharkmonId)).toBe(false);
   });
 
+  it("publicly refuses the eligible On Deletion play and trashes the full reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-059", as: "sharkmon" }],
+          deck: [
+            { card: "BT24-046", as: "candidate" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("sharkmon").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("sharkmon").instanceId,
+        s.inst("candidate").instanceId,
+        s.inst("miss1").instanceId,
+        s.inst("miss2").instanceId,
+      ]),
+    );
+  });
+
   it("does not select a cost-8 TS card for the cost-7 On Deletion boundary", async () => {
     const s = setupEngine(
       {
