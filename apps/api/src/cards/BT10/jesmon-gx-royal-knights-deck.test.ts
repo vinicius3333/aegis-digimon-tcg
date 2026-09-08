@@ -4,12 +4,13 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT6/BT6-082.js";
 import "../BT6/BT6-084.js";
+import "../ST12/ST12-08.js";
 import "../ST12/ST12-10.js";
 import "./BT10-016.js";
 import "./BT10-112.js";
 
 describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
-  it("borrows Jesmon X, plays both Sistermons, and completes a three-check Blitz attack", async () => {
+  it("borrows Jesmon X, plays both Sistermons, and completes a three-check attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -58,11 +59,9 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId) &&
         s.state.players[0]!.battleArea.some(
           (permanent) => permanent.topCard.instanceId === s.inst("ciel").instanceId,
-        ) &&
-        s.state.pendingDecision === undefined,
+        ) && s.state.pendingDecision === undefined,
     );
 
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toEqual([]);
@@ -88,7 +87,10 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
         !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
-    // Digivolving costs 5, Sistermon Ciel gains 1, then ST12-08 pays 3 to play Blanc.
+    // Digivolving costs 5 (4 -> -1) and Sistermon Ciel gives 1 back, so the turn player's
+    // memory returns to 0 — no memory ever rests on the opponent's side, so ＜Blitz＞ opens
+    // no extra attack window here. The turn then ends normally and hands the opponent 3.
+    expect(s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId)).toBe(false);
     expect(s.state.memory).toBe(-3);
     // Jesmon GX is 15,000 DP and Sistermon Ciel contributes +2,000 DP.
     expect(s.perm("jesmon").currentDP).toBeGreaterThanOrEqual(17_000);

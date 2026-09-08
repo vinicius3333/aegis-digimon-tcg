@@ -313,6 +313,14 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // mapping to EffectTiming.None) still installs its listener as a staticModifier, but
         // the listener body must apply Delay's own trash-cost + turn-guard when it fires —
         // see `withIntrinsicDelayGate`'s doc comment above.
+        // CR 15-4-2: a MANDATORY triggered effect triggers even when its only board target is
+        // missing, and fizzles at resolution. Optionality is printed either on the clause or on
+        // an action ("you may delete 1 …"), and either form makes the empty-board prompt a UI
+        // wart rather than a rules requirement, so both keep the declaration-time target gate.
+        const isMandatoryTrigger =
+          timing !== EffectTiming.OnDeclaration &&
+          effect.optional !== true &&
+          (effect.actions ?? []).every((action) => (action as { optional?: boolean }).optional !== true);
         const frequencyBoundEffect = withSubTriggerTurnScope(withSubTriggerFrequency(effect, effectKey));
         const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
@@ -335,7 +343,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             (timing === EffectTiming.BeforePayCost ? effectCondition(effect, ctx) : triggerCondition(effect, ctx)),
           canActivate: (ctx) =>
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
-            canActivateEffect(ctx, effect),
+            canActivateEffect(ctx, effect, { collectsMandatoryTrigger: isMandatoryTrigger }),
           resolve: async (ctx) => {
             const outerEffectKey = ctx.activeEffectKey;
             ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);

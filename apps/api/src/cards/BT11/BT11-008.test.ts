@@ -118,6 +118,55 @@ describe("BT11-008 Bearmon", () => {
     expect(s.perm("host").currentDP).toBe(before);
   });
 
+  it("keeps its [Once Per Turn] budget when another Digimon's target is switched first", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-064", as: "other", dp: 20_000 },
+          { card: "BT1-064", as: "host", under: ["BT11-008"], dp: 20_000 },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "ST18-07", as: "firstBlocker", dp: 4000 },
+          { card: "ST18-07", as: "secondBlocker", dp: 4000 },
+        ],
+        security: ["BT1-009"],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("firstBlocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("host").currentDP).toBe(20_000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("secondBlocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("host").currentDP).toBe(23_000);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("does not trigger on the opponent's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-064", as: "host", under: ["BT11-008"] }] },

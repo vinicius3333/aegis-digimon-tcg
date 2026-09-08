@@ -521,7 +521,7 @@ describe("EX10-009 Creepymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
   });
 
-  // RETAINED RED (Q5656). BT24-078 Creepymon (X Antibody) prints a {Trash} [Your Turn] effect
+  // Q5656, fixed by seam 9. BT24-078 Creepymon (X Antibody) prints a {Trash} [Your Turn] effect
   // that reacts to the same attack declaration. The ruling: both trigger simultaneously and the
   // player picks the order, but resolving the trash digivolve first means this card's
   // [When Attacking] can no longer activate.
@@ -529,14 +529,13 @@ describe("EX10-009 Creepymon", () => {
   // Seam: the sub-trigger fire path in apps/api/src/engine/effects/subtriggers.ts together with
   // the timing-window queue in apps/api/src/engine/effects/EffectContext.ts (`fireTiming` /
   // `fireSubTriggers`). Two defects, both outside this card's module:
-  //   1. No `orderTriggers` decision is raised for the simultaneous pair — three plain
-  //      `optional` prompts are offered in the engine's own order instead.
-  //   2. After BT24-078 digivolves over EX10-009, the already-queued [When Attacking] entry is
-  //      still resolved, so BT1-013 reaches breeding. The queue never re-checks that the
-  //      source card is still the permanent's top card.
-  // Expected: `orderTriggers` offered, breeding empty, BT1-013 still in trash.
-  // Actual: decisions ["optional","optional","optional"], breeding holds BT1-013, own trash empty.
-  it.fails("Q5656 loses its When Attacking window when the trash digivolve is ordered first", async () => {
+  //   1. The `whenAttacking` watcher bus fired AFTER the OnUseAttack timing window instead of
+  //      being folded into it, so the two never reached one `orderTriggers` prompt.
+  //      `GameEngine.withPendingAttackSubTriggers` now runs the attack windows with the event's
+  //      watchers parked in them, the same seam every other event already used.
+  //   2. Once both share a window, `stack.ts`'s own presence/identity diff retires EX10-009's
+  //      entry as soon as BT24-078 becomes the permanent's top card (CR 15-4-4-3).
+  it("Q5656 loses its When Attacking window when the trash digivolve is ordered first", async () => {
     const s = setupEngine(
       {
         0: {

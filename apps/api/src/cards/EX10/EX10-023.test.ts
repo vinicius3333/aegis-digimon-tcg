@@ -265,14 +265,12 @@ describe("EX10-023 Quartzmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  // RETAINED RED. Engine seam `simultaneous-when-digivolving-ordering` (the [When Attacking]
-  // variant is already queued as seam 9 in REVIEW-NOTES.md): no `orderTriggers` decision is
-  // raised for two simultaneous same-timing effects on one source. Seam:
-  // `apps/api/src/engine/effects/subtriggers.ts` and the `fireTiming` queue in
-  // `apps/api/src/engine/effects/EffectContext.ts`. Expected: one `orderTriggers` request to
-  // seat 0 offering both [When Digivolving] keys. Actual: none; the engine resolves them in
-  // its own registration order and the player never chooses.
-  it.fails("Q5074 raises an orderTriggers decision for the two simultaneous [When Digivolving] effects", async () => {
+  // Seam 9, fixed: a MANDATORY board-targeted triggered effect is collected even when the board
+  // holds no candidate right now (CR 15-4-2), so the delete clause shares an activation tier
+  // with the suspend clause and the controller orders the two. Before the fix
+  // `canActivateEffect` gated the delete on a live suspended opposing Digimon, which no pass-1
+  // board has, and the two clauses resolved in registration order with no player choice.
+  it("Q5074 raises an orderTriggers decision for the two simultaneous [When Digivolving] effects", async () => {
     const s = setupEngine(
       {
         0: {

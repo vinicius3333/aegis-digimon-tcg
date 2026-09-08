@@ -94,7 +94,12 @@ describe("BT17-049 Antylamon", () => {
         },
         1: { security: 1 },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Both End of Attack effects (this card's inherited one and the host BT17-050's own
+      // "place this Digimon under another Digimon") trigger simultaneously, and their
+      // controller orders them. Resolve the inherited Antylamon effect first; letting
+      // BT17-050 move itself under another Digimon first would legitimately remove the
+      // Digimon whose stack carries this effect.
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT17-049"] },
     );
     const beastId = s.perm("costBeast").topCard!.instanceId;
     const costPermanentId = s.perm("costBeast").permanentId;

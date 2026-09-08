@@ -8,7 +8,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionHasKeyword, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
 import { findLooseCandidateByInstance } from "../targeting/loose.js";
@@ -443,7 +443,16 @@ export async function runSubTrigger(
     sourceFilter === undefined &&
     action.triggerFilter === undefined &&
     anchorPermanentId !== undefined
-      ? (subCtx: EffectContext): boolean => subCtx.trigger.suspendedPermanentId === anchorPermanentId
+      ? (subCtx: EffectContext): boolean => {
+          // One effect suspending several Digimon is ONE simultaneous timing carrying every
+          // subject in `subjectPermanentIds` (the single-card payload only sets
+          // `suspendedPermanentId`). Each suspended copy's own watcher must still fire, so
+          // match the anchor against the whole batch rather than only its first member.
+          const suspendedIds = subCtx.trigger.subjectPermanentIds ?? [
+            ...(subCtx.trigger.suspendedPermanentId !== undefined ? [subCtx.trigger.suspendedPermanentId] : []),
+          ];
+          return suspendedIds.includes(anchorPermanentId);
+        }
       : undefined;
   // `whenSuspended` is a board-wide bus. The single-card payload historically carries only
   // `suspendedPermanentId`, while a simultaneous suspension additionally carries
@@ -824,6 +833,26 @@ export async function runSubTrigger(
     (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
+  // A `superlative` clause on a triggerFilter ("when the Digimon with the highest DP attacks",
+  // BT11-074) is a BOARD-RELATIVE predicate: `permanentMatchesFilter` sees one permanent at a
+  // time and cannot rank it. Route the gate through the same pool narrowing that target
+  // selection uses (`candidatePermanents` -> narrowToSuperlative) and require the event subject
+  // to survive it. Unaffectable permanents stay in the pool: immunity governs what an effect may
+  // DO to a Digimon, never whether that Digimon is the board's extremum (CR 15-15-5-3).
+  const triggerFilterSuperlativeGate =
+    action.triggerFilter?.superlative !== undefined &&
+    (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
+      ? (subCtx: EffectContext): boolean => {
+          const subjectIds = matchingSubjectPermanentIds(subCtx, action.triggerFilter!);
+          if (subjectIds.length === 0) return false;
+          const pool = candidatePermanents(
+            subCtx,
+            { filter: action.triggerFilter!, count: 1 },
+            { includeUnaffectable: true },
+          );
+          return pool.some((permanent) => subjectIds.includes(permanent.permanentId));
+        }
+      : undefined;
   // Digivolution watchers can constrain the card being digivolved into separately from the
   // source Digimon (`sourceFilter`). The payload's subject is the resulting permanent, so use
   // the same canonical matcher used by ordinary trigger subjects. This also honors
@@ -1003,6 +1032,7 @@ export async function runSubTrigger(
     effectSourceGate,
     bySourceKeywordGate,
     triggerFilterGate,
+    triggerFilterSuperlativeGate,
     digivolveIntoGate,
     addedDigivolutionCardGate,
     addedDigivolutionPositionGate,
@@ -1118,6 +1148,7 @@ export async function runSubTrigger(
       // trigger. Its OWN optional-ask/cost supersedes `action.optional` below: §16-17-1 makes
       // trashing the source card the activation cost, and §16-17-3 bars activation the turn it
       // entered play.
+      let activationCostPaid = false;
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
         const delaySource = subCtx.source.permanent();
         if (delaySource === undefined) return;
@@ -1152,6 +1183,7 @@ export async function runSubTrigger(
         if (!activate) return;
         const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
         if (trashed <= 0 && subCtx.source.permanent() !== undefined) return;
+        activationCostPaid = true;
       } else {
         const activationCost = action.cost as Cost | undefined;
         const activationCostOptions = (action.costOptions ?? []) as Cost[];
@@ -1192,8 +1224,15 @@ export async function runSubTrigger(
             return;
           }
         }
+        activationCostPaid = hasActivationCost;
       }
+      let anyActionGateMatched = false;
       for (const a of action.actions) {
+        const gate =
+          a.kind === "RawUnparsed" || a.kind === "ConditionalBranch"
+            ? undefined
+            : (a.condition ?? ("while" in a ? a.while : undefined));
+        if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
         const abort = await runAction(subCtx, a);
         // An optional head action may decline while a mandatory conditional tail still
         // resolves (BT25-077: optional suspend, then mandatory deletion when the event
@@ -1203,6 +1242,13 @@ export async function runSubTrigger(
           subCtx.oncePerTurnActivationDeclined = false;
         }
         if (abort) break;
+      }
+      // A clause whose every action gate rejects the event never triggered, so it cannot spend
+      // the printed [Once Per Turn] budget: BT11-008/010/014 watch "when this Digimon's attack
+      // target is switched" and must stay armed while another Digimon's target is switched.
+      // An activation cost already paid keeps the use consumed.
+      if (!activationCostPaid && action.actions.length > 0 && !anyActionGateMatched) {
+        subCtx.oncePerTurnActivationDeclined = true;
       }
     },
   });

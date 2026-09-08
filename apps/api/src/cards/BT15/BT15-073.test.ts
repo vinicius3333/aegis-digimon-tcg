@@ -54,7 +54,7 @@ describe("BT15-073", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("filler").instanceId);
   });
 
-  it("naturally deletes its battle opponent after losing a battle", async () => {
+  it("naturally draws and trashes when deleted in battle as the top card", async () => {
     const s = setupEngine(
       {
         0: {
@@ -77,9 +77,38 @@ describe("BT15-073", () => {
         target: { kind: "permanent", permanentId: s.perm("bakemon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("filler").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    // The inherited retaliation clause is inactive while this card is the top card, so the
+    // attacker survives its own battle.
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("naturally deletes its battle opponent as a digivolution card", async () => {
+    const s = setupEngine(
+      {
+        // BT2-059 is a vanilla host, so the only [On Deletion] reaction in play is the
+        // inherited retaliation clause printed on BT15-073 underneath it.
+        0: {
+          battleArea: [{ card: "BT2-059", as: "host", under: ["BT15-073"], suspended: true }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
   });
 });

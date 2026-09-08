@@ -165,7 +165,7 @@ export interface ResolutionEnv {
  * a digivolution card whose host digivolves again is still the same digivolution card of the
  * same permanent, so an inherited effect survives its own stack growing.
  */
-function permanentIdentityOf(source: CardSource): string | undefined {
+export function permanentIdentityOf(source: CardSource): string | undefined {
   const permanent = source.permanent();
   if (permanent === undefined) return undefined;
   const role =

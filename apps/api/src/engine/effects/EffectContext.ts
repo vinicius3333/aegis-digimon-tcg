@@ -70,6 +70,15 @@ export type DeprecatedRestriction = "activateEffects";
 /** Every restriction value the ledger can hold, enforced or not. */
 export type Restriction = EnforcedRestriction | DeprecatedRestriction;
 
+/**
+ * Restrict one SubTrigger fire to watchers anchored on (or off) the event's subject permanent.
+ *
+ * Used by the deletion seam: a permanent's OWN "when this Digimon is deleted" clause resolves
+ * before a leave-prevention replacement can save it (Q2212), while a third party's "when a
+ * Digimon is deleted" watcher must only see the permanents that actually left (Q6030).
+ */
+export type SubTriggerSourceScope = "selfSourceOnly" | "excludeSelfSource";
+
 /** Future events a delayed/triggered sub-effect can watch (delayed-and-rule-effects). */
 export type SubTriggerEventName =
   // Every actual entry into the battle area; mirrors OnEnterFieldAnyone rather
@@ -2137,6 +2146,15 @@ export interface EffectContext {
    * before the first action resolves its targets.
    */
   lastResolvedPermanentIds?: string[];
+  /**
+   * True while the action being resolved is immediately followed by a sibling whose
+   * `target.sameTarget` is set, so the current action's choice is also the next action's
+   * subject. Actions that normally narrow their candidate pool to permanents they can
+   * actually change (Unsuspend skipping ready Digimon) must keep the wider printed pool in
+   * that case: "Unsuspend 1 of your Digimon; it gains <Blocker>" may pick an already
+   * unsuspended Digimon purely for the keyword (KB Q963, BT1-095).
+   */
+  nextActionChainsSameTarget?: boolean;
   /**
    * Named sets of permanent ids produced by actions that use `bindResultAs` (e.g. PlayPerLevel).
    * A downstream action's `filter.boundRef` restricts candidates to the named set. Fresh per

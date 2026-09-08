@@ -71,9 +71,20 @@ export function sourceTopDefinition(ctx: EffectContext) {
   const topCard = ctx.source.permanent()?.topCard;
   if (topCard !== undefined) return ctx.game.definitionOf(topCard);
   // [On Deletion] conditions are evaluated after the permanent has moved to trash.
-  // The live source can no longer recover its host, so use the authoritative top-card
-  // snapshot captured by the deletion producer (for example, "this Digimon has 2 or
-  // more colors" on an inherited effect).
+  // The live source can no longer recover its host, so use the per-instance host snapshot
+  // the deletion producers capture. It is preferred over `deletedTopCardId` because a
+  // two-sided battle deletion names only one host there, and an inherited effect on the
+  // OTHER loser must read its own host (BT17-053).
+  const hostInstanceId = ctx.trigger.deletedHostInstanceByInstanceId?.[ctx.source.instanceId];
+  const host =
+    hostInstanceId === undefined
+      ? undefined
+      : Array.from(ctx.game.state.players)
+          .flatMap((player) => Array.from(player.trash))
+          .find((card) => card.instanceId === hostInstanceId);
+  if (host !== undefined) return ctx.game.definitionOf(host);
+  // Fallback for producers that capture only the single deleted top card (and for a
+  // token host, which leaves the match instead of entering trash).
   return ctx.trigger.deletedTopCardId === undefined
     ? undefined
     : ctx.game.definitionOf({ cardId: ctx.trigger.deletedTopCardId } as never);

@@ -217,6 +217,56 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
 
     expect(log).toEqual(["a"]); // "b" never activated — its canActivate went false first
   });
+
+  it("15-4-4-3: a trigger parked between windows lapses when its source becomes a digivolution card", async () => {
+    cite(
+      "comprehensive-0165",
+      "15-4-4-3 when a card with an effect that's pending activation becomes a new card before " +
+        "the effect activates, the effect can no longer be activated. BT16-097's [Main] plays " +
+        "BT16-019 Angemon (whose [On Play] unsuspends 1 of your Lv.4 or lower Digimon) and then " +
+        "DNA digivolves it into BT16-012 in the SAME resolution: the [On Play] is parked while " +
+        "that effect is still running, and by the time the parked list is drained Angemon is a " +
+        "digivolution card of another permanent, so it never activates.",
+    );
+
+    const dnaMaterials: string[] = [];
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-008", as: "redMaterial" },
+            { card: "BT16-088", as: "colorSource" },
+            { card: "BT1-009", as: "decoy", suspended: true },
+          ],
+          hand: [
+            { card: "BT16-097", as: "option" },
+            { card: "BT16-019", as: "angemon" },
+            { card: "BT16-012", as: "silphymon" },
+          ],
+          security: [{ card: "BT16-050" }],
+          deck: ["BT16-050", "BT16-050", "BT16-050"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: dnaMaterials },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    dnaMaterials.push(
+      s.inst("angemon").instanceId,
+      s.perm("redMaterial").topCard!.instanceId,
+      s.perm("colorSource").topCard!.instanceId,
+      s.inst("silphymon").instanceId,
+    );
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT16-012"));
+
+    const silphymon = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT16-012");
+    expect(silphymon?.stack.map((card) => card.cardId)).toContain("BT16-019");
+    expect(s.perm("decoy").isSuspended).toBe(true);
+  });
 });
 
 describe("§15-4-5 Derived Triggering (comprehensive-0166)", () => {
@@ -428,6 +478,108 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
       response: { kind: "optional", accept: true },
     });
     expect(acceptResult).toEqual({ ok: true });
+  });
+});
+
+describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-0169)", () => {
+  /**
+   * EX10-052 Lucemon: Chaos Mode — "[When Attacking] By trashing 1 card in your hand, your
+   * opponent may delete 1 of their Digimon or Tamers. If this effect didn't delete,
+   * ＜Recovery +1 (Deck)＞". The trash is the clause's optional processing condition, so it gates
+   * BOTH the deletion offer and the Recovery tail, and it is paid once for the whole clause.
+   */
+  const LUCEMON_CHAOS_MODE = "EX10-052";
+  const INERT_DIGIMON = "BT1-009";
+  const INERT_FILLER = "BT1-013";
+  const RECOVERED_CARD = "BT1-014";
+
+  const attackWithLucemon = async (s: ReturnType<typeof setup>) => {
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lucemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  };
+
+  it("15-7-2: an unpayable clause cost skips every action of the clause, not just the first", async () => {
+    cite(
+      "comprehensive-0169",
+      "15-7-2 if the content of the optional processing conditions isn't executed, the " +
+        "processing after the conditions can't be executed",
+    );
+
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: LUCEMON_CHAOS_MODE, as: "lucemon" }],
+          hand: [],
+          deck: [RECOVERED_CARD, INERT_FILLER],
+        },
+        1: { battleArea: [{ card: INERT_DIGIMON, as: "theirs" }], security: [INERT_DIGIMON] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await attackWithLucemon(s);
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("15-7-1: a payable clause cost is paid exactly once and the whole clause then resolves", async () => {
+    cite(
+      "comprehensive-0169",
+      '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then ' + "performed",
+    );
+
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: LUCEMON_CHAOS_MODE, as: "lucemon" }],
+          hand: [{ card: INERT_DIGIMON, as: "cost" }, INERT_FILLER],
+          deck: [RECOVERED_CARD, INERT_FILLER],
+        },
+        1: { battleArea: [{ card: INERT_DIGIMON, as: "theirs" }], security: [INERT_DIGIMON] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await attackWithLucemon(s);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    // The deletion happened, so the gated ＜Recovery +1＞ tail must not run.
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("15-7-2: declining the opponent's optional inside the clause does not refund the paid cost", async () => {
+    cite(
+      "comprehensive-0169",
+      "15-7-2 the optional processing condition is executed before the processing after it; " +
+        "a declined optional inside that processing does not undo it",
+    );
+
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: LUCEMON_CHAOS_MODE, as: "lucemon" }],
+          hand: [{ card: INERT_DIGIMON, as: "cost" }],
+          deck: [{ card: RECOVERED_CARD, as: "recovery" }, INERT_FILLER],
+        },
+        1: { battleArea: [{ card: INERT_DIGIMON, as: "theirs" }], security: [INERT_DIGIMON] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await attackWithLucemon(s);
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("recovery").instanceId]);
   });
 });
 

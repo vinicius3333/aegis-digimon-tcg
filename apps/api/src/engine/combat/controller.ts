@@ -179,6 +179,14 @@ export interface CombatHooks {
    * [When Attacking] effects resolve first.
    */
   prepareSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
+  /**
+   * Run the attack-declaration timing windows with this event's `whenAttacking` /
+   * `whenOpponentAttacks` watchers folded into them, so a printed [When Attacking] effect and a
+   * watcher that reacts to the same declaration reach ONE ordering prompt (CR §15-4). Watchers
+   * the windows did not resolve still fire afterwards. Absent => the legacy sequence below runs
+   * the windows first and the watcher bus second.
+   */
+  withPendingAttackSubTriggers?: (payload: TriggerInfo, runWindows: () => Promise<void>) => Promise<void>;
   /** Capture event-time eligibility before battle losers leave, without resolving reactions. */
   prepareFrozenSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
   /** Refresh passive effects at the battle-deletion boundary, before reactions activate. */
@@ -615,11 +623,15 @@ export class CombatController {
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),
       };
-      const preparedWhenAttacking = this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload);
-      const preparedWhenOpponentAttacks = this.hooks.prepareSubTrigger?.(
-        "whenOpponentAttacks",
-        attackSubTriggerPayload,
-      );
+      const foldAttackSubTriggers = this.hooks.withPendingAttackSubTriggers;
+      const preparedWhenAttacking =
+        foldAttackSubTriggers === undefined
+          ? this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload)
+          : undefined;
+      const preparedWhenOpponentAttacks =
+        foldAttackSubTriggers === undefined
+          ? this.hooks.prepareSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload)
+          : undefined;
       // ＜Alliance＞ triggers at the same time as the attacker's own [When Attacking]
       // effects, and each printed/granted instance is a separate trigger (Q5257). Order them
       // together in ONE window only when there is actually something to order: a second
@@ -634,9 +646,14 @@ export class CombatController {
         allianceCount > 0 &&
         (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false));
       let allianceResolvedInWindow = false;
-      if (combineAllianceTiming) allianceResolvedInWindow = await fireAttackTiming(attackTrigger, allianceCount);
-      else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
-      await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
+      const runAttackTimingWindows = async (): Promise<void> => {
+        if (combineAllianceTiming) allianceResolvedInWindow = await fireAttackTiming(attackTrigger, allianceCount);
+        else await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
+        await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
+      };
+      if (foldAttackSubTriggers !== undefined)
+        await foldAttackSubTriggers(attackSubTriggerPayload, runAttackTimingWindows);
+      else await runAttackTimingWindows();
 
       // SubTrigger bus (System B): armed "when this attacks" / "when an opponent's Digimon
       // attacks" watchers. Fired EXACTLY ONCE here (not at both OnUseAttack and OnAllyAttack)
@@ -644,10 +661,12 @@ export class CombatController {
       // installs from the System-A timing-collected attack builders, so there is no
       // cross-system double-fire (RESEARCH Pitfall 4 / Assumption A3). The attacker is the
       // event subject for both events; a watcher's captured sourceFilter gates on it.
-      if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
-      else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
-      if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
-      else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
+      if (foldAttackSubTriggers === undefined) {
+        if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
+        else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+        if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
+        else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
+      }
       // A suspension paid as the cost of an effect-driven forced attack triggers at the
       // same time as the attack declaration. Resolve the turn player's When Attacking
       // effects first, then the deferred non-turn suspension watchers (EX3-024/074,
@@ -1651,6 +1670,9 @@ export class CombatController {
         deletedControllerSeat: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === deleted[0])
           ?.controllerSeat,
         deletedPermanentSnapshots,
+        // Printed top card of the first deleted permanent, captured before it left play, so
+        // an [On Deletion] condition about "this Digimon" can still read its host.
+        deletedTopCardId: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === deleted[0])?.topCardId,
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedWasLinkedInstanceIds,

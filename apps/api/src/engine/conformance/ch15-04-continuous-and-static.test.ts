@@ -109,6 +109,65 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
     expect(useOtherCopy).toEqual({ ok: true });
     await settle(() => !p1.battleArea.includes(targetB), 5000);
   });
+
+  it("15-14-1-2: an event that fails the clause's own trigger condition spends no [Once Per Turn] use", async () => {
+    cite(
+      "comprehensive-0193",
+      "15-14-1-2 an [X Per Turn] effect stops triggering only once it has been ACTIVATED X " +
+        "times this turn; §15-5-1 an effect triggers only when its trigger conditions are met, " +
+        "so an event the clause rejects consumes none of its budget",
+    );
+
+    // BT11-014's inherited clause: "[Your Turn][Once Per Turn] When this Digimon's attack
+    // target is switched, trash the top card of your opponent's security stack." A blocker
+    // switching a DIFFERENT Digimon's attack target is an event this clause rejects.
+    const s = setup({
+      0: {
+        battleArea: [
+          { card: "BT1-064", as: "other", dp: 20_000 },
+          { card: "BT1-064", as: "carrier", under: ["BT11-014"], dp: 20_000 },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "ST18-07", as: "firstBlocker", dp: 4000 },
+          { card: "ST18-07", as: "secondBlocker", dp: 4000 },
+        ],
+        security: ["BT1-009", "BT1-013"],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("firstBlocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("carrier").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("secondBlocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
 
 describe("§15-14-2 {Hand} (comprehensive-0194)", () => {
