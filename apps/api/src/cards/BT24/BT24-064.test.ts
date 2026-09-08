@@ -153,6 +153,44 @@ describe("BT24-064 Ouryumon", () => {
     },
   );
 
+  it("publicly refuses a reveal containing no DigiPolice or SEEKERS candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: "BT24-064", as: "ouryumon" }],
+          deck: [
+            { card: "BT1-013", as: "miss1" },
+            { card: "BT1-015", as: "miss2" },
+            { card: "BT1-016", as: "miss3" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ouryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("ouryumon").instanceId);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("miss1").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss2").instanceId,
+      s.inst("miss3").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     ["deck top", 0, ["restFirst", "restSecond", "untouched"]],
     ["deck bottom", 1, ["untouched", "restFirst", "restSecond"]],
