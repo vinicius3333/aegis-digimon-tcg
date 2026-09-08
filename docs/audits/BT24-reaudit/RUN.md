@@ -667,3 +667,20 @@ Blocker/Alliance/source-expiry decisions remain open. The090 lane continues
 those bounded cases;089 continues red-first reactive Delay;091 has begun
 Main/Security public-proof review.18 cards have8/10,14 rows remain zero,
 and none has10/10. Disk18GiB free at the latest check; no further cache removal.
+
+Root091 acceptance at10:40:24 passed its focused suite together with the
+BT24-085 peer route: 2 files /33 tests. Public paid Main and Security paths,
+Q5682/Q5684-Q5686 interactions, exact tied-lowest return/link/unsuspend, and
+linked once-per-turn reset are reproducible. Committed `79c1f48b9`;091
+receives7/10 because Q5683 still lacks a direct comparative runtime consumer.
+
+Root090 final partial acceptance at10:44:28 passed19 tests with one named
+expected failure. Public Security hand/trash/refusal and filter boundaries,
+plus actual Blocker/Alliance acceptance and refusal, are now covered. The
+face-up Option remains in security after a public check, so source expiry is
+an explicit engine/runtime seam rather than a card-local approximation.
+Committed `5a0f9ed4`;090 receives7/10. Aggregate602/1020, 13 pending zero
+rows, and no card at10/10. The reactive Delay registration seam has 15 green
+existing mechanism tests, but awaits a dedicated generalized regression
+before root acceptance. Luna lanes continue089/092,093, and serialized engine
+work respectively; no publication has occurred.
