@@ -25,7 +25,10 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
 
   it("limits the replacement play to this Digimon's digivolution cards", () => {
     const replacement = BT24_065.effects?.find((entry) => entry.trigger === "AllTurns");
-    const play = (replacement?.actions?.[0] as any)?.actions?.[0];
+    const replacementAction = replacement?.actions?.[0] as unknown as {
+      actions: Array<{ kind: string; from: string[]; target: { source: string; filter: unknown } }>;
+    };
+    const play = replacementAction.actions[0];
     expect(play).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand", "digivolutionCards"],
