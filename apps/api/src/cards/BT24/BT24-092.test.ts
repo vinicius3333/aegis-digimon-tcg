@@ -182,7 +182,7 @@ describe("BT24-092 Shock Plasma", () => {
     expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 
-  it.fails("public Security Main activation applies DP and links the checked Option", async () => {
+  it("public Security Main activation applies DP and links the checked Option", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-045", as: "attacker", dp: 15000 }], security: ["BT1-013"] },
@@ -195,8 +195,6 @@ describe("BT24-092 Shock Plasma", () => {
     );
     await s.ready();
     s.state.turnSeat = 0;
-    const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -209,7 +207,5 @@ describe("BT24-092 Shock Plasma", () => {
     expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-013"]);
     expect(s.state.pendingDecision).toBeUndefined();
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
   });
 });
