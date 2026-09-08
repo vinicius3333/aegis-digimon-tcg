@@ -117,6 +117,55 @@ green against the new module, alongside both-target, only-level-3,
 payable-refusal and no-hand controls. This finding is card-local; no shared
 engine edit is authorized or required by the current evidence.
 
+## 078 qualified simultaneous attack ordering seam
+
+Q5656 requires EX10-009's When Attacking and078's already-armed trash
+whenAttacking watcher to share the controller's activation order. After
+correcting reversed test preferences and an erroneous expected old top card,
+the EX10-first public case passes, but the X-first case still places the
+neutral Red candidate in breeding when it must remain in trash.
+
+Root trace: combat/controller.ts624 prepares the bus snapshot, then resolves
+OnUseAttack/OnAllyAttack before activating that snapshot at653. This preserves
+Q5775's event-time population but hardcodes the wrong order. The existing
+GameEngine.withPendingSubTriggers helper supports onlyInitiallyArmed and
+already combines pending bus effects with timing effects for entry windows.
+The serialized Luna engine lane is authorized to reuse that seam for attacks,
+with public both-order and late-trash regressions, Alliance/forced-attack
+compatibility, full gates and ATTACK-TRIGGER-ORDERING-MECHANISM.md. No card-local
+timing hack is authorized. This seam remains open until independent proof.
+
+## 077 rejected Link-engine diagnosis
+
+The public Happy Bullet trace showed036 move trash-to-link and subsequently
+back to trash, while032 revival succeeded. Root had suggested non-Appmon
+BT1-080 Titamon as a higher-DP recipient to isolate077's deletion; that was
+an invalid durable-Link fixture. GameEngine.ts4876/5218 applies
+CR17-1-3-2-6/7 and trashes links whose printed requirement is not satisfied.
+The card effect can place the link, but this does not waive the rule check.
+Use BT21-023 Globemon10000/Appmon on the opponent turn instead. This is not
+an engine defect; no engine correction is authorized for this observation.
+
+## 082 confirmed return-cost boundary correction
+
+Root read082's catalog/Q5663 and its original StartOfYourMainPhase IR: the
+return-self cost was attached to the optional Owen play, followed by an
+independent Elizamon play. The optional PlayWithoutCost preflight in
+runAction.ts returns false when no loose candidate exists, before paying
+the cost. The real Main-start no-Owen-hand test reproduced this: Elizamon
+entered battle while the original082 remained there (source-absence
+assertion expected false, received true against the original HEAD module).
+
+The card-local typed CostGatedBlock now requires the optional return payment
+before either independent optional play. The same public proof passes and
+asserts the exact082 instance at deck bottom. Root focused10 green and fresh
+typecheck pass; sourceRef targets received required empty filters and nocheck
+was removed. No shared engine preflight changed. A briefly drafted duplicate
+condition based on an Owen being in the deck was rejected, never accepted or
+committed: existing deck contents cannot prove cost payment. Remaining082
+public Security, Q5665/trait contrasts and correct owner-turn duration proof
+are explicit; coordinator credit is6/10, not whole-card completion.
+
 ## Docmon Security timing correction
 
 BT24-057's printed Security clause says to play it at the end of the battle.

@@ -2,7 +2,7 @@
 
 Base: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Status: **in progress**. Historical claims require independent proof.
 
-Current aggregate: 501/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
+Current aggregate: 528/1020; 0/102 cards at 10/10. Pending cards score zero until reviewed.
 
 Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each).
 
@@ -84,12 +84,12 @@ Scores: catalog/rules + IR trace + behavior + peer/stack + delivery (0–2 each)
 | BT24-074 | SkullSeadramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-074.md). Root17 green: public normal/effect entry, five paid evo routes, legal neighbor/source identities, inherited placement/refusal and real turn reset. Full public Q5652 trait/level matrix and invalid-source routes plus delivery pending. |
 | BT24-075 | SkullBaluchimon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-075.md). Root20 green: fixed only-Lv4 cost gate with typedCostGatedBlock and oldIR red/newIR green; public target/refusal boundaries, legal2/2/1 inherited combat and real owner/opponent aura. Collection delivery pending. |
 | BT24-076 | WarGrowlmon | 2 | 2 | 2 | 2 | 0 | 8/10 | reviewed; [record](BT24-reaudit/BT24-076.md). Root13 green: Q5653 valid-key hand4/5 and zone gates, exact paid evolution, legal inherited host and public DarkDragon/EvilDragon revival/refusal/level negatives. Collection delivery pending. |
-| BT24-077 | Revivemon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-078 | Creepymon (X Antibody) | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-077 | Revivemon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-077.md). Root15 tests green: ordered public App Fusion, normal routes, own-source Link and Q5654/refusal, real Happy Bullet Link/revival and Blocker. Globemon recipient satisfies link requirement; no engine defect. Mixed invalid/refusal boundaries and delivery pending. |
+| BT24-078 | Creepymon (X Antibody) | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-078.md). Public trash timing/draw order, Q5775, Q6028 source-removal continuation, post-deletion budgets and mixed Evil/Fallen Angel gates. Root21 pass plus one Q5656 X-first expected failure; qualified System-A/bus ordering seam assigned to engine lane. Delivery pending. |
 | BT24-079 | Hadesmon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-080 | Megidramon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-080 | Megidramon | 2 | 2 | 2 | 1 | 0 | 7/10 | in_progress; [record](BT24-reaudit/BT24-080.md). Root19 tests green: real trash EndTurn Dark/Evil Dragon routes, hand5 and wrongtrait/level denial, refusal, Q5662 activation recheck, public play/evolution/deletion and Blocker combat. Invalid normal route, fuller source-stack/deletion endpoints and delivery pending. |
 | BT24-081 | Titamon + SkullBaluchimon | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
-| BT24-082 | Owen Dreadnought | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
+| BT24-082 | Owen Dreadnought | 2 | 2 | 1 | 1 | 0 | 6/10 | in_progress; [record](BT24-reaudit/BT24-082.md). Root10 tests green: public Q5663 no-Owen return cost and refusal, Q5664 real Main. Card-local CostGatedBlock fixes unpaid Elizamon tail; old-IR red/new green. Public Security, Dragonkin/mixed traits, Q5665 and correct owner-turn expiry remain pending. |
 | BT24-083 | Hiroko Sagisaka | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-084 | Inori Misono | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |
 | BT24-085 | Dan Yuki & Kanan Yuki | 0 | 0 | 0 | 0 | 0 | 0/10 | pending; Pending record. Independent clause, runtime and execution validation pending. |

@@ -323,3 +323,51 @@ availability268 MiB, no deletion performed.
 still pending and it remains unscored. The next bounded lanes are077
 fusion,078 trash-attack timing, and080 trash end-of-turn gates;079 is queued
 behind the Appmon lane. No push, PR update or Orca completion was performed.
+
+## Live 077/078/080 correction checkpoint, 2026-09-08 05:23 BRT
+
+The coordinator reran the three current suites during lane edits: 45 tests,
+40 passed and five failed. This is a live-WIP diagnostic, not an accepted
+gate. Failures:077 public deletion's host-trash endpoint;078 Q5775 used an
+undeclared inheritedDraw alias;080 two end-turn memory expectations ignored
+the voluntary pass to -3, and its public-play proof referenced undeclared
+target instance IDs. Fresh shared/web typecheck passed; API typecheck failed
+on those080 identifiers. All findings were returned to the same Luna lanes.
+The previous frozen3284-test gate remains the last accepted collection gate;
+ledger501/1020 is unchanged. No probe files were found; disk availability
+262 MiB. A new frozen rerun is required before accepting this batch.
+
+## 077/078/080/082 checkpoint, 2026-09-08 05:49 BRT
+
+Aggregate **528/1020**, zero102 at10/10. Local atomic checkpoints:
+08019 tests/7 (`b34bade2a`),07715 tests/7 (`61dc480a1`),08210 tests/6
+(`d7d389dc5`),07821 passing plus one expected failure/7 (`b20d8c09b`).
+Root reran the focused suites and reviewed actual fixtures/assertions.
+All delivery credit remains zero; no push, PR update or Orca completion.
+
+082 corrects production behavior: with no Owen in hand, the original optional
+play skipped the return cost but still revived Elizamon. The real Main-start
+proof failed against the original module because082 remained in battle.
+A typed CostGatedBlock now requires the return before both optional plays;
+the same test verifies the original instance at deck bottom. Typed targets
+were completed and nocheck removed. The transient duplicate-condition draft
+was rejected and is absent from the committed correction.
+
+077's apparent Link failure was a coordinator fixture error: non-Appmon
+Titamon cannot retain036 after the rule check. Globemon is a valid recipient
+and the public deletion proof passes without any engine modification.
+
+The collection/mechanism run at05:45:37 passed228 files,3303 tests plus two
+expected failures while078's ordering fixtures were being corrected. This
+is not a zero-gap closing gate. The final focused078 run at05:48:49 has
+21 passing and exactly one retained Q5656 X-first failure; EX10-first passes.
+Root traced the remaining defect to System-A attack timings resolving before
+the prepared SubTrigger bus. A serialized engine lane now owns the shared
+ordering correction, preserving Q5775 initial eligibility and Alliance.
+
+Fresh shared/API/web typecheck passed. Effects sync/check report18 semantic
+changes against da5c7733c,102 synchronized records, zero semantic/byte changes
+outsideBT24. Scoped078/082 lint and formatting pass;077 keeps its existing
+structural-any warning. Diff check passes. The next required gate follows the
+engine correction;082's remaining public watcher/duration proof is in progress,
+and079 preparation is read-only while its lane handles that engine priority.
