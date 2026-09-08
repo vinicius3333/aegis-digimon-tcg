@@ -52,6 +52,9 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
       );
       const lowAId = s.perm("lowA").permanentId;
       const lowBId = s.perm("lowB").permanentId;
+      const lowAInstanceId = s.inst("lowA").instanceId;
+      const lowBInstanceId = s.inst("lowB").instanceId;
+      const highId = s.perm("high").permanentId;
       await s.ready();
 
       await advance(s.engine).fire(timing, s.perm("titamon"));
@@ -59,7 +62,8 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowBId);
-      expect(s.state.players[1]!.battleArea).toHaveLength(1);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([highId]);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([lowAInstanceId, lowBInstanceId]);
     },
   );
 
@@ -76,7 +80,10 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
             { card: "BT1-010", as: "lowB" },
             { card: "BT1-014", as: "high" },
           ],
-          security: ["BT1-011", "BT1-012"],
+          security: [
+            { card: "BT1-011", as: "securityChecked" },
+            { card: "BT1-012", as: "securityRemaining" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -85,6 +92,9 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     const lowAId = s.perm("lowA").permanentId;
     const lowBId = s.perm("lowB").permanentId;
     const highId = s.perm("high").permanentId;
+    const lowAInstanceId = s.inst("lowA").instanceId;
+    const lowBInstanceId = s.inst("lowB").instanceId;
+    const securityCheckedId = s.inst("securityChecked").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -92,12 +102,25 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowAId));
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowAId),
+    );
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).not.toContain(lowAId);
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).not.toContain(lowBId);
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toContain(highId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
+      lowAInstanceId,
+      lowBInstanceId,
+      securityCheckedId,
+    ]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it.each([
@@ -125,6 +148,8 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     );
     const baseId = s.inst("base").instanceId;
     const lowId = s.perm("low").permanentId;
+    const lowInstanceId = s.inst("low").instanceId;
+    const highId = s.perm("high").permanentId;
     s.state.memory = 8;
     await s.ready();
     expect(
@@ -140,6 +165,8 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([highId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([lowInstanceId]);
   });
 
   it("rejects public evolution from a neutral red level 6", async () => {
@@ -196,17 +223,24 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const titamonId = s.inst("titamon").instanceId;
+    const lowId = s.inst("low").instanceId;
+    const lowBId = s.inst("lowB").instanceId;
+    const highId = s.inst("high").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("titamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === titamonId) &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === lowId),
+    );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.memory).toBe(-4);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(
-      s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009" || card.cardId === "BT1-010"),
-    ).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([highId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([lowId, lowBId]);
   });
 
   it("publicly revives exact Titamon after an opponent Happy Bullet deletion", async () => {
@@ -442,6 +476,107 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
+  });
+
+  it("publicly executes an end-of-turn attack into an unsuspended Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-081", as: "titamon", under: [{ card: "BT3-089", as: "baseSource" }] }],
+          trash: [{ card: "BT24-072", as: "titan" }],
+          deck: [{ card: "BT1-009", as: "ownerDraw" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "target" }],
+          security: [
+            { card: "BT1-009", as: "securityChecked" },
+            { card: "BT1-010", as: "securityRemaining" },
+          ],
+          deck: [{ card: "BT1-011", as: "opponentDraw" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const originalId = s.perm("titamon").permanentId;
+    const sourceId = s.inst("titamon").instanceId;
+    const baseSourceId = s.inst("baseSource").instanceId;
+    const targetId = s.perm("target").permanentId;
+    const titanId = s.inst("titan").instanceId;
+    preferred.push(targetId, titanId);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === titanId),
+    );
+
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("securityRemaining").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityChecked").instanceId);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([titanId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(originalId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([sourceId, baseSourceId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(titanId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+  });
+
+  it("publicly refuses Execute at end of turn without attacking or self-deleting", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-081", as: "titamon", under: [{ card: "BT3-089", as: "baseSource" }] }],
+          deck: [{ card: "BT1-009", as: "ownerDraw" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "target" }],
+          security: [
+            { card: "BT1-009", as: "securityA" },
+            { card: "BT1-010", as: "securityB" },
+          ],
+          deck: [{ card: "BT1-011", as: "opponentDraw" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const titamonId = s.inst("titamon").instanceId;
+    const baseSourceId = s.inst("baseSource").instanceId;
+    const targetId = s.perm("target").permanentId;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([titamonId]);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual([baseSourceId]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([targetId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("securityA").instanceId,
+      s.inst("securityB").instanceId,
+    ]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(0);
   });
 
   it("publicly refuses the payable On Play cost while retaining all targets", async () => {
