@@ -162,7 +162,7 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     preferred.push(s.inst("composite").instanceId, s.inst("exactTitamon").instanceId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("source"));
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard.instanceId === s.inst("exactTitamon").instanceId,
@@ -170,6 +170,7 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     );
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("composite").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
   });
 
   it("revives a level 5 Titan through the alternate branch", async () => {
@@ -184,10 +185,11 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("source"));
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("titan").instanceId),
     );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
   });
 
   it("has Rush, Piercing, and Execute", async () => {
