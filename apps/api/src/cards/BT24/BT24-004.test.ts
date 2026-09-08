@@ -32,9 +32,9 @@ describe("BT24-004 Wanyamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-029", as: "host", under: ["BT24-004"] },
+          { card: "BT24-043", as: "host", under: ["BT24-004"] },
           { card: "BT24-022", as: "ownIliad" },
-          { card: "BT1-029", as: "ownNonIliad" },
+          { card: "BT1-013", as: "ownNonIliad" },
         ],
         deck: [
           { card: "BT1-009", as: "firstDraw" },
@@ -68,7 +68,7 @@ describe("BT24-004 Wanyamon", () => {
   it("fires from the public play intent for your Iliad Digimon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }],
+        battleArea: [{ card: "BT24-043", as: "host", under: ["BT24-004"] }],
         hand: [{ card: "BT24-022", as: "playedIliad" }],
         deck: [{ card: "BT1-009", as: "drawn" }],
       },
@@ -84,10 +84,29 @@ describe("BT24-004 Wanyamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
+  it("does not draw from a public non-Iliad play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-043", as: "host", under: ["BT24-004"] }],
+        hand: [{ card: "BT1-009", as: "nonIliad" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonIliad").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("nonIliad").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("drawn").instanceId);
+  });
+
   it("rejects an opposing Iliad play during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }],
+        battleArea: [{ card: "BT24-043", as: "host", under: ["BT24-004"] }],
         deck: [{ card: "BT1-009", as: "drawn" }],
       },
       1: { hand: [{ card: "BT24-022", as: "opposingIliad" }], deck: ["BT1-009", "BT1-010"] },
@@ -108,10 +127,11 @@ describe("BT24-004 Wanyamon", () => {
   it("resets the inherited draw on the next actual owner turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }],
+        battleArea: [{ card: "BT24-043", as: "host", under: ["BT24-004"] }],
         hand: [
           { card: "BT24-022", as: "first" },
           { card: "BT24-022", as: "second" },
+          { card: "BT24-022", as: "thirdSameTurn" },
         ],
         deck: [
           { card: "BT1-009", as: "initialDraw" },
@@ -128,6 +148,13 @@ describe("BT24-004 Wanyamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("initialDraw").instanceId));
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("initialDraw").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdSameTurn").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("thirdSameTurn").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(s.inst("effectDraw1").instanceId);
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
@@ -135,12 +162,15 @@ describe("BT24-004 Wanyamon", () => {
     s.state.memory = 3;
     const secondTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("effectDraw1").instanceId);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(s.inst("effectDraw2").instanceId);
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("effectDraw1").instanceId));
-    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("effectDraw1").instanceId);
+    await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("effectDraw2").instanceId));
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("effectDraw2").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await secondTurn;
   });
@@ -153,7 +183,13 @@ describe("BT24-004 Wanyamon", () => {
           { card: "BT24-043", as: "tapirmon" },
           { card: "BT24-022", as: "playedIliad" },
         ],
-        deck: [{ card: "BT1-009", as: "drawn" }],
+        deck: [
+          { card: "BT1-009", as: "evolutionDraw" },
+          { card: "BT1-010", as: "normalDraw" },
+          { card: "BT1-011", as: "inheritedDraw" },
+          "BT1-012",
+          "BT1-013",
+        ],
       },
     });
     s.state.memory = 10;
@@ -170,6 +206,23 @@ describe("BT24-004 Wanyamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT24-043");
+    expect(s.state.memory).toBe(10);
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT24-004"]);
+    expect(s.perm("egg").stack[0]!.instanceId).toBe(s.inst("egg").instanceId);
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("tapirmon").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === "Breeding");
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("inheritedDraw").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedIliad").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalDraw").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalDraw").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });
