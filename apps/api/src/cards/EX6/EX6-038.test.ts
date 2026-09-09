@@ -82,11 +82,6 @@ describe("EX6-038 Ludomon", () => {
     await s.ready();
     const before = s.state.players[0]!.deck.length;
     await advance(s.engine).verb.placeUnder(s.perm("other").permanentId, [s.inst("added").instanceId]);
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: s.perm("other").permanentId,
-      addedDigivolutionCardInstanceIds: [s.inst("added").instanceId],
-      byEffectSeat: 0,
-    });
     expect(s.state.players[0]!.deck.length).toBe(before);
     expect(s.perm("host").currentDP).toBe(5000);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(false);

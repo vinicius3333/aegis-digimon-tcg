@@ -70,7 +70,7 @@ describe("EX6-025 Sanzomon", () => {
             { card: "EX6-025", as: "sanzo" },
             { card: "EX6-024", as: "material" },
           ],
-          deck: ["EX6-023", "EX6-024", "EX6-026", "EX6-031", "BT1-001"],
+          deck: ["EX6-023", "EX6-024", "EX6-026", "EX6-031", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -92,7 +92,7 @@ describe("EX6-025 Sanzomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["EX6-023", "EX6-024", "EX6-026", "EX6-031"]),
     );
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
   it("does not reveal its named cards when played without DigiXros", async () => {

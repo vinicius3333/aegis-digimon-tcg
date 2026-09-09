@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controller: "mine",
+              zone: "trash",
             },
             count: 10,
             raw: "you have 10 or more cards in your trash",
@@ -71,6 +72,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controller: "mine",
+              zone: "trash",
             },
             count: 10,
             raw: "you have 10 or more cards in your trash",

@@ -68,7 +68,7 @@ describe("EX6-061 Leviamon", () => {
             { card: "BT1-060", as: "stacked", under: ["BT1-010", "BT1-011", "BT1-012"] },
             { card: "BT1-009", as: "stackless" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: false },
@@ -125,7 +125,7 @@ describe("EX6-061 Leviamon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-060", as: "stacked", under: ["BT1-010", "BT1-011", "BT1-012"] }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: false },
@@ -156,6 +156,66 @@ describe("EX6-061 Leviamon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costOne").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("costTwo").instanceId)).toBe(true);
+  });
+
+  it("returns sources but does not delete when the opponent has more Digimon/Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-061", as: "levia" }],
+          hand: [{ card: "BT1-010", as: "cost" }],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "played" }],
+          battleArea: [
+            { card: "BT1-060", as: "stacked", under: ["BT1-010", "BT1-011", "BT1-012"] },
+            { card: "BT1-009", as: "one" },
+            { card: "BT1-009", as: "two" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const stackedId = s.perm("stacked").permanentId;
+    await advance(s.engine).verb.playInstances([s.inst("played").instanceId]);
+    await settle(() => s.perm("stacked").stack.length === 0);
+
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === stackedId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("digivolves from a Blue Lv.5 for five memory and rejects an off-color source", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", as: "blueBase" }], hand: [{ card: "EX6-061", as: "levia" }] },
+    });
+    legal.state.memory = 5;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("blueBase").permanentId,
+        instanceId: legal.inst("levia").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("blueBase").topCard?.cardId === "EX6-061");
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("blueBase").stack.map((card) => card.cardId)).toEqual(["BT1-038"]);
+
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "redBase" }], hand: [{ card: "EX6-061", as: "levia" }] },
+    });
+    illegal.state.memory = 5;
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("redBase").permanentId,
+        instanceId: illegal.inst("levia").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(illegal.perm("redBase").topCard?.cardId).toBe("BT1-020");
   });
 
   it("places a valid trash card under its own Gate when leaving play", async () => {

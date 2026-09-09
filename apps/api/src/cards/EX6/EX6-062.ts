@@ -114,6 +114,36 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Green", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Purple", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 6 },
+        { color: "Green", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 6 },
+        { color: "Purple", level: 6 },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX6-062", compiled);

@@ -59,7 +59,7 @@ describe("EX6-018 Lucemon", () => {
 
   it("publicly reveals three cards and adds Angel and Seven Great Demon Lords matches", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-001"] } },
+      { 0: { hand: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
@@ -70,7 +70,7 @@ describe("EX6-018 Lucemon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX6-019");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["EX6-054", "BT1-001"]),
+      expect.arrayContaining(["EX6-054", "BT1-009"]),
     );
   });
 
@@ -94,7 +94,7 @@ describe("EX6-018 Lucemon", () => {
 
   it("publicly resolves the main-phase reveal independently of On Play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-001"] } },
+      { 0: { battleArea: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

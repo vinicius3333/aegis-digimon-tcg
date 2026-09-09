@@ -38,8 +38,8 @@ describe("EX6-028 Seraphimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX6-028", as: "sera" }],
-        deck: [{ card: "BT1-001", as: "recovery" }],
-        security: ["BT1-002"],
+        deck: [{ card: "BT1-009", as: "recovery" }],
+        security: ["BT1-009"],
       },
     });
     await s.ready();
@@ -53,8 +53,8 @@ describe("EX6-028 Seraphimon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-028", as: "sera" }],
-          deck: [{ card: "BT1-001", as: "recovery" }],
-          security: ["BT1-002", "BT1-003", "BT1-004"],
+          deck: [{ card: "BT1-009", as: "recovery" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -72,8 +72,8 @@ describe("EX6-028 Seraphimon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-028", as: "sera" }],
-          deck: [{ card: "BT1-001", as: "recovery" }],
-          security: ["BT1-002", "BT1-003", "BT1-004"],
+          deck: [{ card: "BT1-009", as: "recovery" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-060", as: "opponent" }] },
       },
@@ -91,8 +91,8 @@ describe("EX6-028 Seraphimon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-028", as: "sera" }],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -100,7 +100,7 @@ describe("EX6-028 Seraphimon", () => {
             { card: "BT1-009", as: "targetA" },
             { card: "BT1-009", as: "targetB" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -133,6 +133,7 @@ export const compiled: CompiledCard = {
               payCost: false,
               from: ["trash"],
               optional: true,
+              allowNoTarget: true,
             },
           ],
         },

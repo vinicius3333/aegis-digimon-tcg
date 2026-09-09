@@ -168803,7 +168803,8 @@
                 "into": { "nameOrTrait": [{ "tokens": ["Lucemon: Chaos Mode"], "match": "nameExact" }] },
                 "payCost": false,
                 "from": ["trash"],
-                "optional": true
+                "optional": true,
+                "allowNoTarget": true
               }
             ]
           }
@@ -171763,7 +171764,7 @@
             "stopAtLevel": 3,
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine" },
+              "filter": { "controller": "mine", "zone": "trash" },
               "count": 10,
               "raw": "you have 10 or more cards in your trash"
             }
@@ -171781,7 +171782,7 @@
             "stopAtLevel": 3,
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine" },
+              "filter": { "controller": "mine", "zone": "trash" },
               "count": 10,
               "raw": "you have 10 or more cards in your trash"
             }
@@ -171831,7 +171832,7 @@
           {
             "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "gainedTrigger": "endOfTurn",
+            "gainedTrigger": "EndOfYourTurn",
             "gainedActions": [
               { "kind": "Delete", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
@@ -171845,7 +171846,7 @@
           {
             "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "gainedTrigger": "endOfTurn",
+            "gainedTrigger": "EndOfYourTurn",
             "gainedActions": [
               { "kind": "Delete", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
@@ -172294,7 +172295,37 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 6 },
+          { "color": "Green", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 6 },
+          { "color": "Purple", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 6 },
+          { "color": "Green", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 6 },
+          { "color": "Purple", "level": 6 }
+        ]
+      }
+    ]
   },
   "EX6-063": {
     "effects": [
@@ -172425,6 +172456,7 @@
                   "nameOrTrait": [{ "tokens": ["Beastkin", "Holy Beast", "Cherub"], "match": "trait" }]
                 },
                 "from": ["hand"],
+                "payCost": true,
                 "reduceCost": 2,
                 "optional": true,
                 "cost": {

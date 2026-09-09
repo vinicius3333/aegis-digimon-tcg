@@ -41,7 +41,7 @@ describe("EX6-048 Witchmon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001"],
+          security: ["BT1-009"],
           battleArea: [
             { card: "BT1-009", as: "host", under: ["EX6-048"] },
             { card: "BT1-010", as: "cost" },

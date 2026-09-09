@@ -82,7 +82,7 @@ describe("EX6-024 Sagomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
-        1: { battleArea: [{ card: "EX6-031", as: "opponent" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }], deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -148,7 +148,7 @@ describe("EX6-024 Sagomon", () => {
             { card: "BT1-009", as: "ally" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -175,7 +175,7 @@ describe("EX6-024 Sagomon", () => {
             { card: "EX6-025", as: "material" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

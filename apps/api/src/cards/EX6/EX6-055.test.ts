@@ -66,4 +66,44 @@ describe("EX6-055 DanDevimon", () => {
     await inactive.ready();
     expect(observe(inactive.engine).hasKeyword(inactive.perm("host"), "Rush")).toBe(false);
   });
+
+  it("legally evolves from a purple level 5, pays 3 memory, and deletes through When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-051", as: "base" }], hand: [{ card: "EX6-055", as: "dan" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dan").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("base").topCard.cardId).toBe("EX6-055");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-051"]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("rejects a red level 5 as an illegal evolution source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-024", as: "base" }], hand: [{ card: "EX6-055", as: "dan" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dan").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
