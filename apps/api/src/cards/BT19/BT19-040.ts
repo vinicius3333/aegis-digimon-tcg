@@ -1,21 +1,27 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-IR override (AUTO-GENERATED header removed so the generator preserves this file). The
-// The hand-authored IR preserves the use-option lifecycle and whenOptionUsed watcher.
+// Hand-authored IR (no AUTO-GENERATED header, so the generator preserves this file).
 //
 // BT19-040 Sakuyamon — KB authority (node tools/kb/query.mjs card BT19-040):
-//   Q5469: the "when you use an Option card" effect activates AFTER the used Option's [Main] effect.
-//   Q5470: it does NOT trigger when an Option's effect activates by a method OTHER than use (e.g. a
-//     [Security] effect or <Delay>) — so the watcher fires only on a genuine use (the whenOptionUsed
-//     produce site is the use verb, not any Option resolution).
-//   Q5471/Q5472/Q5473: the "cost of 2 or more" gate reads the Option's ORIGINAL use cost itself, not
-//     a paid/reduced cost — so the watcher gates on usedOptionCost (the printed cost).
-// documented behavior reference: documented behavior ([When Digivolving] <Draw 2> then PlayOptionCards
-//   payCost:false over CanSelectOptionCard :53-57) and :118-176 (EffectTiming.OnUseOption ->
-//   the single-color/!prohibited eligibility SERVER-SIDE (08-05 path); filter.playCostLte:5
-//   encodes the printed "cost of 5 or less" cap explicitly (runtime-effect review BT19-040 finding).
-const compiled: CompiledCard = {
+//   Q5469: the "when you use an Option card" watcher resolves AFTER the used Option's [Main]
+//     effect. Production owns that order: `playCard` fires `fireOptionUsed` only once the
+//     Option has finished resolving and been routed to trash/delay.
+//   Q5470: it does NOT trigger when an Option's effect activates by a method OTHER than use
+//     (a [Security] effect, ＜Delay＞). The `whenOptionUsed` produce sites are the two USE
+//     paths only — `playCard` and `useOptionFromHand`.
+//   Q5471/Q5472/Q5473: the "cost of 2 or more" gate reads the Option's USE COST — the printed
+//     cost as changed by card-level effects, before any payment-only reduction and regardless
+//     of whether the cost was paid at all. `triggerOptionCostAtLeast` reads exactly the value
+//     production carries on the trigger (`optionUseCost`, not the paid amount).
+//
+// Banlist: restricted to 1 copy per deck since 2025-09-01 (data/kb/banlist.json). That is a
+// deck-construction rule with no in-game effect, so it is not encoded here.
+//
+// `filter.playCostLte: 5` encodes the printed "cost of 5 or less" cap and `colorCount: 1` the
+// printed "single-color" cap; the ＜Draw 2＞ and the Option use are one ordered [When
+// Digivolving] effect ("＜Draw 2＞. Then, you may use ...").
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -77,7 +83,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Sakuyamon: Maid Mode"],
+      namesExact: ["Sakuyamon: Maid Mode"],
       cost: 1,
       isAlternate: true,
     },

@@ -6,6 +6,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Then 1 of your level 5 Digimon gains <Alliance> TWICE (count:2) for the turn and MUST
 // attack (KB Q3163: the Digimon must attack if possible, so mandatory Attack action follows).
 // Q3162: tokens played by this effect don't have a level and can't be chosen for the "then" part.
+// Q3160/Q3164: the bracketed [WarGrowlmon]/[Taomon]/[Rapidmon] refs are EXACT card names, so
+// both the colour waiver and the [Security] play use `nameExact`. A substring `match: "name"`
+// would also accept BlackWarGrowlmon / BlackRapidmon (BT5-079, EX4-036).
 const compiled: CompiledCard = {
   effects: [
     {
@@ -23,7 +26,7 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               levels: [5],
-              nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "nameExact" }],
             },
             raw: "you have a level 5 [WarGrowlmon]/[Taomon]/[Rapidmon]",
           },
@@ -129,7 +132,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               levels: [5],
-              nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "nameExact" }],
             },
             count: 1,
           },

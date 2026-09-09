@@ -28,8 +28,12 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
+        // KB Q3134: ONE opponent Digimon is chosen for the whole clause, and ＜De-Digivolve 1＞ is
+        // then applied to THAT Digimon once per your Digimon. The scaling on DeDigivolve is a
+        // repetition count (Q4568), and each repetition re-resolves its target, so the choice is
+        // bound first and reused — otherwise every repetition could pick a different Digimon.
         {
-          kind: "DeDigivolve",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
@@ -37,6 +41,17 @@ const compiled: CompiledCard = {
             },
             count: 1,
             bindAs: "deDigivolveTarget",
+          },
+        },
+        {
+          kind: "DeDigivolve",
+          target: {
+            fromSelectionRef: "deDigivolveTarget",
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
           },
           amount: 1,
           scaling: {
@@ -69,7 +84,7 @@ const compiled: CompiledCard = {
         nameOrTrait: [
           {
             tokens: ["LordKnightmon"],
-            match: "name",
+            match: "nameExact",
           },
           {
             tokens: ["X Antibody"],
@@ -125,7 +140,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["LordKnightmon"],
+      namesExact: ["LordKnightmon"],
       cost: 1,
       isAlternate: true,
     },

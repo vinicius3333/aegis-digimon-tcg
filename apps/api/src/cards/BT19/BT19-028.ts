@@ -3,7 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-fixed IR: the Aqua/Sea Animal category is substring-based and the "by placing"
 // memory clause is an optional activation after the mandatory unsuspend.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

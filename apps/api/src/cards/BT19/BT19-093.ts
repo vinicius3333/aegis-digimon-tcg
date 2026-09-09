@@ -30,7 +30,10 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Queen Device"],
-                  match: "name",
+                  // Bracketed [Queen Device] is an EXACT name reference; `match: "name"` is the
+                  // substring form and would let any card whose name merely contains
+                  // "Queen Device" suppress the waiver.
+                  match: "nameExact",
                 },
               ],
             },

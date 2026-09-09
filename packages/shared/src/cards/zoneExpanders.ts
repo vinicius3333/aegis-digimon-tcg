@@ -73,6 +73,15 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
     underTamerMax: 100,
     trashMax: 0,
   },
+  // BT19-081 (Kiriha Aonuma): "[All Turns] When any of your [Blue Flare] trait Digimon cards with
+  // DigiXros requirements would be played, by suspending this Tamer, you may place cards from under
+  // your Tamers as digivolution cards for a DigiXros." Gate [Blue Flare]; any of the player's Tamers
+  // (Q3143); under-Tamer max unlimited, no trash.
+  "BT19-081": {
+    appliesTo: (def) => hasAnyTrait(def, ["Blue Flare"]),
+    underTamerMax: 100,
+    trashMax: 0,
+  },
   // BT19-087 (Nene Amano): gate [Composite] OR [Twilight]; under-Tamer max 1 + trash max 1
   // (documented behavior).
   "BT19-087": {

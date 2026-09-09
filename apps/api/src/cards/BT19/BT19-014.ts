@@ -1,9 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// HAND-FIXED IR for BT19-014 — do not regenerate.
+// [ShootingStarmon] is a bracketed exact card-name reference, so the PlayWithoutCost
+// filter uses `nameExact`, not the substring `name` match.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -70,7 +70,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["ShootingStarmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

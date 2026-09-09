@@ -9,9 +9,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    count check applies at the time of the condition resolution.
 // 2. OnDeletion PlayWithoutCost source zone: "from under your Tamers"
 //    (the filter currently lacks a zone restriction to underTamers).
-// 3. OnDeletion PlaceUnder (Save) is a mandatory, independent post-Then clause.
-//    Declining the optional play must not abort Save.
-const compiled: CompiledCard = {
+// 3. OnDeletion PlaceUnder is the printed ＜Save＞ keyword: comprehensive 16-20-3 makes its
+//    processing OPTIONAL, and 4-22 requires the keyword itself to be declared so cards that
+//    reference "＜Save＞ in its text" can see it. It is also INDEPENDENT of the preceding
+//    optional play: declining the play must not abort ＜Save＞.
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -109,7 +111,14 @@ const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
-          optional: false,
+          // Comprehensive 16-20-3: the processing from ＜Save＞ is optional.
+          optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Save",
+          raw: "＜Save＞",
         },
       ],
     },

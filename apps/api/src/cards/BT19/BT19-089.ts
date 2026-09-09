@@ -33,7 +33,10 @@ const compiled: CompiledCard = {
           kind: "Restrict",
           target: { filter: ownDigimon, count: 1, sameTarget: true },
           restriction: "dpImmune",
-          byOpponentEffectsOnly: true,
+          // No `byOpponentEffectsOnly`: the printed clause qualifies only the first half
+          // ("the effects of your opponent's Option cards"). "and it can't have its DP
+          // reduced" carries no source qualifier, unlike BT11-069 / BT16-055, which print
+          // "by your opponent's effects" and are what that flag exists for.
           duration: "untilOpponentTurnEnd",
         },
       ],

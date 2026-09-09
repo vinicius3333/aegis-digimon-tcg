@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q3071: choosing a Digimon that can't be deleted still satisfies "didn't delete" — the
 // Delete action target is mandatory (not optional), the buff/keyword are conditioned on
 // the delete not occurring.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

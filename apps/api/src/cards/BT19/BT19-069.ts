@@ -118,7 +118,9 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Gazimon", "Gizamon"],
+      // The printed route is `[Digivolve][Gazimon]/[Gizamon]`: bracketed names are EXACT.
+      // `names` is the substring gate and would wrongly accept "Gazimon (X Antibody)".
+      namesExact: ["Gazimon", "Gizamon"],
       cost: 2,
       isAlternate: true,
     },

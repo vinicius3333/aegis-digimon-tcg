@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
@@ -14,10 +14,11 @@ const compiled: CompiledCard = {
           nameOrTrait: [
             {
               tokens: ["Calumon", "Takato Matsuki"],
-              match: "name",
+              match: "nameExact",
             },
           ],
           controller: "mine",
+          zone: "battleArea",
         },
         count: 1,
         matchPredicate: "HasPermanentsCondition",
@@ -30,7 +31,7 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Static",
+      trigger: "AllTurns",
       isInherited: true,
       actions: [
         {
@@ -41,6 +42,7 @@ const compiled: CompiledCard = {
           condition: {
             kind: "memoryAtMost",
             value: 0,
+            controller: "mine",
           },
         },
       ],

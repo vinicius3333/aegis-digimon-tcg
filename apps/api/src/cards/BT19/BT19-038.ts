@@ -1,7 +1,16 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+// HAND-FIXED IR for BT19-038 — do not regenerate.
+// "Suspend 1 of your opponent's Digimon" prints no "unsuspended" qualifier, and selection is
+// never gated on whether the action will change anything (comprehensive 15-15-5-1 chooses a
+// card that cannot even be affected for exactly this effect). An earlier audit added
+// `suspended: false` to both Suspend targets, which wrongly removed an already-suspended
+// Digimon from the candidate set.
+// The DigiXros alias uses grant:"name" + digiXrosOnly (the BT19-012 form). The material check
+// reads `digiXrosOnlyNameAliasesFor` (interpreter/compiledCards.ts), which only recognises that
+// form, so the previous grant:"nameForDigiXros" left the printed alias unusable from the hand.
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -15,8 +24,9 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          grant: "nameForDigiXros",
+          grant: "name",
           tokens: ["Dorulumon"],
+          digiXrosOnly: true,
         },
       ],
     },
@@ -29,7 +39,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              suspended: false,
             },
             count: 1,
           },
@@ -70,7 +79,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              suspended: false,
             },
             count: 1,
           },

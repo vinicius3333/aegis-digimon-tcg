@@ -4,7 +4,7 @@
 // The engine carries this alias in the DigiXros-only name ledger, not ordinary name matching.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -144,7 +144,9 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Shoutmon"],
+      // "[Digivolve][Shoutmon]" is a BRACKETED name: exact, never the `names` substring gate
+      // (which would let Shoutmon X4 / X5 take the cheaper named route).
+      namesExact: ["Shoutmon"],
       cost: 4,
       isAlternate: true,
     },

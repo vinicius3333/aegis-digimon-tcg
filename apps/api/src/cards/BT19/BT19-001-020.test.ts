@@ -28,7 +28,7 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
             { card: "BT19-081", as: "tamer" },
           ],
           hand: ["BT19-081", "BT19-016"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -127,7 +127,8 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
           ],
         },
       },
-      { autoDeclineOptional: true },
+      // Save is optional (comprehensive 16-20-3); accept it while the Tamer play has no candidate.
+      { autoAcceptOptional: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("greymon").permanentId]);
     await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-020"));

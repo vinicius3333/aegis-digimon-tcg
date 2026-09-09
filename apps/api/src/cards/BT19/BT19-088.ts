@@ -1,9 +1,18 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// BT19-088 Ai & Mako (Purple Tamer, cost 3).
+//
+//   [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
+//   [Main] If you have 20 or more cards in your trash, by suspending this Tamer, 1 of your
+//     [Impmon] may digivolve into [Beelzemon] in the hand or trash for a digivolution cost
+//     of 4, ignoring its digivolution requirements.
+//   [Security] Play this card without paying the cost.
+//
+// Bracketed [Impmon] / [Beelzemon] are EXACT name references, so both name refs use
+// `nameExact`. With the substring form (`match: "name"`) the clause would also accept
+// "Blimpmon" as the host and "Beelzemon (X Antibody)" / "Beelzemon: Blast Mode" as the
+// digivolution target.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -34,7 +43,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Impmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -45,7 +54,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Beelzemon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Digivolving][When Attacking][Once Per Turn] By trashing 1 Option card in the
 //   battle area, unsuspend this Digimon.
 // Q&A: "1 Option card in the battle area" includes either player's Option card.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Counter",
@@ -158,7 +158,8 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Justimon: Accel Arm", "Justimon: Critical Arm"],
+      // Bracketed [Name] routes are EXACT: `names` is the substring gate ("[X] in its name").
+      namesExact: ["Justimon: Accel Arm", "Justimon: Critical Arm"],
       cost: 1,
       isAlternate: true,
     },

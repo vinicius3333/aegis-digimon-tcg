@@ -1,10 +1,13 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+// HAND-FIXED IR for BT19-039 — do not regenerate.
+// "By trashing your top security card, delete ... and gain 1 memory" is one optional
+// processing condition (comprehensive 15-7-1/15-7-2): the player chooses whether to pay,
+// and everything after the condition then follows as mandatory processing (15-9-1). The
+// generated IR made the memory gain a SECOND optional prompt, which let a player pay the
+// security cost, delete a Digimon and still decline the memory.
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -40,8 +43,6 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },
@@ -79,8 +80,6 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },

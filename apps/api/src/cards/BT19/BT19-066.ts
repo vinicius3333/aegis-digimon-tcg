@@ -1,9 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// [On Play] By trashing 1 [Composite]/[Wicked God] trait card in hand, ＜Draw 2＞.
+// [Digivolve][Pagumon]: Cost 0 — a BRACKETED card name, so the alternate route's source gate
+// is `namesExact`; the substring `names` form would also accept any future "…Pagumon…" card.
+// Inherited: ＜Blocker＞.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -51,7 +52,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Pagumon"],
+      namesExact: ["Pagumon"],
       cost: 0,
       isAlternate: true,
     },

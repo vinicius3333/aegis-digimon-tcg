@@ -1,6 +1,6 @@
 // HAND-FIXED IR for BT19-013 — do not regenerate.
 // Replacement PlaceUnder: added from:["digivolutionCards"] (source must be leaving Digimon's stack).
-// OnDeletion PlayWithoutCost: added playCost lte 4 (text: "play cost 4 or lower").
+// OnDeletion PlayWithoutCost: added playCostLte 4 (text: "play cost 4 or lower").
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
@@ -61,10 +61,10 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              playCost: {
-                op: "lte",
-                value: 4,
-              },
+              // "play cost 4 or lower". `playCostLte` is the key the loose-card matcher
+              // reads (matching/definition.ts); a `playCost: { op, value }` object is only
+              // honored for permanent targets and was silently dropped here.
+              playCostLte: 4,
             },
             count: 1,
           },
