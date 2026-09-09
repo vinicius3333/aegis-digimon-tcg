@@ -454,10 +454,12 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  // BT17-078's bracketed DNA sources are exact card names (BT13-059 precedent). A substring
+  // gate would admit BlackWarGreymon and the X-Antibody variants as cost-0 materials.
   "BT17-078": [
     {
       cost: 0,
-      materials: [{ names: ["WarGreymon"] }, { names: ["MetalGarurumon"] }],
+      materials: [{ namesExact: ["WarGreymon"] }, { namesExact: ["MetalGarurumon"] }],
     },
   ],
   "BT8-015": [
@@ -507,10 +509,7 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   "BT17-101": [
     {
       cost: 0,
-      materials: [
-        { names: ["Fenriloogamon"] },
-        { names: ["Kazuchimon"] },
-      ],
+      materials: [{ names: ["Fenriloogamon"] }, { names: ["Kazuchimon"] }],
     },
   ],
   // Paildramon — [DNA Digivolve] Red Lv.4 + Purple Lv.4
@@ -601,10 +600,7 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   "BT20-081": [
     {
       cost: 0,
-      materials: [
-        { names: ["Fenriloogamon"] },
-        { color: "Yellow", level: 6, namesInText: ["Pulsemon"] },
-      ],
+      materials: [{ names: ["Fenriloogamon"] }, { color: "Yellow", level: 6, namesInText: ["Pulsemon"] }],
     },
   ],
   // Gryphonmon — [DNA Digivolve] Blue/Yellow Lv.5 + Green/Red Lv.5
@@ -716,10 +712,7 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   "BT8-084": [
     {
       cost: 0,
-      materials: [
-        { level: 4 },
-        { level: 4 },
-      ],
+      materials: [{ level: 4 }, { level: 4 }],
     },
   ],
   // RagnaLoardmon — [DNA Digivolve] Red Lv.6 + Black Lv.6
@@ -993,10 +986,7 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   "P-220": [
     {
       cost: 0,
-      materials: [
-        { names: ["Kimeramon"] },
-        { names: ["Machinedramon"] },
-      ],
+      materials: [{ names: ["Kimeramon"] }, { names: ["Machinedramon"] }],
     },
   ],
   // Chaosmon — [DNA Digivolve] Yellow Lv.6 + Purple/Black Lv.6
