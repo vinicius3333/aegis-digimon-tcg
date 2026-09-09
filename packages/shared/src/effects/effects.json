@@ -163397,13 +163397,14 @@
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "isSelfRef": true, "byEffect": true },
             "actions": [
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": { "controllerDefault": "mine", "kind": ["Digimon"] },
                 "from": ["hand"],
+                "payCost": true,
                 "reduceCost": 1,
                 "optional": true
               }
@@ -163436,6 +163437,7 @@
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": { "controllerDefault": "mine", "kind": ["Digimon"] },
                 "from": ["hand"],
+                "payCost": true,
                 "optional": true
               }
             ]
@@ -163538,6 +163540,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": "battleArea",
                 "kind": ["Tamer"],
                 "nameOrTrait": [{ "tokens": ["Light Fang", "Night Claw"], "match": "trait" }]
               },
@@ -163849,7 +163852,12 @@
                 }
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
@@ -164143,7 +164151,9 @@
               "kind": "return",
               "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
               "raw": "By returning 1 of your Digimon to the hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -164154,20 +164164,21 @@
             "kind": "GainMemory",
             "amount": 2,
             "cost": {
-              "kind": "place",
+              "kind": "placeOwnTopAtStackBottom",
               "target": {
                 "filter": {
+                  "isSelfRef": true,
                   "controllerDefault": "mine",
+                  "zone": "battleArea",
                   "kind": ["Digimon"],
                   "nameOrTrait": [{ "tokens": ["Night Claw", "Light Fang"], "match": "trait" }]
                 },
                 "count": 1
               },
-              "raw": "By placing the top card of this Digimon with the [Night Claw]/[Light Fang] trait as this Digimon's bottom digivolution card",
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "self"
-            }
+              "raw": "By placing the top card of this Digimon with the [Night Claw]/[Light Fang] trait as this Digimon's bottom digivolution card"
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ],
         "isInherited": true,
@@ -164266,7 +164277,7 @@
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Garurumon"], "match": "nameExact" },
-                  { "tokens": ["X Antibody"], "match": "nameExact", "orPrevious": true }
+                  { "tokens": ["X Antibody"], "match": "trait", "orPrevious": true }
                 ]
               },
               "raw": "[Garurumon] or [X Antibody] is in this Digimon's digivolution cards"
@@ -164818,7 +164829,7 @@
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["MetalGarurumon"], "match": "nameExact" },
-                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                  { "tokens": ["X Antibody"], "match": "trait", "orPrevious": true }
                 ]
               },
               "raw": "[MetalGarurumon] or [X Antibody] is in this Digimon's digivolution cards"
@@ -164832,16 +164843,28 @@
           {
             "kind": "Delete",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "levelEq": "returnedDigimonLevel" },
+              "filter": {
+                "controller": "opponent",
+                "kind": ["Digimon"],
+                "relativeTo": { "attr": "level", "op": "eq", "selectionRef": "returnedDigimon" }
+              },
               "count": 1
             },
+            "allowCostWithoutTarget": true,
             "cost": {
               "kind": "return",
               "target": { "filter": { "zone": "trash", "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
               "to": "deckBottom",
-              "storeAs": "returnedDigimonLevel",
+              "bindResultAs": "returnedDigimon",
               "raw": "By returning 1 Digimon card from your trash to the bottom of the deck"
             }
+          },
+          {
+            "kind": "Return",
+            "condition": { "kind": "ifThisEffectDidNotAct" },
+            "target": { "filter": { "zone": "trash", "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "to": "deckBottom",
+            "from": ["trash"]
           }
         ]
       }
@@ -164888,7 +164911,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "names": ["Frimon"], "cost": 0, "isAlternate": true }]
   },
   "EX5-028": {
     "effects": [
@@ -165034,6 +165058,7 @@
         "actions": [
           {
             "kind": "Unsuspend",
+            "allowCostWithoutTarget": true,
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "cost": {
               "kind": "trash",
@@ -165383,6 +165408,7 @@
       },
       {
         "trigger": "YourTurn",
+        "frequency": "OncePerTurn",
         "description": "[Your Turn] [Once Per Turn] While this Digimon has the [Four Sovereigns]/[God Beast] trait, it gains ＜Piercing＞.",
         "actions": [
           {
@@ -165653,9 +165679,10 @@
                 },
                 "count": 1,
                 "to": "play"
-              }
+              },
+              { "filter": {}, "count": 1, "to": "hand" }
             ],
-            "rest": "hand"
+            "rest": "deckBottom"
           }
         ]
       },
@@ -165675,9 +165702,10 @@
                 },
                 "count": 1,
                 "to": "play"
-              }
+              },
+              { "filter": {}, "count": 1, "to": "hand" }
             ],
-            "rest": "hand"
+            "rest": "deckBottom"
           }
         ]
       },
@@ -166658,6 +166686,13 @@
               },
               "raw": "[Dobermon] in its name or [X Antibody] is in this Digimon's digivolution cards"
             }
+          },
+          {
+            "kind": "ActivateForeignEffect",
+            "zone": "digivolutionCards",
+            "fromTriggers": ["OnPlay"],
+            "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+            "count": 1
           }
         ]
       },
@@ -166782,6 +166817,17 @@
               },
               "raw": "a Digimon card with [Cerberusmon] in its name or [X Antibody] is in this Digimon's digivolution cards"
             }
+          },
+          {
+            "kind": "ActivateForeignEffect",
+            "zone": "digivolutionCards",
+            "fromTriggers": ["OnPlay"],
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "nameExact" }]
+            },
+            "count": 1
           }
         ]
       },
@@ -167275,14 +167321,16 @@
             },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1, "bindAs": "trashedCard" },
+              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+              "bindResultAs": "trashedCard",
               "raw": "By trashing 1 card in your hand"
             }
           },
           {
             "kind": "PlaceInBattleAreaSelf",
             "condition": {
-              "kind": "lastTrashedMatchesFilter",
+              "kind": "bindingContains",
+              "ref": "trashedCard",
               "filter": {
                 "kind": ["Digimon"],
                 "nameOrTrait": [{ "tokens": ["Seven Great Demon Lords"], "match": "trait" }]

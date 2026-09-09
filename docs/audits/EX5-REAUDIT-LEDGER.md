@@ -2,7 +2,7 @@
 
 Base: afa3ab2f451245fb03bf4e3f895ead8807f18df1. Prior scores are not inherited.
 
-Current aggregate: 584/740; 0/74 cards at 10/10.
+Current aggregate: 592/740; 0/74 cards at 10/10.
 
 | Card    | Name                                 | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                           |
 | ------- | ------------------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -74,7 +74,7 @@ Current aggregate: 584/740; 0/74 cards at 10/10.
 | EX5-066 | Phoebus Blow                         | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3671 mapped; 7 focused tests green; public Main/Security, source trash and attack restriction paths proven                                              |
 | EX5-067 | Good Night Moon                      | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3672-Q3673 mapped; 7 focused tests green; public Main/Security, no-target and Night Claw Tamer paths proven                                             |
 | EX5-068 | Flashy Boss Punch                    | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/full IR mapped; focused suite green; Security resolved through a public attack without injected timing                                                   |
-| EX5-069 | Biting Crush                         | 0             | 0        | 0                | 0          | 0     | 0/10  | Queued                                                                                                                                                           |
+| EX5-069 | Biting Crush                         | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3674-Q3678/Q4735 mapped; 5 focused tests green; public Main placement, bound cost and exact-name Delay boundaries proven                                |
 | EX5-070 | X Antibody Proto Form                | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3679-Q3682/Q4260 mapped; 8 focused tests green; public placement and inherited replacement boundaries proven                                            |
 | EX5-071 | Loyalty Deeper than the Sea          | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3683-Q3684 mapped; 6 focused tests green; public placement/hand decision and Delay endpoints proven                                                     |
 | EX5-072 | Holy Beasts Great Cardinal Positions | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3685 mapped; 8 focused tests green; public Main/Security routes and Four Sovereigns placement boundaries proven                                         |

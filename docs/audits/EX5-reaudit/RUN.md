@@ -59,3 +59,13 @@
 - `EX5-037`: first green run was demoted because its Piercing lapse used an internal ignore-requirements verb. The replacement uses legal public EX5-013 → BT5-086 evolution; 9/9 focused tests pass. Accepted at 8/10 before delivery gates.
 - `EX5-038`: Q3608-Q3613, breeding restrictions, deletion watcher OPT and inherited Piercing pass 8/8 focused tests. Accepted at 8/10 before delivery gates.
 - `EX5-040`, `EX5-041`, and `EX5-044`: catalog/rulings and all printed clauses pass 8/8, 7/7, and 7/7 focused tests respectively. Accepted at 8/10 before delivery gates.
+
+## 2026-09-09 accelerated checkpoint
+
+- Coordinator-only serial batching accepted 62/74 cards at 8/10 (496/740 before delivery gates).
+- The third through fifth atomic checkpoints are `75ec391b7`, `a0eb327f8`, and `575712caf`.
+- EX5-047, EX5-048, EX5-049, EX5-052, EX5-062 through EX5-068, and EX5-070 through EX5-074 now have green focused public-path evidence and committed per-card reports.
+- All 74 EX5 modules register executable behavior with exactly one `registerIrCard`; no EX5 module uses `registerCard`.
+- Worker Vitest remains prohibited. The coordinator waits whenever another audit worktree owns the single serial Vitest slot.
+- A full disk temporarily blocked atomic writes. Only ignored, reproducible `apps/api/dist` build output was removed; no source or user data was deleted. Free disk recovered from about 120 MiB to 12 GiB.
+- Remaining red cards are held below 10/10 and remain assigned to Luna correction lanes; collection/mechanism/broad gates are still pending.

@@ -1,11 +1,36 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-069.js";
+import "../BT15/BT15-078.js";
 import "../index.js";
 
 describe("EX5-069 Biting Crush", () => {
+  it("matches the catalog and complete IR contract", () => {
+    expect(getCardDefinition("EX5-069")).toMatchObject({
+      cardId: "EX5-069",
+      nameEn: "Biting Crush",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 8,
+      effectText: expect.stringContaining("[Seven Great Demon Lords]"),
+      securityEffectText: "[Security] Activate this card's [Main] effect.",
+    });
+    expect(getCardDefinition("EX5-063")).toMatchObject({
+      nameEn: "Leviamon",
+      kinds: ["Digimon"],
+      types: expect.arrayContaining(["Seven Great Demon Lords"]),
+    });
+    expect(getCardDefinition("BT15-081")).toMatchObject({
+      nameEn: "Leviamon (X Antibody)",
+      kinds: ["Digimon"],
+      types: expect.arrayContaining(["Seven Great Demon Lords", "X Antibody"]),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("deletes an opposing level 6 or lower Digimon by trashing a hand card, then plays Leviamon when the trashed card is a Seven Great Demon Lord", () => {
     expect(
       compiled.effects?.find((entry) => entry.trigger === "Main" && entry.actions?.[0]?.kind === "Delete")?.actions,
@@ -18,13 +43,15 @@ describe("EX5-069 Biting Crush", () => {
         },
         cost: {
           kind: "trash",
-          target: { count: 1, bindAs: "trashedCard", filter: { controller: "mine", zone: "hand" } },
+          target: { count: 1, filter: { controller: "mine", zone: "hand" } },
+          bindResultAs: "trashedCard",
         },
       },
       {
         kind: "PlaceInBattleAreaSelf",
         condition: {
-          kind: "lastTrashedMatchesFilter",
+          kind: "bindingContains",
+          ref: "trashedCard",
           filter: { kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Seven Great Demon Lords"] }] },
         },
       },
@@ -85,19 +112,53 @@ describe("EX5-069 Biting Crush", () => {
       const s = setupEngine(
         {
           0: {
-            hand: [{ card: "EX5-069", as: "option" }],
+            battleArea: [
+              { card: "BT14-071", as: "purpleSource" },
+              { card: "BT15-078", as: "attacker" },
+            ],
+            deck: Array.from({ length: 12 }, () => "BT1-010"),
+            hand: [
+              { card: "EX5-069", as: "option" },
+              { card: "BT13-088", as: "lord" },
+            ],
             trash: [{ card: target, as: "target" }],
           },
-          1: { hand: [{ card: "BT1-009", as: "played" }] },
+          1: {
+            battleArea: [{ card: "BT1-020", as: "victim" }],
+            trash: [{ card: "BT1-009", as: "played" }],
+            security: ["BT1-009"],
+            deck: Array.from({ length: 12 }, () => "BT1-011"),
+          },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
+      s.state.memory = 8;
       await s.ready();
-      await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
-      s.state.turnCount += 1;
-      await advance(s.engine).recompute();
-      await advance(s.engine).verb.playInstances([s.inst("played").instanceId], "EX5-069");
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX5-069"));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("played").instanceId),
+      );
       await settle(() => observe(s.engine).hasKeyword(s.perm("option"), "Delay"));
+      expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
+
+      const drive = advance(s.engine);
+      drive.endMainPhaseIfOpen(0);
+      await drive.waitForMainPhase(1);
+      drive.endMainPhaseIfOpen(1);
+      await drive.waitForMainPhase(0);
+      await advance(s.engine).recompute();
       const delay = observe(s.engine)
         .activatableEffects(s.perm("option"))
         .find((entry) => /Delay/i.test(entry.description ?? ""));
@@ -110,10 +171,13 @@ describe("EX5-069 Biting Crush", () => {
         }),
       ).toEqual({ ok: true });
       await settle();
-      return {
+      const result = {
         played: s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === target),
         remainsInTrash: s.state.players[0]!.trash.some((card) => card.cardId === target),
       };
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+      return result;
     };
 
     await expect(resolve("EX5-063")).resolves.toEqual({ played: true, remainsInTrash: false });

@@ -606,9 +606,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // (e.g. "if this effect returned a white level 7 card"). We search current zones because the
       // card has already moved by the time the downstream condition runs.
       if (!cond.ref || !cond.filter) return false;
+      // Loose-card costs bind their paid instance in `selections` (the same binding
+      // namespace used by relative filters), while movement actions bind permanent/card
+      // ids in `boundPlayed`. Accept both so a following branch can inspect the exact
+      // card paid by a cost even after a later Delete replaces `lastTrashedCards`.
       const binding = ctx.boundPlayed?.get(cond.ref);
-      if (binding === undefined || binding.size === 0) return false;
-      for (const instanceId of binding) {
+      const selected = ctx.selections?.get(cond.ref);
+      const instanceIds =
+        binding !== undefined && binding.size > 0 ? binding : selected === undefined ? undefined : new Set([selected]);
+      if (instanceIds === undefined || instanceIds.size === 0) return false;
+      for (const instanceId of instanceIds) {
         const card = findLooseCandidateByInstance(ctx, instanceId);
         if (card === undefined) continue;
         const def = ctx.game.definitionOf({ cardId: card.cardId } as never);
