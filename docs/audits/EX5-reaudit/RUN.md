@@ -54,3 +54,8 @@
 - `EX5-023`: Q3583, explicit optional refusal, blue/purple public evolution, exact WereGarurumon/X Antibody stack predicates, inherited public-attack OPT and illegal-source boundaries pass 9/9 focused tests. Accepted at 8/10 before delivery gates.
 - `EX5-027`: Q3591 reveal, security selection/recovery/shuffle endpoints, optional decline, public inherited deletion, normal/Frimon evolution and illegal alternate-source boundaries pass 8/8 focused tests. Accepted at 8/10 before delivery gates.
 - `EX5-030`: Q3594, normal and Liollmon/Elecmon alternate evolution routes, attack-effect legal/illegal/refusal cases, exact costs, and inherited public-deletion targeting pass 8/8 focused tests. Accepted at 8/10 before delivery gates.
+- `EX5-026`, `EX5-028`, `EX5-029`, and `EX5-032`: their catalog/ruling mappings and public aura, threshold, cost-reduction, Blocker, Fortitude and deletion behaviors pass 8/8, 6/6, 5/5, and 6/6 focused tests. Accepted at 8/10 before delivery gates.
+- `EX5-034` through `EX5-036`: threshold package behavior, Fortitude reveal/replay, legal evolution boundaries and inherited DP evidence pass their focused suites. Accepted at 8/10 before delivery gates.
+- `EX5-037`: first green run was demoted because its Piercing lapse used an internal ignore-requirements verb. The replacement uses legal public EX5-013 → BT5-086 evolution; 9/9 focused tests pass. Accepted at 8/10 before delivery gates.
+- `EX5-038`: Q3608-Q3613, breeding restrictions, deletion watcher OPT and inherited Piercing pass 8/8 focused tests. Accepted at 8/10 before delivery gates.
+- `EX5-040`, `EX5-041`, and `EX5-044`: catalog/rulings and all printed clauses pass 8/8, 7/7, and 7/7 focused tests respectively. Accepted at 8/10 before delivery gates.

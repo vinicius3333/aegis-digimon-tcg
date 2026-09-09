@@ -1,49 +1,79 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX5-029.js";
 import "../index.js";
 
 describe("EX5-029 Reppamon", () => {
-  it("can trash the top security card to reduce digivolution cost by two while attacking", () => {
-    const action = compiled.effects?.filter((entry) => entry.trigger === "WhenAttacking")[0]?.actions?.[0];
-    expect(action).toMatchObject({
-      kind: "CostModifier",
-      mode: "reduce",
-      costType: "digivolve",
-      amount: 2,
-      duration: "nextDigivolveThisTurn",
-      optional: false,
-      cost: { kind: "trash", target: { filter: { controller: "mine", zone: "security", position: "top" } } },
+  it("matches the catalog and encodes both When Attacking clauses", () => {
+    expect(getCardDefinition("EX5-029")).toMatchObject({
+      cardId: "EX5-029",
+      nameEn: "Reppamon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      types: ["Holy Beast"],
+      effectText: expect.stringContaining("By trashing the top card of your security stack"),
+      inheritedEffectText: expect.stringContaining("6 or fewer total cards in both players' security stacks"),
     });
-  });
-  it("inherits -2000 DP with six or fewer combined security cards", () => {
-    expect(compiled.effects?.filter((entry) => entry.trigger === "WhenAttacking")[1]).toMatchObject({
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "digivolve",
+          amount: 2,
+          duration: "nextDigivolveThisTurn",
+          optional: false,
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
+          },
+        },
+      ],
+    });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "ModifyDP", amount: -2000, condition: { kind: "totalSecurityCount", op: "lte", value: 6 } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -2000,
+          duration: "forTheTurn",
+          condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
+        },
+      ],
     });
   });
 
-  it("pays the security cost once and reduces the next public digivolution by two", async () => {
+  it("publicly trashes its top security card and reduces the next yellow evolution by two", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX5-029", as: "reppamon" }],
+          battleArea: [
+            { card: "EX5-029", as: "reppamon" },
+            { card: "BT1-050", as: "evolutionBase" },
+          ],
           hand: [
-            { card: "BT1-057", as: "evolving" },
+            { card: "BT1-051", as: "evolving" },
             { card: "BT1-058", as: "handWitness" },
           ],
-          security: ["BT1-009"],
+          security: [{ card: "BT1-009", as: "paidSecurity" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
     await s.ready();
-
+    s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -52,44 +82,73 @@ describe("EX5-029 Reppamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("paidSecurity").instanceId);
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("reppamon").permanentId,
+        permanentId: s.perm("evolutionBase").permanentId,
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("reppamon").topCard?.cardId === "BT1-057");
-
+    await settle(() => s.perm("evolutionBase").topCard?.cardId === "BT1-051");
     expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handWitness").instanceId)).toBe(true);
+    expect(s.perm("evolutionBase").stack.map((card) => card.cardId)).toEqual(["BT1-050"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handWitness").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("applies inherited DP reduction only at six or fewer total security cards", async () => {
-    const qualifying = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-036", as: "host", under: ["EX5-029"] }],
-        security: ["BT1-009", "BT1-009", "BT1-009"],
-      },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }], security: ["BT1-009", "BT1-009", "BT1-009"] },
-    });
-    await qualifying.ready();
-    await advance(qualifying.engine).fire(EffectTiming.OnUseAttack, qualifying.perm("host"));
-    await settle(() => qualifying.perm("target").currentDP === 3000);
-    expect(qualifying.perm("target").currentDP).toBe(3000);
+  it.each([
+    [3, 3, 3000],
+    [4, 3, 5000],
+  ] as const)(
+    "uses both security stacks for the inherited six-card threshold (%i + %i)",
+    async (own, opponent, expectedDp) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-036", as: "host", under: ["EX5-029"] }],
+          security: Array.from({ length: own }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }],
+          security: Array.from({ length: opponent }, () => "BT1-009"),
+        },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.perm("target").currentDP).toBe(expectedDp);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 
-    const overLimit = setupEngine({
+  it("does not reduce an unrelated evolution when Reppamon has not attacked", async () => {
+    const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-036", as: "host", under: ["EX5-029"] }],
-        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        battleArea: [
+          { card: "EX5-029", as: "reppamon" },
+          { card: "BT1-050", as: "evolutionBase" },
+        ],
+        hand: [{ card: "BT1-051", as: "evolving" }],
       },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }], security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
-    await overLimit.ready();
-    await advance(overLimit.engine).fire(EffectTiming.OnUseAttack, overLimit.perm("host"));
-    await settle();
-    expect(overLimit.perm("target").currentDP).toBe(5000);
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("evolutionBase").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("evolutionBase").topCard?.cardId === "BT1-051");
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

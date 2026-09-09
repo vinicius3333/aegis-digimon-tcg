@@ -1,84 +1,305 @@
-import { describe, it, expect } from "vitest";
-import { type PlayerState } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
 import { compiled } from "./EX5-040.js";
+import "../BT9/BT9-047.js";
+import "../P/P-130.js";
+import "../index.js";
 
-// A3 for EX5-040 (Kumbhiramon) — [On Play] Draw 1, then you may play 1 [Deva] Digimon
-// from your hand WITHOUT paying its cost INTO THE BREEDING AREA.
-// source: documented behavior (PlayWithoutCost, breeding destination).
-//
-// FAILS-WHEN-REVERTED: the Deva lands in the breeding area (not the battle area / still in
-// hand) only because PlayWithoutCost.breeding:true routes playInstances to breeding. Dropping
-// the breeding route would land it in the battle area instead.
+const KUMBHIRAMON = "EX5-040";
+const DEVA = "BT10-079";
 
-describe("EX5-040 [On Play] play a [Deva] from hand without cost into the breeding area", () => {
-  it("the chosen [Deva] Digimon lands in the breeding area, free", async () => {
+describe("EX5-040 Kumbhiramon", () => {
+  it("matches the catalog and encodes all printed clauses and OPT boundaries", () => {
+    expect(getCardDefinition(KUMBHIRAMON)).toMatchObject({
+      cardId: KUMBHIRAMON,
+      nameEn: "Kumbhiramon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast", "Deva"],
+      evoCosts: [],
+      effectText: expect.stringContaining("[On Play] ＜Draw 1＞"),
+      inheritedEffectText: expect.stringContaining("[Your Turn] [Once Per Turn]"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toEqual([
+      { kind: "Draw", controller: "mine", amount: 1 },
+      {
+        kind: "PlayWithoutCost",
+        target: {
+          filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Deva"], match: "trait" }] },
+          count: 1,
+          upTo: true,
+        },
+        payCost: false,
+        from: ["hand"],
+        breeding: true,
+        notSameNameAs: ["battleArea", "trash"],
+        optional: true,
+      },
+    ]);
+    const allTurns = compiled.effects?.find((entry) => entry.trigger === "AllTurns");
+    expect(allTurns).toMatchObject({ frequency: "OncePerTurn" });
+    expect(allTurns?.actions).toEqual([
+      {
+        kind: "SubTrigger",
+        event: "whenSuspended",
+        sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+        actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+      },
+    ]);
+    const inherited = compiled.effects?.find((entry) => entry.isInherited);
+    expect(inherited).toMatchObject({ trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" });
+    expect(inherited?.actions).toEqual([
+      {
+        kind: "Aura",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        effect: { kind: "keyword", keyword: { keyword: "Piercing" } },
+        while: {
+          kind: "selfHasTrait",
+          filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
+          raw: "this Digimon has the [Four Sovereigns]/[God Beast] trait",
+        },
+      },
+    ]);
+  });
+
+  it("draws then publicly plays a unique Deva into the breeding area", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [
-            { card: "EX5-040", as: "kumbhi" },
-            { card: "BT10-079", as: "deva" },
+            { card: KUMBHIRAMON, as: "kumbhi" },
+            { card: DEVA, as: "deva" },
           ],
-          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const p0 = s.state.players[0] as PlayerState;
-    s.state.memory = 7; // exact play cost of EX5-040
-
+    s.state.memory = 7;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("deva").instanceId);
 
-    await settle(() => p0.breeding?.topCard?.cardId === "BT10-079");
-
-    // The Deva was played into BREEDING (not the battle area), and left the hand.
-    expect(p0.breeding?.topCard?.cardId).toBe("BT10-079");
-    expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT10-079")).toBe(false);
-    expect(p0.hand.some((c) => c.instanceId === s.inst("deva").instanceId)).toBe(false);
+    expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(s.inst("deva").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("deva").instanceId);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("deva").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("draws once when an opponent's Digimon becomes suspended", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
-      frequency: "OncePerTurn",
-      actions: [
+  it("answers Q3615: a same-name Deva in battle area or trash is excluded", async () => {
+    for (const zone of ["battleArea", "trash"] as const) {
+      const s = setupEngine(
         {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
-        },
-      ],
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
-      isInherited: true,
-      frequency: "OncePerTurn",
-      actions: [
-        {
-          kind: "Aura",
-          effect: { kind: "keyword", keyword: { keyword: "Piercing" } },
-          while: {
-            kind: "selfHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
+          0: {
+            ...(zone === "battleArea" ? { battleArea: [{ card: DEVA, as: "existing" }] } : {}),
+            ...(zone === "trash" ? { trash: [{ card: DEVA, as: "discarded" }] } : {}),
+            hand: [
+              { card: KUMBHIRAMON, as: "kumbhi" },
+              { card: DEVA, as: "duplicate" },
+            ],
+            deck: [{ card: "BT1-009", as: "drawn" }],
           },
         },
-      ],
-    });
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+
+      expect(s.state.players[0]!.breeding).toBeUndefined();
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("duplicate").instanceId);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+      expect(s.state.pendingDecision).toBeUndefined();
+    }
   });
 
-  it("draws through the public suspension seam when an opponent Digimon is suspended", async () => {
+  it("answers Q3616: names under Digimon or Tamers are not collision zones", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "digimonHost", under: [DEVA] },
+            { card: "EX5-064", as: "tamerHost", under: [DEVA] },
+          ],
+          hand: [
+            { card: KUMBHIRAMON, as: "kumbhi" },
+            { card: DEVA, as: "candidate" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("answers Q3617 and Q3619: breeding effect-play suppresses On Play and played watchers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: KUMBHIRAMON, as: "kumbhi" },
+            { card: "EX5-021", as: "candidate" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "drawnByKumbhi" },
+            { card: "BT1-010", as: "mustStay" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawnByKumbhi").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("mustStay").instanceId]);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX5-021")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("answers Q3618 through public movement: a breeding Deva cannot attack that turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: KUMBHIRAMON, as: "kumbhi" },
+            { card: DEVA, as: "candidate" },
+            { card: "P-130", as: "lui" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("candidate").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lui").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("candidate").instanceId),
+    );
+
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("candidate").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("answers Q3620: an effect-play restriction prevents the breeding play but not the draw", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: KUMBHIRAMON, as: "kumbhi" },
+            { card: DEVA, as: "candidate" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT9-047", as: "pomumon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("draws once when an opposing Digimon becomes suspended and ignores a second same-turn suspension", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX5-040", as: "kumbhi" }], deck: ["BT1-009"] },
-      1: { battleArea: [{ card: "BT1-021", as: "opponent" }] },
+      0: {
+        battleArea: [{ card: KUMBHIRAMON, as: "kumbhi" }],
+        deck: [
+          { card: "BT1-009", as: "firstDraw" },
+          { card: "BT1-010", as: "sameTurnStay" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-021", as: "firstOpponent" },
+          { card: "BT1-022", as: "secondOpponent" },
+        ],
+      },
     });
     await s.ready();
-    const deckBefore = s.state.players[0]!.deck.length;
-    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
-    await settle(() => s.state.players[0]!.deck.length < deckBefore);
-    expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1);
+    await advance(s.engine).verb.suspend([s.perm("firstOpponent").permanentId]);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("firstDraw").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sameTurnStay").instanceId]);
+
+    await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("sameTurnStay").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sameTurnStay").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("grants inherited Piercing only to live Four Sovereigns/God Beast hosts", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-013", as: "sovereign", under: [KUMBHIRAMON] },
+          { card: "EX5-033", as: "godBeast", under: [KUMBHIRAMON] },
+          { card: "BT1-015", as: "nonmatching", under: [KUMBHIRAMON] },
+        ],
+        hand: [{ card: "BT1-015", as: "plainTop" }],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("godBeast"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("nonmatching"))).toBe(false);
+
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("sovereign").permanentId, s.inst("plainTop").instanceId, {
+      ignoreRequirements: true,
+    });
+    expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

@@ -29,25 +29,25 @@ Generated from `node tools/kb/query.mjs card <ID>` on 2026-09-09. Each card repo
 | EX5-023 | Q3583 | Accepted 8/10; focused green |
 | EX5-024 | None returned | Accepted 8/10; focused green |
 | EX5-025 | Q3584, Q3585, Q3586, Q3587 | Queued |
-| EX5-026 | Q3588, Q3589, Q3590 | Queued |
+| EX5-026 | Q3588, Q3589, Q3590 | Accepted 8/10; focused green |
 | EX5-027 | Q3591 | Accepted 8/10; focused green |
-| EX5-028 | Q3592 | Queued |
-| EX5-029 | Q3593 | Queued |
+| EX5-028 | Q3592 | Accepted 8/10; focused green |
+| EX5-029 | Q3593 | Accepted 8/10; focused green |
 | EX5-030 | Q3594 | Accepted 8/10; focused green |
 | EX5-031 | Q3595, Q3596 | Queued |
-| EX5-032 | None returned | Queued |
+| EX5-032 | None returned | Accepted 8/10; focused green |
 | EX5-033 | Q3597, Q3598, Q3599 | Queued |
-| EX5-034 | Q3600 | Queued |
-| EX5-035 | None returned | Queued |
-| EX5-036 | None returned | Queued |
-| EX5-037 | Q3601, Q3602, Q3603, Q3604, Q3605, Q3606, Q3607, Q5507, Q5508, Q5509, Q5510 | Queued |
-| EX5-038 | Q3608, Q3609, Q3610, Q3611, Q3612, Q3613 | Queued |
+| EX5-034 | Q3600 | Accepted 8/10; focused green |
+| EX5-035 | None returned | Accepted 8/10; focused green |
+| EX5-036 | None returned | Accepted 8/10; focused green |
+| EX5-037 | Q3601, Q3602, Q3603, Q3604, Q3605, Q3606, Q3607, Q5507, Q5508, Q5509, Q5510 | Accepted 8/10; focused green |
+| EX5-038 | Q3608, Q3609, Q3610, Q3611, Q3612, Q3613 | Accepted 8/10; focused green |
 | EX5-039 | Q3614 | Queued |
-| EX5-040 | Q3615, Q3616, Q3617, Q3618, Q3619, Q3620 | Queued |
-| EX5-041 | None returned | Queued |
+| EX5-040 | Q3615, Q3616, Q3617, Q3618, Q3619, Q3620 | Accepted 8/10; focused green |
+| EX5-041 | None returned | Accepted 8/10; focused green |
 | EX5-042 | None returned | Queued |
 | EX5-043 | Q3621, Q3622 | Queued |
-| EX5-044 | None returned | Queued |
+| EX5-044 | None returned | Accepted 8/10; focused green |
 | EX5-045 | None returned | Queued |
 | EX5-046 | Q3623, Q3624 | Queued |
 | EX5-047 | None returned | Queued |
