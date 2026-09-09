@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-067.js";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -207,20 +205,28 @@ describe("EX9-067", () => {
   it("does not add an unprinted once-per-turn restriction", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).not.toHaveProperty("frequency"));
 
-  it("reveals three and adds a Puppet card while returning the rest to the deck bottom", async () => {
+  it("reveals three and adds a Puppet card while returning the rest to the deck bottom after real On Play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-067", as: "source" }], deck: ["BT1-009", "EX9-024", "BT1-010"] } },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      {
+        0: {
+          hand: [{ card: "EX9-067", as: "source" }],
+          deck: ["BT1-009", "EX9-024", "BT1-010", "BT1-048"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, autoOrderCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
-      () => s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024") && s.state.players[0]!.deck.length === 2,
+      () => s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024") && s.state.players[0]!.deck.length === 3,
       40,
     );
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024")).toBe(true);
-    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048", "BT1-009", "BT1-010"]);
   });
-  it("returns this Tamer to the deck bottom and plays a Puppet after its digivolution trigger", async () => {
+  it("returns this Tamer to the deck bottom and plays a Puppet after a real Puppet digivolution", async () => {
     const s = setupEngine(
       {
         0: {
@@ -228,19 +234,29 @@ describe("EX9-067", () => {
             { card: "EX9-067", as: "source" },
             { card: "BT13-035", as: "subject" },
           ],
-          hand: ["BT13-035"],
+          hand: [
+            { card: "BT13-039", as: "evo" },
+            { card: "BT13-035", as: "played" },
+          ],
+          deck: ["BT1-048"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-
-    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
-      subjectPermanentId: s.perm("subject").permanentId,
-    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.deck.at(-1)?.cardId === "EX9-067" &&
-        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"),
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId,
+        ),
     );
 
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX9-067");

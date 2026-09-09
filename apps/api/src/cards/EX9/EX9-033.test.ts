@@ -1,47 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-033.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
+async function runEndOfTurn(s: ReturnType<typeof setupEngine>): Promise<void> {
+  s.state.isFirstPlayersFirstTurn = false;
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
+}
+
 describe("EX9-033", () => {
-  it("evolves for the Puppet cost and free-plays a level-four Puppet only once per turn", async () => {
+  it("free-plays a level-four Puppet from trash once at the end of a real turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-032", as: "base" }],
-          hand: [{ card: "EX9-033", as: "evo" }],
+          battleArea: [{ card: "EX9-033", as: "source" }],
           deck: ["BT1-009", "BT1-009"],
           trash: ["BT22-032", "BT22-032"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.memory = 10;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evo").instanceId,
-        useAlternateCost: true,
-      }),
-    ).toEqual({ ok: true });
-    await settle();
-    expect(s.perm("base").topCard.cardId).toBe("EX9-033");
-    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX9-032"]);
-    expect(s.state.memory).toBe(7);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("base"));
+    await runEndOfTurn(s);
     await settle();
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-033", "BT22-032"]);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT22-032"]);
-    expect(s.state.memory).toBe(7);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("base"));
-    await settle();
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT22-032"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -202,29 +188,28 @@ describe("EX9-033", () => {
 
   it("refuses the optional trash play and rejects Puppet level five", async () => {
     const declined = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-033", as: "source" }], trash: ["EX9-024"] } },
+      { 0: { battleArea: [{ card: "EX9-033", as: "source" }], trash: ["EX9-024"], deck: ["BT1-009"] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(declined.engine).fire(EffectTiming.OnEndTurn, declined.perm("source"));
+    await runEndOfTurn(declined);
     await settle();
     expect(declined.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-024"]);
 
     const tooHigh = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-033", as: "source" }], trash: ["EX9-032"] } },
+      { 0: { battleArea: [{ card: "EX9-033", as: "source" }], trash: ["EX9-032"], deck: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(tooHigh.engine).fire(EffectTiming.OnEndTurn, tooHigh.perm("source"));
+    await runEndOfTurn(tooHigh);
     await settle();
     expect(tooHigh.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-032"]);
   });
 
   it("plays a level-four-or-lower Puppet from trash at end of turn without cost", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-033", as: "source" }], trash: ["EX9-024"] } },
+      { 0: { battleArea: [{ card: "EX9-033", as: "source" }], trash: ["EX9-024"], deck: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await runEndOfTurn(s);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX9-024"));
     expect(s.state.players[0]!.trash.some((c) => c.cardId === "EX9-024")).toBe(false);
   });

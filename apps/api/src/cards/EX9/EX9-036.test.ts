@@ -89,14 +89,23 @@ describe("EX9-036", () => {
       actions: [
         {
           kind: "Replacement",
-          sourceFilter: { isSelfRef: true },
-          into: { nameOrTrait: [{ tokens: ["WG"], match: "trait" }] },
-          actions: [{ mode: "reduceCost", amount: 1 }],
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true, zone: ["battleArea"] },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["WG"], match: "trait" }],
+          },
+          actions: [{ event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
         },
       ],
     }));
+  it("requires a level-2 WG Digimon for the alternate zero-cost evolution", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["WG"], cost: 0, isAlternate: true }]));
   it("inherits +1000 DP", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
       actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
     }));
 

@@ -76,15 +76,49 @@ describe("EX9-043", () => {
   });
   it("reduces play cost by trashing a Cyborg or Ver.5 card from hand", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "BeforePayCost")).toMatchObject({
-      actions: [{ kind: "ReducePlayCost", amount: { kind: "fixed", value: 2 }, payment: { kind: "trashFromHand" } }],
+      actions: [
+        {
+          kind: "ReducePlayCost",
+          amount: { kind: "fixed", value: 2 },
+          payment: {
+            kind: "trashFromHand",
+            filter: {
+              controller: "mine",
+              zone: "hand",
+              nameOrTrait: [
+                { tokens: ["Cyborg"], match: "trait" },
+                { tokens: ["Ver.5"], match: "trait" },
+              ],
+            },
+          },
+        },
+      ],
     }));
   it("places a trash Digimon underneath, de-digivolves, and deletes an opposing Digimon on play and digivolution", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "PlaceUnder", faceDown: true, position: "bottom" },
-          { kind: "DeDigivolve", amount: { kind: "countFaceDownDigivolutionCards" } },
-          { kind: "Delete", target: { filter: { dp: { op: "lte", value: 3000 } } } },
+          {
+            kind: "PlaceUnder",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, from: ["trash"], count: 1 },
+            underFilter: { isSelfRef: true },
+            faceDown: true,
+            position: "bottom",
+            optional: true,
+            abortOnDecline: true,
+          },
+          {
+            kind: "DeDigivolve",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: { kind: "countFaceDownDigivolutionCards", host: "self" },
+          },
+          {
+            kind: "Delete",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
+              count: 1,
+            },
+          },
         ],
       });
   });

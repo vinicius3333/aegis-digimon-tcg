@@ -52,6 +52,8 @@ describe("EX9-058", () => {
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("accepts the printed alternate level-2 DM evolution at zero cost", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["DM"], cost: 0, isAlternate: true }]));
   it("reveals three and adds a DM card and places a Ver.5 card under a DM Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",

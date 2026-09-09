@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-042.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -129,7 +128,7 @@ describe("EX9-042", () => {
   it("suspends one opposing Digimon and prevents it from unsuspending", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-042", as: "source" }] },
+        0: { hand: [{ card: "EX9-042", as: "source" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "suspend" },
@@ -139,7 +138,11 @@ describe("EX9-042", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("suspend").isSuspended);
     expect(s.perm("suspend").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("suspend"), "unsuspend")).toBe(true);

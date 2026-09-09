@@ -331,22 +331,31 @@ describe("EX9-069", () => {
       {
         0: {
           battleArea: [{ card: "EX9-069", as: "source" }],
-          breeding: { card: "EX9-065", as: "breeding", under: [{ card: "BT1-009", faceUp: false }] },
-          deck: ["BT1-010"],
+          breeding: { card: "EX9-008", as: "breeding" },
+          deck: ["BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: s.perm("breeding").permanentId,
-      addedDigivolutionCardInstanceIds: [s.perm("breeding").stack[0]!.instanceId],
-    });
+    const ability = observe(s.engine).activatableEffects(s.perm("breeding"))[0];
+    expect(ability).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("breeding").topCard.instanceId,
+        effectKey: ability!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("breeding").stack.map(({ cardId, faceUp }) => ({ cardId, faceUp }))).toEqual([
+      { cardId: "BT1-009", faceUp: false },
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("plays itself from security without paying", async () => {
     const s = setupEngine({

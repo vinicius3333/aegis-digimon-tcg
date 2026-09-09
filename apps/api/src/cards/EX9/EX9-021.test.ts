@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import compiled from "./EX9-021.js";
 
@@ -108,19 +107,115 @@ describe("EX9-021", () => {
     expect(observe(s.engine).hasRestriction(s.perm("alterS"), "beAffected", "Digimon")).toBe(false);
   });
 
-  it("at End of Attack plays one Greymon and one Garurumon from its stack, then becomes top security", async () => {
+  it("Q4768-Q4769 lets an opponent choose the DNA-immune Digimon but ignores suspend and DP effects", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-021", as: "alterS", under: ["AD1-001", "AD1-010"] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-013", as: "redMaterial" },
+            { card: "EX9-020", as: "blueMaterial" },
+          ],
+          hand: [{ card: "EX9-021", as: "alterS" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-033", as: "base" },
+            { card: "BT1-015", as: "deletedHighest" },
+          ],
+          hand: [
+            { card: "BT14-036", as: "dpEffect" },
+            { card: "BT1-070", as: "suspender" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("redMaterial").permanentId, s.perm("blueMaterial").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
     const alterS = s.perm("alterS");
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, alterS, {
-      attackerPermanentId: alterS.permanentId,
+    expect(observe(s.engine).hasRestriction(alterS, "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dpEffect").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT14-036");
+    expect(alterS.isSuspended).toBe(false);
+    expect(alterS.currentDP).toBe(15000);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
     });
+    await settle();
+    expect(alterS.isSuspended).toBe(false);
+  });
+
+  it.each([
+    ["Greymon + Garurumon", ["AD1-001", "AD1-010"]],
+    ["Greymon + Ver.2", ["AD1-001", "BT22-049"]],
+    ["Ver.1 + Garurumon", ["EX9-016", "AD1-010"]],
+    ["Ver.1 + Ver.2", ["EX9-016", "BT22-049"]],
+  ] as const)("Q4765 plays the %s End of Attack combination, then becomes top security", async (_label, under) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-021", as: "alterS", under: [...under] }] },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const alterS = s.perm("alterS");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: alterS.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security[0]?.cardId === "EX9-021");
 
     expect(s.state.players[0]!.security[0]!.cardId).toBe("EX9-021");
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
-      expect.arrayContaining(["AD1-001", "AD1-010"]),
+      expect.arrayContaining([...under]),
     );
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Q4767 may play only the available Greymon card from its stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-021", as: "alterS", under: ["AD1-001"] }] },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alterS").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security[0]?.cardId === "EX9-021");
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["AD1-001"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

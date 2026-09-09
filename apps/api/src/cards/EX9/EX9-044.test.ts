@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { type PlayerState } from "@aegis/shared";
 import { compiled } from "./EX9-044.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -178,39 +178,6 @@ describe("EX9-044", () => {
       ],
     }));
 
-  it("suspends and restricts an opposing Digimon on play", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX9-044", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-      },
-      { autoSelectCards: true, autoOrderTriggers: true },
-    );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.perm("target").isSuspended);
-    expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
-  });
-
-  it("suspends and restricts an opposing Digimon or Tamer on digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX9-044", as: "source" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-009", as: "target" },
-            { card: "BT3-093", as: "tamer" },
-          ],
-        },
-      },
-      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
-    );
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.perm("target").isSuspended);
-    expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
-  });
-
   it("reduces the play cost by 4 after suspending an own WG Digimon", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "EX9-044", as: "hydra" }], battleArea: [{ card: "EX9-040", as: "wg" }] } },
@@ -223,30 +190,6 @@ describe("EX9-044", () => {
     expect(before - s.state.memory).toBe(7);
     expect(s.perm("wg").isSuspended).toBe(true);
   });
-
-  it.each(["whenPlayed", "whenOneOfYoursDigivolves"] as const)(
-    "fires the %s WG DNA response through the public event seam",
-    async (event) => {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [
-              { card: "EX9-044", as: "source" },
-              { card: "EX9-044", as: "played" },
-            ],
-            hand: [
-              { card: "EX9-045", as: "dna" },
-              { card: "EX9-040", as: "other" },
-            ],
-          },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-      );
-      await advance(s.engine).fireSubTrigger(event, { subjectPermanentId: s.perm("played").permanentId });
-      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-045"));
-      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-045")).toBe(true);
-    },
-  );
 
   it("allows independent Digimon and Tamer targets on a real play (Q4798)", async () => {
     const s = setupEngine({

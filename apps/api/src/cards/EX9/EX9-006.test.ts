@@ -2,14 +2,19 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-006.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-006", () => {
   it("may pay a hidden source but does not evolve when the revealed card is ineligible", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-007", as: "source", under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] }] },
-        1: { security: ["BT1-001"] },
+        0: {
+          battleArea: [
+            { card: "EX9-007", as: "source", dp: 3000, under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] },
+          ],
+        },
+        1: { security: ["BT1-049"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -65,7 +70,9 @@ describe("EX9-006", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-007", as: "source", under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] }],
+          battleArea: [
+            { card: "EX9-007", as: "source", dp: 3000, under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] },
+          ],
           trash: ["EX9-010"],
         },
         1: { security: ["EX9-071"] },
@@ -98,10 +105,12 @@ describe("EX9-006", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-007", as: "source", under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] }],
+          battleArea: [
+            { card: "EX9-007", as: "source", dp: 3000, under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] },
+          ],
           trash: ["EX9-010"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-049"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -133,13 +142,14 @@ describe("EX9-006", () => {
           battleArea: [
             {
               card: "EX9-007",
+              dp: 3000,
               as: "source",
               under: ["EX9-006", { card: "BT1-010", faceUp: false }, { card: "BT1-009", faceUp: false }],
             },
           ],
           trash: ["EX9-010"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-049"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -170,9 +180,11 @@ describe("EX9-006", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-007", as: "source", under: [{ card: "EX9-010", faceUp: false }, "EX9-006"] }],
+          battleArea: [
+            { card: "EX9-007", as: "source", dp: 3000, under: [{ card: "EX9-010", faceUp: false }, "EX9-006"] },
+          ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-049"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -194,6 +206,121 @@ describe("EX9-006", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("Q4749 rejects Meat while this inherited attack evolution is unresolved", async () => {
+    const options = { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-070", as: "meat" },
+            { card: "EX9-008", as: "source", under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] },
+          ],
+          hand: ["BT1-009"],
+          trash: ["EX9-010"],
+          deck: ["BT1-048"],
+        },
+        1: { security: ["BT1-046"] },
+      },
+      options,
+    );
+    s.perm("meat").placedByEffect = true;
+    s.state.memory = 4;
+    await s.ready();
+    const meatId = s.perm("meat").topCard.instanceId;
+    const meatEffect = observe(s.engine).activatableEffects(s.perm("meat"))[0]!;
+    expect(meatEffect).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const choice = s.state.pendingDecision!;
+    expect(choice.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: meatId,
+        effectKey: meatEffect.effectKey,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(choice.decisionId);
+
+    options.autoAcceptOptional = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("source").topCard.cardId).toBe("EX9-010");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("meat").topCard.instanceId).toBe(meatId);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-070")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("resets the inherited Once Per Turn effect on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX9-051",
+              as: "source",
+              under: [{ card: "BT1-009", faceUp: false }, { card: "BT1-010", faceUp: false }, "EX9-006"],
+            },
+          ],
+          trash: ["BT22-060", "EX9-073"],
+          deck: ["BT1-048", "BT1-049", "BT1-050", "BT1-051"],
+        },
+        1: { security: ["BT1-012", "BT1-013"], deck: ["BT1-012", "BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT22-060" && s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.memory).toBe(8);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("source").topCard?.cardId).toBe("EX9-073");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("enforces the inherited Once Per Turn limit across two attacks", async () => {
     const s = setupEngine(
       {
@@ -207,7 +334,7 @@ describe("EX9-006", () => {
           ],
           trash: ["EX9-010", "EX9-043"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }], security: ["BT1-012", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );

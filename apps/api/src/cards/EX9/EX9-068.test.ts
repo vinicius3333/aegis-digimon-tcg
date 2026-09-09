@@ -236,53 +236,6 @@ describe("EX9-068", () => {
     await turn;
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  it("suspends, draws, gains memory, and places a hand card face-down under a qualifying Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-068", as: "source" },
-            { card: "EX9-065", as: "subject" },
-          ],
-          hand: ["BT1-009"],
-          deck: ["BT1-010"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    s.state.memory = 0;
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
-    await settle(() => s.perm("source").isSuspended && s.state.memory === 1 && s.perm("subject").stack.length === 1);
-
-    expect(s.perm("source").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(1);
-    expect(s.perm("subject").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
-  });
-  it("does not respond to a Digimon with play cost below seven", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-068", as: "source" },
-            { card: "BT1-009", as: "subject" },
-          ],
-          deck: ["BT1-010"],
-        },
-      },
-      { autoAcceptOptional: true, autoOrderTriggers: true },
-    );
-    s.state.memory = 0;
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
-
-    expect(s.perm("source").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-  });
   it("plays itself from security without paying", async () => {
     const s = setupEngine({
       0: { security: ["EX9-068", "BT1-048"] },

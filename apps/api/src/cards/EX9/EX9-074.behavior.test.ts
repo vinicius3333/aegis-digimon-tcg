@@ -1,14 +1,18 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 function sourceBoard() {
   // A hand-laid six-color source stack keeps these focused tests about EX9-074's
-  // target assignment. The public evolution path is covered by the primary suite.
+  // target assignment while the card itself is reached through public evolution.
   return {
-    battleArea: [{ card: "BT16-021", as: "kimeramon", under: ["BT10-059", "BT10-009", "BT16-040"] }],
+    battleArea: [
+      {
+        card: "BT16-021",
+        as: "kimeramon",
+        under: ["BT1-009", "BT1-027", "BT1-045", "BT1-064", "BT10-058", "BT10-071"],
+      },
+    ],
     hand: [{ card: "EX9-074", as: "evo" }],
     deck: ["BT1-048"],
   };
@@ -26,9 +30,12 @@ async function digivolve(s: ReturnType<typeof setupEngine>) {
   await settle();
   expect(s.perm("kimeramon").topCard.cardId).toBe("EX9-074");
   expect(s.perm("kimeramon").stack.map((card) => card.cardId)).toEqual([
-    "BT10-059",
-    "BT10-009",
-    "BT16-040",
+    "BT1-009",
+    "BT1-027",
+    "BT1-045",
+    "BT1-064",
+    "BT10-058",
+    "BT10-071",
     "BT16-021",
   ]);
   expect(s.perm("kimeramon").currentDP).toBe(16000);
@@ -58,8 +65,6 @@ describe("EX9-074 six-color digivolution stack", () => {
         1: {
           battleArea: [
             { card: "BT10-009", as: "opponentHost", dp: 100000 },
-            { card: "BT10-059", as: "stripperOne", dp: 100000 },
-            { card: "BT10-059", as: "stripperTwo", dp: 100000 },
             { card: "BT1-009", dp: 100000 },
             { card: "BT1-027", dp: 100000 },
             { card: "BT1-045", dp: 100000 },
@@ -68,13 +73,15 @@ describe("EX9-074 six-color digivolution stack", () => {
             { card: "BT10-071", dp: 100000 },
             { card: "BT1-084", dp: 100000 },
           ],
+          hand: [
+            { card: "BT10-059", as: "stripperOne" },
+            { card: "BT10-059", as: "stripperTwo" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    const stripperOne = s.perm("stripperOne");
-    const stripperTwo = s.perm("stripperTwo");
-
+    s.state.turnSeat = 0;
     s.state.memory = 20;
     expect(
       s.engine.applyIntent(0, {
@@ -85,10 +92,16 @@ describe("EX9-074 six-color digivolution stack", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT10-009", "BT16-040", "BT16-021"]);
-    await advance(s.engine).fire(EffectTiming.OnPlay, stripperOne);
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("stripperOne").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
     expect(s.perm("host").topCard?.cardId).toBe("BT16-021");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT10-009", "BT16-040"]);
 
+    s.state.turnSeat = 0;
     s.state.memory = 20;
     expect(
       s.engine.applyIntent(0, {
@@ -99,10 +112,16 @@ describe("EX9-074 six-color digivolution stack", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT10-059", "BT10-009", "BT16-040", "BT16-021"]);
-    await advance(s.engine).fire(EffectTiming.OnPlay, stripperTwo);
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("stripperTwo").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
     expect(s.perm("host").topCard?.cardId).toBe("BT16-021");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT10-059", "BT10-009", "BT16-040"]);
 
+    s.state.turnSeat = 0;
     s.state.memory = 20;
     expect(
       s.engine.applyIntent(0, {
@@ -129,12 +148,15 @@ describe("EX9-074 six-color digivolution stack", () => {
         0: {
           battleArea: [
             {
-              card: "EX9-074",
+              card: "BT16-021",
               as: "source",
               under: ["BT1-009", "BT1-027", "BT1-045", "BT1-064", "BT10-058", "BT10-071"],
             },
           ],
-          hand: [{ card: "BT11-043", as: "king" }],
+          hand: [
+            { card: "BT11-043", as: "king" },
+            { card: "EX9-074", as: "evo" },
+          ],
           trash: ["BT11-040", "BT11-040", "BT11-040"],
         },
         1: {
@@ -147,7 +169,14 @@ describe("EX9-074 six-color digivolution stack", () => {
       { autoSelectCards: true },
     );
     await makeDynamicColorTarget(s);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -155,8 +184,11 @@ describe("EX9-074 six-color digivolution stack", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-074", as: "source", under: ["BT1-084"] }],
-          hand: [{ card: "BT11-043", as: "king" }],
+          battleArea: [{ card: "BT16-021", as: "source", under: ["BT1-084"] }],
+          hand: [
+            { card: "BT11-043", as: "king" },
+            { card: "EX9-074", as: "evo" },
+          ],
           trash: ["BT11-040", "BT11-040", "BT11-040"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "changed" }] },
@@ -164,7 +196,14 @@ describe("EX9-074 six-color digivolution stack", () => {
       { autoSelectCards: true },
     );
     await makeDynamicColorTarget(s);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 

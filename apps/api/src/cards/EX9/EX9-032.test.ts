@@ -1,29 +1,74 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-032.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-032", () => {
   it("plays a Puppet Digimon from hand by deleting an own Token or other Puppet", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Puppet"], cost: 3, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
-        actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, cost: { kind: "deleteOwn" } }],
+        actions: [
+          {
+            kind: "Digivolve",
+            from: ["hand"],
+            payCost: false,
+            into: { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
+            cost: { kind: "deleteOwn" },
+          },
+        ],
       });
+  });
+
+  it.each([
+    { base: "EX9-027", alternate: false, legal: true, cost: 4 },
+    { base: "BT10-085", alternate: true, legal: true, cost: 3 },
+    { base: "BT1-037", alternate: true, legal: false, cost: 0 },
+  ])("checks the normal and alternate evolution routes from $base", async ({ base, alternate, legal, cost }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "host" }],
+          hand: [{ card: "EX9-032", as: "evo" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: alternate,
+      }).ok,
+    ).toBe(legal);
+    await settle();
+
+    expect(s.perm("host").topCard.cardId).toBe(legal ? "EX9-032" : base);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(legal ? ["BT1-009"] : ["EX9-032"]);
+    expect(s.state.memory).toBe(6 - cost);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not offer a hand Puppet as the delete-own cost", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-032", as: "source" }],
-          hand: ["EX9-024", "EX9-033"],
+          hand: [{ card: "EX9-032", as: "source" }, "EX9-024", "EX9-033"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-032");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-024", "EX9-033"]);
@@ -46,16 +91,17 @@ describe("EX9-032", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX9-032", as: "source" },
-            { card: "EX9-024", as: "cost" },
-          ],
-          hand: ["EX9-033"],
+          battleArea: [{ card: "EX9-024", as: "cost" }],
+          hand: [{ card: "EX9-032", as: "source" }, "EX9-033"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("source").topCard?.cardId === "EX9-033");
     expect(s.perm("source").topCard?.cardId).toBe("EX9-033");
     expect(
@@ -71,16 +117,17 @@ describe("EX9-032", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX9-032", as: "source" },
-            { card: "TOKEN-Diaboromon", as: "token" },
-          ],
-          hand: ["EX9-033"],
+          battleArea: [{ card: "TOKEN-Diaboromon", as: "token" }],
+          hand: [{ card: "EX9-032", as: "source" }, "EX9-033"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("source").topCard?.cardId === "EX9-033");
     expect(s.perm("source").topCard.cardId).toBe("EX9-033");
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-Diaboromon")).toBe(false);

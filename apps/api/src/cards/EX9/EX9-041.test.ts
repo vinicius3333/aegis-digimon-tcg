@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-041.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -138,23 +137,72 @@ describe("EX9-041", () => {
       compiled.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Fortitude"))?.keywords,
     ).toContainEqual({ keyword: "Fortitude", raw: "＜Fortitude＞" });
     expect(compiled.effects?.find((entry) => entry.trigger === "Static" && entry.actions.length > 0)).toMatchObject({
-      actions: [{ actions: [{ mode: "reduceCost", amount: 1, scaling: { unit: "digivolutionCards", per: 1 } }] }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Ver.5"], match: "trait" }],
+          },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              scaling: {
+                unit: "digivolutionCards",
+                per: 1,
+                filter: { isSelfRef: true, faceDown: true },
+              },
+            },
+          ],
+        },
+      ],
     });
   });
   it("suspends and may return the lowest-DP suspended opponent Digimon by trashing its bottom face-down card", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")).toMatchObject({
-      actions: [
-        { kind: "Suspend" },
-        {
-          kind: "Return",
-          to: "hand",
-          cost: { kind: "trash" },
-          target: { filter: { suspended: true, superlative: "lowestDP" } },
-        },
-      ],
-    }));
+    ["OnPlay", "WhenDigivolving"].forEach((trigger) =>
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
+        actions: [
+          { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+          {
+            kind: "Return",
+            to: "hand",
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "trash",
+              target: {
+                filter: { isSelfRef: true, zone: "digivolutionCards", faceDown: true, position: "bottom" },
+                count: 1,
+                isSelf: true,
+              },
+            },
+            target: {
+              filter: {
+                controller: "opponent",
+                suspended: true,
+                kind: ["Digimon"],
+                superlative: "lowestDP",
+              },
+              count: 1,
+            },
+          },
+        ],
+      }),
+    ));
+  it("requires Raremon or a level-4 DM Digimon for the alternate routes", () =>
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Raremon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["DM"], cost: 4, isAlternate: true },
+    ]));
   it("inherits security trash when an opponent Digimon is deleted in battle", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
       frequency: "OncePerTurn",
       actions: [
         {
@@ -173,14 +221,15 @@ describe("EX9-041", () => {
         0: {
           battleArea: [
             {
-              card: "EX9-041",
-              as: "source",
+              card: "EX9-039",
+              as: "base",
               under: [
                 { card: "EX9-034", faceUp: false },
                 { card: "EX9-038", faceUp: true },
               ],
             },
           ],
+          hand: [{ card: "EX9-041", as: "evo" }],
         },
         1: {
           battleArea: [
@@ -192,11 +241,19 @@ describe("EX9-041", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("high").permanentId, s.perm("high").topCard.instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009"));
     await settle();
-    expect(s.perm("source").stack).toHaveLength(1);
-    expect(s.perm("source").stack[0]!.faceUp).toBe(true);
+    expect(s.perm("base").topCard.cardId).toBe("EX9-041");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX9-038", "EX9-039"]);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
     expect(s.perm("high").isSuspended).toBe(true);
@@ -204,16 +261,42 @@ describe("EX9-041", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("trashes security only on the first of two inherited-host battle wins in one turn", async () => {
+  it("resolves the On Play body through a public play intent when no return cost is available", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-080", as: "host", under: ["EX9-041"] }] },
+        0: { hand: [{ card: "EX9-041", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("source").topCard.cardId).toBe("EX9-041");
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("trashes once per turn, then resets for the next inherited-host battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "host", under: ["EX9-041"] }],
+          deck: ["BT1-048", "BT1-048", "BT1-048", "BT1-048"],
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "target", suspended: true },
             { card: "BT1-009", as: "second", suspended: true },
+            { card: "BT1-011", as: "third", suspended: true },
           ],
-          security: ["BT1-011", "BT1-012"],
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-048", "BT1-048", "BT1-048", "BT1-048"],
         },
       },
       { autoOrderTriggers: true, autoSelectCards: true },
@@ -227,8 +310,8 @@ describe("EX9-041", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011")).toBe(true);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
@@ -239,25 +322,58 @@ describe("EX9-041", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-012", "BT1-013"]);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("third").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("third").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
     expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("keeps the face-down source card when the optional return cost is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-041", as: "source", under: [{ card: "BT1-071", faceUp: false }] }] },
+        0: {
+          battleArea: [{ card: "EX9-039", as: "base", under: [{ card: "BT1-071", faceUp: false }] }],
+          hand: [{ card: "EX9-041", as: "evo" }],
+        },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(s.perm("source").stack).toHaveLength(1);
-    expect(s.perm("source").stack[0]!.faceUp).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("EX9-041");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-071", "EX9-039"]);
+    expect(s.perm("base").stack[0]!.faceUp).toBe(false);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-010")).toBe(false);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not trash security when another allied Digimon deletes in battle", async () => {

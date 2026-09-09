@@ -6,13 +6,29 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-002", () => {
-  it("pays the reduced cost after real Training rather than evolving for free", async () => {
+  it("encodes the inherited once-per-turn face-down Ver.2 evolution clause", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          triggerFilter: { isSelfRef: true },
+          sourceFilter: { controllerDefault: "mine" },
+          addedDigivolutionCardFilter: { faceDown: true },
+          actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, payCost: true, optional: true }],
+        },
+      ],
+    }));
+
+  it("uses a real Training placement to evolve into Ver.2 from hand for cost minus 1", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
           hand: ["EX9-017"],
-          deck: ["BT1-001", "BT1-048"],
+          deck: ["BT1-027", "BT1-048"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -28,182 +44,211 @@ describe("EX9-002", () => {
         effectKey: ability.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle();
+    await settle(() => s.perm("host").topCard.cardId === "EX9-017");
+
     expect(s.perm("host").topCard.cardId).toBe("EX9-017");
     expect(s.state.memory).toBe(3);
-    expect(s.perm("host").stack.some((card) => card.cardId === "EX9-002" && card.faceUp)).toBe(true);
-    expect(s.perm("host").stack.some((card) => card.cardId === "EX9-015" && card.faceUp)).toBe(true);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-027", "EX9-002", "EX9-015"]);
+    expect(s.perm("host").stack[0]!.faceUp).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  it("inherits a once-per-turn Ver.2 digivolution after adding digivolution cards", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
-      trigger: "YourTurn",
-      frequency: "OncePerTurn",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "onAddDigivolutionCards",
-          triggerFilter: { isSelfRef: true },
-          actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, payCost: true, optional: true }],
-        },
-      ],
-    }));
 
-  it("digivolves into a Ver.2 from hand when a face-down card is added to its stack", async () => {
+  it("does not react to a real normal digivolution's face-up source card", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
-          ],
+          battleArea: [{ card: "EX9-014", as: "host", under: ["EX9-002"] }],
           hand: ["EX9-017"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 1;
-    const host = s.perm("host");
-    const added = host.stack.find((card) => card.cardId === "BT1-009")!;
+    s.state.memory = 3;
+    await s.ready();
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [added.instanceId],
-    });
-    await settle(() => host.topCard?.cardId === "EX9-017");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.state.players[0]!.hand.find((card) => card.cardId === "EX9-017")!.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX9-017");
 
-    expect(host.topCard?.cardId).toBe("EX9-017");
-    expect(host.stack.map((card) => card.cardId)).toEqual(["EX9-002", "BT1-009", "EX9-014"]);
+    expect(s.perm("host").topCard.cardId).toBe("EX9-017");
+    expect(s.perm("host").stack.map((card) => [card.cardId, card.faceUp])).toEqual([
+      ["EX9-002", true],
+      ["EX9-014", true],
+    ]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not digivolve when the added card is face up", async () => {
+  it("does not offer a Ver.1 destination after a real face-down Training placement", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, "BT1-009"] }],
-          hand: ["EX9-017"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    const host = s.perm("host");
-    const added = host.stack.find((card) => card.cardId === "BT1-009")!;
-
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [added.instanceId],
-    });
-
-    expect(host.topCard?.cardId).toBe("EX9-014");
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017")).toBe(true);
-  });
-
-  it("only reacts when this Digimon's own stack receives the face-down card", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
-            { card: "EX9-014", as: "otherHost", under: [{ card: "BT1-010", faceUp: false }] },
-          ],
-          hand: ["EX9-017"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    const otherHost = s.perm("otherHost");
-    const added = otherHost.stack[0]!;
-
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: otherHost.permanentId,
-      addedDigivolutionCardInstanceIds: [added.instanceId],
-    });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017"));
-
-    expect(s.perm("host").topCard?.cardId).toBe("EX9-014");
-    expect(otherHost.topCard?.cardId).toBe("EX9-014");
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017")).toBe(true);
-  });
-
-  it("does not offer a non-Ver.2 card as the evolution destination", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
-          ],
-          hand: ["EX9-053"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    const host = s.perm("host");
-    const added = host.stack.find((card) => card.cardId === "BT1-009")!;
-
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [added.instanceId],
-    });
-
-    expect(host.topCard?.cardId).toBe("EX9-014");
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-053")).toBe(true);
-  });
-
-  it("allows declining the optional evolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
-          ],
-          hand: ["EX9-017"],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    const host = s.perm("host");
-    const added = host.stack.find((card) => card.cardId === "BT1-009")!;
-
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [added.instanceId],
-    });
-
-    expect(host.topCard?.cardId).toBe("EX9-014");
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017")).toBe(true);
-  });
-
-  it("can activate only once per turn even when another face-down card is added", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "EX9-017",
-              as: "host",
-              under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }, { card: "BT1-010", faceUp: false }],
-            },
-          ],
-          hand: ["EX9-018", "EX9-020"],
+          battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
+          hand: ["EX9-009"],
+          deck: ["BT1-027"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
-    const host = s.perm("host");
-    const firstAdded = host.stack.find((card) => card.cardId === "BT1-009")!;
-    const secondAdded = host.stack.find((card) => card.cardId === "BT1-010")!;
+    await s.ready();
+    const training = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(training).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: training.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length === 2);
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [firstAdded.instanceId],
-    });
-    await settle(() => host.topCard?.cardId === "EX9-018");
+    expect(s.perm("host").topCard.cardId).toBe("EX9-015");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX9-009"]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [secondAdded.instanceId],
-    });
-    expect(host.topCard?.cardId).toBe("EX9-018");
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-020")).toBe(true);
+  it("only reacts when the face-down card is placed under the permanent carrying EX9-002", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-015", as: "host", under: ["EX9-002"] },
+            { card: "EX9-015", as: "other" },
+          ],
+          hand: ["EX9-017"],
+          deck: ["BT1-027", "BT1-048"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const training = observe(s.engine).activatableEffects(s.perm("other"))[0]!;
+    expect(training).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("other").topCard.instanceId,
+        effectKey: training.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("other").stack.length === 1);
+
+    expect(s.perm("other").topCard.cardId).toBe("EX9-015");
+    expect(s.perm("host").topCard.cardId).toBe("EX9-015");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX9-017"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("allows declining the optional evolution after a real face-down placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
+          hand: ["EX9-017"],
+          deck: ["BT1-027"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const training = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: training.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length === 2);
+
+    expect(s.perm("host").topCard.cardId).toBe("EX9-015");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX9-017"]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("enforces Once Per Turn across a second face-down placement in the same evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
+          hand: ["EX9-017", "BT1-009", "EX9-018"],
+          deck: ["BT1-027", "BT1-048"],
+        },
+        1: { battleArea: [{ card: "BT1-037", as: "opponent", under: ["BT1-009"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const training = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: training.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX9-017");
+
+    expect(s.perm("host").topCard.cardId).toBe("EX9-017");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX9-018");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-027", "EX9-002", "EX9-015"]);
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(1);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("resets the Once Per Turn watcher at the next real owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
+          hand: ["EX9-017", "EX9-018"],
+          deck: ["BT1-027", "BT1-048", "BT1-049", "BT1-050"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const firstTraining = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: firstTraining.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX9-017");
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const nextTraining = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(nextTraining).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: nextTraining.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX9-018");
+    expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.perm("host").topCard.cardId).toBe("EX9-018");
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

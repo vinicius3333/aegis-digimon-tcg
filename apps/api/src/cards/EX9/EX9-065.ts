@@ -8,6 +8,26 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "BeforePayCost",
+      actions: [
+        {
+          kind: "ReducePlayCost",
+          payment: {
+            kind: "trashFromHand",
+            filter: {
+              controller: "mine",
+              zone: "hand",
+              nameOrTrait: [
+                { tokens: ["Cyborg"], match: "trait" },
+                { tokens: ["Ver.4"], match: "trait" },
+              ],
+            },
+          },
+          amount: { kind: "fixed", value: 2 },
+        },
+      ],
+    },
+    {
       trigger: "Counter",
       actions: [],
       isFromHand: true,

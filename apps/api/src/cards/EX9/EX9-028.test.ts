@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-028.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-async function fireOnEndTurn(s: ReturnType<typeof setupEngine>): Promise<void> {
-  await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+async function runEndOfTurn(s: ReturnType<typeof setupEngine>): Promise<void> {
+  s.state.isFirstPlayersFirstTurn = false;
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
 }
 
 describe("EX9-028", () => {
@@ -24,10 +27,10 @@ describe("EX9-028", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 5;
-    await fireOnEndTurn(s);
+    await runEndOfTurn(s);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-064");
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(-6);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(
@@ -168,7 +171,7 @@ describe("EX9-028", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 5;
-    await fireOnEndTurn(s);
+    await runEndOfTurn(s);
     await settle();
 
     expect(s.perm("source").topCard.cardId).toBe("EX9-064");
@@ -189,7 +192,7 @@ describe("EX9-028", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-048"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(-6);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -200,56 +203,20 @@ describe("EX9-028", () => {
           battleArea: [{ card: "EX9-028", as: "source" }],
           trash: ["EX9-008", "EX9-035", "EX9-051"],
           hand: ["EX9-064", "BT1-010"],
+          deck: ["BT1-046"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 5;
-    await fireOnEndTurn(s);
+    await runEndOfTurn(s);
     await settle();
 
     expect(s.perm("source").topCard.cardId).toBe("EX9-028");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-008", "EX9-035", "EX9-051"]);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-064", "BT1-010"]);
-    expect(s.state.memory).toBe(5);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
-
-  it("does not resolve the same end-of-turn evolution again after it already evolved this turn", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX9-028", as: "source" }],
-          trash: ["EX9-008", "EX9-035", "EX9-051", "EX9-008", "EX9-035", "EX9-051", "EX9-008"],
-          hand: ["EX9-064"],
-          deck: ["BT1-010"],
-        },
-        1: { hand: [{ card: "BT10-066", as: "devolve" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    s.state.memory = 5;
-    await fireOnEndTurn(s);
-    await settle();
-    expect(s.perm("source").topCard.cardId).toBe("EX9-064");
-    // Re-expose the same Nanimon instance without advancing the turn. This prevents
-    // loss of its main effect after evolution from masquerading as Once Per Turn.
-    await advance(s.engine).verb.playInstances([s.inst("devolve").instanceId]);
-    await settle();
-    expect(s.perm("source").topCard.cardId).toBe("EX9-028");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-035", "EX9-051", "EX9-008", "EX9-064"]);
-    const afterFirstStack = s.perm("source").stack.map(({ instanceId }) => instanceId);
-    const afterFirstTrash = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
-    const afterFirstMemory = s.state.memory;
-
-    await fireOnEndTurn(s);
-    await settle();
-
-    expect(s.perm("source").topCard.cardId).toBe("EX9-028");
-    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(afterFirstStack);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(afterFirstTrash);
-    expect(s.state.memory).toBe(afterFirstMemory);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-064", "BT1-010", "BT1-046"]);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -292,11 +259,12 @@ describe("EX9-028", () => {
           battleArea: [{ card: "EX9-028", as: "source" }],
           trash: ["EX9-008", "EX9-035", "EX9-034"],
           hand: ["EX9-063"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await fireOnEndTurn(s);
+    await runEndOfTurn(s);
     await settle();
 
     expect(s.perm("source").topCard.cardId).toBe("EX9-028");

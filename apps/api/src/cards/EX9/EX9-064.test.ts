@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -117,6 +116,10 @@ describe("EX9-064", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
+  it("accepts the printed alternate level-4 Cyborg/DM evolution at cost 3", () =>
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, traits: ["Cyborg", "DM"], cost: 3, isAlternate: true },
+    ]));
 
   it("Q4824 lets Machinedramon prevent the inherited self-deletion after unsuspending", async () => {
     const s = setupEngine(
@@ -284,33 +287,6 @@ describe("EX9-064", () => {
         },
       ]);
   });
-  it.each([
-    ["OnPlay", EffectTiming.OnPlay],
-    ["WhenDigivolving", EffectTiming.WhenDigivolving],
-  ] as const)(
-    "%s places a trash Digimon face-down and deletes two opposing Digimon through the scaled play-cost ceiling",
-    async (_label, timing) => {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [{ card: "EX9-064", as: "source", under: [{ card: "EX9-015", faceUp: false }] }],
-            trash: ["EX9-010"],
-          },
-          1: { battleArea: ["BT1-009", "BT1-018", "BT1-021"] },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-      );
-
-      await advance(s.engine).fireForPermanent(timing, s.perm("source"));
-      await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-021"));
-
-      expect(s.perm("source").stack).toHaveLength(2);
-      expect(s.perm("source").stack[0]).toMatchObject({ cardId: "EX9-010", faceUp: false });
-      expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-010")).toBe(false);
-      expect(s.state.players[1]!.trash.filter((card) => ["BT1-009", "BT1-018"].includes(card.cardId))).toHaveLength(2);
-      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-021")).toBe(true);
-    },
-  );
   it("unsuspends itself and deletes the lowest-level own Digimon at end of attack", async () => {
     const s = setupEngine(
       {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-030.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -87,21 +86,55 @@ describe("EX9-030", () => {
       actions: [
         {
           kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { isSelfRef: true },
           actions: [
-            { kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 2, cost: { kind: "trash" } },
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "hand",
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["Cyborg", "Ver.3"], match: "trait" }],
+                  },
+                  count: 1,
+                },
+              },
+            },
           ],
         },
       ],
     });
   });
   it("on play or digivolution gives an opposing Digimon -3000 DP and loses 2000 DP per digivolution card", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, traits: ["Machine", "DM"], cost: 3, isAlternate: true },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
           {
             kind: "ModifyDP",
             amount: -3000,
-            cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            duration: "untilOpponentTurnEnd",
+            cost: {
+              kind: "place",
+              target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1, from: ["trash"] },
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "self",
+              faceDown: true,
+            },
+            optional: true,
+            abortOnDecline: true,
           },
           {
             kind: "ModifyDP",
@@ -123,14 +156,18 @@ describe("EX9-030", () => {
   it("places a trash Digimon face down and applies the printed DP changes on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-030", as: "source", dp: 7000 }], trash: ["BT1-009"] },
+        0: { hand: [{ card: "EX9-030", as: "source" }], trash: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 10000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP !== 10000);
-    const source = s.state.players[0]!.battleArea[0]!;
+    const source = s.perm("source");
     expect(source.stack).toHaveLength(1);
     expect(source.stack[0]!.faceUp).toBe(false);
     expect(s.perm("target").currentDP).toBe(5000);
@@ -233,7 +270,7 @@ describe("EX9-030", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it.each(["BT1-009", "BT1-001", "BT1-091"])(
+  it.each(["BT1-009", "BT1-012", "BT1-014"])(
     "counts face-down %s without referencing its card kind and only reduces the selected opponent",
     async (faceDownCard) => {
       const s = setupEngine(
@@ -241,15 +278,15 @@ describe("EX9-030", () => {
           0: {
             battleArea: [
               {
-                card: "EX9-030",
-                as: "source",
-                dp: 7000,
+                card: "EX9-026",
+                as: "host",
                 under: [
                   { card: faceDownCard, faceUp: false },
                   { card: "BT1-051", faceUp: true },
                 ],
               },
             ],
+            hand: [{ card: "EX9-030", as: "evo" }],
             trash: ["BT1-021"],
           },
           1: {
@@ -261,13 +298,23 @@ describe("EX9-030", () => {
         },
         { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
       );
-      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evo").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm("target").currentDP !== 10000);
 
       expect(s.perm("target").currentDP).toBe(3000);
       expect(s.perm("untargeted").currentDP).toBe(10000);
-      expect(s.perm("source").currentDP).toBe(7000);
-      expect(s.perm("source").stack.filter((card) => card.faceUp !== true)).toHaveLength(2);
+      expect(s.perm("host").topCard.cardId).toBe("EX9-030");
+      expect(s.perm("host").currentDP).toBe(7000);
+      expect(s.perm("host").stack.filter((card) => card.faceUp !== true)).toHaveLength(2);
     },
   );
 });

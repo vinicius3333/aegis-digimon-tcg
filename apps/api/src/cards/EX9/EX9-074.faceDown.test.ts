@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-074 face-down digivolution information", () => {
@@ -31,7 +29,7 @@ describe("EX9-074 face-down digivolution information", () => {
         0: {
           battleArea: [
             {
-              card: "EX9-074",
+              card: "BT16-021",
               as: "source",
               under: [
                 { card: "BT1-009", faceUp: false },
@@ -43,6 +41,7 @@ describe("EX9-074 face-down digivolution information", () => {
               ],
             },
           ],
+          hand: [{ card: "EX9-074", as: "evo" }],
         },
         1: {
           battleArea: [
@@ -54,7 +53,15 @@ describe("EX9-074 face-down digivolution information", () => {
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009", "BT1-027"]);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
   });
 });

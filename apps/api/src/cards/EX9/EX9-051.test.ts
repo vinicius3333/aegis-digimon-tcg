@@ -129,7 +129,21 @@ describe("EX9-051", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "DeDigivolve", amount: 1, cost: { kind: "place", faceDown: true, destination: "digivolutionStack" } },
+          {
+            kind: "DeDigivolve",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: 1,
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "place",
+              target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
+              faceDown: true,
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "self",
+            },
+          },
         ],
       });
   });
@@ -150,9 +164,11 @@ describe("EX9-051", () => {
       });
   });
   it("inherits Blocker", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
-      keyword: "Blocker",
-      raw: "＜Blocker＞",
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      isInherited: true,
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     }));
   it("places a hand card face-down underneath and de-digivolves an opposing Digimon on play", async () => {
     const s = setupEngine(

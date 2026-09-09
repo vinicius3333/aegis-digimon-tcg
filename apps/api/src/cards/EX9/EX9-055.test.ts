@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-055.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,24 +6,28 @@ import "../index.js";
 
 describe("EX9-055", () => {
   it.each(["EX9-005", "EX9-057", "BT1-010", "EX9-047"])(
-    "does not place an ineligible or explicitly declined end-turn cost: %s",
+    "Q4811 rejects Digi-Eggs and ineligible or explicitly declined end-turn costs: %s",
     async (card) => {
       const decline = card === "EX9-047";
       const s = setupEngine(
         {
-          0: { battleArea: [{ card: "EX9-055", as: "source", under: ["EX9-054"] }], trash: [card] },
-          1: { battleArea: [{ card: "BT10-062", as: "target" }] },
+          0: {
+            battleArea: [{ card: "EX9-055", as: "source", under: ["EX9-054"] }],
+            trash: [card],
+            deck: ["BT1-048", "BT1-048"],
+          },
+          1: { battleArea: [{ card: "BT10-062", as: "target" }], deck: ["BT1-048", "BT1-048"] },
         },
         { autoAcceptOptional: !decline, autoDeclineOptional: decline, autoSelectCards: true },
       );
-      const memory = s.state.memory;
-      await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+      s.state.memory = 5;
+      await s.ready();
+      await advance(s.engine).runTurn(0);
       await settle();
       expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-054"]);
       expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([card]);
       expect(s.perm("target").topCard.cardId).toBe("BT10-062");
       expect(s.state.players[1]!.trash).toHaveLength(0);
-      expect(s.state.memory).toBe(memory);
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
@@ -74,12 +77,43 @@ describe("EX9-055", () => {
     }));
   it("at end of all turns places a level 6-or-lower Negamon-text Digimon from trash and deletes a matching opposing level", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAllTurns")).toMatchObject({
+      trigger: "EndOfAllTurns",
       frequency: "OncePerTurn",
       actions: [
         {
           kind: "Delete",
-          target: { filter: { levelComparison: { op: "eq", value: 0, scaling: { unit: "namedCount" } } } },
-          cost: { kind: "place", position: "top", target: { filter: { levelComparison: { op: "lte", value: 6 } } } },
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "eq",
+                value: 0,
+                scaling: { per: 1, unit: "namedCount", countSource: "ex9055PlacedLevel" },
+              },
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "place",
+            position: "top",
+            destination: "digivolutionStack",
+            host: "self",
+            storeAs: "ex9055PlacedLevel",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 6 },
+                nameOrTrait: [{ tokens: ["Negamon"], match: "text" }],
+              },
+              count: 1,
+              from: ["trash"],
+            },
+          },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     }));
@@ -101,7 +135,7 @@ describe("EX9-055", () => {
         },
       });
   });
-  it("excludes Digi-Eggs from the deletion cost and stores the placed level for matching deletion", () =>
+  it("excludes Digi-Eggs from the deletion cost (Q4811) and stores the placed level for matching deletion", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAllTurns")?.actions[0]).toMatchObject({
       optional: true,
       abortOnDecline: true,
@@ -126,63 +160,78 @@ describe("EX9-055", () => {
     [1, "EX9-047", "BT10-062"],
     [0, "EX9-055", "BT2-064"],
     [1, "EX9-055", "BT2-064"],
-  ] as const)("places %s-turn payment %s on top and deletes the matching level %s", async (seat, payment, target) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX9-055", as: "source", under: ["EX9-054"] }],
-          trash: [payment],
-          deck: ["BT1-010", "BT1-048"],
+  ] as const)(
+    "Q4812 places %s-turn Negamon-text payment %s on top and deletes matching level %s",
+    async (seat, payment, target) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX9-055", as: "source", under: ["EX9-054"] }],
+            trash: [payment],
+            deck: ["BT1-010", "BT1-048"],
+          },
+          1: {
+            battleArea: [
+              { card: target, as: "target" },
+              { card: "BT10-064", as: "peer" },
+            ],
+            deck: ["BT1-010", "BT1-048"],
+          },
         },
-        1: {
-          battleArea: [
-            { card: target, as: "target" },
-            { card: "BT10-064", as: "peer" },
-          ],
-          deck: ["BT1-010", "BT1-048"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
 
-    s.state.turnSeat = seat;
-    s.state.memory = 5;
-    await advance(s.engine).runTurn(seat);
-    await settle();
-    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-054", payment]);
-    expect(s.perm("source").stack.at(-1)?.faceUp).toBe(true);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT10-064"]);
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual([target]);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
+      s.state.turnSeat = seat;
+      s.state.memory = 5;
+      await advance(s.engine).runTurn(seat);
+      await settle();
+      expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-054", payment]);
+      expect(s.perm("source").stack.at(-1)?.faceUp).toBe(true);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT10-064"]);
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual([target]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 
-  it("does not place or delete again when another matching payment and target remain in the same turn", async () => {
+  it("places and deletes once per real turn, then resets on the next turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-055", as: "source" }], trash: ["EX9-047", "EX9-048"] },
+        0: {
+          battleArea: [{ card: "EX9-055", as: "source" }],
+          trash: ["EX9-047", "EX9-048"],
+          deck: ["BT1-048", "BT1-048", "BT1-048", "BT1-048"],
+        },
         1: {
           battleArea: [
             { card: "BT10-062", as: "first" },
             { card: "BT10-062", as: "second" },
           ],
+          deck: ["BT1-048", "BT1-048", "BT1-048", "BT1-048"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-047"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-048"]);
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("second").permanentId]);
     preferred.splice(0, preferred.length, s.perm("second").permanentId);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
     await settle();
-    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-047"]);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-048"]);
-    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("second").permanentId]);
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-047", "EX9-048"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -258,14 +307,17 @@ describe("EX9-055", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-055", as: "source" }],
+          hand: [{ card: "EX9-055", as: "source" }, "EX9-057"],
           trash: ["EX9-005", "EX9-005", "EX9-005", "EX9-005"],
-          hand: ["EX9-057"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-057")).toBe(true);
@@ -276,15 +328,23 @@ describe("EX9-055", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-055", as: "source" }],
+          battleArea: [{ card: "EX9-054", as: "source" }],
           trash: ["EX9-005", "EX9-005", "EX9-005", "EX9-005"],
-          hand: ["EX9-057"],
+          hand: [{ card: "EX9-055", as: "evo" }, "EX9-057"],
+          deck: ["BT1-048", "BT1-048"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[0]!.breeding).toBeUndefined();

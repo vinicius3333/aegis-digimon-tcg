@@ -130,7 +130,24 @@ describe("EX9-071", () => {
   );
   it("waives color requirements with a DM card and draws before entering the battle area", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "anyOf" } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: {
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "youHave",
+                filter: { zone: "battleArea", kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["DM"] }] },
+              },
+              {
+                kind: "youHave",
+                filter: { zone: "breeding", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"] }] },
+              },
+            ],
+          },
+        },
+      ],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toEqual([
       { kind: "Draw", controller: "mine", amount: 1 },
@@ -142,7 +159,32 @@ describe("EX9-071", () => {
       compiled.effects?.find(
         (entry) => entry.trigger === "Main" && entry.keywords?.some((keyword) => keyword.keyword === "Delay"),
       ),
-    ).toMatchObject({ actions: [{ kind: "Unsuspend", cost: { kind: "trash", target: { count: 2 } } }] }));
+    ).toMatchObject({
+      keywords: [{ keyword: "Delay" }],
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: { count: 1, fromSelectionRef: "paidHost" },
+          cost: {
+            kind: "trash",
+            bindHostAs: "paidHost",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "digivolutionCards",
+                faceDown: true,
+                withinBottomN: 2,
+                sameHost: true,
+                hostFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"] }] },
+              },
+              count: 2,
+            },
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    }));
   it("gains memory and enters the battle area from security", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
       isSecurity: true,
@@ -204,13 +246,18 @@ describe("EX9-071", () => {
         0: {
           battleArea: [
             { card: "EX9-071", as: "protein" },
-            { card: "EX9-007", as: "target", suspended: true, under: [{ card: "EX9-007", as: "onlyCard" }] },
+            {
+              card: "EX9-007",
+              as: "target",
+              suspended: true,
+              under: [{ card: "EX9-007", as: "onlyCard", faceUp: false }],
+            },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.perm("target").stack[0]!.faceUp = false;
+    s.perm("protein").placedByEffect = true;
     await s.ready();
 
     const effect = JSON.parse(s.perm("protein").activatableEffectsJson || "[]").find(

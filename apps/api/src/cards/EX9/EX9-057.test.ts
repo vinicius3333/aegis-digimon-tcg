@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX9-057.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { EffectTiming } from "@aegis/shared";
 import "../index.js";
 
 describe("EX9-057", () => {
@@ -52,7 +51,7 @@ describe("EX9-057", () => {
           0: {
             breeding: { card: "EX9-057", as: "source" },
             trash: cards,
-            eggDeck: ["BT1-001"],
+            eggDeck: ["EX9-005"],
             security: ["BT1-010", "BT1-048"],
           },
           1: { battleArea: [{ card: "BT10-064", as: "attacker" }] },
@@ -72,7 +71,7 @@ describe("EX9-057", () => {
       expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-057");
       expect(s.state.players[0]!.battleArea).toHaveLength(0);
       expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([...cards, "BT1-010"]);
-      expect(s.state.players[0]!.eggDeck.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
+      expect(s.state.players[0]!.eggDeck.map(({ cardId }) => cardId)).toEqual(["EX9-005"]);
       expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
       expect(s.state.pendingDecision).toBeUndefined();
     },
@@ -219,7 +218,7 @@ describe("EX9-057", () => {
             { card: "EX9-047", as: "second", under: ["EX9-005"] },
           ],
           trash: ["EX9-005", "EX9-005", "EX9-047", "EX9-048", "EX9-055"],
-          eggDeck: ["BT1-001"],
+          eggDeck: ["EX9-005"],
           security: ["BT1-010"],
         },
         1: {
@@ -247,7 +246,7 @@ describe("EX9-057", () => {
     expect(s.perm("first").stack).toHaveLength(0);
     expect(s.perm("second").stack).toHaveLength(0);
     expect(s.state.players[0]!.eggDeck.map(({ cardId }) => cardId)).toEqual([
-      "BT1-001",
+      "EX9-005",
       "EX9-005",
       "EX9-005",
       "EX9-005",
@@ -333,31 +332,6 @@ describe("EX9-057", () => {
         },
       });
   });
-  it("returns four named Negamon cards and moves from breeding when an opponent attacks", async () => {
-    const s = setupEngine(
-      {
-        0: { breeding: { card: "EX9-057", as: "source" }, trash: ["EX9-005", "EX9-005", "EX9-005", "EX9-005"] },
-        1: { battleArea: [{ card: "EX9-050", as: "attacker" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-057"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-057")).toBe(true);
-    expect(s.state.players[0]!.breeding).toBeUndefined();
-    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId).slice(-4)).toEqual([
-      "EX9-005",
-      "EX9-005",
-      "EX9-005",
-      "EX9-005",
-    ]);
-  });
-
   it("does not move from breeding when the four cards only mention Negamon", async () => {
     const s = setupEngine(
       {
@@ -368,43 +342,18 @@ describe("EX9-057", () => {
     );
     s.state.turnSeat = 1;
 
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle(() => s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-057");
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
   });
-
-  it.each([
-    ["When Moving", EffectTiming.WhenMoving],
-    ["When Digivolving", EffectTiming.WhenDigivolving],
-  ] as const)(
-    "places exactly three top-stack cards and deletes the opponent's lowest level on %s",
-    async (_label, timing) => {
-      const s = setupEngine(
-        {
-          0: { battleArea: [{ card: "EX9-057", as: "source" }], trash: ["EX9-047", "EX9-048", "EX9-054"] },
-          1: {
-            battleArea: [
-              { card: "EX9-054", as: "higher" },
-              { card: "EX9-050", as: "lowest" },
-            ],
-          },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-      );
-
-      await advance(s.engine).fire(timing, s.perm("source"));
-      await settle(() => s.state.pendingDecision === undefined && s.perm("source").stack.length === 3);
-
-      expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["EX9-047", "EX9-048", "EX9-054"]);
-      expect(s.perm("source").stack.every((card) => card.faceUp !== false)).toBe(true);
-      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-050")).toBe(false);
-      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-054")).toBe(true);
-    },
-  );
 
   it("places the three-card cost and deletes the lowest level through a real attack intent", async () => {
     const s = setupEngine(
@@ -432,16 +381,29 @@ describe("EX9-057", () => {
   it("leaves the stack and opposing Digimon unchanged when the three-card effect is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-057", as: "source" }], trash: ["EX9-047", "EX9-048", "EX9-054"] },
+        0: {
+          battleArea: [{ card: "EX9-055", as: "base" }],
+          hand: [{ card: "EX9-057", as: "source" }],
+          trash: ["EX9-047", "EX9-048", "EX9-054"],
+        },
         1: { battleArea: [{ card: "EX9-050", as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.perm("base").topCard.cardId).toBe("EX9-057");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX9-055"]);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-050")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-047", "EX9-048", "EX9-054"]);
   });

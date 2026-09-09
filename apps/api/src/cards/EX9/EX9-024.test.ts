@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-024.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -39,21 +38,27 @@ describe("EX9-024", () => {
   it("trashes a hand card before returning a Puppet Digimon from trash", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-024", as: "source" }], hand: ["BT1-001"], trash: ["EX9-024"] },
+        0: { hand: [{ card: "EX9-024", as: "source" }, "BT1-012"], trash: ["EX9-024"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 3;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-012")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-024")).toBe(true);
   });
 
   it("does not pay the On Play cost when the trash has no Puppet Digimon", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX9-024", as: "source" }, "BT1-001"], trash: ["BT1-009"] },
+        0: { hand: [{ card: "EX9-024", as: "source" }, "BT1-012"], trash: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -64,7 +69,7 @@ describe("EX9-024", () => {
     });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-012"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -97,7 +102,7 @@ describe("EX9-024", () => {
   it("does not trash the hand cost when the optional On Play effect is refused", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX9-024", as: "source" }, "BT1-001"], trash: ["BT1-038"] },
+        0: { hand: [{ card: "EX9-024", as: "source" }, "BT1-012"], trash: ["BT1-038"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -108,12 +113,12 @@ describe("EX9-024", () => {
     });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-012"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-038"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("ends an opponent attack before security with one optional cost decision", async () => {
+  it("ends an opponent attack before security with one optional cost decision (Q4776)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -186,20 +191,34 @@ describe("EX9-024", () => {
         0: {
           battleArea: [
             { card: "ST10-10", as: "host", under: ["EX9-024"] },
-            { card: "BT7-064", as: "fodder", under: ["BT7-062"] },
+            { card: "BT7-062", as: "fodder" },
           ],
-          hand: [{ card: "BT7-062", as: "protection" }],
+          hand: [
+            { card: "BT7-064", as: "evo" },
+            { card: "BT7-062", as: "protection" },
+          ],
           security: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.turnSeat = 1;
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("fodder"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("fodder").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(observe(s.engine).isRestricted(s.perm("fodder"), "beDeleted")).toBe(true);
     const optionalBeforeAttack = s.decisions.filter(({ req }) => req.kind === "optional").length;
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
 
     expect(
       s.engine.applyIntent(1, {

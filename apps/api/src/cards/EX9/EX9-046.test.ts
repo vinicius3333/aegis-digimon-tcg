@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { type PlayerState } from "@aegis/shared";
 import { compiled } from "./EX9-046.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -22,11 +22,20 @@ describe("EX9-046", () => {
     }));
   it("adds the single matching card and places both nonmatches below an unrevealed anchor", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-046", as: "source" }], deck: ["BT1-009", "EX9-055", "BT1-010", "BT1-048"] } },
+      {
+        0: {
+          hand: [{ card: "EX9-046", as: "source" }],
+          deck: ["BT1-009", "EX9-055", "BT1-010", "BT1-048"],
+        },
+      },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
     const player = s.state.players[0] as PlayerState;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.hand.some((card) => card.cardId === "EX9-055"));
     await settle();
     expect(player.hand.map(({ cardId }) => cardId)).toEqual(["EX9-055"]);

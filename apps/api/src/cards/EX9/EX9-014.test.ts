@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-014.js";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 
 describe("EX9-014", () => {
@@ -27,29 +25,45 @@ describe("EX9-014", () => {
   it("reveals a DM card and places a Ver.2 card underneath a DM Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-014", as: "source" }], deck: ["EX9-007", "EX9-014", "BT1-001"] },
+        0: { hand: [{ card: "EX9-014", as: "source" }], deck: ["EX9-007", "EX9-014", "BT1-012"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 5;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-007")).toBe(true);
     expect(s.perm("source").stack).toContainEqual(expect.objectContaining({ cardId: "EX9-014", faceUp: false }));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-012"]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("adds a card before choosing a remaining Ver.2 card", async () => {
+  it("Q4757 adds a card before choosing a remaining Ver.2 card", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-014", as: "source" }], deck: ["EX9-014", "BT1-001", "BT1-001"] },
+        0: { hand: [{ card: "EX9-014", as: "source" }], deck: ["EX9-014", "BT1-012", "BT1-013"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 5;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "EX9-014")).toHaveLength(1);
     expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-013"]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("passes Jamming through an EX9-014 evolution stack", async () => {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-037.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -11,7 +10,7 @@ describe("EX9-037", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX9-037", as: "host", under: ["EX9-035"] }],
-        deck: ["BT1-090", "BT1-048"],
+        deck: ["BT1-009", "BT1-048"],
       },
     });
     await s.ready();
@@ -30,7 +29,7 @@ describe("EX9-037", () => {
     await settle();
     expect(host.isSuspended).toBe(true);
     expect(host.stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([
-      ["BT1-090", false],
+      ["BT1-009", false],
       ["EX9-035", true],
     ]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
@@ -122,12 +121,16 @@ describe("EX9-037", () => {
   it("places any hand card face-down but does not prevent effect-driven unsuspend", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-037", as: "source" }], hand: ["BT1-090"] },
+        0: { hand: [{ card: "EX9-037", as: "source" }, "BT1-090"] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: false }], deck: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false]);
@@ -148,12 +151,16 @@ describe("EX9-037", () => {
   it("still restricts an already-suspended target when the suspend step cannot change it", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-037", as: "source" }], hand: ["BT1-090"] },
+        0: { hand: [{ card: "EX9-037", as: "source" }, "BT1-090"] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.perm("opponent").isSuspended).toBe(true);
@@ -165,7 +172,10 @@ describe("EX9-037", () => {
   it("retains a restriction granted after the opponent's unsuspend phase until their next one", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-037", as: "source" }], hand: ["BT1-090"], deck: ["BT1-009", "BT1-009"] },
+        0: {
+          hand: [{ card: "EX9-037", as: "source" }, "BT1-090"],
+          deck: ["BT1-009", "BT1-009"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
@@ -176,7 +186,7 @@ describe("EX9-037", () => {
     await settle();
     await advance(s.engine).waitForMainPhase(1);
     // Open the On Play window after this turn's unsuspend procedure has finished.
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await advance(s.engine).verb.playInstances([s.inst("source").instanceId]);
     await settle();
     advance(s.engine).endMainPhaseIfOpen(1);
     await currentTurn;
@@ -219,6 +229,7 @@ describe("EX9-037", () => {
     expect(s.perm("source").stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([["BT1-090", false]]);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("source"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -259,6 +270,7 @@ describe("EX9-037", () => {
     ]);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

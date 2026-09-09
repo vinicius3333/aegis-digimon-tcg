@@ -185481,6 +185481,26 @@
   "EX9-065": {
     "effects": [
       {
+        "trigger": "BeforePayCost",
+        "actions": [
+          {
+            "kind": "ReducePlayCost",
+            "payment": {
+              "kind": "trashFromHand",
+              "filter": {
+                "controller": "mine",
+                "zone": "hand",
+                "nameOrTrait": [
+                  { "tokens": ["Cyborg"], "match": "trait" },
+                  { "tokens": ["Ver.4"], "match": "trait" }
+                ]
+              }
+            },
+            "amount": { "kind": "fixed", "value": 2 }
+          }
+        ]
+      },
+      {
         "trigger": "Counter",
         "actions": [],
         "isFromHand": true,
@@ -185917,6 +185937,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }]
               },
               "raw": "while you have a [DM] trait Digimon or Tamer on the field (battle area or breeding area)"

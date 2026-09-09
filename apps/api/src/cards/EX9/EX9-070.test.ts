@@ -92,7 +92,7 @@ describe("EX9-070", () => {
             { card: "EX9-015", as: "host", under: ["EX9-002"] },
           ],
           hand: ["EX9-017", "BT1-009"],
-          deck: ["BT1-001", "BT1-048"],
+          deck: ["BT1-009", "BT1-048"],
         },
       },
       options,

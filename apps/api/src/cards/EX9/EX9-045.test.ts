@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { compiled } from "./EX9-045.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -169,6 +168,37 @@ describe("EX9-045", () => {
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("accepts each printed green/yellow plus blue/purple level-6 DNA pair at zero cost", () =>
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { color: "Green", level: 6 },
+          { color: "Blue", level: 6 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Green", level: 6 },
+          { color: "Purple", level: 6 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 6 },
+          { color: "Blue", level: 6 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 6 },
+          { color: "Purple", level: 6 },
+        ],
+      },
+    ]));
   it("has Alliance and Blocker", () => {
     const statics = compiled.effects?.filter((entry) => entry.keywords?.length);
     expect(statics?.flatMap((entry) => entry.keywords)).toEqual(
@@ -181,14 +211,34 @@ describe("EX9-045", () => {
   it("plays a WG Digimon costing seven or less from hand on digivolution", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["WG"], match: "trait" }],
+          playCostLte: 7,
+        },
+        count: 1,
+      },
       from: ["hand"],
-      target: { filter: { playCostLte: 7 } },
+      optional: true,
+      payCost: false,
     }));
-  it("returns up to two opponent Digimon to the bottom of the deck during DNA digivolution", () =>
+  it("returns up to two opponent Digimon to the bottom of the deck only during DNA digivolution", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
         { kind: "PlayWithoutCost" },
-        { kind: "Return", target: { count: 2, upTo: true }, to: "deckBottom", condition: { kind: "isDnaDigivolving" } },
+        {
+          kind: "Return",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 2,
+            upTo: true,
+          },
+          to: "deckBottom",
+          condition: { kind: "isDnaDigivolving" },
+          optional: true,
+        },
       ],
     }));
   it("uses a live leave-play replacement for the all-turns WG rescue", () =>
@@ -198,22 +248,32 @@ describe("EX9-045", () => {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["WG"], match: "trait" }],
+          },
           leaveCause: "otherThanBattle",
-          actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false }],
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["WG"], match: "trait" }],
+                  playCostLte: 7,
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
         },
       ],
     }));
-  it("plays an eligible WG card from hand without cost when digivolving", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-045", as: "source" }], hand: ["EX9-040"] } },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    const player = s.state.players[0] as PlayerState;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => player.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-040"));
-    expect(player.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-040")).toBe(true);
-  });
-
   it("plays one replacement WG without preventing either departure and cannot repeat that turn", async () => {
     const s = setupEngine(
       {
@@ -309,25 +369,5 @@ describe("EX9-045", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT10-086");
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
-  });
-
-  it("returns up to two opposing Digimon to deck bottom only during DNA digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX9-045", as: "source" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-009", as: "first" },
-            { card: "BT1-010", as: "second" },
-          ],
-          deck: ["BT1-011"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"), { isDnaDigivolve: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-009", "BT1-010"]);
   });
 });

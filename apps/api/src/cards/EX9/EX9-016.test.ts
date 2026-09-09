@@ -19,7 +19,7 @@ describe("EX9-016", () => {
   it("uses Training to place the deck top face-down at the bottom of its stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-016", as: "source", under: ["EX9-002"] }], deck: ["BT1-001", "BT1-002"] },
+        0: { battleArea: [{ card: "EX9-016", as: "source", under: ["EX9-002"] }], deck: ["BT1-012", "BT1-013"] },
         1: { security: [] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -41,9 +41,9 @@ describe("EX9-016", () => {
     await settle(() => source.stack.length === 2 && s.state.players[0]!.deck.length === 1);
 
     expect(source.isSuspended).toBe(true);
-    expect(source.stack.map((card) => card.cardId)).toEqual(["BT1-001", "EX9-002"]);
+    expect(source.stack.map((card) => card.cardId)).toEqual(["BT1-012", "EX9-002"]);
     expect(source.stack[0]!.faceUp).toBe(false);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-013"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

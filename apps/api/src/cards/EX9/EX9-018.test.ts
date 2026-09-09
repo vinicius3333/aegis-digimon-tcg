@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-018.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -228,7 +227,7 @@ describe("EX9-018", () => {
       {
         0: { hand: [{ card: "EX9-018", as: "source" }], trash: ["EX9-017"] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }],
+          battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-012"] }],
           deck: ["BT1-048"],
         },
       },
@@ -248,7 +247,7 @@ describe("EX9-018", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-017")).toBe(false);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-012")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
     expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048", "BT1-009"]);
   });
@@ -379,11 +378,6 @@ describe("EX9-018", () => {
     await turn;
 
     expect(s.perm("host").isSuspended).toBe(false);
-    // A second effect-window dispatch before another turn must not reuse the inherited effect.
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle();
-    expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

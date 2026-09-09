@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-066.js";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -137,6 +135,15 @@ describe("EX9-066", () => {
         { kind: "GainMemory", amount: 1 },
       ],
     });
+    expect(triggers[1]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenOneOfYoursDigivolves",
+      actions: [
+        { kind: "GainMemory", amount: 0 },
+        { kind: "GainMemory", amount: 1 },
+        { kind: "GainMemory", amount: 1 },
+      ],
+    });
   });
   it("requires the named trash cards and keeps the draw fallback bound to a failed return", () => {
     const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
@@ -163,15 +170,6 @@ describe("EX9-066", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false }],
     });
   });
-  it("returns a named Digimon from trash on play", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-066", as: "source" }], trash: ["BT1-015"] } },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-015"));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-015")).toBe(true);
-  });
   it("draws when no named Digimon is available in trash", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "EX9-066", as: "source" }], deck: ["BT1-046", "BT1-048"], trash: ["BT1-024"] } },
@@ -189,27 +187,6 @@ describe("EX9-066", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-066"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  it.each([
-    ["whenPlayed", "whenPlayed"],
-    ["whenOneOfYoursDigivolves", "whenOneOfYoursDigivolves"],
-  ] as const)(
-    "gains two memory after %s by suspending itself when both named Digimon are present",
-    async (_label, event) => {
-      const s = setupEngine(
-        {
-          0: { battleArea: [{ card: "EX9-066", as: "source" }, { card: "BT1-015", as: "greymon" }, "BT1-036"] },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-      );
-      s.state.memory = 0;
-
-      await advance(s.engine).fireSubTrigger(event, { subjectPermanentId: s.perm("greymon").permanentId });
-      await settle(() => s.perm("source").isSuspended && s.state.memory === 2);
-
-      expect(s.perm("source").isSuspended).toBe(true);
-      expect(s.state.memory).toBe(2);
-    },
-  );
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine(
       {

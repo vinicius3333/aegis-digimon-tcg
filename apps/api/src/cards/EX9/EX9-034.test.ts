@@ -15,6 +15,29 @@ describe("EX9-034", () => {
       keyword: "Piercing",
       raw: "＜Piercing＞",
     }));
+  it("has the alternate zero-cost DM level 2 evolution requirement", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["DM"], cost: 0, isAlternate: true }]));
+
+  it("digivolves publicly from a level 2 DM Digimon without spending memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-003", as: "host" }], hand: [{ card: "EX9-034", as: "evo" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-034");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX9-003"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 
   it("activates Training by suspending and placing the deck top face-down underneath", async () => {
     const s = setupEngine(
@@ -43,7 +66,7 @@ describe("EX9-034", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-071", as: "host", under: inherited ? ["EX9-034"] : [] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-012"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -61,7 +84,7 @@ describe("EX9-034", () => {
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === host.permanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(inherited ? 0 : 1);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(inherited);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-012")).toBe(inherited);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
