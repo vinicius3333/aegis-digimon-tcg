@@ -1,11 +1,27 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX7-074.js";
 
-describe("EX7-074", () => {
+describe("EX7-074 Vortex Resonance", () => {
+  it("matches the catalog and fully registered IR", () => {
+    expect(getCardDefinition("EX7-074")).toMatchObject({
+      cardId: "EX7-074",
+      nameEn: "Vortex Resonance",
+      colors: ["Green", "Yellow", "Purple"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["LIBERATOR"],
+      securityEffectText:
+        "[Security] You may play 1 card with the [LIBERATOR] trait with a play cost of 4 or less from your hand or trash without paying the cost. Then, add this card to the hand.",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(hasRegisteredCompiledCard("EX7-074")).toBe(true);
+  });
   it("waives its color requirement if you have a LIBERATOR Digimon or Tamer", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
@@ -23,11 +39,14 @@ describe("EX7-074", () => {
       { kind: "AddToHandSelf" },
     ]));
 
-  it("uses the Option without matching colors when a LIBERATOR Digimon is in the battle area", async () => {
+  it.each([
+    ["BT18-060", "Digimon"],
+    ["BT18-087", "Tamer"],
+  ])("uses the Option without matching colors when a LIBERATOR %s is in the battle area", async (liberator) => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX7-074", as: "vortex" }],
-        battleArea: [{ card: "BT18-060", as: "liberator" }],
+        battleArea: [{ card: liberator, as: "liberator" }],
         deck: ["BT1-001", "BT1-001", "BT1-001"],
       },
     });
@@ -122,27 +141,74 @@ describe("EX7-074", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-074");
   });
 
-  it("plays an eligible LIBERATOR from Security and returns itself to hand", async () => {
+  it.each([
+    ["hand", "BT20-085"],
+    ["trash", "EX7-031"],
+  ] as const)(
+    "plays an eligible LIBERATOR from %s during a real Security check and returns itself to hand",
+    async (zone, candidate) => {
+      const s = setupEngine(
+        {
+          0: {
+            security: [{ card: "EX7-074", as: "vortex" }, "BT1-009"],
+            hand:
+              zone === "hand" ? [{ card: candidate, as: "candidate" }, "BT20-075", "BT1-009"] : ["BT20-075", "BT1-009"],
+            trash: zone === "trash" ? [{ card: candidate, as: "candidate" }, "EX7-036"] : ["EX7-036"],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("candidate").instanceId,
+        ),
+      ).toBe(true);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX7-074");
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+        expect.arrayContaining(["BT20-075", "BT1-009"]),
+      );
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-036");
+    },
+  );
+
+  it("can refuse the Security play and still adds itself to hand", async () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX7-074", as: "vortex" }],
-          hand: ["BT20-085", "BT20-075", "BT1-009"],
-          trash: ["EX7-036"],
+          security: [{ card: "EX7-074", as: "vortex" }, "BT1-009"],
+          hand: [{ card: "BT20-085", as: "candidate" }],
         },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("vortex"));
-
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-085")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX7-074");
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT20-075", "BT1-009"]),
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("candidate").instanceId, s.inst("vortex").instanceId]),
     );
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-036");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("rejects use without a matching color or LIBERATOR trait", async () => {

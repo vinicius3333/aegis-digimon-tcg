@@ -28,6 +28,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },

@@ -4,6 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const evilTraits = [{ tokens: ["Evil", "Dark Dragon", "Evil Dragon"], match: "trait" }];
 export const compiled: CompiledCard = {
+  digivolutionRequirement: [{ level: 5, traits: ["Dark Dragon", "Evil Dragon"], cost: 4, isAlternate: true }],
   effects: [
     {
       trigger: "WhenDigivolving",

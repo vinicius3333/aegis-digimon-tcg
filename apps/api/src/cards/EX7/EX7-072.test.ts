@@ -1,212 +1,112 @@
-import { describe, it, expect } from "vitest";
-import { CardKind, CardColor, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import "./EX7-072.js";
 import { compiled } from "./EX7-072.js";
+import "../index.js";
 
-// A3 for EX7-072 (Seventh Fascination) — Purple Option.
-// [Security] Delete 1 of your opponent's unsuspended Digimon.
-// [Main] All your opponent's Digimon gain "[End of Your Turn] Delete 1 of your
-//   Digimon." until end of their turn.
-// [Trash] [Your Turn] When your Digimon digivolves into [Lilithmon (X Antibody)], by
-//   returning this card to the bottom of the deck, activate this card's [Main] effect.
-
-interface Recorder {
-  calls: { verb: string; args: unknown[] }[];
-}
-
-function digimonDef(cardId: string): CardDefinition {
-  return {
-    cardId,
-    set: "EX7",
-    nameEn: `Digi-${cardId}`,
-    kinds: [CardKind.Digimon],
-    colors: [CardColor.Purple],
-    playCost: 5,
-    dp: 5000,
-    level: 4,
-    types: [],
-    evoCosts: [],
-    maxCountInDeck: 4,
-  };
-}
-
-function optionDef(): CardDefinition {
-  return {
-    cardId: "EX7-072",
-    set: "EX7",
-    nameEn: "Seventh Fascination",
-    kinds: [CardKind.Option],
-    colors: [CardColor.Purple],
-    playCost: 5,
-    dp: 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-  };
-}
-
-let instanceSequence = 0;
-function inst(cardId: string, seat: Seat = 0) {
-  return { instanceId: `inst-${++instanceSequence}`, cardId, ownerSeat: seat, faceUp: true };
-}
-
-function makeSource(): CardSource {
-  return {
-    instanceId: "EX7-072-INST",
-    cardId: "EX7-072",
-    ownerSeat: 0 as Seat,
-    definition: optionDef(),
-    permanent: () => undefined as never,
-    isOnBattleArea: () => false,
-    isOwnersTurn: () => true,
-    hasColor: (c) => c === CardColor.Purple,
-  };
-}
-
-function makePermanent(id: string, cardId: string, seat: Seat, isSuspended: boolean) {
-  return {
-    permanentId: id,
-    topCard: inst(cardId, seat),
-    isSuspended,
-    inBreeding: false,
-    stack: [],
-    controllerSeat: seat,
-    currentDP: 5000,
-  };
-}
-
-function makeCtx(opts: { recorder: Recorder; oppPerms: ReturnType<typeof makePermanent>[] }): EffectContext {
-  const { recorder, oppPerms } = opts;
-
-  const defMap = new Map<string, CardDefinition>();
-  defMap.set("EX7-072", optionDef());
-  for (const p of oppPerms) {
-    if (p.topCard) defMap.set(p.topCard.cardId, digimonDef(p.topCard.cardId));
-  }
-
-  const players = [
-    {
-      seat: 0 as Seat,
-      battleArea: [],
-      hand: [],
-      deck: [],
-      trash: [{ ...inst("EX7-072"), instanceId: "EX7-072-INST" }],
-      security: [],
-    },
-    { seat: 1 as Seat, battleArea: oppPerms, hand: [], deck: [], trash: [], security: [] },
-  ];
-
-  const game: GameAccess = {
-    state: { memory: 3, players, turnSeat: 0 } as never,
-    player: (s: Seat) => players[s] as never,
-    opponentOf: (s) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: (id) => oppPerms.find((p) => p.permanentId === id) as never,
-    definitionOf: (card) => defMap.get(card.cardId) ?? digimonDef(card.cardId),
-  };
-
-  const fx = {
-    deletePermanent: async (...args: unknown[]) => {
-      recorder.calls.push({ verb: "deletePermanent", args });
-      return 1;
-    },
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-
-  return {
-    source: makeSource(),
-    trigger: {},
-    game,
-    fx,
-    ask,
-  };
+async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>, seat: 0 | 1): Promise<void> {
+  if (!s.state.gameOver && !s.engine.applyIntent(seat, { type: "surrender" }).ok)
+    throw new Error("failed to stop turn loop");
+  await loop;
 }
 
 describe("EX7-072 Seventh Fascination", () => {
-  const module = getEffectModule("EX7-072");
-
-  it("is registered", () => {
-    expect(module).toBeDefined();
+  it("matches the catalog and fully registered IR", () => {
+    expect(getCardDefinition("EX7-072")).toMatchObject({
+      cardId: "EX7-072",
+      nameEn: "Seventh Fascination",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 7,
+      types: ["Seven Great Demon Lords"],
+      securityEffectText: "[Security] Delete 1 of your opponent's unsuspended Digimon.",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(hasRegisteredCompiledCard("EX7-072")).toBe(true);
   });
 
-  it("routes [Security] to SecuritySkill timing", () => {
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource()).length).toBeGreaterThanOrEqual(1);
+  it("maps the Trash trigger/cost, global delayed grant, and Security deletion", () => {
+    expect(compiled.effects?.find((entry) => entry.isFromTrash)?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenOneOfYoursDigivolves",
+      actions: [{ kind: "ActivateMain", cost: { kind: "return", to: "deckBottom" } }],
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "GainTriggeredEffect",
+      target: { count: "all" },
+      gainedTrigger: "endOfOpponentTurn",
+      gainedActions: [{ kind: "Delete", target: { chooser: "opponent" } }],
+      duration: "untilOpponentTurnEnd",
+    });
+    expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { unsuspended: true } },
+    });
   });
 
-  it("returns no effects for non-security timings", () => {
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, makeSource()).length).toBe(0);
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, makeSource()).length).toBe(0);
+  it("publicly grants every opposing Digimon its end-turn self-side deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-072", as: "option" }],
+          battleArea: [{ card: "EX7-061", as: "purple" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).subscriptions("endOfOpponentTurn").length === 2);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
+    await stopLoop(s, loop, 0);
   });
 
-  it("[Security] deletes an unsuspended opponent Digimon", async () => {
-    const recorder: Recorder = { calls: [] };
-    const oppPerms = [makePermanent("OPP-1", "OPP-DIGI-1", 1 as Seat, false)];
-    const ctx = makeCtx({ recorder, oppPerms });
-    const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource());
-
-    await effects[0]!.resolve(ctx);
-
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls.length).toBe(1);
-    expect(deleteCalls[0]!.args[0] as string[]).toContain("OPP-1");
-  });
-
-  it("[Security] does NOT delete a suspended opponent Digimon", async () => {
-    const recorder: Recorder = { calls: [] };
-    const oppPerms = [makePermanent("OPP-SUSP", "OPP-DIGI-SUSP", 1 as Seat, true)];
-    const ctx = makeCtx({ recorder, oppPerms });
-    const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource());
-
-    await effects[0]!.resolve(ctx);
-
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls.length).toBe(0);
-  });
-
-  it("[Security] only deletes unsuspended Digimon when both types are present", async () => {
-    const recorder: Recorder = { calls: [] };
-    const oppPerms = [
-      makePermanent("OPP-ACTIVE", "OPP-DIGI-A", 1 as Seat, false),
-      makePermanent("OPP-SUSP", "OPP-DIGI-S", 1 as Seat, true),
-    ];
-    const ctx = makeCtx({ recorder, oppPerms });
-    const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource());
-
-    await effects[0]!.resolve(ctx);
-
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls.length).toBe(1);
-    expect(deleteCalls[0]!.args[0] as string[]).toContain("OPP-ACTIVE");
-    expect(deleteCalls[0]!.args[0] as string[]).not.toContain("OPP-SUSP");
-  });
-});
-
-describe("EX7-072 public Trash digivolution trigger", () => {
-  it("returns itself to deck bottom and activates Main on an exact Lilithmon (X Antibody) digivolution", async () => {
+  it("Q5728/Q5729: pays the trash cost on exact Lilithmon X evolution and activates Main", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT11-083", as: "base" }],
           trash: [{ card: "EX7-072", as: "option" }],
           hand: [{ card: "EX7-061", as: "lilithmonXa" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          deck: ["BT1-010", "BT1-011"],
+          security: ["BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
-    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -214,12 +114,14 @@ describe("EX7-072 public Trash digivolution trigger", () => {
         instanceId: s.inst("lilithmonXa").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.deck.some((card) => card.cardId === "EX7-072"));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-072")).toBe(false);
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX7-072");
+    await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === s.inst("option").instanceId);
+    expect(s.perm("base").topCard?.instanceId).toBe(s.inst("lilithmonXa").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT11-083");
+    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(1);
+    await stopLoop(s, loop, 0);
   });
 
-  it("does not trigger for the near-name Lilithmon card without X Antibody", async () => {
+  it("does not trigger from trash for near-name Lilithmon without X Antibody", async () => {
     const s = setupEngine(
       {
         0: {
@@ -239,238 +141,138 @@ describe("EX7-072 public Trash digivolution trigger", () => {
         instanceId: s.inst("lilithmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT11-087");
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-072")).toBe(true);
-  });
-});
-
-describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent Digimon", () => {
-  const module = getEffectModule("EX7-072");
-
-  it("routes [Main] to OnUseOption timing", () => {
-    expect(module!.effectsForTiming(EffectTiming.OnUseOption, makeSource()).length).toBe(1);
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("lilithmon").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
   });
 
-  it("installs 1 subscribeSubTrigger('endOfOpponentTurn') per opponent Digimon present at resolution", async () => {
-    const oppPerms = [
-      makePermanent("OPP-1", "OPP-DIGI-1", 1 as Seat, false),
-      makePermanent("OPP-2", "OPP-DIGI-2", 1 as Seat, false),
-    ];
-    const recorder: Recorder = { calls: [] };
-    const subCalls: unknown[] = [];
-    const ctx = makeCtx({ recorder, oppPerms });
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: unknown) => {
-      subCalls.push(sub);
-      return 0;
-    }) as never;
-
-    const effect = module!.effectsForTiming(EffectTiming.OnUseOption, makeSource())[0]!;
-    await effect.resolve(ctx);
-
-    expect(subCalls).toHaveLength(2);
-    const subs = subCalls as { event: string; sourcePermanentId: string; once: boolean; expiresOnTurnEndOf: Seat }[];
-    expect(subs.every((s) => s.event === "endOfOpponentTurn")).toBe(true);
-    expect(subs.every((s) => s.once === true)).toBe(true);
-    expect(subs.every((s) => s.expiresOnTurnEndOf === 1)).toBe(true);
-    expect(subs.map((s) => s.sourcePermanentId).sort()).toEqual(["OPP-1", "OPP-2"]);
+  it("allows the optional trash activation cost to be refused", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-083", as: "base" }],
+          trash: [{ card: "EX7-072", as: "option" }],
+          hand: [{ card: "EX7-061", as: "lilithmonXa" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lilithmonXa").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("lilithmonXa").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
+    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(0);
   });
 
-  it("publicly deletes each watched opponent Digimon at the end of that opponent's turn", async () => {
+  it("Q3871: grants an immune Digimon the effect but does not trigger it while immunity applies", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "EX7-072", as: "option" }],
-          battleArea: [{ card: "EX7-061", as: "purpleSource" }],
+          battleArea: [{ card: "EX7-061", as: "purple" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009"],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "first" },
-            { card: "BT1-010", as: "second" },
+            { card: "EX2-007", as: "immune", suspended: true },
+            { card: "BT1-009", as: "ordinary" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010", "BT1-011"],
+          security: ["BT1-010"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.memory = 10;
-    await s.ready();
-
+    preferred.push(s.inst("ordinary").instanceId);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
-    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(2);
-
-    s.state.turnSeat = 1;
-    const opponentTurn = advance(s.engine).runTurn(1);
+    await settle(() => observe(s.engine).subscriptions("endOfOpponentTurn").length === 2);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("immune").instanceId,
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("ordinary").instanceId);
+    await stopLoop(s, loop, 0);
+  });
+
+  it("Q3872: deletion from the gained effect does not trigger Partition", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-072", as: "option" }],
+          battleArea: [{ card: "EX7-061", as: "purple" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "AD1-011", as: "partition", under: ["BT12-021", "BT12-047"] }],
+          deck: ["BT1-010", "BT1-011"],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).subscriptions("endOfOpponentTurn").length === 1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["AD1-011", "BT12-021", "BT12-047"]),
+    );
+    await stopLoop(s, loop, 0);
   });
 
-  it("the granted watcher's run() asks the OPPONENT (not this card's owner) to choose and delete 1 of their Digimon", async () => {
-    const oppPerms = [makePermanent("OPP-1", "OPP-DIGI-1", 1 as Seat, false)];
-    const recorder: Recorder = { calls: [] };
-    let capturedRun: ((ctx: EffectContext) => Promise<void>) | undefined;
-    const ctx = makeCtx({ recorder, oppPerms });
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: { run: (c: EffectContext) => Promise<void> }) => {
-      capturedRun = sub.run;
-      return 0;
-    }) as never;
-
-    const effect = module!.effectsForTiming(EffectTiming.OnUseOption, makeSource())[0]!;
-    await effect.resolve(ctx);
-    expect(capturedRun).toBeDefined();
-
-    let opponentAskCalled = false;
-    let ownerAskCalled = false;
-    const subCtx: EffectContext = {
-      ...ctx,
-      trigger: {},
-      ask: {
-        ...ctx.ask,
-        chooseTargets: async (_c, o) => {
-          ownerAskCalled = true;
-          return o.candidates.slice(0, o.max);
-        },
-        opponent: {
-          optional: async () => true,
-          chooseTargets: async (_c, o) => {
-            opponentAskCalled = true;
-            return o.candidates.slice(0, 1);
-          },
-          selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-          selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-          chooseOption: async () => 0,
+  it("Security deletes an unsuspended Digimon but preserves the suspended attacker", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX7-072", as: "option" }, "BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "EX7-037", as: "attacker" },
+            { card: "BT1-009", as: "victim" },
+          ],
         },
       },
-    };
-
-    await capturedRun!(subCtx);
-
-    expect(opponentAskCalled).toBe(false);
-    expect(ownerAskCalled).toBe(false);
-    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
-      kind: "GainTriggeredEffect",
-      gainedActions: [{ kind: "Delete", target: { chooser: "opponent" } }],
-    });
-  });
-});
-
-describe("EX7-072 [Trash][Your Turn] watches for a digivolve into [Lilithmon (X Antibody)]", () => {
-  const module = getEffectModule("EX7-072");
-
-  it("routes the [Trash] clause to EffectTiming.None", () => {
-    expect(module!.effectsForTiming(EffectTiming.None, makeSource()).length).toBe(1);
-  });
-
-  it("installs an anchor-less subscribeSubTrigger('whenOneOfYoursDigivolves') via sourceInstanceId", async () => {
-    const recorder: Recorder = { calls: [] };
-    const ctx = makeCtx({ recorder, oppPerms: [] });
-    const subCalls: { event: string; sourceInstanceId?: string; sourcePermanentId?: string }[] = [];
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: {
-      event: string;
-      sourceInstanceId?: string;
-      sourcePermanentId?: string;
-    }) => {
-      subCalls.push(sub);
-      return 0;
-    }) as never;
-
-    const effect = module!.effectsForTiming(EffectTiming.None, makeSource())[0]!;
-    await effect.resolve(ctx);
-
-    expect(subCalls).toHaveLength(1);
-    expect(subCalls[0]!.event).toBe("whenOneOfYoursDigivolves");
-    expect(subCalls[0]!.sourceInstanceId).toBe("EX7-072-INST");
-    expect(subCalls[0]!.sourcePermanentId).toBeUndefined();
-  });
-
-  it("matches() only fires for the OWNER's Digimon digivolving into exactly [Lilithmon (X Antibody)]", async () => {
-    const recorder: Recorder = { calls: [] };
-    const ctx = makeCtx({ recorder, oppPerms: [] });
-    let capturedMatches: ((c: EffectContext) => boolean) | undefined;
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: { matches: (c: EffectContext) => boolean }) => {
-      capturedMatches = sub.matches;
-      return 0;
-    }) as never;
-
-    const effect = module!.effectsForTiming(EffectTiming.None, makeSource())[0]!;
-    await effect.resolve(ctx);
-    expect(capturedMatches).toBeDefined();
-
-    const lilithmonXaPerm = makePermanent("HOST", "EX7-061", 0 as Seat, false);
-    const defMap = new Map<string, CardDefinition>([
-      ["EX7-061", { ...digimonDef("EX7-061"), nameEn: "Lilithmon (X Antibody)" }],
-    ]);
-    const opponentsPerm = makePermanent("OPP-HOST", "EX7-061", 1 as Seat, false);
-    const otherDigimonPerm = makePermanent("OTHER", "SOME-OTHER", 0 as Seat, false);
-
-    const makeSubCtx = (perm: typeof lilithmonXaPerm): EffectContext => ({
-      ...ctx,
-      trigger: { subjectPermanentId: perm.permanentId },
-      game: {
-        ...ctx.game,
-        permanentById: (id: string) =>
-          [lilithmonXaPerm, opponentsPerm, otherDigimonPerm].find((p) => p.permanentId === id) as never,
-        definitionOf: (card) => defMap.get(card.cardId) ?? digimonDef(card.cardId),
-      },
-    });
-
-    expect(capturedMatches!(makeSubCtx(lilithmonXaPerm))).toBe(true);
-    // Opponent's own digivolve into Lilithmon (X Antibody) doesn't qualify ("your Digimon").
-    expect(capturedMatches!(makeSubCtx(opponentsPerm))).toBe(false);
-    // The owner's OTHER Digimon digivolving (not into Lilithmon (X Antibody)) doesn't qualify.
-    expect(capturedMatches!(makeSubCtx(otherDigimonPerm))).toBe(false);
-  });
-
-  it("run() pays the cost (returns self to bottom of deck) then activates [Main] (grants the opponent's Digimon)", async () => {
-    const oppPerms = [makePermanent("OPP-1", "OPP-DIGI-1", 1 as Seat, false)];
-    const recorder: Recorder = { calls: [] };
-    const ctx = makeCtx({ recorder, oppPerms });
-    let capturedRun: ((c: EffectContext) => Promise<void>) | undefined;
-    const outerSubCalls: unknown[] = [];
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: { run: (c: EffectContext) => Promise<void> }) => {
-      if (capturedRun === undefined) capturedRun = sub.run;
-      outerSubCalls.push(sub);
-      return 0;
-    }) as never;
-    (ctx.fx as unknown as Primitives).returnToDeck = (async (...args: unknown[]) => {
-      recorder.calls.push({ verb: "returnToDeck", args });
-      return [];
-    }) as never;
-
-    const effect = module!.effectsForTiming(EffectTiming.None, makeSource())[0]!;
-    await effect.resolve(ctx);
-    expect(capturedRun).toBeDefined();
-
-    const nestedSubCalls: unknown[] = [];
-    const subCtx: EffectContext = {
-      ...ctx,
-      trigger: { subjectPermanentId: "HOST" },
-      fx: {
-        ...ctx.fx,
-        returnToDeck: async (...args: unknown[]) => {
-          recorder.calls.push({ verb: "returnToDeck", args });
-          return [];
-        },
-        subscribeSubTrigger: ((sub: unknown) => {
-          nestedSubCalls.push(sub);
-          return 0;
-        }) as never,
-      } as unknown as Primitives,
-    };
-
-    await capturedRun!(subCtx);
-
-    const returnCalls = recorder.calls.filter((c) => c.verb === "returnToDeck");
-    expect(returnCalls).toHaveLength(1);
-    expect(returnCalls[0]!.args[0]).toEqual(["EX7-072-INST"]);
-
-    // [Main] then grants the "endOfOpponentTurn" watcher onto OPP-1.
-    expect(nestedSubCalls).toHaveLength(1);
-    expect((nestedSubCalls[0] as { event: string }).event).toBe("endOfOpponentTurn");
-    expect((nestedSubCalls[0] as { sourcePermanentId: string }).sourcePermanentId).toBe("OPP-1");
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("attacker").instanceId,
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("victim").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

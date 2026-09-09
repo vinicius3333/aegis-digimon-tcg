@@ -1,10 +1,33 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-066.js";
+import "../index.js";
+
+async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>, seat: 0 | 1): Promise<void> {
+  if (!s.state.gameOver && !s.engine.applyIntent(seat, { type: "surrender" }).ok)
+    throw new Error("failed to stop turn loop");
+  await loop;
+}
 
 describe("EX7-066 Chaos Triangular", () => {
+  it("matches the catalog and fully registered IR", () => {
+    expect(getCardDefinition("EX7-066")).toMatchObject({
+      cardId: "EX7-066",
+      nameEn: "Chaos Triangular",
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 6,
+      types: ["Three Musketeers"],
+      securityEffectText: "[Security] Delete 1 of your opponent's Digimon with 12000 DP or less.",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(hasRegisteredCompiledCard("EX7-066")).toBe(true);
+  });
   it("gives +3000 DP when this digivolution card is discarded and waives its color requirement with a Three Musketeers Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -117,35 +140,87 @@ describe("EX7-066 Chaos Triangular", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("adds 3000 DP when an effect trashes this Option from a digivolution stack", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX7-066", as: "chaos" }] }] },
-    });
-    const before = s.perm("host").currentDP;
-    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("chaos").instanceId], 0);
-    await settle(() => s.perm("host").currentDP === before + 3000);
-    expect(s.perm("host").currentDP).toBe(before + 3000);
+  it("gives +3000 DP after EX7-059 publicly trashes it, through the opponent turn only", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-059", as: "beel", under: [{ card: "EX7-066", as: "discarded" }] },
+            { card: "BT1-009", as: "recipient", dp: 3000 },
+          ],
+          hand: [{ card: "EX7-066", as: "used" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT10-022", as: "tooLarge", dp: 16000 }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("recipient").instanceId);
+    const baseDP = s.perm("recipient").currentDP;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beel").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("recipient").currentDP === baseDP + 3000 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("discarded").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("beel").stack.some(({ instanceId }) => instanceId === s.inst("used").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("recipient").currentDP).toBe(baseDP + 3000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("recipient").currentDP).toBe(baseDP);
+    await stopLoop(s, loop, 0);
   });
 
-  it("deletes an opponent's Digimon up to 12000 DP when revealed as Security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "EX7-066", as: "chaos" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 12000 }] },
-    });
+  it.each([
+    [12000, true],
+    [12001, false],
+  ])("uses the real Security deletion boundary at %i DP", async (dp, deleted) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX7-066", as: "chaos" }, "BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", dp: 3000 },
+            { card: "BT10-022", as: "victim", dp },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("victim").instanceId);
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("chaos"));
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("victim").instanceId);
-  });
-
-  it("does not delete a Digimon above the Security DP limit", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "EX7-066", as: "chaos" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 12001 }] },
-    });
-    await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("chaos"));
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("victim").instanceId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("victim").instanceId),
+    ).toBe(!deleted);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("victim").instanceId)).toBe(
+      deleted,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
