@@ -42,4 +42,5 @@
 - Behavioral proof commit: `5d43f3ae2` (`Strengthen EX9 behavioral coverage`).
 - Published branch `audit-ex9-luna-20260909` to `origin` before awarding delivery credit.
 - Recalculated ledger after green gates and publication: 740/740; 74/74 cards at reproducible 10/10.
-- Final evidence commit and remote SHA verification remain pending.
+- Final evidence commit: `ac03ac140` (`Document complete EX9 re-audit`).
+- A final publication-receipt commit records this SHA; remote SHA equality is verified after that commit is pushed.
