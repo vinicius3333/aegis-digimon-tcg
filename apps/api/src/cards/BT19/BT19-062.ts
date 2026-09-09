@@ -84,7 +84,9 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Strikedramon"],
+      // Bracketed [Strikedramon] is an EXACT name gate; `names` is the substring form and
+      // would also accept a relative carrying [Strikedramon] inside its name.
+      namesExact: ["Strikedramon"],
       cost: 3,
       isAlternate: true,
     },

@@ -1,9 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3170 (binding): when trashed in the battle area, the 2nd effect lasts
-// until the end of your opponent's turn (untilOpponentTurnEnd), regardless of
-// whose turn caused the trashing.
+// Both grant clauses print "until the end of your opponent's turn"
+// (`untilOpponentTurnEnd`), matching the rest of the Device cycle (BT19-093,
+// BT19-098, P-159). KB Q3170 confirms it for the trashed clause: trashed during
+// the opponent's turn, the grant lasts to the end of THAT turn.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -25,7 +26,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Knight Device"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -47,7 +48,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 4000,
-          duration: "forTheTurn",
+          duration: "untilOpponentTurnEnd",
         },
         {
           kind: "GainKeyword",
@@ -63,7 +64,7 @@ const compiled: CompiledCard = {
             keyword: "Piercing",
             raw: "＜Piercing＞",
           },
-          duration: "forTheTurn",
+          duration: "untilOpponentTurnEnd",
         },
         {
           kind: "PlaceInBattleAreaSelf",

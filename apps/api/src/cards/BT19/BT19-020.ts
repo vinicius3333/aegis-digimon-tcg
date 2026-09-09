@@ -1,10 +1,16 @@
+// HAND-FIXED IR for BT19-020 — do not regenerate.
+// Re-audit fixes:
+//  - "[Kiriha Aonuma]" is a bracketed EXACT name ref, so `nameExact`, not the `name`
+//    substring mode that also matched [Kiriha Aonuma & Nene Amano] (EX4-062).
+//  - The trailing "Then, ＜Save＞" is the ＜Save＞ keyword (comprehensive 16-20-3): an
+//    OPTIONAL placement, carrying `keywords: [{ keyword: "Save" }]` so the registration
+//    normalizer defaults its PlaceUnder to the stack BOTTOM (comprehensive 4-3-2).
+//    `abortOnDecline` on the last action of an effect is dead and hid the optionality.
+//  - "you have 1 or fewer Tamers" counts Tamers in the BATTLE AREA.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -27,7 +33,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Kiriha Aonuma"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -40,6 +46,7 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Tamer"],
+              zone: "battleArea",
               countMax: 1,
             },
             raw: "you have 1 or fewer Tamers",
@@ -60,7 +67,13 @@ const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
-          abortOnDecline: true,
+          optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Save",
+          raw: "＜Save＞",
         },
       ],
     },

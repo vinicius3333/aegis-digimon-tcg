@@ -33,6 +33,11 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
+      // The printed "Then, ＜Save＞" is the keyword, not a bare placement: the keyword tag is
+      // what `withSavePlacementDefaults` (interpreter/registration/normalize.ts) reads to
+      // default the PlaceUnder to `position: "bottom"` (CR 4-3-2 / 16-20). Without it the card
+      // lands directly beneath the Tamer's top card and inverts the stack.
+      keywords: [{ keyword: "Save", raw: "＜Save＞" }],
       actions: [
         {
           kind: "PlayWithoutCost",
@@ -99,6 +104,10 @@ const compiled: CompiledCard = {
         },
       ],
       count: 2,
+      // `count` is the PER-MATERIAL discount (-2). The printed recipe names exactly one
+      // [Nene Amano]; without a cap a single-slot recipe accepts any number of matching
+      // materials (digiXros.ts materialsSatisfyRecipe), paying -2 for each.
+      maxMaterials: 1,
     },
   ],
 };

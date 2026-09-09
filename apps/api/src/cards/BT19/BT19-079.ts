@@ -1,25 +1,25 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-written override for BT19-079 (Taiki Kudo). source: documented behavior.
-// The AUTO-GENERATED header has been removed to protect this file from overwrite.
+// Hand-written override for BT19-079 (Taiki Kudo).
 //
-// SEMANTIC CORRECTIONS (Phase 10.1-10):
+//   [Start of Your Turn] If you have 2 or less memory, set it to 3.
+//   [All Turns] When any of your [Xros Heart] trait Digimon cards with DigiXros requirements
+//     would be played, by suspending this Tamer, you may place cards from under your Tamers
+//     as digivolution cards for a DigiXros.
+//   [Security] Play this card without paying the cost.
 //
-// Auto-declarative effect record only modeled the suspend-self COST of the DigiXros material
+// The [All Turns] clause is a `wouldBePlayed` replacement, exactly like its printed siblings
+// BT19-087 and EX10-064: it may only fire on a play of a [Xros Heart] Digimon that actually
+// carries DigiXros requirements. Modelling it as a bare `AllTurns` action (the shape this card
+// carried before the BT19 re-audit) let every [All Turns] window offer the suspend cost with no
+// play in sight, so accepting it suspended the Tamer for nothing.
 //
-//   [All Turns] When a Xros Heart Digimon with DigiXros requirements would be played,
-//   by suspending this Tamer, cards from under your Tamers can ALSO be placed as
-//   DigiXros materials (source-zone expansion).
-//
-// The zone expansion is consumed by the DigiXros play subsystem: BT19-079 is registered in
-// `engine/digiXros/zoneExpanders.ts` (under-Tamer max 100, gated on the played card being
-// [Xros Heart]). When a player DigiXros-plays a card and elects to suspend this Tamer
-// (`expanderPermanentIds`), `engine/actions/digiXros.ts` reads that registry to legalize materials
-// from under the player's Tamers. The `DigiXrosMaterialZoneExpansion` IR clause below is retained
-// as documentation; the registry is the authoritative consumer. A3: `BT19-079.test.ts`.
-// The SetMemory and Security effects are faithful.
-//
+// The direct `playCard` DigiXros verb reads the same permission from the registry in
+// `packages/shared/src/cards/zoneExpanders.ts` (`appliesTo` = has the [Xros Heart] trait,
+// `underTamerMax` 100, no `underTamerHostScope`, so any of your Tamers may host — KB Q3139);
+// `engine/actions/digiXros.ts` consults it when the intent names `expanderPermanentIds`.
+// Behaviour: `BT19-079.test.ts`.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -31,27 +31,43 @@ const compiled: CompiledCard = {
           condition: {
             kind: "memoryAtMost",
             value: 2,
+            raw: "If you have 2 or less memory",
           },
         },
       ],
     },
     {
       trigger: "AllTurns",
-      optional: true,
       actions: [
         {
-          kind: "DigiXrosMaterialZoneExpansion",
-          zones: ["digivolutionCards"],
-          duration: "untilOpponentTurnEnd",
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: { isSelfRef: true },
-              count: 1,
-              isSelf: true,
-            },
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
+            hasDigiXrosRequirement: true,
           },
-          raw: "[All Turns] When playing a Xros Heart Digimon with DigiXros, by suspending this Tamer, cards from under your Tamers can also be placed as DigiXros materials.",
+          mode: "instead",
+          optional: true,
+          actions: [
+            {
+              kind: "DigiXrosMaterialZoneExpansion",
+              zones: ["underTamers"],
+              duration: "forTheTurn",
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: { isSelfRef: true },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              raw: "you may place cards from under your Tamers as digivolution cards for a DigiXros",
+            },
+          ],
+          raw: "[All Turns] When any of your [Xros Heart] trait Digimon cards with DigiXros requirements would be played, by suspending this Tamer, you may place cards from under your Tamers as digivolution cards for a DigiXros.",
         },
       ],
     },

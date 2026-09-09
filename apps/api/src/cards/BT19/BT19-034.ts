@@ -16,8 +16,9 @@ const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [
                 {
+                  // Printed `[Rika Nonaka]` is an exact-name reference, not a substring one.
                   tokens: ["Rika Nonaka"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

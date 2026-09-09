@@ -1,6 +1,22 @@
 // HAND-FIXED IR for BT19-082 — do not regenerate.
-// YourTurn SubTrigger PlaceUnder: added from:["hand"], underFilter:{mine Digimon},
-// position:bottom (places Aqua/Sea Animal Lv.≤5 from hand under a Digimon).
+//
+// BT19-082 Yao Qinglan (Blue Tamer, cost 4, [LIBERATOR]).
+//
+//   [Start of Your Turn] If you have 2 memory or less, set your memory to 3.
+//   [Your Turn] When any of your Digimon with [Aqua]/[Sea Animal] in one of its traits attack,
+//     by suspending this Tamer, you may place 1 level 5 or lower Digimon card with
+//     [Aqua]/[Sea Animal] in one of its traits from your hand as that Digimon's bottom
+//     digivolution card.
+//   [Security] Play this card without paying the cost.
+//
+// No card-specific rulings: `node tools/kb/query.mjs card BT19-082` reports no knowledge-base
+// entries, and docs/audits/BT19-reaudit/KB-INDEX.md lists 0 Q&A for this card.
+//
+// "with [X] in one of its traits" is a SUBSTRING trait match, not the exact "with the [X] trait"
+// form, so both refs use `match: "traitContains"`. This is load-bearing rather than cosmetic:
+// no card in the catalog carries a trait spelled exactly "Aqua" — the printed reference reaches
+// [Aquatic], [Aquabeast] and [Ancient Aquabeast] — so the exact form this module previously used
+// made the whole [Aqua] half of the clause unreachable.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
@@ -30,7 +46,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Aqua", "Sea Animal"],
-                match: "trait",
+                match: "traitContains",
               },
             ],
           },
@@ -48,7 +64,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Aqua", "Sea Animal"],
-                      match: "trait",
+                      match: "traitContains",
                     },
                   ],
                 },

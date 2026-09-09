@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 1 Starmons AND 1 Pickmons from trash as bottom digivolution cards of the
 // played ShootingStarmon (Q&A: place whichever is available).
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["ShootingStarmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -53,7 +53,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Starmons"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -66,7 +66,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["ShootingStarmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -81,7 +81,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Pickmons"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -94,7 +94,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["ShootingStarmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

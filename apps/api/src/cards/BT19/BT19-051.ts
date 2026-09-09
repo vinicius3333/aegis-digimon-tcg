@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [On Deletion]: Place 1 Digimon card with [Xros Heart]/[Blue Flare] trait from hand or trash
 // under any of your Tamers.
 // Static GrantStatic "name" for Ballistamon is scoped to DigiXros only per Q&A Q3105.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

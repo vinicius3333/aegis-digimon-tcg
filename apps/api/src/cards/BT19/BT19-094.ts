@@ -16,7 +16,9 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Lucemon (X Antibody)"],
-                match: "name",
+                // Bracketed exact name: the substring form would also fire on a hypothetical
+                // longer name containing it.
+                match: "nameExact",
               },
             ],
           },
@@ -96,7 +98,9 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Lucemon"],
-                  match: "name",
+                  // [Lucemon] is exact: "Lucemon: Chaos Mode" and "Lucemon (X Antibody)" are
+                  // different cards and must not be playable off this [Security] effect.
+                  match: "nameExact",
                 },
               ],
             },

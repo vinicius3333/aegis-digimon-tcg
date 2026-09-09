@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { Phase, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -14,7 +14,7 @@ describe("BT19-001 Pickmons", () => {
             { card: "BT19-081", as: "tamer" },
           ],
           hand: ["BT19-081", "BT19-067", "BT19-016", "BT19-016"],
-          deck: ["BT1-001", "BT1-001"],
+          deck: [{ card: "BT1-009", as: "deckTop" }, "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -33,7 +33,9 @@ describe("BT19-001 Pickmons", () => {
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT19-016")).toBe(true);
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT19-081")).toBe(false);
     expect((s.state.players[0] as PlayerState).hand.some((card) => card.cardId === "BT19-067")).toBe(true);
-    expect((s.state.players[0] as PlayerState).hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(
+      (s.state.players[0] as PlayerState).hand.some(({ instanceId }) => instanceId === s.inst("deckTop").instanceId),
+    ).toBe(true);
 
     const stackAfterFirstAttack = s.perm("tamer").stack.length;
     const handAfterFirstAttack = (s.state.players[0] as PlayerState).hand.length;
@@ -60,7 +62,7 @@ describe("BT19-001 Pickmons", () => {
             { card: "BT19-081", as: "tamer" },
           ],
           hand: ["BT19-016"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -78,5 +80,165 @@ describe("BT19-001 Pickmons", () => {
 
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).toEqual(["BT19-016"]);
+  });
+  it("carries the inherited draw through the real Digi-Egg route and is once per turn", async () => {
+    // Peer/stack case. Every zone change is a public intent: `hatchEgg` takes BT19-001 off the
+    // egg deck in the production Breeding window, the Red Lv.3 BT3-009 digivolves onto it in
+    // the breeding area (Lv.2 Red, cost 0), `moveFromBreeding` carries the stack into the
+    // battle area on the next own turn, and only then does the inherited [When Attacking]
+    // clause fire from under the real host. `preferInstanceIds` biases the cost selection
+    // toward the OFF-TRAIT peer in hand, so a filter that accepted it would place it.
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT19-001", as: "egg" }],
+          battleArea: [{ card: "BT1-088", as: "tamer" }],
+          hand: [
+            { card: "BT3-009", as: "hawkmon" },
+            { card: "BT10-007", as: "xrosCard" },
+            { card: "BT10-007", as: "xrosCardB" },
+            { card: "BT19-067", as: "offTraitCard" },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-009", "BT1-014", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-013", "BT1-012", "BT1-014", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("offTraitCard").instanceId);
+    const loop = s.engine.startTurnLoop();
+
+    // Turn 1 (seat 0): hatch, then digivolve onto the egg inside the breeding area.
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT19-001");
+    const eggInstanceId = s.state.players[0]!.breeding!.topCard!.instanceId;
+    const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
+    expect(s.state.players[0]!.eggDeck).toHaveLength(0);
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggPermanentId,
+        instanceId: s.inst("hawkmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT3-009");
+    expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("tamer").permanentId]);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+
+    // Turn 3 (seat 0): move the raised stack into the battle area and attack.
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    const carrier = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT3-009")!;
+    expect(carrier.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+
+    await advance(s.engine).waitForMainPhase(0);
+    const handBeforeAttack = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
+    const deckTopInstanceId = s.state.players[0]!.deck[0]!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: carrier.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.length === 1);
+
+    // The Xros Heart peer paid the cost; the off-trait peer stayed in hand despite the bias.
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("xrosCard").instanceId]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("offTraitCard").instanceId)).toBe(
+      true,
+    );
+    const drawn = s.state.players[0]!.hand.filter(({ instanceId }) => !handBeforeAttack.includes(instanceId));
+    expect(drawn).toHaveLength(1);
+    expect(drawn[0]!.instanceId).toBe(deckTopInstanceId);
+
+    // Same turn, second attack: Once Per Turn refuses a second placement and draw.
+    const handAfterFirstAttack = s.state.players[0]!.hand.length;
+    await advance(s.engine).verb.unsuspend([carrier.permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: carrier.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+    expect(s.perm("tamer").stack).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(handAfterFirstAttack);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+
+    // Turn 5 (seat 0): the guard has reset, so the clause fires again from the same stack.
+    await advance(s.engine).waitForMainPhase(0);
+    const handBeforeReset = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: carrier.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.length === 2);
+
+    expect(
+      s
+        .perm("tamer")
+        .stack.map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual([s.inst("xrosCard").instanceId, s.inst("xrosCardB").instanceId].sort());
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("offTraitCard").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.filter(({ instanceId }) => !handBeforeReset.includes(instanceId))).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+  it("does nothing when there is no Tamer to place the card under", async () => {
+    // The cost names a destination ("under any of your Tamers"), so with no Tamer in play the
+    // qualifying [Xros Heart] card in hand must stay there and no draw happens.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-007", as: "host", under: ["BT19-001"] }],
+          hand: [{ card: "BT10-007", as: "xrosCard" }],
+          deck: ["BT1-009", "BT1-013"],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("xrosCard").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

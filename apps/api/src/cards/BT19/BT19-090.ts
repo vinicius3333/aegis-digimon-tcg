@@ -15,6 +15,9 @@ const playFromTamer: Action = {
   payCost: false,
   optional: true,
 };
+// Both cost names are printed bracketed ([Shoutmon EX6], [ShootingStarmon]), so they are
+// EXACT name gates (`nameExact`), not the substring `match: "name"` reserved for
+// "w/[Name] in its name" wording.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -39,7 +42,7 @@ const compiled: CompiledCard = {
                       filter: {
                         controller: "mine",
                         kind: ["Digimon"],
-                        nameOrTrait: [{ tokens: ["Shoutmon EX6"], match: "name" }],
+                        nameOrTrait: [{ tokens: ["Shoutmon EX6"], match: "nameExact" }],
                         suspended: true,
                       },
                       count: 1,
@@ -48,7 +51,7 @@ const compiled: CompiledCard = {
                       filter: {
                         controller: "mine",
                         kind: ["Digimon"],
-                        nameOrTrait: [{ tokens: ["ShootingStarmon"], match: "name" }],
+                        nameOrTrait: [{ tokens: ["ShootingStarmon"], match: "nameExact" }],
                         suspended: true,
                       },
                       count: 1,

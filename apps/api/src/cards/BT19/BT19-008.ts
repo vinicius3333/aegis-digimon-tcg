@@ -1,8 +1,9 @@
 // HAND-FIXED IR for BT19-008 — do not regenerate.
 // YourTurn inherited GainKeyword Rush: added Xros Heart trait condition on target.
+// OnDeletion <Save>: optional per comprehensive 16-20-3, with the keyword declared.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -76,7 +77,15 @@ const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
-          abortOnDecline: true,
+          // Comprehensive 16-20-3: the processing from <Save> is optional. Matches the
+          // accepted BT10-008 <Save> shape.
+          optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Save",
+          raw: "＜Save＞",
         },
       ],
     },

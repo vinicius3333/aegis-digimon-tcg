@@ -1,252 +1,392 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT19-084.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-/**
- * A3 for BT19-084's [Main] face-up-security digivolve SOURCE + the digivolve-RESULT binding
- * gating the "then place [Royal Base]" clause (KB BT19-084; documented behavior).
- *
- *   "[Main] By suspending this Tamer, 1 of your Digimon digivolves into a Digimon card in your
- *    FACE-UP security cards. If this effect digivolved, you may place 1 [Royal Base] Digimon
- *    from hand face up as your bottom security card."
- *
- * Two new/reused surfaces proven, each through the REAL interpreter:
- *  - face-up-security SOURCE: runDigivolve drops face-DOWN security candidates (documented behavior !IsFlipped).
- *  - result binding (08-01 ifThisEffectDigivolved): the place-[Royal Base] clause runs only if
- *    the digivolve happened.
- *
- * FAILS-WHEN-REVERTED:
- *  - (source) make the security card FACE DOWN => no eligible digivolve source => no digivolve
- *    => the place clause is skipped (and digivolveFromInstance is never called).
- *  - (binding) drop `ctx.lastDigivolveResult = true` in runDigivolve => the success-case place
- *    clause never runs.
- */
+// Fixture vocabulary.
+// BT1-064 Goblimon: inert Green Lv.3, 3000 DP — the digivolve source on the battle area.
+// BT1-071 Vegiemon: inert Green Lv.4, 6000 DP, evo cost Green Lv.3 for 1 — the Digimon card
+//   parked in FACE-UP security that the [Main] clause digivolves into.
+// BT19-045 FunBeemon: Green/Black Lv.3 with the [Royal Base] trait — the placement hit.
+// BT1-065 Mushroomon: inert Green Lv.3 WITHOUT [Royal Base] — the trait near-miss that must
+//   never be placed.
+// BT18-004 Puroromon: its INHERITED [Start of Your Main Phase] clause places a [Royal Base]
+//   Digimon face up as the bottom security card — the Q3146 simultaneous-trigger partner.
+// BT1-009 Monodramon / BT1-013 Muchomon: inert Red Lv.3 main-deck Digimon — deck and security
+//   padding (no Digi-Egg may sit in either zone).
+const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
 
-let seq = 0;
-
-function makeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: "X-000",
-    set: "X",
-    nameEn: "X",
-    kinds: ["Digimon"] as never,
-    colors: [],
-    playCost: 0,
-    dp: 3000,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
+/** The [Main] activated ability's public effect key on this Tamer. */
+function mainEffectKey(s: EngineSetup, alias: string): string {
+  const entries = JSON.parse(s.perm(alias).activatableEffectsJson || "[]") as { effectKey: string }[];
+  expect(entries.length).toBeGreaterThan(0);
+  return entries[0]!.effectKey;
 }
 
-function makePermanent(over: Partial<Permanent> & { cardId?: string }): Permanent {
-  seq += 1;
-  return {
-    permanentId: `p-${seq}`,
-    controllerSeat: 0 as Seat,
-    topCard: { instanceId: `i-${seq}`, cardId: over.cardId ?? "X-000", ownerSeat: 0 as Seat, faceUp: true },
-    stack: [],
-    linked: [],
-    baseDP: 3000,
-    currentDP: 3000,
-    isSuspended: false,
-    inBreeding: false,
-    ...over,
-  } as unknown as Permanent;
+function activateMain(s: EngineSetup, alias: string) {
+  return s.engine.applyIntent(0, {
+    type: "activateEffect",
+    sourceInstanceId: s.perm(alias).topCard!.instanceId,
+    effectKey: mainEffectKey(s, alias),
+  });
 }
 
-const ROYAL_BASE = "ROYAL-BASE-DIGIMON";
-const SEC_DIGIMON = "SEC-DIGIMON";
-
-function makeSource(self: Permanent): CardSource {
-  return {
-    instanceId: "SRC#1",
-    cardId: "BT19-084",
-    ownerSeat: 0 as Seat,
-    definition: makeDefinition({ cardId: "BT19-084", kinds: ["Tamer"] as never }),
-    permanent: () => self,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
-interface Harness {
-  ctx: EffectContext;
-  digivolveCalls: number;
-  addSecurityCalls: { ids: string[]; faceUp?: boolean }[];
-  suspendCalls: number;
-}
-
-function makeHarness(opts: {
-  securityFaceUp: boolean;
-  /** When false, runDigivolve's fake reports "no digivolve" even with a source (binding lever). */
-  digivolveSucceeds?: boolean;
-}): Harness {
-  seq = 0;
-  const self = makePermanent({ cardId: "BT19-084", controllerSeat: 0 as Seat });
-  const friendly = makePermanent({ permanentId: "friendly", cardId: "X-FRIEND", controllerSeat: 0 as Seat });
-  // The Digimon card sitting in seat 0's security (face-up or face-down per the case).
-  const secCard = { instanceId: "sec-1", cardId: SEC_DIGIMON, ownerSeat: 0 as Seat, faceUp: opts.securityFaceUp };
-  const royalBaseInHand = { instanceId: "rb-1", cardId: ROYAL_BASE, ownerSeat: 0 as Seat, faceUp: false };
-  const players = [
-    {
-      seat: 0,
-      battleArea: [self, friendly],
-      security: [secCard],
-      hand: [royalBaseInHand],
-      deck: [],
-      trash: [],
-    },
-    { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
-  ];
-  const byId: Record<string, Permanent> = { [self.permanentId]: self, friendly };
-  const game: GameAccess = {
-    state: { memory: 0, players, turnSeat: 0 } as never,
-    player: (s: Seat) => players[s] as never,
-    opponentOf: (s) => (s === 0 ? 1 : 0),
-    permanentById: (id) => byId[id],
-    definitionOf: (card) =>
-      makeDefinition({
-        cardId: card.cardId,
-        nameEn: card.cardId,
-        kinds: ["Digimon"] as never,
-        level: card.cardId === SEC_DIGIMON ? 5 : 4,
-        colors: ["Blue"] as never,
-        evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }] as never,
-        // Tag the Royal Base card with the trait so the place-source filter matches it.
-        attributes: card.cardId === ROYAL_BASE ? ["Royal Base"] : [],
-      }),
-    linkMax: () => 1,
-  };
-  const h: Harness = { ctx: undefined as never, digivolveCalls: 0, addSecurityCalls: [], suspendCalls: 0 };
-  const fx = {
-    suspend: async (ids: string[]) => {
-      h.suspendCalls += 1;
-      return ids;
-    },
-    digivolveFromInstance: async () => {
-      h.digivolveCalls += 1;
-      return opts.digivolveSucceeds === false ? undefined : makePermanent({ cardId: SEC_DIGIMON });
-    },
-    addSecurity: async (_seat: Seat, ids: string[], o?: { faceUp?: boolean }) => {
-      h.addSecurityCalls.push({ ids, faceUp: o?.faceUp });
-    },
-  } as unknown as Primitives;
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-  h.ctx = {
-    source: makeSource(self),
-    trigger: {},
-    game,
-    fx,
-    ask,
-    selections: new Map<string, string>(),
-  };
-  return h;
-}
-
-async function runMain(h: Harness): Promise<void> {
-  const module = getEffectModule("BT19-084")!;
-  // The [Main] activated ability is reachable at OnDeclaration (timingsForTrigger maps Main).
-  const effects = module.effectsForTiming(EffectTiming.OnDeclaration, h.ctx.source);
-  for (const e of effects) await e.resolve(h.ctx);
-}
-
-describe("BT19-084 — face-up-security digivolve source + result-bound place clause", () => {
-  beforeEach(() => {
-    seq = 0;
+describe("BT19-084 Winr — catalog", () => {
+  it("matches the printed catalog record", () => {
+    expect(getCardDefinition("BT19-084")).toMatchObject({
+      cardId: "BT19-084",
+      nameEn: "Winr",
+      colors: ["Green"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      types: ["LIBERATOR"],
+      maxCountInDeck: 4,
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    // Catalog discrepancy (reported, not edited): the record stores U+00A0 NO-BREAK SPACE
+    // after "[Royal Base]" where the printed card has a plain space. Also note the printed
+    // typo the catalog faithfully carries: "as your the bottom security card".
+    const printed = getCardDefinition("BT19-084")!.effectText!;
+    expect(printed).toContain("\u00a0");
+    expect(printed.replace(/\u00a0/g, " ")).toBe(
+      "[Start of Your Main Phase] If you have a face-up security card, gain 1 memory.\n[Main] By suspending this Tamer, 1 of your Digimon may digivolve into a Digimon card in your face-up security cards. If this effect digivolved, you may place 1 Digimon card with the [Royal Base] trait from your hand face-up as your the bottom security card.",
+    );
   });
 
-  it("a FACE-UP security Digimon source => the digivolve runs and the [Royal Base] place clause runs", async () => {
-    const h = makeHarness({ securityFaceUp: true });
-    await runMain(h);
-    expect(h.digivolveCalls).toBe(1);
-    // The place-[Royal Base] clause ran (gated true) and placed face up.
-    expect(h.addSecurityCalls.length).toBe(1);
-    expect(h.addSecurityCalls[0]!.faceUp).toBe(true);
-    expect(h.addSecurityCalls[0]!.ids).toContain("rb-1");
+  it("compiles the three printed clauses to the intended IR shape", () => {
+    const card = runtimeCompiledCard("BT19-084");
+    expect(card).toMatchObject({ coverage: "full", residual: [] });
+    expect(card?.effects).toMatchObject([
+      {
+        trigger: "StartOfYourMainPhase",
+        actions: [
+          {
+            kind: "GainMemory",
+            amount: 1,
+            // `zone: "security"` + `faceUp: true` is read by the loose-zone branch of
+            // `countMatching` (interpreter/scaling.ts:58-66); the battle-area default would
+            // count permanents and never see a security card.
+            condition: { kind: "youHave", filter: { zone: "security", faceUp: true } },
+          },
+        ],
+      },
+      {
+        trigger: "Main",
+        optional: true,
+        actions: [
+          {
+            kind: "Digivolve",
+            from: ["security"],
+            payCost: true,
+            cost: { kind: "suspend" },
+          },
+          {
+            kind: "SecurityManipulation",
+            op: "placeAsSecurity",
+            from: ["hand"],
+            toTop: false,
+            faceUp: true,
+            optional: true,
+            // "with the [Royal Base] trait" is the EXACT trait form, not a substring gate.
+            source: { filter: { nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] }, count: 1, upTo: true },
+            condition: { kind: "ifThisEffectDigivolved" },
+          },
+        ],
+      },
+      {
+        trigger: "Security",
+        isSecurity: true,
+        actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, isSelf: true }, payCost: false }],
+      },
+    ]);
+  });
+});
+
+describe("BT19-084 Winr — [Start of Your Main Phase] face-up security memory", () => {
+  it("gains 1 memory only when a face-up security card is there, read inside the open Main phase", async () => {
+    const readings: number[] = [];
+    for (const faceUp of [true, false]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT19-084", as: "winr" }],
+            hand: [{ card: "BT1-009", as: "spare" }],
+            deck: [...FILLER],
+            security: [{ card: "BT1-009", faceUp }, "BT1-013"],
+          },
+          1: { deck: [...FILLER], security: [...SECURITY] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const loop = s.engine.startTurnLoop();
+      // Read the memory WHILE our Main phase is open: after the turn hands over, the
+      // post-pass value would prove nothing.
+      await advance(s.engine).waitForMainPhase(0);
+      await s.ready();
+      readings.push(s.state.memory);
+
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    }
+    // Identical boards apart from the security card's orientation: the face-up run is +1.
+    expect(readings[0]).toBe(readings[1]! + 1);
   });
 
-  it("a FACE-DOWN security card is NOT an eligible source => no digivolve, place clause skipped", async () => {
-    const h = makeHarness({ securityFaceUp: false });
-    await runMain(h);
-    // FAILS-WHEN-REVERTED (source filter): a face-down security card would otherwise be a source.
-    expect(h.digivolveCalls).toBe(0);
-    expect(h.addSecurityCalls.length).toBe(0);
-  });
+  it("resolves alongside BT18-004 Puroromon's inherited placement so the memory clause sees it (Q3146)", async () => {
+    // Both [Start of Your Main Phase] clauses trigger with NO face-up security card present.
+    // Q3146: Puroromon's placement may resolve first, and Winr's clause then finds the face-up
+    // card it created and gains the memory. The control run gives Puroromon nothing to place
+    // (a Green Digimon WITHOUT [Royal Base] in hand), so no face-up card ever exists.
+    const readings: number[] = [];
+    for (const inHand of ["BT19-045", "BT1-065"]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT19-084", as: "winr" },
+              { card: "BT1-064", as: "eggHost", under: ["BT18-004"] },
+            ],
+            hand: [
+              { card: inHand, as: "placeable" },
+              { card: "BT1-009", as: "spare" },
+            ],
+            deck: [...FILLER],
+            security: ["BT1-009", "BT1-013"],
+          },
+          1: { deck: [...FILLER], security: [...SECURITY] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      await s.ready();
+      readings.push(s.state.memory);
 
-  it("the digivolve does NOT happen (no result) => the place clause is skipped (result binding)", async () => {
-    const h = makeHarness({ securityFaceUp: true, digivolveSucceeds: false });
-    await runMain(h);
-    expect(h.digivolveCalls).toBe(1); // a source was found and attempted
-    // FAILS-WHEN-REVERTED (binding): if runDigivolve bound TRUE unconditionally, the place clause runs.
-    expect(h.addSecurityCalls.length).toBe(0);
-  });
+      const placed = inHand === "BT19-045";
+      expect(s.state.players[0]!.security.at(-1)!.faceUp).toBe(placed);
+      // Placed => the [Royal Base] card is the bottom security card; not placed => it stayed in hand.
+      expect(s.state.players[0]!.security.at(-1)!.cardId === inHand).toBe(placed);
+      expect(s.state.players[0]!.hand.some((card) => card.cardId === inHand)).toBe(!placed);
 
-  it("publicly digivolves into a face-up security card and places Royal Base from hand", async () => {
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    }
+    // Puroromon's placement first => Winr's condition holds when it resolves: +1 over the control.
+    expect(readings[0]).toBe(readings[1]! + 1);
+  });
+});
+
+describe("BT19-084 Winr — [Main] digivolve into a face-up security Digimon", () => {
+  it("suspends the Tamer, digivolves out of face-up security and places a [Royal Base] card at the bottom", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT19-084", as: "winr" },
-            { card: "BT1-009", as: "source" },
+            { card: "BT1-064", as: "source" },
           ],
-          security: [{ card: "AD1-001", as: "securityDigimon", faceUp: true }],
-          hand: [{ card: "BT19-045", as: "royalBase" }],
+          hand: [
+            { card: "BT19-045", as: "royalBase" },
+            { card: "BT1-065", as: "traitMiss" },
+          ],
+          deck: [...FILLER],
+          security: [{ card: "BT1-071", as: "securityDigimon", faceUp: true }, "BT1-013"],
         },
+        1: { deck: [...FILLER], security: [...SECURITY] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 10;
-
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("winr"));
-    await settle(
-      () => s.perm("source").topCard.instanceId === s.inst("securityDigimon").instanceId && s.perm("winr").isSuspended,
-    );
-
-    expect(s.perm("source").topCard.instanceId).toBe(s.inst("securityDigimon").instanceId);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalBase").instanceId)).toBe(false);
-    expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(s.inst("royalBase").instanceId);
-    expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
-  });
-
-  it("activates the Main effect through the public activation intent", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT19-084", as: "winr" },
-            { card: "BT1-009", as: "source" },
-          ],
-          security: [{ card: "AD1-001", faceUp: true }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await s.ready();
-    const entries = JSON.parse(s.perm("winr").activatableEffectsJson ?? "[]") as { effectKey: string }[];
-    expect(entries.length).toBeGreaterThan(0);
+    const sourceInstanceId = s.inst("source").instanceId;
+    const memoryBefore = s.state.memory;
+
+    expect(activateMain(s, "winr")).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard!.instanceId === s.inst("securityDigimon").instanceId);
+
+    // The digivolve really happened out of security: Vegiemon on top of the Goblimon it came from.
+    expect(s.perm("source").topCard!.instanceId).toBe(s.inst("securityDigimon").instanceId);
+    expect(s.perm("source").stack.map((card) => card.instanceId)).toEqual([sourceInstanceId]);
+    expect(s.perm("source").currentDP).toBe(6000);
+    // Vegiemon's printed evolution cost off a Green Lv.3 is 1; the suspend is the effect's cost.
+    expect(s.state.memory).toBe(memoryBefore - 1);
+    expect(s.perm("winr").isSuspended).toBe(true);
+
+    // The [Royal Base] card was placed FACE UP as the BOTTOM security card; the near-miss stayed.
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-013", "BT19-045"]);
+    expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(s.inst("royalBase").instanceId);
+    expect(s.state.players[0]!.security.at(-1)!.faceUp).toBe(true);
+    // The digivolution draw put the deck's top card in hand; the trait near-miss never moved.
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-065", "BT1-009"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not treat a FACE-DOWN security Digimon as a source, so the [Main] clause is not offered", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-084", as: "winr" },
+            { card: "BT1-064", as: "source" },
+          ],
+          hand: [
+            { card: "BT19-045", as: "royalBase" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: [...FILLER],
+          // Same board as the success case except the Vegiemon is face DOWN.
+          security: [{ card: "BT1-071", as: "securityDigimon", faceUp: false }, "BT1-013"],
+        },
+        1: { deck: [...FILLER], security: [...SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    const sourceInstanceId = s.inst("source").instanceId;
+    const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
+
+    // `runDigivolve` drops face-down security candidates, so no route exists and the ability
+    // is not activatable at all (interpreter/actions/digivolve.ts:186/254, `faceDownSecurityOk`).
+    expect(JSON.parse(s.perm("winr").activatableEffectsJson || "[]")).toEqual([]);
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: s.perm("winr").topCard!.instanceId,
-        effectKey: entries[0]!.effectKey,
-      }),
-    ).toEqual({ ok: true });
+        effectKey: "main-0",
+      }).ok,
+    ).toBe(false);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("source").topCard!.instanceId).toBe(sourceInstanceId);
+    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.perm("winr").isSuspended).toBe(false);
+    // The tail is gated on the digivolve, so the [Royal Base] card is still in hand.
+    expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT19-045"]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("refuses a second activation while the Tamer is suspended and allows one again next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-084", as: "winr" },
+            { card: "BT1-064", as: "source" },
+            { card: "BT1-065", as: "secondSource" },
+          ],
+          hand: [
+            { card: "BT19-045", as: "royalBase" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: [...FILLER],
+          security: [
+            { card: "BT1-071", as: "firstTarget", faceUp: true },
+            { card: "BT1-071", as: "secondTarget", faceUp: true },
+            "BT1-013",
+          ],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    const effectKey = mainEffectKey(s, "winr");
+    expect(activateMain(s, "winr")).toEqual({ ok: true });
     await settle(() => s.perm("winr").isSuspended);
     expect(s.perm("winr").isSuspended).toBe(true);
+
+    // Same turn: the suspend cost cannot be paid again, so the second source is untouched.
+    const secondSourceInstanceId = s.inst("secondSource").instanceId;
+    expect(JSON.parse(s.perm("winr").activatableEffectsJson || "[]")).toEqual([]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("winr").topCard!.instanceId,
+        effectKey,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("secondSource").topCard!.instanceId).toBe(secondSourceInstanceId);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    // The opponent's whole turn runs through the real loop; the Tamer stays suspended.
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(s.perm("winr").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    // Our own unsuspend phase stood it back up: the [Main] clause is payable again.
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.perm("winr").isSuspended).toBe(false);
+    expect(activateMain(s, "winr")).toEqual({ ok: true });
+    await settle(() => s.perm("winr").isSuspended);
+    expect(s.perm("secondSource").topCard!.cardId).toBe("BT1-071");
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT19-084 Winr — [Security] play without paying the cost", () => {
+  it("plays itself for free out of a real security check on a FACE-UP security card (Q3147/Q3148/Q3149)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: {
+          // Q3147: a card placed face up in the security stack stays revealed there.
+          security: [{ card: "BT19-084", as: "winr", faceUp: true }, "BT1-009"],
+          deck: [...FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);
+    const memoryBefore = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    // Q3148/Q3149: the check runs on the revealed card and its [Security] effect still fires.
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-084"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("winr").instanceId,
+    ]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    // Played without paying: no memory moved for the Tamer's cost of 3.
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

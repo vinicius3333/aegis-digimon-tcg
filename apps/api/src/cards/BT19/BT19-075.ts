@@ -1,8 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Manual audit correction: the number of Tamers deleted is based on cards trashed from the
-// opponent's hand by this effect, not on the opponent's total board/card count.
+// Manual audit corrections:
+// - the number of Tamers deleted is based on cards trashed from the opponent's hand by this
+//   effect, not on the opponent's total board/card count;
+// - the [Digivolve] route is a bracketed exact-name gate (`namesExact`), not a substring one.
 // The All Turns watcher observes other Digimon/Tamers regardless of controller, then trashes
 // the opponent's top security card (not an arbitrary opponent permanent).
 
@@ -141,7 +143,9 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Millenniummon"],
+      // Printed `[Digivolve][Millenniummon]` is a BRACKETED exact-name route, so the gate is
+      // `namesExact`; the substring `names` form would also admit ZeedMillenniummon.
+      namesExact: ["Millenniummon"],
       cost: 2,
       isAlternate: true,
     },

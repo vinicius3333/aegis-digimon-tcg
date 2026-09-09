@@ -6,7 +6,7 @@ const lucemonInStack: Condition = {
   filter: { nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }] },
   raw: "a [Lucemon] card is in this Digimon's digivolution cards",
 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
@@ -52,6 +52,8 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
+      // "Lv.5 or higher w/[Lucemon] in its name" — an "in its name" gate is SUBSTRING, so
+      // `names` (not `namesExact`) is correct here: [Lucemon: Chaos Mode] is a legal source.
       levelMin: 5,
       names: ["Lucemon"],
       cost: 3,

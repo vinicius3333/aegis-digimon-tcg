@@ -27,6 +27,9 @@ const compiled: CompiledCard = {
           bindResultAs: "upgraded",
           cost: {
             kind: "return",
+            // "to the bottom of the deck". Without this the permanent branch of the return
+            // cost (interpreter/costs.ts) falls through to `returnToHand`.
+            to: "deckBottom",
             target: {
               filter: {
                 controller: "mine",

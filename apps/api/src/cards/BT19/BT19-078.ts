@@ -1,9 +1,13 @@
 import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// HAND-FIXED IR for BT19-078 — do not regenerate.
+// Re-audit fix: "[Mother D-Reaper]" and "[ADR-01 Jeri]" are bracketed EXACT name refs, so
+// `nameExact`. The `name` substring mode accepted any card merely containing those strings.
+
 const mother: Filter = {
   controller: "mine",
-  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
   excludeCardsNamed: ["ADR-01 Jeri"],
 };
 const compiled: CompiledCard = {
@@ -18,7 +22,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
           scaling: {
             per: 1,
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }] },
             unit: "digivolutionCardsOfFiltered",
           },
         },
@@ -51,7 +55,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["ADR-01 Jeri"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["ADR-01 Jeri"], match: "nameExact" }],
                 },
                 count: 1,
               },
