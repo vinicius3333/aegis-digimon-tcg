@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/EX7/EX7-014.js";
 import "../../cards/EX3/EX3-014.js";
 import "../../cards/P/P-143.js";
+import "../../cards/BT10/BT10-061.js";
+import "../../cards/BT7/BT7-058.js";
 
 async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>) {
   expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
@@ -86,5 +88,37 @@ describe("EX7-014 shared movement and DigiXros replacement seams", () => {
     expect(xros.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(materials));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "ST5-07")).toBe(true);
     expect(xros.stack.map((card) => card.cardId)).not.toContain("ST5-07");
+  });
+
+  it("restores the cost reduction when leave prevention keeps a field material in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT7-058", as: "material" }],
+        hand: [{ card: "BT10-061", as: "skullKnightmon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const material = s.perm("material");
+
+    // Isolate the failed-relocation boundary: the production dependency returns false when a
+    // leave-play replacement prevents the selected permanent from becoming DigiXros material.
+    Reflect.set(s.engine, "consultLeavePrevention", async () => new Set([material.permanentId]));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("skullKnightmon").instanceId,
+        digiXros: { materialInstanceIds: [material.topCard.instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT10-061"));
+
+    const xros = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT10-061")!;
+    expect(s.state.players[0]!.battleArea).toContain(material);
+    expect(xros.stack).toHaveLength(0);
+    // BT10-061 costs 4 and reduces by 1 for each card actually placed. Prevention means the
+    // declared card was not placed, so the engine must charge the unreduced play cost.
+    expect(s.state.memory).toBe(6);
   });
 });

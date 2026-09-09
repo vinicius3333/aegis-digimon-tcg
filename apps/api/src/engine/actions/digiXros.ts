@@ -94,6 +94,7 @@ export type DigiXrosCheck =
       requirement: DigiXrosRequirement;
       materials: ResolvedMaterial[];
       expanderPermanentIds: string[];
+      perMaterialReduction: number;
       cost: number;
     };
 
@@ -336,7 +337,17 @@ export function validateDigiXros(
   const cost = Math.max(0, base - materials.length * perMaterialReduction);
   if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
 
-  return { ok: true, instance, instanceIndex, definition, requirement, materials, expanderPermanentIds, cost };
+  return {
+    ok: true,
+    instance,
+    instanceIndex,
+    definition,
+    requirement,
+    materials,
+    expanderPermanentIds,
+    perMaterialReduction,
+    cost,
+  };
 }
 
 /** Apply a validated DigiXros play. */
@@ -350,7 +361,7 @@ export async function applyDigiXros(
   if (!check.ok) return check;
 
   const { definition, materials, expanderPermanentIds } = check;
-  const cost = deps.finalizePlayCost
+  let cost = deps.finalizePlayCost
     ? await deps.finalizePlayCost(state, seat, check.instance, definition, check.cost)
     : check.cost;
   const player = state.players[seat]!;
@@ -394,21 +405,41 @@ export async function applyDigiXros(
   for (const material of materials) {
     if (material.source === "field" && material.fieldPermanentId !== undefined) {
       if (deps.relocatePermanentForDigiXros !== undefined) {
-        await deps.relocatePermanentForDigiXros(permanent.permanentId, material.fieldPermanentId, {
+        const relocated = await deps.relocatePermanentForDigiXros(permanent.permanentId, material.fieldPermanentId, {
           shedOwnCards: true,
         });
+        if (!relocated) {
+          continue;
+        }
       } else {
-        deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, { shedOwnCards: true });
+        const relocated = deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, {
+          shedOwnCards: true,
+        });
+        if (!relocated) {
+          continue;
+        }
       }
     } else {
       await deps.placeUnder(permanent.permanentId, [material.instanceId]);
     }
     placedIds.push(material.instanceId);
   }
+
+  // A leave replacement can stop a declared field material from actually being placed. DigiXros
+  // reduces the play cost for cards placed, so restore the reduction for every prevented move and
+  // report only the material count that reached the new permanent.
+  const preventedMaterialCount = materials.length - placedIds.length;
+  const restoredCost = preventedMaterialCount * check.perMaterialReduction;
+  if (restoredCost > 0) {
+    const memoryBefore = state.memory;
+    deps.payMemory(state, seat, restoredCost);
+    deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "playCard" });
+    cost += restoredCost;
+  }
   await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
 
   // (5) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
-  await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, materials.length);
+  await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, placedIds.length);
 
   return {
     ok: true,

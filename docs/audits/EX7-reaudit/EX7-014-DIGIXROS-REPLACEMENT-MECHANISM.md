@@ -52,3 +52,16 @@ git diff --check: PASS
 ```
 
 The workspace `pnpm typecheck` passes for shared, web, and API with no diagnostics.
+
+## Closeout review correction
+
+The collection closeout review found that `applyDigiXros` ignored a `false` result from
+the replacement-aware relocation callback. An outright leave prevention could therefore
+leave the selected permanent in play while still reporting it as placed, retaining its
+cost reduction, and including it in the On Play material count.
+
+The action now records only successfully relocated materials. For each prevented field
+move it restores that card's reduction to the paid play cost and passes the actual placed
+count to On Play. A focused public-intent regression forces the production dependency's
+prevented-relocation result and proves the field material remains in play, the DigiXros
+stack remains empty, and BT10-061 pays its full printed cost.

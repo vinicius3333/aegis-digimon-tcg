@@ -4,6 +4,7 @@ import { compiled } from "./EX7-003.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./EX7-064.js";
 
 describe("EX7-003 Kyaromon", () => {
   it("inherits -2000 DP to the opposing security Digimon battle value on your turn", () =>
@@ -68,7 +69,7 @@ describe("EX7-003 Kyaromon", () => {
       s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("secondDigimonAttacker").permanentId),
     ).toBe(true);
 
-    // The third check reveals a Tamer, not a Security Digimon. The neutral fixture is trashed,
+    // The third check reveals a Tamer, not a Security Digimon. Its Security effect plays it,
     // and the third attacker is unaffected by the security-only modifier.
     expect(
       s.engine.applyIntent(0, {
@@ -82,8 +83,9 @@ describe("EX7-003 Kyaromon", () => {
       true,
     );
     expect(s.events).toContainEqual(
-      expect.objectContaining({ kind: "securityChecked", revealedCardId: "EX7-064", resolution: "trashed" }),
+      expect.objectContaining({ kind: "securityChecked", revealedCardId: "EX7-064", resolution: "effect" }),
     );
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "EX7-064")).toBe(true);
     assertNoLoudGap(s);
   });
 
