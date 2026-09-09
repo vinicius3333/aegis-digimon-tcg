@@ -181721,7 +181721,6 @@
               "controllerDefault": "mine",
               "nameOrTrait": [{ "tokens": ["Omnimon Alter-S"], "match": "name" }]
             },
-            "from": ["hand"],
             "payCost": true,
             "optional": true
           },
@@ -186320,13 +186319,13 @@
       }
     ],
     "digivolutionRequirement": [
-      { "level": 4, "color": "Red", "cost": 5, "isAlternate": true },
-      { "level": 4, "color": "Blue", "cost": 5, "isAlternate": true },
-      { "level": 4, "color": "Yellow", "cost": 5, "isAlternate": true },
-      { "level": 4, "color": "Green", "cost": 5, "isAlternate": true },
-      { "level": 4, "color": "Black", "cost": 5, "isAlternate": true },
-      { "level": 4, "color": "Purple", "cost": 5, "isAlternate": true },
-      { "level": 4, "color": "White", "cost": 5, "isAlternate": true }
+      { "level": 4, "colors": ["Red"], "cost": 5, "isAlternate": true },
+      { "level": 4, "colors": ["Blue"], "cost": 5, "isAlternate": true },
+      { "level": 4, "colors": ["Yellow"], "cost": 5, "isAlternate": true },
+      { "level": 4, "colors": ["Green"], "cost": 5, "isAlternate": true },
+      { "level": 4, "colors": ["Black"], "cost": 5, "isAlternate": true },
+      { "level": 4, "colors": ["Purple"], "cost": 5, "isAlternate": true },
+      { "level": 4, "colors": ["White"], "cost": 5, "isAlternate": true }
     ],
     "effects": [
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Rush", "raw": "＜Rush＞" }] },
@@ -186369,7 +186368,7 @@
           {
             "kind": "DeletePerColor",
             "source": "digivolutionCards",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] } },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "condition": {
               "kind": "selfDigivolutionStackDistinctColorCount",
               "op": "gte",
@@ -186413,7 +186412,7 @@
           {
             "kind": "DeletePerColor",
             "source": "digivolutionCards",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] } },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "condition": {
               "kind": "selfDigivolutionStackDistinctColorCount",
               "op": "gte",

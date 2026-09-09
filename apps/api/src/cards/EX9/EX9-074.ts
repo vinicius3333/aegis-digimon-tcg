@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,43 +17,43 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      color: "Red",
+      colors: ["Red"],
       cost: 5,
       isAlternate: true,
     },
     {
       level: 4,
-      color: "Blue",
+      colors: ["Blue"],
       cost: 5,
       isAlternate: true,
     },
     {
       level: 4,
-      color: "Yellow",
+      colors: ["Yellow"],
       cost: 5,
       isAlternate: true,
     },
     {
       level: 4,
-      color: "Green",
+      colors: ["Green"],
       cost: 5,
       isAlternate: true,
     },
     {
       level: 4,
-      color: "Black",
+      colors: ["Black"],
       cost: 5,
       isAlternate: true,
     },
     {
       level: 4,
-      color: "Purple",
+      colors: ["Purple"],
       cost: 5,
       isAlternate: true,
     },
     {
       level: 4,
-      color: "White",
+      colors: ["White"],
       cost: 5,
       isAlternate: true,
     },
@@ -132,6 +131,7 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               kind: ["Digimon"],
             },
+            count: 1,
           },
           condition: {
             kind: "selfDigivolutionStackDistinctColorCount",
@@ -193,6 +193,7 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               kind: ["Digimon"],
             },
+            count: 1,
           },
           condition: {
             kind: "selfDigivolutionStackDistinctColorCount",

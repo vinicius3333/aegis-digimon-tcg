@@ -1,4 +1,3 @@
-// @ts-nocheck
 // EX9-018 MetalMamemon — hand-fixed IR.
 // KB Q4760: trash digivolution cards from exactly 1 opponent Digimon (count:1 enforces this).
 // KB Q4761: the placement cost gates the "then" return; the trash operation itself may be a

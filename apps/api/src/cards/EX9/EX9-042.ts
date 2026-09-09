@@ -1,4 +1,3 @@
-// @ts-nocheck
 // EX9-042 Toropiamon — hand-fixed IR.
 // [All Turns] effect triggers when effects suspend your [WG] Digimon → SubTrigger on
 // whenEffectSuspends (triggerFilter: controller mine + WG trait).
