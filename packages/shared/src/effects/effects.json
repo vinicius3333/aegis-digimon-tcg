@@ -142455,7 +142455,7 @@
     "residual": []
   },
   "EX11-035": {
-    "digivolutionRequirement": [],
+    "digivolutionRequirement": [{ "level": 5, "colors": ["Green"], "cost": 3, "isAlternate": false }],
     "effects": [
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }] },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Vortex", "raw": "＜Vortex＞" }] },
@@ -142491,7 +142491,7 @@
                     "kind": ["Digimon"],
                     "colors": ["Green"],
                     "dp": { "op": "lte", "value": 3000 },
-                    "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
                   },
                   "count": 1
                 },
