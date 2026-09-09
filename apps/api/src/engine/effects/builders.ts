@@ -492,6 +492,14 @@ export const colorWaiverStatic = (opts: BuilderOptions): Effect => ({
   isColorWaiverStatic: true,
 });
 
+/**
+ * A self-scoped "cards from your trash may also be placed for this card's DigiXros" Static
+ * (BT17-057 Q2811, BT18-065). Like `colorWaiverStatic`, the moment the permission is read is a
+ * declaration made while the card is still off the battle area, so there is no on-field base
+ * guard; the effect's own printed condition ("while you have a black Tamer") remains the gate.
+ */
+export const digiXrosZoneStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
+
 /** Persistent effects whose source is a face-up card in the security stack. */
 export const securityStatic = (opts: BuilderOptions): Effect =>
   build(

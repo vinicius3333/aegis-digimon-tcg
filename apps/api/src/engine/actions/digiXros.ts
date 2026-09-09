@@ -139,6 +139,15 @@ export interface DigiXrosDeps {
     sourcePermanentId: string,
     opts?: { belowTop?: boolean; shedOwnCards?: boolean },
   ): boolean;
+  /**
+   * Zones an ACTIVE effect grant has opened as DigiXros material sources for this seat, from the
+   * engine's `expandDigiXrosZones` ledger (BT17-057's Static "while you have a black Tamer",
+   * Q2811). Distinct from the two static tables above: those are properties of the played card,
+   * this is live board state that comes and goes with the granting permanent.
+   */
+  digiXrosExpandedZones?(seat: Seat, playedInstanceId: string): readonly string[];
+  /** Per-zone material quotas for the same ledger, when the granting effect supplied them. */
+  digiXrosExpandedZoneCounts?(seat: Seat, playedInstanceId: string): Partial<Record<string, number>>;
   /** Suspend an expander Tamer (the activation cost of unlocking its source zones). */
   suspendPermanent(permanentId: string): Promise<void>;
   emit?: (event: { kind: string; [k: string]: unknown }) => void;
@@ -157,7 +166,15 @@ export function validateDigiXros(
   state: GameState,
   seat: Seat,
   intent: DigiXrosIntent,
-  deps: Pick<DigiXrosDeps, "maxAffordable" | "adjustedPlayCost" | "digiXrosNamesOf" | "canSubstituteMaterial">,
+  deps: Pick<
+    DigiXrosDeps,
+    | "maxAffordable"
+    | "adjustedPlayCost"
+    | "digiXrosNamesOf"
+    | "canSubstituteMaterial"
+    | "digiXrosExpandedZones"
+    | "digiXrosExpandedZoneCounts"
+  >,
 ): DigiXrosCheck {
   if (state.gameOver) return { ok: false, reason: "game-over" };
   if (state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
@@ -202,6 +219,16 @@ export function validateDigiXros(
     });
   let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
   if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
+  // A live effect grant can open the trash as a material source for THIS seat regardless of what
+  // the played card itself declares (BT17-057's Static "while you have a black Tamer", Q2811). The
+  // effect-driven play path (interpreter/actions/play.ts) already consumes this ledger with the
+  // same quota rule — a grant carrying no explicit count is worth one material — so the direct
+  // playCard/DigiXros verb must not be the stricter of the two.
+  const ledgerZones = deps.digiXrosExpandedZones?.(seat, instance.instanceId) ?? [];
+  if (ledgerZones.includes("trash")) {
+    const ledgerCounts = deps.digiXrosExpandedZoneCounts?.(seat, instance.instanceId);
+    trashMax += ledgerCounts === undefined ? 1 : (ledgerCounts.trash ?? 1);
+  }
   const expanderPermanentIds = intent.digiXros.expanderPermanentIds ?? [];
   if (new Set(expanderPermanentIds).size !== expanderPermanentIds.length) {
     return { ok: false, reason: "invalid-expander" };

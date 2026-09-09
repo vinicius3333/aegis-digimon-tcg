@@ -41,11 +41,10 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
+          // Printed text is "When an effect adds cards to your hand" — any effect, not only a
+          // Digimon's (contrast BT15-002/BT15-083, which do print "one of your Digimon's
+          // effects"). The whenEffectAddsToHand seam already scopes the add to your own hand.
           event: "whenEffectAddsToHand",
-          fireCondition: {
-            kind: "triggerByYourDigimonEffect",
-            raw: "one of your Digimon's effects adds cards to your hand",
-          },
           actions: [
             {
               kind: "GainMemory",

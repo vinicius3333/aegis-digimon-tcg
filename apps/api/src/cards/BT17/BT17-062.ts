@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Dorugoramon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
             conditions: [
               {
                 kind: "selfDigivolutionStackHasTrait",
-                filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] },
+                filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "nameExact" }] },
               },
               {
                 kind: "opponentHas",

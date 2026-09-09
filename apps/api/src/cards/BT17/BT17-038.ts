@@ -96,7 +96,12 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Sakuyamon: Maid Mode"],
+      // Printed "[Digivolve][Sakuyamon: Maid Mode]: Cost 1" carries no "in name", so the base
+      // name must EQUAL the route name, not merely contain it (coordinator route-name decision;
+      // cardData.ts namesExact vs names). No catalog card's name is a strict superstring of
+      // "Sakuyamon: Maid Mode", so the exact/substring distinction has no observable near-name
+      // case here, but the exact form is the correct model of the printed route.
+      namesExact: ["Sakuyamon: Maid Mode"],
       cost: 1,
       isAlternate: true,
     },

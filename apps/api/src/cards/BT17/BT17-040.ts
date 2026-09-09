@@ -76,6 +76,16 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
+  // "[Digivolve]Lv.5 w/[Pulsemon] in its text: Cost 3" -- an alternate reduced-cost path.
+  // "in its text" is the source's full card-information union, so it uses `texts`, not `names`.
+  digivolutionRequirement: [
+    {
+      level: 5,
+      texts: ["Pulsemon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
   coverage: "full",
   residual: [],
 };

@@ -71,7 +71,9 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Patamon"],
+      // Printed "[Digivolve][Patamon]" is an EXACT name, not a substring: `names` would also
+      // accept any future source whose name merely contains "Patamon".
+      namesExact: ["Patamon"],
       cost: 2,
       isAlternate: true,
     },

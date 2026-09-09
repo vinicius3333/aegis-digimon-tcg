@@ -16,8 +16,10 @@ export const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [
                 {
+                  // "[Agumon]/[Gabumon]" is a bracketed exact-name reference, so
+                  // ToyAgumon/SnowAgumon/Agumon (X Antibody) are not legal picks.
                   tokens: ["Agumon", "Gabumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { compiled } from "./BT17-087.js";
 import "./index.js";
 
@@ -21,7 +22,13 @@ describe("BT17-087 Marcus Damon", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
-        { kind: "SelectBind", target: { bindAs: "marcusTarget" } },
+        {
+          kind: "SelectBind",
+          target: {
+            bindAs: "marcusTarget",
+            filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] },
+          },
+        },
         {
           kind: "GrantStatic",
           target: { filter: {}, count: 1, fromSelectionRef: "marcusTarget" },
@@ -130,5 +137,39 @@ describe("BT17-087 Marcus Damon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("agumon").currentDP).toBe(4000);
+  });
+
+  it("selects [Marcus Damon] by exact name, refusing a near-name combined card", () => {
+    const exactRef = { tokens: ["Marcus Damon"], match: "nameExact" as const };
+
+    // Printed name and the aliased combined card ("& Thomas H. Norstein" carries
+    // "Marcus Damon" in its CardNames) both qualify.
+    expect(matchNameOrTrait(getCardDefinition("BT17-087")!, exactRef)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("ST24-13")!, exactRef)).toBe(true);
+
+    // AD1-021 "Marcus Damon & Agumon" only has the substring, not the exact name
+    // (KB Q6101, comprehensive 2-3-1-2/2-3-1-3), so a bracket-only [Marcus Damon]
+    // reference must reject it. Substring `match: "name"` would wrongly accept it.
+    expect(matchNameOrTrait(getCardDefinition("AD1-021")!, exactRef)).toBe(false);
+    expect(matchNameOrTrait(getCardDefinition("AD1-021")!, { tokens: ["Marcus Damon"], match: "name" })).toBe(true);
+  });
+
+  it("adds DP but no memory when no [Agumon]/[Greymon] Digimon is present", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT17-087", as: "marcus" },
+          { card: "BT1-012", as: "biyomon" },
+        ],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId]);
+    await settle(() => s.perm("biyomon").currentDP === 5000);
+
+    expect(s.perm("biyomon").currentDP).toBe(5000);
+    expect(s.state.memory).toBe(0);
   });
 });

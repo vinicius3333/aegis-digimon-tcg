@@ -82,8 +82,11 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
+      // Printed "[Digivolve]Lv.4 [Argomon]: Cost 4" carries no "in name", so the base name
+      // must equal "Argomon" exactly (namesExact), not merely contain it (coordinator route
+      // decision, cardData.ts nameExact gate 488).
       level: 4,
-      names: ["Argomon"],
+      namesExact: ["Argomon"],
       cost: 4,
       isAlternate: true,
     },

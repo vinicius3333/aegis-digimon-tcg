@@ -25,27 +25,71 @@ const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
   "BT24-086": ["Shuu Yulin"],
 };
 
+/**
+ * Aliases split by how strongly the printed text grants them.
+ *
+ * `exact` answers a full-name gate ("[Digivolve] [Shoutmon]"): the card is treated AS having
+ * that name. `substring` answers only a "with [X] in its name" gate: the card is treated as
+ * having that name IN its name, which is strictly weaker (KB Q2868 — EX4-030 Kuzuhamon carries
+ * [Sakuyamon] in its name and must be refused by an exact [Sakuyamon] route).
+ */
+interface StaticNameAliases {
+  exact: string[];
+  substring: string[];
+}
+
 /** Names granted by printed "this card is also treated as [X]" text. */
-function parsedStaticNameAliases(def: CardDefinition): string[] {
+function parsedStaticNameAliases(def: CardDefinition): StaticNameAliases {
   // BT15-060's Omnimon alias is explicitly limited to the card while it is revealed
   // from a deck. It is supplied by the reveal-context definition projection instead
   // of the universal static-name list.
-  if (def.cardId === "BT15-060") return [];
+  if (def.cardId === "BT15-060") return { exact: [], substring: [] };
   const text = def.effectText ?? "";
-  const aliases: string[] = [];
+  const result: StaticNameAliases = { exact: [], substring: [] };
   const aliasPhrases = [
     ...(text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? []),
-    // The catalog prints both "(Rule) Name:" and "[Rule] Name:"; KB Q759 applies either in every zone.
-    ...(text.match(/[[(]Rule[\])]\s*Name:\s*(?:Also\s+)?treated as(?:\s+having)?[^.。]*/gi) ?? []),
+    // The catalog prints both "(Rule) Name:" and "[Rule] Name:"; KB Q759 applies either in every
+    // zone. Only the tail after "Name:" is scanned: the bracketed "[Rule]" marker itself is not
+    // an alias, and scanning the whole phrase emitted a spurious "Rule" name.
+    ...[...text.matchAll(/[[(]Rule[\])]\s*Name:\s*((?:Also\s+)?[Tt]reated as(?:\s+having)?[^.。]*)/g)].map(
+      (match) => match[1]!,
+    ),
   ];
   for (const phrase of aliasPhrases) {
     // A material-only alias must not satisfy ordinary evolution or name gates.
     if (/for\s+(?:a\s+)?DigiXros\b/i.test(phrase)) continue;
+    // "treated as HAVING [X]" / "[X] IN ITS NAME" is a substring grant only; the bare
+    // "treated as [X]" (and "as if its name is [X]") is a full-name identity.
+    const substringOnly = /treated as having\b/i.test(phrase) || /in (?:its|their) names?\b/i.test(phrase);
     for (const match of phrase.matchAll(/\[([^\]]+)\]/g)) {
-      aliases.push(match[1]!.trim());
+      (substringOnly ? result.substring : result.exact).push(match[1]!.trim());
     }
   }
-  return aliases;
+  return result;
+}
+
+const dedupe = (names: string[]): string[] => [...new Set(names.filter((name) => name.length > 0))];
+
+/**
+ * The names a card answers to for an EXACT name gate (`match: "nameExact"` / `namesExact`):
+ * its printed `nameEn` plus the aliases the printed text grants as a full identity. A
+ * "treated as having [X] in its name" alias is deliberately excluded — see
+ * {@link effectiveSubstringOnlyNames}.
+ */
+export function effectiveExactNames(def: CardDefinition): string[] {
+  return dedupe([
+    def.nameEn,
+    ...(STATIC_NAME_ALIASES_BY_CARD_ID[def.cardId] ?? []),
+    ...parsedStaticNameAliases(def).exact,
+  ]);
+}
+
+/**
+ * The aliases a card carries only INSIDE its name. They satisfy a substring gate
+ * ("with [X] in its name") and must never satisfy an exact-name gate.
+ */
+export function effectiveSubstringOnlyNames(def: CardDefinition): string[] {
+  return dedupe(parsedStaticNameAliases(def).substring);
 }
 
 /**
@@ -54,6 +98,5 @@ function parsedStaticNameAliases(def: CardDefinition): string[] {
  * highlighting both read this so they cannot disagree about which bases a name gate accepts.
  */
 export function effectiveStaticNames(def: CardDefinition): string[] {
-  const names = [def.nameEn, ...(STATIC_NAME_ALIASES_BY_CARD_ID[def.cardId] ?? []), ...parsedStaticNameAliases(def)];
-  return [...new Set(names.filter((name) => name.length > 0))];
+  return dedupe([...effectiveExactNames(def), ...effectiveSubstringOnlyNames(def)]);
 }

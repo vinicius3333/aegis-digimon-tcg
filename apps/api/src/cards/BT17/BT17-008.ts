@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             or: [
-              { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Calumon"], match: "name" }] },
+              { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Calumon"], match: "nameExact" }] },
               { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] },
             ],
           },
@@ -38,7 +38,7 @@ export const compiled: CompiledCard = {
           amount: 2000,
           scope: "self",
           duration: "permanent",
-          condition: { kind: "memoryAtMost", value: 0 },
+          condition: { kind: "memoryAtMost", controller: "mine", value: 0 },
         },
       ],
       isInherited: true,

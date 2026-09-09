@@ -211,6 +211,14 @@ export interface TriggerInfo {
   attackerPermanentId?: string;
   /** Attacker's effective DP immediately after declaration/suspension, before [When Attacking] effects. */
   attackerDPAtDeclaration?: number;
+  /**
+   * The declared defender's digivolution-stack size, captured at attack declaration. A
+   * [When Attacking] effect resolving in the same window can strip those cards; an
+   * "attacks a Digimon with no digivolution cards" gate is answered by the board AT
+   * DECLARATION, not by the board the earlier effect left behind (KB Q2816). The sibling
+   * of {@link attackerDPAtDeclaration} for the other side of the battle.
+   */
+  defenderAtDeclaration?: { permanentId: string; digivolutionCardCount: number };
   /** Stable identity for this attack across all reactive attack sub-trigger fires. */
   attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CardKind, Phase, PlayerState, Permanent, CardInstance } from "@aegis/shared";
+import { effectiveExactNames, effectiveStaticNames, getCardDefinition } from "@aegis/shared";
 import { buildTriggerKey } from "@aegis/shared";
 import type { ServerEvent } from "@aegis/shared";
 import { translator } from "../i18n";
@@ -1034,5 +1035,34 @@ describe("match log combat responses", () => {
     const line = describeEvent(resolved, 0, new Map(), t);
     expect(line?.text).toBe("Tsukaimon's effect resolved");
     expect(line?.cardIds).toEqual(["BT1-045"]);
+  });
+});
+
+describe("exact vs substring name gates on digivolution routes (Q2868)", () => {
+  // EX4-030 Kuzuhamon is "also treated as having [Sakuyamon] IN ITS NAME", so it answers a
+  // substring [Sakuyamon] route but never an exact one. The client twin of the server's
+  // matchGatedRequirement must read the same two channels or highlighting outruns legality.
+  it("keeps the substring alias on the union channel", () => {
+    expect(effectiveStaticNames(getCardDefinition("EX4-030")!)).toEqual(
+      expect.arrayContaining(["Kuzuhamon", "Sakuyamon"]),
+    );
+    expect(effectiveExactNames(getCardDefinition("EX4-030")!)).toEqual(["Kuzuhamon"]);
+  });
+
+  it("offers LM-023's substring [Sakuyamon] route onto EX4-030", () => {
+    const options = getDigivolveCostOptions("LM-023", permOf("EX4-030"));
+    expect(options.some((option) => option.type === "alternate" && option.cost === 1)).toBe(true);
+  });
+
+  it("refuses an exact-name route to a base that only carries the alias in its name", () => {
+    // EX9-018 prints an exact [Mamemon] route; EX12-041 Thundermon is only "treated as having
+    // [Mamemon] in its name" — the same alias class as EX4-030/[Sakuyamon].
+    expect(getDigivolveCostOptions("EX9-018", permOf("EX12-041"))).not.toContainEqual(
+      expect.objectContaining({ type: "alternate", cost: 1 }),
+    );
+    // The exact route still fires on a real [Mamemon].
+    expect(getDigivolveCostOptions("EX9-018", permOf("BT6-064"))).toContainEqual(
+      expect.objectContaining({ type: "alternate", cost: 1 }),
+    );
   });
 });

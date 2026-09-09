@@ -24,6 +24,17 @@ export interface ActionBase {
   /** True when the clause is prefixed "You may". */
   optional?: boolean;
   /**
+   * "By [cost], you may [effect]": the activation cost is paid when the effect activates and only
+   * the PAYLOAD is declinable, so the cost is spent whichever way the player answers (Q2813,
+   * Q2853, Q2804). Without it, `optional` gates cost and payload together — the "You may [do X].
+   * If you do, ..." shape, where declining spends nothing.
+   *
+   * Authored per card from the printed wording and its ruling; there is deliberately no
+   * generator-wide default, because a genuinely optional "up to N" cost (BT17-041) must keep the
+   * combined prompt.
+   */
+  payCostBeforeOptional?: boolean;
+  /**
    * When true and this optional action is declined, abort all subsequent
    * actions in the same sequence ("By trashing X, do Y" — declining the
    * trash prevents Y from firing).

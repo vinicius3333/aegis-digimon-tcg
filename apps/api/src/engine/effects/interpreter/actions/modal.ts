@@ -10,7 +10,35 @@ import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { applyPlayCostCeiling } from "./play.js";
+import { canAttemptPlaceUnder } from "./placeUnder.js";
 import type { Action } from "@aegis/shared";
+
+/**
+ * Whether any option of a modal can currently be attempted. A modal whose every option is
+ * un-attemptable is an unactivatable effect: its activation cost must not be charged for a
+ * guaranteed no-op (BT17-050 Q2803).
+ */
+export function modalHasAvailableOption(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): boolean {
+  return action.options.some((option, idx) => optionIsAvailable(ctx, action, option, idx));
+}
+
+/**
+ * Whether one modal bullet can be chosen. An EMPTY option list is a real "do nothing more" branch,
+ * not an unavailable one: it is how a "you may [A] and [B]" payload whose cost has already been
+ * paid offers the decline (BT17-050 Q2804). `[].some(...)` is false, so it has to be admitted
+ * explicitly; every other option still needs at least one attemptable action.
+ */
+function optionIsAvailable(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Modal" }>,
+  option: readonly Action[],
+  idx: number,
+): boolean {
+  const condition = action.optionConditions?.[idx];
+  if (condition != null && !evaluateCondition(ctx, condition)) return false;
+  if (option.length === 0) return true;
+  return option.some((nested) => canAttemptModalAction(ctx, nested));
+}
 
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
 export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<void> {
@@ -18,12 +46,8 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
   const availableOptionIndices = (): number[] =>
     action.options
       .map((option, idx) => ({ option, idx }))
-      .filter(({ option }) => option.some((nested) => canAttemptModalAction(ctx, nested)))
-      .map(({ idx }) => idx)
-      .filter((idx) => {
-        const condition = action.optionConditions?.[idx];
-        return condition == null || evaluateCondition(ctx, condition);
-      });
+      .filter(({ option, idx }) => optionIsAvailable(ctx, action, option, idx))
+      .map(({ idx }) => idx);
   const availableIndices = availableOptionIndices();
   if (availableIndices.length === 0) return;
   if (action.chooseAll !== undefined && evaluateCondition(ctx, action.chooseAll.condition)) {
@@ -98,6 +122,10 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
     return false;
   }
   if (action.cost !== undefined && typeof action.cost !== "number" && !canPayCost(ctx, action.cost)) return false;
+  // A PlaceUnder is attemptable only when both an eligible card and a legal host exist.
+  // Without this the modal is offered with no legal destination, the activation cost is
+  // charged, and the placement silently no-ops (BT17-050 Q2803).
+  if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
   if (action.kind === "Digivolve") return canAttemptDigivolve(ctx, action);
   if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
   if (

@@ -146,3 +146,57 @@ describe("BT17-068 Mephistomon — revealed level", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([MEPHISTOMON, MEPHISTOMON]);
   });
 });
+
+const APOCALYMON = "BT15-102"; // level 7 [Apocalymon] — the return-cost target
+
+describe("BT17-068 Mephistomon — play-cost reduction", () => {
+  it("reduces the hand play cost by 3 by returning 1 [Apocalymon] from trash to deck bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: MEPHISTOMON, as: "meph" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          trash: [{ card: APOCALYMON, as: "apoc" }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8; // full printed cost is 8; reduced cost is 5
+    const apocId = s.inst("apoc").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meph").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON));
+
+    // Cost 8 reduced by 3 leaves memory at 3, proving the reduction actually applied.
+    expect(s.state.memory).toBe(3);
+    // The returned [Apocalymon] left the trash and sits at the bottom of the deck.
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === apocId)).toBe(false);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(apocId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON)).toBe(true);
+  });
+
+  it("charges the full cost of 8 when no [Apocalymon] is in the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: MEPHISTOMON, as: "meph" },
+            { card: "BT1-009", as: "spare" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meph").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON));
+
+    // No [Apocalymon] to return, so the reduction cost cannot be paid: full cost 8 leaves memory at 0.
+    expect(s.state.memory).toBe(0);
+  });
+});

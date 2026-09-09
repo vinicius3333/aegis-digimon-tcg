@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-070.js";
 
@@ -47,9 +46,17 @@ describe("BT17-070 Gulfmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: GULFMON, as: "gulfmon" }, { card: DARK_MASTERS_TEXT, as: "material" }],
+          hand: [
+            { card: GULFMON, as: "gulfmon" },
+            { card: DARK_MASTERS_TEXT, as: "material" },
+          ],
         },
-        1: { battleArea: [{ card: "BT17-068", as: "levelFive" }, { card: "BT17-069", as: "levelSix" }] },
+        1: {
+          battleArea: [
+            { card: "BT17-068", as: "levelFive" },
+            { card: "BT17-069", as: "levelSix" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -73,7 +80,10 @@ describe("BT17-070 Gulfmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: GULFMON, as: "gulfmon" }, { card: DARK_MASTERS_TEXT, as: "material" }],
+          hand: [
+            { card: GULFMON, as: "gulfmon" },
+            { card: DARK_MASTERS_TEXT, as: "material" },
+          ],
         },
         1: { battleArea: [{ card: "BT17-069", as: "levelSix" }] },
       },
@@ -121,6 +131,102 @@ describe("BT17-070 Gulfmon", () => {
 
     expect(s.perm("mephistomon").stack.some((card) => card.cardId === DARK_MASTERS_TEXT)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFiveId)).toBe(false);
+  });
+
+  it("takes a blue level-5 base only when its text carries [Dark Masters]", async () => {
+    // The catalog route is Purple level 5, so a BLUE level-5 base can only be legal through the
+    // printed alternate. BT15-027 Scorpiomon's text names [Dark Masters]; BT1-038 Monzaemon is a
+    // blue level 5 with no printed text at all, the same shape without the token.
+    const legal = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: DARK_MASTERS_TEXT, as: "base" }],
+          hand: [{ card: GULFMON, as: "gulfmon" }],
+          trash: [{ card: DARK_MASTERS_TEXT, as: "material" }],
+        },
+        1: { battleArea: [{ card: "BT17-068", as: "levelFive" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    legal.state.memory = 3;
+    await legal.ready();
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("gulfmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === GULFMON);
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "base" }],
+          hand: [{ card: GULFMON, as: "gulfmon" }],
+          trash: [{ card: DARK_MASTERS_TEXT, as: "material" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    illegal.state.memory = 3;
+    await illegal.ready();
+
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("gulfmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).not.toEqual({ ok: true });
+    expect(illegal.perm("base").topCard.cardId).toBe("BT1-038");
+    expect(illegal.state.players[0]!.hand).toHaveLength(1);
+    expect(illegal.state.memory).toBe(3);
+  });
+
+  it("stays suspended when the opponent's trash holds fewer than seven cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GULFMON, as: "gulfmon" }],
+          // A spare playable card keeps Main from auto-passing the moment the attacker suspends.
+          hand: [{ card: "BT1-009", as: "spare" }],
+        },
+        1: {
+          trash: ["BT1-009", "BT1-012", "BT1-013", "BT1-027", "BT1-028", "BT1-030"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gulfmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("gulfmon").isSuspended).toBe(true);
+    // Nothing was returned: the six pre-set cards are all still there, joined only by the
+    // security card the attack checked. The deck was never appended to either.
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).slice(0, 6)).toEqual([
+      "BT1-009",
+      "BT1-012",
+      "BT1-013",
+      "BT1-027",
+      "BT1-028",
+      "BT1-030",
+    ]);
+    expect(s.state.players[1]!.trash).toHaveLength(7);
+    expect(s.state.players[1]!.deck).toHaveLength(0);
   });
 
   it("returns seven cards including a Digi-Egg to the correct deck and unsuspends after attacking", async () => {

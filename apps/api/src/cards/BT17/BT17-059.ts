@@ -24,6 +24,9 @@ export const compiled: CompiledCard = {
             host: "self",
           },
           optional: true,
+          // Q2813: "By placing 1 [Doomsday Clock] ..., you may play 2 Diaboromon tokens" — the
+          // placement is an activation cost, paid whether or not the tokens are played.
+          payCostBeforeOptional: true,
           abortOnDecline: true,
         },
       ],

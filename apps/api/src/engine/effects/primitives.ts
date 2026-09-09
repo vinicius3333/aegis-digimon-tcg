@@ -3722,7 +3722,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
         const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
         if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
-        const spec = partitionSpecOf(perm.topCard.cardId);
+        // ＜Partition＞ can be GRANTED by a digivolution card, in which case the specifier lives on
+        // that card, not on the top card (BT16-025 under BT12-030, Q2889). `hasKeyword` already
+        // accepts the inherited grant; resolve the specifier from the same place.
+        const spec =
+          partitionSpecOf(perm.topCard.cardId) ??
+          perm.stack.map((card) => partitionSpecOf(card.cardId)).find((clauses) => clauses !== undefined);
         if (spec === undefined) return undefined;
         const remaining = [...perm.stack];
         const matchedInstanceIds: string[] = [];

@@ -607,6 +607,14 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // the enclosing static condition is re-evaluated on every recompute.
       if (action.grant === "digixrosFromTrash") {
         const grantDuration = toDuration(action.duration ?? "permanent");
+        // The printed clause is about "THIS CARD's DigiXros", and a DigiXros is declared from the
+        // HAND. An off-field source resolves no permanent target, so scope the grant to this very
+        // card's pending play instead of the whole seat: the direct DigiXros verb and the
+        // effect-driven play path both read it back keyed by the played instance (BT17-057 Q2811).
+        if (ids.length === 0 && ctx.source.permanent() === undefined) {
+          ctx.fx.expandDigiXrosZonesForPlay?.(ctx.source.ownerSeat, ["trash"], grantDuration, ctx.source.instanceId);
+          return false;
+        }
         for (const id of ids) {
           const permanent = ctx.game.permanentById(id);
           if (permanent === undefined) continue;

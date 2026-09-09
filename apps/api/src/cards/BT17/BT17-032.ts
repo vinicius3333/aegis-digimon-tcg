@@ -17,7 +17,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Rika Nonaka"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Rika Nonaka"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

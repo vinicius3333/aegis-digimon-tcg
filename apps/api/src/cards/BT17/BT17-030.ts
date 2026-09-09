@@ -21,7 +21,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Leon Alexander"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -58,7 +58,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "hand",
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["Leon Alexander"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Leon Alexander"], match: "nameExact" }],
               },
               count: 1,
               from: ["hand"],

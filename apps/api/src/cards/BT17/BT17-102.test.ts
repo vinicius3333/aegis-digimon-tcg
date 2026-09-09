@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-102.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -223,5 +224,266 @@ describe("BT17-102 Greymon — dynamic stack names", () => {
     await settle(() => p1?.battleArea.length === 0, 1000);
     expect(p0?.battleArea.some((permanent) => permanent.topCard?.cardId === GREYMON)).toBe(true);
     expect(p1?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
+  });
+});
+
+describe("BT17-102 Greymon — evolution routes", () => {
+  it("takes the printed Lv.3 Agumon route for 2 memory and draws the digivolve card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: AGUMON_LV3, as: "agumon" }],
+        hand: [{ card: GREYMON, as: "greymon" }],
+        deck: ["BT1-012", "BT1-009"],
+      },
+      1: {},
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").topCard?.cardId === GREYMON);
+
+    const p0 = s.state.players[0]!;
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual([AGUMON_LV3]);
+    expect(p0.hand.map((card) => card.cardId)).toEqual(["BT1-012"]);
+    expect(p0.deck.length).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("takes the catalog colour route for its full 3 memory when the alternate cost is not used", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: AGUMON_LV3, as: "agumon" }],
+        hand: [{ card: GREYMON, as: "greymon" }],
+        deck: ["BT1-012", "BT1-009"],
+      },
+      1: {},
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").topCard?.cardId === GREYMON);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual([AGUMON_LV3]);
+  });
+
+  it("does not grant the 2-memory route to a Lv.3 without [Agumon] in its name", async () => {
+    const s = setupEngine({
+      0: {
+        // Monodramon is Lv.3 Red, so the catalog colour route is legal but the printed
+        // [Digivolve] route (Lv.3 w/[Agumon] in its name) must not be.
+        battleArea: [{ card: "BT1-009", as: "monodramon" }],
+        hand: [{ card: GREYMON, as: "greymon" }],
+        deck: ["BT1-012"],
+      },
+      1: {},
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    // `useAlternateCost` only selects the printed route when that route actually matches
+    // the base; Monodramon fails the [Agumon]-in-name gate, so the digivolve falls back
+    // to the catalog Red Lv.3 route at its full 3 memory.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("monodramon").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("monodramon").topCard?.cardId === GREYMON);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("monodramon").stack.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+});
+
+describe("BT17-102 Greymon — [When Digivolving] boundaries (KB Q4713, Q2902)", () => {
+  it("leaves an opponent Digimon above its DP alive and grants no DP without a [Koromon] name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: AGUMON_LV3, as: "agumon" }],
+          hand: [{ card: GREYMON, as: "greymon" }],
+          deck: ["BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 6000, as: "tooBig" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").topCard?.cardId === GREYMON);
+
+    // No [Koromon] in the stack: the DP boost half of the clause does nothing, so the
+    // 6000 DP opponent stays above Greymon's printed 5000 DP and survives.
+    expect(s.perm("agumon").currentDP).toBe(5000);
+    expect(s.state.players[1]?.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("tooBig").permanentId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("applies the +3000 DP only for the turn and names the digivolved Digimon [Greymon]/[Agumon] (Q2902)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: AGUMON_LV3, as: "agumon", under: [{ card: "BT14-001", as: "koromon" }] }],
+          hand: [{ card: GREYMON, as: "greymon" }],
+          deck: ["BT1-012"],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").currentDP === 8000);
+
+    expect(s.perm("agumon").currentDP).toBe(8000);
+    expect(observe(s.engine).effectiveNames(s.perm("agumon"))).toEqual(
+      expect.arrayContaining(["greymon", "agumon", "koromon"]),
+    );
+    expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual(["BT14-001", AGUMON_LV3]);
+  });
+});
+
+describe("BT17-102 Greymon — [All Turns] names survive the breeding move (KB Q2901, Q2903)", () => {
+  it("keeps the stack-granted names when the Digimon moves from breeding to the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: GREYMON, as: "greymon", under: [{ card: "BT14-001" }, { card: AGUMON_LV3 }] },
+        deck: ["BT1-012"],
+      },
+      1: {},
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    s.state.phase = Phase.Breeding;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("greymon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]?.breeding === undefined);
+
+    const moved = s.perm("greymon");
+    expect(s.state.players[0]?.battleArea.map((permanent) => permanent.permanentId)).toEqual([moved.permanentId]);
+    // Q2901: the moved Digimon is the one carrying [Greymon]/[Agumon]/[Koromon].
+    expect(observe(s.engine).effectiveNames(moved)).toEqual(expect.arrayContaining(["greymon", "agumon", "koromon"]));
+  });
+});
+
+describe("BT17-102 Greymon — [On Deletion] optionality and inheritance (KB Q5965)", () => {
+  it("does nothing when the controller declines the optional [On Deletion] effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT14-001", as: "egg" }],
+          battleArea: [{ card: GREYMON, suspended: true, as: "greymon", dp: 5000, under: [{ card: AGUMON_LV3 }] }],
+          hand: [{ card: "BT17-093", as: "taiKari" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 12_000, as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const p0 = s.state.players[0]!;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("greymon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => p0.trash.some((card) => card.cardId === GREYMON), 1200);
+
+    expect(p0.battleArea.length).toBe(0);
+    expect(p0.breeding).toBeUndefined();
+    expect(p0.hand.map((card) => card.cardId)).toEqual(["BT17-093"]);
+    expect(p0.eggDeck.length).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("fires the inherited [On Deletion] from underneath a higher-level Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT14-001", as: "egg" }],
+          battleArea: [
+            {
+              card: "BT1-024",
+              suspended: true,
+              as: "host",
+              dp: 5000,
+              under: [{ card: AGUMON_LV3 }, { card: GREYMON }],
+            },
+          ],
+          hand: [{ card: "BT17-093", as: "taiKari" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 12_000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p0 = s.state.players[0]!;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => p0.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093"), 1200);
+
+    expect(p0.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT17-093"]);
+    expect(p0.hand.length).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

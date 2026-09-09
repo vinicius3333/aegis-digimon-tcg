@@ -121,14 +121,6 @@ export const compiled: CompiledCard = {
             kind: "modifyDP",
             amount: 1000,
           },
-          while: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Tamer"],
-            },
-            raw: "there is a Tamer",
-          },
           scaling: {
             per: 1,
             filter: {
@@ -146,7 +138,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 5,
-      names: ["Eosmon"],
+      namesExact: ["Eosmon"],
       cost: 4,
       isAlternate: true,
     },

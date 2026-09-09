@@ -105,6 +105,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           restriction: "suspend",
+          blocksCombatSuspend: true,
           duration: "untilOpponentTurnEnd",
           cost: {
             kind: "return",
@@ -112,7 +113,7 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "digivolutionCards",
-                hostFilter: { sourceRef: "triggerSubject" },
+                hostFilter: { isSelfRef: true },
                 nameOrTrait: [
                   {
                     tokens: ["Hybrid"],

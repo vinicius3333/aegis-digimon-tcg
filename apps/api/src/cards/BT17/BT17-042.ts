@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Argomon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Rhythm"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -60,7 +60,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 2,
-      names: ["Argomon"],
+      namesExact: ["Argomon"],
       cost: 0,
       isAlternate: true,
     },

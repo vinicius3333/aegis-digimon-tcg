@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -89,7 +89,7 @@ describe("BT17-040 Kazuchimon", () => {
         0: {
           battleArea: [{ card: "BT17-040", as: "kazu" }],
           deck: [{ card: "BT1-011", as: "recovered" }],
-          security: 3,
+          security: [{ card: "BT1-009" }, { card: "BT1-010" }, { card: "BT1-012" }],
         },
         1: { battleArea: [{ card: "BT4-035", dp: 12000, suspended: true, as: "target" }] },
       },
@@ -110,7 +110,7 @@ describe("BT17-040 Kazuchimon", () => {
         0: {
           battleArea: [{ card: "BT17-040", as: "kazu" }],
           deck: [{ card: "BT1-011", as: "recovered" }],
-          security: 3,
+          security: [{ card: "BT1-009" }, { card: "BT1-010" }, { card: "BT1-012" }],
         },
         1: { battleArea: [{ card: "BT4-035", dp: 12000, suspended: true, as: "target" }] },
       },
@@ -127,6 +127,32 @@ describe("BT17-040 Kazuchimon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
     expect(s.state.players[0]!.security.some((card) => card.instanceId === recoveredId)).toBe(true);
+  });
+
+  it("does not recover above three security, taking only the DP-loss branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-040", as: "kazu" }],
+          deck: [{ card: "BT1-011", as: "recoverySource" }],
+          security: [{ card: "BT1-009" }, { card: "BT1-010" }, { card: "BT1-012" }, { card: "BT1-013" }],
+        },
+        1: { battleArea: [{ card: "BT4-035", dp: 12000, suspended: true, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const turn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0);
+    const targetId = s.perm("target").permanentId;
+    const recoverySourceId = s.inst("recoverySource").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === recoverySourceId)).toBe(false);
   });
 
   it("inherits the Fenriloogamon DP loss only from its controller's security removal", async () => {
@@ -172,5 +198,145 @@ describe("BT17-040 Kazuchimon", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.perm("attacker").currentDP).toBe(4000);
+  });
+
+  it("digivolves onto a Lv.5 with [Pulsemon] in its text through the alternate route for 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-036", as: "base" }],
+          hand: [{ card: "BT17-040", as: "kazu" }],
+          deck: [{ card: "BT1-011", as: "bonus" }],
+        },
+        1: {},
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const baseId = s.inst("base").instanceId;
+    const kazuId = s.inst("kazu").instanceId;
+    const bonusId = s.inst("bonus").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: kazuId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === kazuId);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([bonusId]);
+  });
+
+  it("charges the full catalog cost 4 on the same base without the alternate flag", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-036", as: "base" }],
+          hand: [{ card: "BT17-040", as: "kazu" }],
+          deck: [{ card: "BT1-011", as: "bonus" }],
+        },
+        1: {},
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const kazuId = s.inst("kazu").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: kazuId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === kazuId);
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("rejects the alternate route on a Lv.5 without [Pulsemon] in text and falls back to cost 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "base" }],
+          hand: [{ card: "BT17-040", as: "kazu" }],
+          deck: [{ card: "BT1-011", as: "bonus" }],
+        },
+        1: {},
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const kazuId = s.inst("kazu").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: kazuId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === kazuId);
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("refuses an off-color Lv.5 source that satisfies neither the catalog nor the alternate route", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-020", as: "base" }],
+        hand: [{ card: "BT17-040", as: "kazu" }],
+      },
+      1: {},
+    });
+    s.state.memory = 5;
+    const baseId = s.inst("base").instanceId;
+    const kazuId = s.inst("kazu").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: kazuId,
+        useAlternateCost: true,
+      }),
+    ).not.toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: kazuId,
+      }),
+    ).not.toEqual({ ok: true });
+
+    expect(s.perm("base").topCard?.instanceId).toBe(baseId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([kazuId]);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("matches the catalog printed text, evolution costs and alternate requirement", () => {
+    expect(getCardDefinition("BT17-040")).toMatchObject({
+      cardId: "BT17-040",
+      nameEn: "Kazuchimon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      dp: 12000,
+      evoCosts: [
+        { color: "Yellow", level: 5, memoryCost: 4 },
+        { color: "Green", level: 5, memoryCost: 4 },
+      ],
+    });
+    const printed = getCardDefinition("BT17-040")!.effectText!;
+    expect(printed).toContain("[Digivolve]Lv.5 w/[Pulsemon] in its text: Cost 3");
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, texts: ["Pulsemon"], cost: 3, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

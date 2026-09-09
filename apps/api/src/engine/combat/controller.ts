@@ -97,6 +97,8 @@ export interface CombatTrigger {
   attackSequence?: number;
   attackMechanic?: string;
   defenderPermanentId?: string;
+  /** See {@link TriggerInfo.defenderAtDeclaration}. */
+  defenderAtDeclaration?: TriggerInfo["defenderAtDeclaration"];
   blockerPermanentId?: string;
   target?: AttackTarget;
   /** A permanent deleted by the battle (OnDestroyedAnyone). */
@@ -619,11 +621,24 @@ export class CombatController {
       // When Attacking. source fires OnAllyAttack here (documented behavior);
       // also fire OnUseAttack so "when this attacks" triggered/inherited effects
       // (e.g. the BT7-089 pierce builder) get their window once the stack lands.
+      // Volatile defender facts, read BEFORE any [When Attacking] effect resolves. An effect in
+      // this window can strip the defender's digivolution cards (BT16-016's inherited trash);
+      // "attacks a Digimon with no digivolution cards" is still answered by the declaration-time
+      // board (KB Q2816), so the answer is captured here rather than re-derived at fire time.
+      const declaredDefender = target.kind === "permanent" ? this.access.permanentById(target.permanentId) : undefined;
+      const defenderAtDeclaration =
+        declaredDefender === undefined
+          ? undefined
+          : {
+              permanentId: declaredDefender.permanentId,
+              digivolutionCardCount: declaredDefender.stack.length,
+            };
       const attackTrigger: CombatTrigger = {
         attackerPermanentId: attacker.permanentId,
         target,
         ...(opts.attackMechanic === undefined ? {} : { attackMechanic: opts.attackMechanic }),
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
+        ...(defenderAtDeclaration === undefined ? {} : { defenderAtDeclaration }),
       };
       const attackSubTriggerPayload: TriggerInfo = {
         attackerPermanentId: attacker.permanentId,
@@ -633,6 +648,7 @@ export class CombatController {
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),
+        ...(defenderAtDeclaration === undefined ? {} : { defenderAtDeclaration }),
       };
       const preparedWhenAttacking = this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload);
       const preparedWhenOpponentAttacks = this.hooks.prepareSubTrigger?.(

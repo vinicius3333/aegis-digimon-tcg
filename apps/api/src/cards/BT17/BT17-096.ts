@@ -16,8 +16,10 @@ export const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [
                 {
+                  // Printed "[Guilmon]/[Takato Matsuki]" is a bracketed name, so it is exact:
+                  // "Guilmon (X Antibody)" is a different card and is not a legal play target.
                   tokens: ["Guilmon", "Takato Matsuki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -193,13 +193,21 @@ describe("BT17-085 Rika Nonaka", () => {
     s.state.memory = 4;
     await s.ready();
 
+    // The activation is now REFUSED outright: "by placing ..., digivolve into a [Sakuyamon]" is
+    // one process, and `canActivateEffect` preflights the CostGatedBlock's inner Digivolve, so a
+    // hand holding only [Gallantmon] never opens the effect. Previously the effect activated,
+    // raised an optional prompt this test never answered — starving the next test file — and then
+    // fizzled with the cost half-paid. The endpoint assertions below are unchanged.
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: s.perm("rika").topCard.instanceId,
         effectKey: mainEffectKey(s),
       }).ok,
-    ).toBe(true);
+    ).toBe(false);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
     expect(s.perm("renamon").stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === RIKA)).toBe(true);
@@ -207,6 +215,65 @@ describe("BT17-085 Rika Nonaka", () => {
       expect.arrayContaining(["BT17-032", "BT17-035"]),
     );
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT17-016")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  // Q2868: EX4-030 [Kuzuhamon] is only treated as having [Sakuyamon] IN ITS NAME, never as
+  // having the name [Sakuyamon], so the exact-name route must refuse it.
+  // The Q2868 NAME half is fixed: `parsedStaticNameAliases`
+  // (packages/shared/src/cards/effectiveNames.ts) now splits the alias channels, so "also
+  // treated as having [X] IN ITS NAME" feeds `effectiveSubstringOnlyNames` only,
+  // `effectiveExactNames("EX4-030")` is ["Kuzuhamon"], and `match: "nameExact"`
+  // (engine/effects/interpreter/matching/definition.ts) refuses Kuzuhamon as [Sakuyamon].
+  // The activation half is fixed too: `canActivateEffect` (engine/effects/interpreter/effect.ts,
+  // `intrinsicPossible`) now preflights a CostGatedBlock's inner Digivolve against the destination
+  // filter of the cost that binds its target, so the [Main] effect is refused outright instead of
+  // paying the compound place cost and fizzling. Same family as the Q2803/Q2804 pay-then-may work;
+  // see docs/audits/BT17-reaudit/PAY-THEN-MAY-MECHANISM.md.
+  it("refuses EX4-030 Kuzuhamon, which only carries [Sakuyamon] in its name (Q2868)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RIKA, as: "rika" },
+            { card: "BT17-031", as: "renamon" },
+          ],
+          hand: [{ card: "EX4-030", as: "kuzuhamon" }],
+          trash: [
+            { card: "BT17-032", as: "kyubimon" },
+            { card: "BT17-035", as: "taomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(getCardDefinition("EX4-030")).toMatchObject({
+      nameEn: "Kuzuhamon",
+      effectText: expect.stringContaining("also treated as having [Sakuyamon] in its name"),
+    });
+    // Kuzuhamon is not a [Sakuyamon], so there is no legal payload and the whole process is
+    // refused at declaration rather than activating and fizzling with the place cost half-paid.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rika").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }).ok,
+    ).toBe(false);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
+    expect(s.perm("renamon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX4-030"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT17-032", "BT17-035"]),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === RIKA)).toBe(true);
+    expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
 

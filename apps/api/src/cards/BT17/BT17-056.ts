@@ -1,4 +1,4 @@
-// Hand-written override for BT17-056 (Parasimon).
+// Hand-written override for BT17-056 (Locomon).
 // Fix: the [All Turns] reveal-3 effect must place 1 [Parasitemon] OR 1 level-5-or-lower
 // black Digimon card AMONG the revealed cards as this Digimon's bottom digivolution card,
 // then trash the rest. Folded the stranded PlaceUnder + Trash into the RevealAdd
@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["Parasitemon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -81,7 +81,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["GroundLocomon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

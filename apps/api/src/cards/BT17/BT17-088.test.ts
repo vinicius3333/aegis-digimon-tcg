@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-088.js";
 import "./index.js";
 
@@ -105,6 +105,7 @@ describe("BT17-088 Willis", () => {
     await settle(() => s.perm("terriermon").currentDP > 1000);
 
     expect(s.perm("terriermon").currentDP).toBe(3000);
+    assertNoLoudGap(s);
   });
 
   it("boosts one green Digimon at the natural start of the owner's main phase", async () => {
@@ -124,6 +125,72 @@ describe("BT17-088 Willis", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.perm("terriermon").currentDP).toBe(3000);
+    assertNoLoudGap(s);
+  });
+
+  it("expires the +2000 DP at the end of the opponent's turn, not at the end of its own", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-088", as: "willis" },
+            { card: "BT17-043", as: "terriermon" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "bystander" }],
+          hand: [{ card: "BT1-010", as: "opponentSpare" }],
+          deck: [{ card: "BT1-011" }, { card: "BT1-012" }, { card: "BT1-013" }],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("terriermon").currentDP).toBe(3000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("terriermon").currentDP).toBe(1000);
+    assertNoLoudGap(s);
+  });
+
+  it("cannot pay the suspend cost with an already suspended Willis, so no reduced digivolution happens", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-088", as: "willis", suspended: true },
+            { card: "BT17-043", as: "targetTerriermon" },
+          ],
+          hand: [
+            { card: "BT17-043", as: "playedTerriermon" },
+            { card: "BT17-046", as: "gargomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTerriermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("playedTerriermon").instanceId,
+      ),
+    );
+
+    expect(s.perm("willis").isSuspended).toBe(true);
+    expect(s.perm("targetTerriermon").topCard?.cardId).toBe("BT17-043");
+    expect(s.perm("targetTerriermon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT17-046"]);
+    assertNoLoudGap(s);
   });
 
   it("naturally suspends only Willis and digivolves a different Terriermon into a reduced-cost Gargomon", async () => {
@@ -160,6 +227,10 @@ describe("BT17-088 Willis", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("playedTerriermon").instanceId,
       ),
     ).toBe(true);
+    // BT17-046 Gargomon costs 2 off a Lv.3 green base; "reduced by 2" makes it free, so the
+    // digivolution must not move memory at all after the played Terriermon's own cost.
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
   });
 
   it("naturally plays itself from security without paying its cost", async () => {

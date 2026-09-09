@@ -16,8 +16,17 @@ export const compiled: CompiledCard = {
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
-            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-            { kind: "GainMemory", amount: 1 },
+            // "by suspending this Tamer" is a COST, not an ordered action: an already
+            // suspended Tamer cannot pay it, so no memory is gained.
+            {
+              kind: "CostGatedBlock",
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+              actions: [{ kind: "GainMemory", amount: 1 }],
+            },
           ],
         },
       ],

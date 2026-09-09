@@ -126,6 +126,37 @@ describe("BT17-082 Minami Uehara", () => {
     assertNoLoudGap(s);
   });
 
+  it("grants Rush to a blue Digimon and never to a non-blue peer in the same fixture", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-024", under: [{ card: "BT17-021", as: "labramon" }], as: "blueHost" },
+            { card: "BT1-009", as: "redPeer" },
+          ],
+          hand: [{ card: "BT17-082", as: "minami" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 3;
+    // Prefer the red peer first: the blue-only filter must refuse it and fall to the blue host.
+    preferred.push(s.perm("redPeer").topCard.instanceId, s.perm("blueHost").topCard.instanceId);
+    const labramonId = s.inst("labramon").instanceId;
+
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minami").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === labramonId));
+
+    expect(observe(s.engine).hasKeyword(s.perm("blueHost"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("redPeer"), "Rush")).toBe(false);
+    expect(s.perm("minami").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("does not trigger when a matching Digimon is played from hand", async () => {
     const s = setupEngine(
       {
