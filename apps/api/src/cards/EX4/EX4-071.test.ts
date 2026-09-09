@@ -49,8 +49,9 @@ describe("EX4-071 Ame-no-Ohabari", () => {
           ],
           hand: [{ card: "EX4-071", as: "option" }],
           trash: [{ card: "EX4-058", as: "revive" }],
+          deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -65,7 +66,10 @@ describe("EX4-071 Ame-no-Ohabari", () => {
     );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(true);
     s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(false);
@@ -81,8 +85,9 @@ describe("EX4-071 Ame-no-Ohabari", () => {
           ],
           hand: [{ card: "EX4-071", as: "option" }],
           trash: [{ card: "EX4-058", as: "revive" }],
+          deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -93,8 +98,10 @@ describe("EX4-071 Ame-no-Ohabari", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-064")).toBe(false);
     s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
-    await settle(() => false, 60);
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(true);
   });
@@ -109,8 +116,9 @@ describe("EX4-071 Ame-no-Ohabari", () => {
           ],
           hand: [{ card: "EX4-071", as: "option" }],
           trash: [{ card: "BT13-092", as: "burstRavemon" }],
+          deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -120,8 +128,10 @@ describe("EX4-071 Ame-no-Ohabari", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
-    await settle();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-092")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("burstRavemon").instanceId)).toBe(true);

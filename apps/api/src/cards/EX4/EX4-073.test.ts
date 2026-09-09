@@ -14,7 +14,8 @@ import {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./EX4-073.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { makeInstance } from "../../engine/testkit/harness.js";
 import { pushOnStack } from "../../engine/state/access.js";
 import "../BT14/BT14-062.js";
 
@@ -231,20 +232,31 @@ describe("EX4-073 Omnimon Alter-B", () => {
   it("uses the public When Digivolving path and never exceeds the six-play-cost deletion budget", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-073", as: "subject" }], security: ["BT1-001", "BT1-002"] },
+        0: {
+          battleArea: [{ card: "BT1-084", as: "base" }],
+          hand: [{ card: "EX4-073", as: "subject" }],
+          security: ["BT1-009", "BT1-010"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "cost2" },
             { card: "BT1-013", as: "cost3" },
             { card: "BT1-019", as: "cost6" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("subject").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length < 3);
     expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual(["BT1-019"]);
   });
@@ -254,7 +266,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
       {
         0: {
           battleArea: [{ card: "EX4-073", as: "attacker", under: ["EX4-048", "EX4-049", "EX4-051"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
           battleArea: [
@@ -262,7 +274,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
             { card: "BT1-013", as: "cost3" },
             { card: "BT1-019", as: "cost6" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -298,9 +310,13 @@ describe("EX4-073 Omnimon Alter-B", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").stack.length === 0);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
@@ -320,6 +336,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
               under: [{ card: "AD1-004", as: "firstMaterial" }],
             },
           ],
+          deck: ["BT1-013", "BT1-014"],
         },
         1: {
           battleArea: [
@@ -327,28 +344,49 @@ describe("EX4-073 Omnimon Alter-B", () => {
             { card: "BT1-010", as: "secondTarget" },
             { card: "BT1-011", as: "thirdTarget" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle(() => s.perm("attacker").stack.length === 0);
-
-    pushOnStack(s.perm("attacker"), makeInstance("AD1-012", 0, true));
-    pushOnStack(s.perm("attacker"), makeInstance("BT10-067", 0, true));
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").stack.length === 0);
 
     expect(s.perm("attacker").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    pushOnStack(s.perm("attacker"), makeInstance("AD1-012", 0, true));
+    pushOnStack(s.perm("attacker"), makeInstance("BT10-067", 0, true));
+    pushOnStack(s.perm("attacker"), makeInstance("AD1-004", 0, true));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length <= 3);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
   ex4CardBehaviorTests("EX4-073");
 });

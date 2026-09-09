@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX4-022.js";
@@ -24,6 +24,7 @@ describe("EX4-022 ZeedGarurumon", () => {
       to: "hand",
       target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 4 } } },
     });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("digivolves from a blue level-5 Digimon for 4 and preserves the source", async () => {
@@ -31,6 +32,7 @@ describe("EX4-022 ZeedGarurumon", () => {
       0: {
         battleArea: [{ card: "EX4-019", as: "base" }],
         hand: [{ card: "EX4-022", as: "zeed" }],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 4;
@@ -46,9 +48,37 @@ describe("EX4-022 ZeedGarurumon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX4-022");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("EX4-022");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX4-019"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-010");
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
-  it("checks eight cards in hand for the second return and requires a Tamer for the inherited return", () => {
+
+  it("rejects a non-blue level-five route without paying or moving the evolution card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-021", as: "redBase" }],
+        hand: [{ card: "EX4-022", as: "zeed" }],
+        deck: ["BT1-010"],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("zeed").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("redBase").topCard.cardId).toBe("BT1-021");
+    expect(s.perm("redBase").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("zeed").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+  it("checks eight cards in hand for the second return and requires a Tamer for the All-Turns return", () => {
     const digivolving = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving");
     expect(digivolving?.actions?.[1]).toMatchObject({
       condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 8 },
@@ -72,33 +102,50 @@ describe("EX4-022 ZeedGarurumon", () => {
     });
   });
 
-  it("returns level four and then level six Digimon as the opponent reaches eight cards", async () => {
+  it("resolves the public evolution window at the eight-card boundary", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-022", as: "zeed" }] },
+        0: {
+          battleArea: [{ card: "EX4-019", as: "base" }],
+          hand: [{ card: "EX4-022", as: "zeed" }],
+        },
         1: {
           hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
           battleArea: [
             { card: "EX4-016", as: "level4" },
+            { card: "EX4-019", as: "level5" },
             { card: "BT5-030", as: "level6" },
           ],
         },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
     const level6PermanentId = s.perm("level6").permanentId;
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("zeed"));
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zeed").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6PermanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("EX4-019");
     expect(s.state.players[1]!.hand).toHaveLength(9);
+    expect(s.perm("base").topCard.cardId).toBe("EX4-022");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX4-019"]);
   });
 
   it("does not return a level six when the first bounce leaves only seven cards in hand", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-022", as: "zeed" }] },
+        0: {
+          battleArea: [{ card: "EX4-019", as: "base" }],
+          hand: [{ card: "EX4-022", as: "zeed" }],
+        },
         1: {
           hand: Array(6).fill("BT1-001"),
           battleArea: [
@@ -109,9 +156,17 @@ describe("EX4-022 ZeedGarurumon", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("zeed"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zeed").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 7);
 
     expect(s.state.players[1]!.hand).toHaveLength(7);
     expect(s.perm("level6").topCard.cardId).toBe("BT5-030");

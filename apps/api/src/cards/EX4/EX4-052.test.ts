@@ -100,6 +100,28 @@ describe("EX4-052 Fake Agumon Expert", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("may decline the optional activation without trashing or drawing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-052", as: "host" }],
+          hand: [{ card: "BT1-009", as: "sameLevel" }],
+          deck: ["BT1-010", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentDigimon" }] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("opponentDigimon").permanentId], "byEffect");
+    await settle();
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-012"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("Q3494 does not match a level-less Calumon to another Calumon", async () => {
     const s = setupEngine(
       {

@@ -66,5 +66,79 @@ describe("EX4-066 Adze Beast Blade and Shining Dragon Bullet", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("expert").instanceId)).toBe(true);
   });
 
+  it("digivolves Gabumon/Garurumon into CresGarurumon when BlitzGreymon is present", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-051", as: "blitz" },
+            { card: "BT1-029", as: "gabumon" },
+          ],
+          hand: [
+            { card: "EX4-066", as: "subject" },
+            { card: "EX4-049", as: "cres" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    const subjectId = s.inst("subject").instanceId;
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: subjectId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === subjectId));
+
+    expect(s.perm("gabumon").topCard?.cardId).toBe("EX4-049");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cres").instanceId)).toBe(false);
+  });
+
+  it("does not offer a Main digivolution when neither named partner is in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT1-031", as: "blue" },
+          ],
+          hand: [
+            { card: "EX4-066", as: "subject" },
+            { card: "EX4-051", as: "blitz" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    const subjectId = s.inst("subject").instanceId;
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: subjectId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === subjectId));
+
+    expect(s.perm("agumon").topCard?.cardId).toBe("BT1-010");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blitz").instanceId)).toBe(true);
+  });
+
+  it("may play a matching Agumon from trash on Security and returns itself to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "EX4-066", as: "security" }],
+          trash: [{ card: "BT1-010", as: "trashedAgumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+    await settle();
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("trashedAgumon").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(true);
+  });
+
   ex4CardBehaviorTests("EX4-066");
 });

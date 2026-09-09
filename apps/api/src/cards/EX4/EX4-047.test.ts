@@ -1,13 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, digiXrosRequirementFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-047.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "../index.js";
 
 describe("EX4-047 DarkKnightmon", () => {
+  it("matches the catalog identity, full IR coverage, and exact DigiXros recipe", () => {
+    expect(getCardDefinition("EX4-047")).toMatchObject({
+      cardId: "EX4-047",
+      nameEn: "DarkKnightmon",
+      colors: ["Black"],
+      level: 5,
+      playCost: 8,
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+      types: ["Dark Knight", "Twilight"],
+    });
+    expect(runtimeCompiledCard("EX4-047")).toMatchObject({ coverage: "full", residual: [] });
+    expect(digiXrosRequirementFor("EX4-047")).toEqual(compiled.digiXrosRequirement);
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["SkullKnightmon"] }, { names: ["DeadlyAxemon"] }], count: 2 },
+    ]);
+  });
+
   it("grants Blocker to one own Digimon and, while DigiXrosing, one opposing Digimon", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions;
     expect(actions?.[0]).toMatchObject({
@@ -37,6 +59,10 @@ describe("EX4-047 DarkKnightmon", () => {
       | undefined;
     expect(inherited?.actions?.[0]).toMatchObject({
       condition: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["GreyKnightsmon"] }] } },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")).toMatchObject({
+      isInherited: true,
+      frequency: "OncePerTurn",
     });
   });
 
@@ -81,6 +107,28 @@ describe("EX4-047 DarkKnightmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(true);
   });
 
+  it("rejects an invalid DigiXros material without paying or moving cards", () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "EX4-047", as: "darkKnight" },
+          { card: "EX4-040", as: "skullKnight" },
+          { card: "BT1-010", as: "wrongMaterial" },
+        ],
+      },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkKnight").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("skullKnight").instanceId, s.inst("wrongMaterial").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX4-047", "EX4-040", "BT1-010"]);
+  });
+
   it("grants only the own Blocker without DigiXrosing", async () => {
     const s = setupEngine(
       {
@@ -117,7 +165,7 @@ describe("EX4-047 DarkKnightmon", () => {
   it("redirects an opponent attack only when the inherited host is exactly GreyKnightsmon", async () => {
     const valid = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-021", as: "greyKnights", under: ["EX4-047"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "EX4-021", as: "greyKnights", under: ["EX4-047"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -147,7 +195,7 @@ describe("EX4-047 DarkKnightmon", () => {
 
     const invalid = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "plain", under: ["EX4-047"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-010", as: "plain", under: ["EX4-047"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -164,6 +212,30 @@ describe("EX4-047 DarkKnightmon", () => {
     await settle(() => invalid.events.some((event) => event.kind === "attackDeclared"));
     const notRedirected = invalid.events.find((event) => event.kind === "attackDeclared");
     expect(notRedirected).toMatchObject({ kind: "attackDeclared", target: { kind: "player" } });
+  });
+
+  it("allows declining the inherited optional redirect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-021", as: "greyKnights", under: ["EX4-047"] }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("greyKnights").isSuspended).toBe(false);
+    expect(s.events.find((event) => event.kind === "attackDeclared")).toMatchObject({
+      target: { kind: "player" },
+    });
   });
   ex4CardBehaviorTests("EX4-047");
 });

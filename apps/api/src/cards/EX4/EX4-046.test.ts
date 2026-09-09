@@ -11,7 +11,8 @@ describe("EX4-046 WereGarurumon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
-      reduceCost: 2,
+      payCost: true,
+      costDelta: -2,
       optional: true,
       target: { filter: { controller: "mine", excludeSelf: true } },
       into: {
@@ -84,10 +85,55 @@ describe("EX4-046 WereGarurumon", () => {
     );
   });
 
+  it("accepts the level-6 Greymon boundary and pays its printed cost minus two", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-046", as: "source" },
+            { card: "EX4-009", as: "other" },
+          ],
+          hand: [{ card: "EX4-012", as: "levelSixGreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.perm("other").topCard?.cardId === "EX4-012");
+
+    expect(s.perm("other").topCard?.cardId).toBe("EX4-012");
+    expect(s.state.memory).toBe(8); // EX4-012 costs 4; this effect reduces it to 2.
+  });
+
+  it("allows declining the optional digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-046", as: "source" },
+            { card: "BT1-010", as: "other" },
+          ],
+          hand: [{ card: "AD1-001", as: "greymon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+
+    expect(s.perm("other").topCard?.cardId).toBe("BT1-010");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("greymon").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+
   it("redirects an opponent attack to the inherited host after suspending it", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-046"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-046"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -115,7 +161,7 @@ describe("EX4-046 WereGarurumon", () => {
   it("leaves an opponent attack aimed at the player when the optional redirect is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-046"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-046"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },

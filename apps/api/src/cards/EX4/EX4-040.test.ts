@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,6 +8,26 @@ import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-040.js";
 
 describe("EX4-040 SkullKnightmon", () => {
+  it("matches the catalog and registers both printed alternate evolution routes", () => {
+    expect(getCardDefinition("EX4-040")).toMatchObject({
+      cardId: "EX4-040",
+      nameEn: "SkullKnightmon",
+      colors: ["Black"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 3 },
+        { color: "Blue", level: 3, memoryCost: 3 },
+      ],
+    });
+    expect(digivolutionRequirementsFor("EX4-040")).toEqual([
+      { level: 3, colors: ["Black"], cost: 3, isAlternate: true },
+      { level: 3, colors: ["Blue"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.digivolutionRequirement).toEqual(digivolutionRequirementsFor("EX4-040"));
+  });
+
   it("optionally plays Nene Amano from hand only when none is already in play", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
@@ -124,6 +144,53 @@ describe("EX4-040 SkullKnightmon", () => {
       1,
     );
     expect(s.perm("host").isSuspended).toBe(false);
+  });
+
+  it.each([
+    ["black", "EX4-038"],
+    ["blue", "EX4-014"],
+  ])("digivolves legally from a %s level-3 Digimon for 3 memory", async (_route, baseCard) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: "EX4-040", as: "evolution" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX4-040");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCard]);
+  });
+
+  it("rejects the alternate route from a level-3 Digimon with neither printed color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-003", as: "base" }],
+        hand: [{ card: "EX4-040", as: "evolution" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard?.cardId).toBe("BT1-003");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolution").instanceId);
   });
   ex4CardBehaviorTests("EX4-040");
 });

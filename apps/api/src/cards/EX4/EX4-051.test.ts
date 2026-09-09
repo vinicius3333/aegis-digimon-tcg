@@ -207,7 +207,7 @@ describe("EX4-051 BlitzGreymon", () => {
         0: {
           battleArea: [{ card: "BT1-021", as: "base" }],
           hand: [{ card: "EX4-051", as: "subject" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
         1: {
           battleArea: [
@@ -215,7 +215,7 @@ describe("EX4-051 BlitzGreymon", () => {
             { card: "BT1-020", as: "second", under: [{ card: "BT1-009", as: "secondUnder" }] },
             { card: "BT1-020", as: "third", under: [{ card: "BT1-009", as: "thirdUnder" }] },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010"],
+          security: ["BT1-009", "BT1-013", "BT1-012", "BT1-010"],
         },
       },
       { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
@@ -253,14 +253,14 @@ describe("EX4-051 BlitzGreymon", () => {
         0: {
           battleArea: [{ card: "BT1-021", as: "base" }],
           hand: [{ card: "EX4-051", as: "subject" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
         1: {
           battleArea: [
             { card: "BT1-020", as: "first", under: [{ card: "BT1-009", as: "firstUnder" }] },
             { card: "BT1-020", as: "second", under: [{ card: "BT1-009", as: "secondUnder" }] },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010"],
+          security: ["BT1-009", "BT1-013", "BT1-012", "BT1-010"],
         },
       },
       { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
@@ -298,11 +298,11 @@ describe("EX4-051 BlitzGreymon", () => {
             { card: "BT1-029", as: "target" },
           ],
           hand: [{ card: "ST2-06", as: "garurumon" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
         1: {
           battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
@@ -327,11 +327,11 @@ describe("EX4-051 BlitzGreymon", () => {
             { card: "EX4-060", as: "omnimon" },
             { card: "ST2-06", as: "garurumon" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
         1: {
           battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 2 },
@@ -348,14 +348,14 @@ describe("EX4-051 BlitzGreymon", () => {
       {
         0: {
           battleArea: [{ card: "EX4-073", as: "attacker", under: ["EX4-051"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
         },
         1: {
           battleArea: [
             { card: "BT1-020", dp: 20000, suspended: true, as: "victim" },
             { card: "BT1-025", as: "tooHigh" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010"],
+          security: ["BT1-009", "BT1-013", "BT1-012", "BT1-010"],
         },
       },
       // Decline EX4-073's own optional attack effect so it does not trash the inherited card
@@ -381,7 +381,7 @@ describe("EX4-051 BlitzGreymon", () => {
       0: { battleArea: [{ card: "BT1-009", as: "attacker", under: ["EX4-051"] }] },
       1: {
         battleArea: [{ card: "BT1-020", dp: 20000, suspended: true }],
-        security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010"],
+        security: ["BT1-009", "BT1-013", "BT1-012", "BT1-010"],
       },
     });
     await s.ready();
@@ -402,7 +402,7 @@ describe("EX4-051 BlitzGreymon", () => {
         0: { battleArea: [{ card: "BT1-084", dp: 25000, as: "attacker", under: ["EX4-051"] }] },
         1: {
           battleArea: [{ card: "BT1-020", dp: 10000, suspended: true, as: "firstTarget" }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010"],
+          security: ["BT1-009", "BT1-013", "BT1-012", "BT1-010"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },

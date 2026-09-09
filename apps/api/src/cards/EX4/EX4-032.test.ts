@@ -16,6 +16,24 @@ describe("EX4-032 Terriermon", () => {
       ],
       rest: "deckBottom",
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
+      add: [
+        {
+          count: 1,
+          to: "hand",
+          filter: { controllerDefault: "mine", multicolor: true, colorCount: 2, colors: ["Green"] },
+        },
+        {
+          count: 1,
+          to: "hand",
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
+            nameOrTrait: [{ match: "name", tokens: ["Henry Wong"] }],
+          },
+        },
+      ],
+    });
   });
   it("may digivolve itself from hand for two less when Alliance suspends your Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
@@ -81,11 +99,11 @@ describe("EX4-032 Terriermon", () => {
           ],
           hand: [{ card: "BT17-049", as: "evolution" }],
         },
-        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 10;
+    s.state.memory = 1;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -101,5 +119,40 @@ describe("EX4-032 Terriermon", () => {
     });
     await settle(() => s.perm("host").topCard?.cardId === "BT17-049", 5000);
     expect(s.perm("host").topCard?.cardId).toBe("BT17-049");
+    expect(s.state.memory).toBe(-1);
+  });
+
+  it("can decline the inherited optional digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-041", as: "host", under: ["EX4-032"] },
+            { card: "BT1-064", as: "ally" },
+          ],
+          hand: [{ card: "BT17-049", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !combat.hasOpenAllianceDecision, 5000);
+    expect(s.perm("host").topCard?.cardId).toBe("BT23-041");
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolution").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 });
