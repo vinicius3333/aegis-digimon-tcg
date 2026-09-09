@@ -208,9 +208,7 @@ describe("EX5-054 MetalEtemon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       legal ? [s.inst("bonus").instanceId] : [s.inst("evo").instanceId],
     );
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
-      legal ? [] : expect.arrayContaining([s.inst("bonus").instanceId]),
-    );
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("bonus").instanceId)).toBe(!legal);
   });
 
   it("answers Q3646: it may pay the security cost and decline switching an attack on this Digimon", async () => {

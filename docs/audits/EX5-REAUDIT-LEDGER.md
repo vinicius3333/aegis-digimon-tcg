@@ -2,7 +2,7 @@
 
 Base: afa3ab2f451245fb03bf4e3f895ead8807f18df1. Prior scores are not inherited.
 
-Current aggregate: 568/740; 0/74 cards at 10/10.
+Current aggregate: 576/740; 0/74 cards at 10/10.
 
 | Card    | Name                                 | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                           |
 | ------- | ------------------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -50,7 +50,7 @@ Current aggregate: 568/740; 0/74 cards at 10/10.
 | EX5-042 | Merukimon                            | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/full IR mapped; 5 focused tests green; Fortitude reveal/play and Rush boundaries proven                                                                  |
 | EX5-043 | Leopardmon (X Antibody)              | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3621-Q3622 mapped; 7 focused tests green; shared OPT, play reduction and bounce scaling proven                                                          |
 | EX5-044 | Elecmon                              | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/full IR mapped; 7 focused tests green; reveal, evolution routes and inherited De-Digivolve proven                                                        |
-| EX5-045 | Chuumon                              | 0             | 0        | 0                | 0          | 0     | 0/10  | Queued                                                                                                                                                           |
+| EX5-045 | Chuumon                              | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/full IR mapped; 7 focused tests green; public opponent-turn play, Sukamon reveal/refusal and inherited boundaries proven                                 |
 | EX5-046 | Targetmon                            | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3623-Q3624 mapped; 5 focused tests green; Blocker, public effects and evolution boundaries proven                                                       |
 | EX5-047 | Leomon                               | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/full IR mapped; 6 focused tests green; public attack evolution, optionality, De-Digivolve stack ordering and evolution boundaries proven                 |
 | EX5-048 | Etemon                               | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3625 mapped; 9 focused tests green; public forced-attack timing, inherited reveal and alternate evolution paths proven                                  |
