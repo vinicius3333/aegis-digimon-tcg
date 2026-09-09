@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-072.js";
 import "../index.js";
@@ -131,15 +129,23 @@ describe("EX5-072 Holy Beasts Great Cardinal Positions", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
   });
 
-  it("resolves the Security return and adds the Option to hand through public timing", async () => {
+  it("resolves the Security return and adds the Option to hand through a public security check", async () => {
     const s = setupEngine({
       0: {
         security: [{ card: "EX5-072", as: "securityOption" }],
         trash: [{ card: "EX5-074", as: "trashFanglongmon" }],
       },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker" }] },
     });
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX5-074"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX5-074", "EX5-072"]));
   });

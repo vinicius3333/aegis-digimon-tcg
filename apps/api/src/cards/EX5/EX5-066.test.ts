@@ -1,11 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-066.js";
 import "../index.js";
 
 describe("EX5-066 Phoebus Blow", () => {
+  it("matches the catalog and complete IR contract", () => {
+    expect(getCardDefinition("EX5-066")).toMatchObject({
+      cardId: "EX5-066",
+      nameEn: "Phoebus Blow",
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 6,
+      types: ["Light Fang"],
+      effectText: expect.stringContaining("with the [Light Fang]/[Night Claw]"),
+      securityEffectText: "[Security] Activate this card's [Main] effect.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("deletes the opponent's lowest-DP Digimon and returns a Light Fang/Night Claw Digimon if you have a Tamer", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
       {
@@ -89,7 +102,10 @@ describe("EX5-066 Phoebus Blow", () => {
           hand: [{ card: "EX5-066", as: "option" }],
           trash: [{ card: "EX5-007", as: "returnTarget" }],
         },
-        1: { battleArea: [{ card: "BT1-009", dp: 2000, as: "lowest" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", dp: 2000, as: "lowest" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
       },
       { autoSelectCards: true },
     );
@@ -116,9 +132,18 @@ describe("EX5-066 Phoebus Blow", () => {
       { autoSelectCards: true },
     );
     const lowestId = s.perm("lowest").permanentId;
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: lowestId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowestId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowestId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX5-007")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
   });
 });

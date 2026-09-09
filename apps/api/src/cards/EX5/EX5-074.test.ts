@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { type PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX5-074.js";
 import "../index.js";
 
 // EX5-074 (Fanglongmon) behavioral evidence: security trash scaling, trash recovery with
@@ -14,6 +15,23 @@ const VANILLA = "BT1-009"; // Monodramon — no trait, filler
 const OPP_DIGIMON = "BT1-024"; // Koromon (Lv.2) → we'll set DP manually
 
 describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [Four Sovereigns] count", () => {
+  it("matches the catalog and complete IR coverage", () => {
+    expect(getCardDefinition(FANGLONGMON)).toMatchObject({
+      cardId: FANGLONGMON,
+      nameEn: "Fanglongmon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      forms: ["Mega"],
+      attributes: ["NO DATA"],
+      types: ["God Beast"],
+      evoCosts: [{ color: "Yellow", level: 6, memoryCost: 6 }],
+      effectText: expect.stringContaining("By returning up to 4 cards with the [Deva]/[Four Sovereigns]"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
   it("with 2 own [Four Sovereigns] Digimon, trashes 2 opponent security cards", async () => {
     const s = setupEngine(
       {
