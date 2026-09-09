@@ -211,7 +211,7 @@ describe("EX5-032 LoaderLeomon", () => {
       withSource.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: withSource.perm("loader").permanentId,
-        target: { kind: "digimon", permanentId: withSource.perm("opponent").permanentId },
+        target: { kind: "permanent", permanentId: withSource.perm("opponent").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() =>
@@ -233,7 +233,7 @@ describe("EX5-032 LoaderLeomon", () => {
       withoutSource.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: withoutSource.perm("loader").permanentId,
-        target: { kind: "digimon", permanentId: withoutSource.perm("opponent").permanentId },
+        target: { kind: "permanent", permanentId: withoutSource.perm("opponent").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => withoutSource.state.players[0]!.battleArea.length === 0);

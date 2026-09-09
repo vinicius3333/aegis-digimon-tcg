@@ -178,7 +178,7 @@ describe("EX5-059 Dobermon (X Antibody)", () => {
       ({ req }) =>
         req.sourceCardId === "EX5-059" &&
         req.kind === "chooseTargets" &&
-        req.options?.candidateInstanceIds.includes(targetPermanentId),
+        (req.options?.candidateInstanceIds ?? []).includes(targetPermanentId),
     );
     expect(p065TargetDecision?.req.options?.candidateInstanceIds).toEqual(expect.arrayContaining([targetPermanentId]));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === targetPermanentId)).toBe(false);

@@ -196,17 +196,13 @@ describe("EX5-027 Liollmon", () => {
     ).toBe(legal);
     await settle();
 
-    if (legal) {
-      expect(s.perm("base").topCard?.cardId).toBe("EX5-027");
-      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
-      expect(s.state.memory).toBe(5 - cost);
-      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
-    } else {
-      expect(s.perm("base").topCard?.cardId).toBe(base);
-      expect(s.perm("base").stack).toHaveLength(0);
-      expect(s.state.memory).toBe(5);
-      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX5-027"]);
-    }
+    expect(s.perm("base").topCard?.cardId).toBe(legal ? "EX5-027" : base);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.memory).toBe(legal ? 5 - cost : 5);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(legal ? ["BT1-009"] : ["EX5-027"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      legal ? [s.inst("drawn").instanceId] : [s.inst("evo").instanceId],
+    );
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

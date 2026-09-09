@@ -20,7 +20,9 @@ function activateMain(s: ReturnType<typeof setupEngine>, alias: string) {
   const entry = observe(s.engine)
     .activatableEffects(s.perm(alias))
     .find((effect) => /trash/i.test(effect.description ?? ""));
-  if (!entry) throw new Error("EX5-062 Main effect is unavailable through the public affordance");
+  if (entry === undefined || entry.instanceId === undefined || entry.effectKey === undefined) {
+    throw new Error("EX5-062 Main effect is unavailable through the public affordance");
+  }
   expect(
     s.engine.applyIntent(0, {
       type: "activateEffect",
@@ -57,7 +59,7 @@ describe("EX5-062 Anubismon", () => {
     }
     const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
     expect(watcher).toMatchObject({ frequency: "OncePerTurn" });
-    expect(watcher?.actions[0]).toMatchObject({
+    expect(watcher?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
       actions: [

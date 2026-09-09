@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-026.js";
@@ -125,7 +124,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("laterEntrant").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("auraTarget").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("auraTarget").permanentId },
       }),
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking());
@@ -169,7 +168,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("auraTarget").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("auraTarget").permanentId },
       }),
     ).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking());

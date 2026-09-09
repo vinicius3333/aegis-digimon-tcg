@@ -119,14 +119,9 @@ describe("EX5-035 Hawkmon", () => {
     ).toBe(legal);
     await settle();
 
-    if (legal) {
-      expect(s.perm("base").topCard?.cardId).toBe("EX5-035");
-      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
-      expect(s.state.players[0]!.hand).toHaveLength(0);
-    } else {
-      expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe(base);
-      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX5-035"]);
-    }
+    expect(s.perm("base").topCard?.cardId).toBe(legal ? "EX5-035" : base);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(legal ? [] : ["EX5-035"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

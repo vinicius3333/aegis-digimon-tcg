@@ -2,7 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-020.js";
 import "../index.js";
 
@@ -118,13 +118,14 @@ describe("EX5-020 Crescemon", () => {
   });
 
   it("rejects non-matching or opponent-only support stacks", async () => {
-    for (const scenario of [
+    const scenarios: Array<{ board: SeatSpec; opponent?: SeatSpec }> = [
       { board: { battleArea: [{ card: "BT1-009", as: "support", under: ["BT1-010", "BT1-011", "BT1-012"] }] } },
       {
         board: {},
         opponent: { battleArea: [{ card: "EX5-017", as: "support", under: ["BT1-009", "BT1-010", "BT1-011"] }] },
       },
-    ] as const) {
+    ];
+    for (const scenario of scenarios) {
       const s = setupEngine({
         0: { ...scenario.board, hand: [{ card: "EX5-020", as: "crescemon" }] },
         ...(scenario.opponent === undefined ? {} : { 1: scenario.opponent }),

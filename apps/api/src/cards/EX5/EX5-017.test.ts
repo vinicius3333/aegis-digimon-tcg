@@ -122,10 +122,11 @@ describe("EX5-017 Lekismon", () => {
   });
 
   it("takes legal red/blue level-3 routes, including a mixed peer stack, and rejects level 4", async () => {
-    for (const [source, under] of [
+    const routes: Array<[string, string[]]> = [
       ["EX5-007", []],
       ["EX5-016", ["EX5-007"]],
-    ] as const) {
+    ];
+    for (const [source, under] of routes) {
       const s = setupEngine({
         0: {
           battleArea: [{ card: source, as: "base", under }],

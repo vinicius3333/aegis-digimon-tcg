@@ -113,7 +113,7 @@ describe("EX5-010 Sandiramon", () => {
         candidate: "EX5-009",
         placed: true,
       },
-    ] as const;
+    ];
 
     for (const scenario of cases) {
       const s = setupEngine(

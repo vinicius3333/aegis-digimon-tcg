@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-063.js";
 import "../index.js";
@@ -53,8 +52,6 @@ describe("EX5-063 Leviamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 13;
-    const lowestId = s.perm("lowest").permanentId;
-    const highestId = s.perm("highest").permanentId;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,

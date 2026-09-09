@@ -29,7 +29,7 @@ describe("EX5-060 Dragomon", () => {
 
   it("maps both mandatory main triggers and the optional inherited trigger exactly", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
-      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({
         kind: "PlayWithoutCost",
         controller: "opponent",
         suspended: true,
@@ -304,12 +304,14 @@ describe("EX5-060 Dragomon", () => {
 
   it("keeps the inherited event reference and source zone explicit for Q3658/Q3659", () => {
     const inherited = compiled.effects?.find((entry) => entry.trigger === "AllTurns");
-    expect(inherited?.actions[0]).toMatchObject({
+    const watcher = inherited?.actions?.[0];
+    expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
       sourceFilter: { controller: "opponent", kind: ["Digimon"], byEffect: true },
     });
-    expect(inherited?.actions[0]?.actions[0]).toMatchObject({
+    if (watcher?.kind !== "SubTrigger") throw new Error("EX5-060 All Turns watcher must be a SubTrigger");
+    expect(watcher.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["trash"],
       target: { filter: { levelLteTriggerSource: true } },

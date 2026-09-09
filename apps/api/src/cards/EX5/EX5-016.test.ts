@@ -9,9 +9,10 @@ import { compiled } from "./EX5-016.js";
 const TOKEN = "TOKEN-Amon-of-Crimson-Flame";
 
 function gainTwoMemoryEffect(s: ReturnType<typeof setupEngine>, alias = "host") {
-  return observe(s.engine)
+  const effect = observe(s.engine)
     .activatableEffects(s.perm(alias))
     .find((entry) => /Gain 2 memory/i.test(entry.description ?? ""));
+  return effect?.instanceId === undefined ? undefined : { ...effect, instanceId: effect.instanceId };
 }
 
 describe("EX5-016 Lunamon", () => {

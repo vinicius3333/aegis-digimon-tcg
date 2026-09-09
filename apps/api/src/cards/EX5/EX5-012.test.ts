@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-012.js";
 import "../index.js";
 import {
@@ -146,7 +146,7 @@ describe("EX5-012 Flaremon", () => {
       { label: "Light Fang", support: "EX5-008" },
       { label: "Night Claw", support: "EX5-017" },
       { label: "Galaxy", support: "EX5-073" },
-    ] as const;
+    ];
     for (const scenario of cases) {
       const s = setupEngine({
         0: {
@@ -166,7 +166,7 @@ describe("EX5-012 Flaremon", () => {
   });
 
   it("does not reduce play cost with fewer than three cards, a non-matching trait, or an opponent's stack", async () => {
-    const cases = [
+    const cases: Array<{ label: string; board: SeatSpec; opponent?: SeatSpec }> = [
       {
         label: "two sources",
         board: { battleArea: [{ card: "EX5-008", as: "support", under: ["BT1-009", "BT1-010"] }] },
@@ -180,7 +180,7 @@ describe("EX5-012 Flaremon", () => {
         board: {},
         opponent: { battleArea: [{ card: "EX5-008", under: ["BT1-009", "BT1-010", "BT1-011"] }] },
       },
-    ] as const;
+    ];
     for (const scenario of cases) {
       const s = setupEngine({
         0: { ...scenario.board, hand: [{ card: "EX5-012", as: "flaremon" }] },

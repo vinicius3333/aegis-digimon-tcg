@@ -283,7 +283,9 @@ describe("EX5-019 Antylamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspendOption").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unsuspendOption").instanceId));
+    await settle(() =>
+      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unsuspendOption").instanceId),
+    );
     expect(s.state.memory).toBe(7);
     expect(
       s.engine.applyIntent(0, {
@@ -308,6 +310,6 @@ describe("EX5-019 Antylamon", () => {
   });
 
   it("keeps the no-evolution catalog boundary explicit", () => {
-    expect(getCardDefinition("EX5-019").evoCosts).toEqual([]);
+    expect(getCardDefinition("EX5-019")?.evoCosts).toEqual([]);
   });
 });

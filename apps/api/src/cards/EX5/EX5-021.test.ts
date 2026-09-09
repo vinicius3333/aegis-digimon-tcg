@@ -326,6 +326,6 @@ describe("EX5-021 Majiramon", () => {
   });
 
   it("keeps the no-evolution catalog boundary explicit", () => {
-    expect(getCardDefinition("EX5-021").evoCosts).toEqual([]);
+    expect(getCardDefinition("EX5-021")?.evoCosts).toEqual([]);
   });
 });
