@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -123,39 +122,87 @@ describe("EX9-073", () => {
   it.each([false, true])(
     "places a Ver.5-only card on real attack with Q4841 On Play suppression=%s",
     async (suppressed) => {
-      const s = setupEngine(
-        {
-          0: { battleArea: [{ card: "EX9-073", as: "host" }], trash: ["EX9-041"] },
-          1: {
-            battleArea: [
-              { card: "BT1-009", as: "target" },
-              ...(suppressed ? [{ card: "BT20-037", as: "suppressor" }] : []),
-            ],
-            security: ["BT1-046"],
-          },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-      );
-      await s.ready();
-      if (suppressed) await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("suppressor"));
-      expect(observe(s.engine).timingEffectDisabled(s.perm("host"), "onPlay")).toBe(suppressed);
+      const options = {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+      };
+      const s = suppressed
+        ? setupEngine(
+            {
+              0: {
+                battleArea: [
+                  { card: "EX9-073", as: "host" },
+                  { card: "EX9-073", as: "alternate" },
+                ],
+                trash: ["EX9-041"],
+                deck: ["BT1-048", "BT1-048", "BT1-048"],
+              },
+              1: {
+                battleArea: [
+                  { card: "BT20-035", as: "base" },
+                  { card: "BT1-009", as: "target" },
+                ],
+                hand: [{ card: "BT20-037", as: "suppressor" }],
+                security: ["BT1-046"],
+              },
+            },
+            options,
+          )
+        : setupEngine(
+            {
+              0: { battleArea: [{ card: "EX9-073", as: "host" }], trash: ["EX9-041"] },
+              1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-046"] },
+            },
+            options,
+          );
+      let activeTurn: Promise<void> | undefined;
+      if (suppressed) {
+        s.state.turnSeat = 1;
+        s.state.memory = 10;
+        activeTurn = s.engine.runOneTurn();
+        await advance(s.engine).waitForMainPhase(1);
+        const result = s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("suppressor").instanceId,
+        });
+        if (!result.ok) throw new Error("Expected the public Valdur Arm digivolution to succeed");
+        await settle(() => observe(s.engine).timingEffectDisabled(s.perm("host"), "onPlay"));
+        advance(s.engine).endMainPhaseIfOpen(1);
+        await activeTurn;
+        s.state.turnSeat = 0;
+        s.state.memory = 10;
+        activeTurn = s.engine.runOneTurn();
+        await advance(s.engine).waitForMainPhase(0);
+      } else {
+        await s.ready();
+      }
+      const attackHost = suppressed
+        ? [s.perm("host"), s.perm("alternate")].find((permanent) => !permanent.isSuspended)!
+        : s.perm("host");
+      expect(observe(s.engine).timingEffectDisabled(attackHost, "onPlay")).toBe(suppressed);
       expect(s.perm("target").isSuspended).toBe(false);
       expect(
         s.engine.applyIntent(0, {
           type: "attack",
-          attackerPermanentId: s.perm("host").permanentId,
+          attackerPermanentId: attackHost.permanentId,
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
       await settle();
       expect(observe(s.engine).isAttacking()).toBe(false);
       expect(s.state.pendingDecision).toBeUndefined();
-      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX9-041"]);
-      expect(s.perm("host").stack[0]?.faceUp).toBe(true);
-      expect(observe(s.engine).timingEffectDisabled(s.perm("host"), "onPlay")).toBe(suppressed);
+      expect(attackHost.stack.map((card) => card.cardId)).toEqual(["EX9-041"]);
+      expect(attackHost.stack[0]?.faceUp).toBe(true);
+      expect(observe(s.engine).timingEffectDisabled(attackHost, "onPlay")).toBe(suppressed);
       expect(s.state.players[0]!.trash).toHaveLength(0);
       expect(s.perm("target").isSuspended).toBe(!suppressed);
       expect(s.state.players[1]!.security).toHaveLength(0);
+      if (suppressed) {
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await activeTurn;
+      }
     },
   );
   it.each([
@@ -313,7 +360,6 @@ describe("EX9-073", () => {
     expect(s.perm("source").stack.every((card) => card.faceUp === false)).toBe(true);
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.None, s.perm("source"));
     expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("source").stack).toHaveLength(0);

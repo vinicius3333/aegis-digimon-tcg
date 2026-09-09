@@ -59,6 +59,35 @@ describe("EX9-025", () => {
     expect(target.currentDP).toBe(3000);
   });
 
+  it("Q4778 reduces exactly one opposing Digimon when multiple targets are available", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-025", as: "source" }], deck: ["BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "targetA", dp: 5000, suspended: true },
+            { card: "BT1-010", as: "targetB", dp: 5000, suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    const source = s.perm("source");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("targetA").currentDP !== 5000 || s.perm("targetB").currentDP !== 5000);
+
+    expect([s.perm("targetA").currentDP, s.perm("targetB").currentDP].sort()).toEqual([3000, 5000]);
+    expect(source.stack).toHaveLength(1);
+    expect(source.stack.at(-1)!.faceUp).toBe(false);
+  });
+
   it("does not use the opposing deck or resolve with an empty own deck", async () => {
     const s = setupEngine(
       {
@@ -95,7 +124,7 @@ describe("EX9-025", () => {
         battleArea: [{ card: "EX9-025", as: "host" }],
         hand: [{ card: "BT1-057", as: "evo" }],
         deck: ["BT1-009"],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
       1: { battleArea: [{ card: "ST1-10", as: "attacker" }] },
     });
@@ -131,9 +160,9 @@ describe("EX9-025", () => {
     });
     await settle();
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === host.permanentId)).toBe(accept);
-    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(accept ? [] : ["BT1-001"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(accept ? [] : ["BT1-009"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(
-      accept ? ["BT1-001"] : ["EX9-025", "BT1-057"].sort(),
+      accept ? ["BT1-009"] : ["EX9-025", "BT1-057"].sort(),
     );
     expect(s.state.pendingDecision).toBeUndefined();
   });

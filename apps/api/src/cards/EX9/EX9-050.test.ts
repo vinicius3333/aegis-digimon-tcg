@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-050.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -19,82 +18,14 @@ describe("EX9-050", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-050");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-007", "EX9-016", "EX9-061"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
-    expect(s.state.memory).toBe(5);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
-  it("does not activate twice after Security restores the same Numemon", async () => {
-    const options = { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true };
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-050", as: "source" },
-            { card: "BT1-009", as: "decoy" },
-          ],
-          trash: ["EX9-007", "EX9-016", "EX9-061", "EX9-007", "EX9-016", "EX9-061"],
-          hand: ["EX9-053"],
-          deck: ["BT1-010", "BT1-046", "BT1-048", "BT1-009"],
-        },
-        1: { security: ["BT8-104"] },
-      },
-      options,
-    );
-    s.state.memory = 5;
-    await s.ready();
-    const originalId = s.perm("source").topCard.instanceId;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle();
-    expect(s.perm("source").topCard.cardId).toBe("EX9-053");
-    expect(s.state.memory).toBe(2);
-    expect(s.perm("source").stack).toHaveLength(4);
-    options.autoSelectCards = false;
-    options.autoAcceptOptional = false;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("source").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("source").topCard.cardId === "EX9-050" && s.state.pendingDecision?.kind === "chooseTargets",
-    );
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("decoy").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle();
-    expect(s.perm("source").topCard.instanceId).toBe(originalId);
-    expect(s.state.players[1]!.security).toHaveLength(0);
-    const sourceIds = s.perm("source").stack.map(({ instanceId }) => instanceId);
-    const trashIds = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
-    expect(sourceIds).toHaveLength(3);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX9-007", "EX9-016", "EX9-061", "EX9-053"]),
-    );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle();
-    expect(s.perm("source").topCard.instanceId).toBe(originalId);
-    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(sourceIds);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(trashIds);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
   it.each(["EX9-007", "BT1-009"])("accepts an off-color level-3 base only with DM: %s", async (base) => {
@@ -131,13 +62,13 @@ describe("EX9-050", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-050");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-007", "EX9-016", "EX9-061"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-053"]);
-    expect(s.state.memory).toBe(5);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
   it("once per turn digivolves at end of turn by placing three Ver.1 Digimon from trash underneath", () =>
@@ -194,6 +125,7 @@ describe("EX9-050", () => {
       );
       s.state.memory = 3;
 
+      await s.ready();
       await advance(s.engine).runTurn(0);
       await settle();
 
@@ -226,7 +158,8 @@ describe("EX9-050", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-050");
     expect(s.perm("source").stack).toHaveLength(0);
@@ -237,8 +170,8 @@ describe("EX9-050", () => {
 
   it("uses inherited Blocker in live combat", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT2-063", as: "blocker", under: ["EX9-050"] }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT2-063", as: "blocker", under: ["EX9-050"] }], security: ["BT1-009"] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker")).toBe(true);

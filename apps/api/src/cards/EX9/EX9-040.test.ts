@@ -16,7 +16,7 @@ describe("EX9-040", () => {
             { card: "BT1-064", as: "peer" },
           ],
         },
-        1: { battleArea: [{ card: "EX9-040", as: "blocker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "EX9-040", as: "blocker" }], security: ["BT1-012"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
@@ -95,6 +95,7 @@ describe("EX9-040", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
   it("has Blocker and once per turn suspends an opposing Digimon when suspended", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["WG"], cost: 2, isAlternate: true }]);
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({
       keyword: "Blocker",
       raw: "＜Blocker＞",
@@ -119,8 +120,8 @@ describe("EX9-040", () => {
   it("suspends one opposing Digimon when this Digimon suspends", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-040", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        0: { battleArea: [{ card: "EX9-040", as: "source" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoOrderTriggers: true, autoSelectCards: true },
     );
@@ -156,8 +157,8 @@ describe("EX9-040", () => {
   it("does not trigger a second time during the same turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-040", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        0: { battleArea: [{ card: "EX9-040", as: "source" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoOrderTriggers: true, autoSelectCards: true },
     );
@@ -173,6 +174,15 @@ describe("EX9-040", () => {
     await settle();
     expect(source.isSuspended).toBe(true);
     expect(opponent.isSuspended).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    await advance(s.engine).verb.suspend([source.permanentId]);
+    await settle(() => opponent.isSuspended);
+    expect(opponent.isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX9-011.js";
@@ -191,7 +190,7 @@ describe("EX9-011", () => {
         0: {
           battleArea: [
             {
-              card: "EX9-011",
+              card: "BT1-015",
               as: "source",
               under: [
                 { card: "EX9-007", faceUp: true },
@@ -199,18 +198,32 @@ describe("EX9-011", () => {
               ],
             },
           ],
+          hand: [{ card: "EX9-011", as: "evo" }],
           trash: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
-    expect(s.perm("source").stack).toHaveLength(3);
-    expect(s.perm("source").stack.some((card) => card.cardId === "BT1-009" && card.faceUp === false)).toBe(true);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("source").stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([
+      ["BT1-009", false],
+      ["EX9-007", true],
+      ["EX9-009", true],
+      ["BT1-015", true],
+    ]);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(true);
   });
 });

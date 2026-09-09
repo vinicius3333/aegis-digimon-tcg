@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-052.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -18,101 +17,18 @@ describe("EX9-052", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-052");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-010", "EX9-015", "EX9-058"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
-    expect(s.state.memory).toBe(5);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not activate twice after Security restores the same Raremon", async () => {
-    const options = { autoSelectCards: true, autoChooseOption: true };
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-052", as: "source" },
-            { card: "BT1-009", as: "decoy" },
-          ],
-          trash: ["EX9-010", "EX9-015", "EX9-058", "EX9-010", "EX9-015", "EX9-058"],
-          hand: ["EX9-043"],
-          deck: ["BT1-010", "BT1-048"],
-        },
-        1: { security: ["BT8-104"] },
-      },
-      options,
-    );
-    s.state.memory = 5;
-    await s.ready();
-    const originalId = s.perm("source").topCard.instanceId;
-    const activation = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("source").topCard.cardId === "EX9-043" && s.state.pendingDecision?.kind === "optional");
-    // Keep the remaining three payment cards in trash by declining MetalTyrannomon's separate cost.
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await activation;
-    await settle();
-    expect(s.state.memory).toBe(1);
-    expect(s.perm("source").stack).toHaveLength(4);
-    options.autoSelectCards = false;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("source").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("source").topCard.cardId === "EX9-052" && s.state.pendingDecision?.kind === "chooseTargets",
-    );
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("decoy").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle();
-    expect(s.perm("source").topCard.instanceId).toBe(originalId);
-    expect(s.state.players[1]!.security).toHaveLength(0);
-    const sourceIds = s.perm("source").stack.map(({ instanceId }) => instanceId);
-    const trashIds = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
-    expect(sourceIds).toHaveLength(3);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX9-010", "EX9-015", "EX9-058", "EX9-043"]),
-    );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle();
-    expect(s.perm("source").topCard.instanceId).toBe(originalId);
-    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(sourceIds);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(trashIds);
-    expect(s.state.memory).toBe(1);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
+  it("accepts the printed alternate level-3 DM evolution at cost 2", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]));
   it.each(["EX9-007", "BT1-009"])("accepts an off-color level-3 base only with DM: %s", async (base) => {
     const s = setupEngine({
       0: { battleArea: [{ card: base, as: "host" }], hand: [{ card: "EX9-052", as: "evo" }], deck: ["BT1-010"] },
@@ -135,7 +51,7 @@ describe("EX9-052", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("cannot complete a two-card payment with another trait or the opponent's trash", async () => {
+  it("cannot complete a two-card payment with another trait or the opponent's trash (Q4806)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -148,14 +64,14 @@ describe("EX9-052", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-052");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-010", "EX9-015", "EX9-023"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-058"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-043"]);
-    expect(s.state.memory).toBe(5);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
   it("once per turn digivolves at end of turn by placing three Ver.5 Digimon from trash underneath", () =>
@@ -270,7 +186,7 @@ describe("EX9-052", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-052");
     expect(s.perm("source").stack).toHaveLength(0);

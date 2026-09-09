@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-020.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -22,6 +21,15 @@ describe("EX9-020", () => {
       to: "deckBottom",
       target: { filter: { levelComparison: { op: "lte", value: 5 } } },
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
+      kind: "Return",
+      to: "deckBottom",
+      target: { filter: { levelComparison: { op: "lte", value: 5 } } },
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, names: ["Garurumon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["DM"], cost: 3, isAlternate: true },
+    ]);
   });
   it("DNA digivolves into Omnimon Alter-S when it would leave play and prevents attack target changes", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
@@ -40,17 +48,83 @@ describe("EX9-020", () => {
   it("bottom-decks an opposing level 5 or lower Digimon on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-020", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-001"] },
+        0: { hand: [{ card: "EX9-020", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-010", "BT1-011"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 10;
     const targetId = s.perm("target").topCard.instanceId;
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.deck.some((card) => card.instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011", "BT1-009"]);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(targetId);
+  });
+
+  it("bottom-decks an opposing level 5 or lower Digimon on real digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-019", as: "base" }], hand: [{ card: "EX9-020", as: "evo" }] },
+        1: { battleArea: [{ card: "EX9-019", as: "target" }], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    const targetId = s.perm("target").topCard.instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").topCard.cardId).toBe("EX9-020");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX9-019"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011", "EX9-019"]);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(targetId);
+  });
+
+  it.each([
+    { base: "EX9-019", alternate: false, legal: true, cost: 4 },
+    { base: "EX9-011", alternate: true, legal: true, cost: 3 },
+    { base: "EX9-013", alternate: true, legal: false, cost: 0 },
+  ])("checks independent evolution legality from $base", async ({ base, alternate, legal, cost }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "base" }],
+          hand: [{ card: "EX9-020", as: "evo" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: alternate,
+      }).ok,
+    ).toBe(legal);
+    await settle();
+
+    expect(s.state.memory).toBe(10 - cost);
+    expect(s.perm("base").topCard.cardId).toBe(legal ? "EX9-020" : base);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(legal ? [] : ["EX9-020"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("Blast Digivolves from hand during an opponent attack without paying memory", async () => {
@@ -91,14 +165,20 @@ describe("EX9-020", () => {
   ] as const)("returns opposing level 5 but excludes level 6 (%s)", async (target, shouldReturn) => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-020", as: "source" }] },
-        1: { battleArea: [{ card: target, as: "target" }], deck: ["BT1-001"] },
+        0: { hand: [{ card: "EX9-020", as: "source" }] },
+        1: { battleArea: [{ card: target, as: "target" }], deck: ["BT1-010", "BT1-011"] },
       },
       { autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     expect(s.state.players[1]!.battleArea).toHaveLength(shouldReturn ? 0 : 1);
+    const expectedDeck = shouldReturn ? ["BT1-010", "BT1-011", target] : ["BT1-010", "BT1-011"];
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(expectedDeck);
   });
 
   it("does not offer DNA replacement for a battle leave, but DNA digivolves for another leave", async () => {
@@ -138,6 +218,31 @@ describe("EX9-020", () => {
       0,
     );
     expect(nonBattle.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-021"]);
+    expect(nonBattle.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual([
+      "EX9-020",
+      "EX9-013",
+    ]);
+  });
+
+  it("can decline the optional DNA replacement and allow the non-battle leave", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-020", as: "cres" },
+            { card: "EX9-013", as: "blitz" },
+          ],
+          hand: ["EX9-021"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("cres").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-013"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX9-021");
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses Alliance in a real attack and restores the attacker after battle", async () => {
@@ -147,9 +252,9 @@ describe("EX9-020", () => {
           { card: "EX9-020", dp: 12000, as: "attacker" },
           { card: "BT1-009", dp: 4000, as: "ally" },
         ],
-        security: ["BT1-001", "BT1-001"],
+        security: ["BT1-009", "BT1-009"],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     await s.ready();
     expect(
@@ -171,8 +276,8 @@ describe("EX9-020", () => {
 
   it("uses Blocker to intercept an opponent attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", dp: 5000, as: "attacker" }], security: ["BT1-001"] },
-      1: { battleArea: [{ card: "EX9-020", dp: 12000, as: "blocker" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-009", dp: 5000, as: "attacker" }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "EX9-020", dp: 12000, as: "blocker" }], security: ["BT1-009"] },
     });
     await s.ready();
     expect(
@@ -200,7 +305,7 @@ describe("EX9-020", () => {
           { card: "BT1-009", dp: 5000, as: "attacker" },
           { card: "EX9-013", dp: 15000, as: "blocker" },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -234,7 +339,7 @@ describe("EX9-020", () => {
   it("allows target redirection when the same card is played without its inherited effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-086", as: "attacker" }] },
-      1: { battleArea: [{ card: "EX9-013", dp: 12000, as: "blocker" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "EX9-013", dp: 12000, as: "blocker" }], security: ["BT1-009"] },
     });
     await s.ready();
     expect(

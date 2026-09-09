@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-035.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -26,16 +25,17 @@ describe("EX9-035", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX9-035", as: "source" },
-            { card: "EX9-034", as: "host" },
-          ],
+          battleArea: [{ card: "EX9-034", as: "host" }],
+          hand: [{ card: "EX9-035", as: "source" }],
           deck: ["EX9-034", "EX9-035", "EX9-035", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false)),
     );

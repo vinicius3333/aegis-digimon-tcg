@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-009.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -39,12 +40,12 @@ describe("EX9-009", () => {
               card: "EX9-009",
               as: "source",
               under: [
-                { card: "EX9-070", faceUp: false },
-                { card: "EX9-071", faceUp: false },
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-012", faceUp: false },
               ],
             },
           ],
-          deck: ["BT1-009"],
+          deck: ["BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 1000, suspended: true }] },
       },
@@ -97,6 +98,123 @@ describe("EX9-009", () => {
     expect(s.decisions).toHaveLength(0);
     expect(source.stack).toHaveLength(0);
     expect(source.currentDP).toBe(before);
+  });
+
+  it("can decline Training without placing the deck top or changing DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-009", as: "source", under: [{ card: "BT1-009", faceUp: false }] }],
+          deck: ["BT1-012"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const source = s.perm("source");
+    const before = source.currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-012"]);
+    expect(source.stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([["BT1-009", false]]);
+    expect(source.currentDP).toBe(before);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("expires the Training DP boost at the opponent's turn end and resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-009", as: "source" }],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+        1: { security: ["BT1-012", "BT1-012", "BT1-012"], deck: ["BT1-017", "BT1-018", "BT1-019", "BT1-020"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const source = s.perm("source");
+    const baseDP = source.currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(source.stack).toHaveLength(1);
+    expect(source.stack[0]!.faceUp).toBe(false);
+    expect(source.currentDP).toBe(baseDP + 1000);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(source.isSuspended).toBe(false);
+    expect(source.currentDP).toBe(baseDP);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(source.stack).toHaveLength(2);
+    expect(source.stack.every((card) => !card.faceUp)).toBe(true);
+    expect(source.currentDP).toBe(baseDP + 2000);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("enforces Training's Once Per Turn limit across two attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-009", as: "source" }], deck: ["BT1-012", "BT1-013"] },
+        1: { security: ["BT1-012", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const source = s.perm("source");
+    const baseDP = source.currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    await advance(s.engine).verb.unsuspend([source.permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(source.stack).toHaveLength(1);
+    expect(source.currentDP).toBe(baseDP + 1000);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("applies inherited +2000 DP only during its controller's turn", async () => {

@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-010.js";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-010", () => {
   it("has Training and once per turn may place a card from hand face-down underneath to delete an opposing Digimon up to 4000 DP when digivolving or attacking", () => {
+    expect(
+      compiled.effects?.find((entry) => entry.trigger === "Static" && !entry.isInherited)?.keywords,
+    ).toContainEqual({
+      keyword: "Training",
+      raw: "＜Training＞",
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "Delete",
       optional: true,
@@ -17,6 +22,7 @@ describe("EX9-010", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "Delete", optional: true }],
     });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]);
   });
   it("inherits Raid", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
@@ -24,10 +30,39 @@ describe("EX9-010", () => {
       raw: "＜Raid＞",
     }));
 
+  it("uses Training to suspend itself and place the deck top face-down at the bottom of its stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-010", as: "source", under: ["EX9-001"] }], deck: ["BT1-009"] },
+        1: { security: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const source = s.perm("source");
+    const entry = observe(s.engine)
+      .activatableEffects(source)
+      .find(({ instanceId }) => instanceId === source.topCard.instanceId);
+    expect(entry).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.topCard.instanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => source.stack.length === 2 && s.state.players[0]!.deck.length === 0);
+
+    expect(source.isSuspended).toBe(true);
+    expect(source.stack.some((card) => card.cardId === "BT1-009" && card.faceUp === false)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("places a hand card face-down underneath and deletes one opposing Digimon up to 4000 DP when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-010", as: "source" }], hand: ["BT1-009"] },
+        0: { battleArea: [{ card: "EX9-007", as: "base" }], hand: [{ card: "EX9-010", as: "source" }, "BT1-009"] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "valid", dp: 4000 },
@@ -38,12 +73,22 @@ describe("EX9-010", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX9-010");
 
-    expect(s.perm("source").stack).toHaveLength(1);
-    expect(s.perm("source").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
+    expect(s.perm("base").stack).toHaveLength(2);
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT1-009" && card.faceUp === false)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-011")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("places a hand card face-down underneath and deletes an opposing Digimon when attacking", async () => {
@@ -179,5 +224,39 @@ describe("EX9-010", () => {
     // exists as a settled tick — wait for the actual end state instead.
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
+  });
+
+  it("Q4752 does not activate Raid newly inherited after EX9-001 evolves the attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-010", as: "attacker", under: ["EX9-001", { card: "BT1-009", faceUp: false }] }],
+          hand: ["BT1-009", "EX9-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "redirect", dp: 10000 }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX9-011");
+
+    expect(s.perm("attacker").topCard.cardId).toBe("EX9-011");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-024"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

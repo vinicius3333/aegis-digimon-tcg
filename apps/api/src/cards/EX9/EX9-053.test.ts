@@ -92,7 +92,7 @@ describe("EX9-053", () => {
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  it("has Collision and reveals three to play one DM Digimon or Tamer with scaled play-cost limit", () => {
+  it("has Collision and reveals three to play one DM Digimon or Tamer with scaled play-cost limit (Q4807)", () => {
     expect(
       compiled.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Collision"))?.keywords,
     ).toContainEqual({ keyword: "Collision", raw: "＜Collision＞" });
@@ -111,8 +111,16 @@ describe("EX9-053", () => {
   });
   it("inherits once-per-turn de-digivolve one when attacking", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "DeDigivolve", amount: 1 }],
+      actions: [
+        {
+          kind: "DeDigivolve",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 1,
+        },
+      ],
     }));
   it("keeps both Digimon and Tamer DM cards eligible and bottoms every unrecruited reveal", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"])
@@ -232,13 +240,19 @@ describe("EX9-053", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT2-064", as: "host", under: ["EX9-053"] }], security: ["BT1-090"] },
+        0: {
+          battleArea: [{ card: "BT2-064", as: "host", under: ["EX9-053"] }],
+          security: ["BT1-090"],
+          deck: ["BT1-048", "BT1-048", "BT1-048", "BT1-048"],
+        },
         1: {
           battleArea: [
             { card: "EX9-055", as: "target", under: ["EX9-054"] },
             { card: "BT10-065", as: "peer", under: ["BT10-062"] },
+            { card: "BT10-065", as: "third", under: ["BT10-062"] },
           ],
           security: ["BT1-010", "BT1-048"],
+          deck: ["BT1-048", "BT1-048", "BT1-048", "BT1-048"],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
@@ -270,6 +284,26 @@ describe("EX9-053", () => {
     expect(s.perm("peer").topCard.cardId).toBe("BT10-065");
     expect(s.perm("peer").stack.map(({ cardId }) => cardId)).toEqual(["BT10-062"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("third").topCard.cardId).toBe("BT10-065");
+    preferred.splice(0, preferred.length, s.perm("third").permanentId);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("third").topCard.cardId).toBe("BT10-062");
     expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

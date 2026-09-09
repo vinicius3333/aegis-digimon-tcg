@@ -43,15 +43,26 @@ describe("EX9-026", () => {
       keyword: "Training",
       raw: "＜Training＞",
     });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
           {
             kind: "ModifyDP",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             amount: -3000,
             duration: "untilOpponentTurnEnd",
             alsoGainKeywords: [{ keyword: "SecurityAttack", amount: -1 }],
-            cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "place",
+              target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "self",
+              faceDown: true,
+            },
           },
         ],
       });
@@ -59,7 +70,17 @@ describe("EX9-026", () => {
   });
   it("adds the top deck card to security on deletion at three or fewer security", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")).toMatchObject({
-      actions: [{ kind: "SecurityManipulation", op: "addTop", amount: 1, condition: { kind: "zoneCount", value: 3 } }],
+      isInherited: true,
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+        },
+      ],
     });
   });
   it("inherits the same security recovery effect", () =>
@@ -72,7 +93,7 @@ describe("EX9-026", () => {
       {
         0: {
           hand: [{ card: "EX9-026", as: "source" }, "BT1-090"],
-          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -172,7 +193,7 @@ describe("EX9-026", () => {
       {
         0: {
           battleArea: [{ card: "EX9-026", as: "source", under: ["EX9-008"] }],
-          deck: ["BT1-090", "BT1-048"],
+          deck: ["BT1-009", "BT1-048"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -196,7 +217,7 @@ describe("EX9-026", () => {
 
     expect(source.isSuspended).toBe(true);
     expect(source.stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([
-      ["BT1-090", false],
+      ["BT1-009", false],
       ["EX9-008", true],
     ]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
@@ -206,7 +227,7 @@ describe("EX9-026", () => {
   it("preserves a payable hand card when the optional On Play cost is declined", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX9-026", as: "source" }, "BT1-090"], security: ["BT1-090"] },
+        0: { hand: [{ card: "EX9-026", as: "source" }, "BT1-090"], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -230,8 +251,8 @@ describe("EX9-026", () => {
       {
         0: {
           battleArea: [{ card: "BT1-057", as: "host", under: ["EX9-026"] }],
-          deck: ["BT1-090"],
-          security: ["BT1-090", "BT1-090", "BT1-090"],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoOrderTriggers: true },
@@ -244,8 +265,8 @@ describe("EX9-026", () => {
       {
         0: {
           battleArea: [{ card: "BT1-057", as: "host", under: ["EX9-026"] }],
-          deck: ["BT1-090"],
-          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoOrderTriggers: true },

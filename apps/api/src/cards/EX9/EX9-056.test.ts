@@ -28,6 +28,8 @@ describe("EX9-056", () => {
     expect(s.state.memory).toBe(dm ? 2 : 5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("accepts the printed alternate level-5 DM evolution at cost 3", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["DM"], cost: 3, isAlternate: true }]));
   it("Blast Digivolves for free and removes the attacking Digimon through its digivolution effect", async () => {
     const s = setupEngine(
       {
@@ -234,7 +236,7 @@ describe("EX9-056", () => {
       },
     });
   });
-  it("places the opposing Digimon at security bottom and trashes that player's top security on play", async () => {
+  it("places the opposing Digimon at security bottom and trashes that player's top security on play (Q4813)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX9-056", as: "source" }] },
@@ -259,7 +261,7 @@ describe("EX9-056", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("places an own qualifying Digimon at its owner's security bottom on digivolution", async () => {
+  it("places an own qualifying Digimon at its owner's security bottom on digivolution (Q4813)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -296,7 +298,7 @@ describe("EX9-056", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("prevents an own Ver.3 from leaving by trashing the controller's top security", async () => {
+  it("prevents an own Ver.3 from leaving by trashing the controller's top security (Q4814)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -323,7 +325,7 @@ describe("EX9-056", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("also prevents this Ver.3 source itself from leaving", async () => {
+  it("also prevents this Ver.3 source itself from leaving (Q4814)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX9-056", as: "source" }], security: ["BT1-010", "BT1-011"] },

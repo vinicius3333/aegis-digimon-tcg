@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-019.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -58,16 +57,20 @@ describe("EX9-019", () => {
       { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", actions: [{ kind: "Digivolve", payCost: false }] },
     ]));
 
-  it("records the opponent's suspend restriction on play", async () => {
+  it("records and expires the opponent's suspend restriction on a real play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-019", as: "source" }], deck: Array(8).fill("BT1-001") },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: Array(8).fill("BT1-001") },
+        0: { hand: [{ card: "EX9-019", as: "source" }], deck: Array(8).fill("BT1-009") },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: Array(8).fill("BT1-009") },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(observe(s.engine).hasRestriction(s.perm("target"), "beSuspended")).toBe(true);
     await advance(s.engine).runTurn(0);
@@ -75,6 +78,29 @@ describe("EX9-019", () => {
     s.state.memory = 3;
     await advance(s.engine).runTurn(1);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "beSuspended")).toBe(false);
+  });
+
+  it("records the opponent's suspend restriction on a real evolution", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST2-06", as: "base" }], hand: [{ card: "EX9-019", as: "evo" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX9-019");
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "beSuspended")).toBe(true);
   });
 
   it("free-digivolves into Garurumon after a real Greymon play", async () => {
@@ -156,13 +182,44 @@ describe("EX9-019", () => {
     );
   });
 
+  it("Q4762 does not trigger its own Your Turn effect when it evolves into a Greymon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-019", as: "source" }],
+          hand: [
+            { card: "AD1-009", as: "greymon" },
+            { card: "ST2-11", as: "garurumon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "AD1-009");
+
+    expect(s.perm("source").topCard.cardId).toBe("AD1-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["ST2-11"]);
+    expect(s.state.memory).toBe(7);
+  });
+
   it("resolves inherited De-Digivolve 1 against one opposing stack on attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST2-11", as: "host", under: ["EX9-019"] }] },
         1: {
           battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009"], dp: 20000, suspended: true }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

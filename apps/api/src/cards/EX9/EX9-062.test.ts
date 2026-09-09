@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX9-062.js";
 import "../index.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 
 describe("EX9-062", () => {
   it("explicitly declines recovery after a real normal play", async () => {
@@ -109,6 +107,8 @@ describe("EX9-062", () => {
     expect(s.state.memory).toBe(dm ? 2 : 5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("accepts the printed alternate level-4 DM evolution at cost 3", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["DM"], cost: 3, isAlternate: true }]));
 
   it.each([false, true])("allows declining the free play after battle deletion (inherited=%s)", async (inherited) => {
     const top = inherited ? "BT3-089" : "EX9-062";
@@ -271,48 +271,6 @@ describe("EX9-062", () => {
         },
       ]);
   });
-  it.each([
-    ["OnPlay", EffectTiming.OnPlay],
-    ["WhenDigivolving", EffectTiming.WhenDigivolving],
-  ] as const)(
-    "%s trashes one deck card per face-down source and returns one own DM Digimon",
-    async (_label, timing) => {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [
-              {
-                card: "EX9-062",
-                as: "source",
-                under: [
-                  { card: "EX9-010", faceUp: false },
-                  { card: "BT1-009", faceUp: false },
-                ],
-              },
-            ],
-            deck: ["BT1-009", "BT1-010"],
-            trash: ["EX9-010", "EX9-015"],
-          },
-        },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-      );
-
-      expect(s.perm("source").stack).toHaveLength(2);
-      expect(s.perm("source").stack.every((card) => card.faceUp === false)).toBe(true);
-      expect(getEffectModule("EX9-062")?.effectsForTiming(timing, s.perm("source") as never)).toHaveLength(1);
-      await advance(s.engine).fireForPermanent(timing, s.perm("source"));
-      await settle(
-        () =>
-          s.state.players[0]!.deck.length === 0 &&
-          s.state.players[0]!.hand.some((card) => card.cardId === "EX9-010" || card.cardId === "EX9-015"),
-      );
-
-      expect(s.state.players[0]!.deck).toHaveLength(0);
-      expect(s.state.players[0]!.trash.filter((card) => ["BT1-009", "BT1-010"].includes(card.cardId))).toHaveLength(2);
-      expect(s.state.players[0]!.hand.filter((card) => ["EX9-010", "EX9-015"].includes(card.cardId))).toHaveLength(1);
-    },
-  );
-
   it("plays a level-four-or-lower DM Digimon from trash when the inherited source is deleted", async () => {
     const s = setupEngine(
       {

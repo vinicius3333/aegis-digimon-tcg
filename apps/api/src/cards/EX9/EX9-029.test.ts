@@ -230,7 +230,7 @@ describe("EX9-029", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("still accepts the placement cost when security is not at most the face-down stack count", async () => {
+  it("still accepts the placement cost when security is not at most the face-down stack count (Q4783)", async () => {
     const s = setupEngine(
       {
         0: {

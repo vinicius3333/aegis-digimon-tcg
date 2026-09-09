@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-072.js";
@@ -267,15 +265,28 @@ describe("EX9-072", () => {
   });
   it("plays a qualifying DM Digimon from hand when its security effect triggers", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX9-072", as: "source" }], hand: ["EX9-010"] } },
+      {
+        0: { security: [{ card: "EX9-072", as: "source", faceUp: true }], hand: ["EX9-010"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.inst("source").faceUp = true;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-010"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-010")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-010")).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

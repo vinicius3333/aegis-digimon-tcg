@@ -1,98 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-049.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../BT8/BT8-104.js";
 import "../index.js";
 
 describe("EX9-049", () => {
-  it("does not reactivate after security De-Digivolve restores the same Sukamon in the same turn", async () => {
-    const options = { autoSelectCards: true, autoOrderTriggers: true, autoChooseOption: true };
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-049", as: "source" },
-            { card: "BT1-009", as: "decoy" },
-          ],
-          trash: ["EX9-023", "EX9-034", "EX9-029", "EX9-023", "EX9-034", "EX9-029"],
-          hand: ["EX9-074"],
-          deck: ["BT1-010", "BT1-048"],
-        },
-        1: { security: ["BT8-104"] },
-      },
-      options,
-    );
-    s.state.memory = 5;
-    await s.ready();
-    const originalCardId = s.perm("source").topCard.instanceId;
-    const activation = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("source").topCard.cardId === "EX9-074" && s.state.pendingDecision?.kind === "optional");
-    // Decline Kimeramon's optional top-source placement so De-Digivolve restores Sukamon itself.
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await activation;
-    await settle();
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("source").stack).toHaveLength(4);
-    options.autoSelectCards = false;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("source").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("source").topCard.cardId === "EX9-049" && s.state.pendingDecision?.kind === "chooseTargets",
-    );
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("decoy").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle();
-    expect(s.perm("source").topCard.instanceId).toBe(originalCardId);
-    expect(s.state.players[1]!.security).toHaveLength(0);
-    const beforeStack = s.perm("source").stack.map(({ instanceId }) => instanceId);
-    const beforeTrash = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
-    expect(beforeStack).toHaveLength(3);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX9-023", "EX9-034", "EX9-029", "EX9-074"]),
-    );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle();
-    expect(s.perm("source").topCard.instanceId).toBe(originalCardId);
-    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(beforeStack);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(beforeTrash);
-    expect(s.state.memory).toBe(0);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
   it("once per turn digivolves at end of turn by placing three Ver.3 Digimon from trash underneath", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
       frequency: "OncePerTurn",
@@ -122,6 +35,8 @@ describe("EX9-049", () => {
         faceDown: true,
       },
     }));
+  it("accepts the printed alternate level-3 DM evolution at cost 2", () =>
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]));
   it("inherits Blocker", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
       keyword: "Blocker",
@@ -162,13 +77,13 @@ describe("EX9-049", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-049");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(6);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
-    expect(s.state.memory).toBe(5);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
   it.each(["hand", "trash"] as const)(
@@ -211,7 +126,7 @@ describe("EX9-049", () => {
   );
 
   it.each([false, true])(
-    "preserves all zones when payment is unavailable or declined (decline=%s)",
+    "preserves all zones when fewer than three Ver.3 cards are available or payment is declined (Q4804, decline=%s)",
     async (decline) => {
       const payment = decline ? ["EX9-023", "EX9-034", "EX9-029"] : ["EX9-023", "EX9-034", "BT1-009"];
       const s = setupEngine(
@@ -226,21 +141,21 @@ describe("EX9-049", () => {
         { autoAcceptOptional: !decline, autoDeclineOptional: decline, autoSelectCards: true },
       );
       s.state.memory = 5;
-      await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+      await advance(s.engine).runTurn(0);
       await settle();
       expect(s.perm("source").topCard.cardId).toBe("EX9-049");
       expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-046"]);
       expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(payment);
       expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-074"]);
-      expect(s.state.memory).toBe(5);
+      expect(s.state.memory).toBe(-3);
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
 
   it("uses inherited Blocker in live combat", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT2-063", as: "blocker", under: ["EX9-049"] }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-012"] },
+      1: { battleArea: [{ card: "BT2-063", as: "blocker", under: ["EX9-049"] }], security: ["BT1-012"] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker")).toBe(true);

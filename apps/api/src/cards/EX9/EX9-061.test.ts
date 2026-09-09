@@ -150,6 +150,61 @@ describe("EX9-061", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
+  it("limits the attack deletion to once per turn and resets after a real turn boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-061", as: "source", under: ["EX9-058"] }],
+          deck: ["BT1-009", "BT1-048", "BT1-046"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first", dp: 1000 },
+            { card: "BT1-048", as: "second", dp: 1000 },
+          ],
+          deck: ["BT1-010", "BT1-048"],
+          security: ["BT1-010", "BT1-048", "BT1-046"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-058"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT1-046", "BT1-009", "EX9-058"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
   it("has Training and once per turn deletes an opposing Digimon with a level limit scaling by face-down sources when attacking", () => {
     expect(
       compiled.effects?.find((entry) => entry.actions.some((action) => action.kind === "GainKeyword"))?.actions,
@@ -157,7 +212,21 @@ describe("EX9-061", () => {
     const action = compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0];
     expect(action).toMatchObject({
       kind: "Delete",
-      cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
+      cost: {
+        kind: "place",
+        target: { filter: { controller: "mine" }, count: 1, from: ["deck"] },
+        destination: "digivolutionStack",
+        position: "bottom",
+        host: "self",
+        faceDown: true,
+      },
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      optional: true,
+      abortOnDecline: true,
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
     });
     expect(action?.kind === "Delete" ? action.target.filter.levelComparison : undefined).toMatchObject({
       op: "lte",
@@ -166,9 +235,11 @@ describe("EX9-061", () => {
     });
   });
   it("inherits Retaliation", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.actions).toContainEqual(
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Retaliation" } }),
-    ));
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      isInherited: true,
+      actions: [expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Retaliation" } })],
+    }));
   it("places the own deck top face down for its attack effect", async () => {
     const s = setupEngine(
       {

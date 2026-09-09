@@ -1,11 +1,50 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-005.js";
 
+async function activateBreedingMain(s: ReturnType<typeof setupEngine>) {
+  await s.ready();
+  const source = s.perm("negamon");
+  const ability = observe(s.engine).activatableEffects(source)[0]!;
+  expect(ability).toBeDefined();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: source.topCard.instanceId,
+      effectKey: ability.effectKey,
+    }),
+  ).toEqual({ ok: true });
+}
+
 describe("EX9-005", () => {
+  it("matches the catalog and maps both printed breeding clauses to IR", () => {
+    const card = getCardDefinition("EX9-005");
+    expect(card).toBeDefined();
+    if (card === undefined) return;
+    expect(card).toMatchObject({
+      cardId: "EX9-005",
+      nameEn: "Negamon",
+      colors: ["Black"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      forms: ["In-Training"],
+      attributes: ["-"],
+      types: ["Unknown"],
+    });
+    expect(card.effectText?.replaceAll("\u00a0", " ")).toContain(
+      "[Breeding] [Main] [Once Per Turn] You may play 1 Digimon card with [Negamon] in its text from your hand with the play cost reduced by 2.",
+    );
+    expect(card.effectText?.replaceAll("\u00a0", " ")).toContain(
+      "[Breeding] [All Turns] This Digimon can't digivolve and effects can't delete or trash it.",
+    );
+    expect(card.inheritedEffectText?.replaceAll("\u00a0", " ")).toBe(
+      "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to 1 of your Digimon with [Negamon] in its text.",
+    );
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("once per breeding turn may play a Negamon-text Digimon from hand with cost reductions and place it underneath itself", () => {
     const actions = compiled.effects?.find((entry) => entry.isBreeding && entry.trigger === "Main")?.actions ?? [];
     expect(actions[0]).toMatchObject({
@@ -42,12 +81,23 @@ describe("EX9-005", () => {
     expect(observe(s.engine).isRestricted(breeding, "beTrashed")).toBe(true);
   });
 
+  it("does not expose the breeding Main effect after the Digi-Egg moves to the battle area", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-005", as: "negamon" }], hand: ["EX9-046"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).activatableEffects(s.perm("negamon"))).toHaveLength(0);
+  });
+
   it("redirects one opponent attack to an inherited Negamon-text Digimon per turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-047", as: "host", under: ["EX9-005"], dp: 10000 }],
-          security: ["BT1-001", "BT1-002"],
+          battleArea: [
+            { card: "EX9-047", as: "host", under: ["EX9-005"], dp: 10000 },
+            { card: "BT1-012", as: "nonMatching" },
+          ],
+          security: ["BT1-012", "BT1-012"],
         },
         1: {
           battleArea: [
@@ -70,6 +120,7 @@ describe("EX9-005", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.perm("nonMatching").topCard.cardId).toBe("BT1-012");
 
     expect(
       s.engine.applyIntent(1, {
@@ -87,10 +138,34 @@ describe("EX9-005", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 1;
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("negamon"));
+    await s.ready();
+    const ability = observe(s.engine).activatableEffects(s.perm("negamon"))[0]!;
+    expect(ability).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("negamon").topCard.instanceId,
+        effectKey: ability.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-005"), 100);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-046");
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toContain("EX9-005");
+  });
+
+  it("may decline the breeding Main play without moving or paying anything", async () => {
+    const s = setupEngine(
+      { 0: { breeding: { card: "EX9-005", as: "negamon" }, hand: ["EX9-046"] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await activateBreedingMain(s);
+    await settle();
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-005");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX9-046"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("counts named Negamon Digi-Eggs in trash and Digimon stacks for the extra reduction", async () => {
@@ -106,7 +181,7 @@ describe("EX9-005", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("negamon"));
+    await activateBreedingMain(s);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047")).toBe(true);
@@ -125,7 +200,7 @@ describe("EX9-005", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("negamon"));
+    await activateBreedingMain(s);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047"));
     expect(s.state.memory).toBe(-4);
   });
@@ -142,7 +217,7 @@ describe("EX9-005", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("negamon"));
+    await activateBreedingMain(s);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047"));
     expect(s.state.memory).toBe(-4);
   });
@@ -159,8 +234,30 @@ describe("EX9-005", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("negamon"));
+    await activateBreedingMain(s);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047"));
     expect(s.state.memory).toBe(-5);
+  });
+
+  it("does not play a hand Digimon without Negamon in its text", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "EX9-005", as: "negamon" }, hand: ["BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const ability = observe(s.engine).activatableEffects(s.perm("negamon"))[0]!;
+    expect(ability).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("negamon").topCard.instanceId,
+        effectKey: ability.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-005");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(5);
   });
 });

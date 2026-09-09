@@ -16,7 +16,7 @@ describe("EX9-047", () => {
   it("Collision forces a non-Blocker to block without allowing direct attacks on unsuspended Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX9-047", as: "attacker" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "defender" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender" }], security: ["BT1-009"] },
     });
     await s.ready();
     const attackerPermanentId = s.perm("attacker").permanentId;
@@ -58,16 +58,27 @@ describe("EX9-047", () => {
         {
           kind: "Return",
           to: "hand",
-          target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["Negamon"], match: "text" }] } },
+          optional: true,
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Negamon"], match: "text" }],
+            },
+            count: 1,
+          },
         },
       ],
     });
   });
   it("inherits +1000 DP", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
       actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
     }));
-  it("returns a Negamon-text Digimon from trash to hand on deletion", async () => {
+  it("returns a Negamon-text Digimon from trash to hand on deletion (Q4802)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -75,27 +86,27 @@ describe("EX9-047", () => {
           battleArea: [{ card: "EX9-047", as: "source" }],
           trash: [
             { card: "BT1-009", as: "nonmatch" },
-            { card: "EX9-005", as: "egg" },
             { card: "EX9-054", as: "eligible" },
+            { card: "EX9-047", as: "cardText" },
           ],
         },
         1: { trash: [{ card: "EX9-054", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(...["nonmatch", "egg", "opponent", "eligible"].map((alias) => s.inst(alias).instanceId));
+    preferred.push(...["nonmatch", "cardText", "opponent", "eligible"].map((alias) => s.inst(alias).instanceId));
     const player = s.state.players[0] as PlayerState;
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle();
     expect(player.hand.map(({ cardId }) => cardId)).toEqual(["EX9-054"]);
-    expect(player.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-005", "EX9-047"]);
+    expect(player.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-047", "EX9-047"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-054"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("can attack the turn it is played through Rush", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX9-047", as: "rush" }] }, 1: { security: ["BT1-001"] } },
+      { 0: { hand: [{ card: "EX9-047", as: "rush" }] }, 1: { security: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
