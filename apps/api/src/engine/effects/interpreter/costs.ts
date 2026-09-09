@@ -205,6 +205,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
           const self = ctx.source.permanent();
           return self !== undefined && !self.isSuspended ? [self] : [];
         })();
+    // "By suspending up to N ..." is payable with any non-zero number of candidates: the player
+    // chooses how many and the parent action scales by what was paid. Zero candidates stays
+    // unpayable because an upTo cost that can move no state is an unperformable optional process
+    // (Comprehensive Rules 15-8-4-4-1); returning true would raise a prompt whose payment then
+    // fails inside payCost and aborts the effect a step later.
+    if (cost.target?.upTo === true) return candidates.length > 0;
     const required = cost.target?.count === "all" ? candidates.length : (cost.target?.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
@@ -1759,7 +1765,15 @@ export async function payCost(
             }
           };
           try {
-            const resolvedSourceIds = await resolvePermanentTargets(ctx, cost.target);
+            // "Place the top card of ..." means a card WITH cards underneath it: a Digimon
+            // with no digivolution cards is not a legal source, because detaching its only
+            // card would remove the permanent itself (BT17-098 Q2892). Constrain the target
+            // before the decision so an illegal host is never even offered.
+            const sourceTarget =
+              cost.detachPermanentTop === true
+                ? { ...cost.target, filter: { ...cost.target.filter, hasDigivolutionCards: true } }
+                : cost.target;
+            const resolvedSourceIds = await resolvePermanentTargets(ctx, sourceTarget);
             const sourceIds =
               cost.target.filter.differentColors === true
                 ? distinctColorPermanentIds(ctx, resolvedSourceIds)

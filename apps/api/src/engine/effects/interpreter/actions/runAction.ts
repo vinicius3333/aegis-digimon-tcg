@@ -20,6 +20,7 @@ import { runDigivolutionAction } from "./digivolution.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
+import { modalHasAvailableOption } from "./modal.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import {
   applyDecodeHostScope,
@@ -473,6 +474,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
+  // A modal whose every option is un-attemptable cannot be activated at all, so its
+  // activation cost must not be charged (BT17-050 Q2803: with no level 5 or higher Digimon
+  // there is nothing to place this card under, and the 4 memory is never paid).
+  if (action.kind === "Modal" && action.options.length > 0 && !modalHasAvailableOption(ctx, action)) {
+    return action.abortOnDecline === true;
+  }
   // A breeding-area play with a printed activation cost is transactional: an occupied
   // single-slot destination makes the action impossible before any optional prompt or cost
   // payment. The play primitive retains the same guard for destination safety, while this
@@ -787,7 +794,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       if (!canAttempt) return false;
     }
     const costUnpayable = payableActionCost !== undefined && !canPayCost(ctx, payableActionCost as Cost);
-    if (!costUnpayable) {
+    // "By [cost], you may [effect]" pays first and asks afterwards: the leading prompt would make
+    // a decline skip the cost too. The pay-then-ask block further down raises the payload prompt
+    // once the cost is spent.
+    if (!costUnpayable && action.payCostBeforeOptional !== true) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));
       if (!yes) {
         // `ifThisEffectDidNotAct` belongs to the immediately preceding action. A declined
@@ -874,6 +884,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   // When both the processing condition and payload are optional, pay the former
   // first, then offer the payload choice (e.g. Q6255: trash, then decline return).
+  // `payCostBeforeOptional` reaches the same place from the other direction: a MANDATORY
+  // activation cost under an optional payload (Q2813, Q2853, Q2804).
   if (action.kind !== "RawUnparsed" && action.optional && actionCost?.optional === true) {
     const yes = await ctx.ask.optional(ctx, describeAction(action));
     if (!yes) {
@@ -896,6 +908,17 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     for (const extraCost of extraCosts) {
       const paid = await payCost(ctx, extraCost, costPayment);
       if (!paid) return action.abortOnDecline === true;
+    }
+  }
+  // "By [cost], you may [effect]" (`payCostBeforeOptional`): the WHOLE activation cost — the main
+  // cost and every additional cost of the same "By placing A and B and C" clause — is paid, and
+  // only then is the payload offered. Asking before the extra costs would leave Q2853's placement
+  // half-done (this Tamer placed, [Growlmon] and [WarGrowlmon] left in the trash).
+  if (action.kind !== "RawUnparsed" && action.optional && action.payCostBeforeOptional === true) {
+    const yes = await ctx.ask.optional(ctx, describeAction(action));
+    if (!yes) {
+      ctx.lastEffectActed = false;
+      return action.abortOnDecline === true;
     }
   }
   // An "up to N" <Digi-Burst> cost scales its action by the number of cards actually paid

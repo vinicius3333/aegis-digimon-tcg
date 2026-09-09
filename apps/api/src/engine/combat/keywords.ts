@@ -289,7 +289,10 @@ const PARTITION_COLOR_LEVEL = /^([A-Za-z/]+)\s+Lv\.?\s*(\d+)/i;
  */
 export function partitionSpecOf(holderCardId: string): PartitionClause[] | undefined {
   const def = getCardDefinition(holderCardId);
-  const match = PARTITION_TEXT.exec(def?.effectText ?? "");
+  // The marker is printed in the holder's own text, and repeated in its INHERITED text with the
+  // reminder wording — that is the copy a digivolution card carries when it grants ＜Partition＞
+  // to a host whose own top card has no marker (BT16-025 under BT12-030, Q2889).
+  const match = PARTITION_TEXT.exec(def?.effectText ?? "") ?? PARTITION_TEXT.exec(def?.inheritedEffectText ?? "");
   if (match === null) return undefined;
   const rawClauses = match[1]!
     .split(/[&+]/)

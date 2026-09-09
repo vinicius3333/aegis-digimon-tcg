@@ -3,7 +3,7 @@
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { isPrintedKeywordToken, textPrintsKeyword } from "../../../cards/keywordToken.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
-import { CardColor, CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
+import { CardColor, CardKind, digiXrosRequirementFor, effectiveExactNames, effectiveStaticNames } from "@aegis/shared";
 import type { CardDefinition, Filter } from "@aegis/shared";
 import { staticTraitsOf } from "../../../cards/cardData.js";
 
@@ -333,6 +333,14 @@ export function matchNameOrTrait(
     ...(def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : []),
     ...(def.nameAliases ?? []).map(normalizeName),
   ];
+  // An alias printed as "also treated as having [X] in its name" is carried INSIDE the name,
+  // never AS the name, so it answers a substring gate but must be refused by an exact one
+  // (KB Q2868: EX4-030 Kuzuhamon is not a [Sakuyamon]).
+  const exactNames = [
+    normalizeName(def.nameEn ?? ""),
+    ...(def.cardId ? effectiveExactNames(def as CardDefinition).map(normalizeName) : []),
+    ...(def.nameAliases ?? []).map(normalizeName),
+  ];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = staticTraitsOf(def as CardDefinition).map(normalizeTrait);
   const text = [
@@ -352,7 +360,7 @@ export function matchNameOrTrait(
     const nameToken = normalizeName(token);
     if (ref.match === "name") return names.some((name) => name.includes(nameToken));
     // named "Cerberusmon: Werewolf Mode" does NOT match "Cerberusmon" (KB Q1231/Q1232).
-    if (ref.match === "nameExact") return names.some((name) => name === nameToken);
+    if (ref.match === "nameExact") return exactNames.some((name) => name === nameToken);
     if (ref.match === "trait") return traits.some((x) => x === normalizeTrait(rawToken));
     if (ref.match === "traitContains") return traits.some((x) => x.includes(normalizeTrait(rawToken)));
     // An unknown mode must fail closed. It used to fall through to the widest branch below,

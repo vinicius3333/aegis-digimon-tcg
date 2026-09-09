@@ -7,6 +7,7 @@ import {
   allCardIds,
   allCards,
   digivolutionRequirementsFor,
+  effectiveExactNames,
   effectiveStaticNames,
   isTokenDefinition,
   intrinsicDigivolutionCostReductionFor,
@@ -483,9 +484,13 @@ function matchGatedRequirement(
       if (!req.names.some((n) => baseEffectiveNames.some((name) => name.includes(n)))) continue;
     }
 
-    // Exact-name gate: one of the base's effective names must EQUAL one token.
+    // Exact-name gate: one of the base's effective names must EQUAL one token. It reads the
+    // EXACT alias channel only: a card printed as "also treated as having [X] in its name"
+    // carries [X] inside its name, never as its name, so it cannot answer an exact route
+    // (KB Q2868 — EX4-030 Kuzuhamon is not a [Sakuyamon]).
     if (req.namesExact && req.namesExact.length > 0) {
-      if (!req.namesExact.some((n) => baseEffectiveNames.some((name) => name === n))) continue;
+      const baseExactNames = effectiveExactNames(baseDef);
+      if (!req.namesExact.some((n) => baseExactNames.some((name) => name === n))) continue;
     }
 
     // Base play-cost gate: distinguishes same-name reprints ("Play cost 12 [Ceresmon]").

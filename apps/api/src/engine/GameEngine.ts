@@ -2318,6 +2318,7 @@ export class GameEngine {
       attackerPermanentId: trigger.attackerPermanentId,
       attackMechanic: trigger.attackMechanic,
       defenderPermanentId: trigger.defenderPermanentId,
+      defenderAtDeclaration: trigger.defenderAtDeclaration,
       blockerPermanentId: trigger.blockerPermanentId,
       ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
       deletedPermanentId: trigger.deletedPermanentId,
@@ -7032,6 +7033,10 @@ export class GameEngine {
         ];
       },
       canSubstituteMaterial: (permanentId) => this.continuous.hasKeyword(permanentId, "DigiXrosSubstitute"),
+      digiXrosExpandedZones: (seat, playedInstanceId) =>
+        this.primitives.digiXrosExpandedZones?.(seat, playedInstanceId) ?? [],
+      digiXrosExpandedZoneCounts: (seat, playedInstanceId) =>
+        this.primitives.digiXrosExpandedZoneCounts?.(seat, playedInstanceId) ?? {},
       nextPermanentId: () => this.nextPermanentId(),
       placeUnder: (targetPermanentId, instanceIds) => this.primitives.placeUnder(targetPermanentId, instanceIds),
       placePendingDigivolution: this.playCardDeps().placePendingDigivolution,

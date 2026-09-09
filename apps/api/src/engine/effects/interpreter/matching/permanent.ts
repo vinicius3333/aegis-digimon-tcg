@@ -54,6 +54,13 @@ export function selfTopMatchesTrait(ctx: EffectContext, filter: Filter | undefin
  * Whether the SOURCE permanent's (the inherited host's) TOP card carries the text token(s) in
  * against the union via the shared `matchNameOrTrait`. Returns false when there is no source
  * permanent (off-field) or no filter (conservative; we never invent a gate).
+ *
+ * The TOP card only, deliberately: comprehensive.md §4-23-2 states that a Digimon does NOT gain a
+ * digivolution card's text, and gives exactly this shape as its example — "A Digimon won't gain
+ * the <Save> text from a digivolution card whose inherited effect reads '[Your Turn] While this
+ * Digimon has <Save> in its text, it gets +2000 DP.'" Reading the whole stack here would make
+ * BT17-034's and BT17-036's inherited "[Pulsemon] in its text" gates self-satisfying, since each
+ * card names [Pulsemon] in its own digivolution requirement.
  */
 export function selfTopMatchesText(ctx: EffectContext, filter: Filter | undefined): boolean {
   const refs = filter?.nameOrTrait;

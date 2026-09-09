@@ -7,6 +7,7 @@ import {
   beforePayCost,
   breeding,
   colorWaiverStatic,
+  digiXrosZoneStatic,
   digivolveCostStatic,
   endOfAttack,
   handCounter,
@@ -38,7 +39,7 @@ import { isBlastDigivolveMarker } from "./registration/keywords.js";
 import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Action, CardEffect, Target } from "@aegis/shared";
+import type { Action, CardEffect, Cost, Filter, Target } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -297,6 +298,24 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
   );
 }
 
+/**
+ * A `Static`/`Rule` effect whose actions are ALL a self-targeted `digixrosFromTrash` GrantStatic
+ * ("While you have a black Tamer, cards from your trash may also be placed for THIS CARD's
+ * DigiXros" — BT17-057 Q2811; BT18-065's Vemmon prints the same shape) must not carry
+ * `staticModifier`'s on-field base guard. The moment the permission matters is the DigiXros
+ * declaration, when the card is still in HAND, so the on-field guard makes it permanently inert.
+ * Scoped narrowly, mirroring `isColorWaiverStatic`: a Static that also does something else keeps
+ * the on-field guard. `runGrantStatic` scopes the resulting ledger entry to this card's own
+ * pending play, so an off-field copy never widens anyone else's DigiXros.
+ */
+function isDigiXrosZoneStatic(effect: CardEffect): boolean {
+  const isStaticTrigger = effect.trigger === "Static" || effect.trigger === "Rule";
+  if (!isStaticTrigger) return false;
+  const actions = effect.actions ?? [];
+  if (actions.length === 0) return false;
+  return actions.every((a) => a.kind === "GrantStatic" && (a as { grant?: string }).grant === "digixrosFromTrash");
+}
+
 /** Pick the timing builder that matches an IR trigger. */
 export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) => Effect {
   if (effect.timingOverride === "OnEnterFieldAnyone") return turnTiming;
@@ -315,6 +334,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   }
   if (isHandResidentDigivolveCostStatic(effect)) return digivolveCostStatic;
   if (isColorWaiverStatic(effect)) return colorWaiverStatic;
+  if (isDigiXrosZoneStatic(effect)) return digiXrosZoneStatic;
   if (isHandTrashWatcherHost(effect)) return onAddHand;
   // A `{Breeding}` timed effect (BT22-007 {Breeding}[Start of Your Main Phase]) keeps its timing
   // (OnStartMainPhase) and turn-owner gate, but its base "still-relevant" guard is "in breeding"
@@ -744,7 +764,41 @@ export function canActivateEffect(
     if ((action.additionalCosts ?? []).some((cost) => !canPayCost(ctx, cost))) return false;
     return (action.costOptions?.length ?? 0) === 0 || action.costOptions!.some((cost) => canPayCost(ctx, cost));
   };
+  /**
+   * The place costs of `cost` (a single cost or a compound), keyed by the selection ref each one
+   * binds its chosen HOST to. A block's payload reads its target through that binding, so the
+   * binding's destination filter is what the payload can be preflighted against before payment.
+   */
+  const hostFilterBySelectionRef = (cost: Cost | number | undefined): Map<string, Filter> => {
+    const out = new Map<string, Filter>();
+    if (cost === undefined || typeof cost === "number") return out;
+    for (const nested of cost.kind === "compound" ? (cost.costs ?? []) : [cost]) {
+      if (nested.kind !== "place" || nested.bindHostAs === undefined) continue;
+      const hostFilter =
+        nested.underFilter ??
+        (nested.host !== undefined && nested.host !== null && typeof nested.host === "object"
+          ? nested.host.filter
+          : undefined);
+      if (hostFilter !== undefined) out.set(nested.bindHostAs, hostFilter);
+    }
+    return out;
+  };
   const intrinsicPossible = (action: ParsedAction): boolean => {
+    // A CostGatedBlock is "by paying [cost], [payload]": the ACTIVATION is possible only when the
+    // payload is, so preflight through to the inner actions. Without this the block activates,
+    // pays its compound place cost and then fizzles when no legal payload exists — BT17-085's
+    // Rika with no [Sakuyamon] in hand buries herself, [Kyubimon] and [Taomon] under Renamon
+    // (Q2868). The payload's own target is not yet bound, so it is preflighted against the
+    // destination filter of the cost that will bind it, exactly as `runActionInner` does.
+    if (action.kind === "CostGatedBlock") {
+      const hostFilters = hostFilterBySelectionRef(action.cost);
+      return (action.actions ?? []).some((inner) => {
+        const ref = (inner as { target?: { fromSelectionRef?: string } }).target?.fromSelectionRef;
+        const hostFilter = ref === undefined ? undefined : hostFilters.get(ref);
+        if (hostFilter === undefined) return intrinsicPossible(inner as ParsedAction);
+        return intrinsicPossible({ ...inner, target: { filter: hostFilter, count: 1 } } as ParsedAction);
+      });
+    }
     if (action.kind === "Digivolve") {
       const costProducedTarget =
         action.cost?.kind === "place" &&

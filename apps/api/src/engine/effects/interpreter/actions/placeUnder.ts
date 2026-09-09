@@ -572,7 +572,12 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
     action.target?.isSelf === true ||
     action.target?.filter?.isSelfRef === true
   ) {
-    return true;
+    // The source side needs no zone search for these shapes, but the host side still must
+    // exist: "place this card as the bottom digivolution card of 1 of your level 5 or higher
+    // Digimon" is unactivatable with no such Digimon (BT17-050 Q2803). Without this the
+    // action reported itself attemptable, its activation cost was charged, and the placement
+    // silently moved nothing.
+    return hostPreflight(ctx, action) ?? true;
   }
 
   const zones: ZoneRef[] =
@@ -603,6 +608,14 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
         : effectiveTargetCount(ctx, action.target);
   if (required <= 0 || (action.target.upTo !== true && eligibleLooseCandidates.length < required)) return false;
 
+  return hostPreflight(ctx, action) ?? ctx.source.permanent() !== undefined;
+}
+
+/**
+ * Whether the destination side of a PlaceUnder has at least one legal host, or `undefined`
+ * when the action names no host descriptor at all and the caller must apply its own default.
+ */
+function hostPreflight(ctx: EffectContext, action: Extract<Action, { kind: "PlaceUnder" }>): boolean | undefined {
   if (action.destination !== undefined) {
     return (
       candidatePermanents(ctx, {
@@ -626,7 +639,7 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   if (action.underFilter !== undefined) {
     return candidatePermanents(ctx, { filter: action.underFilter, count: 1 }).length > 0;
   }
-  return ctx.source.permanent() !== undefined;
+  return undefined;
 }
 
 /**

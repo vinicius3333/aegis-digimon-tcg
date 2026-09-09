@@ -23,6 +23,7 @@ import { findLooseCandidateByInstance } from "./targeting/loose.js";
 import { candidatePermanents } from "./targeting/permanents.js";
 import { CardColor, CardKind, getCardDefinition, isDigimon, requireCardDefinition } from "@aegis/shared";
 import type { Condition, Filter, Seat } from "@aegis/shared";
+import type { TriggerInfo } from "../EffectContext.js";
 
 /**
  * A checked card has already left security in the real check flow (CR 13-1-6;
@@ -63,7 +64,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const targetId = ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId;
       const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
       if (target === undefined || cond.filter === undefined) return false;
-      const candidates = candidatePermanents(ctx, { filter: cond.filter, count: "all" });
+      // The declared defender's stack size and DP are read from the declaration snapshot, not
+      // from the live board: an effect resolving in the SAME [When Attacking] window (BT16-016's
+      // inherited digivolution-card trash) must not retroactively satisfy "attacks a Digimon with
+      // no digivolution cards" (KB Q2816). Every other predicate stays on the live candidate scan,
+      // which is where controller scope, superlatives and stack-content reads live.
+      const snapshot =
+        ctx.trigger.defenderAtDeclaration?.permanentId === targetId ? ctx.trigger.defenderAtDeclaration : undefined;
+      if (snapshot !== undefined && !declarationTimeDefenderFactsMatch(snapshot, cond.filter)) return false;
+      const liveFilter = snapshot === undefined ? cond.filter : withoutDeclarationTimeFacts(cond.filter);
+      const candidates = candidatePermanents(ctx, { filter: liveFilter, count: "all" });
       return candidates.some((permanent) => permanent.permanentId === targetId);
     }
     case "lastTargetDpAtLeast": {
@@ -1190,4 +1200,38 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     default:
       return false;
   }
+}
+
+/**
+ * The digivolution-stack predicates over a defender that a same-window [When Attacking] effect
+ * can change, and which {@link TriggerInfo.defenderAtDeclaration} therefore answers from the declaration
+ * snapshot instead of from live state (KB Q2816).
+ *
+ * `digivolutionCards: "hasFaceDown"` is deliberately absent: face state is not carried by the
+ * count snapshot, so it stays on the live scan.
+ */
+function declarationTimeDefenderFactsMatch(
+  snapshot: NonNullable<TriggerInfo["defenderAtDeclaration"]>,
+  filter: Filter,
+): boolean {
+  const stack = snapshot.digivolutionCardCount;
+  if (filter.digivolutionCards === "none" || filter.digivolutionCards === "hasNone") {
+    if (stack !== 0) return false;
+  }
+  if (filter.digivolutionCards === "hasAny" && stack === 0) return false;
+  if (filter.hasDigivolutionCards === true && stack === 0) return false;
+  if (filter.hasDigivolutionCards === false && stack !== 0) return false;
+  if (filter.digivolutionCardsAtMost !== undefined && stack > filter.digivolutionCardsAtMost) return false;
+  if (filter.digivolutionCardsAtLeast !== undefined && stack < filter.digivolutionCardsAtLeast) return false;
+  return true;
+}
+
+/** `filter` with the predicates {@link declarationTimeDefenderFactsMatch} has already answered. */
+function withoutDeclarationTimeFacts(filter: Filter): Filter {
+  const rest = { ...filter };
+  if (rest.digivolutionCards !== "hasFaceDown") delete rest.digivolutionCards;
+  delete rest.hasDigivolutionCards;
+  delete rest.digivolutionCardsAtMost;
+  delete rest.digivolutionCardsAtLeast;
+  return rest;
 }
