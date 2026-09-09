@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
                 kind: ["Digimon"],
               },
               from: ["hand"],
+              payCost: true,
               optional: true,
             },
           ],

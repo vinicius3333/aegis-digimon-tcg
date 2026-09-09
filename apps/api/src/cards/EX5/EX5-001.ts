@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: {
             isSelfRef: true,
+            byEffect: true,
           },
           actions: [
             {
@@ -40,6 +41,7 @@ export const compiled: CompiledCard = {
                 kind: ["Digimon"],
               },
               from: ["hand"],
+              payCost: true,
               reduceCost: 1,
               optional: true,
             },

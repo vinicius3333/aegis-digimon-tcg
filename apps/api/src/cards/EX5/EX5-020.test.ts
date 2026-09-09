@@ -1,55 +1,55 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-020.js";
 import "../index.js";
 
 describe("EX5-020 Crescemon", () => {
-  it("reduces both play and into-this-card digivolution cost by two with a qualifying stacked Digimon", () => {
-    const replacements = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions;
-    expect(replacements).toMatchObject([
+  it("matches the catalog and encodes every printed clause", () => {
+    expect(getCardDefinition("EX5-020")).toMatchObject({
+      cardId: "EX5-020",
+      nameEn: "Crescemon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Blue", level: 4, memoryCost: 3 },
+        { color: "Red", level: 4, memoryCost: 3 },
+      ],
+      types: ["Wizard", "Night Claw"],
+      effectText: expect.stringContaining("reduce the play or digivolution cost by 2"),
+      inheritedEffectText: "[Opponent's Turn] This Digimon gets +2000 DP.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    const statics = compiled.effects?.filter((entry) => entry.trigger === "Static");
+    expect(statics).toHaveLength(1);
+    expect(statics?.[0]?.actions).toMatchObject([
       {
         kind: "Replacement",
         event: "wouldBePlayed",
-        actions: [
-          {
-            kind: "Replacement",
-            event: "wouldBePlayed",
-            mode: "reduceCost",
-            amount: 2,
-            condition: { kind: "youHave" },
-          },
-        ],
+        sourceFilter: { isSelfRef: true },
+        actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 2 }],
       },
       {
         kind: "Replacement",
         event: "wouldDigivolve",
-        actions: [
-          {
-            kind: "Replacement",
-            event: "wouldDigivolve",
-            mode: "reduceCost",
-            amount: 2,
-            condition: { kind: "youHave" },
-          },
-        ],
+        actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 2 }],
       },
     ]);
-  });
-  it("restricts one opposing Digimon from suspending on play", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
-      kind: "Restrict",
-      restriction: "suspend",
-      target: { filter: { controller: "opponent" } },
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
-      kind: "Restrict",
-      restriction: "suspend",
-      duration: "untilOpponentTurnEnd",
-      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-    });
-  });
-  it("grants itself 2000 DP during the opponent's turn when inherited", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions).toMatchObject([
+        {
+          kind: "Restrict",
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        },
+      ]);
+    }
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "OpponentsTurn",
       isInherited: true,
@@ -57,7 +57,7 @@ describe("EX5-020 Crescemon", () => {
     });
   });
 
-  it("reduces play cost by two with a three-card Night Claw stack and restricts one opposing Digimon", async () => {
+  it("reduces public play cost and restricts exactly one opposing Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -73,85 +73,161 @@ describe("EX5-020 Crescemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 7;
     await s.ready();
+    s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crescemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-020"));
-
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX5-020"));
     expect(s.state.memory).toBe(2);
     expect(observe(s.engine).isRestricted(s.perm("first"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("second"), "suspend")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not reduce play cost when the supporting stack has only two cards", async () => {
-    const s = setupEngine({
+  it("accepts every allowed support trait and the exact three-card boundary", async () => {
+    for (const support of ["EX5-017", "EX5-008", "EX5-073"] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: support, as: "support", under: ["BT1-009", "BT1-010", "BT1-011"] }],
+          hand: [{ card: "EX5-020", as: "crescemon" }],
+        },
+      });
+      await s.ready();
+      s.state.memory = 7;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crescemon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX5-020"));
+      expect(s.state.memory).toBe(2);
+    }
+
+    const boundary = setupEngine({
       0: {
         battleArea: [{ card: "EX5-017", as: "support", under: ["BT1-009", "BT1-010"] }],
         hand: [{ card: "EX5-020", as: "crescemon" }],
       },
     });
-    s.state.memory = 7;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crescemon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-020"));
-
-    expect(s.state.memory).toBe(0);
+    await boundary.ready();
+    boundary.state.memory = 7;
+    expect(
+      boundary.engine.applyIntent(0, { type: "playCard", instanceId: boundary.inst("crescemon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => boundary.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX5-020"));
+    expect(boundary.state.memory).toBe(0);
   });
 
-  it("reduces digivolution cost by two when digivolving into Crescemon with the qualifying stack", async () => {
+  it("rejects non-matching or opponent-only support stacks", async () => {
+    for (const scenario of [
+      { board: { battleArea: [{ card: "BT1-009", as: "support", under: ["BT1-010", "BT1-011", "BT1-012"] }] } },
+      {
+        board: {},
+        opponent: { battleArea: [{ card: "EX5-017", as: "support", under: ["BT1-009", "BT1-010", "BT1-011"] }] },
+      },
+    ] as const) {
+      const s = setupEngine({
+        0: { ...scenario.board, hand: [{ card: "EX5-020", as: "crescemon" }] },
+        ...(scenario.opponent === undefined ? {} : { 1: scenario.opponent }),
+      });
+      await s.ready();
+      s.state.memory = 7;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crescemon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX5-020"));
+      expect(s.state.memory).toBe(0);
+    }
+  });
+
+  it("reduces both printed blue and red public evolution routes", async () => {
+    for (const source of ["EX5-017", "EX5-008"] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: source, as: "base", under: ["BT1-009", "BT1-010", "BT1-011"] }],
+          hand: [{ card: "EX5-020", as: "crescemon" }],
+        },
+      });
+      await s.ready();
+      s.state.memory = 3;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("crescemon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "EX5-020");
+      expect(s.state.memory).toBe(2);
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011", source]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    }
+  });
+
+  it("answers Q3569: the reduction does not apply when Crescemon is the source", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX5-017", as: "base", under: ["BT1-009", "BT1-010", "BT1-011"] }],
-        hand: [{ card: "EX5-020", as: "crescemon" }],
+        battleArea: [{ card: "EX5-020", as: "crescemon", under: ["EX5-017", "BT1-009", "BT1-010", "BT1-011"] }],
+        hand: [{ card: "BT1-044", as: "next" }],
       },
     });
-    s.state.memory = 3;
     await s.ready();
+    s.state.memory = 4;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("crescemon").instanceId,
+        permanentId: s.perm("crescemon").permanentId,
+        instanceId: s.inst("next").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "EX5-020");
-
-    expect(s.state.memory).toBe(2);
+    await settle(() => s.perm("crescemon").topCard?.cardId === "BT1-044");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("crescemon").stack.map((card) => card.cardId)).toEqual([
+      "EX5-017",
+      "BT1-009",
+      "BT1-010",
+      "BT1-011",
+      "EX5-020",
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("applies the inherited DP bonus only on the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX5-020"] }] } });
-    s.state.turnSeat = 1;
-    await s.ready();
-    expect(s.perm("host").currentDP).toBe(5_000);
-
-    s.state.turnSeat = 0;
-    await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(3_000);
-  });
-
-  it("does not reduce digivolution cost without the three-card support stack", async () => {
+  it("rejects an illegal level source without charging memory or moving Crescemon", async () => {
     const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX5-017", as: "base" }],
-        hand: [{ card: "EX5-020", as: "crescemon" }],
-      },
+      0: { battleArea: [{ card: "BT1-009", as: "wrongLevel" }], hand: [{ card: "EX5-020", as: "crescemon" }] },
     });
-    s.state.memory = 3;
     await s.ready();
+    s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("base").permanentId,
+        permanentId: s.perm("wrongLevel").permanentId,
         instanceId: s.inst("crescemon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "EX5-020");
+      }).ok,
+    ).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("wrongLevel").topCard?.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("crescemon").instanceId }),
+    );
+  });
 
-    expect(s.state.memory).toBe(0);
+  it("applies the inherited +2000 DP through the real opponent-turn loop", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-044", as: "host", under: ["EX5-020"] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: { deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(11000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("host").currentDP).toBe(13000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(11000);
+    void loop;
   });
 });

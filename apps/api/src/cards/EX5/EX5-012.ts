@@ -49,6 +49,11 @@ export const compiled: CompiledCard = {
             },
           ],
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
         {
           kind: "Replacement",
           event: "wouldDigivolve",
