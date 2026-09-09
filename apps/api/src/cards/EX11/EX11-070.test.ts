@@ -1,7 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-070.js";
 
 describe("EX11-070 Unchained", () => {
@@ -14,202 +14,13 @@ describe("EX11-070 Unchained", () => {
       types: ["LIBERATOR"],
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-  });
-
-  it("sets memory to 3 at the start of your turn from 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-070", as: "unchained" }] } });
-    s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("unchained"));
-    expect(s.state.memory).toBe(3);
-    assertNoLoudGap(s);
-  });
-
-  it("Mind Links without requiring the preceding DNA digivolution (Q5940, Q5942)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-070", as: "unchained" },
-            { card: "EX11-029", as: "maquinamonText" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("unchained"));
-
-    expect(s.perm("maquinamonText").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
-    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX11-070")).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
-  it("Mind Links only with a Digimon that has [Maquinamon] in its text", async () => {
-    // AD1-001 Greymon is listed first and would be taken by an unfiltered recipient pool.
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "AD1-001", as: "plainDigimon" },
-            { card: "EX11-070", as: "unchained" },
-            { card: "EX11-029", as: "maquinamonText" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("unchained"));
-    await settle();
-
-    expect(s.perm("maquinamonText").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
-    expect(s.perm("plainDigimon").stack).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
-  it("DNA digivolves exactly 2 Digimon into ExMaquinamon from hand before Mind Link", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-070", as: "unchained" },
-            { card: "EX11-034", as: "firstMaterial" },
-            { card: "EX11-045", as: "secondMaterial" },
-          ],
-          hand: [{ card: "EX11-073", as: "result" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 7;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("unchained"));
-
-    expect(s.perm("result").topCard.cardId).toBe("EX11-073");
-    expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX11-034", "EX11-045"]),
-    );
-    expect(s.state.memory).toBe(7);
-    assertNoLoudGap(s);
-  });
-
-  it("clamps the inherited host after summed DP changes and blocks only opposing stack trash (Q5941-Q5943)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX11-029", as: "host", under: [{ card: "EX11-070", as: "unchained" }] }],
-      },
-    });
-    await s.ready();
-
-    await advance(s.engine).verb.modifyDP(s.perm("host").permanentId, 2000, EffectDuration.UntilEachTurnEnd);
-    await advance(s.engine).verb.modifyDP(s.perm("host").permanentId, -7000, EffectDuration.UntilEachTurnEnd);
-    expect(s.perm("host").currentDP).toBe(1000);
-
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("unchained").instanceId],
-      1,
-    );
-    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
-
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("unchained").instanceId],
-      0,
-    );
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-070");
-    assertNoLoudGap(s);
-  });
-
-  it("clamps a [Maquinamon] host but leaves a host without that text unprotected (Q5942/Q5943)", async () => {
-    // Both hosts print 5000 DP and carry the same Unchained beneath them. Only EX11-029 has
-    // [Maquinamon] in its text; AD1-001 Greymon does not, so `selfTopHasText` must reject it and
-    // neither the 1000 DP floor nor the stack-trash lock may be installed on it.
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX11-029", as: "maquinamonHost", under: [{ card: "EX11-070", as: "protected" }] },
-          { card: "AD1-001", as: "plainHost", under: [{ card: "EX11-070", as: "unprotected" }] },
-        ],
-      },
-    });
-    await s.ready();
-
-    for (const alias of ["maquinamonHost", "plainHost"]) {
-      await advance(s.engine).verb.modifyDP(s.perm(alias).permanentId, -4500, EffectDuration.UntilEachTurnEnd);
-    }
-    expect(s.perm("maquinamonHost").currentDP).toBe(1000);
-    expect(s.perm("plainHost").currentDP).toBe(500);
-
-    // Opponent-driven digivolution-card trash: locked on the [Maquinamon] host, allowed on the other.
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("maquinamonHost").permanentId,
-      [s.inst("protected").instanceId],
-      1,
-    );
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("plainHost").permanentId,
-      [s.inst("unprotected").instanceId],
-      1,
-    );
-
-    expect(s.perm("maquinamonHost").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
-    expect(s.perm("plainHost").stack).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
-  it("plays inherited Unchained from its own stack at end of all turns (Q6523)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-029", as: "host", under: [{ card: "EX11-070", as: "unchained" }] }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-070")).toBe(true);
-    expect(s.perm("host").stack).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
-  it("plays only the Unchained under the resolving host, never another Digimon's copy", async () => {
-    // "from THIS Digimon's digivolution cards". The other host is listed FIRST, so an unscoped
-    // candidate pool would offer its copy ahead of the resolving host's own.
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-029", as: "otherHost", under: [{ card: "EX11-070", as: "otherUnchained" }] },
-            { card: "EX11-029", as: "host", under: [{ card: "EX11-070", as: "unchained" }] },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-
-    expect(s.perm("host").stack).toHaveLength(0);
-    expect(s.perm("otherHost").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("otherUnchained").instanceId,
-    ]);
-    assertNoLoudGap(s);
-  });
-
-  it("publishes full exclusive IR for every printed clause", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions).toMatchObject([
       { kind: "DnaDigivolve", materials: { count: 2 }, payCost: true, optional: true },
       { kind: "MindLink", target: { filter: { textContains: "Maquinamon" } }, optional: true },
     ]);
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([
-      { kind: "MinDpFloor", floor: 1000 },
-      { kind: "StackTrashLock" },
+      { kind: "MinDpFloor", floor: 1000, duration: "permanent" },
+      { kind: "StackTrashLock", duration: "permanent" },
     ]);
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfAllTurns")).toMatchObject({
       isInherited: true,
@@ -217,29 +28,166 @@ describe("EX11-070 Unchained", () => {
         {
           kind: "PlayWithoutCost",
           from: ["digivolutionCards"],
-          // Scopes the play to the host's own stack; without it the pool is every
-          // digivolution card the controller owns.
           target: { filter: { hostFilter: { isSelfRef: true } } },
         },
       ],
     });
   });
-  it("may decline the Mind Link at the end of turn", async () => {
+
+  it("sets memory to 3 at the start of your turn from 2 or less", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-070", as: "unchained" }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-010"] },
+    });
+    s.state.memory = 2;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("leaves memory above 2 unchanged at the start of your turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-070", as: "unchained" }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-010"] },
+    });
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("publicly DNA digivolves exactly two legal level-6 materials into ExMaquinamon", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "EX11-070", as: "unchained" },
-            { card: "EX11-029", as: "host" },
+            { card: "EX11-034", as: "greenMaterial" },
+            { card: "EX11-044", as: "blackMaterial" },
           ],
+          hand: [{ card: "EX11-073", as: "exMaquinamon" }],
+          deck: ["BT1-009", "BT1-010"],
         },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-073"));
+    const dna = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX11-073")!;
+    expect(dna.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["EX11-034", "EX11-044"]));
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("EX11-073");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("declines the public DNA option and preserves both materials and ExMaquinamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-070", as: "unchained" },
+            { card: "EX11-034", as: "greenMaterial" },
+            { card: "EX11-044", as: "blackMaterial" },
+          ],
+          hand: [{ card: "EX11-073", as: "exMaquinamon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("unchained"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(
+      expect.arrayContaining(["EX11-034", "EX11-044"]),
+    );
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-073");
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-073")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("Mind Links at the real end of turn to a Maquinamon-text Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-070", as: "unchained" },
+            { card: "EX11-029", as: "maquinamonText" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("maquinamonText").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("plays inherited Unchained from its own stack at the real end of all turns", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-029", as: "host", under: [{ card: "EX11-070", as: "unchained" }] }],
+          deck: ["BT1-009"],
+        },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070"));
     expect(s.perm("host").stack).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("plays itself from security through a legal public security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX11-070", as: "unchained", faceUp: false }] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 });

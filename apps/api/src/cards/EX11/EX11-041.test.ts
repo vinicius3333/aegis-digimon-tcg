@@ -1,6 +1,5 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
@@ -76,28 +75,36 @@ describe("EX11-041 Oblivimon", () => {
     });
   });
 
-  it("flips the next face-down security, de-digivolves, and free-evolves on the opponent's turn", async () => {
+  it("publicly plays, flips the next face-down security, and de-digivolves one opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: "EX11-043", as: "invisimon" }] },
+        0: {
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "EX11-043", as: "invisimon" },
+          ],
+        },
         1: {
           security: [
-            { card: "BT1-001", faceUp: true },
-            { card: "BT1-002", faceUp: false },
+            { card: "BT1-013", faceUp: true },
+            { card: "BT1-014", faceUp: false },
           ],
           battleArea: [{ card: "BT1-080", as: "opponent", under: ["BT1-009"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    const opponent = s.perm("opponent");
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId));
     expect(s.state.players[1]!.security[0]).toMatchObject({ faceUp: true });
     expect(s.state.players[1]!.security[1]).toMatchObject({ faceUp: true });
-    expect(opponent.stack).toHaveLength(0);
-    expect(opponent.topCard.cardId).toBe("BT1-009");
-    expect(s.perm("source").topCard.cardId).toBe("EX11-043");
+    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.perm("opponent").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("invisimon").instanceId);
     assertNoLoudGap(s);
   });
 
@@ -106,7 +113,7 @@ describe("EX11-041 Oblivimon", () => {
       0: {
         battleArea: [{ card: "BT12-086", as: "machineBase" }],
         hand: [{ card: cardId, as: "oblivimon" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await valid.ready();
@@ -128,7 +135,7 @@ describe("EX11-041 Oblivimon", () => {
       0: {
         battleArea: [{ card: "BT1-037", as: "wrongBase" }],
         hand: [{ card: cardId, as: "oblivimon" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await invalid.ready();
@@ -161,16 +168,26 @@ describe("EX11-041 Oblivimon", () => {
           battleArea: [{ card: cardId, as: "source", under: ["BT1-009", "BT1-019"] }],
           security: ["BT1-019"],
         },
+        1: {
+          security: [
+            { card: "BT1-013", faceUp: true },
+            { card: "BT1-019", faceUp: false },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const permanentId = s.perm("source").permanentId;
     const promotedInstanceId = s.perm("source").stack.at(-1)!.instanceId;
-    await advance(s.engine).fireSubTrigger("whenCheckedFaceUpSecurity", {
-      attackerPermanentId: permanentId,
-      securityInstanceId: s.state.players[0]!.security[0]!.instanceId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.at(-1)?.cardId === cardId);
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId, faceUp: true });
     const survivor = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId);
     expect(survivor).toBeDefined();
@@ -187,14 +204,24 @@ describe("EX11-041 Oblivimon", () => {
           battleArea: [{ card: cardId, as: "source", under: ["BT1-009", "BT1-019"] }],
           security: ["BT1-019"],
         },
+        1: {
+          security: [
+            { card: "BT1-013", faceUp: true },
+            { card: "BT1-019", faceUp: false },
+          ],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenCheckedFaceUpSecurity", {
-      attackerPermanentId: s.perm("source").permanentId,
-      securityInstanceId: s.state.players[0]!.security[0]!.instanceId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-019"]);
     expect(s.perm("source").topCard.cardId).toBe(cardId);
     assertNoLoudGap(s);

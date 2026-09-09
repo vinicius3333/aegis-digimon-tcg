@@ -121,31 +121,32 @@ describe("EX11-018 Ryugumon", () => {
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  it("accepts Aquatic as an Aqua-containing cost, places it at the bottom, and unsuspends the chosen Digimon", async () => {
+  it("accepts Aquatic as an Aqua-containing cost through public play, places it at the bottom, and unsuspends the chosen Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: cardId, as: "source", suspended: true, under: [{ card: "BT1-001", as: "oldBottom" }] },
-            { card: "BT1-009", as: "ally", suspended: true },
+          battleArea: [{ card: "BT1-009", as: "ally", suspended: true }],
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "BT10-023", as: "aquaticCost" },
           ],
-          hand: [{ card: cardId, as: "aquaticCost" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "returnTarget", under: ["BT1-002"] }] },
+        1: { battleArea: [{ card: "BT1-010", as: "returnTarget", under: ["BT1-012"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("aquaticCost").instanceId, s.perm("ally").permanentId, s.perm("returnTarget").permanentId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("source").topCard.cardId === cardId);
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("aquaticCost").instanceId,
-      s.inst("oldBottom").instanceId,
-    ]);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("aquaticCost").instanceId]);
     expect(s.perm("ally").isSuspended).toBe(false);
-    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("returnTarget").instanceId);
     assertNoLoudGap(s);
   });
@@ -154,16 +155,19 @@ describe("EX11-018 Ryugumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-010", as: "ally", suspended: true }],
+          hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-010", as: "ally", suspended: true },
+            { card: cardId, as: "cost" },
           ],
-          hand: [{ card: cardId, as: "cost" }],
         },
       },
       { autoAcceptOptional: false },
     );
-    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const pending = s.state.pendingDecision!;
     expect(
@@ -182,7 +186,7 @@ describe("EX11-018 Ryugumon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await settle();
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(1);
@@ -193,16 +197,20 @@ describe("EX11-018 Ryugumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-010", as: "ally", suspended: true }],
+          hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-010", as: "ally", suspended: true },
+            { card: "BT1-009", as: "cost" },
           ],
-          hand: [{ card: "BT1-009", as: "cost" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(1);
@@ -239,21 +247,81 @@ describe("EX11-018 Ryugumon", () => {
     assertNoLoudGap(s);
   });
 
+  it("probes shared placement-and-unsuspend reuse across the next own turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAlly", suspended: true },
+            { card: "BT1-010", as: "secondAlly", suspended: true },
+          ],
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "BT10-023", as: "firstCost" },
+            { card: "BT1-033", as: "secondCost" },
+          ],
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-014", "BT1-015", "BT1-016"],
+        },
+        1: { security: ["BT1-017", "BT1-018", "BT1-019"], deck: ["BT1-020", "BT1-021", "BT1-022"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.turnCount = 1;
+    s.state.memory = 11;
+    preferred.push(s.inst("firstCost").instanceId, s.perm("firstAlly").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("source").stack.length === 1 && !s.perm("firstAlly").isSuspended);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("firstCost").instanceId]);
+
+    preferred.length = 0;
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(s.inst("secondCost").instanceId, s.perm("source").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstCost").instanceId, s.inst("secondCost").instanceId]),
+    );
+    expect(s.perm("source").stack).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("secondCost").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
   it("compares source counts after the addition and spends the watcher only once per turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
           hand: [
-            { card: "BT1-001", as: "firstAdded" },
-            { card: "BT1-002", as: "secondAdded" },
+            { card: "BT1-009", as: "firstAdded" },
+            { card: "BT1-010", as: "secondAdded" },
           ],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "eligible", under: ["BT1-003"] },
-            { card: "BT1-010", as: "secondEligible", under: ["BT1-004"] },
-            { card: "BT1-011", as: "tooMany", under: ["BT1-005", "BT1-006"] },
+            { card: "BT1-009", as: "eligible", under: ["BT1-012"] },
+            { card: "BT1-010", as: "secondEligible", under: ["BT1-014"] },
+            { card: "BT1-011", as: "tooMany", under: ["BT1-009", "BT1-012"] },
           ],
         },
       },
@@ -281,7 +349,7 @@ describe("EX11-018 Ryugumon", () => {
             { card: cardId, as: "source" },
             { card: "BT1-009", as: "other" },
           ],
-          hand: [{ card: "BT1-001", as: "added" }],
+          hand: [{ card: "BT1-009", as: "added" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
       },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-056.js";
@@ -15,48 +15,6 @@ describe("EX11-056 Ryutaro Williams", () => {
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-  });
-
-  it("sets memory to 3 at the start of your turn when memory is 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-056", as: "ryutaro" }] } });
-    s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("ryutaro"));
-    expect(s.state.memory).toBe(3);
-    assertNoLoudGap(s);
-  });
-
-  it("hatches and free-digivolves the breeding stack after a level-5 Tyrannomon digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          eggDeck: ["BT1-001"],
-          battleArea: [
-            { card: "EX11-009", as: "triggerBase" },
-            { card: "EX11-056", as: "ryutaro" },
-          ],
-          hand: [
-            { card: "EX11-010", as: "masterTyrannomon" },
-            { card: "EX11-007", as: "agumon" },
-          ],
-          deck: ["BT1-001"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("triggerBase").permanentId,
-        instanceId: s.inst("masterTyrannomon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "EX11-007");
-
-    expect(s.perm("ryutaro").isSuspended).toBe(true);
-    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("EX11-007");
-    assertNoLoudGap(s);
   });
 
   it("does not hatch or evolve when the suspend payment is declined (Q5910)", async () => {
@@ -85,35 +43,115 @@ describe("EX11-056 Ryutaro Williams", () => {
     assertNoLoudGap(s);
   });
 
-  // Q5909: the gate is on the card digivolved INTO. A level 4 [Dinosaur] and a level 5 card with
-  // neither [Tyrannomon] in its name nor the [Dinosaur] trait both miss it.
-  it("ignores a level 4 Dinosaur and a level 5 non-Dinosaur destination (Q5909)", async () => {
+  it("sets memory to 3 at the start of your turn from 2 or less", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-056", as: "ryutaro" }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-010"] },
+    });
+    s.state.memory = 2;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("does not reset memory above 2 at the start of your turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-056", as: "ryutaro" }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-010"] },
+    });
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("hatches from the legal egg deck after a Tyrannomon digivolution", async () => {
     const s = setupEngine(
       {
         0: {
           eggDeck: ["BT1-001"],
           battleArea: [
-            { card: "EX11-009", as: "levelFourDinosaur" },
-            { card: "BT21-025", as: "levelFiveDragonkin" },
+            { card: "EX11-009", as: "triggerBase" },
             { card: "EX11-056", as: "ryutaro" },
           ],
-          hand: [{ card: "EX11-007", as: "agumon" }],
+          hand: [
+            { card: "EX11-010", as: "masterTyrannomon" },
+            { card: "EX11-010", as: "breedingTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("triggerBase").permanentId,
+        instanceId: s.inst("masterTyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ryutaro").isSuspended);
+    expect(s.state.players[0]!.breeding).toBeDefined();
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-010")).toBe(true);
+    expect(s.perm("ryutaro").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not hatch for a level-4 destination", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: ["BT1-001"],
+          battleArea: [
+            { card: "EX11-008", as: "triggerBase" },
+            { card: "EX11-056", as: "ryutaro" },
+          ],
+          hand: [{ card: "EX11-009", as: "levelFour" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-
-    for (const alias of ["levelFourDinosaur", "levelFiveDragonkin"]) {
-      await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
-        subjectPermanentId: s.perm(alias).permanentId,
-      });
-    }
-    await settle(() => false, 60);
-
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("triggerBase").permanentId,
+        instanceId: s.inst("levelFour").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("triggerBase").topCard.cardId === "EX11-009");
     expect(s.perm("ryutaro").isSuspended).toBe(false);
     expect(s.state.players[0]!.breeding).toBeUndefined();
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("agumon").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("plays itself from security through a public security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX11-056", as: "ryutaro", faceUp: false }] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-056"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

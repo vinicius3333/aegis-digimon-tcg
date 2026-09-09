@@ -1,9 +1,10 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 const cardId = "EX11-040";
@@ -62,8 +63,8 @@ describe("EX11-040 Mulemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "source" }],
           hand: [
+            { card: cardId, as: "source" },
             { card: "EX11-027", as: "maquinamon" },
             { card: "EX11-070", as: "unchained" },
           ],
@@ -72,28 +73,42 @@ describe("EX11-040 Mulemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("maquinamon").instanceId, s.inst("unchained").instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("maquinamon").instanceId);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070")).toBe(true);
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
 
-  it("cannot link a Maquinamon under another of the controller's Digimon", async () => {
+  it("links only its own Maquinamon and ignores another stack", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
+            { card: "EX11-027", as: "source" },
             { card: "BT1-080", as: "other", under: [{ card: "EX11-027", as: "maquinamon" }] },
           ],
+          hand: [{ card: cardId, as: "evolver" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === cardId);
     expect(s.perm("other").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("maquinamon").instanceId]);
-    expect(s.perm("source").linked).toHaveLength(0);
+    expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
     assertNoLoudGap(s);
   });
 
@@ -103,11 +118,11 @@ describe("EX11-040 Mulemon", () => {
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
             { card: "BT1-085", as: "firstTamer" },
             { card: "BT1-086", as: "secondTamer" },
           ],
           hand: [
+            { card: cardId, as: "source" },
             { card: "EX11-027", as: "maquinamon" },
             { card: "EX11-070", as: "unchained" },
           ],
@@ -116,9 +131,42 @@ describe("EX11-040 Mulemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("maquinamon").instanceId, s.inst("unchained").instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("maquinamon").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unchained").instanceId]);
+    assertNoLoudGap(s);
+  });
+
+  it("carries inherited Reboot through an evolved stack during the opponent's public turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "EX11-041",
+            as: "source",
+            under: [
+              { card: cardId, as: "mulemon" },
+              { card: "EX11-027", as: "maquinamon" },
+            ],
+            suspended: true,
+          },
+        ],
+        deck: ["BT1-009"],
+      },
+      1: { deck: ["BT1-010", "BT1-011"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Reboot")).toBe(true);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("source").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
     assertNoLoudGap(s);
   });
 });

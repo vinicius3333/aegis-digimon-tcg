@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -31,6 +31,8 @@ describe("EX11-021 Kokeshimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "EX11-021", 600);
     expect(s.perm("base").topCard?.cardId).toBe("EX11-021");
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-061"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-061")).toBe(true);
   });
 
   it("encodes conditional Mirai play and the cost-gated inherited EndAttack", () => {
@@ -90,20 +92,32 @@ describe("EX11-021 Kokeshimon", () => {
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
+            { card: "EX11-019", as: "base" },
             ...(tamerCount === 1 ? ([{ card: "EX11-057", as: "existingTamer" }] as const) : []),
           ],
-          hand: [{ card: "EX11-061", as: "mirai" }],
+          hand: [
+            { card: cardId, as: "kokeshi" },
+            { card: "EX11-061", as: "mirai" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 1;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kokeshi").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-061")).toBe(true);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(8);
     assertNoLoudGap(s);
   });
 
@@ -112,24 +126,55 @@ describe("EX11-021 Kokeshimon", () => {
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
+            { card: "EX11-019", as: "base" },
             { card: "EX11-057", as: "firstTamer" },
-            { card: "EX11-061", as: "secondTamer" },
+            { card: "EX11-057", as: "secondTamer" },
           ],
-          hand: [{ card: "EX11-061", as: "mirai" }],
+          hand: [
+            { card: cardId, as: "kokeshi" },
+            { card: "EX11-061", as: "mirai" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(tooMany.engine).fire(EffectTiming.WhenDigivolving, tooMany.perm("source"));
+    tooMany.state.memory = 10;
+    await tooMany.ready();
+    expect(
+      tooMany.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: tooMany.perm("base").permanentId,
+        instanceId: tooMany.inst("kokeshi").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => tooMany.perm("base").topCard.cardId === cardId);
     expect(tooMany.state.players[0]!.hand).toHaveLength(1);
     expect(tooMany.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
 
     const declined = setupEngine(
-      { 0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: "EX11-061", as: "mirai" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX11-019", as: "base" }],
+          hand: [
+            { card: cardId, as: "kokeshi" },
+            { card: "EX11-061", as: "mirai" },
+          ],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(declined.engine).fire(EffectTiming.WhenDigivolving, declined.perm("source"));
+    declined.state.memory = 10;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declined.perm("base").permanentId,
+        instanceId: declined.inst("kokeshi").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("base").topCard.cardId === cardId);
     expect(declined.state.players[0]!.hand).toHaveLength(1);
     expect(declined.state.players[0]!.battleArea).toHaveLength(1);
     assertNoLoudGap(declined);
@@ -192,7 +237,12 @@ describe("EX11-021 Kokeshimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 1);
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 1 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === protectedId)).toBe(true);
     assertNoLoudGap(s);
@@ -220,9 +270,79 @@ describe("EX11-021 Kokeshimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => declined.state.players[0]!.security.length === 0);
+    await settle(
+      () =>
+        declined.state.players[0]!.security.length === 0 &&
+        declined.state.pendingDecision === undefined &&
+        !observe(declined.engine).isAttacking(),
+    );
     expect(declined.state.players[0]!.battleArea).toHaveLength(2);
     assertNoLoudGap(declined);
+  });
+
+  it("resets the inherited once-per-turn attack ending on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-032", as: "host", under: [cardId] },
+            { card: "BT1-009", as: "firstFodder" },
+            { card: "BT1-010", as: "secondFodder" },
+            { card: "BT1-011", as: "thirdFodder" },
+          ],
+          security: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAttacker" },
+            { card: "BT1-010", as: "secondAttacker" },
+            { card: "BT1-011", as: "thirdAttacker" },
+          ],
+          deck: ["BT1-020", "BT1-021", "BT1-022", "BT1-023"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("thirdAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 
   it("supports normal yellow/purple cost 3 and Puppet cost 2 evolution, and rejects off-color level 3", async () => {

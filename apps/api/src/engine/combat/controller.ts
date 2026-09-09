@@ -629,6 +629,7 @@ export class CombatController {
         attackerPermanentId: attacker.permanentId,
         attackerDPAtDeclaration: attacker.currentDP,
         attackSequence,
+        ...(attackTrigger.attackMechanic === undefined ? {} : { attackMechanic: attackTrigger.attackMechanic }),
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),

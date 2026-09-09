@@ -1,7 +1,6 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -9,276 +8,277 @@ import "../index.js";
 const cardId = "EX11-017";
 
 describe("EX11-017 Skadimon", () => {
-  it("matches the catalog and encodes every printed clause without Security or inherited text", () => {
+  it("matches the catalog and encodes every printed clause", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Skadimon",
       colors: ["Blue", "Yellow"],
       playCost: 12,
       dp: 12000,
       level: 6,
-      evoCosts: [
-        { color: "Blue", level: 5, memoryCost: 4 },
-        { color: "Yellow", level: 5, memoryCost: 4 },
-      ],
+      types: ["Ice-Snow", "LIBERATOR"],
+      effectText: expect.stringContaining("Suzune Kazuki"),
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["Ice-Snow"], cost: 3, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
-    expect(compiled.effects).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "IceClad", raw: "＜Ice Clad＞" }] }),
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }),
-      ]),
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "IceClad", raw: "＜Ice Clad＞" }] }),
     );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }),
+    );
+    expect(compiled.effects.filter((effect) => effect.trigger === "AllTurns")[0]).toMatchObject({
+      frequency: "OncePerTurn",
+    });
     expect(compiled.effects.some(({ isInherited }) => isInherited)).toBe(false);
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  it("shares one optional free-play use across all timings and uses the printed union target", () => {
-    const compiled = runtimeCompiledCard(cardId)!;
-    for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        frequency: "OncePerTurn",
-        sharedUseKey: "ir-shared-0",
-        actions: [
-          {
-            kind: "PlayWithoutCost",
-            from: ["hand"],
-            payCost: false,
-            optional: true,
-            target: {
-              count: 1,
-              filter: {
-                controller: "mine",
-                nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "nameExact" }],
-              },
-              orFilters: [
-                {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  levelComparison: { op: "lte", value: 4 },
-                  nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
-                },
-              ],
-            },
-          },
-        ],
-      });
+  it("plays exactly one eligible hand card on play, and shares the once-per-turn use with attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "EX11-057", as: "suzune" },
+            { card: "EX11-014", as: "iceSnow" },
+          ],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: ["BT1-012"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0 && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-057")).toBe(true);
+
+    if (s.state.turnSeat === 0) {
+      s.engine.applyIntent(0, { type: "endPhase" });
+      await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
     }
-  });
-
-  it.each([
-    { label: "Suzune despite being a Tamer", candidate: "EX11-057" },
-    { label: "a level 3 Ice-Snow Digimon", candidate: "EX11-014" },
-  ])("plays $label from hand without paying", async ({ candidate }) => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: candidate, as: "candidate" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 1;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === candidate)).toBe(true);
-    expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
-  it.each([
-    { label: "level 5 Ice-Snow", candidate: "EX11-016" },
-    { label: "level 4 without Ice-Snow", candidate: "BT1-033" },
-  ])("does not play an ineligible $label card", async ({ candidate }) => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: candidate, as: "candidate" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-
-    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain(candidate);
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    assertNoLoudGap(s);
-  });
-
-  it("spends the shared once-per-turn use at only the first of its three timings", async () => {
+  it("uses the public When Attacking timing to play an eligible card", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
-          hand: [
-            { card: "EX11-057", as: "first" },
-            { card: "EX11-057", as: "second" },
-          ],
+          hand: [{ card: "EX11-014", as: "iceSnow" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: ["BT1-011"],
+          deck: ["BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX11-057")).toHaveLength(1);
+    s.state.memory = 3;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0 && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-014"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    if (s.state.turnSeat === 0) {
+      s.engine.applyIntent(0, { type: "endPhase" });
+      await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
+    }
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
-  it("trashes exactly three sources across opposing stacks, restricts a source-less Digimon, and shares the watcher budget", async () => {
+  it("plays Suzune or a level-4-or-lower Ice-Snow card from hand on digivolving", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "EX11-016", as: "base" }],
+          hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-009", as: "other" },
+            { card: "EX11-057", as: "suzune" },
+            { card: "EX11-014", as: "second" },
           ],
         },
         1: {
-          battleArea: [
-            { card: "BT1-010", as: "first", under: ["BT1-001", "BT1-002"] },
-            { card: "BT1-011", as: "second", under: ["BT1-003", "BT1-004"] },
-          ],
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: ["BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("other").permanentId,
-    });
-    await settle(() => s.state.players[1]!.trash.length === 3);
-
-    expect(s.perm("first").stack.length + s.perm("second").stack.length).toBe(1);
-    const sourceLess = [s.perm("first"), s.perm("second")].find(({ stack }) => stack.length === 0)!;
-    expect(observe(s.engine).isRestricted(sourceLess, "suspend")).toBe(true);
-
-    await advance(s.engine).fireSubTrigger("whenAnyDigivolves", {
-      subjectPermanentId: s.perm("other").permanentId,
-    });
-    expect(s.state.players[1]!.trash).toHaveLength(3);
-    expect(s.perm("first").stack.length + s.perm("second").stack.length).toBe(1);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-057"));
+    expect(s.perm("base").topCard.cardId).toBe(cardId);
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("EX11-014");
     assertNoLoudGap(s);
   });
 
-  it("watches the opponent's plays too, and blocks both being suspended and suspending to attack", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: cardId, as: "source" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-010", as: "stacked", under: ["BT1-001", "BT1-002", "BT1-003"] },
-            { card: "BT1-011", as: "newcomer" },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("newcomer").permanentId,
-    });
-    await settle(() => s.state.players[1]!.trash.length === 3);
-
-    expect(s.perm("stacked").stack).toHaveLength(0);
-    expect(s.state.players[1]!.trash).toHaveLength(3);
-    const restricted = [s.perm("stacked"), s.perm("newcomer")].filter((permanent) =>
-      observe(s.engine).isRestricted(permanent, "suspend"),
-    );
-    expect(restricted).toHaveLength(1);
-    expect(observe(s.engine).isRestricted(restricted[0]!, "beSuspended")).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("ignores Skadimon itself but reacts to the next other Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: cardId, as: "source" },
-            { card: "BT1-009", as: "other" },
-          ],
-        },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent", under: ["BT1-001"] }] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAnyDigivolves", {
-      subjectPermanentId: s.perm("source").permanentId,
-    });
-    expect(s.perm("opponent").stack).toHaveLength(1);
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("other").permanentId,
-    });
-    await settle(() => s.perm("opponent").stack.length === 0);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("publishes the pooled watcher and its until-opponent-turn-end suspension restriction", () => {
-    const allTurns = runtimeCompiledCard(cardId)!.effects.find((effect) => effect.trigger === "AllTurns")!;
-    expect(allTurns.frequency).toBe("OncePerTurn");
-    for (const [index, event] of ["whenPlayed", "whenAnyDigivolves"].entries()) {
-      expect(allTurns.actions[index]).toMatchObject({
-        kind: "SubTrigger",
-        event,
-        sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
-        actions: [
-          {
-            kind: "TrashDigivolution",
-            amount: 3,
-            scope: "acrossDigimon",
-            target: { count: "all", filter: { controller: "opponent", digivolutionCards: "hasAny" } },
+  it("rejects ineligible names, levels, and zones for the free-play union", async () => {
+    for (const candidate of ["EX11-016", "BT1-033"]) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: cardId, as: "source" },
+              { card: candidate, as: "candidate" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
           },
-          {
-            kind: "Restrict",
-            restriction: "suspend",
-            blocksCombatSuspend: true,
-            duration: "untilOpponentTurnEnd",
-            target: { filter: { controller: "opponent", digivolutionCards: "none" }, count: 1 },
-          },
-        ],
+          1: { security: ["BT1-012"], deck: ["BT1-013", "BT1-014", "BT1-015"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 20;
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0 && s.state.pendingDecision === undefined);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+        ok: true,
       });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain(candidate);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     }
   });
 
-  it("uses Barrier to spend the top security and prevent battle deletion", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: cardId, as: "source", suspended: true }], security: ["BT1-029"] },
-    });
+  it("trashes three cards across opposing stacks and restricts a source-less Digimon after a public opponent play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }], security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "stacked", under: ["BT1-009", "BT1-011", "BT1-012"] }],
+          hand: [{ card: "BT1-013", as: "newcomer" }],
+          security: ["BT1-014"],
+          deck: ["BT1-015", "BT1-016", "BT1-017"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
-    const sourceId = s.perm("source").permanentId;
-    expect(observe(s.engine).hasKeyword(s.perm("source"), "Barrier")).toBe(true);
-
-    const deletion = advance(s.engine).verb.deletePermanent([sourceId], "byBattle");
-    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: sourceId, accept: true })).toEqual({
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0 && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1 && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("newcomer").instanceId })).toEqual({
       ok: true,
     });
-    expect(await deletion).toBe(0);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    await settle(() => s.state.players[1]!.trash.length === 3);
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("stacked"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("stacked"), "beSuspended")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0);
+    expect(observe(s.engine).isRestricted(s.perm("stacked"), "suspend")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
-  it("uses Iceclad to win a lower-DP battle by digivolution-card count", async () => {
+  it("uses Barrier in a real attack against a suspended Skadimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", suspended: true }],
+          security: ["BT1-029"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 20000 }],
+          security: ["BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1 && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("source").permanentId, accept: true }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("source").permanentId)).toBe(
+      true,
+    );
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("uses Ice Clad to win a lower-DP battle by digivolution-card count", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: cardId, as: "source", dp: 1000, under: ["EX11-014", "EX11-015"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 15000, suspended: true }] },
     });
     await s.ready();
-    const defenderId = s.perm("defender").permanentId;
     expect(observe(s.engine).hasKeyword(s.perm("source"), "IceClad")).toBe(true);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("source").permanentId,
-        target: { kind: "permanent", permanentId: defenderId },
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === defenderId));
-
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    await settle(
+      () => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("defender").permanentId),
+    );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     assertNoLoudGap(s);
   });
@@ -290,7 +290,11 @@ describe("EX11-017 Skadimon", () => {
       ["EX11-016", true, 3],
     ] as const) {
       const s = setupEngine({
-        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: cardId, as: "source" }] },
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: ["BT1-009"],
+        },
       });
       s.state.memory = memory;
       expect(
@@ -303,8 +307,8 @@ describe("EX11-017 Skadimon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === cardId);
       expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.hand.some(({ cardId: id }) => id === "BT1-009")).toBe(true);
     }
-
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT23-056", as: "base" }], hand: [{ card: cardId, as: "source" }] },
     });

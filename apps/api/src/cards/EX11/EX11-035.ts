@@ -1,14 +1,15 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored fix:
+// Hand-authored audit corrections:
 // (1) WhenDigivolving Unsuspend: controllerDefault "mine" → "any" — KB Q5857 says
 //     either player's Digimon can be unsuspended or suspended.
-// (2) AllTurns CostModifier scaling filter: controllerDefault "mine" → "any" — text
-//     says "For each suspended Digimon" with no controller restriction.
+// (2) AllTurns scaling filter: controllerDefault "mine" → "any" — text says
+//     "For each suspended Digimon" with no controller restriction.
+// (3) The Avian/Bird clause is partial-trait wording; Giant Bird qualifies too.
 
 const compiled: CompiledCard = {
-  digivolutionRequirement: [],
+  digivolutionRequirement: [{ level: 5, colors: ["Green"], cost: 3, isAlternate: false }],
   effects: [
     {
       trigger: "Static",
@@ -92,7 +93,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Avian", "Bird"],
-                      match: "trait",
+                      match: "traitContains",
                     },
                   ],
                 },

@@ -1,13 +1,23 @@
 import { describe, expect, it } from "vitest";
 import type { Action, Controller, Seat, Target } from "@aegis/shared";
-import { applyPlayCostCeiling } from "./interpreter/actions/play.js";
+import { applyPlayCostCeiling, applyPlayDpCeilingModifier } from "./interpreter/actions/play.js";
 import type { EffectContext } from "./EffectContext.js";
 
-function context(ownTrash: number, opponentTrash: number): EffectContext {
+function context(ownTrash: number, opponentTrash: number, suspendedOwn = 0, suspendedOpponent = 0): EffectContext {
+  const permanent = (seat: Seat, index: number) => ({
+    permanentId: `perm-${seat}-${index}`,
+    controllerSeat: seat,
+    isSuspended: true,
+    currentDP: 3000,
+    inBreeding: false,
+    topCard: { instanceId: `top-${seat}-${index}`, cardId: "JUNK", ownerSeat: seat, faceUp: true },
+    stack: [],
+    linked: [],
+  });
   const players = [
     {
       seat: 0,
-      battleArea: [],
+      battleArea: Array.from({ length: suspendedOwn }, (_, i) => permanent(0, i)),
       security: [],
       hand: [],
       deck: [],
@@ -20,7 +30,7 @@ function context(ownTrash: number, opponentTrash: number): EffectContext {
     },
     {
       seat: 1,
-      battleArea: [],
+      battleArea: Array.from({ length: suspendedOpponent }, (_, i) => permanent(1, i)),
       security: [],
       hand: [],
       deck: [],
@@ -37,6 +47,7 @@ function context(ownTrash: number, opponentTrash: number): EffectContext {
     player: (seat: Seat) => players[seat],
     opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     permanentById: () => undefined,
+    definitionOf: () => ({ kinds: ["Digimon"], colors: ["Green"] }),
   };
   return {
     source: { ownerSeat: 0 },
@@ -93,5 +104,28 @@ describe("playCostCeiling controller scope", () => {
     expect(computedCeiling(1, 9, "opponent")).toBe(3);
     expect(computedCeiling(0, 10, "opponent")).toBe(5);
     expect(computedCeiling(10, 0, "opponent")).toBe(3);
+  });
+});
+
+describe("PlayWithoutCost dynamic DP ceiling preflight", () => {
+  it("uses the live suspended-Digimon count before optional candidate matching", () => {
+    const action: Extract<Action, { kind: "PlayWithoutCost" }> = {
+      kind: "PlayWithoutCost",
+      target: { filter: { dp: { op: "lte" as const, value: 3000 } }, count: 1 },
+      from: ["hand" as const],
+      payCost: false,
+      optional: true,
+      dpCeilingModifier: {
+        mode: "raiseCeiling" as const,
+        amount: 2000,
+        scaling: {
+          per: 1,
+          unit: "cards" as const,
+          filter: { controllerDefault: "any", suspended: true, kind: ["Digimon"] },
+        },
+      },
+    };
+    const target = applyPlayDpCeilingModifier(context(0, 0, 1, 1), action, action.target);
+    expect(target.filter.dp).toEqual({ op: "lte", value: 7000 });
   });
 });

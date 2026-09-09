@@ -1,8 +1,7 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -46,12 +45,67 @@ describe("EX11-050 Loudmon", () => {
     }
   });
 
+  it.each([
+    ["Dark Dragon", "EX11-049"],
+    ["Evil Dragon", "BT11-079"],
+  ] as const)("digivolves through the public %s level-4 peer route", async (_label, baseCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [
+            { card: cardId, as: "evolving" },
+            { card: "BT1-009", as: "discard1" },
+            { card: "BT1-010", as: "discard2" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId);
+    expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual([baseCard]);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+    assertNoLoudGap(s);
+  });
+
+  it("rejects a same-level Dark Dragon source for the level-4 alternate requirement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-075", as: "base" }],
+        hand: [{ card: cardId, as: "evolving" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("base").topCard.cardId).toBe("BT20-075");
+    expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
+  });
+
   it("trashes 2 cards and deletes an opponent no stronger than an own Dark Dragon", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "source" }],
-          hand: ["BT1-001", "BT1-002"],
+          hand: [{ card: cardId, as: "source" }, "BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
           battleArea: [
@@ -62,8 +116,12 @@ describe("EX11-050 Loudmon", () => {
       },
       { autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.length === 2);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.map((card) => card.permanentId)).toEqual([s.perm("tooLarge").permanentId]);
     assertNoLoudGap(s);
@@ -77,7 +135,7 @@ describe("EX11-050 Loudmon", () => {
           { card: "EX11-049", as: "dragon" },
           { card: "BT1-009", as: "plain" },
         ],
-        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
       },
     });
     await s.ready();
@@ -99,7 +157,7 @@ describe("EX11-050 Loudmon", () => {
           { card: cardId, as: "source" },
           { card: "EX11-049", as: "inheritedHost", under: [cardId] },
         ],
-        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-009"],
+        hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });
     await s.ready();
@@ -109,7 +167,7 @@ describe("EX11-050 Loudmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "SecurityAttack")).toBe(false);
 
     s.state.players[0]!.hand.splice(0, 1);
-    await advance(s.engine).recompute();
+    await s.ready();
 
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Scapegoat")).toBe(true);
@@ -131,7 +189,7 @@ describe("EX11-050 Loudmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "SecurityAttack")).toBe(false);
     s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
     assertNoLoudGap(s);
   });

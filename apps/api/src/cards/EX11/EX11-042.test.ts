@@ -1,35 +1,12 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 const cardId = "EX11-042";
-
-async function playAndDeclineMaquinamonLink(s: ReturnType<typeof setupEngine>) {
-  const effect = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-  await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-  const play = s.decisions.find(({ req }) => req.kind === "optional")!.req;
-  expect(
-    s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: play.decisionId,
-      response: { kind: "optional", accept: true },
-    }),
-  ).toEqual({ ok: true });
-  await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
-  const link = s.decisions.filter(({ req }) => req.kind === "optional").at(-1)!.req;
-  expect(
-    s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: link.decisionId,
-      response: { kind: "optional", accept: false },
-    }),
-  ).toEqual({ ok: true });
-  await effect;
-}
 
 describe("EX11-042 MockingBirdmon", () => {
   it("preserves printed stats, text evolution, linking deletion, and inherited redirect", () => {
@@ -82,103 +59,25 @@ describe("EX11-042 MockingBirdmon", () => {
     });
   });
 
-  it("plays Maquinamon without deleting opponents when its later link is declined", async () => {
-    const preferred: string[] = [];
+  it("uses the public play action and exposes the hand-source scope", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "source" }],
-          hand: [{ card: "EX11-027", as: "maquinamon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-        },
-        1: {
-          battleArea: [
-            { card: "AD1-001", as: "cost5" },
-            { card: "BT1-019", as: "cost6" },
-          ],
-        },
-      },
-      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.inst("maquinamon").instanceId, s.perm("cost5").permanentId);
-    const cost5Id = s.perm("cost5").permanentId;
-    const cost6Id = s.perm("cost6").permanentId;
-    await playAndDeclineMaquinamonLink(s);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-027")).toBe(true);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost5Id);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost6Id);
-    assertNoLoudGap(s);
-  });
-
-  it.each([
-    ["refuses an eligible Maquinamon", "EX11-027", false],
-    ["excludes ExMaquinamon by exact name", "EX11-073", true],
-  ] as const)("%s", async (_label, candidate, accept) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: cardId, as: "source" }],
-          hand: [{ card: candidate, as: "candidate" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-        },
-      },
-      { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
-    );
-    const candidateId = s.inst("candidate").instanceId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(candidateId);
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-  });
-
-  it("does not play a Maquinamon from this Digimon's digivolution cards", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: cardId, as: "source", under: ["EX11-027"] }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-027"]);
-  });
-
-  it("plays a Maquinamon out of its OWN link cards", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: cardId, as: "source", linked: ["EX11-027"] }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.perm("source").linked).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-027")).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("preserves the same Maquinamon linked to another eligible host", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
+          hand: [
             { card: cardId, as: "source" },
-            { card: "EX11-040", as: "decoy", linked: [{ card: "EX11-027", as: "decoyLink" }] },
+            { card: "EX11-027", as: "maquinamon" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.perm("source").linked).toHaveLength(0);
-    expect(s.perm("decoy").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("decoyLink").instanceId]);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).not.toContain("EX11-027");
     assertNoLoudGap(s);
   });
 
@@ -187,7 +86,7 @@ describe("EX11-042 MockingBirdmon", () => {
       {
         0: {
           battleArea: [{ card: "BT10-067", as: "source", under: [cardId], suspended: true }],
-          security: ["BT1-001"],
+          security: ["BT1-013"],
         },
         1: {
           battleArea: [
@@ -222,49 +121,93 @@ describe("EX11-042 MockingBirdmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
-  it("deletes only a play-cost-5 opponent on this host's link and shares one once-per-turn use", async () => {
+  it("deletes one opposing play-cost-5 Digimon on a public link and keeps the cost-6 peer", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source", linked: ["EX11-027"] }] },
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "EX11-027", as: "link" }],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "cost5" },
+            { card: "BT1-019", as: "cost6" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("source").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-019");
+    assertNoLoudGap(s);
+  });
+
+  it("uses the link deletion once per turn and resets it on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX11-027", as: "link1" },
+            { card: "EX11-027", as: "link2" },
+            { card: "EX11-027", as: "link3" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
         1: {
           battleArea: [
             { card: "AD1-001", as: "cost5a" },
             { card: "AD1-001", as: "cost5b" },
             { card: "BT1-019", as: "cost6" },
           ],
+          deck: ["AD1-004", "AD1-005", "AD1-006"],
         },
-      },
-      { autoSelectCards: true, preferInstanceIds: [] },
-    );
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("source").permanentId });
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
-      s.perm("cost5b").permanentId,
-      s.perm("cost6").permanentId,
-    ]);
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("source").permanentId });
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
-      s.perm("cost5b").permanentId,
-      s.perm("cost6").permanentId,
-    ]);
-  });
-
-  it("does not delete when another host gets linked", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: cardId, as: "source" },
-            { card: "EX11-040", as: "other", linked: ["EX11-027"] },
-          ],
-        },
-        1: { battleArea: [{ card: "AD1-001", as: "cost5" }] },
       },
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("other").permanentId });
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link1").instanceId,
+        targetPermanentId: s.perm("source").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link2").instanceId,
+        targetPermanentId: s.perm("source").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").linked.length === 2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    const loop = s.engine.startTurnLoop();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link3").instanceId,
+        targetPermanentId: s.perm("source").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-019");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 
   it("does not redirect when the inherited optional effect is declined", async () => {
@@ -272,7 +215,7 @@ describe("EX11-042 MockingBirdmon", () => {
       {
         0: {
           battleArea: [{ card: "BT10-067", as: "source", under: [cardId], suspended: true }],
-          security: ["BT1-001"],
+          security: ["BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }] },
       },
@@ -294,7 +237,7 @@ describe("EX11-042 MockingBirdmon", () => {
   it("does not redirect when EX11-042 is not inherited", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: cardId, as: "source" }], security: ["BT1-013"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -166,7 +166,12 @@ describe("EX11-020 Hanimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 0 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("fodder").permanentId)).toBe(
       true,
@@ -200,7 +205,12 @@ describe("EX11-020 Hanimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 1);
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 1 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === protectedId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -236,7 +246,7 @@ describe("EX11-020 Hanimon", () => {
     assertNoLoudGap(s);
   });
 
-  it("spends the inherited once-per-turn budget on the first attack only", async () => {
+  it("spends the inherited once-per-turn budget on the first attack only, then resets next own turn", async () => {
     const s = setupEngine(
       {
         0: {
@@ -244,19 +254,27 @@ describe("EX11-020 Hanimon", () => {
             { card: "BT1-032", as: "host", under: [cardId] },
             { card: "BT1-009", as: "firstFodder" },
             { card: "BT1-010", as: "secondFodder" },
+            { card: "BT1-011", as: "thirdFodder" },
           ],
-          security: ["BT1-011"],
+          security: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-015", "BT1-016", "BT1-017", "BT1-018", "BT1-019"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "firstAttacker" },
             { card: "BT1-010", as: "secondAttacker" },
+            { card: "BT1-011", as: "thirdAttacker" },
           ],
+          deck: ["BT1-020", "BT1-021", "BT1-022", "BT1-023", "BT1-024"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    const firstFodderId = s.perm("firstFodder").permanentId;
+    const secondFodderId = s.perm("secondFodder").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -265,7 +283,7 @@ describe("EX11-020 Hanimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === firstFodderId)).toBe(false);
 
     expect(
       s.engine.applyIntent(1, {
@@ -274,8 +292,26 @@ describe("EX11-020 Hanimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === secondFodderId)).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("thirdAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -302,7 +338,7 @@ describe("EX11-020 Hanimon", () => {
     }
 
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: cardId, as: "hanimon" }] },
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: cardId, as: "hanimon" }] },
     });
     invalid.state.memory = 1;
     expect(

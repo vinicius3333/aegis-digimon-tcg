@@ -1,8 +1,7 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const cardId = "EX11-051";
@@ -50,7 +49,7 @@ describe("EX11-051 Necromon", () => {
   it("deletes exactly 1 lowest-level opponent and may play a level 4 or lower Ghost from trash", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], trash: [{ card: "BT20-063", as: "ghost" }] },
+        0: { hand: [{ card: cardId, as: "source" }], trash: [{ card: "BT20-063", as: "ghost" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "low" },
@@ -60,7 +59,12 @@ describe("EX11-051 Necromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea.map((card) => card.permanentId)).toEqual([s.perm("high").permanentId]);
     expect(s.state.players[0]!.battleArea.some((card) => card.topCard.cardId === "BT20-063")).toBe(true);
     assertNoLoudGap(s);
@@ -69,7 +73,7 @@ describe("EX11-051 Necromon", () => {
   it("deletes exactly one Digimon when two opponents tie for the lowest level", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }] },
+        0: { hand: [{ card: cardId, as: "source" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "lowA" },
@@ -80,7 +84,12 @@ describe("EX11-051 Necromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.some((card) => card.topCard.cardId === "BT4-085")).toBe(true);
@@ -91,7 +100,7 @@ describe("EX11-051 Necromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: cardId, as: "source" }],
           trash: [
             { card: "BT4-085", as: "ghostTooHigh" },
             { card: "BT1-009", as: "nonGhost" },
@@ -101,7 +110,14 @@ describe("EX11-051 Necromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("ghostInRange").instanceId),
+    );
 
     const playedInRange = s.state.players[0]!.battleArea.some(
       (card) => card.topCard.instanceId === s.inst("ghostInRange").instanceId,
@@ -116,12 +132,17 @@ describe("EX11-051 Necromon", () => {
   it("still deletes when the optional trash play is refused", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], trash: [{ card: "BT4-080", as: "ghost" }] },
+        0: { hand: [{ card: cardId, as: "source" }], trash: [{ card: "BT4-080", as: "ghost" }] },
         1: { battleArea: [{ card: "BT1-009", as: "low" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("ghost").instanceId)).toBe(true);
@@ -133,18 +154,120 @@ describe("EX11-051 Necromon", () => {
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
+            { card: cardId, as: "source", suspended: true },
             { card: "BT20-063", as: "ghost" },
           ],
           hand: [{ card: "BT11-078", as: "soulmon" }],
+          trash: [{ card: "BT4-080", as: "playedGhost" }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     expect(s.perm("ghost").topCard.cardId).toBe("BT11-078");
-    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT4-080")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
     assertNoLoudGap(s);
   });
+});
+
+it("does not activate Necromon's pending deletion effects after BT20-006 returns it from trash (Q5905)", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: cardId, as: "source", suspended: true, under: ["BT20-006"] }] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20000 }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+  );
+  s.state.turnSeat = 1;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const pending = s.state.pendingDecision!;
+  const payload = JSON.parse(pending.payloadJson) as { triggerKeys?: string[] };
+  const keys = payload.triggerKeys ?? [];
+  expect(keys.length).toBeGreaterThanOrEqual(2);
+  const demiKey = keys.find((key) => /BT20-006|DemiMeramon/i.test(key));
+  expect(demiKey).toBeDefined();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: "orderTriggers", order: [demiKey!] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === cardId));
+  expect(s.state.players[0]!.hand.some((card) => card.cardId === cardId)).toBe(true);
+  expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId)).toBe(false);
+  expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-080")).toBe(true);
+  assertNoLoudGap(s);
+});
+
+it("allows public ordering with Necromon first when the pending On Deletion effects are ordered publicly (Q5904)", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: cardId, as: "source", suspended: true, under: ["BT20-006"] }],
+        trash: [{ card: "BT4-080", as: "ghost" }],
+      },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20000 }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+  );
+  s.state.turnSeat = 1;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const firstPending = s.state.pendingDecision!;
+  const payload = JSON.parse(firstPending.payloadJson) as { triggerKeys?: string[] };
+  const keys = payload.triggerKeys ?? [];
+  expect(keys.length).toBeGreaterThanOrEqual(2);
+  const demiKey = keys.find((key) => /BT20-006|DemiMeramon/i.test(key));
+  const necromonKey = keys.find((key) => key !== demiKey);
+  expect(demiKey).toBeDefined();
+  expect(necromonKey).toBeDefined();
+  const selected = necromonKey!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: firstPending.decisionId,
+      response: { kind: "orderTriggers", order: [selected] },
+    }),
+  ).toEqual({ ok: true });
+  for (let i = 0; i < 4 && s.state.pendingDecision?.kind === "orderTriggers"; i += 1) {
+    const pending = s.state.pendingDecision;
+    const nextPayload = JSON.parse(pending.payloadJson) as { triggerKeys?: string[] };
+    const next = nextPayload.triggerKeys?.[0];
+    if (!next) break;
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: "orderTriggers", order: [next] },
+    });
+  }
+  await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === cardId));
+  expect(s.state.players[0]!.hand.some((card) => card.cardId === cardId)).toBe(true);
+  assertNoLoudGap(s);
 });

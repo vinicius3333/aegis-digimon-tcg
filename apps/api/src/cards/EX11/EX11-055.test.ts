@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-055.js";
@@ -19,7 +19,7 @@ describe("EX11-055 Chitose Horaiji", () => {
 
   it("trashes a Composite card to draw and gain memory on play", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX11-055", as: "chitose" }, "AD1-006"], deck: ["BT1-001"] } },
+      { 0: { hand: [{ card: "EX11-055", as: "chitose" }, "AD1-006"], deck: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
@@ -37,44 +37,134 @@ describe("EX11-055 Chitose Horaiji", () => {
     assertNoLoudGap(s);
   });
 
-  it("repeats the paid draw and memory effect at the start of its owner's main phase", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-055", as: "chitose" }],
-          hand: [{ card: "AD1-006", as: "payment" }],
-          deck: ["BT1-001"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 0;
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("chitose"));
-
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(1);
-    assertNoLoudGap(s);
-  });
-
   it("suspends after a Composite deletion and plays an exact Gazimon from hand", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "EX11-055", as: "chitose" },
-            { card: "AD1-006", as: "composite" },
+            { card: "AD1-006", as: "composite", suspended: true },
           ],
           hand: [{ card: "BT10-071", as: "gazimon" }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("composite").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-071"));
-
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("composite").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "AD1-006"));
     expect(s.perm("chitose").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gazimon").instanceId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("accepts a Wicked God deletion and plays an exact Gizamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-055", as: "chitose" },
+            { card: "BT19-075", as: "wickedGod", suspended: true },
+          ],
+          hand: [{ card: "BT14-008", as: "gizamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wickedGod").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT19-075"));
+    expect(s.perm("chitose").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("gizamon").instanceId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("declines the suspend cost after a Composite deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-055", as: "chitose" },
+            { card: "AD1-006", as: "composite", suspended: true },
+          ],
+          hand: [{ card: "BT10-071", as: "gazimon" }],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("composite").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "AD1-006"));
+    expect(s.perm("chitose").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("gazimon").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("trashes a Composite card to draw and gain memory at the real start of main", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-055", as: "chitose" }],
+          hand: ["AD1-006"],
+          deck: ["BT1-009"],
+        },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "AD1-006")).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("plays itself from security through a public security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX11-055", as: "chitose", faceUp: false }] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-055"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
@@ -84,16 +174,24 @@ describe("EX11-055 Chitose Horaiji", () => {
         0: {
           battleArea: [
             { card: "EX11-055", as: "chitose" },
-            { card: "BT1-009", as: "plain" },
+            { card: "BT1-009", as: "plain", suspended: true },
           ],
           hand: [{ card: "BT10-071", as: "gazimon" }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("plain").permanentId], "byEffect");
-    await settle(() => false, 60);
-
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("plain").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-009"));
     expect(s.perm("chitose").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gazimon").instanceId)).toBe(true);
     assertNoLoudGap(s);
@@ -105,28 +203,30 @@ describe("EX11-055 Chitose Horaiji", () => {
         0: {
           battleArea: [
             { card: "EX11-055", as: "chitose" },
-            { card: "AD1-006", as: "composite" },
+            { card: "AD1-006", as: "composite", suspended: true },
           ],
           hand: [{ card: "BT1-009", as: "notGazimon" }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("composite").permanentId], "byEffect");
-    await settle(() => false, 60);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("composite").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "AD1-006"));
 
     // Monodramon is neither [Gazimon] nor [Gizamon], so nothing may be played. (Whether the
     // suspend cost should still be consumed is an engine-level preflight question, not this
     // card's contract, so it is deliberately not asserted here.)
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notGazimon").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("plays itself from security without paying the cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX11-055", as: "chitose" }] } }, { autoDeclineOptional: true });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("chitose"));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-055")).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -151,24 +251,5 @@ describe("EX11-055 Chitose Horaiji", () => {
         ],
       },
     ]);
-  });
-  it("does not suspend when no Gazimon or Gizamon can be played", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-055", as: "chitose" },
-            { card: "AD1-006", as: "composite" },
-          ],
-          hand: [{ card: "BT1-009", as: "notGazimon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("composite").permanentId], "byEffect");
-    await settle();
-    expect(s.perm("chitose").isSuspended).toBe(false);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 });

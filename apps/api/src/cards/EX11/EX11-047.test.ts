@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -35,23 +35,46 @@ describe("EX11-047 Impmon", () => {
   });
 
   it("trashes exactly 1 hand card, then gains 1 memory at the start of the main phase", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
           hand: [
-            { card: "BT1-001", as: "discard" },
-            { card: "BT1-002", as: "keep" },
+            { card: "BT1-009", as: "discard" },
+            { card: "BT1-013", as: "keep" },
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("discard").instanceId);
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.trash[0]!.cardId).toBe("BT1-009");
     expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    assertNoLoudGap(s);
+  });
+
+  it("rejects the printed evolution from a non-Yaamon breeding source", async () => {
+    const s = setupEngine({ 0: { breeding: { card: "EX11-004", as: "egg" }, hand: [{ card: cardId, as: "impmon" }] } });
+    await s.ready();
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("impmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("egg").topCard.cardId).toBe("EX11-004");
+    expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
 
@@ -103,20 +126,29 @@ describe("EX11-047 Impmon", () => {
   it("still gains 1 memory when the hand is empty (CR 1-3-2)", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: cardId, as: "source" }] } }, { autoSelectCards: true });
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 
-  it("gives its host +2000 DP only during its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId] }] } });
-    await s.ready();
+  it("gives its host +2000 DP only during its controller's public turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId] }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-009"] },
+    });
+    const turn = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(5000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(3000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 });

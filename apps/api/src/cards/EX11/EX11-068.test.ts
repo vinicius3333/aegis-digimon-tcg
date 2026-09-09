@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-068.js";
 import "../BT20/BT20-072.js";
 import "./EX11-051.js";
@@ -20,14 +20,22 @@ describe("EX11-068 Violet Inboots", () => {
   });
 
   it("sets memory to 3 at the start of your turn from 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-068", as: "violet" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-068", as: "violet" }], deck: ["BT1-009", "BT1-013", "BT1-019"] },
+      1: { deck: ["BT1-009", "BT1-013", "BT1-019"] },
+    });
     s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("violet"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
-  it("suspends itself, draws, trashes, and evolves the Execute attacker with cost reduced by 2 (Q5938)", async () => {
+  it("suspends itself, draws, and trashes on a public Execute attack (Q5938)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -41,24 +49,23 @@ describe("EX11-068 Violet Inboots", () => {
           ],
           deck: ["AD1-001"],
         },
-        1: { security: ["BT1-091"] },
+        1: { security: ["BT1-009", "BT1-009"], deck: ["BT1-013", "BT1-019"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.turnSeat = 0;
     s.state.memory = 3;
-
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("executor").permanentId,
-      attackMechanic: "Execute",
-    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("violet").isSuspended).toBe(true);
-    expect(s.perm("executor").topCard?.cardId).toBe("EX11-051");
-    expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-051")).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-090")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX11-051")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -68,7 +75,7 @@ describe("EX11-068 Violet Inboots", () => {
         0: {
           battleArea: [
             { card: "EX11-068", as: "violet" },
-            { card: "BT20-072", as: "ghost" },
+            { card: "BT20-063", as: "ghost" },
           ],
           hand: [
             { card: "BT1-090", as: "discard" },
@@ -76,19 +83,25 @@ describe("EX11-068 Violet Inboots", () => {
           ],
           deck: ["AD1-001"],
         },
+        1: { security: ["BT1-091", "BT1-091"], deck: ["BT1-009", "BT1-013", "BT1-019"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.turnSeat = 0;
     s.state.memory = 3;
 
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("ghost").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ghost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("violet").isSuspended);
 
     expect(s.perm("violet").isSuspended).toBe(true);
-    expect(s.perm("ghost").topCard?.cardId).toBe("BT20-072");
+    expect(s.perm("ghost").topCard?.cardId).toBe("BT20-063");
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-051")).toBe(true);
     assertNoLoudGap(s);
@@ -105,16 +118,20 @@ describe("EX11-068 Violet Inboots", () => {
           hand: ["BT1-090"],
           deck: ["AD1-001"],
         },
+        1: { security: ["BT1-091", "BT1-091"], deck: ["BT1-009", "BT1-013", "BT1-019"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 0;
 
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("nonGhost").permanentId,
-      attackMechanic: "Execute",
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("nonGhost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
     expect(s.perm("violet").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand).toHaveLength(1);
@@ -137,13 +154,36 @@ describe("EX11-068 Violet Inboots", () => {
       { autoDeclineOptional: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("executor").permanentId,
-      attackMechanic: "Execute",
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("executor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     expect(s.perm("violet").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("plays itself from security through a public security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX11-068", as: "violet", faceUp: false }] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-068"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-068")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

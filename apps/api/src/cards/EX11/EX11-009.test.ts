@@ -40,12 +40,12 @@ describe("EX11-009 Tyrannomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX11-008", as: "base", dp: 1000 }],
+          battleArea: [{ card: "EX11-008", as: "base", under: ["EX11-001"], dp: 1000 }],
           hand: [
             { card: "EX11-009", as: "tyrannomon" },
             { card: "EX11-056", as: "ryutaro" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -81,7 +81,7 @@ describe("EX11-009 Tyrannomon", () => {
             { card: "EX11-009", as: "tyrannomon" },
             { card: "EX11-056", as: "ryutaro" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -102,6 +102,28 @@ describe("EX11-009 Tyrannomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("supports the ordinary red level-3 evolution route at cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-008", as: "base", under: ["EX11-001"] }],
+        hand: [{ card: "EX11-009", as: "tyrannomon" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX11-009");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX11-001", "EX11-008"]);
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
   it("does not offer Ryutaro with 2 Tamers", async () => {
     const s = setupEngine(
       {
@@ -111,7 +133,7 @@ describe("EX11-009 Tyrannomon", () => {
             { card: "EX11-009", as: "tyrannomon" },
             { card: "EX11-056", as: "ryutaro" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -142,7 +164,7 @@ describe("EX11-009 Tyrannomon", () => {
             { card: "EX11-009", as: "tyrannomon" },
             { card: "EX11-057", as: "otherTamer" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -175,7 +197,7 @@ describe("EX11-009 Tyrannomon", () => {
             { card: "EX11-009", as: "tyrannomon" },
             { card: "EX11-056", as: "ryutaro" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true },

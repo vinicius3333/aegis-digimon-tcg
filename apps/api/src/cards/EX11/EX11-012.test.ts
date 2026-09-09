@@ -60,12 +60,12 @@ describe("EX11-012 Medusamon", () => {
         0: {
           battleArea: [{ card: "EX11-010", as: "base" }],
           hand: [{ card: "EX11-012", as: "medusamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "EX11-008", as: "victim" }],
           trash: [{ card: "BT1-009", as: "returnCost" }],
-          deck: ["BT1-002"],
+          deck: ["BT1-012", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -103,7 +103,7 @@ describe("EX11-012 Medusamon", () => {
         0: {
           battleArea: [{ card: "EX11-010", as: "base" }],
           hand: [{ card: "EX11-012", as: "medusamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "EX11-011", as: "tooLarge", dp: 13000 }],
@@ -136,7 +136,7 @@ describe("EX11-012 Medusamon", () => {
         0: {
           battleArea: [{ card: "EX11-010", as: "base" }],
           hand: [{ card: "EX11-012", as: "medusamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "EX10-052", as: "reactor", dp: 1000 }],
@@ -179,7 +179,7 @@ describe("EX11-012 Medusamon", () => {
             { card: "BT8-097", as: "crimsonBlaze" },
             { card: "EX11-012", as: "medusamon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "EX11-010", as: "victim", dp: 7000 }],
@@ -220,7 +220,7 @@ describe("EX11-012 Medusamon", () => {
         1: {
           battleArea: [{ card: "EX11-008", as: "victim" }],
           trash: [{ card: "BT1-009", as: "returnCost" }],
-          security: ["BT1-002"],
+          security: ["BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -246,7 +246,7 @@ describe("EX11-012 Medusamon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX11-012", as: "medusamon" }] },
-        1: { security: ["BT1-002"] },
+        1: { security: ["BT1-012"] },
       },
       { autoDeclineOptional: true },
     );
@@ -278,7 +278,7 @@ describe("EX11-012 Medusamon", () => {
             { card: "EX11-012", as: "medusamon" },
             { card: "TOKEN-Familiar-Token", as: "costToken" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -371,7 +371,7 @@ describe("EX11-012 Medusamon", () => {
             { card: "TOKEN-Petrification-Token", as: "tokenB" },
           ],
           hand: [{ card: "BT2-099", as: "dpReduction" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

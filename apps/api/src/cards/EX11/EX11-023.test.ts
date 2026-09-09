@@ -94,7 +94,10 @@ describe("EX11-023 Kaguyamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     opponentTurn.state.turnSeat = 1;
-    await advance(opponentTurn.engine).fire(EffectTiming.OnEndTurn, opponentTurn.perm("source"));
+    const opponentLoop = opponentTurn.engine.runOneTurn();
+    await advance(opponentTurn.engine).waitForMainPhase(1);
+    expect(opponentTurn.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await opponentLoop;
     expect(opponentTurn.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("EX11-019");
     expect(opponentTurn.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX11-021");
     assertNoLoudGap(opponentTurn);
@@ -104,7 +107,10 @@ describe("EX11-023 Kaguyamon", () => {
       1: { battleArea: [{ card: "EX11-019", as: "target" }] },
     });
     ownTurn.state.turnSeat = 0;
-    await advance(ownTurn.engine).fire(EffectTiming.OnEndTurn, ownTurn.perm("source"));
+    const ownLoop = ownTurn.engine.runOneTurn();
+    await advance(ownTurn.engine).waitForMainPhase(0);
+    expect(ownTurn.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await ownLoop;
     expect(ownTurn.state.players[1]!.battleArea).toHaveLength(1);
     assertNoLoudGap(ownTurn);
   });

@@ -114,6 +114,39 @@ describe("EX11-011 Dinomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("repeats the per-player highest-cost deletion through public When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-035", as: "base" }],
+          hand: [{ card: "EX11-011", as: "dinomon" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "EX11-008", as: "oppLow", dp: 1000 },
+            { card: "EX11-010", as: "oppHigh", dp: 7000 },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dinomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX11-011");
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX11-010"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("EX11-008");
+    assertNoLoudGap(s);
+  });
+
   it("deletes a no-play-cost Digimon because Q5796 allows no opponent exemption", async () => {
     const s = setupEngine(
       {
@@ -143,7 +176,7 @@ describe("EX11-011 Dinomon", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "EX11-011", as: "dinomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -230,6 +263,44 @@ describe("EX11-011 Dinomon", () => {
     s.perm("dinomon").isSuspended = false;
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasRestriction(s.perm("attacker"), "attackOnlySuspendedDigimon")).toBe(false);
+  });
+
+  it("enforces the suspended-target restriction through the public opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-011", as: "dinomon", suspended: true },
+            { card: "BT1-009", as: "unsuspended" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT8-018", as: "marsmon" }], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("unsuspended").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("dinomon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "attackDeclared"));
+    s.engine.applyIntent(1, { type: "surrender" });
+    await turn;
+    assertNoLoudGap(s);
   });
 
   it("makes can't override Marsmon's permission at attack declaration (Q5797)", async () => {

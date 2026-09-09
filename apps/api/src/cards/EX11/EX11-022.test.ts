@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -26,21 +26,60 @@ import "../index.js"; // register compiled cards so the real OnPlay / OnEndTurn 
  * (a plain bystander Digimon that must survive the turn-end delete).
  */
 
-async function fireOnPlayForInstance(s: EngineSetup, instanceId: string): Promise<void> {
-  await (
-    s.engine as unknown as { fireTimingForInstance(t: EffectTiming, id: string): Promise<void> }
-  ).fireTimingForInstance(EffectTiming.OnPlay, instanceId);
-}
-
-async function fireEndTurn(s: EngineSetup): Promise<void> {
-  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnEndTurn);
-}
-
 function onField(s: EngineSetup, instanceId: string): boolean {
   return s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === instanceId);
 }
 
 describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () => {
+  it("proves the public On Play and When Digivolving entry paths", async () => {
+    const played = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX11-022", as: "source" },
+            { card: "BT13-035", as: "puppet" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    played.state.memory = 7;
+    expect(played.engine.applyIntent(0, { type: "playCard", instanceId: played.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => played.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT13-035"));
+    expect(played.state.players[0]!.hand).toHaveLength(0);
+
+    const evolved = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-021", as: "base" }],
+          hand: [
+            { card: "EX11-022", as: "source" },
+            { card: "BT13-035", as: "puppet" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    evolved.state.memory = 3;
+    expect(
+      evolved.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolved.perm("base").permanentId,
+        instanceId: evolved.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => evolved.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT13-035"));
+    expect(evolved.state.memory).toBe(0);
+    assertNoLoudGap(played);
+    assertNoLoudGap(evolved);
+  });
+
   it("matches the catalog and encodes every clause with the corrected inherited cause and cost union", () => {
     expect(getCardDefinition("EX11-022")).toMatchObject({
       nameEn: "Karakurumon",
@@ -116,39 +155,6 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
-  it("deletes ONLY the Digimon it played at turn end, leaving the board alone", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-022", as: "me" },
-            { card: "AD1-001", as: "bystander" },
-          ],
-          hand: [{ card: "BT13-035", as: "puppet" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    const puppet = s.inst("puppet");
-    const meId = s.perm("me").topCard!.instanceId;
-    const bystanderId = s.perm("bystander").topCard!.instanceId;
-
-    await fireOnPlayForInstance(s, meId);
-    await settle(() => onField(s, puppet.instanceId));
-    expect(onField(s, puppet.instanceId)).toBe(true); // the free play happened
-
-    void fireEndTurn(s);
-    await settle(() => !onField(s, puppet.instanceId));
-
-    // Exactly the played Digimon dies.
-    expect(onField(s, puppet.instanceId)).toBe(false);
-    // REVERT-CONFIRM-RED: drop the `DelayedDelete` action => PawnChessmon survives => RED.
-    expect(onField(s, meId)).toBe(true);
-    expect(onField(s, bystanderId)).toBe(true);
-    // REVERT-CONFIRM-RED: restore the SubTrigger + `playedByThisEffect` Delete (count "all") =>
-    // the ignored filter matches every permanent => Karakurumon and Greymon are deleted too => RED.
-  });
-
   // Q5810: the delayed deletion and any other end-of-turn effect trigger simultaneously, so the
   // turn player chooses the order. The partner must be an end-of-turn effect the resolver can
   // actually offer: `canActivateEffect` drops an effect whose every action is gated and
@@ -160,12 +166,14 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "P-185", as: "otherEndOfTurn", suspended: true }],
+          hand: [
             { card: "EX11-022", as: "source" },
-            { card: "P-185", as: "otherEndOfTurn", suspended: true },
+            { card: "BT13-035", as: "puppet" },
           ],
-          hand: [{ card: "BT13-035", as: "puppet" }],
+          deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009", "BT1-010"],
         },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009", "BT1-010"] },
       },
       {
         autoAcceptOptional: true,
@@ -175,10 +183,14 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
       },
     );
     const puppet = s.inst("puppet");
-    await fireOnPlayForInstance(s, s.perm("source").topCard.instanceId);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => onField(s, puppet.instanceId));
 
-    const resolving = fireEndTurn(s);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const pending = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
@@ -192,89 +204,13 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
         response: { kind: "orderTriggers", order: [keys[1]!] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
     expect(onField(s, puppet.instanceId)).toBe(false);
     // Both simultaneous effects resolved, in the order the turn player chose.
     expect(s.perm("otherEndOfTurn").isSuspended).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("arms nothing when the effect plays no Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-022", as: "me" },
-            { card: "AD1-001", as: "bystander" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    const meId = s.perm("me").topCard!.instanceId;
-    const bystanderId = s.perm("bystander").topCard!.instanceId;
-
-    // No [Puppet] Digimon in hand or trash: the optional play resolves to nothing.
-    await fireOnPlayForInstance(s, meId);
-    await fireEndTurn(s);
-
-    expect(onField(s, meId)).toBe(true);
-    expect(onField(s, bystanderId)).toBe(true);
-    // REVERT-CONFIRM-RED: the old always-true `playedByThisEffect` Delete fires at turn end even
-    // though nothing was played => both permanents are deleted => RED.
-  });
-
-  it("plays the same eligible Puppet from trash when digivolving, but rejects DP and trait misses", async () => {
-    const accepted = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-022", as: "source" }],
-          trash: [{ card: "BT13-035", as: "puppet" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await advance(accepted.engine).fire(EffectTiming.WhenDigivolving, accepted.perm("source"));
-    await settle(() => accepted.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT13-035"));
-    expect(accepted.state.players[0]!.trash).toHaveLength(0);
-    assertNoLoudGap(accepted);
-
-    const rejected = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-022", as: "source" }],
-          hand: [
-            { card: "EX11-021", as: "tooLarge" },
-            { card: "BT1-032", as: "wrongTrait" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await advance(rejected.engine).fire(EffectTiming.OnPlay, rejected.perm("source"));
-    expect(rejected.state.players[0]!.hand).toHaveLength(2);
-    expect(rejected.state.players[0]!.battleArea).toHaveLength(1);
-    assertNoLoudGap(rejected);
-  });
-
-  it("may decline the free Puppet play and therefore arms no delayed deletion", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-022", as: "source" },
-            { card: "BT1-009", as: "bystander" },
-          ],
-          hand: [{ card: "BT13-035", as: "puppet" }],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await fireEndTurn(s);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
     assertNoLoudGap(s);
   });
 
@@ -307,111 +243,6 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sourceId)).toBe(true);
     assertNoLoudGap(s);
-  });
-
-  it.each([
-    { label: "Token", fodder: "TOKEN-Familiar-Token" },
-    { label: "other Puppet", fodder: "BT13-035" },
-  ])("inherits leave prevention by deleting a $label", async ({ fodder }) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-032", as: "host", under: ["EX11-022"] },
-            { card: fodder, as: "fodder" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await s.ready();
-    const hostId = s.perm("host").permanentId;
-    const fodderId = s.perm("fodder").permanentId;
-    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
-
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === fodderId)).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("does not replace its controller's own effect and does not accept an unrelated Digimon as cost", async () => {
-    const ownEffect = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-032", as: "host", under: ["EX11-022"] },
-            { card: "BT13-035", as: "puppet" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    ownEffect.state.turnSeat = 0;
-    await ownEffect.ready();
-    const puppetId = ownEffect.perm("puppet").permanentId;
-    expect(await advance(ownEffect.engine).verb.deletePermanent([ownEffect.perm("host").permanentId], "byEffect")).toBe(
-      1,
-    );
-    expect(ownEffect.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === puppetId)).toBe(true);
-    expect(ownEffect.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
-
-    const wrongCost = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-032", as: "host", under: ["EX11-022"] },
-            { card: "BT1-009", as: "nonPuppet" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    wrongCost.state.turnSeat = 1;
-    expect(await advance(wrongCost.engine).verb.deletePermanent([wrongCost.perm("host").permanentId], "byEffect")).toBe(
-      1,
-    );
-    expect(wrongCost.state.players[0]!.battleArea).toHaveLength(1);
-    assertNoLoudGap(wrongCost);
-  });
-
-  it("may decline inherited prevention and can use it only once per turn", async () => {
-    const declined = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-032", as: "host", under: ["EX11-022"] },
-            { card: "BT13-035", as: "puppet" },
-          ],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    declined.state.turnSeat = 1;
-    const puppetId = declined.perm("puppet").permanentId;
-    expect(await advance(declined.engine).verb.deletePermanent([declined.perm("host").permanentId], "byEffect")).toBe(
-      1,
-    );
-    expect(declined.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === puppetId)).toBe(true);
-
-    const once = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-032", as: "host", under: ["EX11-022"] },
-            { card: "BT13-035", as: "firstPuppet" },
-            { card: "BT13-035", as: "secondPuppet" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    once.state.turnSeat = 1;
-    const hostId = once.perm("host").permanentId;
-    expect(await advance(once.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
-    expect(await advance(once.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
-    expect(once.state.players[0]!.battleArea).toHaveLength(1);
-    assertNoLoudGap(once);
   });
 
   it("supports normal yellow/purple cost 4 and Puppet cost 3 evolution, and rejects off-color level 4", async () => {

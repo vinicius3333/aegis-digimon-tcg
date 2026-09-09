@@ -72194,7 +72194,7 @@
     "attributes": ["Data"],
     "types": ["Dinosaur", "LIBERATOR"],
     "effectText": "[Digivolve] Lv.3 w/[Reptile] trait: Cost 2  [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Ryutaro Williams] from your hand without paying the cost.",
-    "inheritedEffectText": "[All Turns] This Digimon get +1000 DP.",
+    "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "EX11-009"

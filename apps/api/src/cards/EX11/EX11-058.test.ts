@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-058.js";
+import "./EX11-018.js";
+import "./EX11-050.js";
 
 describe("EX11-058 Yao Qinglan", () => {
   it("preserves the printed Tamer and complete compiled coverage", () => {
@@ -27,14 +29,21 @@ describe("EX11-058 Yao Qinglan", () => {
             { card: "EX11-058", as: "yao" },
           ],
           hand: ["BT23-023"],
+          deck: ["BT1-009", "BT1-013"],
         },
+        1: { deck: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yao"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(1);
     expect(s.perm("host").stack.some((card) => card.cardId === "BT23-023")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -50,18 +59,25 @@ describe("EX11-058 Yao Qinglan", () => {
             { card: "EX11-058", as: "yao" },
           ],
           hand: [{ card: "BT2-024", as: "aquaticPayment" }],
+          deck: ["BT1-009", "BT1-013"],
         },
+        1: { deck: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yao"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("aquaticHost").stack.some((card) => card.instanceId === s.inst("aquaticPayment").instanceId)).toBe(
       true,
     );
     expect(s.perm("aquaticHost").stack[0]?.instanceId).toBe(s.inst("aquaticPayment").instanceId);
     expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -74,17 +90,23 @@ describe("EX11-058 Yao Qinglan", () => {
             { card: "EX11-058", as: "yao" },
           ],
           hand: [{ card: "ST2-02", as: "seaBeast" }],
+          deck: ["BT1-009", "BT1-013"],
         },
+        1: { deck: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yao"));
-    await settle(() => false, 60);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("seaBeast").instanceId)).toBe(true);
     expect(s.perm("aquaticHost").stack).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -97,17 +119,23 @@ describe("EX11-058 Yao Qinglan", () => {
             { card: "EX11-058", as: "yao" },
           ],
           hand: [{ card: "BT10-027", as: "tooHigh" }],
+          deck: ["BT1-009", "BT1-013"],
         },
+        1: { deck: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yao"));
-    await settle(() => false, 60);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -115,12 +143,12 @@ describe("EX11-058 Yao Qinglan", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "EX11-058", as: "yao" }],
+          hand: [
             { card: "BT2-024", as: "aquatic" },
             { card: "ST2-02", as: "seaBeast" },
-            { card: "EX11-058", as: "yao" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-013"],
         },
       },
       { autoAcceptOptional: true },
@@ -128,15 +156,21 @@ describe("EX11-058 Yao Qinglan", () => {
     await s.ready();
     const handBefore = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("seaBeast").permanentId });
-    await settle(() => false, 60);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seaBeast").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("seaBeast").instanceId),
+    );
     expect(s.perm("yao").isSuspended).toBe(false);
-    expect(s.state.players[0]!.hand.length).toBe(handBefore);
+    expect(s.state.players[0]!.hand.length).toBe(handBefore - 1);
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("aquatic").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aquatic").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("yao").isSuspended);
     expect(s.perm("yao").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
+    expect(s.state.players[0]!.hand.length).toBe(handBefore - 1);
     assertNoLoudGap(s);
   });
 
@@ -144,11 +178,9 @@ describe("EX11-058 Yao Qinglan", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT14-008", as: "gizamon" },
-            { card: "EX11-058", as: "yao" },
-          ],
-          deck: ["BT1-001"],
+          battleArea: [{ card: "EX11-058", as: "yao" }],
+          hand: [{ card: "BT14-008", as: "gizamon" }],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true },
@@ -156,11 +188,13 @@ describe("EX11-058 Yao Qinglan", () => {
     await s.ready();
     const handBefore = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("gizamon").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gizamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("yao").isSuspended);
 
     expect(s.perm("yao").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
+    expect(s.state.players[0]!.hand.length).toBe(handBefore);
     assertNoLoudGap(s);
   });
 
@@ -168,11 +202,9 @@ describe("EX11-058 Yao Qinglan", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT14-008", as: "gizamon" },
-            { card: "EX11-058", as: "yao" },
-          ],
-          deck: ["BT1-001"],
+          battleArea: [{ card: "EX11-058", as: "yao" }],
+          hand: [{ card: "BT14-008", as: "gizamon" }],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -180,12 +212,14 @@ describe("EX11-058 Yao Qinglan", () => {
     await s.ready();
     const handBefore = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("gizamon").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gizamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => false, 30);
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("yao").isSuspended).toBe(false);
-    expect(s.state.players[0]!.hand.length).toBe(handBefore);
+    expect(s.state.players[0]!.hand.length).toBe(handBefore - 1);
     assertNoLoudGap(s);
   });
 
@@ -193,11 +227,9 @@ describe("EX11-058 Yao Qinglan", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT14-008", as: "decoded" },
-            { card: "EX11-058", as: "yao" },
-          ],
-          deck: ["BT1-001"],
+          battleArea: [{ card: "EX11-058", as: "yao" }],
+          hand: [{ card: "BT14-008", as: "decoded" }],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
@@ -205,14 +237,78 @@ describe("EX11-058 Yao Qinglan", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("decoded").permanentId,
-      playedByDecode: true,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("decoded").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.perm("yao").isSuspended);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(false);
+    assertNoLoudGap(s);
+  });
 
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beSuspended"));
-
+  it("locks an opponent Digimon after a public Decode replacement play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-058", as: "yao" },
+            { card: "EX11-018", as: "decodeHost", dp: 1000, under: [{ card: "BT14-008", as: "decoded" }] },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target" }],
+          hand: [{ card: "EX11-050", as: "loudmon" }, "BT1-009", "BT1-013"],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loudmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 2);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("decoded").instanceId),
+    );
+    expect(s.perm("decodeHost").topCard.cardId).toBe("EX11-018");
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT14-008")).toBe(true);
+    // The public Decode producer reaches the replacement play and its nested whenPlayed
+    // watcher resolves in the same combined entry window.
+    expect(s.perm("yao").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("draws on a later public digivolution without applying Decode restriction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-058", as: "yao" },
+            { card: "BT1-030", as: "base" },
+          ],
+          hand: [{ card: "BT1-033", as: "evolution" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-033" && s.perm("yao").isSuspended);
+    expect(s.perm("yao").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(false);
     assertNoLoudGap(s);
   });
 

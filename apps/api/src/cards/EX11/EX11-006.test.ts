@@ -1,13 +1,35 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { getEffectModule } from "../../engine/effects/index.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "./EX11-006.js";
+import "./EX11-027.js";
+import "./EX11-033.js";
 
 describe("EX11-006 Flickmon", () => {
+  it("publicly finds the exact Maquinamon peer and preserves the text-search boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-033", as: "ally", dp: 3000 }],
+          hand: [{ card: "EX11-027", as: "maquinamon" }],
+          deck: ["EX11-027", "EX11-073", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maquinamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ally").linked.length === 1);
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-073");
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.perm("ally").linked.map(({ cardId }) => cardId)).toEqual(["EX11-027"]);
+    assertNoLoudGap(s);
+  });
+
   it("requires a linked card before its inherited attack digivolution", () => {
     const effect = runtimeCompiledCard("EX11-006")!.effects[0]!;
     // The gate must be a condition kind the interpreter actually evaluates. The previous
@@ -40,18 +62,20 @@ describe("EX11-006 Flickmon", () => {
             {
               card: "EX11-027",
               as: "host",
+              dp: 20000,
               under: ["EX11-006"],
               linked: [{ card: "EX11-027", as: "maquinamonLink" }],
             },
           ],
           hand: [{ card: "EX11-029", as: "turbomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 0 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
+    s.state.turnCount = 1;
     await s.ready();
     const targetId = s.perm("target").permanentId;
 
@@ -127,6 +151,8 @@ describe("EX11-006 Flickmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
+    s.state.turnSeat = 0;
+    s.state.turnCount = 1;
     await s.ready();
 
     expect(
@@ -202,43 +228,87 @@ describe("EX11-006 Flickmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not offer the inherited evolution after Flickmon's once-per-turn use is spent", async () => {
+  it("refuses a same-turn reuse, then evolves again after the next own turn", async () => {
     const s = setupEngine(
       {
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetA", suspended: true, dp: 1_000 },
+            { card: "BT1-010", as: "targetB", suspended: true, dp: 1_000 },
+            { card: "BT1-011", as: "targetC", suspended: true, dp: 1_000 },
+          ],
+          security: ["BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-015", "BT1-016", "BT1-017"],
+        },
         0: {
           battleArea: [
             {
               card: "EX11-027",
               as: "host",
-              under: ["EX11-006"],
+              under: ["EX11-006", "EX11-033"],
+              dp: 20000,
               linked: [{ card: "EX11-027" }],
             },
           ],
-          hand: [{ card: "EX11-029", as: "turbomon" }],
+          hand: [
+            { card: "EX11-029", as: "firstTurbomon" },
+            { card: "EX11-033", as: "secondTurbomon" },
+          ],
+          security: ["BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-015", "BT1-016", "BT1-017"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
     await s.ready();
-    const flickmon = s.perm("host").stack.find((card) => card.cardId === "EX11-006")!;
-    const effect = getEffectModule("EX11-006")!.effectsForTiming(
-      EffectTiming.OnUseAttack,
-      observe(s.engine).cardSource(flickmon),
-    )[0]!;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    // The preceding positive case proves the public attack path. Arm the engine-owned usage
-    // ledger through the test seam to isolate the second-offer gate without declaring an
-    // otherwise illegal second attack with the same suspended Digimon.
-    advance(s.engine).ledgers.tracker.register(flickmon.instanceId, effect.effectKey);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("targetA").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("firstTurbomon").instanceId);
+    expect(s.perm("host").linked.map(({ cardId }) => cardId)).toContain("EX11-027");
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("targetB").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("firstTurbomon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondTurbomon").instanceId);
 
-    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("turbomon").instanceId);
-    expect(s.state.memory).toBe(10);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await settle();
+    expect(s.state.turnCount).toBeGreaterThan(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("secondTurbomon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("secondTurbomon").instanceId);
+    expect(s.state.memory).toBe(9);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 });

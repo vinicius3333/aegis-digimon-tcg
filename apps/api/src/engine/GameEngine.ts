@@ -4050,7 +4050,11 @@ export class GameEngine {
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
-    const playedEventTrigger = { ...this.playedTrigger(entryPermanentId), entryCause: "play" as const };
+    const playedEventTrigger = {
+      ...this.playedTrigger(entryPermanentId),
+      ...scopedTrigger,
+      entryCause: "play" as const,
+    };
     if (entryPermanentId !== undefined) {
       this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
     }
@@ -4071,6 +4075,7 @@ export class GameEngine {
         await this.ruleProcess();
         await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
         await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+          ...scopedTrigger,
           ...(entryPermanentId !== undefined ? { subjectPermanentId: entryPermanentId } : {}),
           entryCause: "play",
         });
@@ -4126,6 +4131,7 @@ export class GameEngine {
       playedFromZone?: ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
+      playedByDecode?: boolean;
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
@@ -4137,6 +4143,18 @@ export class GameEngine {
     // remain excluded unless card text explicitly references that area (Q870).
     if (timing === EffectTiming.WhenDigivolving && subjectPermanent !== undefined && !subjectPermanent.inBreeding) {
       this.tracker.register(`seat:${ownerSeat}`, "digivolvedThisTurn");
+    }
+    if (timing === EffectTiming.OnPlay) {
+      await this.firePlayEntryWindows(timing, instanceId, {
+        enteredByEffect: ownerSeat,
+        ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
+        ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
+        ...(opts?.playedByEffectSourceCardId !== undefined
+          ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
+          : {}),
+        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+      });
+      return;
     }
     await this.fireTimingForInstance(timing, instanceId, {
       enteredByEffect: ownerSeat,
@@ -4151,18 +4169,7 @@ export class GameEngine {
     });
     const subjectPermanentId = subjectPermanent?.permanentId;
     if (subjectPermanentId === undefined) return;
-    if (timing === EffectTiming.OnPlay) {
-      await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-        subjectPermanentId,
-        entryCause: "play",
-        enteredByEffect: ownerSeat,
-      });
-      await this.fireSubTrigger("onEnterFieldAnyone", {
-        subjectPermanentId,
-        entryCause: "play",
-        enteredByEffect: ownerSeat,
-      });
-    } else if (timing === EffectTiming.WhenDigivolving) {
+    if (timing === EffectTiming.WhenDigivolving) {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
         subjectPermanentId,
         entryCause: "digivolve",

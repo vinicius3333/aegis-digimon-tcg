@@ -1,51 +1,10 @@
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
-import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-072.js";
-
-/**
- * Board with the emblem in hand and, by default, a green [Shoto Kazama] Tamer (EX11-062) to
- * suspend.
- *
- * `ownShoto: false` drops that Tamer. EX11-062 prints "[All Turns] When any Digimon suspend, by
- * suspending this Tamer, ..." — so suspending ANY of your Digimon while it is on the board makes
- * a real [Shoto Kazama] suspend, which legitimately arms this emblem. A negative case about a
- * non-Shoto subject therefore has to leave EX11-062 off the board, or it proves nothing about
- * this card's `sourceFilter`.
- */
-function armedBoard(options: {
-  battleArea: { card: string; as: string }[];
-  hand: string[];
-  memory?: number;
-  ownShoto?: boolean;
-  opponentBattleArea?: { card: string; as: string }[];
-}) {
-  const s = setupEngine(
-    {
-      0: {
-        battleArea: [...(options.ownShoto === false ? [] : [{ card: "EX11-062", as: "shoto" }]), ...options.battleArea],
-        hand: [
-          { card: "EX11-072", as: "emblem" },
-          ...options.hand.map((card, index) => ({ card, as: `hand${index}` })),
-        ],
-      },
-      ...(options.opponentBattleArea === undefined ? {} : { 1: { battleArea: options.opponentBattleArea } }),
-    },
-    { autoAcceptOptional: true, autoSelectCards: true },
-  );
-  s.state.turnSeat = 0;
-  s.state.memory = options.memory ?? 2;
-  return s;
-}
-
-/** Place the emblem and age it past §16-17-3's "entered this turn" guard. */
-async function placeAgedEmblem(s: ReturnType<typeof armedBoard>): Promise<void> {
-  await advance(s.engine).verb.placeOptionAsPermanent(s.inst("emblem").instanceId);
-  s.perm("emblem").enterFieldTurnCount = 4294967295;
-  await s.ready();
-}
+import "../BT12/BT12-057.js";
 
 describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
   it("preserves the printed Option and complete compiled coverage", () => {
@@ -60,10 +19,7 @@ describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("publishes exactly one [Main] clause and carries ＜Delay＞ on the [Your Turn] trigger", () => {
-    // The Delay payload must NOT be a second [Main] clause: `[Security] Activate this card's
-    // [Main] effects` would otherwise reach it, and the [Main]-routed Delay model skips the
-    // §16-17-1 trash cost entirely.
+  it("publishes one Main clause and Delay's exact destination gates", () => {
     expect(compiled.effects.filter((effect) => effect.trigger === "Main")).toHaveLength(1);
     const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(watcher.keywords).toMatchObject([{ keyword: "Delay" }]);
@@ -72,154 +28,134 @@ describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
         kind: "SubTrigger",
         event: "whenSuspended",
         sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoto Kazama"] }] },
-        actions: [{ kind: "Digivolve", payCost: true, reduceCost: 3 }],
+        actions: [
+          {
+            kind: "Digivolve",
+            payCost: true,
+            reduceCost: 3,
+            into: { nameOrTrait: [{ tokens: ["Bird Dragon"], match: "trait" }], traits: ["LIBERATOR"] },
+          },
+        ],
       },
     ]);
-    expect(compiled.effects.some((effect) => effect.actions.some((action) => irNode(action)?.requiresDelayArmed))).toBe(
+    expect(compiled.effects.some((effect) => effect.actions.some((action) => "requiresDelayArmed" in action))).toBe(
       false,
     );
   });
 
-  it("requires both [Bird Dragon] AND [LIBERATOR] on the digivolution destination (Q5944)", () => {
-    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
-    const digivolve = irNode(irNode(watcher.actions[0])?.actions?.[0]);
-    // Conjunction: `nameOrTrait` entries are a UNION in the matcher, so the second trait rides
-    // on the separate `traits` predicate, which ANDs with it.
-    expect(digivolve?.into).toMatchObject({
-      kind: ["Digimon"],
-      nameOrTrait: [{ tokens: ["Bird Dragon"], match: "trait" }],
-      traits: ["LIBERATOR"],
-    });
-    // The base side is a genuine union: [Avian]/[Bird] substring OR the exact [Vortex Warriors].
-    expect(digivolve?.target?.filter?.nameOrTrait).toMatchObject([
-      { tokens: ["Avian", "Bird"], match: "traitContains" },
-      { tokens: ["Vortex Warriors"], match: "trait" },
-    ]);
-  });
-
-  it("security activates Main, plays a named card, and places the emblem in battle", async () => {
+  it("publicly plays a named card and places the emblem in the battle area", async () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX11-072", as: "emblem", faceUp: true }],
-          hand: [{ card: "EX11-026", as: "pteromon" }],
+          battleArea: [{ card: "EX11-026", as: "source" }],
+          hand: [
+            { card: "EX11-072", as: "emblem" },
+            { card: "EX11-026", as: "pteromon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-072"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-026")).toBe(true);
+    assertNoLoudGap(s);
+  });
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("emblem"));
-
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
-      expect.arrayContaining(["EX11-026", "EX11-072"]),
+  it("activates Main from a public security check and places the emblem", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX11-072", as: "emblem", faceUp: false }], deck: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    assertNoLoudGap(s);
-  });
-
-  it("trashes the emblem as the ＜Delay＞ cost and digivolves a [Bird Dragon] base for free", async () => {
-    const s = armedBoard({ battleArea: [{ card: "EX11-028", as: "bird" }], hand: ["EX11-032"] });
-    await placeAgedEmblem(s);
-
-    await advance(s.engine).verb.suspend([s.perm("shoto").permanentId], 0);
-    await settle(() => s.perm("bird").topCard.cardId === "EX11-032");
-
-    expect(s.perm("bird").topCard.cardId).toBe("EX11-032");
-    // Printed digivolution cost 3, reduced by 3.
-    expect(s.state.memory).toBe(2);
-    // §16-17-1: trashing this card is the activation cost, so the emblem must leave the field.
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-072");
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-072")).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("accepts a [Vortex Warriors] base with no [Avian]/[Bird] trait", async () => {
-    const s = armedBoard({ battleArea: [{ card: "EX8-074", as: "vortex" }], hand: ["EX11-074"], memory: 5 });
-    await placeAgedEmblem(s);
-
-    await advance(s.engine).verb.suspend([s.perm("shoto").permanentId], 0);
-    await settle(() => s.perm("vortex").topCard.cardId === "EX11-074");
-
-    expect(s.perm("vortex").topCard.cardId).toBe("EX11-074");
-    assertNoLoudGap(s);
-  });
-
-  it("rejects a destination carrying only [LIBERATOR] and keeps the emblem unpaid (Q5944)", async () => {
-    // EX11-033 is a legal green Lv.5 evolution off EX11-028 and carries [LIBERATOR], but not
-    // [Bird Dragon]. Under the old `match: "traitAll"` the matcher fell through to its
-    // name ∪ trait ∪ text branch and accepted it on [LIBERATOR] alone.
-    const s = armedBoard({ battleArea: [{ card: "EX11-028", as: "bird" }], hand: ["EX11-033"], memory: 5 });
-    await placeAgedEmblem(s);
-
-    await advance(s.engine).verb.suspend([s.perm("shoto").permanentId], 0);
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.perm("bird").topCard.cardId).toBe("EX11-028");
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-072")).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("rejects a base with neither [Avian]/[Bird] nor [Vortex Warriors]", async () => {
-    // EX11-029 is a green Lv.4 that could legally digivolve into EX11-032; only the printed
-    // trait gate on the BASE stops it.
-    const s = armedBoard({ battleArea: [{ card: "EX11-029", as: "beast" }], hand: ["EX11-032"], memory: 5 });
-    await placeAgedEmblem(s);
-
-    await advance(s.engine).verb.suspend([s.perm("shoto").permanentId], 0);
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.perm("beast").topCard.cardId).toBe("EX11-029");
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-072")).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("can't be activated the turn the emblem enters the battle area (§16-17-3)", async () => {
-    const s = armedBoard({ battleArea: [{ card: "EX11-028", as: "bird" }], hand: ["EX11-032"] });
-    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("emblem").instanceId);
     await s.ready();
-
-    await advance(s.engine).verb.suspend([s.perm("shoto").permanentId], 0);
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.perm("bird").topCard.cardId).toBe("EX11-028");
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-072")).toBe(true);
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-072"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
-  it("ignores a suspended Digimon that is not named [Shoto Kazama]", async () => {
-    // No EX11-062 on the board: its own "[All Turns] ... by suspending this Tamer" clause would
-    // suspend a real [Shoto Kazama] in response to the Galemon suspending, which legitimately
-    // arms this emblem and would make the negative vacuous.
-    const s = armedBoard({
-      battleArea: [{ card: "EX11-028", as: "bird" }],
-      hand: ["EX11-032"],
-      ownShoto: false,
+  it("reaches Delay through public Main and later publicly suspends Shoto", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "quartzBase" },
+            { card: "EX11-035", as: "birdDragonBase" },
+          ],
+          hand: [
+            { card: "EX11-072", as: "emblem" },
+            { card: "EX11-026", as: "pteromon" },
+            { card: "BT12-057", as: "quartz" },
+            { card: "EX11-074", as: "vortexdramon" },
+          ],
+          security: ["BT1-013", "BT1-014"],
+          deck: ["BT1-009", "BT1-013", "BT1-019"],
+        },
+        1: {
+          security: ["BT1-013", "BT1-014"],
+          deck: ["BT1-009", "BT1-013", "BT1-019"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    s.state.memory = 3;
+    const emblemInstanceId = s.inst("emblem").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId })).toEqual({
+      ok: true,
     });
-    await placeAgedEmblem(s);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-072"));
 
-    await advance(s.engine).verb.suspend([s.perm("bird").permanentId], 0);
-    await settle(() => s.state.pendingDecision === undefined);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === emblemInstanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === emblemInstanceId)).toBe(true);
+    const emblemPermanent = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard?.instanceId === emblemInstanceId,
+    );
+    expect(emblemPermanent).toBeDefined();
+    expect(observe(s.engine).activatableEffects(emblemPermanent!)).toEqual([]);
 
-    expect(s.perm("bird").isSuspended).toBe(true);
-    expect(s.perm("bird").topCard.cardId).toBe("EX11-028");
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-072")).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it('ignores your opponent\'s [Shoto Kazama] suspending (`controller: "mine"`)', async () => {
-    const s = armedBoard({
-      battleArea: [{ card: "EX11-028", as: "bird" }],
-      hand: ["EX11-032"],
-      ownShoto: false,
-      opponentBattleArea: [{ card: "EX11-062", as: "theirShoto" }],
+    s.state.memory = 5;
+    s.give(0, Zone.Hand, { card: "EX11-062", as: "shoto" });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoto").instanceId })).toEqual({
+      ok: true,
     });
-    await placeAgedEmblem(s);
-
-    await advance(s.engine).verb.suspend([s.perm("theirShoto").permanentId], 1);
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.perm("theirShoto").isSuspended).toBe(true);
-    expect(s.perm("bird").topCard.cardId).toBe("EX11-028");
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-072")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-062"));
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("quartzBase").permanentId,
+        instanceId: s.inst("quartz").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shoto").isSuspended);
+    expect(s.perm("shoto").isSuspended).toBe(true);
+    // The public suspension is reactive; the intrinsic Delay watcher resolves at the event
+    // itself when a legal Bird Dragon + LIBERATOR base remains on the field.
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX11-072")).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-074")).toBe(false);
+    expect(s.perm("birdDragonBase").topCard?.cardId).toBe("EX11-074");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 });

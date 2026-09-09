@@ -160,6 +160,58 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     assertNoLoudGap(s);
   });
 
+  it("is not suspended by an opponent effect while four Vemmon immunity is active", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: GALACTICMON_BASE,
+              as: "base",
+              under: ["BT11-061", "BT11-061", "BT11-061", "BT11-061"],
+            },
+          ],
+          hand: [{ card: GALACTICMON, as: "evolving" }],
+          deck: ["BT1-009", "BT1-010", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentVictim" }],
+          hand: [{ card: "EX11-026", as: "opponentEffect" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const galacticmon = s.perm("base");
+    preferred.push(galacticmon.permanentId);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: galacticmon.permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(galacticmon, "Blocker"));
+    expect(galacticmon.stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(4);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-026"));
+    expect(galacticmon.isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
   /**
    * FAILS-WHEN-REVERTED: the [End of Opponent's Turn] destination was encoded as
    * `into: { namesExact: ["Galacticmon"] }`, and `names` is not a Filter field — the interpreter
@@ -168,19 +220,28 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
   it("only digivolves into a card named [Galacticmon] at the end of the opponent's turn", async () => {
     const withHand = (hand: string) =>
       setupEngine(
-        { 0: { battleArea: [{ card: GALACTICMON, as: "self" }], hand: [{ card: hand, as: "candidate" }] } },
+        {
+          0: { battleArea: [{ card: GALACTICMON, as: "self" }], hand: [{ card: hand, as: "candidate" }] },
+          1: { security: ["BT1-009"], deck: ["BT1-010"], hand: ["BT1-011"] },
+        },
         { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
       );
 
     const decoy = withHand(DECOY);
     decoy.state.turnSeat = 1;
-    await advance(decoy.engine).runTurn(1);
+    const decoyLoop = decoy.engine.runOneTurn();
+    await settle(() => decoy.state.phase === "Main" && decoy.state.turnSeat === 1);
+    expect(decoy.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await decoyLoop;
     expect(decoy.perm("self").topCard?.cardId).toBe(GALACTICMON);
     expect(decoy.state.players[0]!.hand.map((card) => card.cardId)).toContain(DECOY);
 
     const named = withHand(GALACTICMON_BASE);
     named.state.turnSeat = 1;
-    await advance(named.engine).runTurn(1);
+    const namedLoop = named.engine.runOneTurn();
+    await settle(() => named.state.phase === "Main" && named.state.turnSeat === 1);
+    expect(named.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await namedLoop;
     expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
   });
 
@@ -191,19 +252,28 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
   it("also digivolves into a [Galacticmon] sitting in the TRASH, and only into that name", async () => {
     const withTrash = (trashCard: string) =>
       setupEngine(
-        { 0: { battleArea: [{ card: GALACTICMON, as: "self" }], trash: [trashCard] } },
+        {
+          0: { battleArea: [{ card: GALACTICMON, as: "self" }], trash: [trashCard] },
+          1: { security: ["BT1-009"], deck: ["BT1-010"], hand: ["BT1-011"] },
+        },
         { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
       );
 
     const decoy = withTrash(DECOY);
     decoy.state.turnSeat = 1;
-    await advance(decoy.engine).runTurn(1);
+    const decoyLoop = decoy.engine.runOneTurn();
+    await settle(() => decoy.state.phase === "Main" && decoy.state.turnSeat === 1);
+    expect(decoy.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await decoyLoop;
     expect(decoy.perm("self").topCard?.cardId).toBe(GALACTICMON);
     expect(decoy.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(DECOY);
 
     const named = withTrash(GALACTICMON_BASE);
     named.state.turnSeat = 1;
-    await advance(named.engine).runTurn(1);
+    const namedLoop = named.engine.runOneTurn();
+    await settle(() => named.state.phase === "Main" && named.state.turnSeat === 1);
+    expect(named.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await namedLoop;
     expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
     expect(named.perm("self").stack.map(({ cardId: id }) => id)).toEqual([GALACTICMON]);
   });

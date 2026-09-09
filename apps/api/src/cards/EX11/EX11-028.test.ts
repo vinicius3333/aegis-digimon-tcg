@@ -78,6 +78,27 @@ describe("EX11-028 Galemon", () => {
     assertNoLoudGap(s);
   });
 
+  it("plays Shoto through the public On Play suspension flow", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "galemon" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          battleArea: [{ card: "BT1-009", as: "ally" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("galemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-062"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-062")).toBe(true);
+  });
+
   it("does not play Shoto with two Tamers or after the once-per-turn effect is spent", async () => {
     const s = setupEngine(
       {
@@ -152,13 +173,107 @@ describe("EX11-028 Galemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("gains inherited battle memory only once per turn in a stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-029", as: "host", under: [cardId] }] } });
+  it("gains inherited battle memory only once per turn in a real battle stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: {
+        battleArea: [
+          { card: "BT1-012", as: "firstTarget", dp: 3_000, suspended: true },
+          { card: "BT1-014", as: "secondTarget", dp: 4_000, suspended: true },
+        ],
+      },
+    });
     s.state.turnSeat = 0;
     s.state.memory = 0;
-    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
-    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
+    s.state.turnCount = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("gains inherited battle memory after winning against a Security Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: { security: [{ card: "BT24-051", as: "securityDigimon" }] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the Shoto watcher on the next own turn through the public turn loop", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "galemon" },
+            { card: "BT1-009", as: "ally", dp: 20_000 },
+          ],
+          hand: ["EX11-062", "EX11-062"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-013", "BT1-014"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.isFirstPlayersFirstTurn = false;
+    const loop = s.engine.startTurnLoop();
+    s.state.turnCount = 1;
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX11-062").length === 1,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX11-062").length === 2,
+    );
+    s.engine.applyIntent(1, { type: "surrender" });
+    await loop;
     assertNoLoudGap(s);
   });
 });

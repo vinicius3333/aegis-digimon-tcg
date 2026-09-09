@@ -23,6 +23,7 @@ import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import {
   applyDecodeHostScope,
+  applyPlayDpCeilingModifier,
   applyPlayCostCeiling,
   materializeLevelComparisonScaling,
   runPlayAction,
@@ -649,7 +650,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         action.target,
         levelComparison?.scaling === undefined ? 0 : scaleFactor(ctx, levelComparison.scaling),
       );
-      const costCeilingTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, levelScaledTarget));
+      const dpCeilingTarget = applyPlayDpCeilingModifier(ctx, action, levelScaledTarget);
+      const costCeilingTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, dpCeilingTarget));
       const preflightTarget =
         ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
           ? costCeilingTarget

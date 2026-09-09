@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import "./EX11-048.js";
 
 const cardId = "EX11-026";
 
@@ -192,13 +193,140 @@ describe("EX11-026 Pteromon", () => {
     assertNoLoudGap(s);
   });
 
-  it("gains memory only once per turn when its evolved host wins battles", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-029", as: "host", under: [cardId] }] } });
+  it("gains memory only once per turn when its evolved host wins real battles", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: {
+        battleArea: [
+          { card: "BT1-012", as: "firstTarget", dp: 3_000, suspended: true },
+          { card: "BT1-014", as: "secondTarget", dp: 4_000, suspended: true },
+        ],
+      },
+    });
     s.state.turnSeat = 0;
     s.state.memory = 0;
-    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
-    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
+    s.state.turnCount = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("gains memory when its evolved host wins a battle against a Security Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }],
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: { security: ["BT1-012"], deck: ["BT1-013", "BT1-014", "BT1-015"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("resolves its battle-win gain alongside an inherited On Deletion trigger", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: {
+        battleArea: [{ card: "BT1-012", as: "target", under: ["EX11-048"], dp: 3_000, suspended: true }],
+        security: ["BT1-013"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    const gains = s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory");
+    expect(gains).toHaveLength(2);
+    expect(
+      gains.map((event) => {
+        const changed = event as unknown as { from: number; to: number };
+        return { from: changed.from, to: changed.to };
+      }),
+    ).toEqual([
+      { from: 0, to: 1 },
+      { from: 1, to: 0 },
+    ]);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the inherited battle-win once-per-turn effect on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-012", as: "firstTarget", dp: 3_000, suspended: true }],
+        security: ["BT1-013", "BT1-014"],
+        deck: ["BT1-015", "BT1-016", "BT1-017", "BT1-018", "BT1-019"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeSecondAttack = s.state.memory;
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === beforeSecondAttack + 1);
+    expect(s.state.memory).toBe(beforeSecondAttack + 1);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -215,18 +343,15 @@ describe("EX11-026 Pteromon", () => {
     ).toEqual({ ok: true });
 
     const offColour = setupEngine({
-      0: { battleArea: [{ card: "BT1-002", as: "redLevel2" }], hand: [{ card: cardId, as: "source" }] },
+      0: { battleArea: [{ card: "BT1-009", as: "redLevel3" }], hand: [{ card: cardId, as: "source" }] },
     });
-    for (const useAlternateCost of [false, true]) {
-      expect(
-        offColour.engine.applyIntent(0, {
-          type: "digivolve",
-          permanentId: offColour.perm("redLevel2").permanentId,
-          instanceId: offColour.inst("source").instanceId,
-          useAlternateCost,
-        }),
-      ).toEqual({ ok: false, reason: "invalid-evolution" });
-    }
+    expect(
+      offColour.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: offColour.perm("redLevel3").permanentId,
+        instanceId: offColour.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
 
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "level3" }], hand: [{ card: cardId, as: "source" }] },

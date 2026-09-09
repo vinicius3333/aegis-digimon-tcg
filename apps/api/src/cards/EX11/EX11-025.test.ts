@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -76,47 +76,53 @@ describe("EX11-025 FunBeemon", () => {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
           hand: [
             { card: "EX11-030", as: "royalBase" },
-            { card: "BT1-009", as: "plain" },
+            { card: "BT1-011", as: "plain" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-009"]),
+      expect.arrayContaining(["BT1-009", "BT1-011"]),
     );
-    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-002", "EX11-030"]);
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-010", "EX11-030"]);
     expect(s.state.players[0]!.security[1]).toMatchObject({ cardId: "EX11-030", faceUp: true });
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 
   // "Add your top FACE-DOWN security card to the hand": a face-up security card (which this very
   // card creates, and which KB Q5812/Q5813 keep revealed in the stack) is skipped. Drop
-  // `faceDownOnly` from the module and BT1-001 is taken instead, failing both assertions.
+  // `faceDownOnly` from the module and BT1-009 is taken instead, failing both assertions.
   it("skips a face-up security card and takes the top face-down one", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
           security: [
-            { card: "BT1-001", as: "faceUpTop", faceUp: true },
-            { card: "BT1-002", as: "faceDown" },
+            { card: "BT1-009", as: "faceUpTop", faceUp: true },
+            { card: "BT1-010", as: "faceDown" },
           ],
           hand: [{ card: "EX11-030", as: "royalBase" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
-    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-002"]);
-    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-001", "EX11-030"]);
-    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT1-001", faceUp: true });
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-009", "EX11-030"]);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT1-009", faceUp: true });
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 
@@ -125,17 +131,20 @@ describe("EX11-025 FunBeemon", () => {
       {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
-          security: [{ card: "BT1-001", as: "top" }],
+          security: [{ card: "BT1-009", as: "top" }],
           hand: [{ card: "EX11-030", as: "royalBase" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(
-      expect.arrayContaining(["BT1-001", "EX11-030"]),
+      expect.arrayContaining(["BT1-009", "EX11-030"]),
     );
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 
@@ -155,6 +164,40 @@ describe("EX11-025 FunBeemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Reboot")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opposingRoyalBase"), "Reboot")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("does not grant Reboot while the resident security card is face down", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: cardId, as: "security", faceUp: false }],
+        battleArea: [{ card: "EX11-030", as: "royalBase" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Reboot")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("can place a Royal Base from hand when security starts empty", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "EX11-030", as: "royalBase" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map(({ cardId: id, faceUp }) => ({ cardId: id, faceUp }))).toEqual([
+      { cardId: "EX11-030", faceUp: true },
+    ]);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 

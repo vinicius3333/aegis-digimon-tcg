@@ -347,6 +347,18 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     );
   });
 
+  it("preserves the attack mechanic in the whenAttacking sub-trigger payload", async () => {
+    const attackPayloads: TriggerInfo[] = [];
+    const h = harness({ captureAttackPayloads: attackPayloads });
+    const attacker = digimon(0, 9000);
+    h.state.players[0]?.battleArea.push(attacker);
+
+    await h.combat.resolveAttack(0, attacker, { kind: "player" }, { attackMechanic: "Execute" });
+
+    expect(attackPayloads).toHaveLength(1);
+    expect(attackPayloads[0]?.attackMechanic).toBe("Execute");
+  });
+
   it("fires whenBattleWon for the winning DEFENDER when the attacker loses", async () => {
     const h = harness();
     const attacker = digimon(0, 2000);

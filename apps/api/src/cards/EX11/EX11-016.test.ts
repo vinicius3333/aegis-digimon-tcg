@@ -132,6 +132,28 @@ describe("EX11-016 PolarBearmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("trashes two opposing sources but keeps the source-free Digimon when security placement is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX11-016", as: "polar" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim", under: ["BT1-010", "BT1-011"] }],
+          security: ["BT1-012"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("polar").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.length === 2);
+
+    expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("victim").permanentId);
+    expect(s.state.players[1]!.battleArea[0]?.stack).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
   it("exposes Iceclad and wins a lower-DP battle by digivolution-card count", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX11-016", as: "polar", under: ["EX11-014", "EX11-015"] }] },

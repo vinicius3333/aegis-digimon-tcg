@@ -1,4 +1,4 @@
-import { Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,16 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./EX11-007.js";
 
 describe("EX11-007 Agumon", () => {
+  it("preserves the catalog identity and printed clauses", () => {
+    expect(getCardDefinition("EX11-007")).toMatchObject({
+      nameEn: "Agumon",
+      colors: ["Red", "Green"],
+      level: 3,
+      types: ["Reptile", "LIBERATOR"],
+      effectText: expect.stringContaining("[When Moving] [On Play]"),
+      inheritedEffectText: "[All Turns] This Digimon gets +1000 DP.",
+    });
+  });
   it("binds one eligible Digimon for both turn-long keyword grants on play or moving", () => {
     const compiled = runtimeCompiledCard("EX11-007")!;
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Koromon"], cost: 0, isAlternate: true }]);
@@ -70,7 +80,7 @@ describe("EX11-007 Agumon", () => {
     assertNoLoudGap(s);
   });
 
-  it("when moving grants both keywords to one selected Reptile ally", async () => {
+  it("when moving through the real breeding phase grants both keywords to one selected Reptile ally", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -78,11 +88,13 @@ describe("EX11-007 Agumon", () => {
           breeding: { card: "EX11-007", as: "mover" },
           battleArea: [{ card: "EX11-008", as: "ally" }],
         },
+        1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
     preferInstanceIds.push(s.perm("ally").permanentId);
-    s.state.phase = Phase.Breeding;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 0);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
@@ -94,6 +106,13 @@ describe("EX11-007 Agumon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("mover"), "Raid")).toBe(false);
     expect(observe(s.engine).hasPierce(s.perm("mover"))).toBe(false);
     assertNoLoudGap(s);
+    await settle(() => s.state.phase === "Main" && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main");
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Raid")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("selects across a mixed pool: the name branch matches a Cyborg MetalTyrannomon", async () => {
@@ -181,7 +200,7 @@ describe("EX11-007 Agumon", () => {
       0: {
         battleArea: [{ card: "EX11-001", as: "koromon" }],
         hand: [{ card: "EX11-007", as: "agumon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 0;
@@ -198,6 +217,26 @@ describe("EX11-007 Agumon", () => {
 
     expect(s.perm("koromon").topCard.instanceId).toBe(s.inst("agumon").instanceId);
     expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
+  it("rejects the alternate route from a non-Koromon egg", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-002", as: "wrongEgg" }],
+        hand: [{ card: "EX11-007", as: "agumon" }],
+      },
+    });
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongEgg").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("wrongEgg").topCard.cardId).toBe("EX11-002");
     assertNoLoudGap(s);
   });
 });

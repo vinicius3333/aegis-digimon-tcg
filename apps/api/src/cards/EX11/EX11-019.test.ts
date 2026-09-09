@@ -150,7 +150,7 @@ describe("EX11-019 Shoemon", () => {
     expect(valid.state.memory).toBe(1);
 
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: cardId, as: "shoemon" }] },
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: cardId, as: "shoemon" }] },
     });
     expect(
       invalid.engine.applyIntent(0, {

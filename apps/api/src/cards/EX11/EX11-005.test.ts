@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -30,23 +29,21 @@ describe("EX11-005 Yaamon", () => {
         0: {
           battleArea: [{ card: "EX11-048", as: "host", under: ["EX11-005"] }],
           hand: [
-            { card: "BT1-001", as: "firstHand" },
-            { card: "BT1-002", as: "secondHand" },
+            { card: "BT1-009", as: "firstHand" },
+            { card: "BT1-010", as: "secondHand" },
           ],
-          deck: [{ card: "BT1-003", as: "bonusDraw" }],
+          deck: [{ card: "BT1-012", as: "bonusDraw" }],
           trash: [{ card: "EX11-049", as: "punkmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.perm("host").topCard.instanceId === s.inst("punkmon").instanceId);
 
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX11-005", "EX11-048"]);
-    expect(s.state.memory).toBe(8);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(
       [s.inst("firstHand"), s.inst("secondHand"), s.inst("bonusDraw")].filter((card) =>
@@ -56,26 +53,69 @@ describe("EX11-005 Yaamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("inherits through a different host and evolves the Evil Dragon peer from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-049", as: "peerHost", under: ["EX11-005"] }],
+          hand: ["BT1-009", "BT1-010"],
+          deck: ["BT1-012"],
+          trash: [{ card: "EX10-053", as: "evilDragon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.perm("peerHost").topCard.instanceId === s.inst("evilDragon").instanceId);
+
+    expect(s.perm("peerHost").stack.map(({ cardId }) => cardId)).toEqual(["EX11-005", "EX11-049"]);
+    expect(s.perm("peerHost").topCard.cardId).toBe("EX10-053");
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
   it("with an empty hand, trashes the bonus draw after digivolving when possible (Q5792)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX11-048", as: "host", under: ["EX11-005"] }],
-          deck: [{ card: "BT1-001", as: "bonusDraw" }],
+          deck: [{ card: "BT1-012", as: "bonusDraw" }],
           trash: [{ card: "EX11-049", as: "punkmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.perm("host").topCard.instanceId === s.inst("punkmon").instanceId);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
-    expect(s.state.memory).toBe(8);
+    expect(s.state.memory).toBe(-3);
+    assertNoLoudGap(s);
+  });
+
+  it("with one card in hand, trashes that card and the bonus draw when possible (Q5792)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-048", as: "host", under: ["EX11-005"] }],
+          hand: [{ card: "BT1-009", as: "lastHand" }],
+          deck: [{ card: "BT1-012", as: "bonusDraw" }],
+          trash: [{ card: "EX11-049", as: "punkmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("lastHand").instanceId, s.inst("bonusDraw").instanceId]),
+    );
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 
@@ -84,22 +124,20 @@ describe("EX11-005 Yaamon", () => {
       {
         0: {
           battleArea: [{ card: "EX11-048", as: "host", under: ["EX11-005"] }],
-          hand: [{ card: "BT1-001", as: "kept" }],
+          hand: [{ card: "BT1-009", as: "kept" }],
           trash: [{ card: "EX11-049", as: "punkmon" }],
         },
       },
       { autoDeclineOptional: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle();
 
     expect(s.perm("host").topCard.cardId).toBe("EX11-048");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("punkmon").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("kept").instanceId);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 
@@ -108,22 +146,20 @@ describe("EX11-005 Yaamon", () => {
       {
         0: {
           battleArea: [{ card: "EX11-048", as: "host", under: ["EX11-005"] }],
-          hand: [{ card: "BT1-001", as: "kept" }],
+          hand: [{ card: "BT1-009", as: "kept" }],
           trash: [{ card: "BT10-074", as: "wrongTrait" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle();
 
     expect(s.perm("host").topCard.cardId).toBe("EX11-048");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongTrait").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("kept").instanceId);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 
@@ -138,14 +174,12 @@ describe("EX11-005 Yaamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle();
 
     expect(s.perm("host").topCard.cardId).toBe("EX11-048");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("punkmon").instanceId);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 
@@ -156,19 +190,18 @@ describe("EX11-005 Yaamon", () => {
           battleArea: [{ card: "EX11-048", as: "host", under: ["EX11-005"] }],
           trash: [{ card: "EX11-049", as: "punkmon" }],
         },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await advance(s.engine).runTurn(1);
     await settle();
 
     expect(s.perm("host").topCard.cardId).toBe("EX11-048");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("punkmon").instanceId);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 });
