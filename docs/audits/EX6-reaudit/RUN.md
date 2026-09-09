@@ -34,3 +34,5 @@
 - Final `effects:check:set`: **74 records synchronized, 5 semantic changes against base, zero semantic or byte changes outside EX6**.
 - Final root `pnpm typecheck`, changed-file Oxlint/Oxfmt checks, registration sweep, skipped-test sweep, and `git diff --check`: **passed**.
 - Implementation and test commits: `05bbfa764` and `c5024c049`. Delivery-gate credit remains withheld until the audit artifacts are committed and the branch is pushed.
+- Audit artifacts were committed as `1dc8e722b` and the branch was pushed to `origin/audit-ex6-luna-20260909`.
+- Delivery gates awarded: **740/740 aggregate; 74/74 cards at reproducible 10/10**. Final closeout commit and push follow this entry.
