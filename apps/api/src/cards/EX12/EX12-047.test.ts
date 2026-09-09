@@ -17,7 +17,7 @@ describe("EX12-047 Amaterasumon", () => {
             { card: "BT1-021", as: "target", dp: 15000 },
           ],
           trash: ["BT1-010", "BT1-027"],
-          deck: ["BT1-001"],
+          deck: ["BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -32,7 +32,7 @@ describe("EX12-047 Amaterasumon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.deck).toHaveLength(3);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-010", "BT1-027"]),
+      expect.arrayContaining(["BT1-011", "BT1-010", "BT1-027"]),
     );
   });
 
@@ -46,7 +46,7 @@ describe("EX12-047 Amaterasumon", () => {
             { card: "BT1-021", as: "target", dp: 15000 },
           ],
           trash: ["BT1-010", "BT1-027"],
-          deck: ["BT1-001"],
+          deck: ["BT1-011"],
         },
       },
       { autoSelectCards: true },

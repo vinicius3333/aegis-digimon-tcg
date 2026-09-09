@@ -111,7 +111,7 @@ describe("EX12-043 Hakubamon", () => {
             { card: "EX12-071", as: "option" },
             { card: "EX12-006", as: "payment" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
@@ -245,7 +245,7 @@ describe("EX12-043 Hakubamon", () => {
           { card: cardId, as: "top" },
           { card: "BT1-051", as: "host", under: [cardId] },
         ],
-        security: ["BT1-005"],
+        security: ["BT1-010"],
       },
     });
     await s.ready();

@@ -257,7 +257,7 @@ describe("EX12-018 Siriusmon", () => {
         0: { battleArea: [{ card: "EX12-018", as: "attacker" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },

@@ -216,6 +216,63 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
     expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "EX12-025")).toHaveLength(1);
   });
 
+  it("resolves Execute before Kunlun's pending End of Your Turn effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "BT26-014", as: "attacker", under: [{ card: "EX12-004", as: "execute" }] },
+          ],
+          hand: [
+            { card: "EX12-065", as: "target" },
+            { card: "EX12-070", as: "option" },
+            { card: "EX12-063", as: "payment" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: { battleArea: [{ card: "EX12-033", as: "counter" }], security: ["BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+
+    expect(s.perm("attacker").topCard?.cardId).toBe("EX12-065");
+    expect(s.perm("kunlun").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+
+    const counterIndex = s.events.findIndex((event) => event.kind === "counterWindowOpened");
+    const kunlunEffectIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-104",
+    );
+    expect(kunlunEffectIndex).toBeGreaterThanOrEqual(0);
+    expect(kunlunEffectIndex).toBeLessThan(counterIndex);
+
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find(
+      (entry) => entry.instanceId === s.perm("counter").topCard!.instanceId,
+    );
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+  });
+
   it("plays a qualifying Shambala card from trash and rejects a card over the security limit", async () => {
     const s = setupEngine(
       {

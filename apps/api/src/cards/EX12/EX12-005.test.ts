@@ -25,7 +25,7 @@ describe("EX12-005 Agumon", () => {
       {
         0: {
           hand: ["EX12-005", { card: costCardId, as: "cost" }, "BT1-009"],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -38,7 +38,7 @@ describe("EX12-005 Agumon", () => {
     await settle(() => s.state.players[0]!.deck.length === 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
@@ -47,7 +47,7 @@ describe("EX12-005 Agumon", () => {
       {
         0: {
           hand: ["EX12-005", { card: "EX12-007", as: "cost" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -70,7 +70,7 @@ describe("EX12-005 Agumon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 
   it("does not draw when no qualifying hand card is available for the mandatory cost", async () => {
@@ -78,7 +78,7 @@ describe("EX12-005 Agumon", () => {
       {
         0: {
           hand: ["EX12-005", "BT1-009"],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -92,7 +92,7 @@ describe("EX12-005 Agumon", () => {
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 
   it("gives a host +2000 DP only during its controller's turn", async () => {
@@ -182,7 +182,7 @@ describe("EX12-005 Agumon", () => {
       {
         0: {
           hand: ["EX12-005", "BT1-015", "EX12-007"],
-          deck: ["BT1-001", "BT1-002", "BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -195,7 +195,7 @@ describe("EX12-005 Agumon", () => {
     await settle(() => s.state.players[0]!.deck.length === 1);
 
     expect(s.state.players[0]!.trash).toHaveLength(1);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
   });
 });

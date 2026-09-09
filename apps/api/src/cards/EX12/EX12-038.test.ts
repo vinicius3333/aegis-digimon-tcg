@@ -172,7 +172,7 @@ describe("EX12-038 Kokuwamon", () => {
       expect(s.state.memory).toBe(0);
     }
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: cardId, as: "source" }] },
+      0: { breeding: { card: "BT1-001", as: "base" }, hand: [{ card: cardId, as: "source" }] },
     });
     expect(
       invalid.engine.applyIntent(0, {

@@ -309,7 +309,7 @@ describe("EX12-055 Andromon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-069", as: "host", under: ["EX12-055"] }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

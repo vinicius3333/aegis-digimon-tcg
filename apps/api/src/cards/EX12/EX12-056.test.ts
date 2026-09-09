@@ -193,7 +193,7 @@ describe("EX12-056 Cho-Hakkaimon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-015", as: "opponent" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
@@ -224,7 +224,7 @@ describe("EX12-056 Cho-Hakkaimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX12-015", as: "host", under: ["EX12-056"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );

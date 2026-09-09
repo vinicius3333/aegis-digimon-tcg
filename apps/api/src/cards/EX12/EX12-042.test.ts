@@ -109,7 +109,7 @@ describe("EX12-042 Gatomon", () => {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
           security: ["BT1-010"],
-          deck: ["BT1-009", "BT1-008"],
+          deck: ["BT1-009", "BT1-011"],
         },
       },
       { autoAcceptOptional: true },
@@ -121,7 +121,7 @@ describe("EX12-042 Gatomon", () => {
 
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-009"]);
-    expect(s.state.players[0]!.deck.map(({ cardId: id }) => id)).toEqual(["BT1-008"]);
+    expect(s.state.players[0]!.deck.map(({ cardId: id }) => id)).toEqual(["BT1-011"]);
   });
 
   it("has Blocker only as a top card and grants functional Barrier only while inherited", async () => {
@@ -131,7 +131,7 @@ describe("EX12-042 Gatomon", () => {
           { card: cardId, as: "top" },
           { card: "BT1-051", as: "host", under: [cardId] },
         ],
-        security: ["BT1-005"],
+        security: ["BT1-010"],
       },
     });
     await s.ready();

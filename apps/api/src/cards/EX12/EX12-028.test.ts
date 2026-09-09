@@ -361,7 +361,7 @@ describe("EX12-028 Gusokumon", () => {
             { card: "EX12-023", as: "redirect" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
@@ -397,7 +397,7 @@ describe("EX12-028 Gusokumon", () => {
             { card: "BT1-009", as: "firstAttacker" },
             { card: "BT1-009", as: "secondAttacker" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },

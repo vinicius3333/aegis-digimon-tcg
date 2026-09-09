@@ -156,7 +156,7 @@ describe("EX12-053 Hagurumon", () => {
     }
 
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "EX12-053", as: "target" }] },
+      0: { breeding: { card: "BT1-001", as: "base" }, hand: [{ card: "EX12-053", as: "target" }] },
     });
     expect(
       invalid.engine.applyIntent(0, {
