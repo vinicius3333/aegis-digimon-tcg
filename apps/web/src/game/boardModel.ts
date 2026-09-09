@@ -5,6 +5,7 @@
 import {
   getCardDefinition,
   digivolutionRequirementsFor,
+  effectiveExactNames,
   effectiveStaticNames,
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
@@ -638,10 +639,15 @@ function altRequirementMatches(
   if (req.traits && req.traits.length > 0 && !req.traits.some((t) => cardHasTrait(baseDef, t))) return false;
   // Name gates read the base's EFFECTIVE names (printed name + aliases such as AD1-020's
   // "Tommy, Takuya, & Zoe" answering to [Takuya Kanbara]) — same source as the server.
+  // The substring gate reads the alias union; the exact gate reads the exact channel only, so a
+  // card "treated as having [X] in its name" (EX4-030 Kuzuhamon, Q2868) never satisfies an exact
+  // [X] route — mirrors matchGatedRequirement in apps/api/src/engine/cards/cardData.ts.
   const baseNames = effectiveStaticNames(baseDef);
   if (req.names && req.names.length > 0 && !req.names.some((n) => baseNames.some((name) => name.includes(n))))
     return false;
-  if (req.namesExact && req.namesExact.length > 0 && !req.namesExact.some((n) => baseNames.includes(n))) return false;
+  const baseExactNames = effectiveExactNames(baseDef);
+  if (req.namesExact && req.namesExact.length > 0 && !req.namesExact.some((n) => baseExactNames.includes(n)))
+    return false;
   if (
     req.texts &&
     req.texts.length > 0 &&
