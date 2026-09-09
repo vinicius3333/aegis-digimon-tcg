@@ -66,6 +66,19 @@ export const compiled: CompiledCard = {
             raw: "a Digimon card with [Cerberusmon] in its name or [X Antibody] is in this Digimon's digivolution cards",
           },
         },
+        {
+          // Q3660: the same clause also reactivates the [On Play] effect of the
+          // qualifying Gammamon card in this Digimon's stack (P-065 in the public proof).
+          kind: "ActivateForeignEffect",
+          zone: "digivolutionCards",
+          fromTriggers: ["OnPlay"],
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Gammamon"], match: "nameExact" }],
+          },
+          count: 1,
+        },
       ],
     },
     {

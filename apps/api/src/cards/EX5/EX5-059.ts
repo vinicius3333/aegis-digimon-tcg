@@ -66,6 +66,17 @@ export const compiled: CompiledCard = {
             raw: "[Dobermon] in its name or [X Antibody] is in this Digimon's digivolution cards",
           },
         },
+        {
+          // BT10-011 grants a Gammamon stack card's own effects to this Digimon.
+          // Q3656 therefore also resolves the granted P-065 On Play deletion.
+          kind: "ActivateForeignEffect",
+          zone: "digivolutionCards",
+          fromTriggers: ["OnPlay"],
+          filter: {
+            nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
+          },
+          count: 1,
+        },
       ],
     },
     {

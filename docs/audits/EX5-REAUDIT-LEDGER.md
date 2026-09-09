@@ -2,7 +2,7 @@
 
 Base: afa3ab2f451245fb03bf4e3f895ead8807f18df1. Prior scores are not inherited.
 
-Current aggregate: 552/740; 0/74 cards at 10/10.
+Current aggregate: 568/740; 0/74 cards at 10/10.
 
 | Card    | Name                                 | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                           |
 | ------- | ------------------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -64,9 +64,9 @@ Current aggregate: 552/740; 0/74 cards at 10/10.
 | EX5-056 | Syakomon                             | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3649 mapped; 6 focused tests green; public by-effect provenance, control baseline and Once Per Turn boundary proven                                     |
 | EX5-057 | Labramon                             | 0             | 0        | 0                | 0          | 0     | 0/10  | Queued                                                                                                                                                           |
 | EX5-058 | Octomon                              | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3651-Q3654/Q3834/Q6034 mapped; 10 focused tests green; public evolution, by-effect OPT/reset and Crimson Blaze boundaries proven                        |
-| EX5-059 | Dobermon (X Antibody)                | 0             | 0        | 0                | 0          | 0     | 0/10  | Queued                                                                                                                                                           |
+| EX5-059 | Dobermon (X Antibody)                | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3655-Q3656 mapped; 6 focused tests green; public evolution, own/granted On Play reactivation and inherited watcher proven                               |
 | EX5-060 | Dragomon                             | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3657-Q3659/Q4663-Q4676/Q5227-Q5228 mapped; 10 focused tests green; public play/evolution, Fortitude and Piercing paths proven                           |
-| EX5-061 | Cerberusmon (X Antibody)             | 0             | 0        | 0                | 0          | 0     | 0/10  | Queued                                                                                                                                                           |
+| EX5-061 | Cerberusmon (X Antibody)             | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3660 mapped; 8 focused tests green; public own/granted On Play reactivation, revival and deletion watcher proven                                        |
 | EX5-062 | Anubismon                            | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3661-Q3665 mapped; 9 focused tests green; public evolution/Main, same-card trash/play, refusal and effect-play boundary proven                          |
 | EX5-063 | Leviamon                             | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3666-Q3667/Q4735/Q6035-Q6039 mapped; 8 focused tests green; conditional deletion, legal evolution and controller-relative watcher proven                |
 | EX5-064 | Koh & Sayo                           | 2             | 2        | 2                | 2          | 0     | 8/10  | Catalog/Q3668/Q4931/Q5212/Q5393 mapped; 10 focused tests green; public turn loop, placement, refusal and legal breeding rotation proven                          |
