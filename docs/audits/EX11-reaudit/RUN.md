@@ -34,3 +34,4 @@
 - `git diff --check`: passed.
 - Risk scans: no `registerCard` in EX11 modules, no skipped/pending/expected-failure tests, no temporary debug output, and no illegal Digi-Egg deck/security fixtures.
 - All 74 cards reached 8/8 evidence before delivery credit. Initial atomic engine, shared/card, and behavioral-test commits were created; publication and final 2/2 delivery credit follow.
+- Branch `audit-ex11-luna-20260908` pushed after four atomic commits. Delivery credit advanced to 2/2 for all 74 cards; aggregate 740/740 and 74/74 cards at 10/10.
