@@ -78,6 +78,55 @@ describe("EX12-057 Takutoumon", () => {
     expect(observe(s.engine).hasKeyword(token!, "Guard")).toBe(true);
   });
 
+  it("Q6857 plays Paishu during an opponent attack's Counter window, then blocks that same attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [{ card: "EX12-057", as: "takutoumon" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+
+    const counterWindow = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (counterWindow?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const counter = counterWindow.eligibleCounters.find(
+      (entry) => entry.instanceId === s.perm("takutoumon").topCard!.instanceId,
+    );
+    expect(counter).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: counter!.instanceId,
+        effectKey: counter!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+
+    const token = s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "TOKEN-Paishu");
+    expect(token).toBeDefined();
+    const blockWindow = s.events.find((event) => event.kind === "blockWindowOpened");
+    expect(blockWindow).toMatchObject({ eligibleBlockerIds: [token!.permanentId] });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: token!.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("Q6855 de-digivolves and applies -6000 when Takutoumon itself is the played Digimon", async () => {
     const s = setupEngine(
       {

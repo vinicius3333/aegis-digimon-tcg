@@ -43,3 +43,7 @@ All 77 cards have 2/2 contract/rules, IR trace, behavioral proof, and peer/stack
 - Four invalid evolution-boundary fixtures placed Digi-Eggs directly in the battle area (EX12-038, -049, -053, -061). They now use the legal breeding area and retain the intended rejection proof.
 - Focused post-review rerun: 5 files and 36 tests passed with one worker.
 - Final EX12 collection rerun: 79 files and 867 tests passed with one worker.
+- Structured autoreview then found missing direct proof for EX12-057 Q6857 and EX12-074 Q7190. Both were added through public attack, Counter, and production turn-loop flows.
+- Giant Meat/EX12-073 was rechecked from the user's report with EX12-008, a real red `[ME]` Digimon in the battle area. The public `playCard` intent succeeded and the 10-test focused suite passed; no implementation change was warranted.
+- Review-focused rerun: EX12-057, -073, and -074 passed 3 files and 29 tests; formatted EX12-074 passed 13/13 again.
+- Final post-review EX12 collection: 79 files and 869 tests passed with one worker.
