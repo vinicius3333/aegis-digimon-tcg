@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { Phase } from "@aegis/shared";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-050.js";
@@ -14,8 +15,35 @@ describe("EX4-050 ShadowSeraphimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
+      sourceFilter: { controller: "mine" },
+      fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
       actions: [{ kind: "DeDigivolve", amount: 1, target: { filter: { controller: "opponent" } } }],
     });
+  });
+
+  it("de-digivolves one card through a real opponent attack removing security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-050", as: "source" }], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target", under: ["AD1-004", "BT1-014"] }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 1);
+    expect(s.perm("target").stack).toHaveLength(1);
   });
   it("adds one security and reduces opposing DP by 4000 per own security on deletion", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions;
@@ -32,15 +60,15 @@ describe("EX4-050 ShadowSeraphimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX4-050", as: "source" }],
-        security: ["BT1-001", "BT1-002"],
-        deck: ["BT1-003"],
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-011"],
       },
       1: { battleArea: [{ card: "BT1-019", as: "target", dp: 15000 }] },
     });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.security.length === 3);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toContain("BT1-003");
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toContain("BT1-011");
     expect(s.perm("target").currentDP).toBe(3000);
   });
   ex4CardBehaviorTests("EX4-050");

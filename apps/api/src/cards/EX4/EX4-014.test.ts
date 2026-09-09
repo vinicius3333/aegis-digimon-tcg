@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./EX4-014.js";
 import "../BT10/BT10-024.js";
 import "../index.js";
@@ -19,7 +20,10 @@ describe("EX4-014 Gaossmon", () => {
       forms: ["Rookie"],
       attributes: ["Virus"],
       types: ["Reptile", "BlueFlare"],
+      effectText:
+        "[Your Turn][Once Per Turn] When a card with the [Blue Flare] trait is played, . (Draw 1 card from your deck.) When a card with the [Twilight] trait is played, return 1 Digimon card with DigiXros requirements from your trash to your hand.",
     });
+    expect(runtimeCompiledCard("EX4-014")).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
@@ -28,6 +32,8 @@ describe("EX4-014 Gaossmon", () => {
     });
   });
 
+  // BT1-003 is an already-hatched stack source in the battle area; no Digi-Egg is placed in
+  // either a main deck or Security fixture.
   it("digivolves from a blue level-2 Digi-Egg for 0 and preserves the source", async () => {
     const s = setupEngine({
       0: {
@@ -48,7 +54,32 @@ describe("EX4-014 Gaossmon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX4-014");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("EX4-014");
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("gaossmon").instanceId);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-003"]);
+  });
+
+  it("rejects a non-blue level-3 source without paying or moving cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "base" }],
+        hand: [{ card: "EX4-014", as: "gaossmon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaossmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("base").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("gaossmon").instanceId);
   });
   it("returns a DigiXros-requirement Digimon when either player's Twilight card is played", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[1]).toMatchObject({
@@ -150,7 +181,10 @@ describe("EX4-014 Gaossmon", () => {
           battleArea: [{ card: "EX4-014", as: "gaossmon" }],
           hand: [{ card: "BT10-058", as: "twilight" }],
           deck: ["BT10-061", "BT10-066", "BT10-062", "BT10-064"],
-          trash: [{ card: "BT10-024", as: "xrosCard" }],
+          trash: [
+            { card: "BT10-024", as: "xrosCard" },
+            { card: "BT1-009", as: "nonDigiXrosCard" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -165,13 +199,42 @@ describe("EX4-014 Gaossmon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xrosCard").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xrosCard").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("xrosCard").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nonDigiXrosCard").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("ignores a play without either watched trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-010"],
+          battleArea: [{ card: "EX4-014", as: "gaossmon" }],
+          hand: [{ card: "BT1-009", as: "unwatched" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unwatched").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("unwatched").instanceId),
+    );
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("resolves both clauses for one dual-trait play, then blocks each later separate trigger (Q3454/Q3456)", async () => {
     const s = setupEngine(
       {
         0: {
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
           battleArea: [{ card: "EX4-014", as: "gaossmon" }],
           hand: [
             { card: "EX4-021", as: "dualTrait" },
@@ -183,7 +246,10 @@ describe("EX4-014 Gaossmon", () => {
             { card: "BT10-024", as: "xrosCardSecond" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponentTarget" }], security: 5 },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentTarget" }],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );

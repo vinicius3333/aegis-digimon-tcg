@@ -56,6 +56,24 @@ describe("EX4-033 Terriermon Assistant", () => {
     expect(s.perm("beneficiary").currentDP).toBe(7000);
   });
 
+  it("does not trigger from a non-effect suspension", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-033", as: "assistant" },
+            { card: "BT1-009", as: "beneficiary", dp: 3000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("assistant").permanentId], 0);
+    expect(s.perm("beneficiary").currentDP).toBe(3000);
+  });
+
   it("digivolves itself from hand after a real Alliance attack suspends an ally", async () => {
     const s = setupEngine(
       {
@@ -66,7 +84,7 @@ describe("EX4-033 Terriermon Assistant", () => {
           ],
           hand: [{ card: "BT17-049", as: "evolution" }],
         },
-        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -86,5 +104,40 @@ describe("EX4-033 Terriermon Assistant", () => {
     });
     await settle(() => s.perm("host").topCard?.cardId === "BT17-049", 5000);
     expect(s.perm("host").topCard?.cardId).toBe("BT17-049");
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("can decline the optional inherited evolution without paying or changing the stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-041", as: "host", under: ["EX4-033"] },
+            { card: "BT1-064", as: "ally" },
+          ],
+          hand: [{ card: "BT17-049", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !combat.hasOpenAllianceDecision, 5000);
+    expect(s.perm("host").topCard?.cardId).toBe("BT23-041");
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolution").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(10);
   });
 });

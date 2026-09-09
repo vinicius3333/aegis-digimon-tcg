@@ -118,4 +118,55 @@ describe("EX4-035 Alliance attack", () => {
 
     expect(s.perm("host").currentDP).toBe(baseDP + 2000);
   });
+
+  it("requires an effect to suspend another own Digimon, excluding self and opponents", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "host", under: ["EX4-035"] },
+            { card: "BT1-064", as: "ally" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const baseDP = s.perm("host").currentDP;
+
+    // Effect-suspending the host itself is excluded by "another".
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId], 0);
+    expect(s.perm("host").currentDP).toBe(baseDP);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+
+    // The watcher is scoped to one of your Digimon, not an opponent's.
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 0);
+    expect(s.perm("host").currentDP).toBe(baseDP);
+  });
+
+  it("expires at the opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "host", under: ["EX4-035"] },
+            { card: "BT1-064", as: "ally" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const baseDP = s.perm("host").currentDP;
+
+    await advance(s.engine).verb.suspend([s.perm("ally").permanentId], 0);
+    await settle(() => s.perm("host").currentDP === baseDP + 2000);
+    expect(s.perm("host").currentDP).toBe(baseDP + 2000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("host").currentDP).toBe(baseDP);
+  });
 });

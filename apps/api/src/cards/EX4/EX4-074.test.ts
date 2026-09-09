@@ -187,6 +187,22 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(recoveryId);
   });
 
+  it("does not hatch unless its controller has a Tamer in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-074", as: "ruin" }],
+        deck: [{ card: "BT1-009", as: "recovery" }],
+        eggDeck: [{ card: "BT1-006", as: "egg" }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("ruin"));
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT1-009"));
+
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+  });
+
   it("applies the deletion debuff to every opposing target during the current opponent turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX4-074", as: "ruin" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },

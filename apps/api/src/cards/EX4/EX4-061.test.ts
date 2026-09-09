@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
@@ -16,6 +18,7 @@ describe("EX4-061 Matt Ishida & Tai Kamiya", () => {
   it("plays the linked partner from hand or trash after a qualifying digivolution", () => {
     const effects = compiled.effects?.filter((entry) => entry.trigger === "YourTurn");
     expect(effects?.[1]?.actions?.[0]).toMatchObject({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" });
+    expect(effects?.[1]?.frequency).toBe("OncePerTurn");
     expect((effects?.[1]?.actions?.[0] as { actions?: unknown[] } | undefined)?.actions).toMatchObject([
       {
         kind: "PlayWithoutCost",
@@ -133,5 +136,75 @@ describe("EX4-061 Matt Ishida & Tai Kamiya", () => {
     await settle(() => s.perm("greymon").topCard?.cardId === "BT1-025");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("agumon").instanceId)).toBe(true);
   });
+
+  it("plays the linked Gabumon from trash for a Greymon-named digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-061", as: "tamer" },
+            { card: "BT1-010", as: "agumon" },
+          ],
+          hand: [{ card: "BT1-015", as: "greymonEvolution" }],
+          trash: [{ card: "BT1-029", as: "gabumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymonEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-029"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-029")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gabumon").instanceId)).toBe(false);
+  });
+
+  it("does not use the digivolution effect with two Digimon, and allows declining it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-061", as: "tamer" },
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT1-001", as: "secondDigimon" },
+          ],
+          hand: [
+            { card: "BT1-015", as: "greymonEvolution" },
+            { card: "BT1-010", as: "agumonInHand" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("greymonEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("agumonInHand").instanceId)).toBe(true);
+  });
+
+  it("plays itself from security through the public security-skill timing", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX4-061", as: "securityTamer" }] } }, { autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-061"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-061")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityTamer").instanceId)).toBe(
+      false,
+    );
+  });
+
   ex4CardBehaviorTests("EX4-061");
 });

@@ -210,5 +210,48 @@ describe("EX4-068 Heaven's Judgement", () => {
     expect(s.perm("target").currentDP).toBe(18000);
     expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("option").instanceId)).toBe(false);
   });
+
+  it("counts distinct colors across own Digimon, deduplicates repeated colors, and pays seven memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-025", as: "threeColors" },
+            { card: "BT1-009", as: "duplicateRed" },
+            { card: "BT1-088", as: "greenTamer" },
+          ],
+          hand: [{ card: "EX4-068", as: "option" }],
+        },
+        1: { battleArea: [{ card: "AD1-025", as: "target", dp: 30000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 6000);
+    expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not bypass the yellow color requirement without a green Digimon or Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "red" }],
+          hand: [{ card: "EX4-068", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }).ok).toBe(false);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.perm("target").currentDP).toBe(5000);
+  });
   ex4CardBehaviorTests("EX4-068");
 });

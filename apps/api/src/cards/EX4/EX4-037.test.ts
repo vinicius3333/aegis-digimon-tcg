@@ -163,6 +163,55 @@ describe("EX4-037 BlackMegaGargomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("singleColor"), "Blocker")).toBe(false);
   });
 
+  it("selects exactly two legal own targets from a mixed board", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-037", as: "host" },
+            { card: "ST17-05", as: "valid" },
+            { card: "BT1-019", as: "wrongColor" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX4-036", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.EndOfYourTurn, s.perm("host"));
+    for (const alias of ["host", "valid"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Reboot")).toBe(true);
+    }
+    expect(observe(s.engine).hasKeyword(s.perm("wrongColor"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(false);
+  });
+
+  it("allows declining the optional unsuspend and does not retrigger this turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-037", as: "host", suspended: true },
+            { card: "BT1-064", as: "first" },
+            { card: "BT1-064", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("first").permanentId], 0);
+    await settle(() => s.perm("first").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    await advance(s.engine).verb.suspend([s.perm("second").permanentId], 0);
+    await settle(() => s.perm("second").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+
   it("digivolves from a Rapidmon-named level-5 Digimon for the alternate cost", async () => {
     const s = setupEngine({
       0: {

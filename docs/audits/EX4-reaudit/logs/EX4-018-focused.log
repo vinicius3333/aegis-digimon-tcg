@@ -1,0 +1,9 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-ex4-luna-20260909/apps/api
+
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  17:27:59
+   Duration  3.72s (transform 68%, import 30%, tests 2%)
+

@@ -67,7 +67,7 @@ describe("EX4-054 Wendigomon", () => {
             { card: "BT1-021", as: "target", dp: 7000, suspended: true },
             { card: "ST18-07", as: "blocker", dp: 7000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -115,6 +115,50 @@ describe("EX4-054 Wendigomon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("greenTrash").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("greenTrash").instanceId);
+  });
+
+  it("requires another own suspended Digimon and ignores non-green trash", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-054", as: "host" }],
+        trash: [
+          { card: "BT1-063", as: "wrongColor" },
+          { card: "BT1-064", as: "greenTrash" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "opponentSuspended", suspended: true }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("host"));
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongColor").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("greenTrash").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongColor").instanceId, s.inst("greenTrash").instanceId]),
+    );
+  });
+
+  it("does not repeat the inherited return effect in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", under: ["EX4-054"] },
+            { card: "BT1-010", as: "suspended", suspended: true },
+          ],
+          trash: [{ card: "BT1-064", as: "greenTrash" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("greenTrash").instanceId));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand.filter((card) => card.instanceId === s.inst("greenTrash").instanceId)).toHaveLength(
+      1,
+    );
   });
   ex4CardBehaviorTests("EX4-054");
 });

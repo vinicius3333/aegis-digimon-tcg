@@ -47,6 +47,7 @@ export const compiled: CompiledCard = {
           },
           amount: 2,
           fromTop: false,
+          upTo: true,
           condition: {
             kind: "digiXrosCount",
             minimum: 1,
@@ -82,6 +83,12 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["Greymon"], colors: ["Blue"] }, { names: ["MailBirdramon"] }],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("EX4-020", compiled);

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-013.js";
+import "../EX6/EX6-010.js";
 import "../index.js";
 
 describe("EX4-013 MedievalGallantmon", () => {
@@ -71,7 +72,29 @@ describe("EX4-013 MedievalGallantmon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX4-013");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("EX4-013");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCard]);
+  });
+
+  it("rejects a level-5 Digimon without the red or green evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-015", as: "yellowBase" }],
+        hand: [{ card: "EX4-013", as: "medieval" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("medieval").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("yellowBase").topCard.cardId).toBe("AD1-015");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("medieval").instanceId)).toBe(true);
   });
   it("falls back to suspending an opponent Digimon when the 6000 DP deletion fails", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
@@ -91,14 +114,18 @@ describe("EX4-013 MedievalGallantmon", () => {
   it("deletes an opposing Digimon at or below 6000 DP on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-013", as: "medieval" }] },
+        0: { hand: [{ card: "EX4-013", as: "medieval" }] },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("medieval"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
@@ -106,9 +133,10 @@ describe("EX4-013 MedievalGallantmon", () => {
   it("Q3451 can choose an already suspended Digimon and prevent its next unsuspension", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-013", as: "medieval" }] },
+        0: { deck: ["BT1-009"], battleArea: [{ card: "EX4-013", as: "medieval" }] },
         1: {
-          security: ["BT1-001"],
+          deck: ["BT1-009"],
+          security: ["BT1-009"],
           battleArea: [{ card: "BT1-009", as: "target", dp: 7000, suspended: true }],
         },
       },
@@ -127,8 +155,13 @@ describe("EX4-013 MedievalGallantmon", () => {
     await settle();
 
     expect(s.perm("target").isSuspended).toBe(true);
-    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays without security battle, then returns the played Digimon at end of turn", async () => {
@@ -156,18 +189,32 @@ describe("EX4-013 MedievalGallantmon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === medievalId)).toBe(false);
 
-    await advance(s.engine).fireSubTrigger("endOfTurn");
+    await advance(s.engine).runTurn(0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === medievalId)).toBe(true);
   });
 
   it("Q3450 leaves the card in trash when the security-played Digimon is deleted before end of turn", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX4-013", as: "medieval" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX4-013", as: "medieval" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
+      },
+      { autoSelectCards: true },
+    );
     const medievalId = s.inst("medieval").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("medieval"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === medievalId));
     expect({
       battle: s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId),
@@ -177,10 +224,42 @@ describe("EX4-013 MedievalGallantmon", () => {
     }).toEqual({ battle: [medievalId], hand: [], security: [], trash: [] });
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === medievalId)!;
     await advance(s.engine).verb.deletePermanent([played.permanentId], "byEffect");
-    await advance(s.engine).fireSubTrigger("endOfTurn");
+    await advance(s.engine).runTurn(1);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === medievalId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === medievalId)).toBe(true);
+  });
+
+  it("Q3452 trashes the checked card when the attacking RagnaLoardmon suppresses Security effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-019", as: "ragna", under: ["EX6-010"] }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          security: [{ card: "EX4-013", as: "medieval" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const medievalId = s.inst("medieval").instanceId;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ragna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === medievalId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === medievalId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT3-019")).toBe(true);
   });
 });

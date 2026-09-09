@@ -74,8 +74,11 @@ describe("EX4-058 Ravemon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("source"));
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX4-058")).not.toHaveLength(0);
+    // Pass the opponent's turn through the production turn loop. This reaches the
+    // OnEndTurn window (and its endOfOpponentTurn watcher) without injecting the
+    // named sub-trigger directly.
     s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    await advance(s.engine).runTurn(1);
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-058"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-058")).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX4-058")).toHaveLength(1);
@@ -106,7 +109,7 @@ describe("EX4-058 Ravemon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("source"));
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    await advance(s.engine).runTurn(1);
     await settle();
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("longRavemonName").instanceId);
   });
@@ -115,7 +118,7 @@ describe("EX4-058 Ravemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX4-058", as: "source" }] },
-        1: { hand: Array(8).fill("BT1-001"), security: [{ card: "BT1-002", as: "security" }] },
+        1: { hand: Array(8).fill("BT1-009"), security: [{ card: "BT1-013", as: "security" }] },
       },
       { autoSelectCards: true },
     );
@@ -131,7 +134,7 @@ describe("EX4-058 Ravemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX4-058", as: "source" }] },
-        1: { hand: Array(7).fill("BT1-001"), security: [{ card: "BT1-002", as: "security" }] },
+        1: { hand: Array(7).fill("BT1-009"), security: [{ card: "BT1-013", as: "security" }] },
       },
       { autoSelectCards: true },
     );

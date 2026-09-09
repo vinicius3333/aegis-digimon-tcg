@@ -64,6 +64,15 @@ describe("EX4-069 Gaia Reactor", () => {
       isSuspended: false,
       inBreeding: false,
     } as unknown as Permanent;
+    const ownTie = {
+      permanentId: "ownTie",
+      controllerSeat: 0,
+      topCard: card("OWN-TIE", 0),
+      stack: [],
+      linked: [],
+      isSuspended: false,
+      inBreeding: false,
+    } as unknown as Permanent;
     const oppHigh = {
       permanentId: "oppHigh",
       controllerSeat: 1,
@@ -82,30 +91,42 @@ describe("EX4-069 Gaia Reactor", () => {
       isSuspended: false,
       inBreeding: false,
     } as unknown as Permanent;
+    const oppTie = {
+      permanentId: "oppTie",
+      controllerSeat: 1,
+      topCard: card("OPP-TIE", 1),
+      stack: [],
+      linked: [],
+      isSuspended: false,
+      inBreeding: false,
+    } as unknown as Permanent;
     const players = [
-      { battleArea: [self, ownHigh, ownLow], security: [], hand: [], deck: [], trash: [] },
-      { battleArea: [oppHigh, oppLow], security: [], hand: [], deck: [], trash: [] },
+      { battleArea: [self, ownHigh, ownLow, ownTie], security: [], hand: [], deck: [], trash: [] },
+      { battleArea: [oppHigh, oppLow, oppTie], security: [], hand: [], deck: [], trash: [] },
     ];
     const defs = new Map([
       ["EX4-069", { ...definition("EX4-069", 10), kinds: [CardKind.Option] }],
       ["OWN-HIGH", definition("OWN-HIGH", 7)],
       ["OWN-LOW", definition("OWN-LOW", 3)],
+      ["OWN-TIE", definition("OWN-TIE", 7)],
       ["OPP-HIGH", definition("OPP-HIGH", 6)],
       ["OPP-LOW", definition("OPP-LOW", 2)],
+      ["OPP-TIE", definition("OPP-TIE", 6)],
     ]);
     const deleted: string[][] = [];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [self, ownHigh, ownLow, oppHigh, oppLow].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [self, ownHigh, ownLow, ownTie, oppHigh, oppLow, oppTie].find((p) => p.permanentId === id),
       definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
     } as unknown as GameAccess;
     const fx = { deletePermanent: async (ids: string[]) => deleted.push(ids) } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
       chooseOption: async () => 0,
-      chooseTargets: async (_ctx, options) => [options.candidates[0]!],
+      chooseTargets: async (_ctx, options) => [options.candidates.at(-1)!],
       selectCards: async () => [],
       selectPermanents: async () => [],
     };
@@ -121,7 +142,10 @@ describe("EX4-069 Gaia Reactor", () => {
     };
     const effect = getEffectModule("EX4-069")!.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
     await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
-    expect(deleted).toEqual([["ownLow"], ["oppLow"]]);
+    expect(deleted).toEqual([
+      ["ownHigh", "ownLow"],
+      ["oppHigh", "oppLow"],
+    ]);
   });
 
   it("runs the same deletion effect when revealed in security", async () => {
