@@ -127,13 +127,13 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Koji Minamoto"],
+      namesExact: ["Koji Minamoto"],
       cost: 2,
       isAlternate: true,
       baseIsTamer: true,
     },
     {
-      names: ["KendoGarurumon"],
+      namesExact: ["KendoGarurumon"],
       cost: 1,
       isAlternate: true,
     },

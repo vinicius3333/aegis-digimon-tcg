@@ -25,6 +25,40 @@ describe("BT17-096 Crimson Savior", () => {
     });
   });
 
+  it("matches [Guilmon]/[Takato Matsuki] as exact names", () => {
+    expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: { filter: { nameOrTrait: [{ tokens: ["Guilmon", "Takato Matsuki"], match: "nameExact" }] } },
+    });
+  });
+
+  it("refuses Guilmon (X Antibody) as the free play and still enters the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT17-007"],
+          hand: [
+            { card: "BT17-096", as: "option" },
+            { card: "BT9-009", as: "nearName" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-096"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT9-009")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearName").instanceId);
+    // Only the Option's own 3 memory is spent; nothing was played for free.
+    expect(s.state.memory).toBe(7);
+  });
+
   it("grants Delay only when an opponent plays a level 5 or higher Digimon", () => {
     expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
@@ -91,6 +125,9 @@ describe("BT17-096 Crimson Savior", () => {
           hand: [
             { card: "BT17-096", as: "option" },
             { card: "BT17-016", as: "gallantmon" },
+            // Q2884: the Delay digivolution does not ignore digivolution requirements, so
+            // Gallantmon: Crimson Mode (Lv.6 source) is not a legal target from WarGrowlmon.
+            { card: "BT17-018", as: "crimsonMode" },
           ],
         },
         1: {
@@ -147,6 +184,8 @@ describe("BT17-096 Crimson Savior", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.perm("warGrowlmon").topCard?.cardId).toBe("BT17-016");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gallantmon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("crimsonMode").instanceId)).toBe(true);
+    expect(s.perm("warGrowlmon").stack.some((card) => card.cardId === "BT17-013")).toBe(true);
   });
 
   it("naturally activates the Main effect when revealed from Security", async () => {

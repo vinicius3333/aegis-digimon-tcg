@@ -78,6 +78,12 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["Lobomon"] }, { names: ["KendoGarurumon"] }],
+      count: 3,
+    },
+  ],
 };
 
 registerIrCard("BT17-028", compiled);

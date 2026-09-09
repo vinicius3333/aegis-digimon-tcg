@@ -22,7 +22,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Dorugoramon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -66,7 +66,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "anyOf",
             conditions: [
-              { kind: "selfHasInDigivolutionCards", nameOrTrait: [{ tokens: ["Dorugoramon"], match: "name" }] },
+              { kind: "selfHasInDigivolutionCards", nameOrTrait: [{ tokens: ["Dorugoramon"], match: "nameExact" }] },
               { kind: "digivolvedFromZone", zone: "trash" },
             ],
             raw: "[Dorugoramon] is in this Digimon's digivolution cards or this card is digivolving from the trash",
@@ -106,7 +106,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Dorugoramon"],
+      namesExact: ["Dorugoramon"],
       cost: 2,
       isAlternate: true,
     },

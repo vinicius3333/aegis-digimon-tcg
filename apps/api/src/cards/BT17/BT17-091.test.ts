@@ -1,6 +1,7 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-091.js";
 import "./index.js";
@@ -56,10 +57,52 @@ describe("BT17-091 Cracker Fang", () => {
           from: ["digivolutionCards"],
           payCost: false,
           optional: true,
-          target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi", "Cracker Fang"], match: "name" }] } },
+          target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "nameExact" }] } },
         },
       ],
     });
+  });
+
+  it("raises start-of-turn memory to 3 only when at 2 or less and only while Cracker Fang is in play", async () => {
+    const withTamer = setupEngine(
+      { 0: { battleArea: [{ card: "BT17-091", as: "crackerFang" }], hand: [{ card: "BT1-009", as: "spare" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    withTamer.state.memory = 2;
+    await withTamer.ready();
+    const raise = withTamer.engine.runOneTurn();
+    await advance(withTamer.engine).waitForMainPhase(0);
+    expect(withTamer.state.memory).toBe(3);
+    advance(withTamer.engine).endMainPhaseIfOpen(0);
+    await raise;
+    assertNoLoudGap(withTamer);
+
+    const control = setupEngine(
+      { 0: { hand: [{ card: "BT1-009", as: "spare" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.memory = 2;
+    await control.ready();
+    const controlTurn = control.engine.runOneTurn();
+    await advance(control.engine).waitForMainPhase(0);
+    expect(control.state.memory).toBe(2);
+    advance(control.engine).endMainPhaseIfOpen(0);
+    await controlTurn;
+  });
+
+  it("never lowers start-of-turn memory that is already above 2", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT17-091", as: "crackerFang" }], hand: [{ card: "BT1-009", as: "spare" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    assertNoLoudGap(s);
   });
 
   it("naturally Mind Links under a Dark Animal/SoC Digimon and grants both inherited keywords", async () => {
@@ -101,6 +144,27 @@ describe("BT17-091 Cracker Fang", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("unrelated"), "Alliance")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("unrelated"), "Blocker")).toBe(false);
+  });
+
+  it("withholds the inherited keywords while the host lacks the Dark Animal/SoC trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-069", under: ["BT17-091"], as: "traitHost" },
+            { card: "BT1-009", under: ["BT17-091"], as: "plainHost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("traitHost"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("traitHost"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Alliance")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("plainHost"), "Blocker")).toBe(false);
   });
 
   it("does not Mind Link to a matching Digimon that already has a Tamer in its stack", async () => {

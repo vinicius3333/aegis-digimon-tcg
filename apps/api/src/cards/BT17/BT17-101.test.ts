@@ -131,4 +131,139 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
     // p0's security was spent too.
     expect(p0?.security.length).toBe(0);
   });
+
+  it("[When Digivolving] on a normal digivolve applies -16000 DP and, with a Tamer in the stack, gains 1 memory and recovers 1 security (Q4712)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // Purple Lv.6 source with a Tamer already in its digivolution cards.
+          battleArea: [{ card: "BT17-069", as: "purpleLv6", under: ["BT1-085"] }],
+          hand: [{ card: FENRILOOGAMON, as: "fenri" }],
+          // One card for the digivolve draw, one for the ＜Recovery +1 (Deck)＞ move to security.
+          deck: [
+            { card: "BT1-010", as: "digivolveDraw" },
+            { card: "BT1-011", as: "recovered" },
+          ],
+          security: ["BT1-009"],
+        },
+        // Single opponent Digimon to receive the -16000 DP.
+        1: { battleArea: [{ card: "BT1-014", dp: 20_000, as: "oppDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleLv6").permanentId,
+        instanceId: s.inst("fenri").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    // The recovery resolves last; settling on the grown security stack proves the whole pass ran.
+    await settle(() => s.state.players[0]!.security.length === 2, 1500);
+
+    const host = s.perm("purpleLv6");
+    expect(host.topCard?.cardId).toBe(FENRILOOGAMON);
+    // -16000 DP for the turn on the opponent's Digimon (20000 -> 4000).
+    expect(s.perm("oppDigimon").currentDP).toBe(4000);
+    // Tamer in the digivolution cards: gain 1 memory and ＜Recovery +1 (Deck)＞, independent of the
+    // DNA-only memory-to-3 branch (Q4712). memory 10 - 6 (evo cost) + 1 (Tamer branch) = 5, not -3.
+    expect(s.state.memory).toBe(5);
+    // The recovered deck card is now in the security stack.
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId)).toBe(true);
+    expect(host.stack.some((card) => card.cardId === "BT1-085")).toBe(true);
+  });
+
+  it("stays in the trash when the opponent plays the same level 6 Pulsemon-text Digimon on their turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT17-069", "BT17-040"],
+          trash: [{ card: FENRILOOGAMON, as: "trashFenri" }],
+        },
+        1: {
+          battleArea: [{ card: "BT17-030", as: "colorSource" }],
+          hand: [{ card: "BT17-040", as: "opponentPulsemonDigimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+
+    expect(
+      s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPulsemonDigimon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-040"));
+
+    // Neither "your" Digimon nor "[Your Turn]" holds, so the Trash watcher must stay silent.
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashFenri").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === FENRILOOGAMON)).toBe(false);
+  });
+
+  it("[When Attacking] leaves the opponent's security alone when its security cost cannot be paid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: FENRILOOGAMON, dp: 12000, as: "fenri" }],
+          security: [],
+        },
+        1: {
+          security: [
+            { card: "AD1-001", as: "oppSecurityTop" },
+            { card: "AD1-001", as: "oppSecurityBottom" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fenri").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    // The cost is unpayable, so only the attack's own security check consumes a card: 1 of the
+    // opponent's 2 security cards survives, unlike the paid case above which consumes both.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(s.inst("oppSecurityBottom").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("does not offer the Trash DNA digivolve for a played level 6 Digimon lacking [Pulsemon] in its text (Q2900)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // Two Digimon are available as DNA materials, so only the source filter can block this.
+          battleArea: ["BT1-013", "BT1-014"],
+          hand: [{ card: "BT1-080", as: "nonPulsemonLv6" }],
+          trash: [{ card: FENRILOOGAMON, as: "trashFenri" }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonPulsemonLv6").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-080"));
+
+    // The Trash watcher never fires: Fenri stays in trash and never reaches the battle area.
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashFenri").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === FENRILOOGAMON)).toBe(false);
+  });
 });

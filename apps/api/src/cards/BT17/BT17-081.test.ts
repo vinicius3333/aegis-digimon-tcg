@@ -223,6 +223,48 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     assertNoLoudGap(s);
   });
 
+  it("still attacks at end of turn after the Omnimon attacked and was unsuspended mid-turn (Q2858)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-081", as: "tamer" },
+            { card: "BT5-086", as: "omnimon" },
+          ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+        },
+        1: {
+          security: [
+            { card: "BT1-090", as: "securityTop" },
+            { card: "BT1-090", as: "securityBottom" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omnimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.perm("omnimon").isSuspended);
+    expect(s.perm("omnimon").isSuspended).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("omnimon").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("omnimon").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("naturally plays itself from security without paying its cost", async () => {
     const s = setupEngine(
       {

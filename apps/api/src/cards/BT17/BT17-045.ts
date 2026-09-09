@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Rhythm"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Rhythm"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

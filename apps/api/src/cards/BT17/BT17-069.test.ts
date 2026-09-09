@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-069.js";
@@ -191,5 +192,123 @@ describe("BT17-069 Fenriloogamon", () => {
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-012")).toHaveLength(
       2,
     );
+  });
+
+  it("refuses the SoC digivolve route from a non-SoC level 5 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-020", as: "nonSoc" }],
+        hand: [{ card: "BT17-069", as: "fenriloogamon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonSoc").permanentId,
+        instanceId: s.inst("fenriloogamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("deletes a 10000 DP opposing Digimon on the Pulsemon-in-text branch with no SoC source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-069", as: "fenriloogamon" }],
+          hand: [{ card: "BT16-039", as: "pulsemonText" }],
+          deck: ["BT1-011", "BT1-011", "BT1-011", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT17-070", dp: 10000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemonText").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT17-070")).toBe(true);
+  });
+
+  it("deletes once per turn: refuses a second same-turn play, resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-069", as: "fenriloogamon" }],
+          hand: [
+            { card: "BT14-071", as: "turnOnePlayA" },
+            { card: "BT14-071", as: "turnOnePlayB" },
+            { card: "BT14-071", as: "turnThreePlay" },
+          ],
+          deck: ["BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT17-070", dp: 10000 },
+            { card: "BT17-070", dp: 10000 },
+            { card: "BT17-070", dp: 10000 },
+          ],
+          security: ["BT1-011", "BT1-011", "BT1-011"],
+          deck: ["BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 20;
+    await s.ready();
+
+    const opposingTargets = () =>
+      s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT17-070").length;
+    const play = (alias: string) => s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId });
+
+    // Turn 1 (seat 0).
+    const turn1 = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    // First SoC play: the once-per-turn effect deletes one target.
+    expect(play("turnOnePlayA")).toEqual({ ok: true });
+    await settle(() => opposingTargets() === 2);
+    expect(opposingTargets()).toBe(2);
+
+    // Second SoC play same turn: once-per-turn is spent, so no further deletion.
+    expect(play("turnOnePlayB")).toEqual({ ok: true });
+    await settle();
+    expect(opposingTargets()).toBe(2);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn1;
+
+    // `runOneTurn` stops at End; emulate the production `passTurn` between turns by flipping the
+    // seat and re-framing the gauge so each own turn crosses the owner-turn-start reset boundary.
+    const passTurn = (mem: number) => {
+      s.state.turnSeat = (1 - s.state.turnSeat) as Seat;
+      s.state.memory = mem;
+    };
+
+    // Turn 2 (seat 1): a real opponent turn between mine.
+    passTurn(20);
+    await advance(s.engine).runTurn(1);
+
+    // Turn 3 (seat 0): its owner-turn-start boundary resets the once-per-turn frequency.
+    passTurn(20);
+    const turn3 = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(play("turnThreePlay")).toEqual({ ok: true });
+    await settle(() => opposingTargets() === 1);
+    expect(opposingTargets()).toBe(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn3;
   });
 });

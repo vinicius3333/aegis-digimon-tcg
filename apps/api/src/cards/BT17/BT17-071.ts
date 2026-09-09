@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Ornismon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -30,11 +30,11 @@ export const compiled: CompiledCard = {
             conditions: [
               {
                 kind: "selfDigivolutionStackHasTrait",
-                filter: { nameOrTrait: [{ tokens: ["Darcmon"], match: "name" }] },
+                filter: { nameOrTrait: [{ tokens: ["Darcmon"], match: "nameExact" }] },
               },
               {
                 kind: "selfDigivolutionStackHasTrait",
-                filter: { nameOrTrait: [{ tokens: ["HippoGryphonmon"], match: "name" }] },
+                filter: { nameOrTrait: [{ tokens: ["HippoGryphonmon"], match: "nameExact" }] },
               },
             ],
             raw: "[Darcmon] and [HippoGryphonmon] are in this Digimon's digivolution cards",

@@ -144,4 +144,109 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
     expect(s.perm("openHost").isSuspended).toBe(false);
     expect(s.perm("suspendedDecoy").isSuspended).toBe(true);
   });
+
+  it("rejects a digivolve from a base that is not [Morphomon]", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongBase" }],
+        hand: [{ card: "BT17-074", as: "eosmon" }],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("wrongBase").permanentId,
+      instanceId: s.inst("eosmon").instanceId,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(s.perm("wrongBase").topCard.cardId).toBe("BT1-009");
+  });
+
+  it("gives the opponent no Tamer play when the controller declines the play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-044", as: "morphomon" }],
+          hand: [
+            { card: "BT17-074", as: "eosmon" },
+            { card: "BT17-092", as: "tamer" },
+          ],
+        },
+        1: { hand: [{ card: "BT17-083", as: "opponentTamer" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    const tamerId = s.inst("tamer").instanceId;
+    const opponentTamerId = s.inst("opponentTamer").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("morphomon").permanentId,
+        instanceId: s.inst("eosmon").instanceId,
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.perm("morphomon").topCard.cardId === "BT17-074");
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === tamerId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === opponentTamerId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("redirects only one opponent attack per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-075", under: ["BT17-074"], dp: 20_000, as: "openHost" }],
+          security: [{ card: "BT1-009" }, { card: "BT1-012" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT17-064", dp: 1000, as: "firstAttacker" },
+            { card: "BT17-064", dp: 1000, as: "secondAttacker" },
+          ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstAttacker").instanceId),
+    );
+
+    expect(s.events.filter((event) => event.kind === "attackDeclared").at(-1)).toMatchObject({
+      target: { kind: "permanent", permanentId: s.perm("openHost").permanentId },
+    });
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.events.filter((event) => event.kind === "attackDeclared").at(-1)).toMatchObject({
+      target: { kind: "player" },
+    });
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
 });

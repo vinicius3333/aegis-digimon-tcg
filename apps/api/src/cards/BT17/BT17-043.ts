@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
             controller: "mine",
             byEffect: true,
             or: [
-              { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "name" }] },
+              { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "nameExact" }] },
               { kind: ["Tamer"], colors: ["Green"] },
             ],
           },

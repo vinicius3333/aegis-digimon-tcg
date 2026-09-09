@@ -126,13 +126,13 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Takuya Kanbara"],
+      namesExact: ["Takuya Kanbara"],
       cost: 2,
       isAlternate: true,
       baseIsTamer: true,
     },
     {
-      names: ["BurningGreymon"],
+      namesExact: ["BurningGreymon"],
       cost: 1,
       isAlternate: true,
     },

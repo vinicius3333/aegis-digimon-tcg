@@ -17,6 +17,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Guilmon", "Growlmon", "Gallantmon"],
@@ -41,7 +42,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Guilmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -53,7 +54,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Gallantmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -61,6 +62,10 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           ignoreRequirements: true,
           optional: true,
+          // Q2853: "By placing this Tamer and 1 [Growlmon] and 1 [WarGrowlmon] ..., you may
+          // digivolve ..." — the placement is an activation cost, paid whether or not the
+          // digivolve is taken.
+          payCostBeforeOptional: true,
           cost: {
             kind: "place",
             target: {
@@ -68,7 +73,8 @@ export const compiled: CompiledCard = {
                 zone: "battleArea",
                 controller: "mine",
                 kind: ["Tamer"],
-                nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "nameExact" }],
+                isSelfRef: true,
               },
               count: 1,
             },
@@ -79,7 +85,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Guilmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -100,7 +106,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Growlmon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -121,7 +127,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["WarGrowlmon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

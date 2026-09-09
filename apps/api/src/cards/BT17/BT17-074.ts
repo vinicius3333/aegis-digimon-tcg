@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Eosmon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
                 levelComparison: {
@@ -89,7 +89,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Eosmon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

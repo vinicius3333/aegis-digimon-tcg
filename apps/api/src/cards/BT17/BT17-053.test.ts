@@ -15,6 +15,9 @@ describe("BT17-053 Keramon", () => {
         actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, ignoreRequirements: true, optional: true }],
       });
       expect(irNode(action).actions[0]).toMatchObject({
+        into: { nameOrTrait: [{ tokens: ["Infermon"], match: "nameExact" }] },
+      });
+      expect(irNode(action).actions[0]).toMatchObject({
         condition: {
           kind: "triggerSubjectMatchesFilter",
           filter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
@@ -62,6 +65,45 @@ describe("BT17-053 Keramon", () => {
     await settle(() => s.perm("keramon").topCard?.instanceId === infermonId);
 
     expect(s.state.memory).toBe(10);
+  });
+
+  it("free-digivolves into Infermon when the opponent digivolves into a level-5 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-053", as: "keramon" }],
+          hand: [{ card: "BT17-055", as: "infermon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT17-054", as: "base" }],
+          hand: [{ card: "BT17-056", as: "locomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    const infermonId = s.inst("infermon").instanceId;
+    const keramonId = s.perm("keramon").topCard!.instanceId;
+    await s.ready();
+
+    expect(s.perm("keramon").topCard?.instanceId).toBe(keramonId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        instanceId: s.inst("locomon").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("keramon").topCard?.instanceId === infermonId);
+
+    const keramon = s.perm("keramon");
+    expect(keramon.topCard?.cardId).toBe("BT17-055");
+    expect(keramon.stack.map((card) => card.instanceId)).toEqual([keramonId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === infermonId)).toBe(false);
+    // Only the opponent's own digivolve cost (3) moves memory; Keramon's route is free.
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not evolve when the opponent plays a level-4 Digimon", async () => {
@@ -112,5 +154,33 @@ describe("BT17-053 Keramon", () => {
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    const token = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId.startsWith("TOKEN-"));
+    expect(token?.topCard?.cardId).toMatch(/diaboromon/i);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("plays no token when the deleted host lacks the Unidentified trait", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-054", under: ["BT17-053"], suspended: true, as: "host" }] },
+        1: { battleArea: [{ card: "BT17-057", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

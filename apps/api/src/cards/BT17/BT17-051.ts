@@ -142,7 +142,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 5,
-      names: ["Argomon"],
+      namesExact: ["Argomon"],
       cost: 4,
       isAlternate: true,
     },

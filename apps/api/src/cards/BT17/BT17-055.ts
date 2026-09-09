@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-written override for BT17-055 (Diaboromon).
+// Hand-written override for BT17-055 (Infermon).
 // Fix: DeDigivolve targets ANY opponent Digimon (no cost filter).
 // Restrict targets opp Digimon with playCostLte:8, restriction 'attackPlayers',
 // duration: untilOpponentTurnEnd.

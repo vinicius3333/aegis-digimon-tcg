@@ -54,6 +54,13 @@ describe("BT17-079 Takuya Kanbara", () => {
     ).toEqual({ ok: true });
     await settle(() => security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-079"));
     expect(security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-079")).toBe(true);
+    // Printed play cost is 3; [Security] plays it for free, so no payCost memory event fires.
+    expect(
+      security.events.some(
+        (event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "payCost",
+      ),
+    ).toBe(false);
+    expect(security.state.players[1]!.security.some((card) => card.cardId === "BT17-079")).toBe(false);
 
     const main = setupEngine({
       0: { battleArea: [{ card: "BT17-079", as: "mainTamer" }] },
@@ -93,5 +100,92 @@ describe("BT17-079 Takuya Kanbara", () => {
 
     expect(inactive.perm("lowHost").currentDP).toBe(5000);
     expect(observe(inactive.engine).hasPierce(inactive.perm("lowHost"))).toBe(false);
+  });
+
+  it("gains no memory when the opponent has no Digimon in the battle area", async () => {
+    const tamerOnly = setupEngine({
+      0: { battleArea: [{ card: "BT17-079", as: "mainTamer" }] },
+      1: { battleArea: [{ card: "BT17-080", as: "opponentTamer" }] },
+    });
+    tamerOnly.state.memory = 0;
+    tamerOnly.state.turnSeat = 0;
+    await tamerOnly.ready();
+    await advance(tamerOnly.engine).runTurn(0);
+    expect(
+      tamerOnly.events.some(
+        (event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "gainMemory",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not count an opponent Digimon that sits in the breeding area", async () => {
+    const breedingOnly = setupEngine({
+      0: { battleArea: [{ card: "BT17-079", as: "mainTamer" }] },
+      1: { breeding: { card: "BT1-010", as: "raised" } },
+    });
+    breedingOnly.state.memory = 0;
+    breedingOnly.state.turnSeat = 0;
+    await breedingOnly.ready();
+    await advance(breedingOnly.engine).runTurn(0);
+    expect(
+      breedingOnly.events.some(
+        (event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "gainMemory",
+      ),
+    ).toBe(false);
+  });
+
+  it("boosts only the host it sits under, not a peer stack carrying an inert digivolution card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT16-025", under: ["BT17-079"], as: "host" },
+          { card: "BT16-025", under: ["BT1-009"], as: "nearMiss" },
+          { card: "BT16-025", as: "bare" },
+        ],
+      },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(10_000);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+    expect(s.perm("nearMiss").currentDP).toBe(8000);
+    expect(observe(s.engine).hasPierce(s.perm("nearMiss"))).toBe(false);
+    expect(s.perm("bare").currentDP).toBe(8000);
+    expect(observe(s.engine).hasPierce(s.perm("bare"))).toBe(false);
+  });
+
+  it("checks security with the inherited Piercing after winning a battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT16-025", under: ["BT17-079"], as: "host" }] },
+      1: { battleArea: [{ card: "BT1-009", suspended: true, as: "blocker" }], security: ["BT1-009", "BT1-011"] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(10_000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("withholds Piercing from a boosted host that still sits below 10000 DP", async () => {
+    const belowThreshold = setupEngine({
+      0: { battleArea: [{ card: "BT17-063", under: ["BT17-079"], as: "host" }] },
+    });
+    belowThreshold.state.turnSeat = 0;
+    await belowThreshold.ready();
+
+    expect(belowThreshold.perm("host").currentDP).toBe(7000);
+    expect(observe(belowThreshold.engine).hasPierce(belowThreshold.perm("host"))).toBe(false);
   });
 });

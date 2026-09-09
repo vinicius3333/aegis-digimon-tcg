@@ -140,8 +140,8 @@ export const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [
                 {
-                  tokens: ["Eiji Nagasumi", "Cracker Fang"],
-                  match: "name",
+                  tokens: ["Eiji Nagasumi"],
+                  match: "nameExact",
                 },
               ],
             },

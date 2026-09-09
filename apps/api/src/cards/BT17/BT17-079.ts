@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "opponent",
               kind: ["Digimon"],
+              zone: "battleArea",
             },
             raw: "your opponent has a Digimon",
           },

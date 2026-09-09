@@ -73,6 +73,105 @@ describe("BT17-094 Ancient Guardian Deity", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 
+  it("refuses the Red/Blue Option while only a non-Hybrid Digimon is on the field", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "plainDigimon" }],
+        hand: [
+          { card: "BT17-094", as: "option" },
+          { card: "BT1-012", as: "spare" },
+        ],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("waives the color requirement from a Hybrid Digimon alone, with no Tamer on the field", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT17-011", as: "hybrid" }],
+        hand: [
+          { card: "BT17-094", as: "option" },
+          { card: "BT1-012", as: "spare" },
+        ],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("Q2879: plays the Ten Warriors Digimon even with no returnable card in the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-011", as: "hybrid" }],
+          hand: [
+            { card: "BT17-094", as: "option" },
+            { card: "BT17-017", as: "ancient" },
+            { card: "BT1-012", as: "spare" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("spare").instanceId);
+    // 2 for the Option, then AncientGreymon's 12 reduced by 4.
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q2880: plays only the Tamer with an inherited effect, never the Tamer with a [Security] lower text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-011", as: "hybrid" }],
+          hand: [
+            { card: "BT17-094", as: "option" },
+            { card: "BT17-093", as: "securityOnlyTamer" },
+            { card: "BT17-083", as: "inheritedTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOnlyTamer").instanceId);
+    // 2 for the Option; Koji Minamoto's 4 reduced by 4 costs nothing.
+    expect(s.state.memory).toBe(3);
+  });
+
   it("naturally returns a Hybrid and plays a Ten Warriors Digimon for four less", async () => {
     const s = setupEngine(
       {
@@ -105,7 +204,10 @@ describe("BT17-094 Ancient Guardian Deity", () => {
       {
         0: {
           security: [{ card: "BT17-094", as: "securityOption" }],
-          hand: [{ card: "BT17-083", as: "inheritedTamer" }],
+          hand: [
+            { card: "BT17-083", as: "inheritedTamer" },
+            { card: "BT17-093", as: "securityOnlyTamer" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
@@ -123,6 +225,8 @@ describe("BT17-094 Ancient Guardian Deity", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOnlyTamer").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
   });
 });

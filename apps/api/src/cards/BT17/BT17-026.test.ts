@@ -34,12 +34,13 @@ describe("BT17-026", () => {
         {
           kind: "Restrict",
           restriction: "suspend",
+          blocksCombatSuspend: true,
           duration: "untilOpponentTurnEnd",
           optional: true,
           abortOnDecline: true,
           cost: {
             kind: "return",
-            target: { filter: { zone: "digivolutionCards", hostFilter: { sourceRef: "triggerSubject" } } },
+            target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } } },
           },
         },
       ],
@@ -109,5 +110,95 @@ describe("BT17-026", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === kendoId)).toBe(false);
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).activatableEffects(s.perm("koji"))).toEqual([]);
+  });
+
+  it("draws the digivolve bonus off the Tamer, returns a Hybrid card, and locks an opponent from suspending", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT17-026", as: "beowolf" }],
+          trash: [
+            { card: "BT17-022", as: "lobomon" },
+            { card: "BT17-023", as: "kendo" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonus" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const bonusId = s.inst("bonus").instanceId;
+    const materialIds = [s.inst("lobomon").instanceId, s.inst("kendo").instanceId];
+    const effect = JSON.parse(s.inst("beowolf").activatableEffectsJson) as Array<{ effectKey: string }>;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("beowolf").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("victim"), "suspend"));
+
+    expect(s.perm("koji").topCard?.cardId).toBe("BT17-026");
+    // Q6569: a digivolution bonus draw is performed even when digivolving from a Tamer.
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bonusId)).toBe(true);
+    // The When Digivolving cost returns exactly one Hybrid digivolution card to the hand.
+    const returnedMaterials = s.state.players[0]!.hand.filter((card) => materialIds.includes(card.instanceId));
+    expect(returnedMaterials).toHaveLength(1);
+    expect(s.perm("koji").stack.some((card) => materialIds.includes(card.instanceId))).toBe(true);
+
+    // "Can't suspend": blocked from effect suspends and from suspending to attack.
+    expect(observe(s.engine).isRestricted(s.perm("victim"), "beSuspended")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("victim"), "suspend")).toBe(true);
+    await advance(s.engine).verb.suspend([s.perm("victim").permanentId]);
+    expect(s.perm("victim").isSuspended).toBe(false);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("victim").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("trashes the placed Koji Tamer as a digivolution card when Beowolfmon leaves the field", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT17-026", as: "beowolf" }],
+          trash: [
+            { card: "BT17-022", as: "lobomon" },
+            { card: "BT17-023", as: "kendo" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonus" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const kojiId = s.inst("koji").instanceId;
+    const effect = JSON.parse(s.inst("beowolf").activatableEffectsJson) as Array<{ effectKey: string }>;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("beowolf").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("koji").topCard?.cardId === "BT17-026");
+
+    // Q6571: a Tamer placed under a Digimon is a digivolution card, trashed when the Digimon leaves.
+    await advance(s.engine).verb.deletePermanent([s.perm("koji").permanentId]);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === kojiId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === kojiId)).toBe(true);
   });
 });

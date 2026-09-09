@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-090.js";
 import "./BT17-065.js";
@@ -36,8 +36,11 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
-            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "CostGatedBlock",
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+              actions: [{ kind: "GainMemory", amount: 1 }],
+            },
           ],
         },
       ],
@@ -184,8 +187,100 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
 
   it("records complete compiled coverage for the Tamer-stack watcher", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter.js");
-    const compiled = runtimeCompiledCard(TOMONORI)!;
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual).toEqual([]);
+    const runtime = runtimeCompiledCard(TOMONORI)!;
+    expect(runtime.coverage).toBe("full");
+    expect(runtime.residual).toEqual([]);
+  });
+  it("Q2873: refuses a trash [Dex] card whose digivolution requirement the host does not meet", async () => {
+    // Pulsemon is a yellow/green Lv.3 with a Tamer underneath, so it is a legal *target* of the
+    // effect, but DexDorugamon requires a purple or black Lv.3 source — the digivolution
+    // requirement is NOT waived (only the cost is), so nothing may digivolve.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TOMONORI, as: "tomonori", suspended: true },
+            { card: "BT17-030", as: "pulsemon", under: ["BT17-088"] },
+          ],
+          trash: [{ card: "BT17-065", as: "dexDorugamon" }],
+          hand: [{ card: "BT1-001", as: "spare" }],
+          deck: [{ card: "BT1-002", as: "topOfDeck" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("pulsemon").topCard?.cardId).toBe("BT17-030");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("dexDorugamon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
+  it("refuses a Digimon with no Tamer card in its digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TOMONORI, as: "tomonori", suspended: true },
+            { card: "BT17-062", as: "dorumon" },
+          ],
+          trash: [{ card: "BT17-065", as: "dexDorugamon" }],
+          hand: [{ card: "BT1-001", as: "spare" }],
+          deck: [{ card: "BT1-002", as: "topOfDeck" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("dorumon").topCard?.cardId).toBe("BT17-062");
+    expect(s.perm("dorumon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("dexDorugamon").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("gains no memory when the suspend cost cannot be paid because this Tamer is already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TOMONORI, as: "tomonori", suspended: true },
+            { card: "BT17-086", as: "leon" },
+            { card: "BT17-030", as: "pulsemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const leonId = s.inst("leon").instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    const [effect] = observe(s.engine).activatableEffects(s.perm("leon")) as { effectKey: string }[];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("leon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pulsemon").stack.some((card) => card.instanceId === leonId));
+    await drainMicrotasks();
+
+    expect(s.perm("pulsemon").stack.some((card) => card.instanceId === leonId)).toBe(true);
+    expect(s.perm("tomonori").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
   });
 });

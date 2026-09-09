@@ -244,4 +244,72 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
     assertNoLoudGap(s);
   });
+
+  // Q2864: the played level-4 card leaves the digivolution cards before its inherited
+  // <Retaliation> can activate, so it cannot delete the battled opponent's Digimon.
+  it("does not fire the played card's inherited Retaliation against the battled opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer" },
+            { card: "BT1-083", as: "attacker", dp: 1000, under: [{ card: "BT2-074", as: "devimon" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT5-086", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const devimonId = s.inst("devimon").instanceId;
+    const opponentId = s.inst("opponent").instanceId;
+
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === devimonId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === devimonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-083")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === opponentId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  // Q2866: with two copies of this Tamer and two unsuspended [Free] Digimon, both
+  // [End of Your Turn] effects trigger, but a new attack cannot be declared during an
+  // attack, so exactly one Free Digimon attacks.
+  it("performs only one attack when two copies trigger with two Free Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer1" },
+            { card: TAMER, as: "tamer2" },
+            { card: FREE_DIGIMON, as: "free1" },
+            { card: "BT10-081", as: "free2" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT_DIGIMON, as: "opp1", suspended: true },
+            { card: OPPONENT_DIGIMON, as: "opp2", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    await settle(() => [s.perm("free1"), s.perm("free2")].some((permanent) => permanent.isSuspended));
+
+    const suspendedFree = [s.perm("free1"), s.perm("free2")].filter((permanent) => permanent.isSuspended).length;
+    expect(suspendedFree).toBe(1);
+    expect(s.state.players[1]!.battleArea.length).toBe(1);
+    assertNoLoudGap(s);
+  });
 });

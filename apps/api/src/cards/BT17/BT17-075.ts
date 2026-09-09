@@ -7,18 +7,21 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   without paying the cost. If they don't, you may play 1 white Tamer card with a
 //   play cost of 4 or less from your hand without paying the cost. Then,
 //   <De-Digivolve 1> 1 of your opponent's Digimon for every 2 Tamers.
-// [Opponent's Turn] (inherited) When your opponent attacks, you may switch the attack
-//   target to 1 of your unsuspended [Eosmon]. [Once Per Turn]
+// [Opponent's Turn] (inherited) When an opponent's Digimon attacks, you may switch the
+//   attack target to 1 of your [Eosmon]. [Once Per Turn]
 //
 // KB Q2843: the De-Digivolve happens regardless of whether a Tamer was played.
+// KB Q2842: the redirect may switch onto an UNSUSPENDED [Eosmon]. The printed text sets
+//   no suspension restriction and §11-2-7 does not impose one on a switched target, so
+//   the redirect filter matches any of your [Eosmon], suspended or unsuspended.
 //
-// "For every 2 Tamers" means count of (all Tamers in play) / 2 rounded down, applied
-// as the count of De-Digivolves (each targeting the same 1 Digimon, OR 1 per each 2
-// Tamers applied to 1 target). The correct reading is: you perform De-Digivolve 1 on
-// 1 of your opponent's Digimon for each group of 2 Tamers you have.
-// The scaling field: per:2, unit:"cards" (counting Tamers), result = count of times
-// De-Digivolve fires. The "amount" per application is 1. The interpreter repeats the
-// target action floor(tamerCount / 2) times from this typed scaling field.
+// Digivolve route: the printed line is "[Digivolve] Lv.4 [Eosmon]: Cost 3" with no
+//   "in name", so the name gate is exact (namesExact), per the coordinator route
+//   decision. The catalog carries no near-name "...Eosmon" card, so exact vs substring
+//   is not behaviourally observable; the illegal-source negative covers a non-Eosmon base.
+//
+// "For every 2 Tamers": count all Tamers in play, floor(tamerCount / 2) is the number of
+//   times <De-Digivolve 1> fires, each application picking 1 of the opponent's Digimon.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -147,7 +150,6 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  unsuspended: true,
                   nameOrTrait: [
                     {
                       tokens: ["Eosmon"],
@@ -171,7 +173,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      names: ["Eosmon"],
+      namesExact: ["Eosmon"],
       cost: 3,
       isAlternate: true,
     },

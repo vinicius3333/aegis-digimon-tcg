@@ -144,13 +144,8 @@ export const compiled: CompiledCard = {
   ],
   digiXrosRequirement: [
     {
-      materials: [
-        {
-          names: ["Machinedramon"],
-          traits: ["Cyborg"],
-        },
-      ],
-      count: 1,
+      materials: [{ names: ["Machinedramon"] }, { level: 5, traits: ["Cyborg"] }],
+      count: 2,
     },
   ],
 };
