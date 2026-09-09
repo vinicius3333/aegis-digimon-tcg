@@ -1,0 +1,82 @@
+# EX6 re-audit evidence ledger
+
+Rubric columns are scored 0–2. Workers can award at most 8/10; delivery gates remain 0 until the coordinator proves all closing gates, commits, and pushes the branch.
+
+Current aggregate: 592/740; 0/74 cards at 10/10.
+
+| Card    | Status | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report                           |
+| ------- | ------ | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | -------------------------------- |
+| EX6-001 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-001.md) |
+| EX6-002 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-002.md) |
+| EX6-003 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-003.md) |
+| EX6-004 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-004.md) |
+| EX6-005 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-005.md) |
+| EX6-006 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-006.md) |
+| EX6-007 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-007.md) |
+| EX6-008 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-008.md) |
+| EX6-009 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-009.md) |
+| EX6-010 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-010.md) |
+| EX6-011 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-011.md) |
+| EX6-012 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-012.md) |
+| EX6-013 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-013.md) |
+| EX6-014 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-014.md) |
+| EX6-015 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-015.md) |
+| EX6-016 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-016.md) |
+| EX6-017 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-017.md) |
+| EX6-018 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-018.md) |
+| EX6-019 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-019.md) |
+| EX6-020 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-020.md) |
+| EX6-021 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-021.md) |
+| EX6-022 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-022.md) |
+| EX6-023 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-023.md) |
+| EX6-024 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-024.md) |
+| EX6-025 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-025.md) |
+| EX6-026 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-026.md) |
+| EX6-027 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-027.md) |
+| EX6-028 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-028.md) |
+| EX6-029 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-029.md) |
+| EX6-030 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-030.md) |
+| EX6-031 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-031.md) |
+| EX6-032 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-032.md) |
+| EX6-033 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-033.md) |
+| EX6-034 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-034.md) |
+| EX6-035 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-035.md) |
+| EX6-036 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-036.md) |
+| EX6-037 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-037.md) |
+| EX6-038 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-038.md) |
+| EX6-039 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-039.md) |
+| EX6-040 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-040.md) |
+| EX6-041 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-041.md) |
+| EX6-042 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-042.md) |
+| EX6-043 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-043.md) |
+| EX6-044 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-044.md) |
+| EX6-045 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-045.md) |
+| EX6-046 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-046.md) |
+| EX6-047 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-047.md) |
+| EX6-048 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-048.md) |
+| EX6-049 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-049.md) |
+| EX6-050 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-050.md) |
+| EX6-051 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-051.md) |
+| EX6-052 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-052.md) |
+| EX6-053 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-053.md) |
+| EX6-054 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-054.md) |
+| EX6-055 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-055.md) |
+| EX6-056 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-056.md) |
+| EX6-057 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-057.md) |
+| EX6-058 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-058.md) |
+| EX6-059 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-059.md) |
+| EX6-060 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-060.md) |
+| EX6-061 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-061.md) |
+| EX6-062 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-062.md) |
+| EX6-063 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-063.md) |
+| EX6-064 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-064.md) |
+| EX6-065 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-065.md) |
+| EX6-066 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-066.md) |
+| EX6-067 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-067.md) |
+| EX6-068 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-068.md) |
+| EX6-069 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-069.md) |
+| EX6-070 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-070.md) |
+| EX6-071 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-071.md) |
+| EX6-072 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-072.md) |
+| EX6-073 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-073.md) |
+| EX6-074 | Verified | 2 | 2 | 2 | 2 | 0 | 8/10 | [report](EX6-reaudit/EX6-074.md) |
