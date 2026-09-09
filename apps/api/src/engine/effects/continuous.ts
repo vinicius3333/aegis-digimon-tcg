@@ -636,7 +636,8 @@ export class ContinuousEffectLedger {
     // Digimon-only player KEYWORD grants) and would silently drop every Tamer here.
     const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
     return this.playerRestrictions.some(
-      (entry) => entry.seat === controllerSeat && entry.restriction === restriction && entry.matches(permanentId),
+      (entry) =>
+        entry.seat === controllerSeat && equivalentRestrictions.has(entry.restriction) && entry.matches(permanentId),
     );
   }
 

@@ -42,7 +42,7 @@ import { CombatController, type CombatTrigger } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
-import { resolveKeywords } from "./combat/keywords.js";
+import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps, type SecurityCheckReason } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
@@ -797,7 +797,22 @@ export class GameEngine {
         }
         return undefined;
       },
-      undefined,
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])].find(
+            (candidate) => candidate.permanentId === permanentId,
+          );
+          if (permanent === undefined) continue;
+          const keywords = new Set(printedKeywordsOf(lookupDefinition(permanent.topCard.cardId)?.effectText));
+          for (const card of permanent.stack) {
+            for (const keyword of printedKeywordsOf(lookupDefinition(card.cardId)?.inheritedEffectText)) {
+              keywords.add(keyword);
+            }
+          }
+          return [...keywords];
+        }
+        return [];
+      },
       (permanentId) => {
         for (const player of this.state.players) {
           const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
@@ -1335,7 +1350,7 @@ export class GameEngine {
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; insteadOnly?: boolean },
+    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean },
   ): Promise<Set<string>> {
     // Immediate reactions must observe the rebuilt continuous registry, never its
     // clear-before-refill interval during an overlapping effect-resolution flow.
@@ -1393,7 +1408,12 @@ export class GameEngine {
       permanentIds,
       cause,
       resolvingSeat,
-      { isBounce: opts?.isBounce, insteadOnly: opts?.insteadOnly, reentryGuard: this.preventReentryGuard },
+      {
+        isBounce: opts?.isBounce,
+        playerAction: opts?.playerAction,
+        insteadOnly: opts?.insteadOnly,
+        reentryGuard: this.preventReentryGuard,
+      },
     );
   }
 
@@ -2372,7 +2392,12 @@ export class GameEngine {
         this.deferredTimingWindows.push({
           timing,
           trigger: { ...trigger },
-          transientCandidates: [...transientCandidates],
+          transientCandidates: [
+            ...transientCandidates,
+            ...this.instancesById(trigger.deletedInstanceIds ?? []).filter(
+              (instance) => definitionOf(instance).isToken === true,
+            ),
+          ],
         });
         return;
       }
@@ -7021,6 +7046,7 @@ export class GameEngine {
       payMemory: mem.payMemory,
       adjustedPlayCost: (_state, seat, definition, base) =>
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
+      canReducePlayCost: (_state, seat) => !this.continuous.blocksCostReduction(seat, "play"),
       finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
         this.fireBeforePayCost(instance, baseCost, false, "hand"),
       digiXrosNamesOf: (instanceId) => {
@@ -7049,6 +7075,13 @@ export class GameEngine {
       placePendingDigivolution: this.playCardDeps().placePendingDigivolution,
       relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
         this.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
+      relocatePermanentForDigiXros: async (destPermanentId, sourcePermanentId, opts) => {
+        const prevented = await this.consultLeavePrevention([sourcePermanentId], "byEffect", undefined, {
+          playerAction: true,
+        });
+        if (prevented.has(sourcePermanentId)) return false;
+        return this.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts);
+      },
       suspendPermanent: async (permanentId) => {
         await this.primitives.suspend([permanentId]);
       },

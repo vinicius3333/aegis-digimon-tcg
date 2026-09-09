@@ -102,6 +102,8 @@ export interface DigiXrosDeps {
   payMemory(state: GameState, seat: Seat, cost: number): void;
   /** Apply continuous play-cost modifiers to the printed cost (before the DigiXros reduction). */
   adjustedPlayCost?(state: GameState, seat: Seat, definition: CardDefinition, base: number): number;
+  /** Whether the seat may apply DigiXros's own play-cost reduction. */
+  canReducePlayCost?(state: GameState, seat: Seat): boolean;
   /** Resolve pay-time effects on the card after the DigiXros material reduction is known. */
   finalizePlayCost?(
     state: GameState,
@@ -139,6 +141,12 @@ export interface DigiXrosDeps {
     sourcePermanentId: string,
     opts?: { belowTop?: boolean; shedOwnCards?: boolean },
   ): boolean;
+  /** Relocate a field material after consulting leave-play replacements for the player action. */
+  relocatePermanentForDigiXros?(
+    destPermanentId: string,
+    sourcePermanentId: string,
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+  ): Promise<boolean>;
   /**
    * Zones an ACTIVE effect grant has opened as DigiXros material sources for this seat, from the
    * engine's `expandDigiXrosZones` ledger (BT17-057's Static "while you have a black Tamer",
@@ -170,6 +178,7 @@ export function validateDigiXros(
     DigiXrosDeps,
     | "maxAffordable"
     | "adjustedPlayCost"
+    | "canReducePlayCost"
     | "digiXrosNamesOf"
     | "canSubstituteMaterial"
     | "digiXrosExpandedZones"
@@ -318,7 +327,12 @@ export function validateDigiXros(
   // When count is "∞", any number of matching materials is accepted; the per-material cost
   // reduction is supplied by `costReduction` (default 1 when absent). When count is a number,
   // `count` itself is the per-material reduction (legacy field semantics).
-  const perMaterialReduction = requirement.count === "∞" ? (requirement.costReduction ?? 1) : requirement.count;
+  const perMaterialReduction =
+    deps.canReducePlayCost?.(state, seat) === false
+      ? 0
+      : requirement.count === "∞"
+        ? (requirement.costReduction ?? 1)
+        : requirement.count;
   const cost = Math.max(0, base - materials.length * perMaterialReduction);
   if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
 
@@ -379,7 +393,13 @@ export async function applyDigiXros(
   const placedIds: string[] = [];
   for (const material of materials) {
     if (material.source === "field" && material.fieldPermanentId !== undefined) {
-      deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, { shedOwnCards: true });
+      if (deps.relocatePermanentForDigiXros !== undefined) {
+        await deps.relocatePermanentForDigiXros(permanent.permanentId, material.fieldPermanentId, {
+          shedOwnCards: true,
+        });
+      } else {
+        deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, { shedOwnCards: true });
+      }
     } else {
       await deps.placeUnder(permanent.permanentId, [material.instanceId]);
     }
