@@ -29,16 +29,28 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      optional: true,
       actions: [
         {
-          kind: "DigiXrosMaterialZoneExpansion",
-          zones: ["underTamers", "trash"],
-          duration: "permanent",
-          cost: {
-            kind: "suspend",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "instead",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Blue Flare", "Twilight"], match: "trait" }],
+            hasDigiXrosRequirement: true,
           },
+          actions: [
+            {
+              kind: "DigiXrosMaterialZoneExpansion",
+              zones: ["underTamers", "trash"],
+              duration: "forTheTurn",
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
+            },
+          ],
           raw: "by suspending this Tamer, 1 card under your Tamers and 1 card in your trash can also be placed for DigiXros",
         },
       ],

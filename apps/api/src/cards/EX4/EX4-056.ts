@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           optional: true,
           condition: {
             kind: "youHave",

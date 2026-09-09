@@ -71,6 +71,12 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["MetalGreymon"], colors: ["Blue"] }, { names: ["DarkKnightmon"] }],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("EX4-021", compiled);

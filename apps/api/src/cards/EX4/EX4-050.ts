@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "mine" },
+          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
           actions: [
             {
               kind: "DeDigivolve",

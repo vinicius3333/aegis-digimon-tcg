@@ -47,11 +47,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
-          bySourceKeyword: "Alliance",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
           },
+          bySourceController: "mine",
           actions: [
             {
               kind: "Digivolve",

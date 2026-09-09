@@ -11,9 +11,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Fixes:
 // 1. Digivolve action must restrict source zone to 'hand' (from:['hand']).
-// 2. The cost reduction by 2 must only apply to the Digimon digivolving through THIS effect
-//    (not all mine Digimon). The Replacement's sourceFilter must match only the Digimon
-//    chosen by this Digivolve action.
+// 2. The cost reduction by 2 is folded into this Digivolve action only, so it cannot
+//    discount unrelated digivolutions.
 // 3. Inherited effect was an empty Static — replace with WhenOpponentAttacks trigger.
 //    The text is: "When an opponent's Digimon attacks, you may suspend this Digimon to
 //    force the opponent's attack to target this Digimon instead" — this is the Blocker
@@ -52,7 +51,7 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
-          reduceCost: 2,
+          costDelta: -2,
           optional: true,
         },
       ],

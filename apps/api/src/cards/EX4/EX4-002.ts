@@ -13,6 +13,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
           actions: [
             {
               kind: "Draw",
