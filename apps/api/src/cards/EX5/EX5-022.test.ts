@@ -1,4 +1,4 @@
-import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -354,38 +354,107 @@ describe("EX5-022 Mihiramon", () => {
   it("resets the inherited Once Per Turn record on the next own turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT6-029", as: "host", under: ["EX5-022"] }], deck: ["BT1-009", "BT1-010"] },
-        1: { deck: ["BT1-011", "BT1-012"] },
+        0: {
+          battleArea: [
+            { card: "BT6-029", as: "host", under: ["EX5-022"] },
+            { card: "BT1-088", as: "greenSource" },
+          ],
+          hand: [{ card: "BT1-112", as: "unsuspendOption" }],
+          deck: Array.from({ length: 12 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetA", dp: 1000, suspended: true, under: ["BT1-012"] },
+            { card: "BT1-009", as: "targetB", dp: 1000, suspended: true, under: ["BT1-012"] },
+          ],
+          security: ["BT1-012", "BT1-012", "BT1-012"],
+          deck: Array.from({ length: 12 }, () => "BT1-012"),
+        },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    const turn = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const targetAId = s.perm("targetA").permanentId;
+    const targetBId = s.perm("targetB").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspendOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unsuspendOption").instanceId),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: targetAId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetAId));
     expect(s.state.memory).toBe(1);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.perm("host").isSuspended === false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: targetBId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetBId));
     expect(s.state.memory).toBe(1);
 
-    const turn = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     const beforeReset = s.state.memory;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
     expect(s.state.memory).toBe(beforeReset + 1);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await turn;
   });
 
   it("keeps the inherited clause inactive without either listed trait", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX5-022"] }] } });
-    s.state.memory = 0;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", dp: 10_000, under: ["EX5-022"] }],
+          deck: Array.from({ length: 12 }, () => "BT1-012"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
+          deck: Array.from({ length: 12 }, () => "BT1-012"),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX5-022"]);
+    const turn = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const targetId = s.perm("target").permanentId;
+    const beforeAttack = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.memory).toBe(beforeAttack);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await turn;
   });
 });

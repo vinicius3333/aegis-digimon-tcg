@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-056.js";
+import "../index.js";
 
 describe("EX5-056 Syakomon", () => {
   it("draws based on opposing Digimon and trashes one card from hand on play", () => {
@@ -53,7 +54,7 @@ describe("EX5-056 Syakomon", () => {
         0: {
           hand: [
             { card: "EX5-056", as: "source" },
-            { card: "BT1-001", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
           deck: ["BT1-009", "BT1-010"],
         },

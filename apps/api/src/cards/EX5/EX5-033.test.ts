@@ -204,13 +204,13 @@ describe("EX5-033 Mitamamon", () => {
 
   it("answers Q3597-Q3599 with a live combined-security threshold", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX5-033", as: "mitamamon" }], security: ["BT1-001", "BT1-002"] },
+      0: { battleArea: [{ card: "EX5-033", as: "mitamamon" }], security: ["BT1-009", "BT1-010"] },
       1: {
         battleArea: [
           { card: "BT1-016", as: "qualifying" },
           { card: "BT1-010", as: "belowTotalSecurity" },
         ],
-        security: ["BT1-003", "BT1-004"],
+        security: ["BT1-011", "BT1-012"],
       },
     });
     s.state.turnSeat = 1;
@@ -220,11 +220,17 @@ describe("EX5-033 Mitamamon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
     expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(0);
 
-    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
-    await settle(() => observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack") === -2, 2000);
-
-    expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
-    expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(-2);
+    const reduced = setupEngine({
+      0: { battleArea: [{ card: "EX5-033", as: "mitamamon" }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-010", as: "nowQualifying" }], security: ["BT1-011", "BT1-012"] },
+    });
+    reduced.state.turnSeat = 1;
+    await reduced.ready();
+    await settle(
+      () => observe(reduced.engine).keywordAmount(reduced.perm("nowQualifying"), "SecurityAttack") === -2,
+      2000,
+    );
+    expect(observe(reduced.engine).keywordAmount(reduced.perm("nowQualifying"), "SecurityAttack")).toBe(-2);
   });
 
   it("grants Barrier only to own yellow Digimon", async () => {

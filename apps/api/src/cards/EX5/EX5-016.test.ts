@@ -1,5 +1,6 @@
-import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -99,9 +100,8 @@ describe("EX5-016 Lunamon", () => {
     preferred.push(s.inst("returnTarget").instanceId);
     s.state.memory = 0;
     await s.ready();
-    s.state.phase = Phase.Main;
-    s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lunamon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnTarget").instanceId));
 
     expect(s.state.memory).toBe(2);
@@ -109,6 +109,8 @@ describe("EX5-016 Lunamon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX5-016"]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("allows declining the optional Start of Main return without changing memory or zones", async () => {
@@ -126,9 +128,8 @@ describe("EX5-016 Lunamon", () => {
     );
     s.state.memory = 0;
     await s.ready();
-    s.state.phase = Phase.Main;
-    s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lunamon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(0);
@@ -137,6 +138,8 @@ describe("EX5-016 Lunamon", () => {
       "BT1-009",
       "EX5-016",
     ]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await loop;
   });
 
   it("allows Q3557: Lunamon can return itself to the hand for two memory", async () => {
@@ -148,15 +151,16 @@ describe("EX5-016 Lunamon", () => {
     preferred.push(s.perm("lunamon").topCard!.instanceId);
     s.state.memory = 0;
     await s.ready();
-    s.state.phase = Phase.Main;
-    s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lunamon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lunamon").instanceId));
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX5-016");
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("proves Q3555 by rotating the physical top card to the bottom of its own stack", async () => {
@@ -293,14 +297,16 @@ describe("EX5-016 Lunamon", () => {
           deck: ["BT1-009", "BT1-010"],
           security: ["BT1-011"],
         },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
     );
     s.state.memory = 0;
     await s.ready();
-    s.state.phase = Phase.Main;
-    s.state.turnSeat = 0;
-    const resolution = advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lunamon"));
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.state.pendingDecision;
     expect(decision?.kind).toBe("chooseTargets");
@@ -312,13 +318,14 @@ describe("EX5-016 Lunamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.eggDeck.some((card) => card.cardId === "EX2-007"));
-    await resolution;
 
-    expect(s.state.memory).toBe(2);
+    expect(new MemoryGauge(s.state).memoryFor(0)).toBe(2);
     expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "EX2-007"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX2-007");
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("proves Q3559: returning a token satisfies the cost but removes it without a hand event", async () => {
@@ -333,14 +340,14 @@ describe("EX5-016 Lunamon", () => {
           deck: ["BT1-009", "BT1-010"],
           security: ["BT1-011"],
         },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
     );
     s.state.memory = 0;
     await s.ready();
-    s.state.phase = Phase.Main;
-    s.state.turnSeat = 0;
-    const resolution = advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lunamon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.state.pendingDecision;
     expect(decision?.kind).toBe("chooseTargets");
@@ -352,13 +359,14 @@ describe("EX5-016 Lunamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.topCard?.cardId !== TOKEN));
-    await resolution;
 
-    expect(s.state.memory).toBe(2);
+    expect(new MemoryGauge(s.state).memoryFor(0)).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain(TOKEN);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain(TOKEN);
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it.each(["EX5-001", "EX5-002"] as const)("legally evolves from the %s red/blue level-2 route", async (egg) => {

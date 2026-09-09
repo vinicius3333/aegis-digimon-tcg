@@ -96,7 +96,7 @@ describe("EX5-027 Liollmon", () => {
         0: {
           hand: [{ card: "EX5-027", as: "liollmon" }],
           security: ["BT1-009", "BT1-010"],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -110,8 +110,8 @@ describe("EX5-027 Liollmon", () => {
 
     expect(s.state.players[0]!.security.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"].sort());
     expect(s.state.players[0]!.security.every((card) => card.faceUp !== true)).toBe(true);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT1-001");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT1-010");
     expect(s.events.some((event) => event.kind === "cardRevealed" && event.sourceCardId === "EX5-027")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });

@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -295,22 +295,41 @@ describe("EX5-037 Vajramon", () => {
     const security = setupEngine({
       0: {
         battleArea: [{ card: VAJRAMON, as: "vajramon" }],
-        security: [{ card: "BT1-097", as: "securityOption", faceUp: true }],
+        security: [{ card: "BT1-097", as: "securityOption" }],
         deck: [
           { card: "BT1-009", as: "first" },
           { card: "BT1-010", as: "second" },
+          { card: "BT1-011", as: "third" },
         ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker", dp: 10_000 }],
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
       },
     });
     security.state.memory = 5;
     await security.ready();
-    await advance(security.engine).fireForInstance(EffectTiming.SecuritySkill, security.inst("securityOption"));
-    expect(security.state.memory).toBe(5);
+    const turn = security.engine.startTurnLoop();
+    await advance(security.engine).waitForMainPhase(0);
+    advance(security.engine).endMainPhaseIfOpen(0);
+    await advance(security.engine).waitForMainPhase(1);
+    const beforeSecurityActivation = security.state.memory;
+    expect(
+      security.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: security.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => security.state.players[0]!.security.length === 0);
+    expect(security.state.memory).toBe(beforeSecurityActivation);
     expect(security.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       security.inst("first").instanceId,
       security.inst("second").instanceId,
     ]);
     expect(security.state.pendingDecision).toBeUndefined();
+    expect(security.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turn;
   });
 
   it("grants inherited Piercing only to live Four Sovereigns/God Beast hosts", async () => {

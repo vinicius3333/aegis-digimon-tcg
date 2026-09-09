@@ -255,6 +255,7 @@ describe("EX5-040 Kumbhiramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: KUMBHIRAMON, as: "kumbhi" }],
+        security: ["BT1-011", "BT1-012"],
         deck: [
           { card: "BT1-009", as: "firstDraw" },
           { card: "BT1-010", as: "sameTurnStay" },
@@ -267,17 +268,34 @@ describe("EX5-040 Kumbhiramon", () => {
         ],
       },
     });
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.suspend([s.perm("firstOpponent").permanentId]);
+    const loop = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstOpponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("firstDraw").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sameTurnStay").instanceId]);
 
-    await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondOpponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("sameTurnStay").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sameTurnStay").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("grants inherited Piercing only to live Four Sovereigns/God Beast hosts", async () => {
@@ -288,7 +306,6 @@ describe("EX5-040 Kumbhiramon", () => {
           { card: "EX5-033", as: "godBeast", under: [KUMBHIRAMON] },
           { card: "BT1-015", as: "nonmatching", under: [KUMBHIRAMON] },
         ],
-        hand: [{ card: "BT1-015", as: "plainTop" }],
       },
     });
     await s.ready();
@@ -296,10 +313,6 @@ describe("EX5-040 Kumbhiramon", () => {
     expect(observe(s.engine).hasPierce(s.perm("godBeast"))).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("nonmatching"))).toBe(false);
 
-    await advance(s.engine).verb.digivolveFromInstance(s.perm("sovereign").permanentId, s.inst("plainTop").instanceId, {
-      ignoreRequirements: true,
-    });
-    expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

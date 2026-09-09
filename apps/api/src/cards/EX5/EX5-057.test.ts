@@ -61,7 +61,7 @@ describe("EX5-057 Labramon", () => {
         0: {
           hand: [
             { card: "EX5-057", as: "source" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: [
             { card: "BT1-039", as: "target" },
@@ -88,7 +88,7 @@ describe("EX5-057 Labramon", () => {
         0: {
           hand: [
             { card: "EX5-057", as: "source" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: [{ card: "BT1-039", as: "target" }],
         },
