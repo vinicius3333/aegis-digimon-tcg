@@ -1,4 +1,3 @@
-// @ts-nocheck
 // EX9-062 SkullGreymon — hand-fixed IR.
 // Scaling corrected to target face-down digivolution cards (faceDown:true in filter).
 // Scaling uses the dedicated face-down digivolution-card counter.

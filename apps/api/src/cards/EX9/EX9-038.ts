@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — the place cost is "1 card in your hand" (ANY kind, zone hand), not a Digimon-only
 // filter as the compiler emitted. Do not regenerate over this file.
 import type { CompiledCard } from "@aegis/shared";

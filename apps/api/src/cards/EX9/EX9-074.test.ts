@@ -118,6 +118,43 @@ describe("EX9-074", () => {
     },
   );
 
+  it.each([
+    ["Red", "AD1-001"],
+    ["Blue", "AD1-010"],
+    ["Yellow", "BT1-051"],
+    ["Green", "BT1-069"],
+    ["Black", "BT10-061"],
+    ["Purple", "BT10-074"],
+    ["White", "BT10-085"],
+  ] as const)("accepts the printed level-four %s alternate route", async (_color, base) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "host" }],
+          hand: [{ card: "EX9-074", as: "evo" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("host").topCard.cardId).toBe("EX9-074");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual([base]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("has Rush and Security A. +1", () =>
     expect(compiled.effects?.flatMap((entry) => entry.keywords)).toEqual(
       expect.arrayContaining([
@@ -183,7 +220,7 @@ describe("EX9-074", () => {
     expect(compiled.digivolutionRequirement).toEqual(
       expect.arrayContaining(
         ["Red", "Blue", "Yellow", "Green", "Black", "Purple", "White"].map((color) => ({
-          color,
+          colors: [color],
           level: 4,
           cost: 5,
           isAlternate: true,

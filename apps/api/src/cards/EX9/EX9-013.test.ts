@@ -24,7 +24,7 @@ describe("EX9-013", () => {
       amount: 3,
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")?.actions).toMatchObject([
-      { kind: "DnaDigivolve", from: ["hand"], payCost: true, optional: true },
+      { kind: "DnaDigivolve", payCost: true, optional: true },
       { kind: "Attack", optional: true },
     ]);
   });
