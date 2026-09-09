@@ -146,6 +146,25 @@ export function applyPlayCostCeiling(
   return { ...target, filter: { ...target.filter, playCostLte: computedCeiling } };
 }
 
+/** Apply a live DP ceiling modifier before loose-card candidate matching. */
+export function applyPlayDpCeilingModifier(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlayWithoutCost" }>,
+  target: Target,
+): Target {
+  const mod = action.dpCeilingModifier;
+  if (mod === undefined) return target;
+  const scaledCount =
+    mod.scaling !== undefined ? scaleFactor(ctx, mod.scaling) : (ctx.namedCounts?.get(mod.scalingSource ?? "") ?? 0);
+  const adjustment = mod.amount * scaledCount;
+  const origDp = target.filter.dp;
+  if (origDp === undefined || typeof origDp !== "object" || !("value" in origDp)) return target;
+  const newValue =
+    mod.mode === "raiseCeiling" ? (origDp.value as number) + adjustment : (origDp.value as number) - adjustment;
+  if (newValue <= 0) return { ...target, filter: { ...target.filter, dp: { ...origDp, value: -1 } } };
+  return { ...target, filter: { ...target.filter, dp: { ...origDp, value: newValue } } };
+}
+
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
@@ -403,24 +422,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               count: action.target.count * scaleFactor(ctx, action.scaling),
             }
           : action.target;
-      const playTarget = (() => {
-        const mod = action.dpCeilingModifier;
-        if (mod === undefined) return scaledPlayTarget;
-        const scaledCount =
-          mod.scaling !== undefined
-            ? scaleFactor(ctx, mod.scaling)
-            : (ctx.namedCounts?.get(mod.scalingSource ?? "") ?? 0);
-        const adjustment = mod.amount * scaledCount;
-        const origDp = scaledPlayTarget.filter.dp;
-        if (origDp === undefined || typeof origDp !== "object" || !("value" in origDp)) return scaledPlayTarget;
-        const newValue =
-          mod.mode === "raiseCeiling" ? (origDp.value as number) + adjustment : (origDp.value as number) - adjustment;
-        if (newValue <= 0) {
-          // Adjusted ceiling is non-positive: no card qualifies.
-          return { ...scaledPlayTarget, filter: { ...scaledPlayTarget.filter, dp: { ...origDp, value: -1 } } };
-        }
-        return { ...scaledPlayTarget, filter: { ...scaledPlayTarget.filter, dp: { ...origDp, value: newValue } } };
-      })();
+      const playTarget = applyPlayDpCeilingModifier(ctx, action, scaledPlayTarget);
       const levelCeilingAdjustedTarget =
         ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
           ? playTarget

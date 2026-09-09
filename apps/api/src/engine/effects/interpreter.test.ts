@@ -2051,6 +2051,7 @@ describe("irCardModule timing routing", () => {
     };
     const module = irCardModule("TEST-SECURITY-YOUR-TURN", compiled);
     const source = makeSource({ cardId: "TEST-SECURITY-YOUR-TURN" });
+    source.isInSecurity = () => true;
 
     expect(module.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
     expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(0);
