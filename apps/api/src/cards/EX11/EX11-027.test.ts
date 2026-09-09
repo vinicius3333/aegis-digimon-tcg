@@ -123,6 +123,34 @@ describe("EX11-027 Maquinamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("prevents a public battle deletion by moving the link under its host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-033", as: "host", suspended: true, linked: [{ card: cardId, as: "link" }] }],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "attacker", dp: 20_000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 0);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostId);
+    expect(s.perm("host").stack.map(({ cardId: id }) => id)).toEqual([cardId]);
+    assertNoLoudGap(s);
+  });
+
   it("lets its controller decline the link replacement and lose the host", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX11-033", as: "host", linked: [{ card: cardId }] }] } },
@@ -169,7 +197,7 @@ describe("EX11-027 Maquinamon", () => {
     ).toEqual({ ok: true });
 
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "plain" }], hand: [{ card: cardId, as: "source" }] },
+      0: { battleArea: [{ card: "BT1-009", as: "plain" }], hand: [{ card: cardId, as: "source" }] },
     });
     expect(
       invalid.engine.applyIntent(0, {

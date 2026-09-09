@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-053.js";
@@ -25,7 +24,7 @@ describe("EX11-053 Omekamon", () => {
         0: {
           breeding: { card: "BT23-072", as: "drasil" },
           hand: [{ card: "EX11-053", as: "omekamon" }, "AD1-008"],
-          deck: ["BT1-001"],
+          deck: ["BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -36,7 +35,28 @@ describe("EX11-053 Omekamon", () => {
     });
     await settle(() => s.state.players[0]!.breeding?.stack.some((card) => card.cardId === "AD1-008") === true, 600);
     expect(s.state.players[0]!.breeding?.stack.some((card) => card.cardId === "AD1-008")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-013")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("allows the optional Royal Knight placement to be declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT23-072", as: "drasil" },
+          hand: [{ card: "EX11-053", as: "omekamon" }, "AD1-008"],
+          deck: ["BT1-013"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omekamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-053"), 600);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "AD1-008")).toBe(true);
+    expect(s.state.players[0]!.breeding?.stack.some(({ cardId }) => cardId === "AD1-008")).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -44,14 +64,23 @@ describe("EX11-053 Omekamon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001"],
+          security: ["BT1-013"],
           hand: [{ card: "BT20-102", as: "omnimonX" }],
-          battleArea: [{ card: "EX11-053", as: "omekamon" }],
+          battleArea: [{ card: "EX11-053", as: "omekamon", suspended: true }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("omekamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-102"));
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT20-102");
@@ -64,14 +93,23 @@ describe("EX11-053 Omekamon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-013", "BT1-014"],
           hand: [{ card: "BT20-102", as: "omnimonX" }],
-          battleArea: [{ card: "EX11-053", as: "omekamon" }],
+          battleArea: [{ card: "EX11-053", as: "omekamon", suspended: true }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("omekamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("omnimonX").instanceId)).toBe(true);
@@ -89,17 +127,26 @@ describe("EX11-053 Omekamon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001"],
+          security: ["BT1-013"],
           battleArea: [
-            { card: "EX11-053", as: "omekamon" },
+            { card: "EX11-053", as: "omekamon", suspended: true },
             { card: "BT23-072", as: "drasil", under: [{ card: "BT20-102", as: "omnimonX" }] },
           ],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("omnimonX").instanceId);
-    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("omekamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard?.instanceId === s.inst("omnimonX").instanceId,
@@ -127,16 +174,25 @@ describe("EX11-053 Omekamon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001"],
+          security: ["BT1-013"],
           battleArea: [
-            { card: "EX11-053", as: "omekamon" },
+            { card: "EX11-053", as: "omekamon", suspended: true },
             { card: "BT1-010", as: "notDrasil", under: [{ card: "BT20-102", as: "omnimonX" }] },
           ],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("omekamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 60);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-102")).toBe(false);

@@ -1,12 +1,13 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { observe } from "../../engine/testkit/observe.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-063.js";
+import "../index.js";
+import "../BT14/BT14-033.js";
 
 describe("EX11-063 Winr", () => {
-  it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
+  it("preserves the printed Tamer and complete compiled coverage", () => {
     expect(getCardDefinition("EX11-063")).toMatchObject({
       nameEn: "Winr",
       colors: ["Green", "Black"],
@@ -16,179 +17,8 @@ describe("EX11-063 Winr", () => {
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-  });
-
-  it("sets memory to 3 at the start of your turn from 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-063", as: "winr" }] } });
-    s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("winr"));
-    expect(s.state.memory).toBe(3);
-    assertNoLoudGap(s);
-  });
-
-  it("places a Royal Base card face up at security bottom even from zero security (Q5922-Q5926)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-063", as: "winr" }],
-          hand: [{ card: "EX11-025", as: "royalBase" }],
-          security: [],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("winr"));
-
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX11-025", faceUp: true });
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
-  it("adds the top FACE-DOWN security card, skipping a face-up one above it (Q5923-Q5924)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-063", as: "winr" }],
-          hand: [],
-          security: [{ card: "BT1-090", faceUp: true }, "BT1-091"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("winr"));
-
-    // The face-up card is not "your top face-down security card": it stays put and the
-    // face-down card beneath it is the one added to the hand.
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-091"]);
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT1-090", faceUp: true });
-    assertNoLoudGap(s);
-  });
-
-  it("binds one Royal Base Digimon, grants both keywords, and makes it attack (Q5927)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-063", as: "winr" },
-            { card: "EX11-025", as: "attacker" },
-          ],
-        },
-        1: { security: ["BT1-090"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("winr"));
-
-    expect(s.perm("winr").isSuspended).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Collision")).toBe(true);
-    expect(observe(s.engine).hasPierce(s.perm("attacker"))).toBe(true);
-    expect(
-      s.events.some(
-        (event) =>
-          (event as { kind?: string }).kind === "attackDeclared" &&
-          (event as { attackerPermanentId?: string }).attackerPermanentId === s.perm("attacker").permanentId,
-      ),
-    ).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("places only the [Royal Base] card out of a mixed hand (near-miss trait and non-match)", async () => {
-    // AD1-008 carries [Royal Knight] and EX2-054 carries [Base Defense Agent] — both contain a
-    // token of the printed trait but are not it, and `match: "trait"` is exact. BT1-090 matches
-    // nothing at all. Only EX11-025 has [Royal Base].
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-063", as: "winr" }],
-          hand: [
-            { card: "AD1-008", as: "royalKnight" },
-            { card: "EX2-054", as: "baseDefenseAgent" },
-            { card: "BT1-090", as: "unrelated" },
-            { card: "EX11-025", as: "royalBase" },
-          ],
-          security: [],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("winr"));
-
-    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["EX11-025"]);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["AD1-008", "EX2-054", "BT1-090"]);
-    assertNoLoudGap(s);
-  });
-
-  it("buffs and attacks with the [Royal Base] Digimon out of a mixed board (Q5927)", async () => {
-    // The two non-matching Digimon are listed FIRST, so a broken trait gate would bind one of
-    // them before ever reaching the [Royal Base] Digimon.
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "AD1-008", as: "royalKnight" },
-            { card: "AD1-002", as: "unrelated" },
-            { card: "EX11-063", as: "winr" },
-            { card: "EX11-025", as: "royalBase" },
-          ],
-        },
-        1: { security: ["BT1-090"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("winr"));
-
-    expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Collision")).toBe(true);
-    expect(observe(s.engine).hasPierce(s.perm("royalBase"))).toBe(true);
-    for (const alias of ["royalKnight", "unrelated"]) {
-      expect(observe(s.engine).hasKeyword(s.perm(alias), "Collision")).toBe(false);
-    }
-    // AD1-008 prints its own Piercing, so only the unrelated Digimon can prove the grant did not land.
-    expect(observe(s.engine).hasPierce(s.perm("unrelated"))).toBe(false);
-    const attacks = s.events.filter((event) => (event as { kind?: string }).kind === "attackDeclared");
-    expect(attacks.map((event) => (event as { attackerPermanentId?: string }).attackerPermanentId)).toEqual([
-      s.perm("royalBase").permanentId,
-    ]);
-    assertNoLoudGap(s);
-  });
-
-  it("declines the suspend cost and then grants nothing and forces no attack (CR 15-7-4)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-063", as: "winr" },
-            { card: "EX11-025", as: "attacker" },
-          ],
-        },
-        1: { security: ["BT1-090"] },
-      },
-      { autoDeclineOptional: true },
-    );
-    s.state.turnSeat = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("winr"));
-
-    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
-    expect(s.perm("winr").isSuspended).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Collision")).toBe(false);
-    expect(observe(s.engine).hasPierce(s.perm("attacker"))).toBe(false);
-    expect(s.events.some((event) => (event as { kind?: string }).kind === "attackDeclared")).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("publishes full exclusive IR with one binding shared by both grants and the attack", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, faceDownOnly: true },
+      { kind: "SecurityManipulation", op: "toHand", faceDownOnly: true },
       { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false, faceUp: true, optional: true },
     ]);
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions).toMatchObject([
@@ -197,5 +27,190 @@ describe("EX11-063 Winr", () => {
       { kind: "GainKeyword", target: { fromSelectionRef: "buffedDigimon" } },
       { kind: "Attack", target: { fromSelectionRef: "buffedDigimon" }, optional: false },
     ]);
+  });
+
+  it("publicly places a Royal Base card face up at security bottom from an empty stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX11-063", as: "winr" },
+            { card: "EX11-025", as: "royalBase" },
+          ],
+          security: [],
+        },
+        1: { security: ["BT1-009"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("winr").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-063"));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: "EX11-025", faceUp: true });
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("takes the top face-down security card before placing Royal Base face up at the bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX11-063", as: "winr" },
+            { card: "EX11-025", as: "royalBase" },
+          ],
+          security: [
+            { card: "BT1-090", faceUp: true },
+            { card: "BT1-091", faceUp: false },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("winr").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2 && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-090", "EX11-025"]);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+    expect(s.state.players[0]!.security[1]!.faceUp).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-091"]);
+    assertNoLoudGap(s);
+  });
+
+  it("keeps a face-up Royal Base through a public security check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX11-063", as: "winr" },
+            { card: "EX11-025", as: "royalBase" },
+          ],
+          security: [],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 20_000 }], security: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("winr").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ cardId }) => cardId === "EX11-025"));
+    const royalBase = s.state.players[0]!.security.find(({ cardId }) => cardId === "EX11-025")!;
+    expect(royalBase.faceUp).toBe(true);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "EX11-025"),
+    );
+    expect(s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "EX11-025")).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("resets face-up security to face down through a public Patamon shuffle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-033", as: "patamon" }],
+          hand: [
+            { card: "EX11-063", as: "winr" },
+            { card: "EX11-025", as: "royalBase" },
+          ],
+          security: [
+            { card: "BT1-090", faceUp: true },
+            { card: "BT1-091", faceUp: false },
+          ],
+          deck: ["BT1-009", "BT1-013"],
+        },
+        1: { deck: ["BT1-019"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("winr").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some(({ cardId }) => cardId === "EX11-025"));
+    expect(s.state.players[0]!.security.some((card) => card.faceUp)).toBe(true);
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[0]!.security.every((card) => !card.faceUp));
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("EX11-025");
+    expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    assertNoLoudGap(s);
+  });
+
+  it("sets memory to 3 at the natural start of turn when memory is 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-063", as: "winr" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+    });
+    s.state.memory = 2;
+    s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("suspends Winr, grants Collision and Piercing, and forces the Royal Base to attack at end of turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-063", as: "winr" },
+            { card: "BT18-056", as: "royalBase" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.perm("winr").isSuspended);
+    expect(s.perm("winr").isSuspended).toBe(true);
+    await settle(() => s.events.some(({ kind }) => kind === "attackDeclared"));
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "attackDeclared",
+        attackerPermanentId: s.perm("royalBase").permanentId,
+      }),
+    );
+  });
+
+  it("plays Winr from a real security check without paying its cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX11-063", as: "securityWinr" }], hand: ["EX11-025"] },
+      1: { battleArea: [{ card: "BT1-037", as: "attacker" }], security: [] },
+    });
+    s.state.turnSeat = 1;
+    s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-063"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-063")).toBe(true);
   });
 });

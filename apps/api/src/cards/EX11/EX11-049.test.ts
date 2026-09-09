@@ -1,8 +1,8 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const cardId = "EX11-049";
@@ -45,7 +45,7 @@ describe("EX11-049 Punkmon", () => {
           battleArea: [{ card: cardId, as: "source" }],
           hand: [
             { card: "EX11-050", as: "loudmon" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
         },
       },
@@ -56,9 +56,43 @@ describe("EX11-049 Punkmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX11-050");
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("source").topCard.cardId).toBe("EX11-050");
+    expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
+  });
+
+  it("trashes the one available card and still resolves the mandatory follow-up", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "EX11-050", as: "loudmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX11-050");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ cardId: id }) => id === "EX11-050")).toBe(false);
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
   });
@@ -70,27 +104,126 @@ describe("EX11-049 Punkmon", () => {
           battleArea: [{ card: cardId, as: "source" }],
           hand: [
             { card: "EX11-050", as: "loudmon" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX11-050");
     expect(s.perm("source").topCard.cardId).toBe("EX11-050");
     // Alternate cost 3, reduced by 2 => 1 memory paid.
     expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
 
-  it("gives a host +2000 DP only during its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId] }] } });
+  it("can evolve into an Evil Dragon trashed by the same attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX10-053", as: "regulusmon" },
+            { card: "BT1-009", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
     await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX10-053");
+    expect(s.perm("source").topCard.cardId).toBe("EX10-053");
+    // EX10-053's ordinary level-4 route costs 5; the printed effect reduction pays 3.
+    expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
+  });
+
+  it("does not evolve into a near-match Dragon trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "BT11-022", as: "dragon" },
+            { card: "BT1-009", as: "other" },
+          ],
+          trash: [{ card: "BT11-022", as: "existingDragon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("source").topCard.cardId).toBe(cardId);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.trash.filter(({ cardId: id }) => id === "BT11-022")).toHaveLength(2);
+    assertNoLoudGap(s);
+  });
+
+  it("does not pay or trash when the attack starts with no hand cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("source").topCard.cardId).toBe(cardId);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("gives a host +2000 DP only during its controller's public turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId] }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-009"] },
+    });
+    const turn = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(5000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(3000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turn;
     assertNoLoudGap(s);
   });
 });

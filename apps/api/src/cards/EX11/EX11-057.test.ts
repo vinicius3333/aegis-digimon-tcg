@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-057.js";
+import "../EX9/EX9-015.js";
 
 describe("EX11-057 Suzune Kazuki", () => {
   it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
@@ -17,55 +18,92 @@ describe("EX11-057 Suzune Kazuki", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("gains memory at the start of your main phase when the opponent has a Digimon", async () => {
+  it("gains memory at the natural start of its main phase when the opponent has a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX11-057", as: "suzune" }] },
       1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
     });
-    s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("suzune"));
-    expect(s.state.memory).toBe(1);
-    assertNoLoudGap(s);
+    s.state.memory = 2;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 3);
+    expect(s.state.memory).toBe(3);
+    await loop;
   });
 
-  it("asks before suspending when an opponent Digimon loses a digivolution card", async () => {
+  it("plays itself from a real security check without paying its cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX11-057", as: "securitySuzune" }] },
+      1: { battleArea: [{ card: "BT1-037", as: "attacker" }], security: [] },
+    });
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-057")).toBe(true);
+    await loop;
+  });
+
+  it("pays the All Turns watcher when a public inherited effect trashes an opponent stack card", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX11-057", as: "suzune" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        0: {
+          battleArea: [
+            { card: "EX11-057", as: "suzune" },
+            { card: "BT1-037", as: "attacker", under: ["EX9-015"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", under: ["BT1-013"] }], security: [] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
     s.state.memory = 0;
-
-    await advance(s.engine).fireSubTrigger("whenDigivolutionTrashed", {
-      subjectPermanentId: s.perm("opponent").permanentId,
-    });
-    await settle(() => s.perm("suzune").isSuspended);
-
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 0 && s.perm("suzune").isSuspended);
     expect(s.perm("suzune").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
   });
 
-  it("leaves Suzune unsuspended and gains no memory when the suspend cost is declined", async () => {
+  it("does not pay the watcher when its suspend cost is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX11-057", as: "suzune" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        0: {
+          battleArea: [
+            { card: "EX11-057", as: "suzune" },
+            { card: "BT1-037", as: "attacker", under: ["EX9-015"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", under: ["BT1-013"] }], security: [] },
       },
-      { autoDeclineOptional: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await s.ready();
     s.state.memory = 0;
-
-    await advance(s.engine).fireSubTrigger("whenDigivolutionTrashed", {
-      subjectPermanentId: s.perm("opponent").permanentId,
-    });
-    await settle(() => false, 30);
-
-    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 0);
     expect(s.perm("suzune").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
@@ -80,8 +118,8 @@ describe("EX11-057 Suzune Kazuki", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-010", under: ["BT1-001"], as: "first" },
-            { card: "BT1-011", under: ["BT1-002"], as: "second" },
+            { card: "BT1-010", under: ["BT1-013"], as: "first" },
+            { card: "BT1-011", under: ["BT1-014"], as: "second" },
           ],
         },
       },
@@ -109,8 +147,8 @@ describe("EX11-057 Suzune Kazuki", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-010", under: ["BT1-001"], as: "first" },
-            { card: "BT1-011", under: ["BT1-002"], as: "second" },
+            { card: "BT1-010", under: ["BT1-013"], as: "first" },
+            { card: "BT1-011", under: ["BT1-014"], as: "second" },
           ],
         },
       },
@@ -131,7 +169,7 @@ describe("EX11-057 Suzune Kazuki", () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT1-011"], hand: [{ card: "EX11-057", as: "suzune" }] },
-        1: { battleArea: [{ card: "BT1-010", under: ["BT1-001"], as: "first" }] },
+        1: { battleArea: [{ card: "BT1-010", under: ["BT1-013"], as: "first" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

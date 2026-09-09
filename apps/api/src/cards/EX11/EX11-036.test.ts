@@ -1,7 +1,7 @@
 import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
@@ -96,6 +96,33 @@ describe("EX11-036 Dalphomon", () => {
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
     expect(s.perm("other").topCard.cardId).toBe("EX11-042");
     expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
+  it("uses the public alternate Lv.5 Maquinamon-text evolution for cost 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-042", as: "base" }],
+          hand: [{ card: cardId, as: "evolver" }],
+        },
+        1: { security: ["BT1-009"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map(({ cardId: id }) => id)).toContain("EX11-042");
     assertNoLoudGap(s);
   });
 

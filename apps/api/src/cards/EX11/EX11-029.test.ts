@@ -1,15 +1,16 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import "./EX11-070.js";
 
 const cardId = "EX11-029";
 
 describe("EX11-029 Turbomon", () => {
-  it("preserves both evolution requirements, link sources, and linked Unchained trigger", () => {
+  it("preserves requirements, public link sources, and self-scoped watcher", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Turbomon",
       colors: ["Green"],
@@ -50,7 +51,6 @@ describe("EX11-029 Turbomon", () => {
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(linked).toMatchObject({
       frequency: "OncePerTurn",
-      // "When THIS Digimon gets linked" — the bus is board-wide, so the self scope is load-bearing.
       actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
     });
     expect(linked.actions[0]).toMatchObject({
@@ -58,72 +58,125 @@ describe("EX11-029 Turbomon", () => {
     });
   });
 
-  it("links Maquinamon from hand for free on play and grants its linked DP", async () => {
+  it("links Maquinamon for free through the public When Moving path", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: cardId, as: "source" },
-            { card: "BT1-009", as: "recipient", dp: 2000 },
-          ],
+          breeding: { card: cardId, as: "source" },
+          battleArea: [{ card: "BT1-009", as: "recipient", dp: 2000 }],
           hand: [{ card: "EX11-027", as: "maquinamon" }],
         },
+        1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    await advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("source"));
+    preferInstanceIds.push(s.perm("recipient").permanentId);
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("source").permanentId })).toEqual({
+      ok: true,
+    });
+    let sawRecipientAttachment = false;
+    await settle(() => {
+      sawRecipientAttachment ||= s.state.players[0]!.battleArea.some(
+        (permanent) =>
+          permanent.topCard?.cardId === "BT1-009" &&
+          permanent.linked.some(({ cardId: linkedCardId }) => linkedCardId === "EX11-027"),
+      );
+      return sawRecipientAttachment;
+    });
+    expect(sawRecipientAttachment).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(
-      s.state.players[0]!.battleArea.some(({ linked }) => linked.some(({ cardId: id }) => id === "EX11-027")),
-    ).toBe(true);
+    await settle(() => s.state.phase === "Main" && s.state.pendingDecision === undefined);
     assertNoLoudGap(s);
-  });
-
-  it("plays Unchained from trash once when this Digimon gets linked with at most one Tamer", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: cardId, as: "source", linked: [{ card: "EX11-027" }] }],
-          trash: [{ card: "EX11-070", as: "unchained" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("source").permanentId });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-070"));
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
-  // The `whenLinked` bus fires for every link on the board. Without `sourceFilter: {isSelfRef:true}`
-  // this watcher would play [Unchained] when a DIFFERENT Digimon of the controller gets linked.
-  it("does not trigger when another of your Digimon gets linked", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: cardId, as: "source" },
-            // A [Maquinamon] host satisfying the link card's own "[Maquinamon] in text"
-            // requirement, and with no `whenLinked` watcher of its own.
-            { card: "EX11-027", as: "other", linked: [{ card: "EX11-027" }] },
-          ],
-          trash: [{ card: "EX11-070", as: "unchained" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("other").permanentId });
-    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(["EX11-070"]);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-070")).toBe(false);
-    assertNoLoudGap(s);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("provides inherited Piercing in a realistic stack", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX11-031", as: "host", under: [cardId] }] } });
     await s.ready();
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the self-link watcher after the next own turn through public digivolve and Link", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-027", as: "base" }],
+          hand: [
+            { card: cardId, as: "turbomon" },
+            { card: "EX11-027", as: "link1" },
+            { card: "EX11-027", as: "link2" },
+            { card: "EX11-027", as: "link3" },
+            { card: "EX11-070", as: "unchained1" },
+            { card: "EX11-070", as: "unchained2" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { security: ["BT1-015", "BT1-016", "BT1-017"], deck: ["BT1-018", "BT1-019", "BT1-020"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    s.state.memory = 5;
+    s.state.turnSeat = 0;
+    s.state.turnCount = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.push(s.inst("link1").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("turbomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId && s.perm("base").linked.length === 1);
+    expect(s.perm("base").linked.map(({ cardId: linkedCardId }) => linkedCardId)).toEqual(["EX11-027"]);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070"));
+    expect(s.state.players[0]!.hand.map(({ cardId: handCardId }) => handCardId)).toContain("EX11-070");
+    const firstUnchained = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX11-070");
+    expect(firstUnchained).toBeDefined();
+
+    preferInstanceIds.push(s.inst("link2").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link2").instanceId,
+        targetPermanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").linked.length === 2);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "EX11-070")).toHaveLength(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.push(s.inst("link3").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link3").instanceId,
+        targetPermanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("base").linked).toHaveLength(1);
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "EX11-070").length === 2,
+    );
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "EX11-070")).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 });

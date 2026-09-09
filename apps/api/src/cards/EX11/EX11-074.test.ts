@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./EX11-026.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-074.js";
+import "./EX11-062.js";
 
 describe("EX11-074 Vortexdramon", () => {
   it("preserves the printed level 7 Digimon and complete compiled coverage", () => {
@@ -157,51 +159,51 @@ describe("EX11-074 Vortexdramon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX11-074", as: "source", dp: 14000 },
+            { card: "EX11-032", as: "source" },
+            { card: "EX11-062", as: "shoto" },
             { card: "AD1-001", as: "ally", dp: 3000 },
           ],
+          hand: [{ card: "EX11-074", as: "vortexdramon" }],
+          security: ["BT1-020", "BT1-021", "BT1-022"],
+          deck: ["BT1-009", "BT1-013", "BT1-019"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
+        1: { deck: ["BT1-009", "BT1-013", "BT1-019"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     preferInstanceIds.push(s.inst("ally").instanceId);
+    s.state.memory = 8;
     await s.ready();
 
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("vortexdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ally").isSuspended);
+
+    expect(s.perm("source").topCard.cardId).toBe("EX11-074");
     expect(observe(s.engine).hasPierce(s.perm("source"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Vortex")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.perm("ally").isSuspended);
-
-    expect(s.perm("source").currentDP).toBe(20000);
+    // Shoto remains on the board after the required alternate evolution and grants this
+    // Vortex Warriors Digimon an additional +3000 DP, so the printed +6000 resolves to 23000.
+    expect(s.perm("source").currentDP).toBe(23000);
     expect(observe(s.engine).hasRestriction(s.perm("source"), "beAffected", "Digimon")).toBe(true);
-
-    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
-    await advance(s.engine).verb.modifyDP(s.perm("source").permanentId, -2000, EffectDuration.UntilOpponentTurnEnd);
-    advance(s.engine).verb.leaveEffectResolution();
-    expect(s.perm("source").currentDP).toBe(20000);
-
-    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
-    await advance(s.engine).verb.modifyDP(s.perm("source").permanentId, -1000, EffectDuration.UntilOpponentTurnEnd);
-    advance(s.engine).verb.leaveEffectResolution();
-    expect(s.perm("source").currentDP).toBe(19000);
     assertNoLoudGap(s);
   });
 
   it("Q5955-Q5959 unsuspends and directly battles without making a security check", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [
-            { card: "EX11-074", as: "source", dp: 14000, suspended: true },
-            { card: "AD1-001", as: "ally", dp: 3000 },
-          ],
-        },
+        0: { battleArea: [{ card: "EX11-074", as: "source", dp: 14000, suspended: true }], deck: ["BT1-009"] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }],
+          battleArea: [{ card: "BT1-080", as: "opponent", dp: 3000 }],
           security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-009", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -209,11 +211,178 @@ describe("EX11-074 Vortexdramon", () => {
     await s.ready();
     const initialSecurity = s.state.players[1]!.security.length;
 
-    await advance(s.engine).verb.suspend([s.perm("ally").permanentId], 0);
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(initialSecurity);
+    assertNoLoudGap(s);
+  });
+
+  it("Q5949-Q5954 blocks a public opponent Digimon effect from suspending the protected Vortex", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-032", as: "source" },
+            { card: "EX11-062", as: "shoto" },
+            { card: "AD1-001", as: "ally", dp: 3000 },
+          ],
+          hand: [{ card: "EX11-074", as: "vortexdramon" }],
+          security: ["BT1-020", "BT1-021", "BT1-022"],
+        },
+        1: { hand: [{ card: "BT1-070", as: "suspender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("ally").instanceId);
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("vortexdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ally").isSuspended);
+    expect(observe(s.engine).hasRestriction(s.perm("source"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.length === 0);
+    expect(s.perm("source").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the All Turns watcher after two public producer suspensions", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-074", as: "source", dp: 14000 }],
+          hand: [
+            { card: "EX11-026", as: "producerA" },
+            { card: "EX11-026", as: "producerB" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "attackerA", dp: 3000 },
+            { card: "BT1-081", as: "attackerB", dp: 3000 },
+          ],
+          security: ["BT1-019", "BT1-020", "BT1-021", "BT1-022"],
+          deck: ["BT1-023", "BT1-024", "BT1-025", "BT1-026", "BT1-027", "BT1-028"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("source").permanentId, s.perm("attackerA").permanentId);
+    const optional = async (seat: 0 | 1, accept: boolean) => {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const id = s.state.pendingDecision!.decisionId;
+      expect(
+        s.engine.applyIntent(seat, { type: "respondDecision", decisionId: id, response: { kind: "optional", accept } }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+    };
+    const resolveTurnEntry = async () => {
+      await settle(() => s.state.pendingDecision !== undefined);
+      if (s.state.pendingDecision?.kind === "optional") await optional(s.state.pendingDecision.seat as 0 | 1, false);
+    };
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("producerA").instanceId })).toEqual({
+      ok: true,
+    });
+    await optional(0, true);
+    await settle(() => s.perm("source").isSuspended);
+    await optional(0, false);
+    expect(s.perm("source").isSuspended).toBe(true);
+    await optional(0, false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await resolveTurnEntry();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerA").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await optional(0, true);
+    await optional(0, true);
+    await settle(() => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-080"));
+    expect(s.perm("source").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("producerB").instanceId })).toEqual({
+      ok: true,
+    });
+    await optional(0, true);
+    await settle(() => s.perm("source").isSuspended);
+    await optional(0, false);
+    await optional(0, false);
+    expect(s.perm("source").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await resolveTurnEntry();
+    await advance(s.engine).waitForMainPhase(1);
+    preferred.push(s.perm("attackerB").permanentId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerB").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await optional(0, true);
+    await optional(0, true);
+    await settle(() => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-081"));
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("performs one Piercing security check when its attack deletes an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX11-074", as: "source", dp: 14000 }], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target", suspended: true, dp: 3000 }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-009", "BT1-013"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
 });

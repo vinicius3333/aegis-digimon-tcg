@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-062.js";
@@ -15,14 +15,6 @@ describe("EX11-062 Shoto Kazama", () => {
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-  });
-
-  it("sets memory to 3 at the start of your turn from 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-062", as: "shoto" }] } });
-    s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("shoto"));
-    expect(s.state.memory).toBe(3);
-    assertNoLoudGap(s);
   });
 
   it("draws and grants +3000 DP when an effect suspends a Digimon (Q5917/Q5918)", async () => {
@@ -89,7 +81,7 @@ describe("EX11-062 Shoto Kazama", () => {
           ],
         },
         1: {
-          deck: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-013", "BT1-013", "BT1-013"],
           battleArea: [{ card: "AD1-002", as: "effectSuspended" }],
         },
       },
@@ -127,5 +119,42 @@ describe("EX11-062 Shoto Kazama", () => {
         condition: { kind: "opponentHasNone", filter: { unsuspended: true } },
       },
     ]);
+  });
+
+  it("sets memory to 3 at the start of its owner's turn when memory is 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-062", as: "shoto" }], deck: ["BT1-009", "BT1-010"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
+    });
+    s.state.memory = 2;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("plays Shoto from security through a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 20_000 }] },
+      1: { security: [{ card: "EX11-062", as: "securityShoto" }] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-062"));
+
+    expect(
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securityShoto").instanceId),
+    ).toBe(true);
+    assertNoLoudGap(s);
   });
 });

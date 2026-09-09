@@ -1,10 +1,11 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
+import "./EX11-065.js";
 
 const cardId = "EX11-044";
 
@@ -85,7 +86,15 @@ describe("EX11-044 Pyramidimon", () => {
     preferred.push(s.perm("cost6").permanentId);
     const cost5Id = s.perm("cost5").permanentId;
     const cost6Id = s.perm("cost6").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== cost6Id));
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost5Id);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost6Id);
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038"]);
@@ -118,7 +127,15 @@ describe("EX11-044 Pyramidimon", () => {
     preferred.push(s.perm("cost8").permanentId);
     const cost5Id = s.perm("cost5").permanentId;
     const cost8Id = s.perm("cost8").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== cost8Id));
     // The [All Turns] watcher fires on the effect-driven stack trash and rebuilds the SOURCE's
     // stack from the trash; the ALLY's paid card is not returned to it.
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038"]);
@@ -138,7 +155,15 @@ describe("EX11-044 Pyramidimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const cost8Id = s.perm("cost8").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038"]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost8Id);
@@ -146,6 +171,62 @@ describe("EX11-044 Pyramidimon", () => {
     // recognizes a stack-trash cost only through filter.zone; without it the gate returned its
     // `true` default and the unpayable clause still opened an optional prompt.
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("resolves the same paid deletion and recovery through public When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base", under: ["EX11-038", "EX11-038", "EX11-038"] }],
+          hand: [{ card: cardId, as: "evolver" }],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "cost5" },
+            { card: "AD1-011", as: "cost8" },
+          ],
+          security: ["BT1-019", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const cost8Id = s.perm("cost8").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost8Id);
+    expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038", "BT10-064"]);
+    assertNoLoudGap(s);
+  });
+
+  it("records the public Close producer seam: another effect trashes Pyramidimon's card without self recovery", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-065", as: "close" },
+            { card: cardId, as: "source", under: [{ card: "EX11-038", as: "mineral" }] },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("EX11-038");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     assertNoLoudGap(s);
   });
 });

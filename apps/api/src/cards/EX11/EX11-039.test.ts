@@ -1,7 +1,6 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
@@ -45,42 +44,92 @@ describe("EX11-039 HoverEspimon", () => {
     );
   });
 
-  it("plays Altea for free when the controller has exactly 1 Tamer", async () => {
+  it("plays exact Altea for free through public alternate digivolution with 1 Tamer", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
+            { card: "EX11-037", as: "source" },
             { card: "BT1-085", as: "existingTamer" },
           ],
-          hand: [{ card: "EX11-064", as: "altea" }],
+          hand: [
+            { card: cardId, as: "evolver" },
+            { card: "EX11-064", as: "altea" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-064")).toBe(true);
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-064"));
+    expect(s.perm("source").topCard.cardId).toBe(cardId);
+    expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-037"]);
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
-  it("does not offer Altea when the controller already has 2 Tamers", async () => {
+  it("keeps Altea in hand through public alternate digivolution with 2 Tamers", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source" },
+            { card: "EX11-037", as: "source" },
             { card: "BT1-085", as: "firstTamer" },
             { card: "BT1-086", as: "secondTamer" },
           ],
-          hand: [{ card: "EX11-064", as: "altea" }],
+          hand: [
+            { card: cardId, as: "evolver" },
+            { card: "EX11-064", as: "altea" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === cardId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("altea").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-064")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("rejects the alternate route for a level-3 peer without Cyborg or Machine", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonMatching" }],
+        hand: [{ card: cardId, as: "evolver" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonMatching").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("nonMatching").topCard.cardId).toBe("BT1-009");
     assertNoLoudGap(s);
   });
 });

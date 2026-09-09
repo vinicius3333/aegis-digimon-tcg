@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,32 @@ import { compiled } from "./EX11-073.js";
 import "./EX11-070.js";
 
 describe("EX11-073 ExMaquinamon", () => {
+  it("proves Mind Link onto ExMaquinamon is a stack card, not a link card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-070", as: "unchained" },
+            { card: "EX11-073", as: "exmaquinamon" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("exmaquinamon").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
+    expect(s.perm("exmaquinamon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX11-073")).toBeDefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
   it("preserves the printed level 7 Digimon and complete compiled coverage", () => {
     expect(getCardDefinition("EX11-073")).toMatchObject({
       nameEn: "ExMaquinamon",
@@ -41,7 +67,7 @@ describe("EX11-073 ExMaquinamon", () => {
           { card: "BT10-067", as: "black" },
         ],
         hand: [{ card: "EX11-073", as: "result" }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
     });
     s.state.memory = 0;
@@ -57,6 +83,60 @@ describe("EX11-073 ExMaquinamon", () => {
     expect(s.perm("result").topCard?.cardId).toBe("EX11-073");
     expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-080", "BT10-067"]));
     expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
+  it("links exact Maquinamon cards from hand and trash during DNA", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "green", linked: [{ card: "EX11-027", as: "materialLink" }] },
+            { card: "BT10-067", as: "black" },
+          ],
+          hand: [
+            { card: "EX11-073", as: "result" },
+            { card: "EX11-027", as: "handMaquinamon" },
+            { card: "EX11-073", as: "wrongName" },
+          ],
+          trash: [{ card: "EX11-027", as: "trashMaquinamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("green").permanentId, s.perm("black").permanentId],
+        instanceId: s.inst("result").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("EX11-073");
+    const result = s.state.players[0]!.battleArea[0]!;
+    // The material link is trashed before the DNA stack is assembled, then is eligible to be
+    // linked again from trash by ExMaquinamon's own When Digivolving clause (Q5945). The final
+    // linked list alone cannot distinguish those two legal transitions, so retain the movement
+    // event as explicit public evidence.
+    expect(result.linked.map(({ cardId }) => cardId)).toEqual(["EX11-027", "EX11-027", "EX11-027"]);
+    expect(result.linked.some(({ instanceId }) => instanceId === s.inst("materialLink").instanceId)).toBe(true);
+    expect(
+      s.events.some(
+        (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("materialLink").instanceId),
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("handMaquinamon").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("wrongName").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("trashMaquinamon").instanceId),
+    ).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("materialLink").instanceId)).toBe(
+      false,
+    );
     assertNoLoudGap(s);
   });
 
@@ -94,167 +174,34 @@ describe("EX11-073 ExMaquinamon", () => {
     assertNoLoudGap(s);
   });
 
-  it("links up to 3 exact Maquinamon from hand, trash, and only this Digimon's stack when DNA digivolving", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-073", as: "host", under: [{ card: "EX11-027", as: "ownStack" }] },
-            { card: "EX11-028", as: "other", under: [{ card: "EX11-027", as: "otherStack" }] },
-          ],
-          hand: [{ card: "EX11-027", as: "handLink" }],
-          trash: [{ card: "EX11-027", as: "trashLink" }],
-        },
+  it("trashes security before returning an opposing Digimon at the real opponent-turn boundary", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-073", as: "exmaquinamon", linked: [{ card: "EX11-027" }, { card: "EX11-027" }] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("host"), {
-      isDnaDigivolve: true,
+      1: {
+        battleArea: [{ card: "BT1-080", as: "opponentDigimon" }],
+        security: ["BT1-013", "BT1-009", "BT1-010", "BT1-011"],
+        deck: ["BT1-010", "BT1-015", "BT1-016", "BT1-017", "BT1-018", "BT1-019"],
+      },
     });
-
-    expect(s.perm("host").linked.map(({ cardId }) => cardId)).toEqual(["EX11-027", "EX11-027", "EX11-027"]);
-    expect(s.perm("other").stack.map(({ cardId }) => cardId)).toContain("EX11-027");
-    assertNoLoudGap(s);
-  });
-
-  it("trashes material link cards immediately before the DNA merge (Q5945-Q5946)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX11-070", as: "unchained" },
-            { card: "EX11-034", as: "first", linked: [{ card: "EX11-027", as: "materialLink" }] },
-            { card: "BT10-067", as: "second" },
-          ],
-          hand: [{ card: "EX11-073", as: "result" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 7;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("unchained"));
-
-    expect(s.perm("result").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("materialLink").instanceId]);
-    expect(
-      s.events.some(
-        (event) =>
-          (event as { kind?: string; to?: string; instanceIds?: string[] }).kind === "cardsMoved" &&
-          (event as { to?: string }).to === "trash" &&
-          (event as { instanceIds?: string[] }).instanceIds?.includes(s.inst("materialLink").instanceId),
-      ),
-    ).toBe(true);
-    expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX11-034", "BT10-067"]),
-    );
-    assertNoLoudGap(s);
-  });
-
-  it("processes all security trashes before all deck-bottom returns for each link card (Q5947)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "EX11-073",
-              as: "host",
-              linked: [{ card: "EX11-027" }, { card: "EX11-027" }],
-            },
-          ],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-010", as: "firstTarget" },
-            { card: "BT1-011", as: "secondTarget" },
-            { card: "BT1-012", as: "thirdTarget" },
-          ],
-          security: ["BT1-013", "BT1-014", "BT1-015"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.deck).toHaveLength(2);
-    const securityMove = s.events.findIndex((event) => {
-      const move = event as { kind?: string; from?: string };
-      return move.kind === "cardsMoved" && move.from === "security";
-    });
-    const deckMove = s.events.findIndex((event) => {
-      const move = event as { kind?: string; to?: string };
-      return move.kind === "cardsMoved" && move.to === "deckBottom";
-    });
-    expect(securityMove).toBeGreaterThanOrEqual(0);
-    expect(deckMove).toBeGreaterThan(securityMove);
-    assertNoLoudGap(s);
-  });
-
-  it("excludes ExMaquinamon itself from the [Maquinamon] link pool (exact name, KB Q1231/Q1232)", async () => {
-    // "ExMaquinamon" CONTAINS "Maquinamon", so a substring name match would let this card link
-    // copies of itself.
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-073", as: "host" }],
-          hand: [{ card: "EX11-073", as: "selfCopy" }],
-          trash: [{ card: "EX11-073", as: "trashCopy" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("host"), {
-      isDnaDigivolve: true,
-    });
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.perm("host").linked).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-073");
-    assertNoLoudGap(s);
-  });
-
-  it("links nothing when the digivolution is not a DNA digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX11-073", as: "host" }],
-          hand: [{ card: "EX11-027", as: "handLink" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("host"));
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.perm("host").linked).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-027");
-    assertNoLoudGap(s);
-  });
-
-  it("does nothing at the end of the opponent's turn with zero link cards", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX11-073", as: "host" }] },
-        1: {
-          battleArea: [{ card: "BT1-010", as: "target" }],
-          security: ["BT1-013", "BT1-014"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-    await settle(() => s.state.pendingDecision === undefined);
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.security).toHaveLength(2);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-080");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 

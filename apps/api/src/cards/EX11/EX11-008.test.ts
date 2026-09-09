@@ -1,10 +1,10 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX11-008.js";
+import "./EX11-057.js";
 
 describe("EX11-008 Elizamon", () => {
   it("grants Raid and DP on entry while inheriting the opponent-security memory trigger", () => {
@@ -49,7 +49,7 @@ describe("EX11-008 Elizamon", () => {
         0: {
           battleArea: [
             { card: "EX11-007", as: "first" },
-            { card: "EX11-007", as: "chosen" },
+            { card: "EX11-007", as: "chosen", dp: 3_000 },
           ],
           hand: [{ card: "EX11-008", as: "elizamon" }],
         },
@@ -62,9 +62,9 @@ describe("EX11-008 Elizamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elizamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("chosen").currentDP === 4000);
+    await settle(() => s.perm("chosen").currentDP === 6000);
 
-    expect(s.perm("chosen").currentDP).toBe(4000);
+    expect(s.perm("chosen").currentDP).toBe(6000);
     expect(observe(s.engine).hasKeyword(s.perm("chosen"), "Raid")).toBe(true);
     expect(s.perm("first").currentDP).toBe(1000);
     expect(observe(s.engine).hasKeyword(s.perm("first"), "Raid")).toBe(false);
@@ -78,7 +78,7 @@ describe("EX11-008 Elizamon", () => {
       {
         0: {
           breeding: { card: "EX11-008", as: "mover" },
-          battleArea: [{ card: "EX11-007", as: "ally" }],
+          battleArea: [{ card: "EX11-007", as: "ally", dp: 3_000 }],
         },
       },
       { autoSelectCards: true, preferInstanceIds },
@@ -89,53 +89,102 @@ describe("EX11-008 Elizamon", () => {
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("ally").currentDP === 4000);
+    await settle(() => s.perm("ally").currentDP === 6000);
 
-    expect(s.perm("ally").currentDP).toBe(4000);
+    expect(s.perm("ally").currentDP).toBe(6000);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Raid")).toBe(true);
     expect(s.perm("mover").currentDP).toBe(1000);
     expect(observe(s.engine).hasKeyword(s.perm("mover"), "Raid")).toBe(false);
     assertNoLoudGap(s);
   });
 
-  it("gains memory once when the opponent's security is removed on its owner's turn", async () => {
+  it("hatches a legal Digi-Egg through the public breeding flow", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT1-001", as: "egg" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("egg").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-001");
+    assertNoLoudGap(s);
+  });
+
+  it("gains memory when a public attack removes the opponent's security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX11-009", as: "host", under: ["EX11-008"] }] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      0: {
+        battleArea: [{ card: "EX11-009", as: "host", under: ["EX11-008"], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-009", "BT1-010"] },
+    });
+    s.state.memory = 0;
+    s.state.turnCount = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("orders the inherited trigger with a public Security play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-009", as: "host", under: ["EX11-008"], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { security: [{ card: "EX11-057", as: "securitySuzune" }, "BT1-009"], deck: ["BT1-009"] },
     });
     s.state.memory = 0;
     await s.ready();
-
-    await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
-    await settle(() => s.state.memory === 1);
-    expect(s.state.memory).toBe(1);
-
-    await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
-    await settle();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-057"),
+    );
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
   });
 
   it("does not gain memory from its owner's security or during the opponent's turn", async () => {
-    const ownSecurity = setupEngine({
+    const s = setupEngine({
       0: {
         battleArea: [{ card: "EX11-009", as: "host", under: ["EX11-008"] }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
-      1: { security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker" }], security: ["BT1-009"] },
     });
-    ownSecurity.state.memory = 0;
-    await ownSecurity.ready();
-
-    await advance(ownSecurity.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
-    await settle();
-    expect(ownSecurity.state.memory).toBe(0);
-
-    ownSecurity.state.turnSeat = 1;
-    await ownSecurity.engine.recomputeContinuousEffects();
-    await advance(ownSecurity.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
-    await settle();
-    expect(ownSecurity.state.memory).toBe(0);
-    assertNoLoudGap(ownSecurity);
+    s.state.memory = 0;
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
   });
 });

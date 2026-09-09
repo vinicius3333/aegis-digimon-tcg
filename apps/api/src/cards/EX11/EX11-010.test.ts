@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,6 +7,15 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX11-010 MasterTyrannomon", () => {
+  it("preserves the catalog identity and printed cost/traits", () => {
+    expect(getCardDefinition("EX11-010")).toMatchObject({
+      nameEn: "MasterTyrannomon",
+      colors: ["Red", "Green"],
+      level: 5,
+      types: ["Dinosaur", "LIBERATOR"],
+      effectText: expect.stringContaining("Fortitude"),
+    });
+  });
   it("encodes both timings, the live suspended-state gate, duration, keywords, inherited effect, and Dinosaur evolution", () => {
     const compiled = runtimeCompiledCard("EX11-010")!;
 
@@ -86,7 +96,7 @@ describe("EX11-010 MasterTyrannomon", () => {
         0: {
           battleArea: [{ card: "EX11-009", as: "base", suspended: true }],
           hand: [{ card: "EX11-010", as: "master" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -112,12 +122,19 @@ describe("EX11-010 MasterTyrannomon", () => {
   it("keeps the +4000 DP through the opponent's turn and loses it when that turn ends", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX11-010", as: "master" }] },
-        1: { deck: ["BT1-001", "BT1-001", "BT1-001"] },
+        0: {
+          hand: [{ card: "EX11-010", as: "master" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("master").instanceId })).toEqual({
       ok: true,
@@ -127,11 +144,18 @@ describe("EX11-010 MasterTyrannomon", () => {
       s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX11-010");
     expect(findMaster()?.currentDP).toBe(11000);
 
-    s.state.turnSeat = 1;
-    await advance(s.engine).runTurn(1);
-    await settle();
-
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0 && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
+    expect(findMaster()?.currentDP).toBe(11000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0);
     expect(findMaster()?.currentDP).toBe(7000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 

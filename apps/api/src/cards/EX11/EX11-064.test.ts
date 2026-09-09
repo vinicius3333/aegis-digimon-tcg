@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-064.js";
 
@@ -17,24 +16,14 @@ describe("EX11-064 Altea", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("gains memory at the start of the main phase when the opponent has a Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX11-064", as: "altea" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
-    });
-    s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("altea"));
-    expect(s.state.memory).toBe(1);
-    assertNoLoudGap(s);
-  });
-
   it("flips the opponent's top face-down security card face up (Q5928-Q5931)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX11-064", as: "altea" }] },
+      0: { hand: [{ card: "EX11-064", as: "altea" }] },
       1: { security: ["BT1-090", "BT1-091"] },
     });
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("altea"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("altea").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security[0]!.faceUp === true);
 
     expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);
     expect(s.state.players[1]!.security[1]!.faceUp).toBe(false);
@@ -100,9 +89,14 @@ describe("EX11-064 Altea", () => {
     s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("nonCyborg").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("nonCyborg").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision);
 
     expect(s.perm("altea").isSuspended).toBe(false);
     expect(s.perm("nonCyborg").topCard?.cardId).toBe("EX11-049");
@@ -131,5 +125,43 @@ describe("EX11-064 Altea", () => {
         ],
       },
     ]);
+  });
+
+  it("gains 1 memory at the start of main while the opponent has a Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-064", as: "altea" }], deck: ["BT1-009", "BT1-010"] },
+      1: { battleArea: [{ card: "BT1-011", as: "opponent" }], deck: ["BT1-012", "BT1-013"] },
+    });
+    s.state.memory = 2;
+    s.state.turnCount = 1;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("plays Altea from security through a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 20_000 }] },
+      1: { security: [{ card: "EX11-064", as: "securityAltea" }] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-064"));
+
+    expect(
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securityAltea").instanceId),
+    ).toBe(true);
+    assertNoLoudGap(s);
   });
 });

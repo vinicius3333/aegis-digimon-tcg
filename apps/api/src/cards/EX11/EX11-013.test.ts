@@ -1,13 +1,15 @@
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX11-013 Sangomon", () => {
   it("encodes both entry timings, the exact hand boundary, and only the inherited once-per-turn effect", () => {
     const compiled = runtimeCompiledCard("EX11-013")!;
+    expect(getCardDefinition("EX11-013")?.types).toContain("Aquatic");
 
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
@@ -35,15 +37,15 @@ describe("EX11-013 Sangomon", () => {
         0: {
           hand: [
             { card: "EX11-013", as: "sangomon" },
-            "BT1-001",
-            "BT1-001",
-            "BT1-001",
-            "BT1-001",
-            "BT1-001",
-            "BT1-001",
-            "BT1-001",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
           ],
-          deck: [{ card: "BT1-002", as: "drawn" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
@@ -65,16 +67,16 @@ describe("EX11-013 Sangomon", () => {
       0: {
         hand: [
           { card: "EX11-013", as: "sangomon" },
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
         ],
-        deck: [{ card: "BT1-002", as: "notDrawn" }],
+        deck: [{ card: "BT1-010", as: "notDrawn" }],
       },
     });
     s.state.memory = 3;
@@ -93,8 +95,8 @@ describe("EX11-013 Sangomon", () => {
     const s = setupEngine({
       0: {
         breeding: { card: "EX11-013", as: "sangomon" },
-        hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        deck: [{ card: "BT1-002", as: "drawn" }],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: [{ card: "BT1-010", as: "drawn" }],
       },
     });
     s.state.phase = Phase.Breeding;
@@ -115,16 +117,28 @@ describe("EX11-013 Sangomon", () => {
 
   it("gains memory once across two real attacks when inherited", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX11-013"] }] },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["EX11-013"], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010", "BT1-012", "BT1-014", "BT1-015"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-012", as: "targetOne", suspended: true, dp: 3_000 },
+          { card: "BT1-014", as: "targetTwo", suspended: true, dp: 4_000 },
+        ],
+        security: ["BT1-009", "BT1-010", "BT1-012"],
+        deck: ["BT1-009", "BT1-010", "BT1-012", "BT1-014", "BT1-015"],
+      },
     });
     s.state.memory = 0;
+    s.state.turnCount = 1;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
+        target: { kind: "permanent", permanentId: s.perm("targetOne").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
@@ -135,7 +149,7 @@ describe("EX11-013 Sangomon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
+        target: { kind: "permanent", permanentId: s.perm("targetTwo").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle();
@@ -144,10 +158,62 @@ describe("EX11-013 Sangomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("resets the inherited once-per-turn effect on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["EX11-013"], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010", "BT1-012", "BT1-014", "BT1-015"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-012", as: "targetOne", suspended: true, dp: 3_000 },
+          { card: "BT1-014", as: "targetTwo", suspended: true, dp: 4_000 },
+        ],
+        security: ["BT1-009", "BT1-010", "BT1-012"],
+        deck: ["BT1-009", "BT1-010", "BT1-012", "BT1-014", "BT1-015"],
+      },
+    });
+    s.state.memory = 0;
+    s.state.turnCount = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("targetOne").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    const firstTurnMemory = s.state.memory;
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(firstTurnMemory + 1);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
   it("does not gain memory when Sangomon is the standalone top card", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX11-013", as: "sangomon" }] },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-010"] },
     });
 
     expect(

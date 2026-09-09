@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,16 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX11-015 Frigimon", () => {
+  it("preserves the catalog identity and printed clauses", () => {
+    expect(getCardDefinition("EX11-015")).toMatchObject({
+      nameEn: "Frigimon",
+      colors: ["Blue", "Yellow"],
+      level: 4,
+      types: ["Ice-Snow", "LIBERATOR"],
+      effectText: expect.stringContaining("Suzune Kazuki"),
+      inheritedEffectText: "＜Jamming＞",
+    });
+  });
   it("encodes the Ice-Snow evolution, exact Tamer ceiling, optional free play, and inherited Jamming", () => {
     const compiled = runtimeCompiledCard("EX11-015")!;
 
@@ -67,7 +78,9 @@ describe("EX11-015 Frigimon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-057"));
 
     expect(s.perm("base").topCard.cardId).toBe("EX11-015");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX11-014"]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("suzune").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
