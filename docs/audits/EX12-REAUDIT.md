@@ -4,7 +4,7 @@ Result: **77/77 cards (100%) at 10/10**.
 
 Three Luna lanes independently reconciled EX12-001 through EX12-077 against the committed catalog, local knowledge base, direct compiled IR, shared runtime semantics, peers, evolution stacks, and observable focused tests. Existing audit scores were treated as claims to falsify.
 
-No reproducible card, engine, shared-data, or catalog behavior defect was found. The audit added a turn-transition assertion for EX12-004 and replaced Digi-Egg cards incorrectly used as neutral deck/security filler across 14 card suites. Intentional Digi-Egg use remains in breeding, digivolution stacks, and trash-payment/card-count rulings.
+No reproducible card, engine, shared-data, or catalog behavior defect was found. The audit replaced Digi-Egg cards incorrectly used as neutral deck/security filler across 14 card suites and moved four invalid evolution bases to the breeding area. Intentional Digi-Egg use remains in breeding, digivolution stacks, and trash-payment/card-count rulings.
 
 Evidence:
 

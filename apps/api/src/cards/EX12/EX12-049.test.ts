@@ -141,7 +141,7 @@ describe("EX12-049 Angoramon", () => {
 
   it("rejects an off-color level-2 card matching neither alternate route", () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "EX12-049", as: "target" }] },
+      0: { breeding: { card: "BT1-001", as: "base" }, hand: [{ card: "EX12-049", as: "target" }] },
     });
 
     expect(

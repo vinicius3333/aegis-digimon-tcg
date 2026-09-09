@@ -206,7 +206,7 @@ describe("EX12-061 Hanimon", () => {
       expect(s.state.memory).toBe(0);
     }
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-003", as: "base" }], hand: [{ card: CARD_ID, as: "target" }] },
+      0: { breeding: { card: "BT1-003", as: "base" }, hand: [{ card: CARD_ID, as: "target" }] },
     });
     expect(
       invalid.engine.applyIntent(0, {

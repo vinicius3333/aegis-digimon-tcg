@@ -36,3 +36,10 @@
 ## Closeout
 
 All 77 cards have 2/2 contract/rules, IR trace, behavioral proof, and peer/stack evidence. Coordinator delivery gates pass. The collection has no open engine seam, catalog correction, residual behavior, registration exception, or score below 10/10. Final delivery consists of one focused test commit and one forced-added audit evidence commit, followed by branch push and review PR.
+
+## Review corrections
+
+- Luna final review rejected the added EX12-004 expiry case because it mutated `turnSeat` directly. The unsupported case and claim were removed; the existing owner/opponent-turn and Q6728 production behavior remain the scored evidence.
+- Four invalid evolution-boundary fixtures placed Digi-Eggs directly in the battle area (EX12-038, -049, -053, -061). They now use the legal breeding area and retain the intended rejection proof.
+- Focused post-review rerun: 5 files and 36 tests passed with one worker.
+- Final EX12 collection rerun: 79 files and 867 tests passed with one worker.
