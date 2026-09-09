@@ -80,6 +80,27 @@ export function materializeLevelComparisonScaling(target: Target, factor: number
   };
 }
 
+/**
+ * Materialize a dynamic play-cost ceiling before matching loose cards.
+ *
+ * Same reason as `materializeLevelComparisonScaling`: `definitionMatches` only understands a
+ * static `playCostLte`, so a `playCostLteScaling` ceiling must be folded into that value before
+ * loose candidates are resolved. Both the optional-play preflight in `runAction` and the play
+ * resolver below go through this helper so the gate and the resolution agree (BT19-100).
+ */
+export function materializePlayCostLteScaling(ctx: EffectContext, target: Target): Target {
+  const scaling = target.filter.playCostLteScaling;
+  if (scaling === undefined) return target;
+  return {
+    ...target,
+    filter: {
+      ...target.filter,
+      playCostLte: (target.filter.playCostLte ?? 0) + playCostScalingDelta(scaling, scaleFactor(ctx, scaling)),
+      playCostLteScaling: undefined,
+    },
+  };
+}
+
 function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): number | undefined {
   const base = action.reduceCostBy;
   const scaling = action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling);
@@ -440,20 +461,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                     : playTarget.filter.levelComparison,
               },
             };
-      const playCostScaling = levelCeilingAdjustedTarget.filter.playCostLteScaling;
-      const scaledCostAdjustedTarget =
-        playCostScaling === undefined
-          ? levelCeilingAdjustedTarget
-          : {
-              ...levelCeilingAdjustedTarget,
-              filter: {
-                ...levelCeilingAdjustedTarget.filter,
-                playCostLte:
-                  (levelCeilingAdjustedTarget.filter.playCostLte ?? 0) +
-                  playCostScalingDelta(playCostScaling, scaleFactor(ctx, playCostScaling)),
-                playCostLteScaling: undefined,
-              },
-            };
+      const scaledCostAdjustedTarget = materializePlayCostLteScaling(ctx, levelCeilingAdjustedTarget);
       // playCostCeiling: dynamically raise the playCostLte ceiling before resolving candidates.
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
@@ -835,13 +843,20 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         typeof playCostFilter === "object" &&
         "relativeToLeavingDigimon" in playCostFilter
       ) {
-        // whenLeavesPlay fires with `deletedPermanentId` BEFORE removal, so the permanent is
-        // still live on the board and its playCost is readable. Fall back to subjectPermanentId
-        // for other event seams.
+        // Leave/deletion events resolve AFTER the permanent has left the battle area, so the
+        // live board usually no longer holds it (see subTrigger.ts `deletionSourceFilterGate`,
+        // which reads the same removal snapshot). Try the live permanent first (other event
+        // seams still fire pre-removal), then fall back to the snapshot top-card id.
         const leavingId = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
         const leavingPerm = leavingId !== undefined ? ctx.game.permanentById(leavingId) : undefined;
+        const snapshotCardId =
+          ctx.trigger.deletedPermanentSnapshots?.find((snapshot) => snapshot.permanentId === leavingId)?.topCardId ??
+          ctx.trigger.deletedTopCardId;
+        const leavingCardId = leavingPerm?.topCard?.cardId ?? snapshotCardId;
         const leavingCost =
-          leavingPerm?.topCard !== undefined ? (ctx.game.definitionOf(leavingPerm.topCard).playCost ?? 0) : undefined;
+          leavingCardId === undefined
+            ? undefined
+            : (ctx.game.definitionOf({ cardId: leavingCardId } as never).playCost ?? 0);
         if (leavingCost === undefined) {
           // No triggering Digimon in context — the condition can't be evaluated; skip play.
           ctx.lastEffectActed = false;

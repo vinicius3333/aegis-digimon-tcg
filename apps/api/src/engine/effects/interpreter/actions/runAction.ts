@@ -27,6 +27,7 @@ import {
   applyPlayDpCeilingModifier,
   applyPlayCostCeiling,
   materializeLevelComparisonScaling,
+  materializePlayCostLteScaling,
   runPlayAction,
 } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
@@ -652,9 +653,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const levelComparison = action.target.filter.levelComparison;
+      // Fold the dynamic play-cost ceiling in before searching for candidates, exactly as the
+      // resolver does. Without this the gate judges the clause at the printed `playCostLte`
+      // (usually 0), finds nothing, and drops the optional play before any decision (BT19-100).
+      const costScaledTarget = materializePlayCostLteScaling(ctx, action.target);
+      const levelComparison = costScaledTarget.filter.levelComparison;
       const levelScaledTarget = materializeLevelComparisonScaling(
-        action.target,
+        costScaledTarget,
         levelComparison?.scaling === undefined ? 0 : scaleFactor(ctx, levelComparison.scaling),
       );
       const dpCeilingTarget = applyPlayDpCeilingModifier(ctx, action, levelScaledTarget);
