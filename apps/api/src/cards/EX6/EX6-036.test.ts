@@ -23,13 +23,13 @@ describe("EX6-036 Keramon", () => {
     }));
   it("publicly adds the matching Tamer and Option from its reveal", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-036", as: "keramon" }], deck: ["BT5-090", "EX6-043", "BT1-001"] } },
+      { 0: { battleArea: [{ card: "EX6-036", as: "keramon" }], deck: ["BT5-090", "EX6-043", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keramon"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT5-090", "EX6-043"]));
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("publicly plays a Diaboromon token when an Unidentified Keramon is deleted", async () => {

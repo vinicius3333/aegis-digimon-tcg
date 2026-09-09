@@ -77,7 +77,7 @@ describe("EX6-011 RagnaLoardmon", () => {
             { card: "BT1-060", as: "stacked", under: ["BT1-009"] },
             { card: "BT1-009", as: "victim" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true },

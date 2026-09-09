@@ -27,7 +27,7 @@ describe("EX6-017 Luxmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-017"] }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     await s.ready();
@@ -40,7 +40,7 @@ describe("EX6-017 Luxmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-017"] }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     await s.ready();

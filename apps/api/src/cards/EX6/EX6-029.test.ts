@@ -77,9 +77,9 @@ describe("EX6-029 Mastemon", () => {
             { card: "BT1-060", as: "other" },
           ],
           hand: [{ card: "EX6-029", as: "mast" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -114,9 +114,9 @@ describe("EX6-029 Mastemon", () => {
           ],
           hand: [{ card: "EX6-029", as: "mast" }],
           trash: [{ card: "EX6-019", as: "angel" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -148,7 +148,7 @@ describe("EX6-029 Mastemon", () => {
           ],
           hand: [{ card: "EX6-029", as: "mast" }],
         },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -169,7 +169,7 @@ describe("EX6-029 Mastemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX6-029", as: "mast" }] },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

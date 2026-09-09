@@ -21,7 +21,7 @@ describe("EX6-013 Xiquemon", () => {
 
   it("draws one card when played from hand", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "EX6-013", as: "xique" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      0: { hand: [{ card: "EX6-013", as: "xique" }], deck: [{ card: "BT1-009", as: "drawn" }] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -35,7 +35,7 @@ describe("EX6-013 Xiquemon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-014", as: "host", under: [{ card: "EX6-013", as: "xique" }] }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
