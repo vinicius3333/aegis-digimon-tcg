@@ -1,12 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentHand = { zone: "hand", controller: "opponent" };
+const opponentHand = { zone: "hand", controller: "opponent" } satisfies Filter;
 const opponentDigimon = {
   controller: "opponent",
   kind: ["Digimon"],
-};
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   effects: [

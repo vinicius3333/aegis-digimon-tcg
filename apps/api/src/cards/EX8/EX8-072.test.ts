@@ -1,15 +1,72 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { getCardDefinition, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-072.js";
 
 describe("EX8-072", () => {
+  it("matches the committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-072")).toMatchObject({
+      cardId: "EX8-072",
+      nameEn: "Seventh Jewelrize",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 7,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["Seven Great Demon Lords"],
+      evoCosts: [],
+      effectText:
+        "[Trash] [Your Turn] When any of your Digimon digivolves into [Barbamon (X Antibody)], by returning this card to the bottom of the deck, activate this card's [Main] effects.  [Main] If your opponent has 5 or more cards in their hand, they trash 1 card in their hand. Then, delete 1 of your opponent's level 7 or lower Digimon. For every 3 cards in your opponent's hand, remove 1 from this effect level maximum.",
+      securityEffectText: "[Security] Activate this card's [Main] effect.",
+    });
+  });
   it("registers the mandatory Main delete effect", () => {
-    expect(compiled.effects.find((entry) => entry.trigger === "Main")?.actions).toHaveLength(2);
+    const main = compiled.effects.find((entry) => entry.trigger === "Main");
+    expect(main?.actions).toHaveLength(2);
+    expect(main?.actions[0]).toMatchObject({
+      kind: "Trash",
+      chooser: "opponent",
+      target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
+      condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 5 },
+    });
+    expect(main?.actions[1]).toMatchObject({
+      kind: "Delete",
+      target: {
+        filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 7 } },
+        count: 1,
+      },
+      scaling: { per: 3, unit: "cards", filter: { zone: "hand", controller: "opponent" }, levelCeilingAdd: -1 },
+    });
   });
   it("registers the [Trash][Your Turn] Barbamon (X Antibody) watcher", () => {
-    expect(compiled.effects.find((entry) => entry.isFromTrash)).toMatchObject({ trigger: "YourTurn" });
+    expect(compiled.effects.find((entry) => entry.isFromTrash)).toMatchObject({
+      trigger: "YourTurn",
+      isFromTrash: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Barbamon (X Antibody)"], match: "nameExact" }],
+          },
+          actions: [
+            {
+              kind: "Return",
+              to: "deckBottom",
+              from: ["trash"],
+              optional: true,
+              abortOnDecline: true,
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            },
+            { kind: "ActivateMain" },
+          ],
+        },
+      ],
+    });
   });
   it("registers the printed security activation", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({ isSecurity: true });
@@ -79,7 +136,7 @@ describe("EX8-072", () => {
           battleArea: [{ card: "EX6-059", as: "barbamon" }],
           hand: [{ card: "EX8-063", as: "barbamonX" }],
           trash: [{ card: "EX8-072", as: "option" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
