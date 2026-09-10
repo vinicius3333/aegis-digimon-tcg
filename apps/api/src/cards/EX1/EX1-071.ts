@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -43,7 +42,6 @@ const compiled: CompiledCard = {
           costType: "digivolve",
           amount: 4,
           duration: "nextDigivolveThisTurn",
-          zone: "battleArea",
           cost: {
             kind: "trash",
             raw: "by trashing 1 Digimon card in your hand of the same color as the digivolving Digimon",

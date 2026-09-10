@@ -11,7 +11,7 @@ describe("EX1-063 VenomMyotismon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-063", as: "venom" }], trash: [{ card: "EX1-056", as: "played" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -37,7 +37,7 @@ describe("EX1-063 VenomMyotismon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-013", as: "levelFour" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
@@ -66,7 +66,7 @@ describe("EX1-063 VenomMyotismon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-063", as: "venom" }], trash: [{ card: "BT12-076", as: "inheritedOnly" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -86,7 +86,7 @@ describe("EX1-063 VenomMyotismon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-063", as: "venom" }], trash: [{ card: "BT11-084", as: "tooHigh" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -109,7 +109,7 @@ describe("EX1-063 VenomMyotismon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-063", as: "venom" }], trash: [{ card: "EX1-056", as: "candidate" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -143,7 +143,7 @@ describe("EX1-063 VenomMyotismon", () => {
             { card: "EX1-057", as: "second" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );

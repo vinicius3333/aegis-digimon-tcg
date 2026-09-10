@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
@@ -32,24 +31,15 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
     });
   });
 
-  it("SECURITY: gains 2 memory for the option's owner", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX1-068", as: "iceWall", faceUp: true }] } });
-    s.state.memory = -3;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("iceWall"));
-
-    expect(s.state.memory).toBe(-1);
-  });
-
   it("SECURITY public flow: its owner gains 2 memory after a real security check", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-009", as: "attacker" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
       },
       1: {
         security: [{ card: "EX1-068", as: "iceWallSecurity" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -88,13 +78,13 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
         0: {
           hand: [{ card: "EX1-068", as: "iceWall" }],
           battleArea: [{ card: "AD1-006", dp: 2000, as: "colorSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -129,13 +119,13 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
         0: {
           hand: [{ card: "EX1-068", as: "iceWall" }],
           battleArea: [{ card: "AD1-006", dp: 2000, as: "colorSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -164,16 +154,16 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
         0: {
           hand: [{ card: "EX1-068", as: "iceWall" }],
           battleArea: [{ card: "AD1-006", as: "blueSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           hand: [
             { card: "BT14-058", as: "later" },
             { card: "BT14-086", as: "source" },
           ],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -211,14 +201,14 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
         0: {
           hand: [{ card: "EX1-068", as: "iceWall" }],
           battleArea: [{ card: "AD1-006", as: "blueSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT14-016", as: "base" }],
           hand: [{ card: "BT14-017", as: "blitz" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -265,13 +255,13 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
             { card: "EX1-068", as: "secondIceWall" },
           ],
           battleArea: [{ card: "AD1-006", as: "blueSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "attacker" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -329,8 +319,8 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
           { card: "BT1-090", as: "ownerAction" },
         ],
         battleArea: [{ card: "AD1-006", as: "blueSource" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
       },
       1: {
         hand: [{ card: "BT1-090", as: "mainAction" }],
@@ -339,8 +329,8 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
           { card: "BT1-009", as: "second" },
           { card: "AD1-006", as: "blueSource" },
         ],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -384,8 +374,8 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
         0: {
           hand: [{ card: "EX1-068", as: "iceWall" }],
           battleArea: [{ card: "AD1-006", as: "blueSource" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           hand: [{ card: "BT19-089", as: "immunity" }],
@@ -393,8 +383,8 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
             { card: "BT1-009", as: "target" },
             { card: "BT1-085", as: "redTamer" },
           ],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -443,8 +433,8 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
         0: {
           hand: [{ card: "EX1-068", as: "iceWall" }],
           battleArea: [{ card: "AD1-006", as: "blueSource" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           hand: [{ card: "BT19-089", as: "immunity" }],
@@ -452,8 +442,8 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
             { card: "BT1-009", as: "target" },
             { card: "BT1-085", as: "redTamer" },
           ],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

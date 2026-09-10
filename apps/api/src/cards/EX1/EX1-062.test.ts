@@ -9,7 +9,7 @@ describe("EX1-062 SkullGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-062", as: "skull" }], trash: [{ card: "BT1-010", as: "agumon" }] },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -40,7 +40,7 @@ describe("EX1-062 SkullGreymon", () => {
             },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -101,7 +101,7 @@ describe("EX1-062 SkullGreymon", () => {
             { card: "BT6-018", as: "bond" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -125,7 +125,7 @@ describe("EX1-062 SkullGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-062", as: "skull" }], trash: [{ card: "BT1-010", as: "agumon" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

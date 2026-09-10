@@ -84,14 +84,14 @@ describe("EX1-048 Andromon", () => {
       0: {
         battleArea: [{ card: "BT11-072", as: "host", under: ["EX1-048"] }],
         hand: ["BT1-009"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
       1: {
         battleArea: [{ card: "BT1-010", as: "attacker" }],
         hand: ["BT1-009"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     const loop = s.engine.startTurnLoop();
@@ -121,14 +121,14 @@ describe("EX1-048 Andromon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-111", as: "host", under: ["EX1-048"] }],
-        hand: ["BT1-001"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
       1: {
-        hand: ["BT1-001"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     const loop = s.engine.startTurnLoop();

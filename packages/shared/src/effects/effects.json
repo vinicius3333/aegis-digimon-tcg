@@ -132634,7 +132634,8 @@
             "kind": "SubTrigger",
             "event": "whenDigivolutionTrashed",
             "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
-            "actions": [{ "kind": "Draw", "amount": 2 }]
+            "optional": true,
+            "actions": [{ "kind": "Draw", "controller": "mine", "amount": 2 }]
           }
         ]
       },
@@ -132773,7 +132774,7 @@
                 "to": "hand"
               }
             ],
-            "rest": "deckBottom"
+            "rest": "deckBottomAnyOrder"
           }
         ]
       }
@@ -134080,7 +134081,7 @@
                 "optional": true
               },
               { "kind": "GainMemory", "amount": 1, "condition": { "kind": "ifThisEffectActed" } },
-              { "kind": "Hatch", "controller": "mine", "condition": { "kind": "ifThisEffectActed" } }
+              { "kind": "Hatch", "condition": { "kind": "ifThisEffectActed" } }
             ]
           }
         ]
@@ -134262,7 +134263,6 @@
             "costType": "digivolve",
             "amount": 4,
             "duration": "nextDigivolveThisTurn",
-            "zone": "battleArea",
             "cost": {
               "kind": "trash",
               "raw": "by trashing 1 Digimon card in your hand of the same color as the digivolving Digimon"

@@ -13,8 +13,8 @@ describe("EX1-051 Infermon", () => {
         0: {
           battleArea: [{ card: "EX1-051", as: "infermon" }],
           hand: ["BT1-009"],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -25,8 +25,8 @@ describe("EX1-051 Infermon", () => {
             { card: "BT5-015", as: "evo" },
             { card: "BT5-015", as: "evoTwo" },
           ],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -81,15 +81,15 @@ describe("EX1-051 Infermon", () => {
         0: {
           battleArea: [{ card: "EX1-051", as: "infermon" }],
           hand: ["BT1-009"],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "filler" }],
           breeding: { card: "EX1-047", as: "breeding" },
           hand: [{ card: "EX1-050", as: "evo" }, "BT1-009"],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -124,10 +124,10 @@ describe("EX1-051 Infermon", () => {
           { card: "EX1-047", as: "base" },
         ],
         hand: [{ card: "EX1-050", as: "evo" }],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
-      1: { deck: ["BT1-001", "BT1-002"], security: ["BT1-001", "BT1-001"] },
+      1: { deck: ["BT1-009", "BT1-010"], security: ["BT1-009", "BT1-009"] },
     });
     await s.ready();
     expect(
@@ -147,8 +147,8 @@ describe("EX1-051 Infermon", () => {
         0: {
           battleArea: [{ card: "EX1-051", as: "infermon", dp: 6000 }],
           hand: ["BT1-009"],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           hand: [{ card: "BT2-020", as: "evo" }],
@@ -156,8 +156,8 @@ describe("EX1-051 Infermon", () => {
             { card: "BT1-085", as: "tai" },
             { card: "BT1-021", as: "base" },
           ],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },

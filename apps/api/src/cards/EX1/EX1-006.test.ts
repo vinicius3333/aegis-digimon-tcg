@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "./EX1-006.js";
@@ -7,7 +8,7 @@ describe("EX1-006 Garudamon", () => {
   it("gains 1 memory only when its Digimon attacks a player", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 5;
     await s.ready();
@@ -72,7 +73,7 @@ describe("EX1-006 Garudamon", () => {
         battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }],
         hand: [{ card: "BT1-036", as: "unsuspender" }],
       },
-      1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     s.state.memory = 9;
     await s.ready();
@@ -107,7 +108,7 @@ describe("EX1-006 Garudamon", () => {
           { card: "BT1-025", as: "host" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -136,5 +137,65 @@ describe("EX1-006 Garudamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.memory === 5);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("rejects evolution from a non-red level-4 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-036", as: "blueLevel4" }],
+        hand: [{ card: "EX1-006", as: "evo" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueLevel4").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("blueLevel4").topCard.cardId).toBe("BT1-036");
+  });
+
+  it("resets its Once Per Turn memory gain on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: {
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+    });
+    s.state.memory = 9;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      });
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.memory === 10);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.turnSeat === 0 && s.state.phase === "Main");
+    await settle(() => !s.perm("attacker").isSuspended);
+
+    const memoryBeforeResetAttack = s.state.memory;
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.state.memory).toBe(memoryBeforeResetAttack + 1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

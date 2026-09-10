@@ -7,8 +7,12 @@ describe("EX1-035 Kabuterimon", () => {
   it("can digivolve into an Insectoid from hand while attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX1-035", as: "kabuterimon" }], hand: [{ card: "BT1-076", as: "evo" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        0: {
+          battleArea: [{ card: "EX1-035", as: "kabuterimon" }],
+          hand: [{ card: "BT1-076", as: "evo" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -23,6 +27,9 @@ describe("EX1-035 Kabuterimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("kabuterimon").topCard.cardId === "BT1-076");
     expect(s.perm("kabuterimon").topCard.instanceId).toBe(s.inst("evo").instanceId);
+    expect(s.perm("kabuterimon").stack.map(({ cardId }) => cardId)).toEqual(["EX1-035"]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.memory).toBe(3);
   });
 
@@ -30,7 +37,7 @@ describe("EX1-035 Kabuterimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-035", as: "kabuterimon" }], hand: [{ card: "BT1-076", as: "evo" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -53,9 +60,9 @@ describe("EX1-035 Kabuterimon", () => {
         0: {
           battleArea: [{ card: "EX1-035", as: "kabuterimon" }],
           hand: [{ card: "BT1-076", as: "evo" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-001"], deck: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"], deck: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -70,8 +77,9 @@ describe("EX1-035 Kabuterimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("kabuterimon").topCard.cardId === "BT1-076");
     await settle(() => s.state.players[1]!.security.length === 1);
-    expect(s.state.memory).toBeLessThan(0);
+    expect(s.state.memory).toBe(-1);
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     expect(s.perm("kabuterimon").topCard.cardId).toBe("BT1-076");
   });
 
@@ -79,7 +87,7 @@ describe("EX1-035 Kabuterimon", () => {
     const nonTrait = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-035", as: "kabuterimon" }], hand: [{ card: "BT1-071", as: "nonTrait" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -100,7 +108,7 @@ describe("EX1-035 Kabuterimon", () => {
     const invalidRequirement = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-035", as: "kabuterimon" }], hand: [{ card: "BT7-054", as: "tooHigh" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -131,7 +139,7 @@ describe("EX1-035 Kabuterimon", () => {
             { card: "BT16-045", as: "newDigivolvingEffect" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

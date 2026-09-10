@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-009.js";
+import "./EX1-065.js";
 import "./EX1-048.js";
 import "../ST1/ST1-12.js";
 import "../BT1/BT1-072.js";
@@ -20,7 +21,7 @@ describe("EX1-009 WarGreymon", () => {
             { card: "BT1-072", as: "blocker" },
             { card: "BT1-010", as: "nonBlocker" },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -69,7 +70,7 @@ describe("EX1-009 WarGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-009", as: "attacker" }] },
-        1: { battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-001", "BT1-001"] },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -100,7 +101,7 @@ describe("EX1-009 WarGreymon", () => {
             { card: "BT2-066", as: "inheritedBlocker", under: ["EX1-048"] },
             { card: "BT1-072", as: "printedBlocker" },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -127,6 +128,35 @@ describe("EX1-009 WarGreymon", () => {
     expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
   });
 
+  it("deletes a Blocker granted by another effect before blocking (Q3199)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-009", as: "attacker" },
+            { card: "ST1-12", as: "tamer" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "EX1-065", as: "effectBlocker" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const effectBlockerId = s.perm("effectBlocker").topCard.instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === effectBlockerId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("allows a real Blitz attack after digivolving past zero memory", async () => {
     const s = setupEngine(
       {
@@ -137,7 +167,7 @@ describe("EX1-009 WarGreymon", () => {
           ],
           hand: [{ card: "EX1-009", as: "evo" }],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

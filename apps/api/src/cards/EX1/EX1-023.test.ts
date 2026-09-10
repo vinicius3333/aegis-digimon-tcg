@@ -1,3 +1,4 @@
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -10,9 +11,13 @@ describe("EX1-023 Elecmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }],
+          battleArea: [
+            { card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] },
+            { card: "BT1-020", as: "ownPeer" },
+          ],
           hand: ["BT1-009"],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -20,7 +25,7 @@ describe("EX1-023 Elecmon", () => {
             { card: "ST6-08", as: "opponent" },
           ],
           hand: [{ card: "ST6-15", as: "option" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -34,8 +39,23 @@ describe("EX1-023 Elecmon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-051") &&
+        s.state.pendingDecision === undefined,
+    );
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    expect(observe(s.engine).keywordAmount(s.perm("ownPeer"), "SecurityAttack")).toBe(0);
+    const securityBeforeAttack = s.state.players[0]!.security.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(securityBeforeAttack);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -46,7 +66,7 @@ describe("EX1-023 Elecmon", () => {
         0: {
           battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }],
           hand: ["BT1-009"],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -54,7 +74,7 @@ describe("EX1-023 Elecmon", () => {
             { card: "ST1-12", as: "tamer" },
           ],
           hand: [{ card: "ST6-15", as: "option" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -80,7 +100,7 @@ describe("EX1-023 Elecmon", () => {
         0: {
           battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }],
           hand: ["BT1-009"],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -88,7 +108,7 @@ describe("EX1-023 Elecmon", () => {
             { card: "ST6-08", as: "opponent" },
           ],
           hand: [{ card: "ST6-15", as: "option" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -105,10 +125,59 @@ describe("EX1-023 Elecmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.turnSeat === 0);
+    // The deleted host returned its Digi-Egg to the Egg Deck, so the next breeding
+    // phase now has a legal hatch. Publicly skip that phase before awaiting Main.
+    await settle(() => {
+      if (s.state.phase !== Phase.Breeding) return false;
+      return s.engine.applyIntent(0, { type: "endPhase" }).ok;
+    });
     await advance(s.engine).waitForMainPhase(0);
-    await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not use Elecmon as an inherited effect while it is the top card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-023", as: "host" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "ST6-03", as: "cost" },
+            { card: "ST6-08", as: "opponent" },
+          ],
+          hand: [{ card: "ST6-15", as: "option" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });

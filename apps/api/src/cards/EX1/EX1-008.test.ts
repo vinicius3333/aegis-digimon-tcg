@@ -17,7 +17,7 @@ describe("EX1-008 MetalGreymon", () => {
             { card: "BT1-010", as: "small", dp: 4000 },
             { card: "BT1-011", as: "large", dp: 5000 },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -33,6 +33,54 @@ describe("EX1-008 MetalGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === smallId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it.each([
+    ["red", "ST1-07"],
+    ["black", "BT2-058"],
+  ])("allows a real %s level-4 evolution and keeps its source in the stack", async (_color, sourceCard) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: sourceCard, as: "source" }],
+        hand: [{ card: "EX1-008", as: "evo" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX1-008");
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([sourceCard]);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("rejects evolution from a non-red/non-black level-4 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-036", as: "invalidSource" }],
+        hand: [{ card: "EX1-008", as: "evo" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-036");
+    expect(s.state.memory).toBe(10);
   });
 
   it("does not delete an opposing Digimon when the attack targets a Digimon", async () => {
@@ -62,7 +110,7 @@ describe("EX1-008 MetalGreymon", () => {
             { card: "ST18-07", as: "smallBlocker", dp: 4000 },
             { card: "BT1-072", as: "remainingBlocker" },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -100,10 +148,26 @@ describe("EX1-008 MetalGreymon", () => {
     expect(observe(s.engine).hasPierce(s.perm("dragon"))).toBe(true);
   });
 
+  it("distinguishes Machine and Dragonkin from a near-matching Dinosaur trait", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT2-066", as: "machine", under: ["EX1-008"] },
+          { card: "BT1-025", as: "dragon", under: ["EX1-008"] },
+          { card: "ST1-07", as: "dinosaur", under: ["EX1-008"] },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("machine"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("dragon"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("dinosaur"))).toBe(false);
+  });
+
   it("uses the Dragonkin alternative in a real battle and Piercing security check", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-025", as: "dragon", under: ["EX1-008"] }] },
-      1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT1-009"] },
     });
     await s.ready();
     expect(
@@ -124,7 +188,7 @@ describe("EX1-008 MetalGreymon", () => {
         0: { battleArea: [{ card: "BT6-017", as: "attacker", under: ["ST1-07", "EX1-008"] }] },
         1: {
           battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }],
-          security: ["BT8-104", "BT1-001"],
+          security: ["BT8-104", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -151,7 +215,7 @@ describe("EX1-008 MetalGreymon", () => {
         0: { battleArea: [{ card: "BT6-017", as: "attacker", under: ["EX1-008"] }] },
         1: {
           battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }],
-          security: ["BT8-104", "BT1-001"],
+          security: ["BT8-104", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -174,8 +238,8 @@ describe("EX1-008 MetalGreymon", () => {
 
   it("limits inherited Piercing to your turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }], hand: ["BT1-009"], deck: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }], hand: ["BT1-009"], deck: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-009"] },
     });
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -192,7 +256,7 @@ describe("EX1-008 MetalGreymon", () => {
       0: { battleArea: [{ card: "BT2-066", as: "attacker", under: ["EX1-008"] }] },
       1: {
         battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }],
-        security: ["BT1-001", "BT1-001"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     await s.ready();

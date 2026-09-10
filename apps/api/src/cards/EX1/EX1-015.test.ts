@@ -11,7 +11,7 @@ describe("EX1-015 Garurumon", () => {
           battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
           hand: [{ card: "ST2-12", as: "matt" }],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -35,7 +35,7 @@ describe("EX1-015 Garurumon", () => {
           battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
           hand: [{ card: "AD1-019", as: "combined" }],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -58,7 +58,7 @@ describe("EX1-015 Garurumon", () => {
           battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
           hand: [{ card: "ST2-12", as: "matt" }],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -81,7 +81,7 @@ describe("EX1-015 Garurumon", () => {
           battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
           hand: [{ card: "BT1-086", as: "matt" }],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -108,7 +108,7 @@ describe("EX1-015 Garurumon", () => {
             { card: "BT1-036", as: "unsuspender" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -139,5 +139,103 @@ describe("EX1-015 Garurumon", () => {
     ).toHaveLength(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt2").instanceId)).toBe(true);
+  });
+
+  it("plays an exact-name Matt Ishida at the cost-3 boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
+          hand: [{ card: "BT15-083", as: "matt" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const mattId = s.inst("matt").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === mattId));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("keeps Garurumon in a legal blue evolution stack and resolves its inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-013", as: "source" }],
+          hand: [
+            { card: "EX1-015", as: "garurumon" },
+            { card: "BT1-038", as: "host" },
+            { card: "BT15-083", as: "matt" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const mattId = s.inst("matt").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX1-015");
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX1-013"]);
+    expect(s.state.memory).toBe(8);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT1-038");
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX1-013", "EX1-015"]);
+    expect(s.state.memory).toBe(6);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === mattId));
+    expect(s.state.players[0]!.hand).not.toContainEqual(expect.objectContaining({ instanceId: mattId }));
+  });
+
+  it("rejects evolution from a non-blue level-3 source without changing the stack or memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "invalidSource" }],
+        hand: [{ card: "EX1-015", as: "evo" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("invalidSource").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX1-015");
   });
 });

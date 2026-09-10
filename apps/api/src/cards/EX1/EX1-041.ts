@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — the [When Digivolving] gate is the structured selfDigivolutionStackHasTrait
 // condition (a [Free]-trait card in this Digimon's digivolution cards), not the raw fallback
 // the compiler emitted. Do not regenerate over this file.
