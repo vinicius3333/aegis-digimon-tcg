@@ -1,0 +1,23 @@
+# BT13 re-audit run
+
+- Dedicated branch/worktree: `audit-bt13-luna-20260910`.
+- Cumulative base: `87aeb9866201fbf79477e0926ce7c16e0241a44c`.
+- Inventory counts (catalog, modules, focused tests): 112 112 112.
+- Main untouched; heavy commands use separate process/memory gates and serial Vitest.
+- Read-only semantic review completed for all 112 catalog/module/test/report records; ledger credit remains runtime-gated.
+- Focused baseline BT13-001..016: 16 files, 69 tests green with serial flags.
+- BT13-007 reconciliation: the catalog's null ordinary effect fields do not describe this special Digi-Egg's engine contract; authoritative KB Q2259-Q2265 and the focused public tests cover the no-digivolution rule, Royal Knight reduction, mandatory breeding placement, and inherited Option memory behavior. Older Q2340/Q2369/Q2463 entries were treated as stale supplemental notes, not a fidelity cap.
+- BT13-028 printed-name-family correction: changed the host predicate from exact `Jellymon` to the `Jellymon` name family and added mutation-sensitive TeslaJellymon public lifecycle proof. Two attempted negative runs using EX12-023 were discarded because the catalog identifies EX12-023 itself as Jellymon; the invalid negative fixture was removed.
+- BT13-086 review identified missing public proof for its play-cost replacement. A worker-authored test using registered level-4 BT13-083, memory 9, deletion cost, and expected final memory 6 produced a genuine red result: the card paid all 9 memory (`expected 6, received 0`). Comparison with the proven BT13-080/083 pattern isolated the IR defect: a hand-resident self replacement must use `sourceFilter: { isSelfRef: true }`, not a controller/name filter. The production IR and structural oracle were corrected for the green rerun. The permanent no-digivolve behavior is now also asserted through the public observer seam; no illegal evolution fixture was invented because BT13-086 has no catalog evolution cost.
+- Runtime gate held when `memory_pressure -Q` reported 49%, then 48%; no heavy command was launched below the 50% threshold.
+- BT13-086 reducer mechanism red-to-green: changing only the card's self filter was still red (`expected memory 6, received 0`, and the level-4 never entered trash). The pay-time reducer registry intentionally uses an audited allowlist; adding BT13-086 alongside the already proven BT13-080/083 self reducers made the focused suite green (6/6) and proves the structured delete-own cost plus -6 payment path.
+- BT13-075 first dynamic-target regression was discarded as an invalid fixture: it digivolved the opponent into BT13-077 Craniamon, whose own When Digivolving effect grants immunity to opposing Digimon effects. Replacing it with the legal black level-6 BT13-075 (printed play cost 12, no such immunity) preserves the intended cost-9-to-cost-12 transition and proved live `whileMatchesTargetFilter` restriction behavior. The corrected 041-080 batch passed 40 files/217 tests.
+- Focused ranges passed serially: 017-040 (24 files/150 tests), 041-080 (40/217), and 081-112 (32/180).
+- First exact 113-file collection run was red only on persisted IR drift for BT13-028 and BT13-086 (112 focused files otherwise green, 729/731). The first effects sync attempt was discarded after its formatter exceeded 30 seconds without writing the target. The clean retry synchronized exactly 112 BT13 records with 2 semantic changes and zero changes outside BT13.
+- Post-sync exact BT13-only collection passed 113/113 files and 731/731 tests. The manifest was validated by path component so every test parent basename was exactly `BT13`.
+- Effects check passed: 2 semantic changes against the BT12 base, 112 records synchronized, zero semantic or byte changes outside BT13.
+- Affected-mechanism manifest passed 12/12 files and 316/316 tests: decisions, visible identities, Option use cost, Security activation, continuous effects, DigiXros replacement budgets, hand-trash costs, interpreter, registration, exact-name matching, reveal/add budgets, and playing-card conformance.
+- Full workspace typecheck passed for shared, API, and web.
+- Scoped lint and format checks passed for every changed executable/effects file; `git diff --check` is clean.
+- Scoped production smell scan found zero `@ts-nocheck` and zero `registerCard(` occurrences; all 112 BT13 modules register through `registerIrCard`.
+- All 12 grouped semantic reports are present. Strict ledger recalc: 112 exact rows, every row 10/10, aggregate 1120/1120.
