@@ -6,17 +6,19 @@ import "./index.js";
 import { compiled } from "./EX8-038.js";
 
 describe("EX8-038", () => {
-  it("may suspend one Digimon on play", () =>
+  it("matches the exact suspension, Retaliation, and alternate-evolution contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Koromon"], cost: 0, isAlternate: true }]);
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Suspend",
       optional: true,
-      target: { count: 1 },
-    }));
-  it("inherits Retaliation", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
-      keyword: "Retaliation",
-      raw: "＜Retaliation＞",
-    }));
+      target: { count: 1, filter: { controllerDefault: "any", kind: ["Digimon"] } },
+    });
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }],
+    });
+  });
 
   it("suspends a forced opposing Digimon on play", async () => {
     const preferInstanceIds: string[] = [];
