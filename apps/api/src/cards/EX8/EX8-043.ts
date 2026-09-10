@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — KB Q3928: the [On Play]/[When Digivolving] suspend may target EITHER player's
 // Digimon (controllerDefault "any", no possessive in the printed text), and the "if this Digimon
 // is suspended" gate is the structured selfIsSuspended condition. Also encodes the

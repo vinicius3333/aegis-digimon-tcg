@@ -8,23 +8,43 @@ import "../ST2/ST2-16.js";
 import { compiled } from "./EX8-043.js";
 
 describe("EX8-043", () => {
-  it("may suspend either player's Digimon, then de-digivolves an opposing Digimon if this Digimon is suspended", () => {
-    const actions = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions ?? [];
-    expect(actions[0]).toMatchObject({ kind: "Suspend", optional: true });
-    expect(actions[1]).toMatchObject({ kind: "DeDigivolve", amount: 1, condition: { kind: "selfIsSuspended" } });
-  });
-  it("protects itself from opponent returns and de-digivolution while suspended", () => {
-    const actions = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions ?? [];
-    expect(actions[2]).toMatchObject({
-      kind: "Restrict",
-      restriction: "beReturned",
-      byOpponentEffectsOnly: true,
-      duration: "untilOpponentTurnEnd",
-    });
-    expect(actions[3]).toMatchObject({
-      kind: "Restrict",
-      restriction: "cantBeDeDigivolved",
-      duration: "untilOpponentTurnEnd",
+  it("matches the exact entry, protection, Dinosaur, and inherited battle contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true }]);
+    const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions).toEqual([
+      {
+        kind: "Suspend",
+        optional: true,
+        target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
+      },
+      {
+        kind: "DeDigivolve",
+        amount: 1,
+        condition: { kind: "selfIsSuspended", raw: "this Digimon is suspended" },
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      },
+      {
+        kind: "Restrict",
+        restriction: "beReturned",
+        byOpponentEffectsOnly: true,
+        duration: "untilOpponentTurnEnd",
+        condition: { kind: "selfIsSuspended", raw: "this Digimon is suspended" },
+        target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
+      },
+      {
+        kind: "Restrict",
+        restriction: "cantBeDeDigivolved",
+        duration: "untilOpponentTurnEnd",
+        condition: { kind: "selfIsSuspended", raw: "this Digimon is suspended" },
+        target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
+      },
+    ]);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toEqual(onPlay?.actions);
+    expect(compiled.effects?.find((entry) => entry.trigger === "Rule")?.actions[0]).toMatchObject({
+      kind: "GrantStatic",
+      grant: "trait",
+      tokens: ["Dinosaur"],
+      target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
     });
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "AllTurns",
@@ -34,7 +54,7 @@ describe("EX8-043", () => {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
           sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },
       ],
     });
@@ -276,8 +296,8 @@ describe("EX8-043", () => {
   it("keeps suspension protections through its turn and expires them at the opponent turn end", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-043", as: "metal", suspended: true }], deck: ["BT1-001"] },
-        1: { battleArea: [{ card: "AD1-001", as: "target", under: ["BT1-009"] }], deck: ["BT1-001"] },
+        0: { battleArea: [{ card: "EX8-043", as: "metal", suspended: true }], deck: ["BT1-045"] },
+        1: { battleArea: [{ card: "AD1-001", as: "target", under: ["BT1-009"] }], deck: ["BT1-045"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
