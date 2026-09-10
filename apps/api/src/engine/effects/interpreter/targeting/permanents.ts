@@ -261,7 +261,12 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
   const baseBudget = sourceDp ?? target.totalDpCap;
   if (baseBudget === undefined) return [];
   const sourcePermanentId = ctx.source.permanent()?.permanentId;
-  const modifier = ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePermanentId) ?? 0;
+  // Q3295: a source-relative budget is not a numeric maximum, so generic
+  // DP-deletion-ceiling modifiers must not raise it.
+  const modifier =
+    target.totalDpCapFromSourceDp === true
+      ? 0
+      : (ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePermanentId) ?? 0);
   const budget = baseBudget + modifier;
   const candidates = candidatePermanents(ctx, target, { includeUnaffectable: true })
     .map((permanent) => ({ permanentId: permanent.permanentId, dp: permanent.currentDP }))
