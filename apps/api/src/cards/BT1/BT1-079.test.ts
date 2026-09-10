@@ -1,11 +1,55 @@
-import { EffectDuration } from "@aegis/shared";
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-072.js";
-import "./BT1-079.js";
+import { compiled } from "./BT1-079.js";
 
 describe("BT1-079 Lillymon", () => {
+  it("matches the catalog and exact inherited target IR contract", () => {
+    expect(getCardDefinition("BT1-079")).toMatchObject({
+      cardId: "BT1-079",
+      set: "BT1",
+      nameEn: "Lillymon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 6000,
+      evoCosts: [{ color: "Green", level: 4, memoryCost: 2 }],
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Fairy"],
+      inheritedEffectText: "[When Attacking] Suspend 1 of your opponent's Digimon without ＜Blocker＞.",
+      rarity: "R",
+      maxCountInDeck: 4,
+      imageId: "BT1-079",
+      nameJp: "リリモン",
+    });
+    expect(getCardDefinition("BT1-079")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-079")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], excludeKeywords: ["Blocker"] },
+                count: 1,
+                forceSelection: true,
+              },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("evolves from a green level 4 and preserves the source stack", async () => {
     const s = setupEngine({
       0: {
@@ -155,5 +199,19 @@ describe("BT1-079 Lillymon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.perm("target").isSuspended).toBe(false);
+  });
+
+  it("rejects evolution from a non-green level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-036", as: "blueBase" }], hand: [{ card: "BT1-079", as: "lillymon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("lillymon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

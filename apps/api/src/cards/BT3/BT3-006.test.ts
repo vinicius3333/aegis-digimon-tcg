@@ -25,4 +25,17 @@ describe("BT3-006 DemiMeramon", () => {
     expect(trashIds.includes(s.inst("keep").instanceId) || trashIds.includes(s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(3);
   });
+
+  it("does not activate from the top-card position", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT3-006", as: "topCard" }],
+        hand: [{ card: "BT1-011", as: "kept" }],
+        deck: [{ card: "BT1-010", as: "undrawn" }],
+      },
+    });
+    await advance(s.engine).verb.deletePermanent([s.perm("topCard").permanentId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("undrawn").instanceId);
+  });
 });

@@ -7,14 +7,39 @@ import { compiled } from "./BT9-077.js";
 describe("BT9-077 Matadormon", () => {
   it("matches catalog and Q1871 cost-only trash evolution IR", () => {
     expect(getCardDefinition("BT9-077")).toMatchObject({
-      cardId: "BT9-077", nameEn: "Matadormon", colors: ["Purple"], kinds: ["Digimon"], level: 5,
-      playCost: 7, dp: 7000, evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }], forms: ["Ultimate"],
-      attributes: ["Virus"], types: ["Undead"],
+      cardId: "BT9-077",
+      nameEn: "Matadormon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Undead"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "WhenAttacking", actions: [{ kind: "ModifyDP", amount: 3000, duration: "forTheTurn", optional: true, cost: { kind: "trash" } }] },
-        { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve", into: { zone: "trash" }, actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }] }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          actions: [
+            { kind: "ModifyDP", amount: 3000, duration: "forTheTurn", optional: true, cost: { kind: "trash" } },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              into: { zone: "trash" },
+              actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }],
+            },
+          ],
+        },
       ],
     });
   });

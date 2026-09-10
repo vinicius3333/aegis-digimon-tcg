@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -21,7 +21,11 @@ describe("BT1-103 Testament", () => {
           },
         ],
       },
-      { trigger: "Security", actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }] },
+      {
+        trigger: "Security",
+        actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }],
+        isSecurity: true,
+      },
     ]);
   });
 
@@ -34,9 +38,9 @@ describe("BT1-103 Testament", () => {
             { card: "BT1-054", as: "other" },
           ],
           hand: [{ card: "BT1-103", as: "option" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
-        1: { deck: ["BT1-003"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -63,7 +67,7 @@ describe("BT1-103 Testament", () => {
     const s = setupEngine({
       0: {
         security: [{ card: "BT1-103", as: "securityOption", faceUp: true }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     const drawnId = s.inst("drawn").instanceId;
@@ -73,5 +77,56 @@ describe("BT1-103 Testament", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnId, optionId]);
+  });
+
+  it("targets a Digimon reached by public hatch, evolution, and move", async () => {
+    const s = setupEngine({
+      0: {
+        eggDeck: [{ card: "BT1-005", as: "egg" }],
+        hand: [
+          { card: "BT1-047", as: "lv3" },
+          { card: "BT1-053", as: "lv4" },
+          { card: "BT1-103", as: "option" },
+        ],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+      1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
+    });
+    const loop = s.engine.startTurnLoop();
+
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT1-005");
+    const permanentId = s.state.players[0]!.breeding!.permanentId;
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("lv3").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("lv3").instanceId);
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("lv4").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("lv4").instanceId);
+    expect(s.state.players[0]!.breeding!.stack.map(({ cardId }) => cardId)).toEqual(["BT1-005", "BT1-047"]);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === permanentId));
+    await advance(s.engine).waitForMainPhase(0);
+
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(permanentId, "Blocker"));
+    expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === permanentId)!.stack).toHaveLength(2);
+    expect(observe(s.engine).hasKeyword(permanentId, "Blocker")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

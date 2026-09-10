@@ -4,6 +4,29 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "./BT2-010.js";
 
 describe("BT2-010 Biyomon", () => {
+  it("digivolves from a red level 2 for 0 memory and draws 1", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "base" }],
+        hand: [{ card: "BT2-010", as: "biyomon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("biyomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("biyomon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base")).toMatchObject({ baseDP: 2000, currentDP: 2000 });
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+  });
+
   it("gains 1 memory when deleted by an effect on its turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT2-010", as: "bird" }] } });
     s.state.memory = 0;

@@ -8,6 +8,7 @@ describe("BT1-037 Gorillamon", () => {
   it("matches the vanilla catalog contract and registers residual-free IR", () => {
     expect(getCardDefinition("BT1-037")).toMatchObject({
       cardId: "BT1-037",
+      set: "BT1",
       nameEn: "Gorillamon",
       colors: ["Blue"],
       kinds: ["Digimon"],
@@ -18,7 +19,14 @@ describe("BT1-037 Gorillamon", () => {
       forms: ["Champion"],
       attributes: ["Data"],
       types: ["Beastkin"],
+      rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "BT1-037",
+      nameJp: "ゴリモン",
     });
+    expect(getCardDefinition("BT1-037")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-037")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-037")?.securityEffectText).toBeUndefined();
     expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
     expect(getEffectModule("BT1-037")?.cardId).toBe("BT1-037");
   });
@@ -57,6 +65,21 @@ describe("BT1-037 Gorillamon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base")).toMatchObject({ baseDP: 6000, currentDP: 6000 });
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-029"]);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+  });
+
+  it("rejects evolution from a red level 3", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT1-037", as: "gorillamon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gorillamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

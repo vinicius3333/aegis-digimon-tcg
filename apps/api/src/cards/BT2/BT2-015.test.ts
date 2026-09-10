@@ -5,6 +5,41 @@ import "../BT1/BT1-031.js";
 import "./BT2-015.js";
 
 describe("BT2-015 Garudamon", () => {
+  it("digivolves legally from a red level 4 and draws on a player attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-014", as: "base" }],
+        hand: [{ card: "BT2-015", as: "garudamon" }],
+        deck: [
+          { card: "BT1-010", as: "drawAfterDigivolving" },
+          { card: "BT1-011", as: "drawn" },
+        ],
+      },
+      1: { security: ["BT1-012"] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("garudamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("garudamon").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-014"]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
   it("draws 1 when attacking a player", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-015", as: "attacker" }], deck: [{ card: "BT1-010", as: "drawn" }] },

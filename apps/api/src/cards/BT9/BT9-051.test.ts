@@ -8,28 +8,44 @@ import { compiled } from "./BT9-051.js";
 describe("BT9-051 Panjyamon (X Antibody)", () => {
   it("matches catalog and Q1848 rule-name plus exact Leomon replacement IR", () => {
     expect(getCardDefinition("BT9-051")).toMatchObject({
-      cardId: "BT9-051", nameEn: "Panjyamon (X Antibody)", colors: ["Green", "Blue"], kinds: ["Digimon"], level: 5,
-      playCost: 7, dp: 7000,
-      evoCosts: [{ color: "Green", level: 4, memoryCost: 3 }, { color: "Blue", level: 4, memoryCost: 3 }],
-      forms: ["Ultimate"], attributes: ["Vaccine"], types: ["Beastkin", "X Antibody"],
+      cardId: "BT9-051",
+      nameEn: "Panjyamon (X Antibody)",
+      colors: ["Green", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Green", level: 4, memoryCost: 3 },
+        { color: "Blue", level: 4, memoryCost: 3 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Panjyamon"], cost: 0, isAlternate: true }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Panjyamon"], cost: 0, isAlternate: true }],
       effects: [
         { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Leomon"] }] },
         {
           trigger: "AllTurns",
-          actions: [{
-            kind: "Replacement",
-            event: "wouldBeDeleted",
-            mode: "instead",
-            leaveCause: "byBattle",
-            actions: [{
-              kind: "PlayWithoutCost",
-              fromOwnDigivolutionStack: true,
-              target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "nameExact" }] } },
-            }],
-          }],
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBeDeleted",
+              mode: "instead",
+              leaveCause: "byBattle",
+              actions: [
+                {
+                  kind: "PlayWithoutCost",
+                  fromOwnDigivolutionStack: true,
+                  target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "nameExact" }] } },
+                },
+              ],
+            },
+          ],
         },
       ],
     });
@@ -73,7 +89,9 @@ describe("BT9-051 Panjyamon (X Antibody)", () => {
     );
     const otherLeomonId = s.inst("otherLeomon").instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === otherLeomonId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === otherLeomonId)).toBe(
+      false,
+    );
     expect(s.perm("other").stack.some((card) => card.instanceId === otherLeomonId)).toBe(true);
   });
 });

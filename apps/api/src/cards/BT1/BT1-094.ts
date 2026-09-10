@@ -7,7 +7,7 @@ const deleteBlocker: Action = {
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Main", actions: [deleteBlocker] },
-    { trigger: "Security", actions: [deleteBlocker] },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
   ],
   coverage: "full",
   residual: [],

@@ -1,8 +1,58 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-076.js";
+import { compiled } from "./BT1-076.js";
 
 describe("BT1-076 MegaKabuterimon", () => {
+  it("matches the catalog and inherited threshold IR contract", () => {
+    expect(getCardDefinition("BT1-076")).toMatchObject({
+      cardId: "BT1-076",
+      set: "BT1",
+      nameEn: "MegaKabuterimon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 6000,
+      evoCosts: [{ color: "Green", level: 4, memoryCost: 2 }],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Insectoid"],
+      rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "BT1-076",
+      nameJp: "アトラーカブテリモン",
+    });
+    expect(getCardDefinition("BT1-076")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-076")?.inheritedEffectText).toBe(
+      "[When Attacking] If your opponent has 2 or more suspended Digimon， gain 1 memory.",
+    );
+    expect(getCardDefinition("BT1-076")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          isInherited: true,
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "permanentCount",
+                seat: "opponent",
+                op: "gte",
+                value: 2,
+                filter: { kind: ["Digimon"], suspended: true },
+              },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("gains 1 memory when attacking while the opponent has 2 suspended Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-074", as: "attacker", under: ["BT1-076"] }] },
@@ -61,7 +111,7 @@ describe("BT1-076 MegaKabuterimon", () => {
           { card: "BT1-076", as: "megaKabuterimon" },
           { card: "BT1-080", as: "host" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-014"],
       },
       1: {
         battleArea: [
@@ -92,6 +142,7 @@ describe("BT1-076 MegaKabuterimon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("host").instanceId);
 
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-073", "BT1-076"]);
+    expect(s.state.memory).toBe(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -168,5 +219,19 @@ describe("BT1-076 MegaKabuterimon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects evolution from a red level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-016", as: "redBase" }], hand: [{ card: "BT1-076", as: "megaKabuterimon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("megaKabuterimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

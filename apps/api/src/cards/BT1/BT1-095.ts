@@ -21,7 +21,7 @@ const security: Action[] = [
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Main", actions: main },
-    { trigger: "Security", actions: security },
+    { trigger: "Security", actions: security, isSecurity: true },
   ],
   coverage: "full",
   residual: [],

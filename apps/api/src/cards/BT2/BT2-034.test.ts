@@ -1,9 +1,30 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-034.js";
 
 describe("BT2-034 Salamon", () => {
+  it("digivolves legally from a yellow level 2", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT2-003", as: "base" },
+        hand: [{ card: "BT2-034", as: "salamon" }],
+      },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("salamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("salamon").instanceId);
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT2-003")).toBe(true);
+  });
+
   it("recovers 1 from deck on deletion with 3 or fewer security", async () => {
     const s = setupEngine({
       0: {

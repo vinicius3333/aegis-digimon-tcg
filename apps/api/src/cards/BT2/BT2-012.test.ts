@@ -5,6 +5,30 @@ import "../BT1/BT1-031.js";
 import "./BT2-012.js";
 
 describe("BT2-012 Birdramon", () => {
+  it("digivolves from a red level 3 for 2 memory and draws 1", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-010", as: "base" }],
+        hand: [{ card: "BT2-012", as: "birdramon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("birdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("birdramon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base")).toMatchObject({ baseDP: 3000, currentDP: 3000 });
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+  });
+
   it("gets +4000 DP for the turn when attacking a player", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-012", as: "attacker" }] },

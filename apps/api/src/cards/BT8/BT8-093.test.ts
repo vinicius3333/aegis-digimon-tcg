@@ -16,7 +16,11 @@ describe("BT8-093 Yukio Oikawa", () => {
             {
               kind: "SubTrigger",
               event: "onDeletionOf",
-              sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }] },
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }],
+              },
               actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "suspend" } }],
             },
           ],

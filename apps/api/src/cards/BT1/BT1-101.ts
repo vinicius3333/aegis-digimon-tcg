@@ -8,7 +8,7 @@ const trashAll: Action = {
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Main", actions: [trashAll] },
-    { trigger: "Security", actions: [trashAll] },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
   ],
   coverage: "full",
   residual: [],

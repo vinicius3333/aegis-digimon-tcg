@@ -6,13 +6,37 @@ import { compiled } from "./BT9-072.js";
 describe("BT9-072 Salamon", () => {
   it("matches catalog and two-color purple four-card search IR", () => {
     expect(getCardDefinition("BT9-072")).toMatchObject({
-      cardId: "BT9-072", nameEn: "Salamon", colors: ["Purple"], kinds: ["Digimon"], level: 3,
-      playCost: 3, dp: 2000,
-      evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }, { color: "Purple", level: 2, memoryCost: 0 }],
-      forms: ["Rookie"], attributes: ["Vaccine"], types: ["Mammal"],
+      cardId: "BT9-072",
+      nameEn: "Salamon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [
+        { color: "Yellow", level: 2, memoryCost: 0 },
+        { color: "Purple", level: 2, memoryCost: 0 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Mammal"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [{ trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4, rest: "deckBottom", add: [{ filter: { multicolor: true, colorCount: 2, colors: ["Purple"] }, count: 1, to: "hand" }] }] }],
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 4,
+              rest: "deckBottom",
+              add: [{ filter: { multicolor: true, colorCount: 2, colors: ["Purple"] }, count: 1, to: "hand" }],
+            },
+          ],
+        },
+      ],
     });
   });
 

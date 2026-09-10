@@ -9,14 +9,33 @@ import "./BT9-084.js";
 describe("BT9-084 Tai Kamiya & Kari Kamiya", () => {
   it("matches catalog values and the independent memory, DP, and security IR", () => {
     expect(getCardDefinition("BT9-084")).toMatchObject({
-      colors: ["Red", "Yellow"], kinds: ["Tamer"], playCost: 4,
+      colors: ["Red", "Yellow"],
+      kinds: ["Tamer"],
+      playCost: 4,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [],
+      coverage: "full",
+      residual: [],
       effects: [
-        { trigger: "StartOfYourTurn", actions: [{ kind: "GainMemory", condition: { kind: "zoneCount", seat: "mine", value: 3 } }, { kind: "GainMemory", condition: { kind: "zoneCount", seat: "opponent", value: 3 } }] },
-        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenAttacking", sourceFilter: { colors: ["Red", "Yellow"] }, actions: [{ kind: "ModifySecurityDP", amount: -2000, duration: "forTheTurn", cost: { kind: "suspend" } }] }] },
+        {
+          trigger: "StartOfYourTurn",
+          actions: [
+            { kind: "GainMemory", condition: { kind: "zoneCount", seat: "mine", value: 3 } },
+            { kind: "GainMemory", condition: { kind: "zoneCount", seat: "opponent", value: 3 } },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenAttacking",
+              sourceFilter: { colors: ["Red", "Yellow"] },
+              actions: [{ kind: "ModifySecurityDP", amount: -2000, duration: "forTheTurn", cost: { kind: "suspend" } }],
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });

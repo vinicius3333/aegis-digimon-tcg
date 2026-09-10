@@ -7,14 +7,47 @@ import { compiled } from "./BT9-050.js";
 describe("BT9-050 Leomon (X Antibody)", () => {
   it("matches catalog and Q1847 exact-name battle-replacement IR", () => {
     expect(getCardDefinition("BT9-050")).toMatchObject({
-      cardId: "BT9-050", nameEn: "Leomon (X Antibody)", colors: ["Green", "Blue"], kinds: ["Digimon"], level: 4,
-      playCost: 5, dp: 5000,
-      evoCosts: [{ color: "Green", level: 3, memoryCost: 2 }, { color: "Blue", level: 3, memoryCost: 2 }],
-      forms: ["Champion"], attributes: ["Vaccine"], types: ["Beastkin", "X Antibody"],
+      cardId: "BT9-050",
+      nameEn: "Leomon (X Antibody)",
+      colors: ["Green", "Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Green", level: 3, memoryCost: 2 },
+        { color: "Blue", level: 3, memoryCost: 2 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Leomon"], cost: 0, isAlternate: true }],
-      effects: [{ trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", mode: "instead", leaveCause: "byBattle", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "nameExact" }] } } }] }] }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Leomon"], cost: 0, isAlternate: true }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBeDeleted",
+              mode: "instead",
+              leaveCause: "byBattle",
+              actions: [
+                {
+                  kind: "PlayWithoutCost",
+                  from: ["digivolutionCards"],
+                  payCost: false,
+                  optional: true,
+                  target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "nameExact" }] } },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     });
   });
 

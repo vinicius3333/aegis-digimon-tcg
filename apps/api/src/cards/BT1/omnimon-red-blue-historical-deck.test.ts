@@ -18,7 +18,7 @@ describe("BT1 Omnimon red-blue historical deck", () => {
             { card: "BT1-114", as: "twoSourceMetalGreymon", under: ["BT1-010", "BT1-011"] },
             { card: "BT1-023", as: "differentName" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

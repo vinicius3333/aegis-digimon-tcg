@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
         { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
         { kind: "AddToHandSelf" },
       ],
+      isSecurity: true,
     },
   ],
   coverage: "full",

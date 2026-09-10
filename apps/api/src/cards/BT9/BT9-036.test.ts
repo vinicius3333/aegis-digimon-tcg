@@ -7,13 +7,36 @@ import { compiled } from "./BT9-036.js";
 describe("BT9-036 Gatomon (X Antibody)", () => {
   it("matches catalog, zero-cost Gatomon evolution, and inherited threshold IR", () => {
     expect(getCardDefinition("BT9-036")).toMatchObject({
-      cardId: "BT9-036", nameEn: "Gatomon (X Antibody)", colors: ["Yellow"], kinds: ["Digimon"], level: 4,
-      playCost: 4, dp: 5000, evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }], forms: ["Champion"],
-      attributes: ["Vaccine"], types: ["Holy Beast", "X Antibody"],
+      cardId: "BT9-036",
+      nameEn: "Gatomon (X Antibody)",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 5000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Gatomon"], cost: 0, isAlternate: true }],
-      effects: [{ trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn", condition: { kind: "securityAtLeast", value: 3 } }] }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Gatomon"], cost: 0, isAlternate: true }],
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          isInherited: true,
+          actions: [
+            {
+              kind: "ModifyDP",
+              amount: -2000,
+              duration: "forTheTurn",
+              condition: { kind: "securityAtLeast", value: 3 },
+            },
+          ],
+        },
+      ],
     });
   });
 

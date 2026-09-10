@@ -1,9 +1,72 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-082.js";
 
 describe("BT1-082 Rosemon", () => {
+  it("matches the catalog contract", () => {
+    expect(getCardDefinition("BT1-082")).toMatchObject({
+      cardId: "BT1-082",
+      set: "BT1",
+      nameEn: "Rosemon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 11000,
+      evoCosts: [{ color: "Green", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Fairy"],
+      rarity: "SR",
+      maxCountInDeck: 4,
+      imageId: "BT1-082",
+      nameJp: "ロゼモン",
+    });
+    expect(getCardDefinition("BT1-082")?.effectText).toContain("Opponent's Turn");
+    expect(getCardDefinition("BT1-082")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-082")?.securityEffectText).toBeUndefined();
+  });
+
+  it("digivolves from a green level 5 for 3 memory, draws, and preserves its source stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-076", as: "base" }],
+        hand: [{ card: "BT1-082", as: "rosemon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rosemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("rosemon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-076"]);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("rejects evolution from a non-green level 5", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-021", as: "redBase" }], hand: [{ card: "BT1-082", as: "rosemon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("rosemon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("suspends an opposing Digimon when another opposing Digimon attacks the player while Rosemon is suspended", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

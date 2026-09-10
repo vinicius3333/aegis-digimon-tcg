@@ -58,5 +58,20 @@ describe("BT1-065 Mushroomon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base")).toMatchObject({ baseDP: 4000, currentDP: 4000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-007"]);
+  });
+
+  it("rejects evolution from a non-green level 2", () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redBase" }, hand: [{ card: "BT1-065", as: "mushroomon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.state.players[0]!.breeding!.permanentId,
+        instanceId: s.inst("mushroomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

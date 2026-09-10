@@ -4,6 +4,27 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-036.js";
 
 describe("BT2-036 Gatomon", () => {
+  it("digivolves legally from a yellow level 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-034", as: "base" }],
+        hand: [{ card: "BT2-036", as: "gatomon" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gatomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("gatomon").instanceId);
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT2-034")).toBe(true);
+  });
+
   it("gives -4000 DP when its owner has a purple Digimon", async () => {
     const s = setupEngine(
       {

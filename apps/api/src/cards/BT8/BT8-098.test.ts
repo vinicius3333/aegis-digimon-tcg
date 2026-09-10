@@ -14,8 +14,25 @@ describe("BT8-098 Innocence Blizzard", () => {
         {
           trigger: "Main",
           actions: [
-            { kind: "TrashDigivolution", amount: 1, fromTop: false, target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: "all" } },
-            { kind: "Restrict", restriction: "attackOrBlock", duration: "untilOpponentTurnEnd", target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: 3, upTo: true } },
+            {
+              kind: "TrashDigivolution",
+              amount: 1,
+              fromTop: false,
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                count: "all",
+              },
+            },
+            {
+              kind: "Restrict",
+              restriction: "attackOrBlock",
+              duration: "untilOpponentTurnEnd",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },
+                count: 3,
+                upTo: true,
+              },
+            },
           ],
         },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },

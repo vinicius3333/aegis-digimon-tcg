@@ -1,6 +1,7 @@
-import { getCompiledCard } from "@aegis/shared";
+import { getCompiledCard, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT2-043.js";
 import "./BT2-046.js";
 
 describe("BT2-046 MetalTyrannomon", () => {
@@ -110,5 +111,88 @@ describe("BT2-046 MetalTyrannomon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("proves the legal green hatch-to-MetalTyrannomon stack, turn cycle, move, and battle-delete unsuspend", async () => {
+    const deck = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"];
+    const s = setupEngine({
+      0: {
+        eggDeck: [{ card: "BT2-004", as: "greenEgg" }],
+        hand: [
+          { card: "BT2-043", as: "level3" },
+          { card: "BT2-044", as: "level4" },
+          { card: "BT2-046", as: "metaltyrannomon" },
+          { card: "BT2-050", as: "host" },
+        ],
+        security: ["BT1-010"],
+        deck,
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-043", as: "level6", suspended: true },
+          { card: "BT1-044", as: "stackedLevel6", suspended: true, under: ["BT1-030"] },
+        ],
+        deck,
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    s.state.memory = 10;
+    const breedingPermanentId = s.state.players[0]!.breeding!.permanentId;
+
+    for (const alias of ["level3", "level4", "metaltyrannomon", "host"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: breedingPermanentId,
+          instanceId: s.inst(alias).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.state.players[0]!.breeding!.topCard.instanceId === s.inst(alias).instanceId,
+      );
+    }
+    expect(s.state.players[0]!.breeding!.stack.map(({ cardId }) => cardId)).toEqual([
+      "BT2-004",
+      "BT2-043",
+      "BT2-044",
+      "BT2-046",
+    ]);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("level6").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("level6").isSuspended && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.perm("host").currentDP).toBe(12_000);
+    const level6PermanentId = s.perm("level6").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: breedingPermanentId,
+        target: { kind: "permanent", permanentId: level6PermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== level6PermanentId));
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("stackedLevel6").isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

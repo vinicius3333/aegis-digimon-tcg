@@ -87,7 +87,10 @@ describe("BT1-023 SkullGreymon", () => {
         0: {
           battleArea: [{ card: "BT1-014", as: "base" }],
           hand: [{ card: "BT1-023", as: "skullGreymon" }],
-          deck: [{ card: "BT1-024", as: "drawn" }, { card: "BT1-025", as: "remaining" }],
+          deck: [
+            { card: "BT1-024", as: "drawn" },
+            { card: "BT1-025", as: "remaining" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-070", as: "nonBlocker", dp: 4000 }] },
       },
@@ -107,5 +110,49 @@ describe("BT1-023 SkullGreymon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("remaining").instanceId);
+  });
+
+  it("legally evolves from a red level 4, draws, and does not fire On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-014", as: "base" }],
+          hand: [{ card: "BT1-023", as: "evolving" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("rejects evolution from a green level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-069", as: "base" }], hand: [{ card: "BT1-023", as: "evolving" }] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

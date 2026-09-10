@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -60,6 +60,81 @@ describe("BT1-086 Matt Ishida", () => {
         s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId),
     );
     expect(s.perm("target").stack).toHaveLength(1);
+  });
+
+  it("trashes the bottom source of a legally raised opposing stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-086", as: "matt" }],
+          hand: [{ card: "BT1-027", as: "blue" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          eggDeck: [{ card: "BT1-007", as: "targetEgg" }],
+          hand: [
+            { card: "BT1-066", as: "targetLv3" },
+            { card: "BT1-072", as: "targetLv4" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 6;
+    const loop = s.engine.startTurnLoop();
+
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
+    expect(s.engine.applyIntent(1, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.breeding?.topCard?.cardId === "BT1-007");
+    const breedingPermanentId = s.state.players[1]!.breeding!.permanentId;
+
+    await advance(s.engine).waitForMainPhase(1);
+    for (const name of ["targetLv3", "targetLv4"] as const) {
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: breedingPermanentId,
+          instanceId: s.inst(name).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.breeding?.topCard?.instanceId === s.inst(name).instanceId);
+    }
+    expect(s.state.players[1]!.breeding!.stack.map((card) => card.cardId)).toEqual(["BT1-007", "BT1-066"]);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
+    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.permanentId === breedingPermanentId));
+
+    const target = s.state.players[1]!.battleArea.find((p) => p.permanentId === breedingPermanentId)!;
+    expect(target.topCard?.cardId).toBe("BT1-072");
+    expect(target.stack.map((card) => card.cardId)).toEqual(["BT1-007", "BT1-066"]);
+
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blue").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("matt").isSuspended &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("targetEgg").instanceId),
+    );
+
+    expect(s.perm("matt").isSuspended).toBe(true);
+    expect(target.topCard?.cardId).toBe("BT1-072");
+    expect(target.stack.map((card) => card.cardId)).toEqual(["BT1-066"]);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("targetLv3").instanceId)).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may decline suspending Matt, leaving the opposing source intact", async () => {

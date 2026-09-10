@@ -1,9 +1,42 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-010.js";
+import { compiled } from "./BT1-010.js";
 
 describe("BT1-010 Agumon", () => {
+  it("matches the catalog and exports its exact On Play reveal", () => {
+    expect(getCardDefinition("BT1-010")).toMatchObject({
+      cardId: "BT1-010",
+      nameEn: "Agumon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Red", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Reptile"],
+      effectText:
+        "[On Play] Reveal 5 cards from the top of your deck. Add 1 Tamer card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
+    });
+    expect(compiled.effects).toEqual([
+      {
+        trigger: "OnPlay",
+        actions: [
+          {
+            kind: "RevealAdd",
+            revealCount: 5,
+            add: [{ filter: { kind: ["Tamer"] }, count: 1, to: "hand" }],
+            rest: "deckBottomAnyOrder",
+          },
+        ],
+      },
+    ]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("adds a non-red revealed Tamer to hand and returns the other cards to the deck", async () => {
     const s = setupEngine(
       {
@@ -97,6 +130,7 @@ describe("BT1-010 Agumon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("agumon").instanceId);
 
     expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-086"]);
   });
