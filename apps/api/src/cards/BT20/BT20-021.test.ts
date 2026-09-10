@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -51,6 +51,24 @@ describe("BT20-021 Jesmon GX", () => {
     });
   });
 
+  it("publishes Jesmon GX's ACE identity and red/black evolution routes", () => {
+    expect(getCardDefinition("BT20-021")).toMatchObject({
+      colors: ["Red", "Black"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 9,
+      dp: 16000,
+      attributes: ["Data"],
+      types: ["Holy Warrior", "X Antibody", "Royal Knight"],
+      evoCosts: [
+        { color: "Red", level: 6, memoryCost: 6 },
+        { color: "Black", level: 6, memoryCost: 6 },
+      ],
+      isAce: true,
+      overflowMemory: 5,
+    });
+  });
+
   it("publicly plays GX, pays its Royal Knight placement, and deletes at the 16000-DP boundary", async () => {
     const s = setupEngine(
       {
@@ -88,7 +106,6 @@ describe("BT20-021 Jesmon GX", () => {
           battleArea: [
             {
               card: "BT20-021",
-              suspended: true,
               as: "gx",
               under: ["BT20-017", "BT20-019", "BT20-056", "BT20-060"],
             },
@@ -101,22 +118,40 @@ describe("BT20-021 Jesmon GX", () => {
       },
       { autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gx"));
-    await settle(() => !s.perm("gx").isSuspended && s.state.players[1]!.security.length === 2);
+    const initialSecurityIds = s.state.players[1]!.security.map((card) => card.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gx").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.perm("gx").isSuspended && s.state.players[1]!.security.length === initialSecurityIds.length - 3,
+    );
     expect(s.perm("gx").isSuspended).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(initialSecurityIds.slice(3));
   });
 
   it("counts a Royal Knight Option in the evolution stack for security scaling", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT20-021", suspended: true, as: "gx", under: ["BT20-017", "BT20-019", "BT10-110"] }],
+        battleArea: [{ card: "BT20-021", as: "gx", under: ["BT20-017", "BT20-019", "BT10-110"] }],
       },
-      1: { security: ["BT1-010", "BT1-010"] },
+      1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
     });
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gx"));
-    await settle(() => s.state.players[1]!.security.length === 1);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    const initialSecurityIds = s.state.players[1]!.security.map((card) => card.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gx").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === initialSecurityIds.length - 2);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(initialSecurityIds.slice(2));
   });
   it.each(["hand", "trash"] as const)(
     "publicly evolves Jesmon X into GX and places a Royal Knight from %s at stack bottom",
@@ -158,14 +193,20 @@ describe("BT20-021 Jesmon GX", () => {
   it("allows the optional Royal Knight placement and deletion to be refused", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-021", as: "gx" }], hand: [{ card: "BT20-017", as: "royalKnightCost" }] },
+        0: {
+          hand: [
+            { card: "BT20-021", as: "gx" },
+            { card: "BT20-017", as: "royalKnightCost" },
+          ],
+        },
         1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 9;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gx"));
-    await settle(() => false, 20);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gx").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-021"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnightCost").instanceId)).toBe(
       true,
     );

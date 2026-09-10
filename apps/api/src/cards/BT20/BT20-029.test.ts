@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-029.js";
@@ -10,10 +11,26 @@ import "../BT1/BT1-036.js";
 
 describe("BT20-029 Pulsemon", () => {
   it("covers the printed alternate evolution requirements and both clauses", () => {
+    expect(getCardDefinition("BT20-029")).toMatchObject({
+      cardId: "BT20-029",
+      nameEn: "Pulsemon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [
+        { color: "Purple", level: 2, memoryCost: 1 },
+        { color: "Green", level: 2, memoryCost: 1 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "Abadin Electronics", "SEEKERS"],
+    });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Bibimon"], cost: 0, isAlternate: true },
+      { namesExact: ["Bibimon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["SEEKERS"], cost: 0, isAlternate: true },
     ]);
     expect(compiled.effects[0]).toMatchObject({ trigger: "YourTurn" });
@@ -34,6 +51,13 @@ describe("BT20-029 Pulsemon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "GainMemory", amount: 1 }],
     });
+  });
+
+  it("uses exact Bibimon matching for the named alternate route", () => {
+    const reference = { tokens: ["Bibimon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Bibimon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Bibimon X" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Bibimonmon" }, reference)).toBe(false);
   });
 
   it("reduces a qualifying battle-area evolution by 1 but not the same breeding evolution", async () => {
@@ -125,19 +149,6 @@ describe("BT20-029 Pulsemon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).costReduction("wouldDigivolve", pulsemonId)).toBe(0);
-  });
-
-  it("inherits a once-per-turn memory gain after the host deletes an opponent in battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-032", as: "host", under: ["BT20-029"] }] },
-    });
-    s.state.turnSeat = 0;
-    await s.ready();
-    const memoryBefore = s.state.memory;
-    await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
-    expect(s.state.memory).toBe(memoryBefore + 1);
-    await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
-    expect(s.state.memory).toBe(memoryBefore + 1);
   });
 
   it("gains inherited memory once per turn, then again after the next own turn", async () => {

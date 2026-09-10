@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -35,6 +36,26 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
       ],
     });
     expect(compiled.effects.filter((entry) => entry.keywords?.length)).toHaveLength(2);
+  });
+
+  it("publishes Valdur Arm's catalog identity and only its printed normal evolution routes", () => {
+    expect(getCardDefinition("BT20-037")).toMatchObject({
+      cardId: "BT20-037",
+      nameEn: "Chaosmon: Valdur Arm",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Yellow", level: 6, memoryCost: 5 },
+        { color: "Green", level: 6, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Unique"],
+    });
+    expect(compiled.digivolutionRequirement).toBeUndefined();
   });
 
   it("scales from two level-6 sources and locks every opposing Digimon and Tamer", async () => {

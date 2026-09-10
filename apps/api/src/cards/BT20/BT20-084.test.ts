@@ -59,6 +59,48 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     });
   });
 
+  it("uses an exact-name alternate evolution route", async () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Sistermon Ciel"], cost: 1, isAlternate: true }]);
+
+    const valid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-084", as: "plain" }],
+        hand: [{ card: "BT20-084", as: "awakened" }],
+      },
+    });
+    valid.state.memory = 7;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("plain").permanentId,
+        instanceId: valid.inst("awakened").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("plain").topCard.cardId === "BT20-084");
+    expect(valid.perm("plain").stack.map((card) => card.cardId)).toEqual(["BT6-084"]);
+    expect(valid.state.memory).toBe(6);
+
+    const nearName = setupEngine({
+      0: {
+        battleArea: [{ card: "BT7-083", as: "awakenedName" }],
+        hand: [{ card: "BT20-084", as: "awakened" }],
+      },
+    });
+    nearName.state.memory = 7;
+    await nearName.ready();
+    expect(
+      nearName.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: nearName.perm("awakenedName").permanentId,
+        instanceId: nearName.inst("awakened").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(nearName.perm("awakenedName").topCard.cardId).toBe("BT7-083");
+    expect(nearName.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-084");
+    expect(nearName.state.memory).toBe(7);
+  });
+
   it("naturally digivolves a Sistermon Ciel from trash when one of your Digimon is played", async () => {
     const s = setupEngine(
       {
@@ -186,7 +228,7 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT20-084", under: [{ card: "BT20-047", as: "stackTop" }], as: "awakened" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     await s.ready();
@@ -206,15 +248,24 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
         route === "play"
           ? setupEngine(
               {
-                0: { hand: [{ card: "BT20-084", as: "awakened" }] },
+                0: {
+                  battleArea: [{ card: "BT20-010", as: "ally" }],
+                  hand: [{ card: "BT20-084", as: "awakened" }],
+                },
                 1: { battleArea: [{ card: "BT20-010", as: "target" }] },
               },
               { autoAcceptOptional: true, autoSelectCards: true },
             )
           : setupEngine(
               {
-                0: { battleArea: [{ card: "BT6-084", as: "ciel" }], hand: [{ card: "BT20-084", as: "awakened" }] },
-                1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+                0: {
+                  battleArea: [
+                    { card: "BT6-084", as: "ciel" },
+                    { card: "BT20-085", as: "ally" },
+                  ],
+                  hand: [{ card: "BT20-084", as: "awakened" }],
+                },
+                1: { battleArea: [{ card: "BT20-085", as: "target" }] },
               },
               { autoAcceptOptional: true, autoSelectCards: true },
             );
@@ -237,6 +288,8 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
               (event.timing === "OnPlay" || event.timing === "WhenDigivolving"),
           ) && s.state.pendingDecision === undefined,
       );
+      await advance(s.engine).verb.suspend([s.perm("ally").permanentId], 0);
+      expect(s.perm("ally").isSuspended).toBe(true);
       await advance(s.engine).verb.suspend([s.perm("target").permanentId], 0);
       expect(s.perm("target").isSuspended).toBe(false);
     }

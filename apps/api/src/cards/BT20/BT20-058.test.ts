@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-058.js";
@@ -8,6 +9,21 @@ import "./index.js";
 
 describe("BT20-058 Raidenmon", () => {
   it("deletes one opposing Digimon with play cost 7 or less on play and digivolving", () => {
+    expect(getCardDefinition("BT20-058")).toMatchObject({
+      cardId: "BT20-058",
+      nameEn: "Raidenmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Machine"],
+      evoCosts: [{ color: "Black", level: 5, memoryCost: 4 }],
+      effectText: expect.stringContaining("play cost of 7 or less"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -101,11 +117,19 @@ describe("BT20-058 Raidenmon", () => {
               },
             ],
           },
+          1: {
+            battleArea: [{ card: "BT1-085", as: "tai" }],
+            hand: [{ card: "ST1-16", as: "gaia" }],
+          },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
+      s.state.turnSeat = 1;
+      s.state.memory = 7;
       await s.ready();
-      await advance(s.engine).verb.deletePermanent([s.perm("raidenmon").permanentId], "byEffect");
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({
+        ok: true,
+      });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === eligible));
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([eligible]);
       expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
@@ -116,11 +140,20 @@ describe("BT20-058 Raidenmon", () => {
 
   it("allows the leave-triggered source play to be declined", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT20-058", under: ["BT9-042"], as: "raidenmon" }] } },
+      {
+        0: { battleArea: [{ card: "BT20-058", under: ["BT9-042"], as: "raidenmon" }] },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "tai" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("raidenmon").permanentId], "byEffect");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT20-058", "BT9-042"]),
@@ -129,11 +162,19 @@ describe("BT20-058 Raidenmon", () => {
 
   it("does not replay a Machine source whose play cost exceeds 11", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT20-058", under: ["BT20-058"], as: "raidenmon" }] } },
+      {
+        0: { battleArea: [{ card: "BT20-058", under: ["BT20-058"], as: "raidenmon" }] },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "tai" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("raidenmon").permanentId], "byEffect");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT20-058", "BT20-058"]);
   });
@@ -170,6 +211,59 @@ describe("BT20-058 Raidenmon", () => {
       expect.arrayContaining(["BT9-042", "BT9-054", "BT9-029"]),
     );
   });
+
+  it("accepts any two distinct named DigiXros slots and rejects a nonmatching name", async () => {
+    for (const materials of [
+      ["BT9-042", "BT9-054"],
+      ["BT9-042", "BT9-029"],
+      ["BT9-054", "BT9-029"],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          hand: [
+            { card: "BT20-058", as: "raidenmon" },
+            { card: materials[0], as: "materialA" },
+            { card: materials[1], as: "materialB" },
+          ],
+        },
+      });
+      s.state.memory = 8;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("raidenmon").instanceId,
+          digiXros: {
+            materialInstanceIds: [s.inst("materialA").instanceId, s.inst("materialB").instanceId],
+          },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-058"));
+      expect(s.state.memory).toBe(0);
+    }
+
+    const rejected = setupEngine({
+      0: {
+        hand: [
+          { card: "BT20-058", as: "raidenmon" },
+          { card: "BT9-042", as: "valid" },
+          { card: "BT20-017", as: "wrongName" },
+        ],
+      },
+    });
+    rejected.state.memory = 12;
+    expect(
+      rejected.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: rejected.inst("raidenmon").instanceId,
+        digiXros: {
+          materialInstanceIds: [rejected.inst("valid").instanceId, rejected.inst("wrongName").instanceId],
+        },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(rejected.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-058", "BT9-042", "BT20-017"]);
+    expect(rejected.state.memory).toBe(12);
+  });
+
   it.each([
     ["raijinmon", true],
     ["suijinmon", true],

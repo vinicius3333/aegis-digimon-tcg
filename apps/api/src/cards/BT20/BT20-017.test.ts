@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -7,6 +8,28 @@ import "./index.js";
 
 describe("BT20-017 Jesmon", () => {
   it("encodes the complete token and keeps the attack inside the played-Digimon watcher", () => {
+    expect(getCardDefinition("BT20-017")).toMatchObject({
+      cardId: "BT20-017",
+      nameEn: "Jesmon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Red", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Holy Warrior", "Royal Knight"],
+    });
+    expect(getCardDefinition("TOKEN-AthoRenePor-Token")).toMatchObject({
+      cardId: "TOKEN-AthoRenePor-Token",
+      kinds: ["Digimon"],
+      colors: ["White"],
+      dp: 6000,
+      playCost: -1,
+      isToken: true,
+    });
+    expect(getCardDefinition("TOKEN-AthoRenePor-Token")).not.toHaveProperty("level");
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -79,6 +102,37 @@ describe("BT20-017 Jesmon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT20-017"));
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("uses the token's red/black Decoy in an opponent-effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-010", as: "target" }], hand: [{ card: "BT20-017", as: "jesmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    );
+    const token = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token")!;
+    expect(observe(s.engine).hasKeyword(token, "Decoy")).toBe(true);
+
+    s.state.turnSeat = 1;
+    const removed = await advance(s.engine).verb.deletePermanent([s.perm("target").permanentId], "byEffect");
+
+    expect(removed).toBe(0);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("target").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token")).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "TOKEN-AthoRenePor-Token")).toBe(false);
   });
 
   it("reaches Jesmon from a legal SaviorHuckmon stack through public evolution", async () => {

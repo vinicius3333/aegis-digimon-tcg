@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          duration: "untilOpponentTurnEnd",
           optional: true,
           abortOnDecline: true,
         },

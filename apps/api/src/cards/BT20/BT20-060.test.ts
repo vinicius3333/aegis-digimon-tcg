@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-060.js";
+import "../ST1/ST1-07.js";
+import "../BT1/BT1-090.js";
 import "./index.js";
 
 describe("BT20-060 Alphamon: Ouryuken", () => {
@@ -47,12 +49,26 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
 
   it("publishes the ACE/Overflow and printed stat metadata", () => {
     expect(getCardDefinition("BT20-060")).toMatchObject({
+      cardId: "BT20-060",
+      nameEn: "Alphamon: Ouryuken",
+      colors: ["Black", "Yellow", "Red"],
+      kinds: ["Digimon"],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["NO DATA", "X Antibody", "Royal Knight", "Chronicle"],
+      evoCosts: [
+        { color: "Black", level: 6, memoryCost: 6 },
+        { color: "Yellow", level: 6, memoryCost: 6 },
+        { color: "Red", level: 6, memoryCost: 6 },
+      ],
       isAce: true,
       overflowMemory: 5,
       playCost: 9,
       dp: 16000,
       level: 7,
+      effectText: expect.stringContaining("trash your opponent's top security card"),
     });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("on normal play and evolution applies -15000 without trashing or recovering security", async () => {
@@ -220,21 +236,49 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ouryuken").instanceId)).toBe(true);
   });
 
-  it("gains 3 memory only once across removals from both security stacks", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-060", as: "ouryuken" }] } });
+  it("gains 3 memory only once across two natural security removals", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-060", as: "ouryuken" }],
+        security: ["BT1-090", "BT1-090"],
+      },
+      1: { battleArea: [{ card: "BT20-057", under: ["ST1-07"], as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    expect(s.state.memory).toBe(3);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    // The card belongs to seat 0 while seat 1 is taking the turn; its +3 is
+    // therefore represented as -3 on the global memory gauge.
+    expect(s.state.memory).toBe(-3);
   });
 
-  it("charges Overflow -5 when the ACE leaves the field", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-060", as: "ouryuken" }] } });
+  it("charges Overflow -5 when the ACE leaves the field through battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-060", suspended: true, as: "ouryuken" }] },
+      1: { battleArea: [{ card: "BT20-057", dp: 20000, as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("ouryuken").permanentId], "byEffect");
-    expect(s.state.memory).toBe(-5);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ouryuken").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ouryuken").permanentId));
+    // The owner of the deleted ACE is seat 0 while seat 1 is taking the turn;
+    // Overflow -5 is therefore represented as +5 on the global memory gauge.
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-060");
   });
 });

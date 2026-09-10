@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Eiji Nagasumi"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -67,7 +67,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Bowmon"],
+      namesExact: ["Bowmon"],
       cost: 0,
       isAlternate: true,
     },

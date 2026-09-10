@@ -1,6 +1,8 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-032.js";
 import "./index.js";
@@ -41,6 +43,38 @@ describe("BT20-032 Bulkmon", () => {
         },
       ],
     });
+  });
+
+  it("publishes Bulkmon's catalog identity and exact alternate evolution gates", () => {
+    expect(getCardDefinition("BT20-032")).toMatchObject({
+      cardId: "BT20-032",
+      nameEn: "Bulkmon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [
+        { color: "Purple", level: 3, memoryCost: 3 },
+        { color: "Green", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Dragonkin", "Abadin Electronics", "SEEKERS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Pulsemon"], cost: 2, isAlternate: true },
+      { level: 3, traits: ["SEEKERS"], cost: 2, isAlternate: true },
+    ]);
+
+    const pulsemon = getCardDefinition("BT20-029");
+    if (pulsemon === undefined) throw new Error("BT20-029 catalog definition is required for this boundary");
+    const nearName = { ...pulsemon, nameEn: "Pulsemon (Variant)", types: ["Other"] };
+    expect(matchingAlternateDigivolutionRequirement("BT20-032", pulsemon)).toMatchObject({
+      namesExact: ["Pulsemon"],
+      cost: 2,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-032", nearName)).toBeUndefined();
   });
 
   it("takes security at three, then immediately recovers from the deck at two", async () => {

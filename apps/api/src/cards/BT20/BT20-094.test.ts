@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -7,13 +8,56 @@ import "./index.js";
 import "./BT20-011.js";
 import "./BT20-074.js";
 import "../BT17/BT17-077.js";
+import "../ST1/ST1-12.js";
 
 describe("BT20-094 Emperor Dragon of Calamity", () => {
-  it("reduces the optional Free Digimon trash play by 5 and then places itself", () => {
+  it("matches the catalog and reduces the optional Free Digimon trash play by 5", () => {
+    expect(getCardDefinition("BT20-094")).toMatchObject({
+      cardId: "BT20-094",
+      nameEn: "Emperor Dragon of Calamity",
+      colors: ["Red", "Purple"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["Option"],
+      effectText: expect.stringContaining("Imperialdramon: Dragon Mode"),
+      securityEffectText: expect.stringContaining("level 3"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((entry) => entry.trigger === "Main" && !entry.keywords)).toMatchObject({
       actions: [
-        { kind: "PlayWithoutCost", from: ["trash"], payCost: true, reduceCostBy: 5, optional: true },
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 5,
+          optional: true,
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Free"], match: "trait" }] },
+            count: 1,
+          },
+        },
         { kind: "PlaceInBattleAreaSelf" },
+      ],
+    });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
+              nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+            },
+            count: 1,
+          },
+        },
+        { kind: "AddToHandSelf" },
       ],
     });
   });
@@ -108,30 +152,21 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
       const optionId = s.inst("option").instanceId;
       const dragonId = s.perm("fighter").stack[0]!.instanceId;
       s.state.memory = 10;
-      const ownTurn = s.engine.runOneTurn();
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
       expect(s.state.memory).toBe(7);
-      let activeTurn = ownTurn;
       let activeSeat: 0 | 1 = 0;
       if (route !== "sameTurn") {
         advance(s.engine).endMainPhaseIfOpen(0);
-        await ownTurn;
-        s.state.turnSeat = 1;
-        s.state.memory = -s.state.memory;
-        const opponentTurn = s.engine.runOneTurn();
         await advance(s.engine).waitForMainPhase(1);
-        activeTurn = opponentTurn;
         activeSeat = 1;
         if (route !== "ownSecurity") {
           advance(s.engine).endMainPhaseIfOpen(1);
-          await opponentTurn;
-          s.state.turnSeat = 0;
-          s.state.memory = -s.state.memory;
-          activeTurn = s.engine.runOneTurn();
-          activeSeat = 0;
           await advance(s.engine).waitForMainPhase(0);
+          activeSeat = 0;
         }
       }
       options.autoAcceptOptional = route !== "refuse";
@@ -157,8 +192,8 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
       expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(!accepted);
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(accepted);
       expect(s.state.memory).toBe(memoryBefore);
-      advance(s.engine).endMainPhaseIfOpen(activeSeat);
-      await activeTurn;
+      expect(s.engine.applyIntent(activeSeat, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     },
   );
 
@@ -172,15 +207,17 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
             [zone]: [{ card: "BT20-009", as: "free" }],
             deck: ["BT1-010", "BT1-010"],
           },
-          1: { battleArea: [{ card: "BT1-027", as: "attacker" }] },
+          1: { battleArea: [{ card: "BT1-027", as: "attacker" }], deck: ["BT1-010", "BT1-010"] },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
       const optionId = s.inst("option").instanceId;
       const freeId = s.inst("free").instanceId;
-      s.state.turnSeat = 1;
-      s.state.memory = 3;
       await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
@@ -192,8 +229,79 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
       expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === freeId)).toBe(true);
       expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);
       expect(s.state.memory).toBe(3);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     },
   );
+
+  it("keeps a non-Free level-3 Digimon in hand while still returning the Security Option to hand", async () => {
+    const rejected = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT20-094", as: "option" }],
+          hand: [{ card: "BT1-009", as: "nonFree" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-027", as: "attacker" }], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const rejectedOptionId = rejected.inst("option").instanceId;
+    await rejected.ready();
+    const rejectedLoop = rejected.engine.startTurnLoop();
+    await advance(rejected.engine).waitForMainPhase(0);
+    advance(rejected.engine).endMainPhaseIfOpen(0);
+    await advance(rejected.engine).waitForMainPhase(1);
+    expect(
+      rejected.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: rejected.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => rejected.state.players[0]!.hand.some((card) => card.instanceId === rejectedOptionId));
+    expect(rejected.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(rejected.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-094")).toBe(
+      false,
+    );
+    expect(rejected.state.players[0]!.hand.some((card) => card.instanceId === rejectedOptionId)).toBe(true);
+    expect(rejected.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await rejectedLoop;
+  });
+
+  it("resolves a Security effect and this card's security-removal Delay from one public check (Q4437)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-094", as: "option" },
+            { card: "BT20-020", under: ["BT20-076"], as: "fighter" },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { security: [{ card: "ST1-12", as: "securityTai" }], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST1-12") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-076"),
+    );
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "securityChecked", resolution: "effect" }));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST1-12")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-076")).toBe(true);
+  });
 });
 
 it("pays the remaining reduced cost when the Free Digimon costs more than 5", async () => {

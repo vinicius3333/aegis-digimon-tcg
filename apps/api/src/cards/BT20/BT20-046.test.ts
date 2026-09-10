@@ -1,5 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-046.js";
 import "./index.js";
@@ -31,6 +33,48 @@ describe("BT20-046 Espimon", () => {
         },
       ],
     });
+  });
+
+  it("publishes Espimon's catalog identity and exact Kapurimon alternate route", async () => {
+    expect(getCardDefinition("BT20-046")).toMatchObject({
+      cardId: "BT20-046",
+      nameEn: "Espimon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [
+        { color: "Black", level: 2, memoryCost: 1 },
+        { color: "Blue", level: 2, memoryCost: 1 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "LIBERATOR"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Kapurimon"], cost: 0, isAlternate: true }]);
+    expect(matchingAlternateDigivolutionRequirement("BT20-046", "BT2-005")).toMatchObject({
+      namesExact: ["Kapurimon"],
+      cost: 0,
+    });
+    const kapurimonDefinition = getCardDefinition("BT2-005")!;
+    const nearName = { ...kapurimonDefinition, nameEn: "Kapurimon (Variant)" };
+    expect(matchingAlternateDigivolutionRequirement("BT20-046", nearName)).toBeUndefined();
+
+    const s = setupEngine({
+      0: { breeding: { card: "BT2-005", as: "kapurimon" }, hand: [{ card: "BT20-046", as: "espimon" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("kapurimon").permanentId,
+        instanceId: s.inst("espimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kapurimon").topCard.cardId === "BT20-046");
+    expect(s.perm("kapurimon").stack.map((card) => card.cardId)).toEqual(["BT2-005"]);
   });
 
   it("reduces the Cyborg alternate evolution in battle but not in breeding", async () => {

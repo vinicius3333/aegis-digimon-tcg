@@ -154,6 +154,10 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Attack",
+          // Q4419: simultaneous End-of-Your-Turn effects activate before the first attack's
+          // Counter timing. Drain this timing window while that attack is in flight so a
+          // second copy's Attack action is rejected instead of declaring a second attack.
+          drainTimingWindowDuringAttack: true,
           target: {
             filter: {
               controller: "mine",

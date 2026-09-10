@@ -45,7 +45,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Omnimon (X Antibody)"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -73,7 +73,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["King Drasil_7D6"],
-                match: "name",
+                match: "nameExact",
               },
             ],
             controller: "mine",
@@ -104,7 +104,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Omekamon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

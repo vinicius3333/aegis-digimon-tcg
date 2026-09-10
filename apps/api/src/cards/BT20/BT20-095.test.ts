@@ -53,6 +53,21 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions).toHaveLength(1);
   });
 
+  it("restricts the Security play to Chronicle Digimon, not Chronicle Options", () => {
+    const security = compiled.effects.find((entry) => entry.trigger === "Security");
+    const play = security?.actions.find((action) => action.kind === "PlayWithoutCost");
+    expect(play).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          kind: ["Digimon"],
+          playCostLte: 5,
+          nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+        },
+      },
+    });
+  });
+
   it("naturally reveals three cards, adds one Chronicle, and places itself", async () => {
     const s = setupEngine(
       {
@@ -97,8 +112,8 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
     const ids = s.state.players[0]!.deck.map((card) => card.cardId);
-    if (choice === 0) expect(ids.slice(0, 2)).toEqual([first, second]);
-    else expect(ids.slice(-2)).toEqual([first, second]);
+    const observed = choice === 0 ? ids.slice(0, 2) : ids.slice(-2);
+    expect(observed).toEqual([first, second]);
   });
 
   it.each([true, false])(
@@ -162,6 +177,35 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
         !accepted,
       );
     }
+  });
+
+  it("does not play a non-Digimon Chronicle Option from hand through Security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT20-095", as: "option" }],
+          hand: [{ card: "BT20-095", as: "chronicleOption" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    const chronicleOptionId = s.inst("chronicleOption").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === chronicleOptionId)).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === chronicleOptionId)).toBe(true);
   });
 
   it.each(["hand", "trash", "refuse", "wrongTrait", "egg"] as const)(

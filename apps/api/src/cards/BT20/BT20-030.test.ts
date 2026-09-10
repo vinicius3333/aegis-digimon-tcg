@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getCardDefinition } from "@aegis/shared";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT20-030.js";
 import "./index.js";
 
@@ -202,4 +204,31 @@ describe("BT20-030 Liollmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(accept ? 0 : 1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-031")).toBe(!accept);
   });
+});
+
+it("publishes Liollmon's ACCEL identity and both printed evolution routes", () => {
+  expect(getCardDefinition("BT20-030")).toMatchObject({
+    colors: ["Yellow", "Black"],
+    kinds: ["Digimon"],
+    level: 3,
+    playCost: 3,
+    dp: 1000,
+    attributes: ["Vaccine"],
+    types: ["Holy Beast", "ACCEL"],
+    evoCosts: [
+      { color: "Yellow", level: 2, memoryCost: 1 },
+      { color: "Black", level: 2, memoryCost: 1 },
+    ],
+  });
+  expect(compiled.digivolutionRequirement).toEqual([
+    { names: ["Frimon"], cost: 0, isAlternate: true },
+    { level: 2, traits: ["ACCEL"], cost: 0, isAlternate: true },
+  ]);
+});
+
+it("uses an in-name Chaosmon matcher, not a broad unrelated-name match", () => {
+  const reference = { tokens: ["Chaosmon"], match: "name" as const };
+  expect(matchNameOrTrait({ nameEn: "Chaosmon: Valdur Arm" }, reference)).toBe(true);
+  expect(matchNameOrTrait({ nameEn: "UltimateChaosmon" }, reference)).toBe(true);
+  expect(matchNameOrTrait({ nameEn: "Valdur Arm" }, reference)).toBe(false);
 });

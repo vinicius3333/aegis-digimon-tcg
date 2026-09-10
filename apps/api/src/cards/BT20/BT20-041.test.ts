@@ -1,4 +1,6 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -27,6 +29,32 @@ describe("BT20-041 Crowmon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }],
     });
+  });
+
+  it("publishes Crowmon's catalog identity and exact ACCEL alternate route", () => {
+    expect(getCardDefinition("BT20-041")).toMatchObject({
+      cardId: "BT20-041",
+      nameEn: "Crowmon",
+      colors: ["Green", "Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [
+        { color: "Green", level: 4, memoryCost: 4 },
+        { color: "Yellow", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Mysterious Bird", "ACCEL"],
+    });
+    const accelBase = getCardDefinition("BT20-039")!;
+    expect(matchingAlternateDigivolutionRequirement("BT20-041", accelBase)).toMatchObject({
+      level: 4,
+      traits: ["ACCEL"],
+      cost: 3,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-041", "BT20-010")).toBeUndefined();
   });
 
   it("on play suspends the opponent, gains +3000 DP, and takes the optional attack", async () => {

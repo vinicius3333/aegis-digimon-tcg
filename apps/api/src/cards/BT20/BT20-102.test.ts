@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -29,6 +29,35 @@ const OWN_OTHER = "AD1-011"; // an unrelated own Digimon, must be deleted (not t
 const OPPONENT_DIGIMON = "AD1-004"; // an unrelated opponent Digimon, must be deleted
 
 describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except)", () => {
+  it("matches the catalog identity, printed clauses, Q&A seam, and complete IR coverage", () => {
+    expect(getCardDefinition("BT20-102")).toMatchObject({
+      cardId: "BT20-102",
+      nameEn: "Omnimon (X Antibody)",
+      colors: ["Blue", "White", "Red"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 16,
+      dp: 16000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Holy Warrior", "X Antibody", "Royal Knight", "LIBERATOR"],
+      evoCosts: [
+        { color: "Blue", level: 6, memoryCost: 6 },
+        { color: "Red", level: 6, memoryCost: 6 },
+      ],
+      maxCountInDeck: 4,
+    });
+    const printed = getCardDefinition("BT20-102")!;
+    const effectText = printed.effectText!.replaceAll("\u00a0", " ");
+    expect(effectText).toContain(
+      "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon. Then, return 1 of your opponent's Digimon to the bottom of the deck.",
+    );
+    expect(effectText).toContain(
+      "[End of Your Turn] [Once Per Turn] 1 of your Digimon may gain ＜Rush＞ for the turn and attack without suspending.",
+    );
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("grants Rush and then offers the same Digimon an unsuspending attack", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
       frequency: "OncePerTurn",
@@ -44,6 +73,7 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
           kind: "Attack",
           target: { sameTarget: true },
           withoutSuspending: true,
+          drainTimingWindowDuringAttack: true,
           condition: { kind: "ifThisEffectActed" },
         },
       ],
@@ -148,30 +178,37 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not fire the entry mass-delete from an X Antibody trait-only Digimon in the stack", async () => {
-    const preferInstanceIds: string[] = [];
+  it("skips the conditional delete but still performs Then on a public play without the stack condition", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: OMNIMON_XA, as: "xOnly", under: ["BT9-008", "BT15-009", "BT20-014", "BT20-018"] },
-            { card: OWN_OTHER, as: "ownOther" },
-          ],
+          hand: [{ card: OMNIMON_XA, as: "unqualified" }],
+          battleArea: ["BT20-092", { card: OWN_OTHER, as: "ownOther" }],
+          deck: ["BT1-010", "BT1-010"],
         },
-        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "oppOther" }] },
+        1: {
+          battleArea: [
+            { card: OPPONENT_DIGIMON, as: "oppOther" },
+            { card: "AD1-011", as: "oppSecond" },
+          ],
+          deck: ["BT20-047"],
+        },
       },
-      { autoSelectCards: true, preferInstanceIds },
+      { autoSelectCards: true },
     );
-    preferInstanceIds.push(s.perm("xOnly").topCard.instanceId);
+    s.state.memory = 16;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("xOnly"));
-    await settle(
-      () => s.state.players[0]!.battleArea.length === 2 && s.state.players[1]!.deck.at(-1)?.cardId === OPPONENT_DIGIMON,
-    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unqualified").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain(OMNIMON_XA);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining([OMNIMON_XA, OWN_OTHER]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe(OPPONENT_DIGIMON);
   });
 
   it.each([
@@ -208,31 +245,6 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === OWN_OTHER)).toBe(!qualifies);
   });
 
-  it("does not mass-delete when neither Omnimon nor X Antibody is in the stack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: OMNIMON_XA, as: "unqualified", under: ["BT1-010"] },
-            { card: OWN_OTHER, as: "ownOther" },
-          ],
-        },
-        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "oppOther" }] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("unqualified"));
-    await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === OPPONENT_DIGIMON));
-
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
-      expect.arrayContaining([OMNIMON_XA, OWN_OTHER]),
-    );
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe(OPPONENT_DIGIMON);
-  });
-
   it("grants Rush and attacks without suspending at the end of your turn", async () => {
     const s = setupEngine(
       {
@@ -241,31 +253,133 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
+    const omnimonId = s.perm("omnimon").permanentId;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.EndOfYourTurn, s.perm("omnimon"));
-    await settle(() => s.state.players[1]!.security.length === 0);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === omnimonId),
+    );
 
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("omnimon"))).toBe(true);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: omnimonId, attackerCardId: OMNIMON_XA }),
+    );
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityRevealed", attackerPermanentId: omnimonId }),
+    );
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     expect(s.perm("omnimon").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("accepts the printed Rush choice and completes its attack on a real end-of-turn", async () => {
+  it("does not attack when the optional Rush choice is declined (Q4417)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: OMNIMON_XA, as: "omnimon" }], deck: ["BT20-010", "BT20-010"] },
         1: { security: ["BT1-010"], deck: ["BT20-010", "BT20-010"] },
       },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle();
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("omnimon"))).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not declare a second attack from simultaneous copies (Q4419)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: OMNIMON_XA, as: "first" },
+            { card: OMNIMON_XA, as: "second" },
+          ],
+          deck: ["BT20-010", "BT20-010", "BT20-010"],
+        },
+        1: { security: ["BT1-010"], deck: ["BT20-010", "BT20-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    const attackBaseline = s.events.filter((event) => event.kind === "attackDeclared").length;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.events.filter((event) => event.kind === "attackDeclared").length === attackBaseline + 1,
+    );
+
+    const attackDeclarations = s.events.filter((event) => event.kind === "attackDeclared").slice(attackBaseline);
+    expect(attackDeclarations).toHaveLength(1);
+    expect([firstId, secondId]).toContain(attackDeclarations[0]!.attackerPermanentId);
+    // BT20-102 has no Security Attack +1. One declaration means exactly one check remains;
+    // the second simultaneous copy must not declare a second attack (Q4419).
+    expect(s.events.filter((event) => event.kind === "securityRevealed")).toHaveLength(1);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("accepts the printed Rush choice and attacks even when the chosen Digimon is suspended (Q4418)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: OMNIMON_XA, as: "omnimon" }],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { security: ["BT1-010", "BT1-010"], deck: ["BT20-010", "BT20-010"] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    const omnimonId = s.perm("omnimon").permanentId;
+    const attackBaseline = s.events.filter((event) => event.kind === "attackDeclared").length;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: omnimonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("omnimon").isSuspended &&
+        s.events.filter((event) => event.kind === "attackDeclared").length === attackBaseline + 1,
+    );
+    expect(s.perm("omnimon").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.events.filter((event) => event.kind === "attackDeclared").length === attackBaseline + 2,
+    );
 
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("omnimon"))).toBe(true);
-    expect(s.perm("omnimon").isSuspended).toBe(false);
+    const attacks = s.events.filter((event) => event.kind === "attackDeclared").slice(attackBaseline);
+    expect(attacks).toHaveLength(2);
+    expect(attacks.every((event) => event.attackerPermanentId === omnimonId)).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityRevealed")).toHaveLength(2);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -281,30 +280,70 @@ describe("BT20-018 Ouryumon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(candidate);
   });
 
-  it("once per turn deletes one opposing Digimon with the lowest DP when either security stack loses a card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT20-018", as: "ouryumon" },
-          { card: "BT20-012", as: "secondAttacker" },
-        ],
+  it("once per turn deletes the opposing lowest-DP Digimon for security removal from either stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-018", as: "ouryumon" },
+            { card: "BT20-012", as: "secondAttacker" },
+          ],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+          battleArea: [
+            { card: "BT20-014", dp: 4000, as: "lowest" },
+            { card: "BT20-014", dp: 7000, as: "higher" },
+            { card: "BT20-012", dp: 8000, as: "opponentAttacker" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT20-014", dp: 4000, as: "lowest" },
-          { card: "BT20-014", dp: 7000, as: "higher" },
-        ],
-      },
-    });
-    await s.ready();
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     const lowestId = s.perm("lowest").permanentId;
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    const higherId = s.perm("higher").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lowestId));
     expect(s.perm("higher")).toBeDefined();
 
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    await settle(() => false, 50);
-    expect(s.perm("higher")).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === higherId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.turnCount).toBeGreaterThanOrEqual(2);
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === higherId));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === higherId)).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("naturally deletes a tied lowest target once, then resets on a later turn", async () => {
@@ -331,7 +370,7 @@ describe("BT20-018 Ouryumon", () => {
       },
       { autoSelectCards: true, autoDeclineOptional: true },
     );
-    const ownTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -354,13 +393,8 @@ describe("BT20-018 Ouryumon", () => {
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.currentDP === 3000)).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    await advance(s.engine).runTurn(1);
-    s.state.turnSeat = 0;
-    s.state.memory = -s.state.memory;
-    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -375,19 +409,30 @@ describe("BT20-018 Ouryumon", () => {
       s.perm("higher").permanentId,
     ]);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await nextTurn;
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("as an Alphamon: Ouryuken source trashes top security when the host attacks", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-060", as: "ouryuken", under: ["BT20-018"] }] },
-        1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
+        1: {
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          battleArea: [{ card: "BT20-014", as: "defender", suspended: true }],
+        },
       },
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ouryuken"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryuken").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
@@ -411,7 +456,7 @@ describe("BT20-018 Ouryumon", () => {
     s.state.memory = 7;
     await s.ready();
 
-    const firstOwnTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
@@ -436,18 +481,8 @@ describe("BT20-018 Ouryumon", () => {
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.state.memory).toBe(4);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await firstOwnTurn;
-
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-
-    s.state.turnSeat = 0;
-    s.state.memory = 3;
-    const nextOwnTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
@@ -461,7 +496,9 @@ describe("BT20-018 Ouryumon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT20-060");
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT20-018");
     advance(s.engine).endMainPhaseIfOpen(0);
-    await nextOwnTurn;
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("naturally trashes the identified top security card only for an Alphamon: Ouryuken host", async () => {

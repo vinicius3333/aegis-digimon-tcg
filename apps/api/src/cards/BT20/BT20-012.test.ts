@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -15,7 +16,7 @@ describe("BT20-012 Ginryumon", () => {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           into: {
             nameOrTrait: [
-              { tokens: ["Hisyaryumon"], match: "name" },
+              { tokens: ["Hisyaryumon"], match: "nameExact" },
               { tokens: ["Chronicle"], match: "trait" },
             ],
           },
@@ -31,9 +32,15 @@ describe("BT20-012 Ginryumon", () => {
       actions: [{ kind: "ModifyDP", amount: 2000 }],
     });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Ryudamon"], cost: 2, isAlternate: true },
+      { namesExact: ["Ryudamon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["Chronicle"], cost: 2, isAlternate: true },
     ]);
+  });
+
+  it("treats the bracketed Hisyaryumon destination as an exact name, not a substring", () => {
+    const reference = { tokens: ["Hisyaryumon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Hisyaryumon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Hisyaryumon X" }, reference)).toBe(false);
   });
 
   it("observably pays the alternate cost to evolve into Hisyaryumon while attacking", async () => {

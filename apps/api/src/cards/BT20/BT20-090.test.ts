@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { getCardDefinition, type Seat } from "@aegis/shared";
 import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT20-090.js";
 import "../BT11/BT11-079.js";
 import "./index.js";
@@ -24,7 +25,6 @@ const DECK_FILLER = Array.from({ length: 5 }, () => "BT1-010");
 
 interface Harness {
   s: EngineSetup;
-  memoryAfterStartTurn: number[];
 }
 
 function harness(board: BoardSpec): Harness {
@@ -32,20 +32,7 @@ function harness(board: BoardSpec): Harness {
   s.state.turnSeat = 0;
   s.state.isFirstPlayersFirstTurn = true;
 
-  const memoryAfterStartTurn: number[] = [];
-  const engineAny = s.engine as unknown as {
-    fireTiming(timing: EffectTiming, trigger?: unknown): Promise<void>;
-  };
-  const original = engineAny.fireTiming.bind(s.engine);
-  engineAny.fireTiming = async (timing: EffectTiming, trigger?: unknown) => {
-    const result = await original(timing, trigger);
-    if (timing === EffectTiming.OnStartTurn) {
-      memoryAfterStartTurn.push(s.state.memory);
-    }
-    return result;
-  };
-
-  return { s, memoryAfterStartTurn };
+  return { s };
 }
 
 /**
@@ -53,9 +40,8 @@ function harness(board: BoardSpec): Harness {
  */
 async function driveTurn(h: Harness, seat: Seat): Promise<void> {
   const turn = h.s.engine.runOneTurn();
-  const mainPhase = (h.s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-  for (let i = 0; i < 500 && !mainPhase.isOpen; i++) await Promise.resolve();
-  h.s.engine.applyIntent(seat, { type: "endPhase" });
+  await advance(h.s.engine).waitForMainPhase(seat);
+  advance(h.s.engine).endMainPhaseIfOpen(seat);
   await turn;
 }
 
@@ -64,10 +50,32 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects.map((effect) => effect.trigger)).toEqual(["StartOfYourTurn", "EndOfYourTurn", "Security"]);
+    expect(getCardDefinition(YUUKI)).toMatchObject({
+      nameEn: "Yuuki",
+      colors: ["Purple"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+    });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "SetMemory",
+      value: 3,
+      condition: { kind: "memoryAtMost", value: 2 },
+    });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({
       kind: "Attack",
       attackPlayer: true,
       cost: { kind: "suspend" },
+      condition: { kind: "handAtMost", value: 4 },
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          unsuspended: true,
+          nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }],
+        },
+        count: 1,
+      },
     });
     expect(compiled.effects[2]).toMatchObject({
       isSecurity: true,
@@ -86,11 +94,11 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     h.s.state.memory = 1;
     h.s.state.turnSeat = 0;
 
-    await driveTurn(h, 0);
-
-    // The [Start of Your Turn] effect observed at the OnStartTurn window: memory raised to 3.
-    expect(h.memoryAfterStartTurn.length).toBeGreaterThanOrEqual(1);
-    expect(h.memoryAfterStartTurn[0]).toBe(3);
+    const turn = h.s.engine.runOneTurn();
+    await advance(h.s.engine).waitForMainPhase(0);
+    expect(h.s.state.memory).toBe(3);
+    advance(h.s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("[Start of Your Turn] does NOT set memory to 3 when memory > 2", async () => {
@@ -102,11 +110,11 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     h.s.state.memory = 5;
     h.s.state.turnSeat = 0;
 
-    await driveTurn(h, 0);
-
-    // Memory should remain at 5 at the OnStartTurn window (effect gated out).
-    expect(h.memoryAfterStartTurn.length).toBeGreaterThanOrEqual(1);
-    expect(h.memoryAfterStartTurn[0]).toBe(5);
+    const turn = h.s.engine.runOneTurn();
+    await advance(h.s.engine).waitForMainPhase(0);
+    expect(h.s.state.memory).toBe(5);
+    advance(h.s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("[End of Your Turn] suspends Yuuki when conditions are met", async () => {
@@ -123,7 +131,7 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
         deck: DECK_FILLER,
         hand: ["BT1-010"],
         // A security card so the forced attack resolves without ending the game abruptly.
-        security: Array.from({ length: 5 }, () => "BT1-001"),
+        security: Array.from({ length: 5 }, () => "BT1-090"),
       },
     });
     const tamer = h.s.perm("tamer");
@@ -152,7 +160,7 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
         ],
         deck: DECK_FILLER,
       },
-      1: { deck: DECK_FILLER, security: Array.from({ length: 5 }, () => "BT1-001") },
+      1: { deck: DECK_FILLER, security: Array.from({ length: 5 }, () => "BT1-090") },
     });
     h.s.state.memory = 0;
     h.s.state.turnSeat = 0;

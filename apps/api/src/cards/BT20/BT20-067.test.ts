@@ -169,9 +169,9 @@ describe("BT20-067 Soulmon", () => {
         0: {
           battleArea: [{ card: "BT20-061", as: "ally" }],
           hand: [{ card: "BT20-067", as: "soulmon" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-090", "BT1-091"],
         },
-        1: { deck: ["BT1-001", "BT1-002"] },
+        1: { deck: ["BT1-090", "BT1-091"] },
       },
       { autoSelectCards: true },
     );

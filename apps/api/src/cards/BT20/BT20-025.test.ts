@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -10,6 +9,7 @@ import "./BT20-045.js";
 
 describe("BT20-025 Wingdramon", () => {
   it("deletes up to 6000 DP and is treated as Slayerdramon only while in play", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Coredramon"], cost: 3, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -42,7 +42,7 @@ describe("BT20-025 Wingdramon", () => {
   it("deletes exactly one opposing Digimon at the inclusive 6000-DP boundary", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-025", as: "wingdramon" }] },
+        0: { hand: [{ card: "BT20-025", as: "wingdramon" }] },
         1: {
           battleArea: [
             { card: "BT20-014", dp: 6000, as: "boundary" },
@@ -52,8 +52,12 @@ describe("BT20-025 Wingdramon", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
+    await s.ready();
     const boundaryId = s.perm("boundary").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wingdramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wingdramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === boundaryId));
     expect(s.perm("tooLarge")).toBeDefined();
   });
@@ -109,13 +113,15 @@ describe("BT20-025 Wingdramon", () => {
           security: ["BT1-010", "BT1-010"],
           deck: ["BT1-010", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-009", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT20-009", as: "attacker" }], deck: ["BT1-010"] },
       },
       { autoSelectCards: true, autoDeclineOptional: true },
     );
-    s.state.turnSeat = 1;
     s.state.memory = 3;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -141,6 +147,8 @@ describe("BT20-025 Wingdramon", () => {
     expect(result!.stack.map((card) => card.cardId)).toEqual(["BT20-023", "BT20-025", "BT20-044"]);
     expect(s.state.players[0]!.hand.some((card) => ["BT20-044", "BT20-045"].includes(card.cardId))).toBe(false);
     expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
   it("publicly evolves Coredramon into Wingdramon and applies the printed deletion", async () => {
     const s = setupEngine({
@@ -185,13 +193,22 @@ describe("BT20-025 Wingdramon", () => {
             { card: "BT20-025", as: "handWingdramon" },
             { card: "BT20-045", as: "examon" },
           ],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT20-010", as: "attacker" }],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010"],
+        },
       },
       { autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -204,6 +221,8 @@ describe("BT20-025 Wingdramon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("examon").instanceId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("makes a legal Wingdramon stack perform two security checks", async () => {

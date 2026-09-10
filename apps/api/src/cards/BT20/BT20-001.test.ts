@@ -29,6 +29,7 @@ describe("BT20-001 DemiVeemon", () => {
       0: {
         battleArea: [{ card: "BT20-010", as: "ally" }],
         breeding: { card: "BT20-001", as: "atBoundary" },
+        deck: ["BT1-009"],
         hand: [
           { card: "BT20-008", as: "at3" },
           { card: "BT20-013", as: "at4" },
@@ -36,7 +37,12 @@ describe("BT20-001 DemiVeemon", () => {
           { card: "BT20-017", as: "at6" },
         ],
       },
-      1: { battleArea: [{ card: "BT20-010", as: "opponent" }] },
+      1: {
+        // A legal four-card stack: Lv.2 egg -> Lv.3 -> Lv.4 -> Lv.5 under a Lv.6 top.
+        // The non-DemiVeemon cards have no inherited DP effects, isolating this card's +2000.
+        battleArea: [{ card: "BT1-025", as: "opponent", under: ["BT20-001", "BT1-009", "BT4-010", "BT1-020"] }],
+        deck: ["BT1-009"],
+      },
     });
     s.state.memory = 10;
     for (const alias of ["at3", "at4", "at5", "at6"]) {
@@ -49,26 +55,22 @@ describe("BT20-001 DemiVeemon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("atBoundary").topCard.cardId === s.inst(alias).cardId);
     }
-    const turn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await settle(() => s.state.phase === Phase.Breeding);
     expect(
       s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("atBoundary").permanentId }),
     ).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
-
-    // Jesmon 11000 + Huckmon inherited 1000 + BaoHuckmon inherited 1000 +
-    // DemiVeemon's 2000 bonus = 15000 on the owner's turn.
     expect(s.perm("atBoundary").currentDP).toBe(15000);
-    // The two Huckmon auras reach this ally; DemiVeemon's +2000 does not.
     expect(s.perm("ally").currentDP).toBe(s.perm("ally").baseDP + 2000);
     expect(s.perm("opponent").currentDP).toBe(s.perm("opponent").baseDP);
-
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("atBoundary").currentDP).toBe(11000);
     expect(s.perm("ally").currentDP).toBe(s.perm("ally").baseDP);
+    expect(s.perm("opponent").currentDP).toBe(s.perm("opponent").baseDP + 2000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
     const below = setupEngine({
       0: {

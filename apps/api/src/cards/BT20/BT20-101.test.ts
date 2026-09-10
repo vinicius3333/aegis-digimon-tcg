@@ -1,14 +1,48 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-101.js";
 import "./index.js";
 import "../EX11/EX11-035.js";
-import "../ST1/ST1-16.js";
 import "../BT1/BT1-085.js";
 
 describe("BT20-101 Zephagamon", () => {
+  it("matches the catalog contract, alternate route, keywords, and Q&A scopes", () => {
+    expect(getCardDefinition("BT20-101")).toMatchObject({
+      cardId: "BT20-101",
+      nameEn: "Zephagamon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 8,
+      dp: 13000,
+      evoCosts: [{ color: "Green", level: 5, memoryCost: 5 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Magic Knight", "Vortex Warriors", "LIBERATOR", "Bird Dragon"],
+      isAce: true,
+      overflowMemory: 4,
+      maxCountInDeck: 4,
+    });
+    const printed = getCardDefinition("BT20-101")!;
+    expect(printed.effectText!.replaceAll("\u00a0", " ")).toContain(
+      "[On Play] [When Digivolving] You may suspend 1 Digimon. Then, for every 2 suspended Digimon, you may return 1 of your opponent's suspended Digimon to the bottom of the deck.",
+    );
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    const vortexBase = getCardDefinition("EX11-035");
+    if (vortexBase === undefined) throw new Error("catalog entry missing for EX11-035");
+    expect(matchingAlternateDigivolutionRequirement("BT20-101", vortexBase)).toMatchObject({
+      level: 6,
+      traits: ["Vortex Warriors"],
+      basePlayCostMin: 10,
+      cost: 1,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-101", "BT20-010")).toBeUndefined();
+  });
+
   it("requires a play-cost-10-or-higher level-6 Vortex Warriors base for its cost-1 route", () => {
     expect(compiled.digivolutionRequirement).toContainEqual({
       level: 6,
@@ -80,31 +114,74 @@ describe("BT20-101 Zephagamon", () => {
 
     expect(s.perm("ownTarget").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const returnedOpponent = ["firstOpponent", "secondOpponent"].find(
+      (alias) =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst(alias).instanceId),
+    );
+    expect(returnedOpponent).toBeDefined();
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toContain(s.inst(returnedOpponent!).instanceId);
     expect(s.state.players[1]!.deck).toHaveLength(2);
   });
 
   it("unsuspends itself when either player's Digimon suspends, only once per turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-101", as: "zephagamon", suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT20-101", as: "zephagamon" }],
+          hand: [{ card: "BT20-101", as: "source" }],
+          security: ["BT1-010", "BT1-010"],
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "firstOpponent" },
             { card: "BT1-010", as: "secondOpponent" },
           ],
+          deck: ["BT1-010"],
+          security: ["BT1-010", "BT1-010"],
         },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("zephagamon").topCard.instanceId);
+    s.state.memory = 8;
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("firstOpponent").permanentId], 1);
-    await settle(() => !s.perm("zephagamon").isSuspended);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("zephagamon").isSuspended &&
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-101"),
+    );
     expect(s.perm("zephagamon").isSuspended).toBe(false);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT20-101" && req.kind === "optional")).toBe(true);
+    expect(
+      s.decisions.some(
+        ({ req }) =>
+          req.sourceCardId === "BT20-101" &&
+          req.kind === "chooseTargets" &&
+          req.options?.candidateInstanceIds?.includes(s.perm("zephagamon").permanentId),
+      ),
+    ).toBe(true);
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "effectResolved", sourceCardId: "BT20-101" }));
 
-    await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId], 1);
-    await settle();
-    expect(s.perm("zephagamon").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zephagamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    // The once-per-turn unsuspend was already spent by the source's public On Play suspension,
+    // so Zephagamon's own attack leaves it suspended.
+    expect(s.perm("zephagamon").isSuspended).toBe(true);
   });
 
   it("public attacks trigger an own-turn unsuspend once and an opponent-turn reset", async () => {
@@ -127,7 +204,7 @@ describe("BT20-101 Zephagamon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    const ownTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     for (const expectedSuspended of [false, true]) {
       expect(
@@ -143,10 +220,6 @@ describe("BT20-101 Zephagamon", () => {
     }
     expect(s.state.players[1]!.security).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     const opponentId = s.perm("opponent").topCard.instanceId;
     expect(
@@ -163,7 +236,9 @@ describe("BT20-101 Zephagamon", () => {
     expect(s.perm("zepha").isSuspended).toBe(false);
     expect(s.state.players[1]!.trash.some((c) => c.instanceId === opponentId)).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may refuse its unsuspend after publicly attacking", async () => {
@@ -217,14 +292,16 @@ describe("BT20-101 Zephagamon", () => {
       ).toEqual({ ok: true });
       if (suspendedCount === 2) {
         await settle(() => s.state.pendingDecision?.kind === "optional");
-        expect(
-          s.engine.applyIntent(0, {
-            type: "respondDecision",
-            decisionId: s.state.pendingDecision!.decisionId,
-            response: { kind: "optional", accept: true },
-          }),
-        ).toEqual({ ok: true });
       }
+      const secondResponse =
+        s.state.pendingDecision === undefined
+          ? { ok: true as const }
+          : s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: s.state.pendingDecision.decisionId,
+              response: { kind: "optional", accept: true },
+            });
+      expect(secondResponse).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision === undefined);
       expect(s.state.players[1]!.battleArea).toHaveLength(suspendedCount === 2 ? 1 : suspendedCount);
       expect(s.state.players[1]!.deck).toHaveLength(suspendedCount === 2 ? 2 : 1);
@@ -232,9 +309,27 @@ describe("BT20-101 Zephagamon", () => {
   );
 
   it("uses the printed cost-1 Vortex Warriors alternate evolution", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX11-035", as: "vortexMega" }], hand: [{ card: "BT20-101", as: "zephagamon" }] },
-    });
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-035", as: "vortexMega" },
+            { card: "BT1-010", as: "ownTarget" },
+          ],
+          hand: [{ card: "BT20-101", as: "zephagamon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstOpponent", suspended: true },
+            { card: "BT1-010", as: "secondOpponent", suspended: true },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("ownTarget").topCard.instanceId);
     s.state.memory = 1;
     expect(
       s.engine.applyIntent(0, {
@@ -247,6 +342,9 @@ describe("BT20-101 Zephagamon", () => {
     await settle(() => s.perm("vortexMega").topCard.cardId === "BT20-101" && s.state.pendingDecision === undefined);
     expect(s.perm("vortexMega").stack.map((card) => card.cardId)).toEqual(["EX11-035"]);
     expect(s.state.memory).toBe(0);
+    expect(s.perm("ownTarget").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(2);
   });
 
   it("publicly Blast Digivolves in the counter window and uses Blocker to redirect the attack", async () => {
@@ -261,13 +359,20 @@ describe("BT20-101 Zephagamon", () => {
           security: [{ card: "BT1-010", as: "security" }],
           deck: ["BT1-010", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-071", dp: 7000, as: "attacker" }], security: ["BT1-010"] },
+        1: {
+          battleArea: [{ card: "BT20-071", dp: 7000, as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -298,6 +403,10 @@ describe("BT20-101 Zephagamon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("base").topCard.cardId).toBe("BT20-101");
     expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publicly uses Piercing to check security after deleting an opposing Digimon", async () => {
@@ -311,7 +420,6 @@ describe("BT20-101 Zephagamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -338,7 +446,6 @@ describe("BT20-101 Zephagamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     s.state.memory = 3;
     await s.ready();
     const turn = s.engine.runOneTurn();

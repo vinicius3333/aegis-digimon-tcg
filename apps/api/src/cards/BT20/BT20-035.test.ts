@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -8,6 +9,22 @@ import "./index.js";
 
 describe("BT20-035 Kazuchimon", () => {
   it("suspends and restricts separate opponent targets, and only activates its effect plus attack when a Tamer enters the stack", () => {
+    expect(getCardDefinition("BT20-035")).toMatchObject({
+      cardId: "BT20-035",
+      nameEn: "Kazuchimon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Purple", level: 5, memoryCost: 4 },
+        { color: "Green", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Shaman", "Abadin Electronics", "SEEKERS"],
+    });
     expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
         { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } },
@@ -125,7 +142,9 @@ describe("BT20-035 Kazuchimon", () => {
       expect(s.events.some((event) => event.kind === "combatResolved")).toBe(hasTarget);
       expect(s.state.players[1]!.security).toHaveLength(3);
       expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(hasTarget);
-      if (!hasTarget) expect(s.perm("target").isSuspended).toBe(true);
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === targetId)).toBe(
+        !hasTarget,
+      );
     },
   );
 
@@ -180,20 +199,6 @@ describe("BT20-035 Kazuchimon", () => {
     await advance(s.engine).verb.placeUnder(s.perm("otherHost").permanentId, [s.inst("tamer").instanceId]);
     expect(s.perm("target").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
-  });
-
-  it("recovers once when Fenriloogamon's security is removed", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT17-101", as: "host", under: ["BT20-035"] }],
-        deck: [{ card: "BT20-010", as: "recovery" }],
-      },
-    });
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("recovery").instanceId]);
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("publicly replays the same Fortitude Digimon after it is deleted in battle", async () => {

@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -45,6 +46,28 @@ describe("BT20-054 Bulbmon", () => {
     });
   });
 
+  it("publishes Bulbmon's complete catalog text and identity", () => {
+    expect(getCardDefinition("BT20-054")).toMatchObject({
+      cardId: "BT20-054",
+      nameEn: "Bulbmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Machine"],
+    });
+    expect(getCardDefinition("BT20-054")!.effectText).toBe(
+      "＜Blocker＞ \n[Opponent's Turn] When this Digimon would leave the battle area, you may play 1 play cost 4 or lower Digimon card from this Digimon's digivolution cards without paying the cost.",
+    );
+    expect(getCardDefinition("BT20-054")!.inheritedEffectText).toBe(
+      "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+    );
+  });
+
   it("publishes Blocker on Bulbmon at runtime", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-054", as: "bulbmon" }] } });
     await s.ready();
@@ -66,6 +89,8 @@ describe("BT20-054 Bulbmon", () => {
     await settle(
       () => legal.perm("blimpmon").topCard.cardId === "BT20-054" && legal.state.pendingDecision === undefined,
     );
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("blimpmon").topCard.cardId).toBe("BT20-054");
     expect(legal.perm("blimpmon").stack.map((card) => card.cardId)).toEqual(["BT20-049"]);
 
     const invalid = setupEngine({
@@ -91,6 +116,7 @@ describe("BT20-054 Bulbmon", () => {
       const s = setupEngine(
         {
           0: {
+            hand: [{ card: "BT20-047", as: "handEligible" }],
             battleArea: [
               {
                 card: "BT20-054",
@@ -112,6 +138,7 @@ describe("BT20-054 Bulbmon", () => {
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
         shouldPlay ? ["BT20-047"] : [],
       );
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-047");
       expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
         expect.arrayContaining(["BT20-054", "BT20-051"]),
       );

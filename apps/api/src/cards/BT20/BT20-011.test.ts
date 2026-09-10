@@ -1,7 +1,9 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT17/BT17-084.js";
+import "../EX10/EX10-052.js";
 import "./index.js";
 import { compiled } from "./BT20-011.js";
 
@@ -17,6 +19,7 @@ describe("BT20-011 ExVeemon", () => {
         kind: "DnaDigivolve",
         materials: { count: 2, filter: { controller: "mine", kind: ["Digimon"] } },
         into: {
+          zone: "hand",
           nameOrTrait: [
             { tokens: ["Imperialdramon"], match: "name" },
             { tokens: ["Free"], match: "trait" },
@@ -30,6 +33,21 @@ describe("BT20-011 ExVeemon", () => {
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
       actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
+    });
+  });
+
+  it("publishes ExVeemon's Free identity and both printed level-3 evolution routes", () => {
+    expect(getCardDefinition("BT20-011")).toMatchObject({
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      attributes: ["Free"],
+      evoCosts: [
+        { color: "Red", level: 3, memoryCost: 2 },
+        { color: "Purple", level: 3, memoryCost: 2 },
+      ],
     });
   });
 
@@ -48,7 +66,7 @@ describe("BT20-011 ExVeemon", () => {
             { card: "BT20-010", dp: 3000, as: "low" },
             { card: "BT20-012", dp: 4000, as: "high" },
           ],
-          security: ["BT20-001"],
+          security: ["BT20-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -127,7 +145,7 @@ describe("BT20-011 ExVeemon", () => {
             { card: "BT20-012", dp: 10000, as: "attacker" },
             { card: "BT20-007", dp: 3000, as: "weakTarget" },
           ],
-          security: ["BT20-001", "BT20-002"],
+          security: ["BT20-010", "BT20-012"],
         },
       },
       {
@@ -196,5 +214,49 @@ describe("BT20-011 ExVeemon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dnaCandidate").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["ST6-06", "BT20-011"]);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("continues the Then DNA clause when a public leave reaction removes ExVeemon (Q6017)", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST6-06", as: "purpleMaterial" },
+            { card: "BT20-013", as: "redMaterial" },
+          ],
+          hand: [
+            { card: "BT20-011", as: "exVeemon" },
+            { card: "BT20-016", as: "dnaCandidate" },
+          ],
+          // Keep both players' security non-empty with legal non-Digi-Egg cards.
+          security: ["BT20-010"],
+        },
+        1: {
+          battleArea: [{ card: "EX10-052", dp: 3000, as: "reactor" }],
+          security: ["BT20-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+    );
+    // EX10-052's public would-leave replacement chooses the resolving ExVeemon as
+    // its opponent deletion target. The ordered BT20-011 effect must still continue.
+    preferredInstanceIds.push(s.inst("exVeemon").instanceId);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exVeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-016"));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX10-052")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-011")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-016");
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["ST6-06", "BT20-013"]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("exVeemon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("dnaCandidate").instanceId);
   });
 });

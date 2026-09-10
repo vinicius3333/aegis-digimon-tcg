@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./BT20-007.js";
@@ -13,7 +13,11 @@ describe("BT20-007 Dracomon", () => {
     expect(main?.actions[0]).toMatchObject({ optional: true, abortOnDecline: true });
     expect(main?.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
     expect(main?.actions[1]?.optional).not.toBe(true);
-    expect(compiled.digivolutionRequirement).toContainEqual({ names: ["Bebydomon"], cost: 0, isAlternate: true });
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      namesExact: ["Bebydomon"],
+      cost: 0,
+      isAlternate: true,
+    });
   });
 
   it("pays the matching text cost before drawing and gaining memory, and may decline the whole effect", async () => {
@@ -30,7 +34,12 @@ describe("BT20-007 Dracomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(accepted.engine).fire(EffectTiming.OnStartMainPhase, accepted.perm("dracomon"));
+    await accepted.ready();
+    const acceptedTurn = accepted.engine.runOneTurn();
+    await advance(accepted.engine).waitForMainPhase(0);
+    await settle(() =>
+      accepted.state.players[0]!.trash.some((card) => card.instanceId === accepted.inst("dracomonText").instanceId),
+    );
     expect(accepted.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
       accepted.inst("dracomonText").instanceId,
     );
@@ -39,6 +48,8 @@ describe("BT20-007 Dracomon", () => {
     );
     expect(accepted.state.players[0]!.hand.map((card) => card.instanceId)).toContain(accepted.inst("drawn").instanceId);
     expect(accepted.state.memory).toBe(1);
+    advance(accepted.engine).endMainPhaseIfOpen(0);
+    await acceptedTurn;
 
     const declined = setupEngine(
       {

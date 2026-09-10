@@ -1,9 +1,21 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./BT20-006.js";
 
 describe("BT20-006 DemiMeramon", () => {
+  it("publishes the purple Flame/LIBERATOR Digi-Egg identity", () => {
+    expect(getCardDefinition("BT20-006")).toMatchObject({
+      nameEn: "DemiMeramon",
+      colors: ["Purple"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      types: ["Flame", "LIBERATOR"],
+    });
+  });
+
   it("proves optional On Deletion recovery targets one of your Ghost Digimon in trash", () => {
     const action = compiled.effects.find((entry) => entry.isInherited)?.actions[0];
     expect(action).toMatchObject({
@@ -97,7 +109,7 @@ describe("BT20-006 DemiMeramon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  it("Q4285: egg recovery of deleted Bakemon cancels its pending inherited memory", async () => {
+  it("Q4285/Q5905: recovering the deleted top card cancels its pending inherited effect", async () => {
     const s = setupEngine(
       {
         0: {
@@ -152,6 +164,8 @@ describe("BT20-006 DemiMeramon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === bakemonInstance)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === eggInstance)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-063")).toBe(true);
+    // The deleted top card left the trash before its own pending inherited effect could activate;
+    // Q5905 therefore forbids treating this as a second activation opportunity.
   });
 
   it("Q4286: egg recovery of Ghostmon preserves the deleted host's inherited memory", async () => {

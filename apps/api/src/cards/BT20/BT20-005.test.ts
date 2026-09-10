@@ -75,7 +75,7 @@ describe("BT20-005 Kapurimon", () => {
       0: {
         breeding: { card: "BT20-005", as: "egg" },
         hand: [{ card: "BT20-046", as: "espimon" }, "BT20-010"],
-        deck: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009"],
       },
       1: { security: [{ card: "BT1-015", faceUp: true }] },
     });

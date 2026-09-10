@@ -1,8 +1,10 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-068.js";
 import "./index.js";
+import "../BT2/BT2-107.js";
 
 describe("BT20-068 Bakemon", () => {
   it("optionally plays Violet Inboots from hand when there is at most one own Tamer", () => {
@@ -14,7 +16,7 @@ describe("BT20-068 Bakemon", () => {
           from: ["hand"],
           payCost: false,
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Violet Inboots"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Violet Inboots"], match: "nameExact" }] },
             count: 1,
           },
           condition: { kind: "permanentCount", seat: "mine", filter: { kind: ["Tamer"] }, op: "lte", value: 1 },
@@ -32,11 +34,21 @@ describe("BT20-068 Bakemon", () => {
 
   it("publishes the printed stats and purple evolution route", () => {
     expect(getCardDefinition("BT20-068")).toMatchObject({
+      cardId: "BT20-068",
+      nameEn: "Bakemon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
       level: 4,
       playCost: 4,
       dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Ghost", "LIBERATOR"],
       evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }],
+      effectText: expect.stringContaining("Violet Inboots"),
+      inheritedEffectText: expect.stringContaining("Gain 1 memory"),
     });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("free-plays Violet on evolution at the exact 0/1-Tamer boundary, but not with 2", async () => {
@@ -109,13 +121,31 @@ describe("BT20-068 Bakemon", () => {
 
   it("gains 1 memory only when Bakemon is inherited under the deleted host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-024", under: ["BT20-068"], suspended: true, as: "host" }] },
-      1: { battleArea: [{ card: "BT20-076", as: "attacker" }] },
+      0: {
+        battleArea: [{ card: "BT1-024", under: ["BT20-068"], suspended: true, as: "host" }],
+        hand: ["BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT20-076", as: "attacker" }],
+        hand: ["BT1-010"],
+        security: ["BT2-107"],
+        deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+      },
     });
     s.state.memory = 0;
     const hostId = s.perm("host").permanentId;
-    s.state.turnSeat = 1;
-    await s.ready();
+    const turns = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -123,17 +153,25 @@ describe("BT20-068 Bakemon", () => {
         target: { kind: "permanent", permanentId: hostId },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) && s.state.memory === -1,
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "memoryChanged" && event.reason === "gainMemory" && event.to - event.from === -1,
+      ),
     );
-    expect(s.state.memory).toBe(-1);
+    expect(
+      s.events.some(
+        (event) => event.kind === "memoryChanged" && event.reason === "gainMemory" && event.to - event.from === -1,
+      ),
+    ).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turns;
   });
 
   it("publicly builds a Yaamon-Ghostmon-Bakemon-Sandiramon stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX7-006", as: "yaamon" }],
+        breeding: { card: "EX7-006", as: "yaamon" },
         hand: [
           { card: "BT20-063", as: "ghostmon" },
           { card: "BT20-068", as: "bakemon" },

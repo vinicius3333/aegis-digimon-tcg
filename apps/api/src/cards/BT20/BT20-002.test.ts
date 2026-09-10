@@ -4,7 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import "../BT1/BT1-036.js";
-import "../EX3/EX3-037.js";
 import { compiled } from "./BT20-002.js";
 
 describe("BT20-002 Bebydomon", () => {
@@ -24,19 +23,22 @@ describe("BT20-002 Bebydomon", () => {
     });
   });
 
-  it("tracks the source through public Bebydomon evolution into an Examon-text host, while a legal no-text host draws nothing", async () => {
+  it("tracks the source through public evolution into a full-text Dracomon variant and an Examon-text host", async () => {
+    const dracomonVariant = getCardDefinition("BT21-046")!;
+    expect(dracomonVariant.nameEn).toContain("Dracomon");
+    expect(dracomonVariant.nameEn).not.toBe("Dracomon");
     const matching = setupEngine(
       {
         0: {
           breeding: { card: "BT20-002", as: "bebydomon" },
           hand: [
-            { card: "EX3-037", as: "dracomon" },
+            { card: "BT21-046", as: "dracomon" },
             { card: "BT20-023", as: "coredramon" },
             { card: "BT20-025", as: "wingdramon" },
           ],
-          deck: ["BT20-004", "BT20-005", "BT20-006", "BT20-007", "BT20-008", "BT20-009", "BT20-010", "BT20-011"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT20-007", "BT20-008", "BT20-009", "BT20-010", "BT20-011"],
         },
-        1: { security: ["BT1-015", "BT1-015", "BT1-015"] },
+        1: { security: ["BT1-090", "BT1-090", "BT1-090"] },
       },
       { autoSelectCards: true },
     );
@@ -49,7 +51,7 @@ describe("BT20-002 Bebydomon", () => {
         instanceId: matching.inst("dracomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => matching.perm("bebydomon").topCard.cardId === "EX3-037");
+    await settle(() => matching.perm("bebydomon").topCard.cardId === "BT21-046");
     expect(matching.perm("bebydomon").stack.map((card) => card.cardId)).toEqual(["BT20-002"]);
     expect(
       matching.engine.applyIntent(0, {
@@ -59,7 +61,7 @@ describe("BT20-002 Bebydomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => matching.perm("bebydomon").topCard.cardId === "BT20-023");
-    expect(matching.perm("bebydomon").stack.map((card) => card.cardId)).toEqual(["BT20-002", "EX3-037"]);
+    expect(matching.perm("bebydomon").stack.map((card) => card.cardId)).toEqual(["BT20-002", "BT21-046"]);
     const wingdramonDefinition = getCardDefinition("BT20-025")!;
     expect(wingdramonDefinition.effectText).toContain("[Examon]");
     expect(wingdramonDefinition.effectText).not.toContain("[Dracomon]");
@@ -71,7 +73,7 @@ describe("BT20-002 Bebydomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => matching.perm("bebydomon").topCard.cardId === "BT20-025");
-    expect(matching.perm("bebydomon").stack.map((card) => card.cardId)).toEqual(["BT20-002", "EX3-037", "BT20-023"]);
+    expect(matching.perm("bebydomon").stack.map((card) => card.cardId)).toEqual(["BT20-002", "BT21-046", "BT20-023"]);
 
     const legalStackTurn = matching.engine.runOneTurn();
     await settle(() => matching.state.phase === Phase.Breeding);
@@ -98,9 +100,9 @@ describe("BT20-002 Bebydomon", () => {
         0: {
           breeding: { card: "BT20-002", as: "bebydomon" },
           hand: [{ card: "BT11-023", as: "veemon" }],
-          deck: ["BT20-004", "BT20-005", "BT20-006"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
-        1: { security: ["BT1-015"] },
+        1: { security: ["BT1-090"] },
       },
       { autoSelectCards: true },
     );
@@ -145,11 +147,11 @@ describe("BT20-002 Bebydomon", () => {
         0: {
           battleArea: [{ card: "BT20-007", as: "dracomon", under: ["BT20-002"] }],
           hand: [{ card: "BT1-036", as: "garurumon" }],
-          deck: ["BT20-003", "BT20-004", "BT20-005", "BT20-006", "BT20-007", "BT20-008", "BT20-009", "BT20-010"],
+          deck: ["BT1-015", "BT1-010", "BT1-010", "BT1-010", "BT20-007", "BT20-008", "BT20-009", "BT20-010"],
         },
         1: {
-          deck: ["BT20-003", "BT20-004", "BT20-005", "BT20-006", "BT20-007"],
-          security: ["BT20-003", "BT20-004", "BT20-005", "BT20-006", "BT20-007"],
+          deck: ["BT1-015", "BT1-010", "BT1-010", "BT1-010", "BT20-007"],
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090", "BT1-090"],
         },
       },
       { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds },
@@ -225,9 +227,9 @@ describe("BT20-002 Bebydomon", () => {
     const nonMatching = setupEngine({
       0: {
         battleArea: [{ card: "BT11-023", as: "veemon", under: ["BT20-002"] }],
-        deck: ["BT20-003"],
+        deck: ["BT1-015"],
       },
-      1: { security: ["BT20-003"] },
+      1: { security: ["BT1-090"] },
     });
     const nonMatchingHandBefore = nonMatching.state.players[0]!.hand.length;
     expect(

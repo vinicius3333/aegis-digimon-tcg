@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-088.js";
 import "./index.js";
@@ -6,9 +8,56 @@ import "./index.js";
 describe("BT20-088 Violet Inboots", () => {
   it("gains memory only when the opponent has a Digimon", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")).toMatchObject({
-      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas", filter: { kind: ["Digimon"] } } }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: { controllerDefault: "opponent", kind: ["Digimon"], zone: "battleArea" },
+          },
+        },
+      ],
     });
   });
+
+  it("publishes the catalog identity and complete compiled coverage", () => {
+    expect(getCardDefinition("BT20-088")).toMatchObject({
+      cardId: "BT20-088",
+      nameEn: "Violet Inboots",
+      colors: ["Purple"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["LIBERATOR"],
+      types: ["-"],
+      effectText: expect.stringContaining("If your opponent has a Digimon"),
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it.each([true, false])(
+    "gains one memory at the natural start of Main only with an opponent Digimon (has=%s)",
+    async (hasOpponent) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT20-088", as: "tamer" }], deck: ["BT1-010", "BT1-010"] },
+        1: {
+          battleArea: hasOpponent ? [{ card: "BT1-010", as: "opponentDigimon" }] : [],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      });
+      s.state.memory = 1;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.state.memory).toBe(hasOpponent ? 2 : 1);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
 
   it("gates the reduced Ghost digivolution on suspending this Tamer", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "YourTurn")).toMatchObject({

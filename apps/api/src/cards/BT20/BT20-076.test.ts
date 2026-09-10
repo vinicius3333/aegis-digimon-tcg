@@ -34,7 +34,7 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
         optional: true,
         condition: { kind: "isDnaDigivolving" },
         target: { filter: { isSelfRef: true }, isSelf: true },
-        into: { nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "name" }] },
+        into: { nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "nameExact" }] },
       });
     }
   });
@@ -155,7 +155,7 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
             { card: "BT20-016", as: "paildramon" },
             { card: "BT20-020", as: "fighter" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-090"],
           deck: ["BT20-047", "BT20-048"],
         },
         1: { battleArea: [{ card: "BT20-069", dp: 4000, as: "attacker" }], security: ["BT1-010"] },

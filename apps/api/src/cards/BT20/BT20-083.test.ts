@@ -1,5 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-083.js";
@@ -33,7 +35,7 @@ describe("BT20-083 Omekamon", () => {
       underFilter: {
         controller: "mine",
         zone: "breeding",
-        nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
+        nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "nameExact" }],
       },
       position: "bottom",
     });
@@ -52,9 +54,32 @@ describe("BT20-083 Omekamon", () => {
       kind: "PlayWithoutCost",
       fromOwnDigivolutionStack: true,
       payCost: false,
+      target: { filter: { nameOrTrait: [{ tokens: ["Omekamon"], match: "nameExact" }] } },
       cost: { kind: "suspend", target: { isSelf: true } },
     });
     expect(effect?.isBreeding).toBe(true);
+  });
+
+  it("publishes the catalog identity and exact Omnimon name gate", () => {
+    expect(getCardDefinition("BT20-083")).toMatchObject({
+      cardId: "BT20-083",
+      nameEn: "Omekamon",
+      colors: ["White"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Puppet", "X Antibody", "LIBERATOR"],
+      effectText: expect.stringContaining("Omnimon (X Antibody)"),
+      inheritedEffectText: expect.stringContaining("[Omekamon]"),
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    const exact = { tokens: ["Omnimon (X Antibody)"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Omnimon (X Antibody)" }, exact)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Omnimon (X Antibody) Variant" }, exact)).toBe(false);
   });
 
   it("naturally free-evolves into Omnimon only at one or fewer security cards", async () => {
@@ -110,13 +135,19 @@ describe("BT20-083 Omekamon", () => {
   it("uses the public Blocker window when an opponent attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-083", as: "omekamon" }], security: ["BT20-010"] },
-        1: { battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }] },
+        0: {
+          battleArea: [{ card: "BT20-083", as: "omekamon" }],
+          security: ["BT20-010", "BT20-010"],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }], deck: ["BT20-010", "BT20-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -129,7 +160,9 @@ describe("BT20-083 Omekamon", () => {
       s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("omekamon").permanentId }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it.each([true, false])("publicly resolves On Deletion placement under King Drasil (accept=%s)", async (accept) => {
@@ -137,20 +170,36 @@ describe("BT20-083 Omekamon", () => {
       {
         0: {
           breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "existingBottom" }], as: "kingDrasil" },
-          battleArea: [{ card: "BT20-083", suspended: true, as: "omekamon" }],
+          battleArea: [{ card: "BT20-083", as: "omekamon" }],
+          deck: ["BT20-010", "BT20-010"],
         },
-        1: { battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }],
+          security: ["BT20-010", "BT20-010"],
+          deck: ["BT20-010", "BT20-010"],
+        },
       },
       { autoAcceptOptional: false, autoDeclineOptional: false, autoSelectCards: true },
     );
     const omekamonInstanceId = s.perm("omekamon").topCard.instanceId;
-    await s.ready();
-    s.state.turnSeat = 1;
+    const omekamonPermanentId = s.perm("omekamon").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: omekamonPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("omekamon").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("omekamon").permanentId },
+        target: { kind: "permanent", permanentId: omekamonPermanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -167,6 +216,8 @@ describe("BT20-083 Omekamon", () => {
       accept ? omekamonInstanceId : s.inst("existingBottom").instanceId,
     );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === omekamonInstanceId)).toBe(!accept);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it.each([true, false])(
@@ -178,13 +229,19 @@ describe("BT20-083 Omekamon", () => {
             breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "stackOmekamon" }] },
             battleArea: [{ card: "BT23-072", under: [{ card: "BT20-083", as: "unrelatedOmekamon" }] }],
             security: [{ card: "BT20-010", as: "security" }],
+            deck: ["BT20-010", "BT20-010"],
           },
-          1: { battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }] },
+          1: {
+            battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }],
+            deck: ["BT20-010", "BT20-010"],
+          },
         },
         { autoAcceptOptional: false, autoDeclineOptional: false, autoSelectCards: true },
       );
-      s.state.turnSeat = 1;
-      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
@@ -217,10 +274,13 @@ describe("BT20-083 Omekamon", () => {
       ).toBe(true);
       const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-083");
       expect(played !== undefined).toBe(accept);
-      if (accept) expect(observe(s.engine).hasKeyword(played!, "Blocker")).toBe(true);
+      const playedHasBlocker = played === undefined ? undefined : observe(s.engine).hasKeyword(played, "Blocker");
+      expect(playedHasBlocker).toBe(accept ? true : undefined);
       expect(
         s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("stackOmekamon").instanceId),
       ).toBe(!accept);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     },
   );
 
@@ -230,13 +290,19 @@ describe("BT20-083 Omekamon", () => {
         0: {
           battleArea: [{ card: "BT23-072", under: [{ card: "BT20-083", as: "fieldStackOmekamon" }], as: "host" }],
           security: [{ card: "BT20-010", as: "security" }],
+          deck: ["BT20-010", "BT20-010"],
         },
-        1: { battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }],
+          deck: ["BT20-010", "BT20-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -256,6 +322,8 @@ describe("BT20-083 Omekamon", () => {
         (card) => card.instanceId === s.inst("fieldStackOmekamon").instanceId,
       ),
     ).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not offer the inherited play when the breeding source is already suspended", async () => {
@@ -264,15 +332,21 @@ describe("BT20-083 Omekamon", () => {
         0: {
           breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "stackOmekamon" }], as: "kingDrasil" },
           security: [{ card: "BT20-010", as: "security" }],
+          deck: ["BT20-010", "BT20-010"],
         },
-        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 20000 }] },
+        1: {
+          battleArea: [{ card: "BT20-076", as: "attacker", dp: 20000 }],
+          deck: ["BT20-010", "BT20-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await advance(s.engine).verb.suspend([s.perm("kingDrasil").permanentId], 0);
     expect(s.perm("kingDrasil").isSuspended).toBe(true);
-    s.state.turnSeat = 1;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -287,5 +361,7 @@ describe("BT20-083 Omekamon", () => {
       s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("stackOmekamon").instanceId),
     ).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

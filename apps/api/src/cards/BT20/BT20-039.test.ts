@@ -1,4 +1,6 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-039.js";
 import "./index.js";
@@ -14,6 +16,32 @@ describe("BT20-039 Diatrymon", () => {
       { keyword: "Piercing", raw: "＜Piercing＞" },
     ]);
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["ACCEL"], cost: 2, isAlternate: true }]);
+  });
+
+  it("publishes Diatrymon's catalog identity and exact ACCEL alternate route", () => {
+    expect(getCardDefinition("BT20-039")).toMatchObject({
+      cardId: "BT20-039",
+      nameEn: "Diatrymon",
+      colors: ["Green", "Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 5000,
+      evoCosts: [
+        { color: "Green", level: 3, memoryCost: 3 },
+        { color: "Yellow", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Ancient Bird", "ACCEL"],
+    });
+    const accelBase = getCardDefinition("BT20-038")!;
+    expect(matchingAlternateDigivolutionRequirement("BT20-039", accelBase)).toMatchObject({
+      level: 3,
+      traits: ["ACCEL"],
+      cost: 2,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-039", "BT20-010")).toBeUndefined();
   });
 
   it("suspends exactly one opposing Digimon on play and on ACCEL evolution", async () => {

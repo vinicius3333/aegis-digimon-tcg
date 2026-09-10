@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -31,12 +32,20 @@ describe("BT20-016 Paildramon", () => {
         {
           kind: "Replacement",
           event: "wouldBeDeleted",
-          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }] },
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "nameExact" }],
+          },
           actions: [
             {
               kind: "DnaDigivolve",
               materials: { count: 2 },
-              into: { nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }] },
+              into: {
+                kind: ["Digimon"],
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
+              },
               payCost: true,
               optional: true,
             },
@@ -47,6 +56,21 @@ describe("BT20-016 Paildramon", () => {
     expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([
       { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
     ]);
+  });
+
+  it("publishes Paildramon's Free identity, stats, and red/purple level-4 routes", () => {
+    expect(getCardDefinition("BT20-016")).toMatchObject({
+      colors: ["Red", "Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      attributes: ["Free"],
+      evoCosts: [
+        { color: "Red", level: 4, memoryCost: 4 },
+        { color: "Purple", level: 4, memoryCost: 4 },
+      ],
+    });
   });
 
   it("on play gives one bound ally Piercing and +4000 while allowing the Paildramon attack to be declined", async () => {

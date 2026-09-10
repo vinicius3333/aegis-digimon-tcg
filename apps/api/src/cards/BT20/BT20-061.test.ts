@@ -41,11 +41,29 @@ describe("BT20-061 Impmon", () => {
   });
 
   it("publishes the printed stats and free Yaamon evolution route", async () => {
-    expect(getCardDefinition("BT20-061")).toMatchObject({ level: 3, playCost: 3, dp: 1000 });
+    expect(getCardDefinition("BT20-061")).toMatchObject({
+      cardId: "BT20-061",
+      nameEn: "Impmon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Evil", "LIBERATOR"],
+      evoCosts: [
+        { color: "Purple", level: 2, memoryCost: 1 },
+        { color: "Red", level: 2, memoryCost: 1 },
+      ],
+      effectText: expect.stringContaining("Reveal the top 3 cards of your deck"),
+      inheritedEffectText: expect.stringContaining("gets +2000 DP"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toContainEqual({ names: ["Yaamon"], cost: 0, isAlternate: true });
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX7-006", as: "yaamon" }],
+        breeding: { card: "EX7-006", as: "yaamon" },
         hand: [{ card: "BT20-061", as: "impmon" }],
         deck: ["BT20-047"],
       },

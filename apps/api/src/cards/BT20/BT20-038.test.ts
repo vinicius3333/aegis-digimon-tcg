@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-038.js";
@@ -7,6 +9,22 @@ import "../BT17/BT17-034.js";
 
 describe("BT20-038 Falcomon", () => {
   it("reduces qualifying ACCEL digivolution only from the battle area", () => {
+    expect(getCardDefinition("BT20-038")).toMatchObject({
+      cardId: "BT20-038",
+      nameEn: "Falcomon",
+      colors: ["Green", "Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [
+        { color: "Green", level: 2, memoryCost: 1 },
+        { color: "Yellow", level: 2, memoryCost: 1 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Avian", "ACCEL"],
+    });
     expect(compiled.effects.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
       actions: [
         {
@@ -22,9 +40,16 @@ describe("BT20-038 Falcomon", () => {
       { keyword: "Piercing", raw: "＜Piercing＞" },
     ]);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Pinamon"], cost: 0, isAlternate: true },
+      { namesExact: ["Pinamon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["ACCEL"], cost: 0, isAlternate: true },
     ]);
+  });
+
+  it("uses exact Pinamon matching for the named alternate route", () => {
+    const reference = { tokens: ["Pinamon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Pinamon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Pinamon X" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Pinnamon" }, reference)).toBe(false);
   });
 
   it("reduces the ACCEL alternate evolution in battle but not in breeding", async () => {

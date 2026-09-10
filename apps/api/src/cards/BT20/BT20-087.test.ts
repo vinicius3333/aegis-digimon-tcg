@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./BT20-087.js";
 import "./BT20-012.js";
 import "./BT20-048.js";
+import "./BT20-051.js";
 
 describe("BT20-087 Kota Domoto & Yuji Musya", () => {
   it("sets memory to 3 at the start of turn when memory is 2 or less", () => {
@@ -49,6 +51,24 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
     expect(compiled.effects.filter((entry) => entry.trigger === "Security")).toHaveLength(1);
   });
 
+  it("publishes the catalog identity and complete compiled coverage", () => {
+    expect(getCardDefinition("BT20-087")).toMatchObject({
+      cardId: "BT20-087",
+      nameEn: "Kota Domoto & Yuji Musya",
+      colors: ["Black", "Red"],
+      kinds: ["Tamer"],
+      playCost: 5,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["Chronicle"],
+      effectText: expect.stringContaining("When one of your [Chronicle]"),
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("naturally suspends this Tamer and reduces a Chronicle evolution after an attack", async () => {
     const s = setupEngine(
       {
@@ -77,6 +97,57 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("offers a breeding recipient in the target set and evolves a selected recipient (Q4428/Q4429)", async () => {
+    const options = {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      preferInstanceIds: [] as string[],
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-087", as: "tamer" },
+            // A second legal Dorumon recipient forces a public target choice, so this
+            // proof explicitly selects the breeding-area permanent rather than relying
+            // on the harness' default target order.
+            { card: "BT20-048", as: "attacker" },
+          ],
+          breeding: { card: "BT20-048", as: "breedingBase" },
+          hand: [
+            { card: "BT20-051", as: "evolution" },
+            { card: "BT20-087", as: "wouldPlay" },
+          ],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { security: ["BT20-010", "BT20-010"], deck: ["BT20-010", "BT20-010"] },
+      },
+      options,
+    );
+    s.state.memory = 3;
+    const attackerId = s.perm("attacker").permanentId;
+    const breedingId = s.perm("breedingBase").permanentId;
+    options.preferInstanceIds.push(attackerId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-051"));
+    const targetDecision = [...s.decisions].reverse().find(({ req }) => req.kind === "chooseTargets")!.req;
+    const candidateIds = targetDecision.options?.candidateInstanceIds;
+    if (candidateIds === undefined) throw new Error("target decision omitted candidate ids");
+    expect(candidateIds).toContain(breedingId);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-051"));
+    const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-051")!;
+    expect(evolved.stack.map((card) => card.cardId)).toEqual(["BT20-048"]);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wouldPlay").instanceId);
   });
 
   it.each([2, 3, 4] as const)("handles the natural Start of Your Turn memory boundary at %s", async (memory) => {

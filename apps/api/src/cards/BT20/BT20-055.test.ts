@@ -1,13 +1,33 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-055.js";
 import "./index.js";
 import "../BT24/BT24-062.js";
+import "../ST1/ST1-12.js";
+import "../BT15/BT15-092.js";
+import "../BT22/BT22-062.js";
+import "../BT22/BT22-064.js";
 
 describe("BT20-055 Invisimon", () => {
   it("plays from security at the end of the opponent's turn", () => {
+    expect(getCardDefinition("BT20-055")).toMatchObject({
+      cardId: "BT20-055",
+      nameEn: "Invisimon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [
+        { color: "Black", level: 5, memoryCost: 3 },
+        { color: "Blue", level: 5, memoryCost: 3 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "LIBERATOR"],
+    });
     expect(compiled.effects.find((effect) => effect.isSecurity)).toMatchObject({
       trigger: "EndOfOpponentsTurn",
       isSecurity: true,
@@ -51,19 +71,10 @@ describe("BT20-055 Invisimon", () => {
     });
   });
 
-  it("plays itself free from face-up security at the end of the opponent's turn", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT20-055", as: "invisimon", faceUp: true }] } });
-    await s.ready();
-    s.state.turnSeat = 1;
-    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("invisimon"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055"));
-    expect(s.state.players[0]!.security).toHaveLength(0);
-  });
-
   it("naturally plays from face-up security at the opponent's turn end", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT20-055", as: "invisimon", faceUp: true }] },
-      1: { deck: ["BT20-001"] },
+      1: { deck: ["BT1-010"] },
     });
     s.state.turnSeat = 1;
     await s.ready();
@@ -205,5 +216,107 @@ describe("BT20-055 Invisimon", () => {
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("BT20-055");
     expect(s.perm("invisimon").topCard.cardId).toBe("BT20-055");
+  });
+
+  it("Q4385: a face-up checked Security card still resolves its own Security effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+        1: { security: [{ card: "ST1-12", as: "securityTai", faceUp: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST1-12"));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST1-12")).toBe(true);
+  });
+
+  it("Q4386: a public security shuffle re-hides every face-up card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-045"],
+          hand: [{ card: "BT15-092", as: "revelation" }],
+          security: [
+            { card: "BT1-010", as: "faceUpA", faceUp: true },
+            { card: "BT1-010", as: "faceUpB", faceUp: true },
+            { card: "BT1-010", as: "faceDown" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.state.players[0]!.security.filter((card) => card.faceUp)).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revelation").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.every((card) => card.faceUp === false));
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
+  });
+
+  it("Q4723: moving Invisimon with only Marvin Jackson underneath removes the attacking Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-055", under: ["BT15-086"], as: "invisimon" }] },
+        1: { security: [{ card: "BT1-010", faceUp: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("invisimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT20-055");
+    expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055")).toBe(false);
+    // Once the only underlying card is a Tamer, the permanent is no longer a Digimon
+    // permanent; the public engine removes the stale attacker and trashes the exposed Tamer.
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT15-086");
+  });
+
+  it("Q4722: an end-of-opponent-turn effect attack that checks the last security card loses to a successful attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-064", under: ["BT22-062"], as: "host" }],
+          security: [{ card: "BT20-055", as: "invisimon", faceUp: true }],
+          deck: ["BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-018", under: ["BT1-014", "BT1-014", "BT1-014", "BT1-014"], as: "attacker" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    await settle(() => s.state.gameOver);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055")).toBe(true);
+    expect(s.state.gameOver).toBe(true);
+    expect(s.state.winnerSeat).toBe(1);
   });
 });

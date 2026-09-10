@@ -3,6 +3,8 @@ import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT9/BT9-047.js";
+import "../ST12/ST12-03.js";
 import "./index.js";
 import { compiled } from "./BT20-013.js";
 
@@ -40,6 +42,7 @@ describe("BT20-013 BaoHuckmon", () => {
           hand: [
             { card: "BT20-084", as: "sistermon" },
             { card: "BT20-010", as: "nonMatch" },
+            { card: "BT23-099", as: "nonDigimonNameMatch" },
           ],
         },
       },
@@ -59,6 +62,7 @@ describe("BT20-013 BaoHuckmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084"));
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonDigimonNameMatch").instanceId);
 
     const second = s.give(0, Zone.Hand, { card: "BT20-084", as: "second" });
     const retry = s.engine.applyIntent(0, {
@@ -79,9 +83,9 @@ describe("BT20-013 BaoHuckmon", () => {
             { card: "BT20-084", as: "first" },
             { card: "BT20-084", as: "second" },
           ],
-          deck: ["BT20-001", "BT20-002", "BT20-003"],
+          deck: ["BT1-090", "BT1-090", "BT1-090"],
         },
-        1: { deck: ["BT20-004", "BT20-005", "BT20-006"] },
+        1: { deck: ["BT1-090", "BT1-090", "BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -187,5 +191,56 @@ describe("BT20-013 BaoHuckmon", () => {
       gankoomon.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-057"),
     );
     expect(gankoomon.state.memory).toBe(4); // BaoHuckmon -2 plus Gankoomon's printed -4 reduction (Q4294)
+  });
+
+  it("plays at full cost when Solarmon prevents cost reductions (Q4295)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-084", as: "candidate" }] },
+        1: { battleArea: ["ST12-03"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const effect = (observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[])[0]!;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard.instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(false);
+  });
+
+  it("activates but cannot play through Pomumon's effect-play lock (Q4296)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-084", as: "candidate" }] },
+        1: { battleArea: ["BT9-047"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const effect = (observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[])[0]!;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard.instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084")).toBe(false);
+    expect(s.state.memory).toBe(5);
   });
 });

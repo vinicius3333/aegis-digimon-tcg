@@ -36,7 +36,7 @@ describe("BT20-069 Punkmon", () => {
     });
   });
 
-  it("publishes stats and the exact level-3 Evil alternate route", async () => {
+  it("publishes stats and charges the exact alternate and normal evolution routes", async () => {
     expect(getCardDefinition("BT20-069")).toMatchObject({ level: 4, playCost: 5, dp: 5000 });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Evil"], cost: 2, isAlternate: true }]);
     const s = setupEngine({
@@ -57,6 +57,27 @@ describe("BT20-069 Punkmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("evil").topCard.cardId === "BT20-069");
     expect(s.state.memory).toBe(0);
+
+    const normalRoute = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-010", as: "nonEvil" }],
+        hand: [{ card: "BT20-069", as: "punkmon" }],
+      },
+    });
+    normalRoute.state.memory = 3;
+    await normalRoute.ready();
+    expect(
+      normalRoute.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: normalRoute.perm("nonEvil").permanentId,
+        instanceId: normalRoute.inst("punkmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => normalRoute.perm("nonEvil").topCard.cardId === "BT20-069");
+    expect(normalRoute.state.memory).toBe(0);
+    expect(normalRoute.perm("nonEvil").topCard.cardId).toBe("BT20-069");
+    expect(normalRoute.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-069");
   });
 
   it("on play and evolution trashes one hand card, then grants both keywords to the same ally", async () => {
@@ -120,7 +141,7 @@ describe("BT20-069 Punkmon", () => {
             { card: "BT20-069", as: "punkmon" },
             { card: "BT20-047", as: "fodder" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT20-010", dp: 1000, as: "attacker" }] },
       },
@@ -147,6 +168,37 @@ describe("BT20-069 Punkmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("expires the granted keywords at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-061", as: "ally" }],
+          hand: [
+            { card: "BT20-069", as: "punkmon" },
+            { card: "BT20-047", as: "fodder" },
+          ],
+        },
+        1: { deck: ["BT20-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("punkmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        observe(s.engine).hasKeyword(s.perm("ally"), "Blocker") &&
+        observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation"),
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(false);
   });
 
   it("applies inherited +2000 only underneath a host on its controller's turn", async () => {

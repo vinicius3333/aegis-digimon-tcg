@@ -55,7 +55,9 @@ describe("BT20-028 GigaSeadramon", () => {
           ],
           hand: [{ card: "BT20-028", as: "gigaEvolution" }],
         },
-        1: { battleArea: [{ card: "BT20-017", as: "opponentStack", under: ["BT20-013", "BT20-014"] }] },
+        // Keep the post-De-Digivolve top above BT20-026's level-4 return boundary.
+        // Otherwise BT20-026's own On Play return removes this tested permanent.
+        1: { battleArea: [{ card: "BT20-017", as: "opponentStack", under: ["BT20-025", "BT20-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -72,7 +74,7 @@ describe("BT20-028 GigaSeadramon", () => {
     expect(s.perm("giga").stack.map((card) => card.cardId)).toEqual(["BT15-031"]);
     expect(s.perm("otherHost").stack.map((card) => card.cardId)).toEqual(["BT20-025"]);
     expect(s.perm("opponentStack").stack).toHaveLength(0);
-    expect(s.perm("opponentStack").topCard.cardId).toBe("BT20-013");
+    expect(s.perm("opponentStack").topCard.cardId).toBe("BT20-025");
     expect(observe(s.engine).keywordAmount(s.perm("giga"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("giga"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("giga"), "Blocker")).toBe(true);
@@ -217,7 +219,9 @@ describe("BT20-028 GigaSeadramon", () => {
           security: ["BT1-010"],
         },
         1: {
-          battleArea: [{ card: "BT5-086", as: "target", under: ["BT20-008", "BT20-013", "BT20-014", "BT20-017"] }],
+          // Keep all promoted cards above Maelstrom's level-4 return boundary so
+          // the once-per-turn De-Digivolve proof observes the target afterward.
+          battleArea: [{ card: "BT5-086", as: "target", under: ["BT20-025", "BT20-025", "BT20-014"] }],
           security: Array(4).fill("BT1-010"),
           deck: Array(8).fill("BT1-010"),
         },
@@ -235,9 +239,9 @@ describe("BT20-028 GigaSeadramon", () => {
         instanceId: s.inst("giga").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").topCard.cardId === "BT20-014");
+    await settle(() => s.perm("target").topCard.cardId === "BT20-025");
     expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT9-109", "BT20-023", "BT20-026"]);
-    expect(s.perm("target").topCard.cardId).toBe("BT20-014");
+    expect(s.perm("target").topCard.cardId).toBe("BT20-025");
     expect(s.state.memory).toBe(5);
     expect(
       s.engine.applyIntent(0, {
@@ -257,8 +261,8 @@ describe("BT20-028 GigaSeadramon", () => {
     });
     await settle(() => s.perm("mega").stack.length === 2);
     expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT9-109", "BT20-026"]);
-    expect(s.perm("target").topCard.cardId).toBe("BT20-014");
-    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT20-008", "BT20-013"]);
+    expect(s.perm("target").topCard.cardId).toBe("BT20-025");
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT20-025"]);
     expect(s.state.memory).toBe(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
@@ -285,7 +289,7 @@ describe("BT20-028 GigaSeadramon", () => {
     await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
     expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT9-109"]);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-026")).toBe(true);
-    expect(s.perm("target").topCard.cardId).toBe("BT20-008");
+    expect(s.perm("target").topCard.cardId).toBe("BT20-025");
     expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -332,7 +336,9 @@ describe("BT20-028 GigaSeadramon", () => {
           battleArea: [{ card: "BT20-045", as: "host", under: ["BT20-028"] }],
           hand: [{ card: "BT11-098", as: "sourcePlayer" }],
         },
-        1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-013", "BT20-014"] }] },
+        // Keep the promoted card above Maelstrom's level-4 return boundary so the
+        // watcher proof observes the de-digivolved permanent after Main resolves.
+        1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-025", "BT20-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -347,7 +353,7 @@ describe("BT20-028 GigaSeadramon", () => {
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-028")).toBe(true);
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT11-098"));
-    expect(s.perm("opponent").topCard.cardId).toBe("BT20-013");
+    expect(s.perm("opponent").topCard.cardId).toBe("BT20-025");
     expect(s.perm("opponent").stack).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(

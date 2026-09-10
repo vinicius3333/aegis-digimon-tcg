@@ -1,11 +1,33 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-051.js";
 import "./index.js";
 
 describe("BT20-051 Raptordramon", () => {
   it("optionally plays Kota Domoto when there is at most one own Tamer", () => {
+    expect(getCardDefinition("BT20-051")).toMatchObject({
+      cardId: "BT20-051",
+      nameEn: "Raptordramon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 6000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 3 },
+        { color: "Yellow", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg", "X Antibody", "Chronicle"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Dorumon"], cost: 2, isAlternate: true },
+      { level: 3, traits: ["Chronicle"], cost: 2, isAlternate: true },
+    ]);
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
         {
@@ -21,6 +43,13 @@ describe("BT20-051 Raptordramon", () => {
         },
       ],
     });
+  });
+
+  it("requires exact Dorumon matching for the named alternate route", () => {
+    const reference = { tokens: ["Dorumon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Dorumon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Dorumon X" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Dorumonmon" }, reference)).toBe(false);
   });
 
   it("grants inherited +2000 DP during the opponent's turn", () => {

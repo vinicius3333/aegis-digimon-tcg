@@ -1,233 +1,234 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, type Seat } from "@aegis/shared";
-import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-089.js";
+import "../BT14/BT14-087.js";
+import "../BT16/BT16-023.js";
 import "./BT20-029.js";
+import "./BT20-034.js";
+import "./BT20-070.js";
 import "./BT20-080.js";
 import "./index.js";
 
-// A3 for BT20-089 (Code Cracker Fang & Hacker Judge — Purple/Black Tamer).
-//
-// [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
-// [All Turns] When any of your Digimon are played or digivolve, you may Mind Link
-//   to 1 of your Digimon with [Pulsemon] text or SoC/SEEKERS trait.
-// [Inherited — All Turns] This Digimon with [Pulsemon] text or SoC/SEEKERS trait
-//   gains ＜Alliance＞, ＜Piercing＞ and ＜Barrier＞.
-// [Inherited — End of All Turns] Play 1 [Eiji Nagasumi] from this Digimon's
-//   digivolution cards without paying the cost.
-//
-// FAILS-WHEN-REVERTED: [Start of Your Main Phase] memory gain fires — the memory
-//   increases by 1 when the opponent has a Digimon.
-
-// BT20-089 = Code Cracker Fang & Hacker Judge
 const CC_FANG = "BT20-089";
-// BT1-010 = Agumon (cheap Digimon for opponent)
-const AGUMON = "BT1-010";
+const DECK_FILLER = ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"];
 
-// Give each seat cards so draw phase and main phase have something to work with.
-const DECK_FILLER = Array.from({ length: 5 }, () => "BT1-010");
-
-interface Harness {
-  s: EngineSetup;
-  memoryAfterStartMainPhase: number[];
-}
-
-function harness(board: BoardSpec): Harness {
-  const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
-  s.state.turnSeat = 0;
-  s.state.isFirstPlayersFirstTurn = true;
-
-  const memoryAfterStartMainPhase: number[] = [];
-  const engineAny = s.engine as unknown as {
-    fireTiming(timing: EffectTiming, trigger?: unknown): Promise<void>;
-  };
-  const original = engineAny.fireTiming.bind(s.engine);
-  engineAny.fireTiming = async (timing: EffectTiming, trigger?: unknown) => {
-    const result = await original(timing, trigger);
-    if (timing === EffectTiming.OnStartMainPhase) {
-      memoryAfterStartMainPhase.push(s.state.memory);
-    }
-    return result;
-  };
-
-  return { s, memoryAfterStartMainPhase };
-}
-
-async function driveTurn(h: Harness, seat: Seat): Promise<void> {
-  const turn = h.s.engine.runOneTurn();
-  const mainPhase = (h.s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-  for (let i = 0; i < 500 && !mainPhase.isOpen; i++) await Promise.resolve();
-  h.s.engine.applyIntent(seat, { type: "endPhase" });
-  await turn;
-}
-
-describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
-  it("keeps the Rule name treatment permanent", () => {
-    const rule = compiled.effects.find((effect) => effect.trigger === "Rule");
-    expect(rule?.actions[0]).toMatchObject({
-      kind: "GrantStatic",
-      grant: "name",
-      tokens: ["Eiji Nagasumi", "Leon Alexander"],
-      duration: "permanent",
+describe("BT20-089 Code Cracker Fang & Hacker Judge", () => {
+  it("matches the catalog and encodes the printed Tamer, Security, Rule, and inherited branches", () => {
+    expect(getCardDefinition(CC_FANG)).toMatchObject({
+      cardId: CC_FANG,
+      nameEn: "Code Cracker Fang & Hacker Judge",
+      colors: ["Purple", "Yellow"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["SoC", "Abadin Electronics", "SEEKERS"],
+      effectText: expect.stringContaining("If your opponent has a Digimon, gain 1 memory"),
+      securityEffectText: expect.stringContaining("Alliance"),
     });
-  });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
 
-  it("keeps Mind Link as a regular Tamer watcher and scopes inherited Eiji play to this stack", () => {
-    const mindLinkEffect = compiled.effects.find(
+    expect(compiled.effects.find((effect) => effect.trigger === "Rule")).toMatchObject({
+      actions: [
+        {
+          kind: "GrantStatic",
+          grant: "name",
+          tokens: ["Eiji Nagasumi", "Leon Alexander"],
+          duration: "permanent",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+      ],
+    });
+    const watchers = compiled.effects.find(
       (effect) => effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "SubTrigger"),
     );
-    expect(mindLinkEffect).not.toHaveProperty("isInherited");
-    expect(mindLinkEffect?.actions).toMatchObject([
-      { sourceFilter: { controller: "mine", kind: ["Digimon"] } },
-      { sourceFilter: { controller: "mine", kind: ["Digimon"] } },
+    expect(watchers).toMatchObject({
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "MindLink",
+              optional: true,
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    { match: "text", tokens: ["Pulsemon"] },
+                    { match: "trait", tokens: ["SoC", "SEEKERS"] },
+                  ],
+                },
+                count: 1,
+              },
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+        },
+      ],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")).toMatchObject({
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } },
+        },
+      ],
+    });
+    const inheritedKeywords = compiled.effects.find((effect) => effect.isInherited && effect.trigger === "AllTurns");
+    expect(inheritedKeywords?.actions).toHaveLength(3);
+    expect(inheritedKeywords?.actions.map((action) => action.kind)).toEqual([
+      "GainKeyword",
+      "GainKeyword",
+      "GainKeyword",
     ]);
-
-    const inheritedPlay = compiled.effects.find((effect) => effect.trigger === "EndOfAllTurns");
-    expect(inheritedPlay?.actions[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      fromOwnDigivolutionStack: true,
-      payCost: false,
-      target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "nameExact" }] } },
-    });
-  });
-
-  it("[Start of Your Main Phase] gains 1 memory when opponent has a Digimon", async () => {
-    const h = harness({
-      // Place CC Fang on seat 0's battle area.
-      0: { battleArea: [{ card: CC_FANG, dp: 3000 }], deck: DECK_FILLER, hand: ["BT1-010"] },
-      // Seat 1 has an Agumon in battle area (condition: opponent has a Digimon).
-      1: { battleArea: [{ card: AGUMON, dp: 2000 }], deck: DECK_FILLER, hand: ["BT1-010"] },
-    });
-
-    h.s.state.memory = 0;
-    h.s.state.turnSeat = 0;
-
-    await driveTurn(h, 0);
-
-    // The [Start of Your Main Phase] effect should have run and gained 1 memory.
-    expect(h.memoryAfterStartMainPhase.length).toBeGreaterThanOrEqual(1);
-    expect(h.memoryAfterStartMainPhase[0]).toBeGreaterThan(0);
-  });
-
-  it("[Start of Your Main Phase] does NOT gain memory when opponent has no Digimon", async () => {
-    const h = harness({
-      0: { battleArea: [{ card: CC_FANG, dp: 3000 }], deck: DECK_FILLER, hand: ["BT1-010"] },
-      // Seat 1 has no Digimon in battle area.
-      1: { deck: DECK_FILLER, hand: ["BT1-010"] },
-    });
-
-    h.s.state.memory = 0;
-    h.s.state.turnSeat = 0;
-
-    await driveTurn(h, 0);
-
-    // Memory at OnStartMainPhase should be 0 (no gain fired).
-    expect(h.memoryAfterStartMainPhase.length).toBeGreaterThanOrEqual(1);
-    expect(h.memoryAfterStartMainPhase[0]).toBe(0);
-  });
-
-  it("naturally Mind Links to a qualifying Digimon when that Digimon is played", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: CC_FANG, as: "tamer" }],
-          hand: [{ card: "BT20-029", as: "pulsemon" }],
+    expect(inheritedKeywords?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ keyword: expect.objectContaining({ keyword: "Alliance" }) }),
+        expect.objectContaining({ keyword: expect.objectContaining({ keyword: "Piercing" }) }),
+        expect.objectContaining({ keyword: expect.objectContaining({ keyword: "Barrier" }) }),
+      ]),
+    );
+    expect(compiled.effects.find((effect) => effect.trigger === "EndOfAllTurns" && effect.isInherited)).toMatchObject({
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          fromOwnDigivolutionStack: true,
+          payCost: false,
+          optional: true,
+          target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "nameExact" }] }, count: 1 },
         },
-        1: { deck: DECK_FILLER },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    await s.ready();
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
-      ok: true,
+      ],
     });
-    await settle(() => s.perm("pulsemon").stack.some((card) => card.cardId === CC_FANG));
-
-    expect(s.perm("pulsemon").stack.map((card) => card.cardId)).toContain(CC_FANG);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(false);
+    expect(compiled.effects.find((effect) => effect.isSecurity)).toMatchObject({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    });
   });
 
-  it("may decline Mind Link when a qualifying Pulsemon enters play", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: CC_FANG, as: "tamer" }],
-          hand: [{ card: "BT20-029", as: "pulsemon" }, "BT1-010"],
-          deck: DECK_FILLER,
-        },
-        1: { deck: DECK_FILLER },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
-      ok: true,
+  it("gains one memory only when the opponent has a Digimon at the real start of main", async () => {
+    const withOpponent = setupEngine({
+      0: { battleArea: [{ card: CC_FANG, as: "fang" }], deck: DECK_FILLER },
+      1: { battleArea: [{ card: "BT1-010", as: "opponent" }], deck: DECK_FILLER },
     });
-    await settle(
-      () =>
-        s.state.pendingDecision === undefined &&
-        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-029"),
-    );
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CC_FANG)).toBe(true);
-    expect(
-      s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT20-029")!.stack.map((card) => card.cardId),
-    ).not.toContain(CC_FANG);
-  });
+    withOpponent.state.memory = 0;
+    await withOpponent.ready();
+    await advance(withOpponent.engine).runTurn(0);
+    expect(withOpponent.events).toContainEqual(expect.objectContaining({ kind: "memoryChanged", from: 0, to: 1 }));
 
-  it("naturally grants the three inherited keywords to a qualifying linked host", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-029", as: "host", under: [CC_FANG] }] },
+    const withoutOpponent = setupEngine({
+      0: { battleArea: [{ card: CC_FANG, as: "fang" }], deck: DECK_FILLER },
       1: { deck: DECK_FILLER },
     });
-    await s.ready();
-
-    expect(s.perm("host").stack.map((card) => card.cardId)).toContain(CC_FANG);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
-    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
-  });
-
-  it("does not Mind Link when an opponent plays the qualifying Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: CC_FANG, as: "tamer" }] },
-        1: { hand: [{ card: "BT20-029", as: "opponentPulsemon" }], deck: DECK_FILLER },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
+    withoutOpponent.state.memory = 0;
+    await withoutOpponent.ready();
+    await advance(withoutOpponent.engine).runTurn(0);
+    expect(withoutOpponent.events).not.toContainEqual(
+      expect.objectContaining({ kind: "memoryChanged", from: 0, to: 1 }),
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    await s.ready();
-
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPulsemon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-029"));
-
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.cardId === CC_FANG)),
-    ).toBe(false);
   });
 
-  it("uses a public Mind Link host for Alliance and Piercing in a real attack", async () => {
+  it("Mind Links a qualifying Pulsemon-text Digimon when it is played, and can be declined", async () => {
+    for (const [accept, target] of [
+      [true, "BT16-023"],
+      [false, "BT20-029"],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CC_FANG, as: "fang" }],
+            hand: [{ card: target, as: "target" }],
+            deck: [...DECK_FILLER, ...DECK_FILLER],
+          },
+          1: { deck: DECK_FILLER },
+        },
+        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("target").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length === 2);
+      const targetPermanent = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === target)!;
+      expect(targetPermanent.stack.some((card) => card.cardId === CC_FANG)).toBe(accept);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(!accept);
+    }
+  });
+
+  it("Mind Links again through the separate digivolve watcher", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: CC_FANG, as: "tamer" },
+            { card: CC_FANG, as: "fang" },
+            { card: "BT20-034", as: "base" },
+          ],
+          hand: [{ card: "BT20-080", as: "fenri" }],
+          deck: DECK_FILLER,
+        },
+        1: { deck: DECK_FILLER },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("fenri").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.cardId === CC_FANG));
+    expect(s.perm("base").topCard.cardId).toBe("BT20-080");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain(CC_FANG);
+  });
+
+  it("matches the broad text and trait union for inherited Alliance, Piercing, and Barrier", async () => {
+    for (const [card, expected] of [
+      ["BT16-023", true],
+      ["BT20-070", true],
+      ["BT1-010", false],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card, under: [CC_FANG], as: "host" }], deck: DECK_FILLER },
+        1: { deck: DECK_FILLER },
+      });
+      await s.ready();
+      expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(expected);
+      expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(expected);
+      expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(expected);
+    }
+  });
+
+  it("uses the linked inherited keywords in a public Alliance and Piercing attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CC_FANG, as: "fang" },
             { card: "BT20-029", as: "pulsemon" },
-            { card: "BT1-010", as: "ally", dp: 6000 },
+            { card: "BT1-010", dp: 6000, as: "ally" },
           ],
           hand: [{ card: "BT20-032", as: "evolution" }],
           security: ["BT1-009"],
+          deck: DECK_FILLER,
         },
         1: {
-          battleArea: [{ card: "BT1-010", as: "defender", dp: 8000, suspended: true }],
+          battleArea: [{ card: "BT1-010", dp: 8000, suspended: true, as: "defender" }],
           security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: DECK_FILLER,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -245,7 +246,6 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
     expect(observe(s.engine).hasKeyword(s.perm("pulsemon"), "Alliance")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("pulsemon"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("pulsemon"), "Barrier")).toBe(true);
-
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -260,37 +260,43 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
   });
 
-  it.each([true, false])("uses inherited Barrier for a battle deletion (accept=%s)", async (accept) => {
+  it("plays the exact Eiji-name card from the host stack at the public end of all turns (Q5555)", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [{ card: "BT20-029", under: [CC_FANG], as: "host", suspended: true }],
-          security: [{ card: "BT1-009", as: "security" }],
-        },
-        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 12000 }] },
+        0: { battleArea: [{ card: "BT20-029", under: [CC_FANG], as: "host" }], deck: DECK_FILLER },
+        1: { deck: DECK_FILLER },
       },
-      { autoAcceptOptional: false, autoDeclineOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    const hostId = s.perm("host").permanentId;
-    const securityId = s.inst("security").instanceId;
     await s.ready();
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(true);
+    expect(s.perm("host").stack.some((card) => card.cardId === CC_FANG)).toBe(false);
+  });
+
+  it("plays itself from Security without cost through a public check", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: CC_FANG, as: "securityFang" }], deck: DECK_FILLER },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }], deck: DECK_FILLER },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
+    await s.ready();
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: hostId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(accept);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === securityId)).toBe(!accept);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === securityId)).toBe(accept);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(true);
   });
 });

@@ -64561,7 +64561,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Bebydomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Bebydomon"], "cost": 0, "isAlternate": true }]
   },
   "BT20-008": {
     "effects": [
@@ -64665,7 +64665,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
-                { "tokens": ["Ginryumon"], "match": "name" },
+                { "tokens": ["Ginryumon"], "match": "nameExact" },
                 { "tokens": ["Chronicle"], "match": "trait" }
               ]
             },
@@ -64718,6 +64718,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
+              "zone": "hand",
               "nameOrTrait": [
                 { "tokens": ["Imperialdramon"], "match": "name" },
                 { "tokens": ["Free"], "match": "trait" }
@@ -64745,6 +64746,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
+              "zone": "hand",
               "nameOrTrait": [
                 { "tokens": ["Imperialdramon"], "match": "name" },
                 { "tokens": ["Free"], "match": "trait" }
@@ -64784,7 +64786,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
-                { "tokens": ["Hisyaryumon"], "match": "name" },
+                { "tokens": ["Hisyaryumon"], "match": "nameExact" },
                 { "tokens": ["Chronicle"], "match": "trait" }
               ]
             },
@@ -64811,7 +64813,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Ryudamon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Ryudamon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["Chronicle"], "cost": 2, "isAlternate": true }
     ]
   },
@@ -65017,7 +65019,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Ginryumon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Ginryumon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["Chronicle"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -65085,7 +65087,8 @@
             "event": "wouldBeDeleted",
             "sourceFilter": {
               "controller": "mine",
-              "nameOrTrait": [{ "tokens": ["Paildramon", "Dinobeemon"], "match": "name" }]
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Paildramon", "Dinobeemon"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -65093,7 +65096,9 @@
                 "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
                 "into": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "name" }]
+                  "kind": ["Digimon"],
+                  "zone": "hand",
+                  "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "nameExact" }]
                 },
                 "payCost": true,
                 "optional": true
@@ -65389,7 +65394,7 @@
             "amount": 1,
             "condition": {
               "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "nameExact" }] },
               "raw": "[Imperialdramon: Dragon Mode] is in this Digimon's digivolution cards"
             }
           }
@@ -65422,7 +65427,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Imperialdramon: Dragon Mode"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Imperialdramon: Dragon Mode"], "cost": 2, "isAlternate": true }]
   },
   "BT20-021": {
     "effects": [
@@ -65598,7 +65603,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Crabmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Crabmon"], "cost": 0, "isAlternate": true }]
   },
   "BT20-023": {
     "effects": [
@@ -65619,7 +65624,10 @@
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Wingdramon"], "match": "name" }] },
+                "into": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Wingdramon"], "match": "nameExact" }]
+                },
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCost": 2,
@@ -65723,7 +65731,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Seadramon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Seadramon"], "cost": 0, "isAlternate": true }]
   },
   "BT20-025": {
     "effects": [
@@ -65776,7 +65784,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Coredramon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Coredramon"], "cost": 3, "isAlternate": true }]
   },
   "BT20-026": {
     "effects": [
@@ -65960,7 +65968,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Wingdramon", "Groundramon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Wingdramon", "Groundramon"], "cost": 3, "isAlternate": true }]
   },
   "BT20-028": {
     "effects": [
@@ -66082,7 +66090,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Bibimon"], "cost": 0, "isAlternate": true },
+      { "namesExact": ["Bibimon"], "cost": 0, "isAlternate": true },
       { "level": 2, "traits": ["SEEKERS"], "cost": 0, "isAlternate": true }
     ]
   },
@@ -66247,7 +66255,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Pulsemon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Pulsemon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["SEEKERS"], "cost": 2, "isAlternate": true }
     ]
   },
@@ -66633,7 +66641,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Pinamon"], "cost": 0, "isAlternate": true },
+      { "namesExact": ["Pinamon"], "cost": 0, "isAlternate": true },
       { "level": 2, "traits": ["ACCEL"], "cost": 0, "isAlternate": true }
     ]
   },
@@ -66683,7 +66691,7 @@
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Groundramon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Groundramon"], "match": "nameExact" }]
                 },
                 "from": ["hand"],
                 "reduceCost": 2,
@@ -66831,7 +66839,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Coredramon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Coredramon"], "cost": 3, "isAlternate": true }]
   },
   "BT20-043": {
     "effects": [
@@ -67033,7 +67041,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Groundramon", "Wingdramon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Groundramon", "Wingdramon"], "cost": 3, "isAlternate": true }]
   },
   "BT20-045": {
     "effects": [
@@ -67126,7 +67134,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Kapurimon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Kapurimon"], "cost": 0, "isAlternate": true }]
   },
   "BT20-047": {
     "effects": [
@@ -67187,7 +67195,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["X Antibody"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 2, "colors": ["Black"], "traits": ["X Antibody"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT20-049": {
     "effects": [
@@ -67292,7 +67302,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Dorumon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Dorumon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["Chronicle"], "cost": 2, "isAlternate": true }
     ]
   },
@@ -67445,7 +67455,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Raptordramon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Raptordramon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["Chronicle"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -67866,7 +67876,7 @@
             "duration": "untilOpponentTurnEnd",
             "condition": {
               "kind": "selfTopHasText",
-              "filter": { "nameOrTrait": [{ "tokens": ["Jesmon GX"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Jesmon GX"], "match": "nameExact" }] },
               "raw": "while this Digimon is [Jesmon GX]"
             }
           },
@@ -67877,7 +67887,7 @@
             "duration": "untilOpponentTurnEnd",
             "condition": {
               "kind": "selfTopHasText",
-              "filter": { "nameOrTrait": [{ "tokens": ["Jesmon GX"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Jesmon GX"], "match": "nameExact" }] },
               "raw": "while this Digimon is [Jesmon GX]"
             }
           }
@@ -68090,7 +68100,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Eiji Nagasumi"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Eiji Nagasumi"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -68116,7 +68126,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Bowmon"], "cost": 0, "isAlternate": true },
+      { "namesExact": ["Bowmon"], "cost": 0, "isAlternate": true },
       { "level": 2, "traits": ["SEEKERS"], "cost": 0, "isAlternate": true }
     ]
   },
@@ -68134,6 +68144,7 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
+            "duration": "untilOpponentTurnEnd",
             "optional": true,
             "abortOnDecline": true
           }
@@ -68271,7 +68282,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Violet Inboots"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Violet Inboots"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -68414,7 +68428,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Loogamon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Loogamon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["SEEKERS"], "cost": 2, "isAlternate": true }
     ]
   },
@@ -68514,7 +68528,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Loogarmon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Loogarmon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["SEEKERS"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -68685,7 +68699,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Dinobeemon", "Paildramon"], "match": "name" }],
+              "nameOrTrait": [{ "tokens": ["Dinobeemon", "Paildramon"], "match": "nameExact" }],
               "returnDestination": ["hand", "deck"]
             },
             "actions": [
@@ -68696,7 +68710,7 @@
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "zone": "hand",
-                  "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "nameExact" }]
                 },
                 "payCost": true,
                 "optional": true
@@ -68838,7 +68852,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Imperialdramon: Fighter Mode"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Imperialdramon: Fighter Mode"], "match": "nameExact" }]
             },
             "payCost": false,
             "from": ["hand", "trash"],
@@ -68862,7 +68876,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Imperialdramon: Fighter Mode"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Imperialdramon: Fighter Mode"], "match": "nameExact" }]
             },
             "payCost": false,
             "from": ["hand", "trash"],
@@ -69164,7 +69178,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Soloogarmon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Soloogarmon"], "cost": 3, "isAlternate": true },
       { "level": 5, "traits": ["SEEKERS"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -69306,7 +69320,10 @@
             "kind": "Digivolve",
             "condition": { "kind": "securityAtMost", "value": 1 },
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Omnimon (X Antibody)"], "match": "name" }] },
+            "into": {
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Omnimon (X Antibody)"], "match": "nameExact" }]
+            },
             "payCost": false,
             "optional": true,
             "ignoreRequirements": true,
@@ -69322,7 +69339,7 @@
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": {
-              "nameOrTrait": [{ "tokens": ["King Drasil_7D6"], "match": "name" }],
+              "nameOrTrait": [{ "tokens": ["King Drasil_7D6"], "match": "nameExact" }],
               "controller": "mine",
               "zone": "breeding"
             },
@@ -69343,7 +69360,10 @@
             "actions": [
               {
                 "kind": "PlayWithoutCost",
-                "target": { "filter": { "nameOrTrait": [{ "tokens": ["Omekamon"], "match": "name" }] }, "count": 1 },
+                "target": {
+                  "filter": { "nameOrTrait": [{ "tokens": ["Omekamon"], "match": "nameExact" }] },
+                  "count": 1
+                },
                 "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true,
@@ -69425,7 +69445,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Sistermon Ciel"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Sistermon Ciel"], "cost": 1, "isAlternate": true }]
   },
   "BT20-085": {
     "effects": [
@@ -69435,7 +69455,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shoto Kazama"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shoto Kazama"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -70335,6 +70355,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
+                "kind": ["Digimon"],
                 "playCostLte": 5,
                 "nameOrTrait": [{ "tokens": ["Chronicle"], "match": "trait" }]
               },
@@ -70457,8 +70478,9 @@
         "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -70912,6 +70934,7 @@
           },
           {
             "kind": "Attack",
+            "drainTimingWindowDuringAttack": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
             "withoutSuspending": true,
             "condition": { "kind": "ifThisEffectActed" }

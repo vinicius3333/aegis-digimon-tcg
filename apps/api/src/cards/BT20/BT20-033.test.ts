@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +8,22 @@ import "./index.js";
 
 describe("BT20-033 LoaderLeomon", () => {
   it("restricts one opposing Digimon's When Digivolving activation and lowers its DP on both triggers", () => {
+    expect(getCardDefinition("BT20-033")).toMatchObject({
+      cardId: "BT20-033",
+      nameEn: "LoaderLeomon",
+      colors: ["Yellow", "Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [
+        { color: "Yellow", level: 4, memoryCost: 4 },
+        { color: "Black", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Machine", "ACCEL"],
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -177,6 +194,62 @@ describe("BT20-033 LoaderLeomon", () => {
     expect(s.perm("loader").currentDP).toBe(3000);
     advance(s.engine).endMainPhaseIfOpen(1);
     await secondOpponentTurn;
+  });
+
+  it("does not block or consume the When Attacking half of a combined effect (Q4327/Q4330)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-033", as: "loader" }],
+          battleArea: [{ card: "BT1-009", dp: 1000, as: "victim" }],
+          security: Array(4).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT20-017", as: "jesmon" }],
+          hand: [
+            { card: "BT20-021", as: "jesmonGX" },
+            { card: "BT20-017", as: "royalMaterial" },
+          ],
+          security: Array(4).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("jesmon"), "cannotActivateWhenDigivolving"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("jesmon").permanentId,
+        instanceId: s.inst("jesmonGX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jesmon").topCard.cardId === "BT20-021");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("royalMaterial").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009"),
+    );
+    expect(s.perm("jesmon").stack.map((card) => card.instanceId)).toContain(s.inst("royalMaterial").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("redirects an opposing player attack to the inherited host", async () => {

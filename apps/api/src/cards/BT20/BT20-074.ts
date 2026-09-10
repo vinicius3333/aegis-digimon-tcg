@@ -62,7 +62,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "nameExact" }],
             returnDestination: ["hand", "deck"],
           },
           actions: [
@@ -79,7 +79,7 @@ export const compiled: CompiledCard = {
                 controller: "mine",
                 kind: ["Digimon"],
                 zone: "hand",
-                nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
               },
               payCost: true,
               optional: true,
