@@ -1,21 +1,64 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./index.js";
 import { compiled } from "./EX8-039.js";
 
 describe("EX8-039", () => {
-  it("reveals 3 for an Insectoid and an NSp card", () =>
+  it("matches the committed catalog identity, evolution, and printed text", () => {
+    expect(getCardDefinition("EX8-039")).toMatchObject({
+      cardId: "EX8-039",
+      nameEn: "Tentomon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [{ color: "Green", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Insectoid", "NSp"],
+      effectText:
+        "[Digivolve]Lv.2 w/[NSp]\u00a0trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Insectoid]\u00a0trait and 1 card with the [NSp]\u00a0trait among them to the hand. Return the rest to the bottom of the deck.",
+      inheritedEffectText: "[Your Turn] This Digimon gets +2000 DP.",
+    });
+    expect(getCardDefinition("EX8-039")?.securityEffectText).toBeUndefined();
+    expect(digivolutionRequirementsFor("EX8-039")).toEqual([{ level: 2, traits: ["NSp"], cost: 0, isAlternate: true }]);
+  });
+
+  it("traces the exact Insectoid/NSp search filters, reveal count, bottom destination, and inherited gate", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["NSp"], cost: 0, isAlternate: true }]);
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
       revealCount: 3,
       add: [
-        { count: 1, to: "hand" },
-        { count: 1, to: "hand" },
+        {
+          count: 1,
+          to: "hand",
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }] },
+        },
+        {
+          count: 1,
+          to: "hand",
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["NSp"], match: "trait" }] },
+        },
       ],
       rest: "deckBottom",
-    }));
+    });
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 2000,
+          duration: "permanent",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+      ],
+    });
+  });
   it("inherits +2000 DP during its owner's turn", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
@@ -54,10 +97,14 @@ describe("EX8-039", () => {
   it("grants the inherited DP only during its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-071", as: "host", under: ["EX8-039"] }] } });
     await s.ready();
+    await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(8000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(6000);
+    s.state.turnSeat = 0;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(8000);
   });
 
   it("returns an entirely nonmatching reveal below an unrevealed card", async () => {
@@ -112,5 +159,27 @@ describe("EX8-039", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("uses the standard Green level-2 route for zero", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-007", as: "greenEgg" },
+        hand: [{ card: "EX8-039", as: "tentomon" }],
+        deck: ["BT1-045", "BT1-046", "BT1-047", "BT1-048"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenEgg").permanentId,
+        instanceId: s.inst("tentomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenEgg").topCard.cardId === "EX8-039");
+    expect(s.perm("greenEgg").stack.map((card) => card.cardId)).toEqual(["BT1-007"]);
+    expect(s.state.memory).toBe(0);
   });
 });
