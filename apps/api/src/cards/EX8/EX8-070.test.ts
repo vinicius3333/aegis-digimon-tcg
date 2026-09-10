@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { getCardDefinition, PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,9 +7,40 @@ import "./index.js";
 import { compiled } from "./EX8-070.js";
 
 describe("EX8-070", () => {
+  it("matches the committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-070")).toMatchObject({
+      cardId: "EX8-070",
+      nameEn: "Zofr Kabus",
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 2,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["LIBERATOR"],
+      evoCosts: [],
+      effectText:
+        "[Main] By trashing any 1 digivolution card of 1 of your Digimon with the [Mineral]/[Rock]\u00a0trait, until the end of your opponent's turn, that Digimon gains ＜Collision＞ , ＜Piercing＞ , ＜Reboot＞ , and your opponent's effects can't return it to hands or decks, and it gets +3000 DP.",
+      securityEffectText: "[Security] Delete 1 of your opponent’s Digimon with the lowest play cost.",
+    });
+  });
   it("selects a Mineral/Rock Digimon with digivolution cards and gives it Collision, Piercing, Reboot, +3000 DP, and return protection", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "Main")?.actions ?? [];
-    expect(actions[0]).toMatchObject({ kind: "SelectBind", optional: true, cost: { kind: "trash" } });
+    expect(actions).toHaveLength(6);
+    expect(actions[0]).toMatchObject({
+      kind: "SelectBind",
+      optional: true,
+      target: {
+        bindAs: "thatDigimon",
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+          digivolutionCards: "hasAny",
+        },
+      },
+      cost: { kind: "trash" },
+    });
     expect(actions.slice(1).map((action) => action.kind)).toEqual([
       "GainKeyword",
       "GainKeyword",
@@ -20,11 +51,44 @@ describe("EX8-070", () => {
     expect(actions[4]).toMatchObject({
       kind: "Restrict",
       restriction: "cannotReturnToHandOrDeck",
-      byOpponentOnly: true,
+      byOpponentEffectsOnly: true,
     });
     expect(actions[5]).toMatchObject({ kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd" });
+    expect(actions[1]).toEqual({
+      kind: "GainKeyword",
+      target: { fromSelectionRef: "thatDigimon", filter: {}, count: 1 },
+      keyword: { keyword: "Collision", raw: "＜Collision＞" },
+      duration: "untilOpponentTurnEnd",
+    });
+    expect(actions[2]).toEqual({
+      kind: "GainKeyword",
+      target: { fromSelectionRef: "thatDigimon", filter: {}, count: 1 },
+      keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+      duration: "untilOpponentTurnEnd",
+    });
+    expect(actions[3]).toEqual({
+      kind: "GainKeyword",
+      target: { fromSelectionRef: "thatDigimon", filter: {}, count: 1 },
+      keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
+      duration: "untilOpponentTurnEnd",
+    });
   });
-  it("contains the printed main and Security effects", () => expect(compiled.effects).toHaveLength(2));
+  it("contains the exact Security deletion and mandatory Main sequence", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toEqual({
+      trigger: "Security",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controllerDefault: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" },
+            count: 1,
+          },
+        },
+      ],
+      isSecurity: true,
+    });
+    expect(compiled.effects).toHaveLength(2);
+  });
   it("deletes the exact lowest-play-cost opposing Digimon when revealed in security", async () => {
     const s = setupEngine(
       {
