@@ -2,28 +2,49 @@ import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT11/BT11-100.js";
+import "../BT11/BT11-107.js";
 import "../LM/LM-029.js";
 import "./index.js";
 import { compiled } from "./EX8-037.js";
 
 describe("EX8-037", () => {
-  it("plays a Uka no Mitama token when Sakuyamon or X Antibody is in its digivolution cards", () =>
+  it("matches the exact token, attack-use, and alternate-evolution contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { cost: 1, isAlternate: true, level: 6, names: ["Sakuyamon"], excludeTraits: ["X Antibody"] },
+    ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlayToken",
       tokens: [{ name: "Uka no Mitama", keywords: [{ keyword: "Rush" }] }],
       count: 1,
       payCost: false,
       condition: { kind: "anyOf" },
-    }));
-  it("once per turn may use an Option when one of your Digimon attacks, then unsuspends a Digimon", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
-      kind: "SubTrigger",
-      event: "whenAttacking",
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
       actions: [
-        { kind: "UseOptionWithoutCost", from: ["hand"], optional: true },
-        { kind: "Unsuspend", condition: { kind: "ifThisEffectUsed" } },
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              from: ["hand"],
+              optional: true,
+              payCost: false,
+              filter: { controller: "mine", kind: ["Option"] },
+            },
+            {
+              kind: "Unsuspend",
+              condition: { kind: "ifThisEffectUsed" },
+              target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
+            },
+          ],
+        },
       ],
-    }));
+    });
+  });
   it("uses a qualifying Option after attacking and unsuspends the attacker", async () => {
     const s = setupEngine(
       {
@@ -34,7 +55,7 @@ describe("EX8-037", () => {
             { card: "LM-029", as: "secondOption" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-045", "BT1-045"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -68,11 +89,42 @@ describe("EX8-037", () => {
     expect(player.hand.some((card) => card.instanceId === s.inst("secondOption").instanceId)).toBe(true);
   });
 
+  it("accepts the inclusive cost-5 single-color boundary and rejects multicolor cost 7", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-037", as: "sakuyamon" }],
+          hand: [
+            { card: "BT11-100", as: "costFive" },
+            { card: "BT11-107", as: "multicolorOverLimit" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX8-029", as: "target" }], security: ["BT1-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sakuyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costFive").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costFive").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("multicolorOverLimit").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("sakuyamon").isSuspended).toBe(false);
+  });
+
   it("leaves the Option available when the optional use is declined", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-037", as: "sakuyamon" }], hand: [{ card: "LM-029", as: "option" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-045"] },
       },
       { autoSelectCards: true },
     );
@@ -111,7 +163,7 @@ describe("EX8-037", () => {
             { card: "BT13-020", as: "evolver" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-045"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
