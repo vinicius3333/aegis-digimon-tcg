@@ -37,7 +37,10 @@ describe("BT8-086 Hiro Amanokawa", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT8-086", as: "hiro" }, { card: "BT8-008", as: "gammamon" }],
+          battleArea: [
+            { card: "BT8-086", as: "hiro" },
+            { card: "BT8-008", as: "gammamon" },
+          ],
         },
         1: { security: ["BT1-093"] },
       },

@@ -11,12 +11,29 @@ describe("BT8-097 Crimson Blaze", () => {
       coverage: "full",
       residual: [],
       effects: [
-        { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 1, scaling: { unit: "cards" } }] },
+        {
+          trigger: "Static",
+          actions: [
+            { kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 1, scaling: { unit: "cards" } },
+          ],
+        },
         {
           trigger: "Main",
           actions: [
-            { kind: "RestrictPlay", seat: "opponent", mode: "play", byEffectOnly: true, duration: "untilOpponentTurnEnd" },
-            { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: "all" } },
+            {
+              kind: "RestrictPlay",
+              seat: "opponent",
+              mode: "play",
+              byEffectOnly: true,
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } },
+                count: "all",
+              },
+            },
           ],
         },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },

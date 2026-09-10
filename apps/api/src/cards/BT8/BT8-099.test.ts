@@ -13,16 +13,30 @@ describe("BT8-099 Giga Death", () => {
         {
           trigger: "Main",
           actions: [
-            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 } },
-            { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 10, upTo: true }, to: "deckBottom" },
+            {
+              kind: "Suspend",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 },
+            },
+            {
+              kind: "Return",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 10, upTo: true },
+              to: "deckBottom",
+            },
           ],
         },
         {
           trigger: "Security",
           isSecurity: true,
           actions: [
-            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 } },
-            { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 }, to: "deckBottom" },
+            {
+              kind: "Suspend",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 },
+            },
+            {
+              kind: "Return",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 },
+              to: "deckBottom",
+            },
           ],
         },
       ],
