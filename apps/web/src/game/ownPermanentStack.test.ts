@@ -7,8 +7,9 @@ describe("own permanent stack inspection", () => {
     { action: "Vortex", canAttack: false, canVortex: true, canPromote: false, hasEffects: false },
     { action: "promotion", canAttack: false, canVortex: false, canPromote: true, hasEffects: false },
     { action: "an activatable effect", canAttack: false, canVortex: false, canPromote: false, hasEffects: true },
-  ])("opens the action menu when $action is available", ({ canAttack, canVortex, canPromote, hasEffects }) => {
-    expect(ownPermanentTapDestination({ canAttack, canVortex, canPromote, hasEffects })).toBe("menu");
+    { action: "a link", canAttack: false, canVortex: false, canPromote: false, hasEffects: false, canLink: true },
+  ])("opens the action menu when $action is available", ({ canAttack, canVortex, canPromote, hasEffects, canLink }) => {
+    expect(ownPermanentTapDestination({ canAttack, canVortex, canPromote, hasEffects, canLink })).toBe("menu");
   });
 
   it("opens the stack directly when no contextual action is available", () => {

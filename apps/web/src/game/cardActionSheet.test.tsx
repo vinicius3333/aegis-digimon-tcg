@@ -371,3 +371,15 @@ describe("stack viewer bottom sheet", () => {
     expect(document.querySelector(".stack-sheet")).toBeNull();
   });
 });
+
+describe("field card link action", () => {
+  it("offers Link only when the permanent has a projected link recipient", () => {
+    const onLink = vi.fn();
+    renderSheet({ link: { onLink } });
+    fireEvent.click(screen.getByRole("button", { name: /^Link$|^Vincular$/ }));
+    expect(onLink).toHaveBeenCalledTimes(1);
+    cleanup();
+    renderSheet();
+    expect(screen.queryByRole("button", { name: /^Link$|^Vincular$/ })).toBeNull();
+  });
+});

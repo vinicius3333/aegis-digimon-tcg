@@ -125,6 +125,7 @@ function handEntry({
     playableFromHand: playable,
     projectedPlayCost: -1,
     digivolveTargetPermanentIds: [...digivolveTargets],
+    linkTargetPermanentIds: [],
   };
 }
 

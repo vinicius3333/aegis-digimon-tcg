@@ -8,11 +8,13 @@ import { createPortal } from "react-dom";
 import {
   CardKind,
   Phase,
+  assemblyRequirementFor,
   digiXrosRequirementFor,
   digiXrosTrashNameAllowanceFor,
   digiXrosZoneExpanderFor,
   getCardDefinition,
   parseTriggerKey,
+  type AssemblyRequirement,
   type AttackTarget,
   type DecisionResponse,
   type DigiXrosRequirement,
@@ -120,6 +122,8 @@ import {
   StackViewerOverlay,
   TrashViewerOverlay,
   WaitingOverlay,
+  AssemblyMaterialOverlay,
+  type AssemblyCandidate,
   type DigiXrosCandidate,
   type DigiXrosEligibleExpander,
   type StackCard,
@@ -136,6 +140,7 @@ import { DigivolutionCutInView } from "./DigivolutionCutInView";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
+import { assemblyPossible } from "./assemblyMaterialSelection";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
@@ -341,6 +346,19 @@ export function GameScreen({
   const [handSel, setHandSel] = useState<string | null>(null); // selected hand instanceId
   const [handPreview, setHandPreview] = useState<string | null>(null); // instanceId shown in the mobile tap preview
   const [selPerm, setSelPerm] = useState<string | null>(null); // selected attacker permanentId
+  // A link declaration in progress: the card to link (hand or a battle-area top) and the
+  // server-projected Digimon it may be plugged into. The next tap on one of them sends it.
+  const [linkSel, setLinkSel] = useState<{
+    instanceId: string;
+    cardId: string;
+    targetPermanentIds: readonly string[];
+  } | null>(null);
+  const [assemblyPick, setAssemblyPick] = useState<{
+    instanceId: string;
+    cardId: string;
+    requirement: AssemblyRequirement;
+    candidates: AssemblyCandidate[];
+  } | null>(null);
   const [vortexMode, setVortexMode] = useState(false); // the selected attack is a ＜Vortex＞ declaration
   const [cardMenu, setCardMenu] = useState<{ permanentId: string; side: "you" | "opp"; x: number; y: number } | null>(
     null,
@@ -516,6 +534,7 @@ export function GameScreen({
     setHandSel(null);
     setSelPerm(null);
     setVortexMode(false);
+    setLinkSel(null);
   };
 
   useEffect(
@@ -533,6 +552,7 @@ export function GameScreen({
     clearSel();
     setCardMenu(null);
     setDigiXrosPick(null);
+    setAssemblyPick(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [securityRevealPending]);
 
@@ -545,6 +565,7 @@ export function GameScreen({
     setTrashView(null);
     setSecurityView(null);
     setDigiXrosPick(null);
+    setAssemblyPick(null);
     setOppInspector(null);
     setDecisionAsDialog(false);
   }, [decision?.decisionId, state?.turnSeat]);
@@ -932,6 +953,7 @@ export function GameScreen({
     playableFromHand: ci.playableFromHand,
     projectedPlayCost: ci.projectedPlayCost,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
+    linkTargetPermanentIds: [...ci.linkTargetPermanentIds],
     appFusionRoutes: [...(ci.appFusionRoutes ?? [])].map((route) => ({
       hostPermanentId: route.hostPermanentId,
       linkedInstanceId: route.linkedInstanceId,
@@ -1031,6 +1053,21 @@ export function GameScreen({
         });
         return;
       }
+      const assemblyRequirement = assemblyRequirementFor(entry.cardId)?.[0];
+      if (assemblyRequirement) {
+        const candidates: AssemblyCandidate[] = you.trash.map((ci) => ({
+          instanceId: ci.instanceId,
+          cardId: ci.cardId,
+        }));
+        const candidateDefinitions = candidates.flatMap((candidate) => {
+          const definition = getCardDefinition(candidate.cardId);
+          return definition ? [{ instanceId: candidate.instanceId, definition }] : [];
+        });
+        if (assemblyPossible(assemblyRequirement, candidateDefinitions)) {
+          setAssemblyPick({ instanceId, cardId: entry.cardId, requirement: assemblyRequirement, candidates });
+          return;
+        }
+      }
       if (confirmDrop && actionConfirmationsEnabled) {
         setActionConfirm({ kind: "play", instanceId, cardId: entry.cardId });
         return;
@@ -1040,6 +1077,26 @@ export function GameScreen({
       lastPlayAttemptRef.current = instanceId;
       playGameCue("cardPlay");
       intents.playCard(room, instanceId);
+    }
+    clearSel();
+  };
+  /** Arm a link declaration for `instanceId`; the next tap on a projected target sends it. */
+  const beginLink = (instanceId: string, cardId: string, targetPermanentIds: readonly string[]) => {
+    if (boardLocked || targetPermanentIds.length === 0) return;
+    playSound("select");
+    setHandSel(null);
+    setSelPerm(null);
+    setVortexMode(false);
+    setCardMenu(null);
+    setHandPreview(null);
+    setStackView(null);
+    setLinkSel({ instanceId, cardId, targetPermanentIds });
+  };
+  const linkCard = (instanceId: string, targetPermanentId: string) => {
+    if (boardLocked) return;
+    if (room) {
+      playSound("confirm");
+      intents.linkCard(room, instanceId, targetPermanentId);
     }
     clearSel();
   };
@@ -1185,6 +1242,9 @@ export function GameScreen({
     (instanceId
       ? handEntries.find((entry) => entry.instanceId === instanceId)?.digivolveTargetPermanentIds
       : undefined) ?? [];
+  /** Server-projected Digimon this battle-area permanent's top card may be linked to. */
+  const linkTargetsOfPermanent = (perm: Permanent): readonly string[] =>
+    isMyTurn && perm.topCard ? [...perm.topCard.linkTargetPermanentIds] : [];
   const appFusionHostIdsOf = (instanceId: string | undefined): readonly string[] => {
     const entry = instanceId ? handEntries.find((candidate) => candidate.instanceId === instanceId) : undefined;
     if (!entry) return [];
@@ -1520,6 +1580,7 @@ export function GameScreen({
       canAttack: canAttackWith(perm),
       canVortex: canVortexAttackWith(perm),
       canPromote,
+      canLink: linkTargetsOfPermanent(perm).length > 0,
       hasEffects: activatable.length > 0,
     });
     if (destination === "menu") showCardMenu(perm.permanentId, "you");
@@ -1532,6 +1593,12 @@ export function GameScreen({
 
   // ----- click routing -----
   const onYourPerm = (perm: Permanent): (() => void) | undefined => {
+    if (linkSel) {
+      if (linkSel.targetPermanentIds.includes(perm.permanentId)) {
+        return () => linkCard(linkSel.instanceId, perm.permanentId);
+      }
+      return () => ping(t("game.hint.cantLinkHere"));
+    }
     if (selCardId && handSel) {
       if (appFusionHostIdsOf(handSel).includes(perm.permanentId)) {
         return () => openAppFusionChoice(handSel, perm.permanentId);
@@ -1679,6 +1746,7 @@ export function GameScreen({
   // that would be noise. The breeding step keeps its own dim (`breedingWindow`).
   const spotlightIds = (() => {
     if (breedingWindow) return [];
+    if (linkSel) return linkSel.targetPermanentIds;
     if (selPerm) return attackTargetIdsOf(attackerPerm, vortexMode);
     if (handSel && handIsDigi) return you.battleArea.filter(eligibleBase).map((p) => p.permanentId);
     return [];
@@ -1810,10 +1878,14 @@ export function GameScreen({
             handPreviewEntry.digivolveTargetPermanentIds.length > 0 ||
             appFusionHostIdsOf(handPreviewEntry.instanceId).length > 0
           }
+          canLink={handPreviewEntry.linkTargetPermanentIds.length > 0}
           onPlay={() => {
             if (handSel) playCard(handSel);
             setHandPreview(null);
           }}
+          onLink={() =>
+            beginLink(handPreviewEntry.instanceId, handPreviewEntry.cardId, handPreviewEntry.linkTargetPermanentIds)
+          }
           onActivateEffect={(effect) => {
             activateEffect(effect.instanceId, effect.effectKey);
             setHandPreview(null);
@@ -2121,6 +2193,36 @@ export function GameScreen({
         />
       ) : null}
 
+      {assemblyPick ? (
+        <AssemblyMaterialOverlay
+          playingCardId={assemblyPick.cardId}
+          requirement={assemblyPick.requirement}
+          candidates={assemblyPick.candidates}
+          onConfirm={(materialInstanceIds) => {
+            if (room) {
+              lastPlayAttemptRef.current = assemblyPick.instanceId;
+              playGameCue("cardPlay");
+              intents.playCard(room, assemblyPick.instanceId, undefined, undefined, { materialInstanceIds });
+            }
+            setAssemblyPick(null);
+            clearSel();
+          }}
+          onSkip={() => {
+            if (room) {
+              lastPlayAttemptRef.current = assemblyPick.instanceId;
+              playGameCue("cardPlay");
+              intents.playCard(room, assemblyPick.instanceId);
+            }
+            setAssemblyPick(null);
+            clearSel();
+          }}
+          onCancel={() => {
+            setAssemblyPick(null);
+            clearSel();
+          }}
+        />
+      ) : null}
+
       {digiXrosPick ? (
         <DigiXrosMaterialOverlay
           playingCardId={digiXrosPick.cardId}
@@ -2193,6 +2295,14 @@ export function GameScreen({
                         },
                       }))
                     : []
+                }
+                link={
+                  mine && perm.topCard && linkTargetsOfPermanent(perm).length > 0
+                    ? {
+                        onLink: () =>
+                          beginLink(perm.topCard.instanceId, perm.topCard.cardId, linkTargetsOfPermanent(perm)),
+                      }
+                    : undefined
                 }
                 canAttack={mine && canAttackWith(perm)}
                 canVortex={mine && canVortexAttackWith(perm)}
@@ -2734,7 +2844,10 @@ export function GameScreen({
                   </span>
                 ) : null}
                 {you.battleArea.map((p, index) => {
-                  const isBase = (handIsDigi && eligibleBase(p)) || dragBasePermanentIds.has(p.permanentId);
+                  const isBase =
+                    (handIsDigi && eligibleBase(p)) ||
+                    dragBasePermanentIds.has(p.permanentId) ||
+                    (linkSel?.targetPermanentIds.includes(p.permanentId) ?? false);
                   const draggable = canAttackWith(p);
                   return (
                     <PermanentView
@@ -2966,7 +3079,12 @@ export function GameScreen({
                   (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
                   appFusionHostIdsOf(selEntry?.instanceId).length > 0
                 }
+                canLink={(selEntry?.linkTargetPermanentIds.length ?? 0) > 0}
+                linkingCardId={linkSel?.cardId}
                 onPlay={() => handSel && playCard(handSel)}
+                onLink={() =>
+                  selEntry && beginLink(selEntry.instanceId, selEntry.cardId, selEntry.linkTargetPermanentIds)
+                }
                 onAttackSec={() => selPerm && attack(selPerm, { kind: "player" }, vortexMode)}
                 onAttackPerm={(pid) => selPerm && attack(selPerm, { kind: "permanent", permanentId: pid }, vortexMode)}
                 onCancel={clearSel}
@@ -3170,18 +3288,23 @@ export function HandCardPreview({
   activatableEffects,
   canPlay,
   canDigivolve,
+  canLink = false,
   onPlay,
   onActivateEffect,
   onChooseBase,
+  onLink,
   onCancel,
 }: {
   cardId: string;
   activatableEffects: ActivatableEntry[];
   canPlay: boolean;
   canDigivolve: boolean;
+  /** Server projection: some own Digimon accepts this card as a link right now. */
+  canLink?: boolean;
   onPlay: () => void;
   onActivateEffect: (effect: ActivatableEntry) => void;
   onChooseBase: () => void;
+  onLink?: () => void;
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
@@ -3251,12 +3374,17 @@ export function HandCardPreview({
               {t("game.clickToDigivolve")}
             </Button>
           ) : null}
+          {canLink && onLink ? (
+            <Button size="md" full variant="secondary" icon={Icons.Link2} onClick={onLink}>
+              {t("game.link")}
+            </Button>
+          ) : null}
           <Button
             size="sm"
             full
             variant="ghost"
             onClick={onCancel}
-            autoFocus={activatableEffects.length === 0 && !canPlay && !canDigivolve}
+            autoFocus={activatableEffects.length === 0 && !canPlay && !canDigivolve && !canLink}
           >
             {t("common.cancel")}
           </Button>
@@ -3281,7 +3409,10 @@ function ActionBar({
   vortexMode,
   canPlay,
   hasBase,
+  canLink = false,
+  linkingCardId,
   onPlay,
+  onLink,
   onAttackSec,
   onAttackPerm,
   onCancel,
@@ -3299,12 +3430,39 @@ function ActionBar({
   vortexMode?: boolean;
   canPlay: boolean;
   hasBase: boolean;
+  /** The selected hand card has a server-projected link recipient. */
+  canLink?: boolean;
+  /** A link declaration is armed for this card; the bar shows the target hint. */
+  linkingCardId?: string;
   onPlay: () => void;
+  onLink?: () => void;
   onAttackSec: () => void;
   onAttackPerm: (permanentId: string) => void;
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const linkingDef = linkingCardId ? getCardDefinition(linkingCardId) : undefined;
+  if (linkingDef) {
+    return (
+      <div
+        className="game-action-bar game-action-bar--contextual"
+        style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, padding: "4px 0 9px" }}
+      >
+        <span style={{ fontSize: 13, color: "var(--ds-foreground-muted)" }}>
+          <strong style={{ color: "var(--ds-foreground)" }}>{linkingDef.nameEn}</strong>
+        </span>
+        <span
+          style={{ fontSize: 12.5, color: "var(--ds-primary)", display: "inline-flex", alignItems: "center", gap: 5 }}
+        >
+          <Icons.Link2 size={14} />
+          {t("game.clickToLink")}
+        </span>
+        <Button size="sm" variant="ghost" onClick={onCancel}>
+          {t("common.cancel")}
+        </Button>
+      </div>
+    );
+  }
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
   if (selDef) {
     const isEgg = selDef.kinds.includes(CardKind.DigiEgg);
@@ -3331,6 +3489,11 @@ function ActionBar({
             <Icons.ChevronUp size={14} />
             {t("game.clickToDigivolve")}
           </span>
+        ) : null}
+        {canLink && onLink ? (
+          <Button size="sm" variant="secondary" icon={Icons.Link2} sound={false} onClick={onLink}>
+            {t("game.link")}
+          </Button>
         ) : null}
         <Button size="sm" variant="ghost" onClick={onCancel}>
           {t("common.cancel")}

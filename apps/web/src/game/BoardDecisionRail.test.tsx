@@ -211,6 +211,7 @@ describe("Hand in selection mode", () => {
       playableFromHand: true,
       projectedPlayCost: -1,
       digivolveTargetPermanentIds: [],
+      linkTargetPermanentIds: [],
     },
     {
       instanceId: "h2",
@@ -219,6 +220,7 @@ describe("Hand in selection mode", () => {
       playableFromHand: false,
       projectedPlayCost: -1,
       digivolveTargetPermanentIds: [],
+      linkTargetPermanentIds: [],
     },
     {
       instanceId: "h3",
@@ -227,6 +229,7 @@ describe("Hand in selection mode", () => {
       playableFromHand: false,
       projectedPlayCost: -1,
       digivolveTargetPermanentIds: [],
+      linkTargetPermanentIds: [],
     },
   ];
 

@@ -1,4 +1,4 @@
-import type { AttackTarget, DecisionResponse, DigiXrosPlan } from "@aegis/shared";
+import type { AssemblyPlan, AttackTarget, DecisionResponse, DigiXrosPlan } from "@aegis/shared";
 import { sendIntent, type AegisRoom } from "./client";
 
 /**
@@ -10,8 +10,15 @@ export const intents = {
   ready: (room: AegisRoom) => sendIntent(room, { type: "ready" }),
   mulligan: (room: AegisRoom, keep: boolean) => sendIntent(room, { type: "mulligan", keep }),
 
-  playCard: (room: AegisRoom, instanceId: string, targetSlot?: number, digiXros?: DigiXrosPlan) =>
-    sendIntent(room, { type: "playCard", instanceId, targetSlot, digiXros }),
+  playCard: (
+    room: AegisRoom,
+    instanceId: string,
+    targetSlot?: number,
+    digiXros?: DigiXrosPlan,
+    assembly?: AssemblyPlan,
+  ) => sendIntent(room, { type: "playCard", instanceId, targetSlot, digiXros, assembly }),
+  linkCard: (room: AegisRoom, instanceId: string, targetPermanentId: string) =>
+    sendIntent(room, { type: "linkCard", instanceId, targetPermanentId }),
   digivolve: (room: AegisRoom, permanentId: string, instanceId: string, useAlternateCost?: boolean) =>
     sendIntent(room, { type: "digivolve", permanentId, instanceId, useAlternateCost }),
   dnaDigivolve: (room: AegisRoom, materialPermanentIds: string[], instanceId: string) =>

@@ -14,6 +14,7 @@ const entry = (instanceId: string, cardId = "BT1-010"): HandEntry => ({
   playableFromHand: false,
   projectedPlayCost: -1,
   digivolveTargetPermanentIds: [],
+  linkTargetPermanentIds: [],
 });
 
 const CARDS = [entry("a"), entry("b"), entry("c")];
