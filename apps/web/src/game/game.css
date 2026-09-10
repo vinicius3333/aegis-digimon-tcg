@@ -4747,6 +4747,7 @@ button.side-panel__name:focus-visible {
   }
   .decision-overlay__view-board {
     width: auto;
+    min-width: 44px;
     min-height: 44px;
     flex: none;
     padding-inline: var(--ds-space-2);
@@ -4765,6 +4766,14 @@ button.side-panel__name:focus-visible {
     margin-bottom: var(--ds-space-2) !important;
     font-size: 0.6875rem !important;
     line-height: 1.4 !important;
+  }
+  .decision-overlay {
+    --decision-overlay-pad-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
+  }
+  .decision-overlay__order-row > .aegis-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
   }
   /* DecisionOverlay is portalled into document.body. Anchor it below the fixed
      opponent row; bottom-anchored controls can sit underneath iOS browser chrome. */
@@ -4804,7 +4813,6 @@ button.side-panel__name:focus-visible {
     display: grid;
     padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)
       max(var(--ds-space-4), env(safe-area-inset-bottom));
-    min-width: 44px;
     gap: var(--ds-space-3);
     grid-template-rows: minmax(0, 1fr) auto auto;
     place-items: center;
@@ -4822,14 +4830,6 @@ button.side-panel__name:focus-visible {
   .card-zoom > button {
     min-height: 44px;
     padding: var(--ds-space-2) var(--ds-space-6);
-  .decision-overlay {
-    --decision-overlay-pad-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
-  }
-  .decision-overlay__order-row > .aegis-button {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0;
-  }
     color: var(--ds-brand-on-ink);
     font-size: var(--ds-text-sm);
     font-weight: 700;
@@ -5061,6 +5061,30 @@ button.side-panel__name:focus-visible {
     translate: none;
     animation-name: battle-board-sheet-in;
   }
+  /* A yes/no prompt is answered with the sheet's own buttons, so the hand under
+     it is dead weight: the sheet drops to the screen edge and the board above
+     it gets the height. A selection keeps the hand-anchored rules above, since
+     the hand is what it picks from. */
+  .board-prompt[data-variant="prompt"] {
+    bottom: 0;
+    max-height: calc(100dvh - 4rem);
+    padding-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
+  }
+  .board-prompt-scrim[data-variant="prompt"] {
+    inset: 0;
+  }
+  /* The source card and the question share a line: the clause below is what
+     the player reads, and it always shows in full. */
+  .board-prompt__heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--ds-space-2);
+    row-gap: 0;
+  }
+  .board-prompt__text {
+    font-size: var(--ds-text-sm);
+  }
   /* Dressed like the card action sheets: a grip line, no back control (Escape
      still hands the decision to its dialog, but a phone has no Escape and the
      dialog would only cover the hand the selection is picking from). */
@@ -5116,30 +5140,6 @@ button.side-panel__name:focus-visible {
      a notice or a reveal panel, so each keeps its compact chip — the chrome has
      no room for a 44px one — and carries a 44px target behind it.
 
-  /* A yes/no prompt is answered with the sheet's own buttons, so the hand under
-     it is dead weight: the sheet drops to the screen edge and the board above
-     it gets the height. A selection keeps the hand-anchored rules above, since
-     the hand is what it picks from. */
-  .board-prompt[data-variant="prompt"] {
-    bottom: 0;
-    max-height: calc(100dvh - 4rem);
-    padding-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
-  }
-  .board-prompt-scrim[data-variant="prompt"] {
-    inset: 0;
-  }
-  /* The source card and the question share a line: the clause below is what
-     the player reads, and it always shows in full. */
-  .board-prompt__heading {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: var(--ds-space-2);
-    row-gap: 0;
-  }
-  .board-prompt__text {
-    font-size: var(--ds-text-sm);
-  }
      The notice's target grows down and left from the corner the chip sits in
      rather than around it: the stack clips to its own band, and a target centred
      on a chip that close to the top edge would have lost a quarter of itself. */
