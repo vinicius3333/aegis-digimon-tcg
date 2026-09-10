@@ -1,17 +1,103 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX2-062.js";
 import "./EX2-035.js";
 import "./EX2-062.js";
+import "./EX2-050.js";
+
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009"];
+const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
 
 describe("EX2-062 Ryo Akiyama", () => {
+  it("matches the catalog and compiled On Play, attack, and Security clauses", () => {
+    expect(getCardDefinition("EX2-062")).toMatchObject({
+      cardId: "EX2-062",
+      nameEn: "Ryo Akiyama",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      rarity: "R",
+      maxCountInDeck: 4,
+      effectText:
+        "[On Play] Reveal the top 4 cards of your deck. Add 1 card with [Dramon] or [Justimon] in its name among them to your hand. Place the remaining cards at the bottom of your deck in any order.[Your Turn] When you attack with a black Digimon, you may suspend this Tamer to have that Digimon get +1000 DP until the end of your opponent's turn.",
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "OnPlay",
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "RevealAdd",
+              revealCount: 4,
+              add: expect.arrayContaining([
+                expect.objectContaining({
+                  filter: {
+                    controllerDefault: "mine",
+                    nameOrTrait: [{ tokens: ["Dramon", "Justimon"], match: "name" }],
+                  },
+                  count: 1,
+                  to: "hand",
+                }),
+              ]),
+              rest: "deckBottom",
+            }),
+          ]),
+        }),
+        expect.objectContaining({
+          trigger: "YourTurn",
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "SubTrigger",
+              event: "whenAttacking",
+              sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Black"] },
+              actions: expect.arrayContaining([
+                expect.objectContaining({
+                  kind: "ModifyDP",
+                  target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+                  amount: 1000,
+                  duration: "untilOpponentTurnEnd",
+                  cost: {
+                    kind: "suspend",
+                    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                    raw: "by suspending this Tamer",
+                  },
+                  optional: true,
+                }),
+              ]),
+            }),
+          ]),
+        }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              payCost: false,
+            }),
+          ]),
+        }),
+      ]),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("adds a Dramon or Justimon card from the top four on play", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "EX2-062", as: "ryo" }],
-          deck: [{ card: "EX2-035", as: "cyberdramon" }, "BT1-001", "BT1-002", "BT1-003"],
+          deck: [{ card: "EX2-035", as: "cyberdramon" }, ...inertDeck.slice(0, 3)],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -29,11 +115,13 @@ describe("EX2-062 Ryo Akiyama", () => {
           deck: [
             { card: "EX2-035", as: "chosen" },
             { card: "BT1-009", as: "first" },
-            { card: "BT1-010", as: "second" },
-            { card: "BT1-011", as: "third" },
-            { card: "BT1-012", as: "untouched" },
+            { card: "BT1-013", as: "second" },
+            { card: "BT1-009", as: "third" },
+            { card: "BT1-013", as: "untouched" },
           ],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoSelectCards: false, autoOrderCards: false },
     );
@@ -71,13 +159,13 @@ describe("EX2-062 Ryo Akiyama", () => {
             { card: "EX2-062", as: "ryo" },
           ],
           hand: ["BT1-009"],
-          deck: ["BT1-009", "BT1-010", "BT1-011"],
-          security: ["BT1-001"],
+          deck: inertDeck,
+          security: inertSecurity,
         },
         1: {
-          hand: ["BT1-010"],
-          deck: ["BT1-012", "BT1-013", "BT1-014"],
-          security: ["BT1-002"],
+          hand: ["BT1-009"],
+          deck: inertDeck,
+          security: inertSecurity,
         },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },
@@ -107,8 +195,8 @@ describe("EX2-062 Ryo Akiyama", () => {
 
   it("plays EX2-062 from Security without paying its cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
-      1: { security: [{ card: "EX2-062", as: "securityRyo" }] },
+      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], deck: inertDeck, security: inertSecurity },
+      1: { deck: inertDeck, security: [{ card: "EX2-062", as: "securityRyo" }, ...inertSecurity] },
     });
     await s.ready();
     expect(

@@ -4,10 +4,10 @@ import { GameStateAccess } from "./access.js";
 
 const CARD_ID = "AD1-001";
 
-function makePermanent(permanentId: string, seat: Seat, inBreeding: boolean): Permanent {
+function makePermanent(permanentId: string, seat: Seat, inBreeding: boolean, cardId = CARD_ID): Permanent {
   const top = new CardInstance();
   top.instanceId = `${permanentId}-top`;
-  top.cardId = CARD_ID;
+  top.cardId = cardId;
   top.ownerSeat = seat;
   top.faceUp = true;
 
@@ -79,6 +79,29 @@ describe("GameStateAccess deletion narration", () => {
     access.deletePermanent("breeding-1");
 
     expect(events).toEqual([{ kind: "cardsMoved", instanceIds: ["breeding-1-top"], from: "breeding", to: "trash" }]);
+  });
+
+  it("routes a deleted Digi-Egg face-down to the bottom of its owner's egg deck", () => {
+    const state = makeState();
+    const existingEgg = new CardInstance();
+    existingEgg.instanceId = "existing-egg";
+    existingEgg.cardId = "BT1-001";
+    existingEgg.ownerSeat = 0;
+    existingEgg.faceUp = false;
+    state.players[0]!.eggDeck.push(existingEgg);
+    state.players[0]!.battleArea.push(makePermanent("egg-battle", 0, false, "EX2-007"));
+    const events: ServerEvent[] = [];
+    const access = new GameStateAccess(state, undefined, (event) => events.push(event));
+
+    access.deletePermanent("egg-battle");
+
+    expect(state.players[0]!.battleArea).toHaveLength(0);
+    expect(state.players[0]!.trash).toHaveLength(0);
+    expect(state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual(["existing-egg", "egg-battle-top"]);
+    expect(state.players[0]!.eggDeck.at(-1)?.faceUp).toBe(false);
+    expect(events).toEqual([
+      { kind: "cardsMoved", instanceIds: ["egg-battle-top"], from: "battleArea", to: "eggDeck" },
+    ]);
   });
 
   it("publishes one event per origin zone for a simultaneous batch", () => {

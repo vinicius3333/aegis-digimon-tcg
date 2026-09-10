@@ -1,20 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// EX2-057 Kenta Kitagawa
-// Text: [Your Turn] When you would play a [MarineAngemon] from your hand, reduce its play cost by 1.
-// Text: [Your Turn] When you play a blue Digimon, you may suspend this Tamer to trash the bottom
-//   digivolution card of 1 of your opponent's Digimon. Then, if the Digimon played is [MarineAngemon],
-//   trash the bottom digivolution card of all of your opponent's Digimon.
-// Text: [Security] Play this card without paying the cost.
-// Fixes:
-//   - First YourTurn Replacement: sourceFilter was missing [MarineAngemon] name restriction
-//   - Second YourTurn: "then all-trash" should be INSIDE the SubTrigger (gated on Blue being played),
-//     not a sibling action — moved inside SubTrigger's actions as a condition-gated follow-up
-//   - The all-opponent trash is only reachable if the player suspended (sequential: if you don't
-//     suspend, abortOnDecline stops the sequence)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

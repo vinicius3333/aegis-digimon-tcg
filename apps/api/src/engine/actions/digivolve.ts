@@ -174,6 +174,8 @@ export interface DigivolveDeps {
     into?: CardDefinition,
     opts?: { consumeOnce?: boolean },
   ): number;
+  /** A matching would-digivolve interruption resolves before final affordability is checked. */
+  deferAffordabilityForWouldDigivolve?(state: GameState, seat: Seat, target: Permanent, into: CardDefinition): boolean;
   /** Resolve effects on the in-hand card that pay a cost to reduce this digivolution. */
   prepareDigivolveCost?(
     state: GameState,
@@ -410,6 +412,7 @@ export function validateDigivolve(
     DigivolveDeps,
     | "maxAffordable"
     | "adjustedDigivolveCost"
+    | "deferAffordabilityForWouldDigivolve"
     | "colorWaived"
     | "derivedBaseColors"
     | "digivolveIntoAllowed"
@@ -422,6 +425,7 @@ export function validateDigivolve(
     | "costWaived"
     | "blastWindowAllowed"
   >,
+  options: { deferAffordability?: boolean } = {},
 ): DigivolveCheck {
   // 1. Game state gates.
   if (state.gameOver) return { ok: false, reason: "game-over" };
@@ -684,7 +688,10 @@ export function validateDigivolve(
     ? 0
     : (deps.potentialInteractiveDigivolveReduction?.(state, seat, permanent, definition) ?? 0);
   const minCost = Math.max(0, cost - potentialDigisorption - potentialInteractive);
-  if (deps.maxAffordable(state, seat) < minCost) {
+  const hasPreCostInterrupt =
+    options.deferAffordability === true &&
+    deps.deferAffordabilityForWouldDigivolve?.(state, seat, permanent, definition) === true;
+  if (!hasPreCostInterrupt && deps.maxAffordable(state, seat) < minCost) {
     return { ok: false, reason: "insufficient-memory" };
   }
 
@@ -729,7 +736,7 @@ export async function applyDigivolve(
   intent: DigivolveIntent,
   deps: DigivolveDeps,
 ): Promise<{ ok: false; reason: DigivolveRejection } | { ok: true; outcome: DigivolveOutcome }> {
-  const check = validateDigivolve(state, seat, intent, deps);
+  const check = validateDigivolve(state, seat, intent, deps, { deferAffordability: true });
   if (!check.ok) return check;
 
   const { permanent, definition } = check;
@@ -757,6 +764,19 @@ export async function applyDigivolve(
   // Printed pre-digivolution reactions happen after a legal declaration but before every
   // payment step. They do not reopen legality or allow the declaration to be cancelled.
   await deps.fireWouldDigivolve?.(state, seat, permanent, definition);
+
+  // Q3350: an interactive would-digivolve cost may delete the declared target itself. The
+  // target object captured above is then detached from the authoritative board; cancel before
+  // any placement, payment, draw, or When Digivolving processing. The evolving card is still in
+  // hand at this point, so cancellation naturally leaves it there and the deletion stands.
+  if (findOwnedPermanent(player, permanent.permanentId) !== permanent) {
+    return { ok: false, reason: "invalid-evolution" };
+  }
+
+  // Q3348: the interruption above may grant a temporary effect before an inherited cost
+  // increase makes the attempt unaffordable. Reject before touching hand/stack/memory so the
+  // attempted card remains in hand while the granted turn-scoped effect remains visible.
+  if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
 
   // (0) Pay an alternate requirement's non-memory placement cost FIRST (BT7-112: return 10
   //     [Hybrid]/Tamer cards from hand+trash to the deck bottom). Done before the evolving

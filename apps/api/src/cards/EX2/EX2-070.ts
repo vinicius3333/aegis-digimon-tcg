@@ -1,12 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q&A Q3357: ignoring digivolution requirements is NOT allowed.
-// KB Q&A Q3360: the 3-or-less cost restriction refers to the printed digivolution cost on the target card
-//   (not a reduced cost); encode as digivolutionCostMax filter on 'into'.
-// KB Q&A Q3358: special digivolution cost ≤ 3 is eligible.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

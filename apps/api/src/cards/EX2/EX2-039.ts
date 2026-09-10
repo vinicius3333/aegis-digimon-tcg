@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -10,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   TrashTopDeck: upTo:3, minimum:1 (optional but must trash at least 1 if activated).
 // Inherited: the printed "[Beelzemon] in its name" gate is a substring match, so it
 // also applies to forms such as Beelzemon: Blast Mode.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

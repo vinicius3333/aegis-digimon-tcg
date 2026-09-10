@@ -1,9 +1,66 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getCardDefinition } from "@aegis/shared";
+import { compiled } from "./EX2-073.js";
 import "../BT9/BT9-017.js";
 import "./EX2-073.js";
 
 describe("EX2-073 Gallantmon: Crimson Mode", () => {
+  it("matches the catalog, Q2146/Q3366/Q3367 context, and typed IR", () => {
+    expect(getCardDefinition("EX2-073")).toMatchObject({
+      cardId: "EX2-073",
+      nameEn: "Gallantmon: Crimson Mode",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [{ color: "Red", level: 6, memoryCost: 6 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Holy Warrior"],
+      rarity: "SEC",
+      maxCountInDeck: 4,
+      effectText:
+        "[When Digivolving] Delete all of your opponent's Digimon with the highest DP.[When Attacking] Trash the top card of your opponent's security stack. Add 1 to the number of cards trashed by this effect for every 10 cards in your opponent's trash.",
+    });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" },
+                count: "all",
+              },
+            },
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "WhenAttacking",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              scaling: {
+                per: 10,
+                filter: { zone: "trash", controller: "opponent" },
+                unit: "cards",
+                bonus: 1,
+              },
+            },
+          ],
+        }),
+      ]),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("deletes every opposing Digimon tied for highest DP when digivolving", async () => {
     const s = setupEngine(
       {
@@ -22,6 +79,7 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 2);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX2-043", "EX2-019"]);
+    expect(s.state.memory).toBe(4);
   });
 
   it("uses the Gallantmon X line to reach 10 cards in trash and remove 2 security before the check", async () => {
@@ -37,7 +95,7 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
             { card: "BT2-047", as: "highestB", dp: 10000 },
             { card: "BT1-010", as: "lower", dp: 4000 },
           ],
-          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"],
+          trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
           security: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
           deck: ["BT1-014"],
         },
@@ -85,8 +143,8 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
           deck: ["BT1-014"],
         },
         1: {
-          trash: Array.from({ length: 10 }, () => "BT1-001"),
-          security: ["EX2-070", "BT1-001"],
+          trash: Array.from({ length: 10 }, () => "BT1-009"),
+          security: ["EX2-070", "BT1-013"],
           deck: ["BT1-014"],
         },
       },
@@ -126,8 +184,8 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
           deck: ["BT1-014"],
         },
         1: {
-          trash: Array.from({ length: 19 }, () => "BT1-001"),
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          trash: Array.from({ length: 19 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
           deck: ["BT1-014"],
         },
       },
@@ -161,8 +219,8 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
           deck: ["BT1-014"],
         },
         1: {
-          trash: Array.from({ length: 20 }, () => "BT1-001"),
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          trash: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
           deck: ["BT1-014"],
         },
       },

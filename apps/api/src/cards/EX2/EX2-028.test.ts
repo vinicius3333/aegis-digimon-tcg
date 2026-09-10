@@ -1,13 +1,87 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./EX2-028.js";
 import "./EX2-028.js";
 import "./EX2-029.js";
+import "./EX2-014.js";
+import "../BT1/BT1-009.js";
+import "../BT1/BT1-010.js";
+import "../BT1/BT1-011.js";
+import "../BT1/BT1-012.js";
+import "../BT1/BT1-013.js";
+import "../BT1/BT1-014.js";
+import "../BT1/BT1-075.js";
+
+const inertSecurity = ["BT1-009", "BT1-010"];
 
 describe("EX2-028 Parasitemon", () => {
+  it("matches the catalog and compiled IR for both inherited clauses and End of Attack", () => {
+    expect(getCardDefinition("EX2-028")).toMatchObject({
+      cardId: "EX2-028",
+      nameEn: "Parasitemon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Green", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Parasite"],
+      effectText: "[End of Attack] You may place this Digimon under 1 of your Digimon as its bottom digivolution card.",
+      inheritedEffectText:
+        "＜Security Attack +1＞ (This Digimon checks 1 additional security card.) [Your Turn] This Digimon gets +2000 DP.",
+    });
+    expect(compiled).toMatchObject({
+      effects: [
+        {
+          trigger: "EndOfAttack",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              underFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
+              targetIsPermanent: true,
+              shedOwnCards: true,
+              position: "bottom",
+              optional: true,
+            },
+          ],
+        },
+        {
+          trigger: "Static",
+          isInherited: true,
+          keywords: [{ keyword: "SecurityAttack", amount: 1 }],
+        },
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              amount: 2000,
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("gives its host +2000 DP and Security Attack +1 during its turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }],
+        deck: ["BT1-011"],
+        security: inertSecurity,
+      },
+    });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(15000);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
@@ -15,16 +89,24 @@ describe("EX2-028 Parasitemon", () => {
 
   it("keeps Security Attack +1 on the opponent's turn but not the inherited DP boost", async () => {
     const ownTurn = setupEngine({
-      0: { battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }] },
-      1: { deck: ["BT1-001"] },
+      0: {
+        battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }],
+        deck: ["BT1-011"],
+        security: inertSecurity,
+      },
+      1: { deck: ["BT1-012"], security: inertSecurity },
     });
     await ownTurn.ready();
     expect(ownTurn.perm("host").currentDP).toBe(15000);
     expect(observe(ownTurn.engine).keywordAmount(ownTurn.perm("host"), "SecurityAttack")).toBe(1);
 
     const opponentTurn = setupEngine({
-      0: { battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }] },
-      1: { hand: ["BT1-009"], deck: ["BT1-001"] },
+      0: {
+        battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }],
+        deck: ["BT1-011", "BT1-012"],
+        security: inertSecurity,
+      },
+      1: { hand: ["BT1-009"], deck: ["BT1-013", "BT1-014"], security: inertSecurity },
     });
     await opponentTurn.ready();
     const turnLoop = opponentTurn.engine.startTurnLoop();
@@ -46,7 +128,7 @@ describe("EX2-028 Parasitemon", () => {
             { card: "EX2-014", as: "other", under: [{ card: "EX2-025", as: "existingSource" }] },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -65,6 +147,56 @@ describe("EX2-028 Parasitemon", () => {
     );
   });
 
+  it("supports legal green level-5 evolution with paid cost and preserved source stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-075", as: "source" }],
+          hand: [{ card: "EX2-028", as: "evolution" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: inertSecurity,
+        },
+        1: { deck: ["BT1-013", "BT1-014"], security: inertSecurity },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX2-028");
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT1-075"]);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("rejects evolution from a blue level-4 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX2-014", as: "blueSource" }],
+        hand: [{ card: "EX2-028", as: "evolution" }],
+        deck: ["BT1-009", "BT1-010"],
+        security: inertSecurity,
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueSource").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("blueSource").topCard.cardId).toBe("EX2-014");
+    expect(s.state.memory).toBe(10);
+  });
+
   it("may decline placing itself under another Digimon", async () => {
     const s = setupEngine(
       {
@@ -74,7 +206,7 @@ describe("EX2-028 Parasitemon", () => {
             { card: "EX2-014", as: "other" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: inertSecurity },
       },
       { autoDeclineOptional: true, autoOrderTriggers: true },
     );
@@ -86,7 +218,7 @@ describe("EX2-028 Parasitemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX2-028")).toBe(true);
     expect(s.perm("other").stack.some((card) => card.cardId === "EX2-028")).toBe(false);

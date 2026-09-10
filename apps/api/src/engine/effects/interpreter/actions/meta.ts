@@ -79,7 +79,28 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
           ) {
             continue;
           }
-          await runEffect({ ...ctx, activeTiming: eff.trigger }, eff);
+          // Reactivation is a nested CardEffect coroutine. Keep its effect-resolution
+          // frame balanced with the outer timing resolver: nested actions may open
+          // deferred timing/sub-trigger work, and those queues must not outlive the
+          // reactivated body. Preserve the caller's provenance after each body so a
+          // second repeated activation gets its own timing label and the enclosing
+          // combat continuation resumes with the outer [When Attacking] context.
+          const outerTiming = ctx.activeTiming;
+          const outerEffectText = ctx.activeEffectText;
+          ctx.activeTiming = eff.trigger;
+          ctx.activeEffectText = eff.description;
+          ctx.fx.enterEffectResolution?.(
+            ctx.source.ownerSeat,
+            [...(ctx.source.definition.kinds ?? [])],
+            ctx.source.permanent()?.permanentId,
+          );
+          try {
+            await runEffect(ctx, eff);
+          } finally {
+            ctx.fx.leaveEffectResolution?.();
+            ctx.activeTiming = outerTiming;
+            ctx.activeEffectText = outerEffectText;
+          }
         }
       }
       return false;

@@ -1,14 +1,7 @@
-// @ts-nocheck
-// HAND-FIXED — the compiler fused the two [When Digivolving] clauses into one scaled
-// Unsuspend; per the printed text the Unsuspend is a flat 1 and the per-Tamer scaling
-// belongs to the trash->hand Return of a [Plug-In] Option. Do not regenerate over this file.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

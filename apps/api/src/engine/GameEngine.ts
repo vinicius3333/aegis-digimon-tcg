@@ -1117,7 +1117,13 @@ export class GameEngine {
       dpDeleteBudget: this.dpDeleteBudget,
       win: this.win,
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
-      resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
+      resolveDeletionReactions: (trigger, candidates, transientCandidates = []) =>
+        this.resolveDeletionReactions(
+          trigger,
+          candidates,
+          (deletionTrigger) => this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+          transientCandidates,
+        ),
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
@@ -1677,6 +1683,10 @@ export class GameEngine {
    * the turn player's unsuspend phase.
    */
   private async unsuspendForActivePhase(seat: Seat): Promise<string[]> {
+    // The active-turn gate changes at passTurn(), and OpponentsTurn watchers are
+    // continuous effects derived from that gate. Rebuild immediately before the
+    // actual unsuspend operation so the transition cannot outrun watcher install.
+    await this.recomputeContinuousEffects();
     const flipped = await this.unsuspendAllForSeat(seat);
     // ＜Reboot＞: the opponent's Digimon also unsuspend (§16-11)
     const oppSeat = seat === 0 ? 1 : 0;
@@ -1687,11 +1697,13 @@ export class GameEngine {
     // ＜Reboot＞ unsuspend — both are genuine suspended -> unsuspended transitions.
     for (const permanentId of allFlipped) {
       // Both seams of "becomes unsuspended": the timing window handwritten modules listen on
-      // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. The effect-driven
-      // unsuspend primitive fires the same pair, so a turn-start unsuspend must not fire fewer.
-      await this.withPendingSubTriggers(["whenUnsuspended"], { unsuspendedPermanentId: permanentId }, () =>
-        this.fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: permanentId }),
-      );
+      // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. Dispatch the
+      // event bus against the watcher armed immediately before this unsuspend first; the
+      // legacy timing window performs a trailing continuous recompute and would otherwise
+      // invalidate that watcher before it could resolve.
+      const payload = { unsuspendedPermanentId: permanentId };
+      await this.fireSubTrigger("whenUnsuspended", payload);
+      await this.fireTiming(EffectTiming.OnUnTappedAnyone, payload);
     }
     return allFlipped;
   }
@@ -1847,6 +1859,20 @@ export class GameEngine {
         // The shared intrinsic projection is a fallback, not a second copy of a live IR reduction.
         const intrinsicReduction = intrinsicAlreadyApplied ? 0 : intrinsicDigivolutionCostReduction(into, target);
         return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
+      },
+      deferAffordabilityForWouldDigivolve: (_state, _seat, target, into) => {
+        for (const replacement of this.subTriggers.replacementsFor("wouldDigivolve")) {
+          if (replacement.mode !== "instead" || replacement.sourcePermanentId === undefined) continue;
+          const sourcePermanent = this.access.permanentById(replacement.sourcePermanentId);
+          if (sourcePermanent?.topCard === undefined) continue;
+          const ctx = this.buildEffectContext(this.cardSourceOf(sourcePermanent.topCard), {
+            subjectPermanentId: target.permanentId,
+            digivolvingIntoCardId: into.cardId,
+          });
+          if (replacement.appliesTo !== undefined && !replacement.appliesTo(ctx, target.permanentId)) continue;
+          return true;
+        }
+        return false;
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),
       potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
@@ -7252,7 +7278,7 @@ export class GameEngine {
 
   private handleDigivolve(seat: Seat, intent: DigivolveIntent): IntentResult {
     const deps = this.digivolveDeps();
-    const check = validateDigivolve(this.state, seat, intent, deps);
+    const check = validateDigivolve(this.state, seat, intent, deps, { deferAffordability: true });
     if (!check.ok) {
       return { ok: false, reason: mapDigivolveReason(check.reason) };
     }

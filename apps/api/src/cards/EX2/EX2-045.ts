@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -8,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Your Turn] When one of your Digimon digivolves, you may suspend this Digimon to gain
 //   1 memory, <Draw 1>, and have 1 of your Digimon get +3000 DP for the turn.
 //   (KB Q3465: Calumon is Lv.- so "same level" checks won't match it for opponent effects.)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -92,6 +91,7 @@ const compiled: CompiledCard = {
             },
             {
               kind: "Draw",
+              controller: "mine",
               amount: 1,
             },
             {

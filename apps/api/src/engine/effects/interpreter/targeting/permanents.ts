@@ -261,7 +261,12 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
   const baseBudget = sourceDp ?? target.totalDpCap;
   if (baseBudget === undefined) return [];
   const sourcePermanentId = ctx.source.permanent()?.permanentId;
-  const modifier = ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePermanentId) ?? 0;
+  // Q3295: a source-relative budget is not a numeric maximum, so generic
+  // DP-deletion-ceiling modifiers must not raise it.
+  const modifier =
+    target.totalDpCapFromSourceDp === true
+      ? 0
+      : (ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePermanentId) ?? 0);
   const budget = baseBudget + modifier;
   const candidates = candidatePermanents(ctx, target, { includeUnaffectable: true })
     .map((permanent) => ({ permanentId: permanent.permanentId, dp: permanent.currentDP }))
@@ -416,7 +421,18 @@ export async function resolvePermanentTargets(
       ctx.lastResolvedPermanentIds = result;
       return result;
     }
-    const id = ctx.trigger.subjectPermanentId ?? ctx.trigger.deletedPermanentId ?? ctx.trigger.attackerPermanentId;
+    // Some board-state SubTrigger buses carry their subject under an event-specific field
+    // rather than the generic subjectPermanentId (suspension/unsuspension are the canonical
+    // examples). A sourceRef:"triggerSubject" action still means that same event subject, so
+    // preserve it through target resolution instead of silently fizzing after the watcher
+    // matched. This is especially important for whenUnsuspended De-Digivolve effects.
+    const id =
+      ctx.trigger.subjectPermanentId ??
+      ctx.trigger.subjectPermanentIds?.[0] ??
+      ctx.trigger.unsuspendedPermanentId ??
+      ctx.trigger.suspendedPermanentId ??
+      ctx.trigger.deletedPermanentId ??
+      ctx.trigger.attackerPermanentId;
     if (id) {
       ctx.lastResolvedPermanentIds = [id];
       return [id];

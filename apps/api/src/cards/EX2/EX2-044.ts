@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -16,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - TrashTopDeck made abortOnDecline (if declined, Delete doesn't fire)
 //   - CostModifier with invalid costType "level" replaced with scaling on Delete's levelCeiling
 //     (new capability — see LANE_E.md)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

@@ -1,237 +1,125 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./EX2-060.js";
 import "./EX2-060.js";
+import "./EX2-019.js";
+import "../P/P-095.js";
+import "./EX2-050.js";
 
-// A3 for EX2-060 (Rika Nonaka):
-//   [Your Turn] When you attack with [Renamon]/[Kyubimon]/[Taomon]/[Sakuyamon],
-//     suspend this Tamer to use 1 [Plug-In] Option from hand without paying its cost.
-//
-// FAILS-WHEN-REVERTED: legacy IR leaves the whenAttacking SubTrigger body non-executable;
-// body — no suspend call and no useOptionFromHand call are produced.
-
-const PLUG_IN_ID = "ST9-016"; // A Plug-In Option card
-
-interface Recorder {
-  calls: { verb: string; args: unknown[] }[];
-}
-
-function card(instanceId: string, cardId: string, seat: Seat = 0): CardInstance {
-  return { instanceId, cardId, ownerSeat: seat, faceUp: true } as CardInstance;
-}
-
-function makeSource(suspended = false): CardSource {
-  return {
-    instanceId: "self-inst",
-    cardId: "EX2-060",
-    ownerSeat: 0 as Seat,
-    definition: {
-      cardId: "EX2-060",
-      set: "EX2",
-      nameEn: "Rika Nonaka",
-      kinds: ["Tamer"] as never,
-      colors: ["Yellow"] as never,
-      playCost: 3,
-      dp: 0,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    },
-    permanent: () =>
-      ({
-        permanentId: "SELF-PERM",
-        controllerSeat: 0 as Seat,
-        topCard: { instanceId: "self-inst", cardId: "EX2-060", ownerSeat: 0 as Seat, faceUp: true } as never,
-        stack: [] as never,
-        linked: [] as never,
-        baseDP: 0,
-        currentDP: 0,
-        isSuspended: suspended,
-        inBreeding: false,
-      }) as never,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
-type PermanentEntry = {
-  permanentId: string;
-  controllerSeat: Seat;
-  topCard: CardInstance;
-  isSuspended: boolean;
-  inBreeding: boolean;
-};
-
-function makeCtx(
-  recorder: Recorder,
-  source: CardSource,
-  opts: {
-    ownerHand?: CardInstance[];
-    attackerPermanentId?: string;
-    attackerCardId?: string;
-    memory?: number;
-  } = {},
-): EffectContext {
-  const { ownerHand = [], attackerPermanentId = "attacker-perm", attackerCardId = "Renamon-card", memory = 3 } = opts;
-
-  const attackerPerm: PermanentEntry = {
-    permanentId: attackerPermanentId,
-    controllerSeat: 0 as Seat,
-    topCard: card(`${attackerPermanentId}-top`, attackerCardId, 0),
-    isSuspended: false,
-    inBreeding: false,
-  };
-
-  const players = [
-    {
-      seat: 0 as Seat,
-      battleArea: [attackerPerm],
-      security: [],
-      hand: ownerHand.map((c) => ({ ...c })),
-      deck: [],
-      trash: [],
-    },
-    {
-      seat: 1 as Seat,
-      battleArea: [],
-      security: [],
-      hand: [],
-      deck: [],
-      trash: [],
-    },
-  ];
-
-  const game: GameAccess = {
-    state: { memory, players, turnSeat: 0 as Seat } as never,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: (id: string) => (id === attackerPermanentId ? (attackerPerm as never) : undefined),
-    definitionOf: (c: { cardId: string }) => {
-      if (c.cardId === PLUG_IN_ID) {
-        return { cardId: c.cardId, kinds: ["Option"], nameEn: "Plug-In S", playCost: 3 } as never;
-      }
-      if (c.cardId === "Renamon-card") {
-        return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "Renamon", level: 3, playCost: 3 } as never;
-      }
-      if (c.cardId === "Sakuyamon-card") {
-        return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "Sakuyamon", level: 6, playCost: 7 } as never;
-      }
-      return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "Other", level: 4, playCost: 4 } as never;
-    },
-  };
-
-  const fx = {
-    suspend: async (...args: unknown[]) => {
-      recorder.calls.push({ verb: "suspend", args });
-      return args[0] as string[];
-    },
-    useOptionFromHand: async (...args: unknown[]) => {
-      recorder.calls.push({ verb: "useOptionFromHand", args });
-    },
-    setMemory: (...args: unknown[]) => {
-      recorder.calls.push({ verb: "setMemory", args });
-    },
-    playFromSecurity: async (...args: unknown[]) => {
-      recorder.calls.push({ verb: "playFromSecurity", args });
-    },
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-
-  return {
-    source,
-    trigger: { attackerPermanentId },
-    game,
-    fx,
-    ask,
-  };
-}
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009"];
+const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
 
 describe("EX2-060 Rika Nonaka", () => {
-  it("registers full compiled IR without residuals", () => {
-    const compiled = registeredCompiledCards.get("EX2-060");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-  const module = getEffectModule("EX2-060");
-
-  it("is registered on import", () => {
-    expect(module).toBeDefined();
-  });
-
-  it("produces 1 OnStartTurn effect", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(1);
-  });
-
-  it("produces 1 OnAllyAttack effect", () => {
-    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    expect(effect?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
-  });
-
-  it("does not impose an unprinted once-per-turn limit on attacks", () => {
-    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    expect(effect?.frequency).toBeUndefined();
-  });
-
-  it("[Start of Your Turn] sets memory to 3 when ≤ 2", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource();
-    const ctx = makeCtx(recorder, source, { memory: 2 });
-
-    const effects = module!.effectsForTiming(EffectTiming.OnStartTurn, source);
-    await effects[0]!.resolve(ctx);
-
-    expect(recorder.calls.filter((c) => c.verb === "setMemory")).toHaveLength(1);
-    expect(recorder.calls.find((c) => c.verb === "setMemory")!.args[0]).toBe(3);
-  });
-
-  it("[When Attacking] suspends self and uses a Plug-In Option from hand", () => {
-    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const action = effect?.actions[0] as { cost?: unknown; actions?: unknown[] };
-    expect(action.cost).toEqual(expect.objectContaining({ kind: "suspend" }));
-    expect(action.actions).toEqual(
+  it("matches the catalog and compiled Start, attack, and Security clauses", () => {
+    expect(getCardDefinition("EX2-060")).toMatchObject({
+      cardId: "EX2-060",
+      nameEn: "Rika Nonaka",
+      colors: ["Yellow"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      dp: 0,
+      evoCosts: [],
+      rarity: "R",
+      maxCountInDeck: 4,
+      effectText:
+        "[Start of Your Turn] If you have 2 memory or less, set your memory to 3.[Your Turn] When you attack with a Digimon with [Renamon], [Kyubimon], [Taomon], or [Sakuyamon] in its name, you may suspend this Tamer to use 1 Option card with [Plug-In] in its name from your hand without paying its memory cost.",
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }),
+        expect.objectContaining({
+          trigger: "StartOfYourTurn",
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "SetMemory",
+              value: 3,
+              condition: { kind: "memoryAtMost", value: 2 },
+            }),
+          ]),
+        }),
+        expect.objectContaining({
+          trigger: "YourTurn",
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "SubTrigger",
+              event: "whenAttacking",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" }],
+              },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+              actions: expect.arrayContaining([
+                expect.objectContaining({
+                  kind: "UseOptionWithoutCost",
+                  filter: {
+                    controller: "mine",
+                    kind: ["Option"],
+                    nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }],
+                  },
+                  from: ["hand"],
+                  payCost: false,
+                }),
+              ]),
+            }),
+          ]),
+        }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              payCost: false,
+            }),
+          ]),
+        }),
       ]),
     );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
-  it("requires the Tamer suspension as the activation cost", () => {
-    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const action = effect?.actions[0] as { cost?: { kind?: string; target?: { isSelf?: boolean } } };
-    expect(action).toMatchObject({ cost: { kind: "suspend", target: { isSelf: true } } });
-  });
-
-  it("filters the used card to Plug-In Options", () => {
-    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const actions = (effect?.actions[0] as { actions?: unknown[] } | undefined)?.actions ?? [];
-    expect(actions[0]).toMatchObject({
-      kind: "UseOptionWithoutCost",
-      filter: { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
+  it("sets memory to 3 at Start of Your Turn only when memory is 2 or less", async () => {
+    const eligible = setupEngine({
+      0: {
+        battleArea: [{ card: "EX2-060", as: "rika" }],
+        deck: [{ card: "BT1-009", as: "drawn" }, ...inertDeck],
+        security: inertSecurity,
+      },
+      1: { deck: inertDeck, security: inertSecurity },
     });
+    eligible.state.memory = 2;
+    await eligible.ready();
+    const eligibleTurn = eligible.engine.runOneTurn();
+    await advance(eligible.engine).waitForMainPhase(0);
+    expect(eligible.state.memory).toBe(3);
+    advance(eligible.engine).endMainPhaseIfOpen(0);
+    await eligibleTurn;
+
+    const boundary = setupEngine({
+      0: { battleArea: [{ card: "EX2-060", as: "rika" }], deck: inertDeck, security: [...inertSecurity, "BT1-013"] },
+      1: { deck: inertDeck, security: inertSecurity },
+    });
+    boundary.state.memory = 3;
+    await boundary.ready();
+    const boundaryTurn = boundary.engine.runOneTurn();
+    await advance(boundary.engine).waitForMainPhase(0);
+    expect(boundary.state.memory).toBe(3);
+    advance(boundary.engine).endMainPhaseIfOpen(0);
+    await boundaryTurn;
   });
 
-  it("matches all four printed attacker names", () => {
-    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const sourceFilter = (
-      effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } } | undefined
-    )?.sourceFilter;
-    expect(sourceFilter?.nameOrTrait?.[0]?.tokens).toEqual(["Renamon", "Kyubimon", "Taomon", "Sakuyamon"]);
-  });
-
-  it("publicly suspends Rika and uses a matching Plug-In Option when Renamon attacks", async () => {
+  it("suspends Rika and uses a matching Plug-In Option when Renamon attacks", async () => {
     const s = setupEngine(
       {
         0: {
@@ -240,12 +128,14 @@ describe("EX2-060 Rika Nonaka", () => {
             { card: "EX2-060", as: "rika" },
           ],
           hand: [{ card: "P-095", as: "plugIn" }],
-          deck: ["BT1-001"],
+          deck: inertDeck,
+          security: inertSecurity,
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    const plugInId = s.inst("plugIn").instanceId;
     s.state.memory = 10;
     await s.ready();
     expect(
@@ -255,9 +145,11 @@ describe("EX2-060 Rika Nonaka", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("rika").isSuspended && !s.state.players[0]!.hand.some((c) => c.cardId === "P-095"));
+    await settle(
+      () => s.perm("rika").isSuspended && !s.state.players[0]!.hand.some((card) => card.instanceId === plugInId),
+    );
     expect(s.perm("rika").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.some((c) => c.cardId === "P-095")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(plugInId);
   });
 
   it("does not use the Plug-In Option when Rika is already suspended", async () => {
@@ -269,13 +161,14 @@ describe("EX2-060 Rika Nonaka", () => {
             { card: "EX2-060", as: "rika", suspended: true },
           ],
           hand: [{ card: "P-095", as: "plugIn" }],
-          deck: ["BT1-001"],
+          deck: inertDeck,
+          security: inertSecurity,
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.memory = 10;
+    const plugInId = s.inst("plugIn").instanceId;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -284,38 +177,14 @@ describe("EX2-060 Rika Nonaka", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle();
-    expect(s.state.players[0]!.hand.some((c) => c.cardId === "P-095")).toBe(true);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(plugInId);
   });
 
-  it("sets memory at Start of Your Turn only when memory is 2 or less", async () => {
-    const eligible = setupEngine({
-      0: { battleArea: [{ card: "EX2-060", as: "rika" }], deck: ["BT1-001"], security: ["BT1-002"] },
-    });
-    eligible.state.memory = 2;
-    await eligible.ready();
-    const eligibleTurn = eligible.engine.runOneTurn();
-    await advance(eligible.engine).waitForMainPhase(0);
-    expect(eligible.state.memory).toBe(3);
-    advance(eligible.engine).endMainPhaseIfOpen(0);
-    await eligibleTurn;
-
-    const boundary = setupEngine({
-      0: { battleArea: [{ card: "EX2-060", as: "rika" }], deck: ["BT1-001"], security: ["BT1-002"] },
-    });
-    boundary.state.memory = 3;
-    await boundary.ready();
-    const boundaryTurn = boundary.engine.runOneTurn();
-    await advance(boundary.engine).waitForMainPhase(0);
-    expect(boundary.state.memory).toBe(3);
-    advance(boundary.engine).endMainPhaseIfOpen(0);
-    await boundaryTurn;
-  });
-
-  it("plays EX2-060 from Security without paying its cost", async () => {
+  it("plays Rika from Security without paying its cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
-      1: { security: [{ card: "EX2-060", as: "securityRika" }] },
+      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], deck: inertDeck, security: inertSecurity },
+      1: { deck: inertDeck, security: [{ card: "EX2-060", as: "securityRika" }, ...inertSecurity] },
     });
     await s.ready();
     expect(
@@ -326,10 +195,10 @@ describe("EX2-060 Rika Nonaka", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityRika").instanceId),
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("securityRika").instanceId),
     );
-    expect(
-      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityRika").instanceId),
-    ).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.instanceId)).toContain(
+      s.inst("securityRika").instanceId,
+    );
   });
 });

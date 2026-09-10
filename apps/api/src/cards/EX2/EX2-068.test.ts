@@ -1,19 +1,83 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./EX2-068.js";
 import "./EX2-068.js";
 
+const inertDeck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012"];
+const inertSecurity = ["BT1-013", "BT1-014"];
+
 describe("EX2-068 High-Speed Plug-In D", () => {
+  it("matches the catalog and typed IR for color waiver, Main, and Security", () => {
+    expect(getCardDefinition("EX2-068")).toMatchObject({
+      cardId: "EX2-068",
+      nameEn: "High-Speed Plug-In D",
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 2,
+      dp: 0,
+      evoCosts: [],
+      rarity: "C",
+      maxCountInDeck: 4,
+      effectText:
+        "While you have a Tamer in play, you may use this card without meeting its color requirements.[Main] For the turn, 1 of your Digimon gains ＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon) and can't be blocked by your opponent's Digimon.",
+      securityEffectText: "[Security] ＜Draw 1＞. (Draw 1 card from your deck.) Then, add this card to your hand.",
+    });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Static",
+          actions: [
+            expect.objectContaining({
+              kind: "WaiveColorRequirement",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              condition: expect.objectContaining({
+                kind: "youHave",
+                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"] },
+              }),
+            }),
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "Main",
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
+              duration: "forTheTurn",
+            },
+            {
+              kind: "Restrict",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, sameTarget: true },
+              restriction: "cantBeBlocked",
+              duration: "forTheTurn",
+              raw: "can't be blocked by your opponent's Digimon",
+            },
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }],
+        }),
+      ]),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("gives one Digimon Jamming for the turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX2-014", as: "target" }, "EX2-060"],
           hand: [{ card: "EX2-068", as: "option" }],
-          deck: ["EX2-031"],
+          deck: inertDeck,
         },
-        1: { security: ["EX2-015"], deck: ["EX2-032"] },
+        1: { security: ["EX2-015", ...inertSecurity], deck: inertDeck },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -76,7 +140,7 @@ describe("EX2-068 High-Speed Plug-In D", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX2-014", as: "target" }, "EX2-060"], hand: [{ card: "EX2-068", as: "option" }] },
-        1: { battleArea: [{ card: "EX2-031", as: "blocker" }], security: ["BT1-001"], deck: ["BT1-002"] },
+        1: { battleArea: [{ card: "EX2-031", as: "blocker" }], security: inertSecurity, deck: inertDeck },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -97,5 +161,37 @@ describe("EX2-068 High-Speed Plug-In D", () => {
     await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
     expect(s.events.filter(({ kind }) => kind === "blockWindowOpened").length).toBe(blockWindowsBefore);
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("draws one card and returns itself to hand from Security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-050", as: "attacker" }], deck: inertDeck, security: inertSecurity },
+        1: {
+          security: [{ card: "EX2-068", as: "securityOption" }, ...inertSecurity],
+          deck: [{ card: "BT1-014", as: "drawn" }, "BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoOrderCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId),
+    );
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("securityOption").instanceId, s.inst("drawn").instanceId]),
+    );
+    expect(s.state.players[1]!.deck).toHaveLength(3);
+    expect(s.state.memory).toBe(5);
   });
 });
