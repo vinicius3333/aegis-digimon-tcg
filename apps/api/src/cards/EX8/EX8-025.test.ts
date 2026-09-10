@@ -1,20 +1,64 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../../cards/EX12/EX12-048.js";
+import "../../cards/P/P-162.js";
 import "./index.js";
 import { compiled } from "./EX8-025.js";
 
 describe("EX8-025", () => {
+  it("matches the complete printed catalog identity and text", () => {
+    expect(getCardDefinition("EX8-025")).toMatchObject({
+      cardId: "EX8-025",
+      nameEn: "Whamon",
+      colors: ["Blue", "Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [
+        { color: "Blue", level: 4, memoryCost: 4 },
+        { color: "Black", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Sea Animal", "DS"],
+      effectText: expect.stringContaining("[On Play] [When Digivolving] You may place 1 Digimon card with the [DS]"),
+      inheritedEffectText: "[Your Turn] This Digimon's attack target can't be switched.",
+    });
+  });
   it("places a DS Digimon from trash underneath itself on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       optional: true,
-      target: { count: 1 },
+      position: "bottom",
+      target: {
+        count: 1,
+        from: ["trash"],
+        filter: {
+          zone: "trash",
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
+        },
+      },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
+      optional: true,
+      position: "bottom",
+      target: {
+        count: 1,
+        from: ["trash"],
+        filter: {
+          zone: "trash",
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
+        },
+      },
     });
   });
   it("plays a level 5 or lower DS Digimon from its digivolution cards at end of attack", () => {
@@ -27,6 +71,15 @@ describe("EX8-025", () => {
           fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
+          target: {
+            count: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 5,
+              nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
+            },
+          },
         },
       ],
     });
@@ -78,6 +131,28 @@ describe("EX8-025", () => {
     expect(s.perm("base").stack[1]!.instanceId).toBe(s.inst("existing").instanceId);
   });
 
+  it("accepts the alternate Black Lv.4 evolution route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-162", as: "blackBase" }],
+          hand: [{ card: "EX8-025", as: "whamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blackBase").permanentId,
+        instanceId: s.inst("whamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blackBase").topCard?.cardId === "EX8-025");
+    expect(s.perm("blackBase").stack.map((card) => card.cardId)).toEqual(["P-162"]);
+  });
+
   it("plays only one eligible DS card from its own stack across two attacks", async () => {
     const s = setupEngine(
       {
@@ -122,6 +197,62 @@ describe("EX8-025", () => {
     expect(s.perm("whamon").stack).toHaveLength(1);
   });
 
+  it("resets End of Attack playback on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-045", "BT1-046", "BT1-047"],
+          battleArea: [
+            {
+              card: "EX8-025",
+              as: "whamon",
+              under: [
+                { card: "EX8-020", as: "first" },
+                { card: "EX8-021", as: "second" },
+              ],
+            },
+          ],
+        },
+        1: { security: 3, deck: ["BT1-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack" as const,
+        attackerPermanentId: s.perm("whamon").permanentId,
+        target: { kind: "player" as const },
+      });
+
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.perm("whamon").stack).toHaveLength(1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("whamon").permanentId]);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("whamon").stack).toHaveLength(1);
+
+    s.state.phase = Phase.End;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.perm("whamon").stack).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await nextTurn;
+  });
+
   it("keeps the On Play placement optional when declined", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "EX8-025", as: "whamon" }], trash: [{ card: "EX8-027", as: "ds" }] } },
@@ -159,6 +290,30 @@ describe("EX8-025", () => {
 
     expect(s.perm("whamon").stack).toHaveLength(1);
     expect(s.perm("whamon").isSuspended).toBe(true);
+  });
+
+  it("trashes Whamon and its full evolution stack when deleted", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "EX8-025",
+            as: "whamon",
+            under: [
+              { card: "EX8-020", as: "base" },
+              { card: "EX8-021", as: "inherited" },
+            ],
+          },
+        ],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("whamon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX8-025", "EX8-020", "EX8-021"]),
+    );
   });
 
   it("applies the inherited attack-target-change restriction only on its controller's turn", async () => {
