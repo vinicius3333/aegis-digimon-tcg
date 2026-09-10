@@ -1,9 +1,51 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-048.js";
+import { compiled } from "./BT1-048.js";
 
 describe("BT1-048 Patamon", () => {
+  it("matches the catalog and exact reveal/filter IR contract", () => {
+    expect(getCardDefinition("BT1-048")).toMatchObject({
+      cardId: "BT1-048",
+      set: "BT1",
+      nameEn: "Patamon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Mammal"],
+      effectText:
+        "[On Play] Reveal 4 cards from the top of your deck. Add all yellow Tamer cards among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
+      rarity: "R",
+      maxCountInDeck: 4,
+      imageId: "BT1-048",
+      nameJp: "パタモン",
+    });
+    expect(getCardDefinition("BT1-048")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-048")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 4,
+              add: [{ filter: { kind: ["Tamer"], colors: ["Yellow"] }, count: "all", to: "hand" }],
+              rest: "deckBottomAnyOrder",
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("adds every revealed yellow Tamer to hand", async () => {
     const s = setupEngine(
       {
@@ -117,11 +159,26 @@ describe("BT1-048 Patamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("patamon").instanceId);
 
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-006"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evolutionDraw").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("wouldBeYellowTamer").instanceId,
       s.inst("remainingA").instanceId,
       s.inst("remainingB").instanceId,
     ]);
+  });
+
+  it("rejects evolution from a red level 2 despite matching level", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-001", as: "redBase" }], hand: [{ card: "BT1-048", as: "patamon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("patamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

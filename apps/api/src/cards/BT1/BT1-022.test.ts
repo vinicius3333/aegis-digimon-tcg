@@ -15,7 +15,7 @@ describe("BT1-022 Garudamon", () => {
   it("deletes a weaker Digimon and then performs its normal security check", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-022", as: "attacker" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true }], security: ["BT1-014"] },
     });
     await s.ready();
 
@@ -97,5 +97,45 @@ describe("BT1-022 Garudamon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("legally evolves from a red level 4, draws, and retains Piercing", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-014", as: "base" }],
+        hand: [{ card: "BT1-022", as: "evolving" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
+  });
+
+  it("rejects evolution from a green level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-069", as: "base" }], hand: [{ card: "BT1-022", as: "evolving" }] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

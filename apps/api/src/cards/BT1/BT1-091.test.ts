@@ -49,7 +49,7 @@ describe("BT1-091 Scrap Claw", () => {
         0: {
           battleArea: [{ card: "BT1-010", as: "target" }],
           hand: [{ card: "BT1-091", as: "option" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },

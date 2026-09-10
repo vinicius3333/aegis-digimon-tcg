@@ -13,9 +13,9 @@ describe("BT1-092 Nuclear Laser", () => {
             { card: "BT1-011", as: "secondTarget" },
           ],
           hand: [{ card: "BT1-092", as: "option" }],
-          deck: [{ card: "BT1-001", as: "firstDraw" }, { card: "BT1-002", as: "secondDraw" }, "BT1-003"],
+          deck: [{ card: "BT1-009", as: "firstDraw" }, { card: "BT1-012", as: "secondDraw" }, "BT1-013"],
         },
-        1: { deck: ["BT1-003"] },
+        1: { deck: ["BT1-013"] },
       },
       { autoSelectCards: false },
     );
@@ -68,8 +68,8 @@ describe("BT1-092 Nuclear Laser", () => {
           battleArea: [{ card: "BT1-085", as: "redTamer" }],
           hand: [{ card: "BT1-092", as: "option" }],
           deck: [
-            { card: "BT1-001", as: "firstDraw" },
-            { card: "BT1-002", as: "secondDraw" },
+            { card: "BT1-009", as: "firstDraw" },
+            { card: "BT1-012", as: "secondDraw" },
           ],
         },
       },

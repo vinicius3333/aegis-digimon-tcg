@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -75,6 +75,69 @@ describe("BT1-085 Tai Kamiya", () => {
     await s.ready();
 
     expect(observe(s.engine).keywordAmount(s.perm("red"), "SecurityAttack")).toBe(2);
+  });
+
+  it("keeps the four-source aura after a legal hatch/evolution/move lifecycle", async () => {
+    const s = setupEngine({
+      0: {
+        eggDeck: [{ card: "BT1-001", as: "egg" }],
+        battleArea: [{ card: "BT1-085", as: "tai" }],
+        hand: [
+          { card: "BT1-010", as: "lv3" },
+          { card: "BT1-015", as: "lv4" },
+          { card: "BT1-020", as: "lv5" },
+          { card: "BT1-025", as: "lv6" },
+        ],
+        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-016", "BT1-017"],
+        security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: {
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+      },
+    });
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT1-001");
+    const breedingPermanentId = s.state.players[0]!.breeding!.permanentId;
+
+    await advance(s.engine).waitForMainPhase(0);
+    for (const name of ["lv3", "lv4", "lv5", "lv6"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: breedingPermanentId,
+          instanceId: s.inst(name).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst(name).instanceId);
+    }
+    expect(s.state.players[0]!.breeding!.stack.map((card) => card.cardId)).toEqual([
+      "BT1-001",
+      "BT1-010",
+      "BT1-015",
+      "BT1-020",
+    ]);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === breedingPermanentId));
+
+    const carrier = s.state.players[0]!.battleArea.find((p) => p.permanentId === breedingPermanentId)!;
+    expect(carrier.topCard?.cardId).toBe("BT1-025");
+    expect(carrier.stack.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-010", "BT1-015", "BT1-020"]);
+    expect(observe(s.engine).keywordAmount(carrier, "SecurityAttack")).toBe(1);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays itself from security without paying its cost", async () => {

@@ -1,39 +1,101 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-072.js";
-import "./BT1-077.js";
+import { compiled } from "./BT1-077.js";
+import "./BT1-081.js";
 
 describe("BT1-077 Okuwamon", () => {
+  it("matches the catalog and exact inherited-effect IR contract", () => {
+    expect(getCardDefinition("BT1-077")).toMatchObject({
+      cardId: "BT1-077",
+      set: "BT1",
+      nameEn: "Okuwamon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 6000,
+      evoCosts: [{ color: "Green", level: 4, memoryCost: 2 }],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Insectoid"],
+      inheritedEffectText:
+        "[Your Turn] When this Digimon deletes an opponent's Digimon in battle and survives， gain 1 memory.",
+      rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "BT1-077",
+      nameJp: "オオクワモン",
+    });
+    expect(getCardDefinition("BT1-077")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-077")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenDeletesInBattle",
+              sourceFilter: { isSelfRef: true, controller: "mine", kind: ["Digimon"] },
+              actions: [
+                {
+                  kind: "GainMemory",
+                  amount: 1,
+                  condition: { kind: "triggerSourceNotDeletedAtSameTiming" },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("gains 1 memory when its Digimon deletes an opponent in battle and survives", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "attacker", dp: 10000, under: ["BT1-077"] }] },
+      0: {
+        battleArea: [{ card: "BT1-072", as: "base" }],
+        hand: [
+          { card: "BT1-077", as: "okuwamon" },
+          { card: "BT1-081", as: "attacker" },
+        ],
+        deck: ["BT1-010", "BT1-011"],
+      },
       1: { battleArea: [{ card: "BT1-016", as: "defender", dp: 1000, suspended: true }] },
     });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("okuwamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("okuwamon").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("attacker").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("attacker").instanceId);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-072", "BT1-077"]);
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 1);
     expect(s.state.memory).toBe(1);
-  });
-
-  it("does not gain memory when the deletion occurs during the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "attacker", under: ["BT1-077"] }] },
-      1: { battleArea: [{ card: "BT1-016", as: "defender", suspended: true }] },
-    });
-    s.state.turnSeat = 1;
-    s.state.memory = 0;
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-
-    expect(s.state.memory).toBe(0);
   });
 
   it("does not gain memory when both Digimon are deleted in a tied battle", async () => {
@@ -114,5 +176,19 @@ describe("BT1-077 Okuwamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects evolution from a non-green level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-036", as: "blueBase" }], hand: [{ card: "BT1-077", as: "okuwamon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("okuwamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

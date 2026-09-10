@@ -2726,7 +2726,7 @@
           {
             "kind": "ModifyDP",
             "amount": 2000,
-            "duration": "forTheTurn",
+            "duration": "permanent",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
           }
         ]
@@ -3939,18 +3939,7 @@
           }
         ]
       },
-      {
-        "trigger": "Security",
-        "actions": [
-          {
-            "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "keywords": ["Blocker"] },
-              "count": 1
-            }
-          }
-        ]
-      }
+      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
     ],
     "coverage": "full",
     "residual": []
@@ -3979,7 +3968,8 @@
             "keyword": { "keyword": "Blocker" },
             "duration": "forTheTurn"
           }
-        ]
+        ],
+        "isSecurity": true
       }
     ],
     "coverage": "full",
@@ -4000,7 +3990,8 @@
       },
       {
         "trigger": "Security",
-        "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }, { "kind": "AddToHandSelf" }]
+        "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }, { "kind": "AddToHandSelf" }],
+        "isSecurity": true
       }
     ],
     "coverage": "full",
@@ -4009,7 +4000,7 @@
   "BT1-097": {
     "effects": [
       { "trigger": "Main", "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }] },
-      { "trigger": "Security", "actions": [{ "kind": "Draw", "controller": "mine", "amount": 2 }] }
+      { "trigger": "Security", "actions": [{ "kind": "Draw", "controller": "mine", "amount": 2 }], "isSecurity": true }
     ],
     "coverage": "full",
     "residual": []
@@ -4027,7 +4018,7 @@
           }
         ]
       },
-      { "trigger": "Security", "actions": [{ "kind": "AddToHandSelf" }] }
+      { "trigger": "Security", "actions": [{ "kind": "AddToHandSelf" }], "isSecurity": true }
     ],
     "coverage": "full",
     "residual": []
@@ -4078,7 +4069,8 @@
             "restriction": "attack",
             "duration": "forTheTurn"
           }
-        ]
+        ],
+        "isSecurity": true
       }
     ],
     "coverage": "full",
@@ -4099,19 +4091,7 @@
           }
         ]
       },
-      {
-        "trigger": "Security",
-        "actions": [
-          {
-            "kind": "TrashDigivolution",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
-              "count": "all"
-            },
-            "amount": "all"
-          }
-        ]
-      }
+      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
     ],
     "coverage": "full",
     "residual": []
@@ -4129,17 +4109,7 @@
           }
         ]
       },
-      {
-        "trigger": "Security",
-        "actions": [
-          {
-            "kind": "Draw",
-            "controller": "mine",
-            "amount": 1,
-            "scaling": { "per": 2, "unit": "security", "filter": { "controller": "mine" } }
-          }
-        ]
-      }
+      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
     ],
     "coverage": "full",
     "residual": []
@@ -4159,7 +4129,8 @@
       },
       {
         "trigger": "Security",
-        "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }, { "kind": "AddToHandSelf" }]
+        "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }, { "kind": "AddToHandSelf" }],
+        "isSecurity": true
       }
     ],
     "coverage": "full",
@@ -4257,7 +4228,8 @@
         "actions": [
           { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
           { "kind": "AddToHandSelf" }
-        ]
+        ],
+        "isSecurity": true
       }
     ],
     "coverage": "full",
@@ -4327,7 +4299,7 @@
             "condition": {
               "kind": "opponentHas",
               "countMin": 2,
-              "filter": { "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } }
+              "filter": { "zone": "battleArea", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } }
             },
             "ifTrue": [
               {
@@ -4347,6 +4319,7 @@
                         "filter": {
                           "controller": "opponent",
                           "kind": ["Digimon"],
+                          "zone": "battleArea",
                           "dp": { "op": "lte", "value": 5000 }
                         },
                         "count": 2
@@ -4373,7 +4346,7 @@
             "condition": {
               "kind": "opponentHas",
               "countMin": 2,
-              "filter": { "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } }
+              "filter": { "zone": "battleArea", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } }
             },
             "ifTrue": [
               {
@@ -4393,6 +4366,7 @@
                         "filter": {
                           "controller": "opponent",
                           "kind": ["Digimon"],
+                          "zone": "battleArea",
                           "dp": { "op": "lte", "value": 5000 }
                         },
                         "count": 2
@@ -4462,7 +4436,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       }

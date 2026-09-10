@@ -25,7 +25,7 @@ describe("BT1-090 Gravity Crush", () => {
           { card: "BT1-090", as: "first" },
           { card: "BT1-090", as: "second" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 0;
@@ -47,11 +47,11 @@ describe("BT1-090 Gravity Crush", () => {
       0: {
         battleArea: ["BT1-010"],
         hand: [{ card: "BT1-090", as: "option" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: {
         battleArea: [{ card: "BT3-046", as: "terriermon" }],
-        deck: ["BT1-002"],
+        deck: ["BT1-012"],
       },
     });
     s.state.memory = 2;

@@ -9,7 +9,7 @@ export const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           amount: 2000,
-          duration: "forTheTurn",
+          duration: "permanent",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         },
       ],

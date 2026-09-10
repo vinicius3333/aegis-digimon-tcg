@@ -1,8 +1,48 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-062.js";
+import { compiled } from "./BT1-062.js";
 describe("BT1-062 SlashAngemon", () => {
+  it("matches the catalog and exact compiled IR contract", () => {
+    expect(getCardDefinition("BT1-062")).toMatchObject({
+      cardId: "BT1-062",
+      set: "BT1",
+      nameEn: "SlashAngemon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 8000,
+      evoCosts: [{ color: "Yellow", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Authority"],
+      effectText: "[When Digivolving] 1 of your opponent's Digimon gets -8000 DP for the turn.",
+      rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "BT1-062",
+      nameJp: "スラッシュエンジェモン",
+    });
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -8000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("deletes an opposing Digimon reduced to 0 DP when digivolving", async () => {
     const s = setupEngine(
       {
@@ -27,6 +67,7 @@ describe("BT1-062 SlashAngemon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-059"]);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
 
@@ -77,5 +118,20 @@ describe("BT1-062 SlashAngemon", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT1-062");
 
     expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects evolution from a red level 5 despite matching the evolution level", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-024", as: "redBase" }], hand: [{ card: "BT1-062", as: "evolving" }] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

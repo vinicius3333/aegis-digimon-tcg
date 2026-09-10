@@ -1,23 +1,53 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT1-107.js";
+import { compiled } from "./BT1-107.js";
 import "../ST9/ST9-13.js";
 import "../BT4/BT4-088.js";
 import "../BT4/BT4-097.js";
 
 describe("BT1-107 Holy Wave", () => {
+  it("matches the catalog and compiles Main Recovery +1 plus Security Main activation", () => {
+    expect(getCardDefinition("BT1-107")).toMatchObject({
+      cardId: "BT1-107",
+      set: "BT1",
+      nameEn: "Holy Wave",
+      colors: ["Yellow"],
+      kinds: ["Option"],
+      playCost: 6,
+      dp: 0,
+      evoCosts: [],
+      effectText:
+        "[Main] Trigger ＜Recovery +1 (Deck)＞. (Place the top card of your deck on top of your security stack.)",
+      securityEffectText: "[Security] Activate this card's [Main] effect.",
+      rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "BT1-107",
+    });
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "Main",
+          actions: [{ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 }],
+        },
+        { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("recovers the top deck card", async () => {
     const s = setupEngine({
       0: {
         battleArea: ["BT1-047"],
         hand: [{ card: "BT1-107", as: "option" }],
         deck: [
-          { card: "BT1-001", as: "top" },
-          { card: "BT1-002", as: "second" },
-          { card: "BT1-003", as: "third" },
+          { card: "BT1-009", as: "top" },
+          { card: "BT1-010", as: "second" },
+          { card: "BT1-011", as: "third" },
         ],
       },
     });
@@ -39,7 +69,7 @@ describe("BT1-107 Holy Wave", () => {
     const s = setupEngine({
       0: {
         security: [{ card: "BT1-107", as: "securityOption", faceUp: true }],
-        deck: [{ card: "BT1-001", as: "recovered" }],
+        deck: [{ card: "BT1-009", as: "recovered" }],
       },
     });
     const recoveredId = s.inst("recovered").instanceId;
@@ -81,7 +111,7 @@ describe("BT1-107 Holy Wave", () => {
       {
         0: {
           battleArea: [{ card: "BT1-010", as: "attacker", dp: 5000 }],
-          security: [{ card: "BT1-001", as: "opponentSecurity" }],
+          security: [{ card: "BT1-009", as: "opponentSecurity" }],
         },
         1: {
           battleArea: [
@@ -89,7 +119,7 @@ describe("BT1-107 Holy Wave", () => {
             { card: "BT4-097", as: "kari" },
           ],
           security: [{ card: "BT1-107", as: "holyWave" }],
-          deck: [{ card: "BT1-002", as: "recovered" }],
+          deck: [{ card: "BT1-010", as: "recovered" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

@@ -4,11 +4,75 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT9/BT9-109.js";
 import "../BT8/BT8-057.js";
+import "./BT1-068.js";
 import "./BT1-108.js";
 import "./BT1-109.js";
 import "./BT1-075.js";
+import "./BT1-072.js";
+import "./BT1-080.js";
+import { Phase } from "@aegis/shared";
 
 describe("BT1-109 Smashed Potatoes", () => {
+  it("reduces the next legal Lv.5-to-6 evolution after hatch, breeding evolutions, and movement", async () => {
+    const s = setupEngine({
+      0: {
+        eggDeck: [{ card: "BT1-007", as: "egg" }],
+        hand: [
+          { card: "BT1-109", as: "option" },
+          { card: "BT1-068", as: "level3" },
+          { card: "BT1-072", as: "level4" },
+          { card: "BT1-075", as: "level5" },
+          { card: "BT1-080", as: "level6" },
+        ],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+    });
+    s.state.memory = 10;
+    s.state.phase = Phase.Breeding;
+
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT1-007");
+    const carrier = s.perm("egg");
+    s.state.phase = Phase.Main;
+
+    for (const alias of ["level3", "level4", "level5"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: carrier.permanentId,
+          instanceId: s.inst(alias).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => carrier.topCard.cardId === s.inst(alias).cardId);
+    }
+    expect(carrier.stack.map((card) => card.cardId)).toEqual(["BT1-007", "BT1-068", "BT1-072"]);
+    expect(carrier.topCard.cardId).toBe("BT1-075");
+
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: carrier.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === carrier.permanentId));
+    s.state.phase = Phase.Main;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-109"));
+    const memoryAfterOption = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: carrier.permanentId,
+        instanceId: s.inst("level6").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => carrier.topCard.cardId === "BT1-080");
+    expect(s.state.memory).toBe(memoryAfterOption);
+    expect(carrier.stack.map((card) => card.cardId)).toEqual(["BT1-007", "BT1-068", "BT1-072", "BT1-075"]);
+  });
+
   it("Q978 floors the next green level-5-to-6 digivolution cost at zero", async () => {
     const s = setupEngine({
       0: {
@@ -17,7 +81,7 @@ describe("BT1-109 Smashed Potatoes", () => {
           { card: "BT1-109", as: "option" },
           { card: "BT1-080", as: "evolving" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 6;
@@ -54,7 +118,7 @@ describe("BT1-109 Smashed Potatoes", () => {
           { card: "BT1-083", as: "breedingEvolution" },
           { card: "BT9-055", as: "battleEvolution" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.memory = 10;
@@ -98,9 +162,9 @@ describe("BT1-109 Smashed Potatoes", () => {
             { card: "BT1-109", as: "option" },
             { card: "BT9-055", as: "grandisKuwagamon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
-        1: { security: ["BT1-002", "BT1-003"] },
+        1: { security: ["BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -137,7 +201,7 @@ describe("BT1-109 Smashed Potatoes", () => {
           { card: "BT1-108", as: "blockedOption" },
           { card: "BT1-080", as: "evolving" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: {
         battleArea: [{ card: "BT8-057", as: "shivamon" }],
@@ -182,7 +246,7 @@ describe("BT1-109 Smashed Potatoes", () => {
           { card: "BT1-080", as: "firstEvolution" },
           { card: "BT1-080", as: "secondEvolution" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.memory = 10;
@@ -221,9 +285,9 @@ describe("BT1-109 Smashed Potatoes", () => {
           { card: "BT1-109", as: "option" },
           { card: "BT1-080", as: "evolving" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
-      1: { deck: ["BT1-004"] },
+      1: { deck: ["BT1-012"] },
     });
     const controllerTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);

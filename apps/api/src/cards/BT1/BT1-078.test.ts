@@ -1,9 +1,58 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-078.js";
+import { compiled } from "./BT1-078.js";
 import "../BT10/BT10-056.js";
 
 describe("BT1-078 Jagamon", () => {
+  it("matches the catalog and exact When Attacking digivolution IR contract", () => {
+    expect(getCardDefinition("BT1-078")).toMatchObject({
+      cardId: "BT1-078",
+      set: "BT1",
+      nameEn: "Jagamon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Green", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Vegetation"],
+      effectText:
+        "[When Attacking] Reveal 3 cards from the top of your deck. You can digivoLv.e this card into 1 level 6 green Digimon card among them without paying its memory cost. Place the remaining cards at the bottom of your deck in any order.",
+      rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "BT1-078",
+      nameJp: "ジャガモン",
+    });
+    expect(getCardDefinition("BT1-078")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-078")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              digivolveOption: {
+                into: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Green"], levels: [6] },
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                payCost: false,
+                optional: true,
+              },
+              add: [],
+              rest: "deckBottomAnyOrder",
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("evolves from a green level 4 and keeps the source beneath Jagamon", async () => {
     const s = setupEngine({
       0: {
@@ -169,5 +218,19 @@ describe("BT1-078 Jagamon", () => {
     );
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+  });
+
+  it("rejects ordinary evolution from a non-green level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-036", as: "blueBase" }], hand: [{ card: "BT1-078", as: "jagamon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("jagamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

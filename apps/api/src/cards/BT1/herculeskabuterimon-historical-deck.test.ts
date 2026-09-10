@@ -26,7 +26,7 @@ describe("BT1 HerculesKabuterimon historical deck gauntlet", () => {
             { card: "BT1-011", as: "secondTarget", suspended: true },
           ],
           security: ["BT1-009", "BT1-010", "BT1-011"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       {

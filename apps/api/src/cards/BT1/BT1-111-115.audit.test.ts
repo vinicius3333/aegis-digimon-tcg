@@ -45,7 +45,12 @@ describe("BT1-111 through BT1-115 IR coverage", () => {
       { kind: "Restrict", restriction: "block", target: { sameTarget: true }, duration: "untilOpponentTurnEnd" },
     ]);
     expect(forbiddenTemptation.effects[1]?.actions).toMatchObject([
-      { kind: "Restrict", restriction: "unsuspend", target: { count: "all" }, duration: "untilOpponentTurnEnd" },
+      {
+        kind: "Restrict",
+        restriction: "unsuspend",
+        target: { count: "all" },
+        duration: "untilOpponentNextUnsuspendPhase",
+      },
     ]);
     expect(metalGreymon.effects[0]).toMatchObject({
       trigger: "Static",
