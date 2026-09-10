@@ -102,4 +102,5 @@
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX8 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards --maxWorkers=1 --no-file-parallelism`: 210 files and 2,766 tests passed in 14.78 seconds. The expected AD1-002 unsupported-effect logger path emitted a diagnostic while its regression remained green.
 - Scoped Oxlint passed for all changed TypeScript files. Oxfmt initially found only the ledger table; formatting was applied and the repeated check passed across 147 changed TypeScript/JSON/Markdown files.
 - `git diff --check`: passed.
+- Delivery: atomic card/type/effects/docs commits pushed to `origin/audit-ex8-luna-20260910`; ledger recalculated to 740/740 with 74/74 cards at 10/10.
 - EX8-066: worker focused 8/8; coordinator focused rerun 8/8 in 807 ms. Start-main and Ice-Snow watcher filters, suspension/source targets, Security self-play, live triggers, no-op and refusal evidence accepted; exclusive IR registration retained and `@ts-nocheck` removed. Accepted at 8/10 pending collection gates.
