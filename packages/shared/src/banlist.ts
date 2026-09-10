@@ -532,6 +532,38 @@ const BANLIST_EVENTS: readonly BanlistEvent[] = [
     effectiveDate: "2026-04-04",
     action: "restrict",
   },
+  {
+    cardId: "BT15-003",
+    name: "Nyaromon",
+    status: "banned",
+    count: 0,
+    effectiveDate: "2026-09-01",
+    action: "restrict",
+  },
+  {
+    cardId: "EX1-066",
+    name: "Analog Youth",
+    status: "restricted",
+    count: 1,
+    effectiveDate: "2026-09-01",
+    action: "restrict",
+  },
+  {
+    cardId: "EX8-012",
+    name: "Growlmon (X Antibody)",
+    status: "restricted",
+    count: 1,
+    effectiveDate: "2026-09-01",
+    action: "restrict",
+  },
+  {
+    cardId: "BT14-033",
+    name: "Patamon",
+    status: "restricted",
+    count: 1,
+    effectiveDate: "2026-09-01",
+    action: "restrict",
+  },
 ];
 
 /**
