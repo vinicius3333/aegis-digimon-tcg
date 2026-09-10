@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const delete7000 = {
   kind: "Delete",
   target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 7000 } } },
-};
+} satisfies Action;
 const playTb = {
   kind: "PlayWithoutCost",
   from: ["hand"],
@@ -20,7 +19,7 @@ const playTb = {
       nameOrTrait: [{ tokens: ["TB"], match: "trait" }],
     },
   },
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

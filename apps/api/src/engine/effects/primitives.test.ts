@@ -1171,13 +1171,24 @@ describe("primitives: flipSecurityFaceUp (EX11-064)", () => {
 
 describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
   it("preflights a paid effect play with the same explicit reduction used by the play", async () => {
-    const h = harness({ memory: -6, board: { 0: { trash: [{ card: DIGIMON, as: "c" }] } } });
+    const h = harness({ memory: 0, board: { 0: { trash: [{ card: "BT1-043", as: "c" }] } } });
     const instanceId = h.s.inst("c").instanceId;
 
     expect(await h.fx.canAffordEffectPlay!(instanceId)).toBe(false);
     expect(await h.fx.canAffordEffectPlay!(instanceId, { costDelta: 1 })).toBe(true);
     expect(h.state.players[0]!.trash).toHaveLength(1);
-    expect(h.state.memory).toBe(-6);
+    expect(h.state.memory).toBe(0);
+  });
+
+  it("rejects an unaffordable reduced Option before any payment can be applied", async () => {
+    const h = harness({ memory: -3, board: { 0: { trash: [{ card: "BT24-098", as: "option" }] } } });
+    const instanceId = h.s.inst("option").instanceId;
+
+    expect(await h.fx.canAffordEffectPlay!(instanceId, { costDelta: 2, useAsOption: true, controllerSeat: 0 })).toBe(
+      false,
+    );
+    expect(h.state.players[0]!.trash.map(({ instanceId: id }) => id)).toEqual([instanceId]);
+    expect(h.state.memory).toBe(-3);
   });
 
   it("honors play-cost reduction restrictions during affordability preflight", async () => {

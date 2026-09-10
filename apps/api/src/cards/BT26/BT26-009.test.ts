@@ -196,7 +196,7 @@ describe("BT26-009 Hyokomon", () => {
           deck: [{ card: "BT1-014", as: "drawn" }],
         },
         1: {
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -227,7 +227,7 @@ describe("BT26-009 Hyokomon", () => {
           { card: "BT1-009", as: "ally" },
         ],
         hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
-        deck: [{ card: "BT1-005", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("ally"), {

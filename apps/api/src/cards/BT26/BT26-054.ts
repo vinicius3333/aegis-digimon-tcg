@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const csTamer = {
@@ -11,11 +10,11 @@ const csTamer = {
     excludeSameNameAsOwnTamers: true,
   },
   count: 1,
-};
+} satisfies Target;
 const csDigimon = {
   filter: { controller: "mine", zone: "hand", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
   count: 1,
-};
+} satisfies Target;
 export const compiled: CompiledCard = {
   effects: [
     {

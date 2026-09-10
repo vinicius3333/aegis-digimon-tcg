@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const actions = [
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const actions: Action[] = [
   { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
   {
     kind: "PlaceUnder",

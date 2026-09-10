@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const trashPool = {
   zone: "trash",
   orFilters: [{ controllerDefault: "mine" }, { controllerDefault: "opponent" }],
-};
+} satisfies Filter;
 
 const deleteAndRecover = {
   kind: "Delete",
@@ -14,7 +13,7 @@ const deleteAndRecover = {
     count: 1,
   },
   optional: true,
-};
+} satisfies Action;
 const recovery = {
   kind: "SecurityManipulation",
   op: "addTop",
@@ -29,7 +28,7 @@ const recovery = {
     to: "deckBottom",
     orderReturnedCards: true,
   },
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 5, traits: ["TS"], cost: 3, isAlternate: true }],

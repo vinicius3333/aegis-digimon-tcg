@@ -76,7 +76,7 @@ describe("BT26-039 Sunflowmon", () => {
             { card: CARD_ID, as: "sunflowmon" },
             { card: "BT4-095", as: "yoshino" },
           ],
-          deck: ["AD1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -97,7 +97,7 @@ describe("BT26-039 Sunflowmon", () => {
         legal.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT4-095"),
     );
     expect(legal.state.memory).toBe(0);
-    expect(legal.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["AD1-001"]);
+    expect(legal.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
 
     const illegal = setupEngine({
       0: {
@@ -245,7 +245,7 @@ describe("BT26-039 Sunflowmon", () => {
         0: { battleArea: [{ card: "BT11-053", as: "host", under: [CARD_ID] }] },
         1: {
           battleArea: [{ card: "BT26-035", as: "target", suspended: true }],
-          security: ["AD1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -279,7 +279,7 @@ describe("BT26-039 Sunflowmon", () => {
             { card: "BT26-035", as: "first" },
             { card: "BT26-038", as: "second" },
           ],
-          security: ["AD1-001", "AD1-002"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },

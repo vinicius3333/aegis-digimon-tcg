@@ -1,9 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-003.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 describe("BT26-003 Kyaromon", () => {
   it("compiles the inherited once-per-turn opponent attack redirect with the printed cost", () => {
@@ -55,6 +64,8 @@ describe("BT26-003 Kyaromon", () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-012"],
+          security: ["BT1-013"],
           battleArea: [
             { card: "BT26-052", as: "host", under: [{ card: "BT26-003", as: "egg" }] },
             {
@@ -65,14 +76,22 @@ describe("BT26-003 Kyaromon", () => {
                 { card: "BT1-010", as: "upper", faceUp: false },
               ],
             },
-            { card: "BT26-075", as: "redirect", dp: 12000 },
+            { card: "BT25-043", as: "redirect", dp: 12000 },
           ],
         },
-        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }] },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     const redirectId = s.perm("redirect").permanentId;
     preferred.push(redirectId);
     const attackerId = s.perm("attacker").topCard.instanceId;
@@ -93,16 +112,26 @@ describe("BT26-003 Kyaromon", () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-012"],
+          security: ["BT1-013"],
           battleArea: [
             { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
           ],
         },
-        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }] },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -120,18 +149,27 @@ describe("BT26-003 Kyaromon", () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-012"],
           battleArea: [
             { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
-            { card: "BT26-075", as: "redirect", dp: 12000 },
+            { card: "BT25-043", as: "redirect", dp: 12000 },
           ],
           security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }] },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -154,18 +192,27 @@ describe("BT26-003 Kyaromon", () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-012"],
           battleArea: [
             { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
-            { card: "BT26-075", as: "redirect", dp: 8000 },
+            { card: "BT25-043", as: "redirect", dp: 12000 },
           ],
           security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT21-025", as: "progressAttacker", dp: 7000 }] },
+        1: {
+          battleArea: [{ card: "BT21-025", as: "progressAttacker", dp: 7000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     preferred.push(s.perm("redirect").permanentId);
 
     expect(
@@ -176,8 +223,10 @@ describe("BT26-003 Kyaromon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT21-025"));
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-075")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT25-043")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
   });
 
@@ -188,6 +237,7 @@ describe("BT26-003 Kyaromon", () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-012"],
           battleArea: [
             { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             {
@@ -198,11 +248,13 @@ describe("BT26-003 Kyaromon", () => {
                 { card: "BT1-010", as: "secondCost", faceUp: false },
               ],
             },
-            { card: "BT26-075", as: "redirect", dp: 8000 },
+            { card: "BT25-043", as: "redirect", dp: 12000 },
           ],
           security: ["BT1-011"],
         },
         1: {
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
           battleArea: [
             { card: "BT26-014", as: "firstAttacker", dp: 7000 },
             { card: "BT26-014", as: "secondAttacker", dp: 7000 },
@@ -211,7 +263,11 @@ describe("BT26-003 Kyaromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     preferred.push(s.perm("redirect").permanentId);
 
     expect(
@@ -241,18 +297,27 @@ describe("BT26-003 Kyaromon", () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-012"],
           battleArea: [
             { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "faceUp", faceUp: true }] },
-            { card: "BT26-075", as: "redirect", dp: 8000 },
+            { card: "BT25-043", as: "redirect", dp: 12000 },
           ],
           security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }] },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {

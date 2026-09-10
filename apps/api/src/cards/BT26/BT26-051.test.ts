@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT26-051.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -44,7 +45,7 @@ describe("BT26-051 Gomimon", () => {
       0: {
         breeding: { card: "BT21-005", as: "appmonEgg" },
         hand: [{ card: "BT26-051", as: "gomimon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     expect(
@@ -192,13 +193,17 @@ describe("BT26-051 Gomimon", () => {
           hand: [
             { card: "BT26-019", as: "firstLink" },
             { card: "BT26-019", as: "secondLink" },
+            { card: "BT26-019", as: "thirdLink" },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"], hand: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 6;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     for (const alias of ["firstLink", "secondLink"] as const) {
       expect(
@@ -213,5 +218,22 @@ describe("BT26-051 Gomimon", () => {
 
     expect(s.perm("gomimon").currentDP).toBe(7000);
     expect(observe(s.engine).hasKeyword(s.perm("gomimon"), "Collision")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("thirdLink").instanceId,
+        targetPermanentId: s.perm("gomimon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.perm("gomimon").linked.some(({ instanceId }) => instanceId === s.inst("thirdLink").instanceId),
+    );
+    expect(s.perm("gomimon").currentDP).toBe(7000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

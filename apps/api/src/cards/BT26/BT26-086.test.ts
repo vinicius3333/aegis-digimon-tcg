@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT26-086.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -108,7 +108,9 @@ describe("BT26-086 compiled behavior", () => {
           { card: "BT26-063", as: "sixth" },
           { card: "BT26-102", as: "option" },
         ],
+        deck: ["BT1-011", "BT1-012"],
       },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
     s.state.memory = 20;
 
@@ -186,30 +188,43 @@ describe("BT26-086 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            {
-              card: "BT26-086",
-              as: "dantemon",
-              under: [
-                { card: "BT26-010", as: "ownSource" },
-                { card: "BT26-019", as: "ownMail" },
-                { card: "BT26-028", as: "ownMedic" },
-                { card: "BT26-037", as: "ownWeather" },
-                { card: "BT26-051", as: "ownGomi" },
-                { card: "BT26-063", as: "ownTeller" },
-                { card: "BT26-084", as: "ownCopipe" },
-              ],
-            },
-            { card: "BT1-084", as: "neighbor", under: [{ card: "BT26-019", as: "otherSource" }] },
+          hand: [{ card: "BT26-086", as: "dantemon" }],
+          trash: [
+            { card: "BT26-010", as: "ownSource" },
+            { card: "BT26-019", as: "ownMail" },
+            { card: "BT26-028", as: "ownMedic" },
+            { card: "BT26-037", as: "ownWeather" },
+            { card: "BT26-051", as: "ownGomi" },
+            { card: "BT26-063", as: "ownTeller" },
+            { card: "BT26-084", as: "ownCopipe" },
           ],
+          battleArea: [{ card: "BT1-084", as: "neighbor", under: [{ card: "BT26-019", as: "otherSource" }] }],
         },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dantemon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 7;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dantemon").instanceId,
+        assembly: {
+          materialInstanceIds: [
+            "ownSource",
+            "ownMail",
+            "ownMedic",
+            "ownWeather",
+            "ownGomi",
+            "ownTeller",
+            "ownCopipe",
+          ].map((alias) => s.inst(alias).instanceId),
+        },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dantemon").linked.length === 7);
 
     expect(s.perm("dantemon").linked.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"]),
@@ -220,6 +235,8 @@ describe("BT26-086 compiled behavior", () => {
     // The seven-link Dantemon attack checks one security, then its linked reaction returns
     // the top security card to deck bottom, leaving one of the original three.
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publishes Rush, Reboot, Blocker, and enough Link capacity for seven cards", async () => {
@@ -241,28 +258,36 @@ describe("BT26-086 compiled behavior", () => {
             ],
           },
         ],
+        deck: ["BT1-011", "BT1-012"],
       },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(observe(s.engine).hasKeyword(s.perm("dantemon"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("dantemon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("dantemon"), "Blocker")).toBe(true);
     expect(observe(s.engine).linkMaxDelta(s.perm("dantemon"))).toBe(6);
     expect(s.perm("dantemon").linked).toHaveLength(7);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses Blocker to protect its controller from an opponent's attack", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-086", as: "dantemon" }],
-        security: ["BT1-001"],
+        security: ["BT1-012"],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -280,6 +305,8 @@ describe("BT26-086 compiled behavior", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("deletes an opposing Digimon and returns its security top card to deck bottom when seven links are present", async () => {
@@ -297,10 +324,10 @@ describe("BT26-086 compiled behavior", () => {
                 { card: "BT26-010" },
                 { card: "BT26-010" },
                 { card: "BT26-010" },
-                { card: "BT26-010" },
               ],
             },
           ],
+          hand: [{ card: "BT26-010", as: "linkCard" }],
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "victim" }],
@@ -309,17 +336,23 @@ describe("BT26-086 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    s.perm("dantemon").linked.push(...s.state.players[0]!.trash.splice(0));
-    expect(s.perm("dantemon").linked).toHaveLength(7);
-
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("dantemon").permanentId,
-    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkCard").instanceId,
+        targetPermanentId: s.perm("dantemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dantemon").linked.length === 7);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses the linked reaction only once per turn and needs seven links to return security to deck", async () => {
@@ -336,10 +369,12 @@ describe("BT26-086 compiled behavior", () => {
                 { card: "BT26-010" },
                 { card: "BT26-010" },
                 { card: "BT26-010" },
-                { card: "BT26-010" },
-                { card: "BT26-010" },
               ],
             },
+          ],
+          hand: [
+            { card: "BT26-010", as: "firstLink" },
+            { card: "BT26-010", as: "secondLink" },
           ],
         },
         1: {
@@ -352,18 +387,25 @@ describe("BT26-086 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await once.ready();
-
-    await advance(once.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: once.perm("dantemon").permanentId,
-    });
-    await advance(once.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: once.perm("dantemon").permanentId,
-    });
+    const onceLoop = once.engine.startTurnLoop();
+    await advance(once.engine).waitForMainPhase(0);
+    once.state.memory = 6;
+    for (const alias of ["firstLink", "secondLink"]) {
+      expect(
+        once.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: once.inst(alias).instanceId,
+          targetPermanentId: once.perm("dantemon").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+    }
 
     expect(once.state.players[1]!.battleArea).toHaveLength(1);
-    expect(once.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
-    expect(once.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(once.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(once.state.players[1]!.deck).toHaveLength(0);
+    expect(once.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await onceLoop;
 
     const belowSeven = setupEngine(
       {
@@ -378,10 +420,10 @@ describe("BT26-086 compiled behavior", () => {
                 { card: "BT26-010" },
                 { card: "BT26-010" },
                 { card: "BT26-010" },
-                { card: "BT26-010" },
               ],
             },
           ],
+          hand: [{ card: "BT26-010", as: "linkCard" }],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "victim" }],
@@ -390,13 +432,21 @@ describe("BT26-086 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await belowSeven.ready();
-
-    await advance(belowSeven.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: belowSeven.perm("dantemon").permanentId,
-    });
+    const belowSevenLoop = belowSeven.engine.startTurnLoop();
+    await advance(belowSeven.engine).waitForMainPhase(0);
+    belowSeven.state.memory = 3;
+    expect(
+      belowSeven.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: belowSeven.inst("linkCard").instanceId,
+        targetPermanentId: belowSeven.perm("dantemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(belowSeven.state.players[1]!.battleArea).toHaveLength(0);
     expect(belowSeven.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(belowSeven.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await belowSevenLoop;
   });
 });

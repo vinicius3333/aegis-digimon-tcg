@@ -1,16 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const handCost = { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } };
-const deleteAction = {
+const handCost: Cost = { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } };
+const deleteAction: Action = {
   kind: "Delete",
   target: { filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
   cost: handCost,
   optional: true,
   abortOnDecline: true,
 };
-const titanTrash = {
+const titanTrash: Filter = {
   filter: {
     controllerDefault: "mine",
     zone: "trash",

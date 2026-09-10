@@ -1,13 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const anyDigimon = { controller: "any", kind: ["Digimon"] };
+const anyDigimon = { controller: "any", kind: ["Digimon"] } satisfies Filter;
 const insectoidOrNsp = [
   { tokens: ["Insectoid"], match: "trait" },
   { tokens: ["NSp"], match: "trait" },
-];
-const suspend = { kind: "Suspend", target: { filter: anyDigimon, count: 1 }, optional: true };
+] satisfies Filter["nameOrTrait"];
+const suspend = { kind: "Suspend", target: { filter: anyDigimon, count: 1 }, optional: true } satisfies Action;
 const inheritedDigivolve = {
   kind: "SubTrigger",
   event: "whenBattleWon",
@@ -23,7 +22,7 @@ const inheritedDigivolve = {
       optional: true,
     },
   ],
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

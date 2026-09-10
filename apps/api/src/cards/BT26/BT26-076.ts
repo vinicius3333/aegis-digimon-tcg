@@ -1,10 +1,13 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentLv4 = { controllerDefault: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } };
-const tamerBottomCost = { kind: "trashBottomFaceDownUnderTamer", controller: "mine" };
-const trashOpponentHand = {
+const opponentLv4: Filter = {
+  controllerDefault: "opponent",
+  kind: ["Digimon"],
+  levelComparison: { op: "lte", value: 4 },
+};
+const tamerBottomCost = { kind: "trashBottomFaceDownUnderTamer", controller: "mine" } satisfies Action["cost"];
+const trashOpponentHand: Action = {
   kind: "CostGatedBlock",
   cost: { ...tamerBottomCost, count: 1 },
   optional: true,
@@ -17,7 +20,7 @@ const trashOpponentHand = {
     },
   ],
 };
-const reactInto = {
+const reactInto: Filter = {
   controllerDefault: "mine",
   zone: "trash",
   kind: ["Digimon"],
@@ -28,7 +31,7 @@ const reactInto = {
     { tokens: ["DATA SQUAD"], match: "trait" },
   ],
 };
-const reactiveDigivolve = {
+const reactiveDigivolve: Action = {
   kind: "Digivolve",
   target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
   into: { filter: reactInto, count: 1 },
@@ -37,7 +40,7 @@ const reactiveDigivolve = {
   costDelta: -1,
   optional: true,
 };
-const avianTrash = {
+const avianTrash: Filter = {
   controllerDefault: "mine",
   zone: "trash",
   kind: ["Digimon", "Tamer"],

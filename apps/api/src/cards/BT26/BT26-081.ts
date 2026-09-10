@@ -1,27 +1,26 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const iliad = {
+const _self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const iliad: Filter = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
 };
-const iliadHandOrTrash = {
+const iliadHandOrTrash: Filter = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
 };
-const iliadOrTs = {
+const iliadOrTs: Filter = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }],
 };
 
-const main = [
+const main: Action[] = [
   {
     kind: "PlayMultiple",
     filter: iliadHandOrTrash,

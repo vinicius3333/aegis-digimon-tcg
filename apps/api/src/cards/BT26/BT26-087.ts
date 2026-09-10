@@ -1,12 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const tsTrashCost = {
+const tsTrashCost: Cost = {
   kind: "trash",
   target: { count: 1, filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } },
 };
-const startMainCost = {
+const startMainCost: Cost = {
   kind: "return",
   target: {
     count: 1,

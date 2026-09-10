@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const anyDigimon = { filter: { kind: ["Digimon"] }, count: 1 };
-const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
-const bacchusmon = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const anyDigimon: Target = { filter: { kind: ["Digimon"] }, count: 1 };
+const ts: Filter = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const bacchusmon: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Bacchusmon"], match: "nameExact" }],
@@ -14,7 +13,7 @@ const bacchusmon = {
 export const compiled: CompiledCard = {
   keywords: [
     { keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" },
-    { keyword: "Succession", raw: "＜Succession ([Bacchusmon])＞" },
+    { keyword: "UseReq", raw: "＜Succession ([Bacchusmon])＞" },
   ],
   effects: [
     {

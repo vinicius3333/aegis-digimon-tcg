@@ -254,22 +254,34 @@ describe("BT26-074 Cerberusmon", () => {
     expect(useOptionFromHand).not.toHaveBeenCalled();
   });
 
-  it("does not trash its hand when the reduced Titan Option cost is unaffordable", async () => {
+  it("does not trash its hand when the reduced Titan Option cost is unaffordable after digivolving", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "cerberusmon" }],
-          hand: [{ card: "BT1-001", as: "handCost" }],
+          battleArea: [{ card: "BT26-038", as: "base" }],
+          hand: [
+            { card: CARD_ID, as: "cerberusmon" },
+            { card: "BT1-009", as: "handCost" },
+          ],
           trash: [{ card: "BT24-098", as: "titanOption" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = -10;
+    s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cerberusmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cerberusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("cerberusmon").instanceId);
 
+    expect(s.state.memory).toBe(-3);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handCost").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("titanOption").instanceId);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
@@ -279,31 +291,65 @@ describe("BT26-074 Cerberusmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "cerberusmon" }],
+          battleArea: [{ card: "BT26-038", as: "base" }],
           hand: [
-            { card: "BT1-001", as: "firstCost" },
-            { card: "BT1-002", as: "secondCost" },
+            { card: CARD_ID, as: "cerberusmon" },
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-010", as: "secondCost" },
           ],
-          trash: [{ card: "BT24-098", as: "titanOption" }],
-          deck: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          trash: [
+            { card: "BT24-098", as: "firstOption" },
+            { card: "BT24-098", as: "secondOption" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
+    s.state.memory = 20;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cerberusmon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
-      advance(s.engine).ledgers.tracker.count(
-        s.inst("cerberusmon").instanceId,
-        `${CARD_ID}/trash-hand-use-titan-option-from-trash`,
-      ),
-    ).toBe(1);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cerberusmon"));
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cerberusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT24-098");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("secondOption").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT24-098")).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("the inherited effect offers only tied lowest-level Digimon and deletes exactly the chosen one", async () => {

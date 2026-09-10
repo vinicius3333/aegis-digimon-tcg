@@ -1,18 +1,21 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ts = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
-};
-const iliad = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
+} satisfies Filter;
+const iliad = {
+  controller: "mine",
+  zone: "hand",
+  nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+} satisfies Filter;
 const opponentLowestDpDigimon = {
   controller: "opponent",
   kind: ["Digimon"],
   superlative: "lowestDP",
-};
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   keywords: [
@@ -99,7 +102,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         { kind: "Delete", target: { filter: opponentLowestDpDigimon, count: "all" } },
-        { kind: "Recover", controller: "mine", amount: 1 },
+        { kind: "Recover", amount: 1 } satisfies Action,
       ],
     },
   ],

@@ -1,22 +1,21 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const chronomonOrTitan = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const chronomonOrTitan: Pick<Filter, "nameOrTrait"> = {
   nameOrTrait: [
     { tokens: ["Chronomon"], match: "text" },
     { tokens: ["Titan"], match: "trait" },
   ],
 };
-const eligibleTrashCard = {
+const eligibleTrashCard: Filter = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon", "Tamer"],
   playCostLte: 12,
   ...chronomonOrTitan,
 };
-const deleteToPlay = {
+const deleteToPlay: Action = {
   kind: "PlayWithoutCost",
   target: { filter: eligibleTrashCard, count: 1 },
   from: ["trash"],
@@ -43,20 +42,20 @@ export const compiled: CompiledCard = {
               kind: "GainKeyword",
               target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
               keyword: { keyword: "Rush" },
-              duration: "untilEachTurnEnd",
+              duration: "forTheTurn",
             },
             {
               kind: "GainKeyword",
               target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
               keyword: { keyword: "Execute" },
-              duration: "untilEachTurnEnd",
+              duration: "forTheTurn",
             },
             {
               kind: "GrantStatic",
               target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
               grant: "effects",
               tokens: ["Execute"],
-              duration: "untilEachTurnEnd",
+              duration: "forTheTurn",
             },
           ],
           fireCondition: {

@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const appmonStack = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const appmonStack: Filter = {
   controller: "mine",
   zone: "digivolutionCards",
   hasLinkRequirement: true,
@@ -11,7 +10,7 @@ const appmonStack = {
   nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
 };
 
-const linkThenAttack = [
+const linkThenAttack: Action[] = [
   {
     kind: "Link",
     target: { filter: appmonStack, count: 7, upTo: true, distinctNames: true },

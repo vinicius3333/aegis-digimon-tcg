@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const costDigimon = {
+const costDigimon: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],
   nameOrTrait: [
@@ -11,8 +10,8 @@ const costDigimon = {
     { tokens: ["WG"], match: "trait" },
   ],
 };
-const opponentDigimon = { controllerDefault: "opponent", kind: ["Digimon"] };
-const weaken = [
+const opponentDigimon: Filter = { controllerDefault: "opponent", kind: ["Digimon"] };
+const weaken: Action[] = [
   {
     kind: "GainKeyword",
     target: { filter: opponentDigimon, count: 1 },

@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const ownDigimon = { controller: "mine", kind: ["Digimon"] };
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
+const ownDigimon = { controller: "mine", kind: ["Digimon"] } satisfies Filter;
+const opponentDigimon = { controller: "opponent", kind: ["Digimon"] } satisfies Filter;
 const protectedTarget = { filter: ownDigimon, count: 1, bindAs: "protectedDigimon" };
 const protection = [
   {
@@ -15,28 +14,28 @@ const protection = [
       { kind: "SelectBind", target: protectedTarget },
       {
         kind: "Restrict",
-        target: { fromSelectionRef: "protectedDigimon" },
+        target: { filter: {}, count: 1, fromSelectionRef: "protectedDigimon" },
         restriction: "dpImmune",
         duration: "untilOpponentTurnEnd",
         byOpponentEffectsOnly: true,
       },
       {
         kind: "StackTrashLock",
-        target: { fromSelectionRef: "protectedDigimon" },
+        target: { filter: {}, count: 1, fromSelectionRef: "protectedDigimon" },
         duration: "untilOpponentTurnEnd",
       },
       {
         kind: "Restrict",
-        target: { fromSelectionRef: "protectedDigimon" },
+        target: { filter: {}, count: 1, fromSelectionRef: "protectedDigimon" },
         restriction: "returnToHandOrDeck",
         duration: "untilOpponentTurnEnd",
         byOpponentEffectsOnly: true,
       },
     ],
   },
-];
+] satisfies Action[];
 
-const securityRemovalWatcher = (event, oncePerTurnKey, actions) => ({
+const securityRemovalWatcher = (event: SubTriggerEvent, oncePerTurnKey: string, actions: Action[]): Action => ({
   kind: "SubTrigger",
   event,
   fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },

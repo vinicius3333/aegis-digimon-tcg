@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const grantTarget = {
@@ -15,7 +14,7 @@ const grantTarget = {
   },
   count: 1,
   bindAs: "grantTarget",
-};
+} satisfies Target;
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }], actions: [] },

@@ -1,10 +1,18 @@
 import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-008.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 describe("BT26-008 Kotemon", () => {
   it("compiles On Play, When Moving, and inherited DP effects", () => {
@@ -203,9 +211,21 @@ describe("BT26-008 Kotemon", () => {
     expect(ownTurn.perm("host").currentDP).toBe(7000);
 
     const opponentTurn = setupEngine({
-      0: { battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }] },
+      0: {
+        battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        security: 5,
+      },
+      1: {
+        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+        security: 5,
+      },
     });
-    opponentTurn.state.turnSeat = 1;
+    seedTurnLoop(opponentTurn);
+    opponentTurn.engine.startTurnLoop();
+    await advance(opponentTurn.engine).waitForMainPhase(0);
+    advance(opponentTurn.engine).endMainPhaseIfOpen(0);
+    await advance(opponentTurn.engine).waitForMainPhase(1);
     await opponentTurn.ready();
     expect(opponentTurn.perm("host").currentDP).toBe(5000);
   });

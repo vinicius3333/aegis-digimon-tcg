@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const titan = {
@@ -11,7 +10,7 @@ const titan = {
     excludeNames: ["Plutomon"],
   },
   count: 1,
-};
+} satisfies Target;
 const shared = [
   {
     kind: "CostGatedBlock",
@@ -33,7 +32,7 @@ const shared = [
       },
     ],
   },
-];
+] satisfies Action[];
 export const compiled: CompiledCard = {
   effects: [
     {

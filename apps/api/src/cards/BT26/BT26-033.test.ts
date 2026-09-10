@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-033.js";
@@ -56,19 +55,30 @@ describe("BT26-033 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-033", as: "jupitermon", under: [{ card: "BT26-029", as: "tsBase" }] }],
-          security: [{ card: "BT1-001", as: "securityCard" }],
-          hand: [{ card: "BT25-044", as: "junomon" }],
+          battleArea: [{ card: "BT26-029", as: "tsBase" }],
+          security: [{ card: "BT1-009", as: "securityCard" }],
+          hand: [
+            { card: CARD_ID, as: "jupitermon" },
+            { card: "BT25-044", as: "junomon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("jupitermon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT25-044");
   });
@@ -79,7 +89,7 @@ describe("BT26-033 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-015", as: "tsBase" }],
           hand: [{ card: CARD_ID, as: "jupitermon" }],
-          security: [{ card: "BT1-001", as: "securityTop" }],
+          security: [{ card: "BT1-009", as: "securityTop" }],
         },
       },
       { autoDeclineOptional: true },
@@ -102,7 +112,7 @@ describe("BT26-033 compiled fidelity", () => {
       "BT26-015",
       CARD_ID,
     ]);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
@@ -110,20 +120,27 @@ describe("BT26-033 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "jupitermon" }],
-          hand: [{ card: "BT26-015", as: "iliad" }],
-          security: [{ card: "BT1-001", as: "securityTop" }],
+          battleArea: [{ card: "BT26-029", as: "tsBase" }],
+          hand: [{ card: CARD_ID, as: "jupitermon" }],
+          security: [{ card: "BT1-009", as: "securityTop" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("jupitermon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-015");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT26-015");
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
@@ -131,18 +148,29 @@ describe("BT26-033 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "jupitermon" }],
-          hand: [{ card: "BT26-015", as: "iliad" }],
-          security: [{ card: "BT1-001", as: "securityTop" }],
+          battleArea: [{ card: "BT26-029", as: "tsBase" }],
+          hand: [
+            { card: CARD_ID, as: "jupitermon" },
+            { card: "BT26-015", as: "iliad" },
+          ],
+          security: [{ card: "BT1-009", as: "securityTop" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("jupitermon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.cardId === CARD_ID);
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-015");
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
@@ -181,7 +209,7 @@ describe("BT26-033 compiled fidelity", () => {
             { card: CARD_ID, as: "jupitermon", under: [{ card: "BT26-030", as: "base" }] },
             { card: "BT26-015", as: "ownedTs" },
           ],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
       },
       { autoAcceptOptional: true },
@@ -200,7 +228,7 @@ describe("BT26-033 compiled fidelity", () => {
             { card: CARD_ID, as: "jupitermon", under: [{ card: "BT26-030", as: "base" }] },
             { card: "BT1-009", as: "nonTs" },
           ],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
         1: { battleArea: [{ card: "BT26-015", as: "opponentTs" }] },
       },
@@ -226,7 +254,7 @@ describe("BT26-033 compiled fidelity", () => {
             { card: "BT26-013", as: "ally", dp: 6000 },
           ],
         },
-        1: { security: [{ card: "BT1-001", as: "security" }] },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -255,8 +283,8 @@ describe("BT26-033 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT25-086", as: "tsTamer" }],
           hand: [{ card: "BT26-033", as: "widePlasment" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: [{ card: "BT1-004", as: "recovery" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
         1: {
           battleArea: [

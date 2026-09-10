@@ -232,7 +232,7 @@ describe("BT26-032 compiled fidelity", () => {
   it("accepts only Digimon as the suspend payment and leaves unrelated hand cards unplayed", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }], hand: [{ card: "BT1-001", as: "unrelated" }] },
+        0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }], hand: [{ card: "BT1-009", as: "unrelated" }] },
         1: { battleArea: [{ card: "BT1-085", as: "opponentTamer" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -242,7 +242,7 @@ describe("BT26-032 compiled fidelity", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
 
     expect(s.perm("opponentTamer").isSuspended).toBe(false);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("waits until the full effect resolves before deleting 0-DP Digimon and stacks both play reducers (Q7000/Q7002)", async () => {

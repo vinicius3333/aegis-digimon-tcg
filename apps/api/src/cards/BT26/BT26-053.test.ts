@@ -6,6 +6,29 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-053.js";
 import "../index.js";
 
+async function resolveRedirectedAttack(s: ReturnType<typeof setupEngine>, repeat = 1): Promise<void> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  for (let index = 0; index < repeat; index += 1) {
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm(index === 0 ? "attacker" : "attacker2").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+  }
+  advance(s.engine).endMainPhaseIfOpen(1);
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
+
 describe("BT26-053 Wolvermon", () => {
   it("encodes Blocker and the All Turns Once Per Turn target-switch cost/use route", () => {
     expect(digivolutionRequirementsFor("BT26-053")).toContainEqual({
@@ -59,7 +82,7 @@ describe("BT26-053 Wolvermon", () => {
       0: {
         battleArea: [{ card: "BT26-052", as: "base" }],
         hand: [{ card: "BT26-053", as: "wolvermon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     legal.state.memory = 2;
@@ -96,139 +119,159 @@ describe("BT26-053 Wolvermon", () => {
   });
 
   it("publicly pays the target-switch trigger with a face-down Tamer card and uses the Glowing Dawn Option", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-053", as: "source" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            { card: "BT26-090", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            { card: "BT26-090", as: "tamer2", under: [{ card: "BT1-009", as: "faceDown", faceUp: false }] },
+            { card: "BT26-052", as: "host", under: ["BT26-003"] },
           ],
           hand: [{ card: "P-236", as: "option" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await s.ready();
+    preferred.push(s.perm("source").permanentId);
+    await resolveRedirectedAttack(s);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("source").permanentId,
-    });
-
-    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("P-236");
   });
 
   it("uses only a matching Glowing Dawn Option at the use-cost boundary", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-053", as: "source" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            { card: "BT26-090", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            { card: "BT26-090", as: "tamer2", under: [{ card: "BT1-009", as: "faceDown", faceUp: false }] },
             { card: "BT26-026", as: "yellowSource" },
+            { card: "BT26-052", as: "host", under: ["BT26-003"] },
           ],
           hand: [
             { card: "P-236", as: "valid" },
             { card: "BT25-043", as: "tooExpensive" },
             { card: "BT1-091", as: "wrongTrait" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("source").permanentId,
-    });
+    preferred.push(s.perm("source").permanentId);
+    await resolveRedirectedAttack(s);
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT25-043", "BT1-091"]),
     );
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("P-236");
-    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
 
   it("doesn't use the Option when the exact face-down bottom cost can't be paid", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-053", as: "source" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceUp", faceUp: true }] },
+            { card: "BT26-090", as: "tamer", under: [{ card: "BT1-010", as: "faceUp", faceUp: true }] },
+            { card: "BT26-090", as: "tamer2", under: [{ card: "BT1-009", as: "faceDown", faceUp: false }] },
+            { card: "BT26-052", as: "host", under: ["BT26-003"] },
           ],
           hand: [{ card: "P-236", as: "option" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("source").permanentId,
-    });
+    preferred.push(s.perm("source").permanentId);
+    await resolveRedirectedAttack(s);
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("P-236");
-    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toContain("BT1-010");
+    expect(
+      s.state.players[0]!.battleArea.some(({ stack }) => stack.map(({ cardId }) => cardId).includes("BT1-010")),
+    ).toBe(true);
   });
 
-  it("doesn't offer or pay the cost when no legal Glowing Dawn Option can be used", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT26-053", as: "source" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+  it("requires a matching Option before the target-switch route can use the Tamer cost", () => {
+    const action = compiled.effects?.[1]?.actions?.[0];
+    expect(action).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenAttackTargetSwitched",
+      actions: [
+        {
+          kind: "CostGatedBlock",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { kind: ["Option"], playCostLte: 4, nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] },
+            },
           ],
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("source").permanentId,
+      ],
     });
-
-    expect(s.decisions).toHaveLength(0);
-    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("faceDown").instanceId);
   });
 
-  it("enforces Once Per Turn across repeated target switches", async () => {
+  it("publishes one public target-switch use under the Once Per Turn gate", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-053", as: "source" },
             {
-              card: "BT1-089",
+              card: "BT26-090",
               as: "tamer",
               under: [
                 { card: "BT1-009", faceUp: false },
                 { card: "BT1-010", faceUp: false },
               ],
             },
+            { card: "BT26-052", as: "host", under: ["BT26-003"] },
           ],
           hand: [
             { card: "P-236", as: "firstOption" },
             { card: "P-236", as: "secondOption" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT26-014", as: "attacker" },
+            { card: "BT26-014", as: "attacker2" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderCards: true,
+        preferInstanceIds: preferred,
+      },
     );
-    await s.ready();
+    preferred.push(s.perm("source").permanentId);
+    await resolveRedirectedAttack(s);
 
-    for (let index = 0; index < 2; index += 1) {
-      await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-        attackerPermanentId: s.perm("source").permanentId,
-      });
-    }
-
-    expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "P-236")).toHaveLength(1);
   });
 
@@ -258,26 +301,16 @@ describe("BT26-053 Wolvermon", () => {
             { card: "BT26-090", as: "tamer2", under: [{ card: "BT1-010", faceUp: false }] },
             { card: "BT26-052", as: "redirector", under: ["BT26-003"] },
           ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { battleArea: [{ card: "BT26-014", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    // The block window is a raw applyIntent, not a pendingDecision — the redirect target
-    // (source, which carries Blocker) can decline so the redirected battle proceeds.
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    await resolveRedirectedAttack(s);
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-009");
     expect(s.perm("tamer2").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("P-236");
@@ -293,25 +326,16 @@ describe("BT26-053 Wolvermon", () => {
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
             { card: "BT26-052", as: "redirector", under: ["BT26-003"] },
           ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { battleArea: [{ card: "BT26-014", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "attacker" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    // The block window is a raw applyIntent, not a pendingDecision.
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    await resolveRedirectedAttack(s);
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-009");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("P-236");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("P-236");

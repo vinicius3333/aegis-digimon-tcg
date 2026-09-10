@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -50,7 +50,7 @@ describe("BT26-034 Palmon", () => {
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.perm("palmon").topCard.cardId === "BT26-039");
     expect(s.perm("palmon").topCard.cardId).toBe("BT26-039");
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
 
@@ -66,9 +66,12 @@ describe("BT26-034 Palmon", () => {
     );
     s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("palmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("palmon").topCard.cardId).toBe("BT26-038");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("Q7007 does not offer the free digivolution at five memory", async () => {
@@ -83,11 +86,14 @@ describe("BT26-034 Palmon", () => {
     );
     s.state.memory = 5;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("palmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("palmon").topCard.cardId).toBe("BT26-034");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
     expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("may decline the free digivolution at four memory", async () => {
@@ -102,11 +108,14 @@ describe("BT26-034 Palmon", () => {
     );
     s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("palmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("palmon").topCard.cardId).toBe("BT26-034");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
     expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
   });
 
   it("inherited When Attacking suspends one opponent Digimon only once per turn", async () => {
@@ -115,20 +124,24 @@ describe("BT26-034 Palmon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-051", as: "host", under: [{ card: "BT26-034" }] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
           hand: Array.from({ length: 8 }, () => "BT1-004"),
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -137,7 +150,7 @@ describe("BT26-034 Palmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("first").isSuspended && !observe(s.engine).isAttacking());
+    await settle();
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -146,10 +159,26 @@ describe("BT26-034 Palmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
 
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may decline the inherited suspension", async () => {

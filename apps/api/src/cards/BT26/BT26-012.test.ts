@@ -176,7 +176,7 @@ describe("BT26-012 Manekimon", () => {
             { card: "EX12-070", as: "option" },
             { card: "BT26-104", as: "payment" },
           ],
-          deck: [{ card: "BT1-001" }, { card: "BT1-002" }],
+          deck: [{ card: "BT1-009" }, { card: "BT1-010" }],
         },
       },
       {

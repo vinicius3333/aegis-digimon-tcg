@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const destroyMode = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const destroyMode: Filter = {
   controller: "mine",
   nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "nameExact" }],
 };

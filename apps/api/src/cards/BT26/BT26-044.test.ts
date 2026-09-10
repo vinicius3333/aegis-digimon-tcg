@@ -67,7 +67,7 @@ describe("BT26-044 Lilamon", () => {
         0: {
           battleArea: [{ card: "BT26-039", as: "evolving" }],
           hand: [{ card: "BT26-044", as: "lilamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -118,16 +118,21 @@ describe("BT26-044 Lilamon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-044", as: "lilamon" }],
-          hand: [{ card: "BT26-049", as: "rosemon" }],
+          hand: [
+            { card: "BT26-042", as: "suspender" },
+            { card: "BT26-049", as: "rosemon" },
+          ],
         },
         1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("lilamon").topCard.cardId === "BT26-049");
 
     expect(s.state.memory).toBe(1);
@@ -139,17 +144,26 @@ describe("BT26-044 Lilamon", () => {
         0: {
           battleArea: [
             { card: "BT26-044", as: "lilamon" },
-            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+            { card: "BT26-065", as: "host", under: ["BT26-005"], dp: 10000 },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-010", as: "cost", faceUp: false }] },
           ],
           hand: [{ card: "BT26-049", as: "rosemon" }],
+          trash: [{ card: "BT26-072", as: "playable" }],
         },
+        1: { battleArea: [{ card: "BT26-060", as: "opponent", suspended: true, dp: 16000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).verb.trashDigivolutionCards(s.perm("tamer").permanentId, [s.inst("cost").instanceId], 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("lilamon").topCard.cardId === "BT26-049");
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
@@ -162,20 +176,35 @@ describe("BT26-044 Lilamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-082", as: "dataSquadHost", under: ["BT26-044"] },
+            { card: "BT26-082", as: "dataSquadHost", under: ["BT26-044"], dp: 5000, suspended: true },
             {
               card: "BT1-085",
               as: "tamer",
-              under: [{ card: "BT1-001", as: "cost", faceUp: false }],
+              under: [{ card: "BT1-010", as: "cost", faceUp: false }],
             },
           ],
+        },
+        1: {
+          hand: [
+            { card: "BT26-013", as: "deleter" },
+            { card: "BT1-009", as: "payment" },
+          ],
+          deck: ["BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("dataSquadHost").permanentId], "byEffect")).toBe(0);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deleter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("dataSquadHost").permanentId),
     ).toBe(true);

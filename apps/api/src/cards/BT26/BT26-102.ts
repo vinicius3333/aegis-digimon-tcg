@@ -1,13 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const sevenCode = {
+const sevenCode: Filter = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }],
 };
-const appmon = {
+const appmon: Filter = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
   playCostLte: 5,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-088.js";
@@ -40,12 +40,18 @@ describe("BT26-088 Hiroko Sagisaka", () => {
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     s.state.memory = 1;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hiroko"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(2);
     const empty = setupEngine({ 0: { battleArea: [{ card: "BT26-088", as: "hiroko" }] } });
     empty.state.memory = 1;
-    await advance(empty.engine).fire(EffectTiming.OnStartMainPhase, empty.perm("hiroko"));
+    const emptyLoop = empty.engine.startTurnLoop();
+    await advance(empty.engine).waitForMainPhase(0);
     expect(empty.state.memory).toBe(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    expect(empty.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await emptyLoop;
   });
   it("suspends itself to reduce a TS Digimon's play cost", async () => {
     const s = setupEngine(
@@ -188,10 +194,14 @@ describe("BT26-088 Hiroko Sagisaka", () => {
 
   it("plays itself without paying its cost when checked in security", async () => {
     const s = setupEngine({
-      0: { security: [{ card: "BT26-088", as: "hiroko" }] },
-      1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+      0: { security: [{ card: "BT26-088", as: "hiroko" }], deck: ["BT1-011", "BT1-012"] },
+      1: { battleArea: [{ card: "AD1-001", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 0;
     const hirokoId = s.inst("hiroko").instanceId;
 
     expect(
@@ -205,5 +215,7 @@ describe("BT26-088 Hiroko Sagisaka", () => {
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === hirokoId)).toBe(false);
     expect(s.state.memory).toBe(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

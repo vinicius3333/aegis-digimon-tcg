@@ -130,7 +130,7 @@ describe("BT26-010 Roleplaymon", () => {
             { card: "BT1-010", as: "two" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

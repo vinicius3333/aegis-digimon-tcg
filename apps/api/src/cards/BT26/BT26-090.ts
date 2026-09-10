@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const tsOption = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const tsOption: Filter = {
   controller: "mine",
   zone: "hand",
   kind: ["Option"],
@@ -27,6 +26,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: tsOption,
           target: { filter: tsOption, count: 1 },
           from: ["hand"],
           payCost: true,

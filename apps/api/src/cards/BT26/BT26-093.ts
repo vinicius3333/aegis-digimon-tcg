@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const beatbreak = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const beatbreak: Target = {
   filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] },
   count: 1,
 };
@@ -18,8 +17,8 @@ const startCost = {
   destination: "digivolutionStack",
   position: "bottom",
   faceDown: true,
-};
-const attackBody = [
+} satisfies Action["cost"];
+const attackBody: Action[] = [
   {
     kind: "CostGatedBlock",
     cost: { kind: "suspend", target: self },
@@ -40,7 +39,7 @@ const attackBody = [
         target: beatbreak,
         keyword: { keyword: "Collision" },
         keywords: [{ keyword: "Blocker" }],
-        duration: "untilEachTurnEnd",
+        duration: "forTheTurn",
       },
     ],
   },

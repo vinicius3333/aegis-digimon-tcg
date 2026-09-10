@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -98,7 +98,7 @@ describe("BT26-076 Crowmon", () => {
       0: {
         battleArea: [{ card: "BT26-039", as: "greenDataSquadBase" }],
         hand: [{ card: "BT26-076", as: "crowmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -126,7 +126,7 @@ describe("BT26-076 Crowmon", () => {
             { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
           hand: [{ card: "BT26-076", as: "crowmon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }], hand: [{ card: "BT1-011", as: "discarded" }] },
       },
@@ -157,16 +157,26 @@ describe("BT26-076 Crowmon", () => {
           battleArea: [{ card: "BT26-076", as: "crowmon" }],
           trash: [{ card: "EX4-058", as: "ravemon" }],
         },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentCard" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.trash([s.inst("opponentCard").instanceId], 0);
+    await settle(() => s.perm("crowmon").topCard.cardId === "EX4-058");
 
     expect(s.perm("crowmon").topCard.cardId).toBe("EX4-058");
     expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("shares one once-per-turn budget across repeated hand-trash events", async () => {
@@ -180,6 +190,14 @@ describe("BT26-076 Crowmon", () => {
             { card: "EX4-058", as: "secondEvolution" },
           ],
         },
+        1: {
+          hand: [
+            { card: "BT1-009", as: "firstDiscard" },
+            { card: "BT1-010", as: "secondDiscard" },
+          ],
+          security: ["BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -187,14 +205,19 @@ describe("BT26-076 Crowmon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.trash([s.inst("firstDiscard").instanceId], 0);
+    await settle(() => s.perm("crowmon").topCard.cardId === "EX4-058");
+    await advance(s.engine).verb.trash([s.inst("secondDiscard").instanceId], 0);
 
     expect(s.perm("crowmon").topCard.cardId).toBe("EX4-058");
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
       s.inst("secondEvolution").instanceId,
     );
     expect(s.state.memory).toBe(2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("naturally reacts when its own effect trashes a card from under a Tamer", async () => {
@@ -203,9 +226,10 @@ describe("BT26-076 Crowmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-076", as: "crowmon" },
+            { card: "BT26-039", as: "base" },
             { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
+          hand: [{ card: "BT26-076", as: "crowmon" }],
           trash: [
             { card: "EX4-058", as: "ravemon" },
             { card: "BT26-082", as: "secondRavemon" },
@@ -219,11 +243,18 @@ describe("BT26-076 Crowmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("victim").permanentId);
-    s.state.memory = 2;
+    s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("crowmon"));
-    await settle(() => s.perm("crowmon").topCard.cardId === "EX4-058");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("crowmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX4-058");
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
@@ -238,17 +269,28 @@ describe("BT26-076 Crowmon", () => {
           battleArea: [{ card: "BT26-076", as: "crowmon" }],
           trash: [{ card: "EX4-058", as: "ravemon" }],
         },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentCard" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = -2;
+    s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.trash([s.inst("opponentCard").instanceId], 1);
+    await settle();
 
     expect(s.perm("crowmon").topCard.cardId).toBe("BT26-076");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX4-058");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q7104 keeps the play-cost ceiling across every inherited trait branch", async () => {

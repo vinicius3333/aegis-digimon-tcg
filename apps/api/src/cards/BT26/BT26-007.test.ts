@@ -56,10 +56,10 @@ describe("BT26-007 Swipemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-053", as: "host", under: [{ card: CARD_ID, as: "swipemon" }] }],
+          battleArea: [{ card: "BT24-053", as: "host", dp: 20_000, under: [{ card: CARD_ID, as: "swipemon" }] }],
           hand: [{ card: "BT26-010", as: "candidate" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const revealAdd = {
@@ -20,7 +19,7 @@ const revealAdd = {
     },
   ],
   rest: "deckBottom",
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [revealAdd] },

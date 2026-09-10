@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-082.js";
-import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -59,7 +59,7 @@ describe("BT26-082 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-076", as: "crowmon" }],
         hand: [{ card: "BT26-082", as: "ravemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     fromCrowmon.state.memory = 3;
@@ -79,7 +79,7 @@ describe("BT26-082 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-044", as: "greenDataSquad" }],
         hand: [{ card: "BT26-082", as: "ravemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     fromDataSquad.state.memory = 3;
@@ -134,10 +134,10 @@ describe("BT26-082 compiled behavior", () => {
   it("resolves the printed delete-self cost against the opponent's highest-DP Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        0: { battleArea: [{ card: "BT26-076", as: "crowmon" }], hand: [{ card: "BT26-082", as: "ravemon" }] },
         1: {
           battleArea: [
-            { card: "BT1-084", as: "highest" },
+            { card: "BT1-084", as: "highest", suspended: true },
             { card: "BT1-010", as: "lower" },
           ],
         },
@@ -145,7 +145,16 @@ describe("BT26-082 compiled behavior", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("crowmon").permanentId,
+        instanceId: s.inst("ravemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("crowmon").topCard.cardId === "BT26-082");
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-082")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-084")).toBe(false);
@@ -155,35 +164,57 @@ describe("BT26-082 compiled behavior", () => {
   it("resolves the same delete modal at End of Attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }], deck: ["BT1-011", "BT1-012"] },
         1: {
           battleArea: [
-            { card: "BT1-084", as: "highest" },
+            { card: "BT1-084", as: "highest", suspended: true },
             { card: "BT1-010", as: "lower" },
           ],
+          deck: ["BT1-013", "BT1-014"],
+          security: ["BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("ravemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ravemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may decline the by-cost activation without deleting either Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        0: { battleArea: [{ card: "BT26-076", as: "crowmon" }], hand: [{ card: "BT26-082", as: "ravemon" }] },
         1: { battleArea: [{ card: "BT1-084", as: "highest" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("crowmon").permanentId,
+        instanceId: s.inst("ravemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("crowmon").topCard.cardId === "BT26-082");
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -194,23 +225,32 @@ describe("BT26-082 compiled behavior", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-082", as: "ravemon" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-001", faceUp: false }] },
+            { card: "BT26-076", as: "crowmon" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
           ],
+          hand: [{ card: "BT26-082", as: "ravemon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-084", as: "highest" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
     );
     await s.ready();
     advance(s.engine).ledgers.continuous.addRestriction(
-      s.perm("ravemon").permanentId,
+      s.perm("crowmon").permanentId,
       "beDeleted",
       EffectDuration.UntilEachTurnEnd,
     );
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ravemon"));
-
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("crowmon").permanentId,
+        instanceId: s.inst("ravemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("crowmon").topCard.cardId === "BT26-082");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-082");
     expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -221,10 +261,12 @@ describe("BT26-082 compiled behavior", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-082", as: "ravemon" },
-            { card: "BT1-089", as: "firstTamer", under: [{ card: "BT1-001", faceUp: false }] },
-            { card: "BT1-089", as: "secondTamer", under: [{ card: "BT1-002", faceUp: false }] },
+            { card: "BT26-076", as: "crowmon" },
+            { card: "BT1-089", as: "firstTamer", under: [{ card: "BT1-009", faceUp: false }] },
+            { card: "BT1-089", as: "secondTamer", under: [{ card: "BT1-010", faceUp: false }] },
           ],
+          hand: [{ card: "BT26-082", as: "ravemon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
         },
         1: {
           battleArea: [
@@ -237,7 +279,16 @@ describe("BT26-082 compiled behavior", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ravemon"));
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("crowmon").permanentId,
+        instanceId: s.inst("ravemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("crowmon").topCard.cardId === "BT26-082");
 
     expect(s.perm("firstTamer").stack).toHaveLength(0);
     expect(s.perm("secondTamer").stack).toHaveLength(0);
@@ -247,17 +298,22 @@ describe("BT26-082 compiled behavior", () => {
 
   it("plays itself from face-up security at the end of the opponent's turn", async () => {
     const s = setupEngine({
-      0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }] },
+      0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }], deck: ["BT1-009", "BT1-010"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("securityRavemon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-082"));
 
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityRavemon").instanceId)).toBe(
       false,
     );
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q7119 checks the face-up card like a standard security card instead of playing it", async () => {
@@ -283,23 +339,29 @@ describe("BT26-082 compiled behavior", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
   });
 
-  it("Q7122 still loses when an end-of-turn attack succeeds after Ravemon leaves the last security", async () => {
+  it("Q7122 loses after the end-of-turn attack succeeds with no security remaining", async () => {
+    // Real public flow: both the face-up Security end-of-opponent-turn effect and Execute's
+    // end-of-turn attack are resolved by the turn loop. Ravemon is played first, leaving zero
+    // security, then the attack succeeds and the owner loses under the empty-security rule.
     const s = setupEngine(
       {
-        0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }] },
-        1: { battleArea: [{ card: "BT20-072", as: "executor" }] },
+        0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }], deck: ["BT1-009", "BT1-010"] },
+        1: { battleArea: [{ card: "BT20-072", as: "executor" }], deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
-
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle(() => s.state.gameOver);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.gameOver, 2000);
 
     expect(s.state.gameOver).toBe(true);
     expect(s.state.winnerSeat).toBe(1);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-082");
+    await loop;
   });
 
   it("Q7121 turns Ravemon face down when an effect shuffles its security stack", async () => {
@@ -307,9 +369,9 @@ describe("BT26-082 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-087", as: "tk" }],
+          hand: [{ card: "BT1-087", as: "tk" }],
           security: [
-            { card: "BT1-001", as: "selected" },
+            { card: "BT1-009", as: "selected" },
             { card: "BT26-082", as: "securityRavemon", faceUp: true },
           ],
         },
@@ -319,7 +381,9 @@ describe("BT26-082 compiled behavior", () => {
     preferred.push(s.inst("selected").instanceId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tk"));
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tk").instanceId })).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT26-082", faceUp: false });
@@ -327,20 +391,36 @@ describe("BT26-082 compiled behavior", () => {
 
   it("Q7117 does not activate the timed Security effect while face down or outside security", async () => {
     const faceDown = setupEngine({
-      0: { security: [{ card: "BT26-082", as: "ravemon", faceUp: false }] },
+      0: { security: [{ card: "BT26-082", as: "ravemon", faceUp: false }], deck: ["BT1-009", "BT1-010"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
-    faceDown.state.turnSeat = 1;
     await faceDown.ready();
-    await advance(faceDown.engine).fireForInstance(EffectTiming.OnEndTurn, faceDown.inst("ravemon"));
+    const faceDownLoop = faceDown.engine.startTurnLoop();
+    await advance(faceDown.engine).waitForMainPhase(0);
+    advance(faceDown.engine).endMainPhaseIfOpen(0);
+    await advance(faceDown.engine).waitForMainPhase(1);
+    advance(faceDown.engine).endMainPhaseIfOpen(1);
+    await advance(faceDown.engine).waitForMainPhase(0);
     expect(faceDown.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("BT26-082");
     expect(faceDown.state.players[0]!.battleArea).toHaveLength(0);
+    expect(faceDown.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await faceDownLoop;
 
-    const inTrash = setupEngine({ 0: { trash: [{ card: "BT26-082", as: "ravemon" }] } });
-    inTrash.state.turnSeat = 1;
+    const inTrash = setupEngine({
+      0: { trash: [{ card: "BT26-082", as: "ravemon" }], deck: ["BT1-009", "BT1-010"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
+    });
     await inTrash.ready();
-    await advance(inTrash.engine).fireForInstance(EffectTiming.OnEndTurn, inTrash.inst("ravemon"));
+    const inTrashLoop = inTrash.engine.startTurnLoop();
+    await advance(inTrash.engine).waitForMainPhase(0);
+    advance(inTrash.engine).endMainPhaseIfOpen(0);
+    await advance(inTrash.engine).waitForMainPhase(1);
+    advance(inTrash.engine).endMainPhaseIfOpen(1);
+    await advance(inTrash.engine).waitForMainPhase(0);
     expect(inTrash.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
     expect(inTrash.state.players[0]!.battleArea).toHaveLength(0);
+    expect(inTrash.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await inTrashLoop;
   });
 
   it("places itself face up at bottom security when the opponent reaches 7 cards after trashing", async () => {
@@ -349,18 +429,18 @@ describe("BT26-082 compiled behavior", () => {
       {
         0: {
           battleArea: [{ card: "BT26-082", as: "ravemon" }],
-          security: [{ card: "BT1-001", as: "existingSecurity" }],
+          security: [{ card: "BT1-009", as: "existingSecurity" }],
         },
         1: {
           hand: [
-            { card: "BT1-002", as: "chosen" },
-            "BT1-003",
-            "BT1-004",
-            "BT1-005",
-            "BT1-006",
-            "BT1-007",
-            "BT1-008",
+            { card: "BT1-010", as: "chosen" },
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
             "BT1-009",
+            "BT1-010",
+            "BT1-011",
           ],
         },
       },
@@ -383,7 +463,7 @@ describe("BT26-082 compiled behavior", () => {
       {
         0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
         1: {
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008", "BT1-009"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -403,14 +483,14 @@ describe("BT26-082 compiled behavior", () => {
         0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
         1: {
           hand: [
-            { card: "BT1-001", as: "chosen" },
-            "BT1-002",
-            "BT1-003",
-            "BT1-004",
-            "BT1-005",
-            "BT1-006",
-            "BT1-007",
-            "BT1-008",
+            { card: "BT1-009", as: "chosen" },
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
           ],
         },
       },

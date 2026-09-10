@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -6,7 +5,7 @@ const watchedTraits = [
   { tokens: ["Vegetation"], match: "trait" },
   { tokens: ["Fairy"], match: "trait" },
   { tokens: ["WG"], match: "trait" },
-];
+] satisfies { tokens: string[]; match: "trait" }[];
 
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 2, traits: ["WG"], cost: 0, isAlternate: true }],

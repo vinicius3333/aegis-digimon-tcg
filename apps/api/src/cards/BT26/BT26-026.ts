@@ -1,14 +1,13 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const glowingDawnOption = {
+const glowingDawnOption: Filter = {
   controllerDefault: "mine",
   zone: "hand",
   kind: ["Option"],
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 };
-const useGlowingDawn = (cost) => ({
+const useGlowingDawn = (cost: Cost): Action => ({
   kind: "CostGatedBlock",
   cost,
   optional: true,

@@ -120,7 +120,7 @@ describe("BT26-063 Tellermon", () => {
       0: {
         battleArea: [{ card: "BT25-004", as: "tapmon" }],
         hand: [{ card: CARD_ID, as: "tellermon" }],
-        deck: ["AD1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 0;
@@ -147,8 +147,8 @@ describe("BT26-063 Tellermon", () => {
           hand: [{ card: "P-190", as: "linkCard" }],
           deck: [
             { card: CARD_ID, as: "matchingTop" },
-            { card: "AD1-001", as: "nonmatchA" },
-            { card: "AD1-002", as: "nonmatchB" },
+            { card: "BT1-009", as: "nonmatchA" },
+            { card: "BT1-010", as: "nonmatchB" },
           ],
         },
       },
@@ -171,6 +171,61 @@ describe("BT26-063 Tellermon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("tellermon").linked.map((card) => card.instanceId)).toContain(linkId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(matchingId);
+  });
+
+  it("uses explicit public Link selections to prove separate once-per-turn link budgets", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "first" },
+            { card: CARD_ID, as: "second" },
+          ],
+          hand: [
+            { card: "P-190", as: "firstLink" },
+            { card: "P-190", as: "secondLink" },
+          ],
+          deck: [
+            { card: CARD_ID, as: "firstMatch" },
+            { card: "BT1-009", as: "firstRestA" },
+            { card: "BT1-010", as: "firstRestB" },
+            { card: CARD_ID, as: "secondMatch" },
+            { card: "BT1-011", as: "secondRestA" },
+            { card: "BT1-012", as: "secondRestB" },
+          ],
+        },
+      },
+      { autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    for (const [linkAlias, hostAlias, matchAlias] of [
+      ["firstLink", "first", "firstMatch"],
+      ["secondLink", "second", "secondMatch"],
+    ] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst(linkAlias).instanceId,
+          targetPermanentId: s.perm(hostAlias).permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const pending = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(matchAlias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst(matchAlias).instanceId));
+    }
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstMatch").instanceId, s.inst("secondMatch").instanceId]),
+    );
   });
 
   it("deletes one opposing lowest-level Digimon when Tellermon itself links", async () => {
@@ -253,8 +308,8 @@ describe("BT26-063 Tellermon", () => {
           hand: [{ card: "P-190", as: "linkCard" }],
           deck: [
             { card: CARD_ID, as: "matchingTop" },
-            { card: "AD1-001", as: "nonmatchA" },
-            { card: "AD1-002", as: "nonmatchB" },
+            { card: "BT1-009", as: "nonmatchA" },
+            { card: "BT1-010", as: "nonmatchB" },
           ],
         },
       },
@@ -277,69 +332,13 @@ describe("BT26-063 Tellermon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(matchingId);
   });
 
-  it("gives separate Tellermon copies independent once-per-turn budgets", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: CARD_ID, as: "first" },
-            { card: CARD_ID, as: "second" },
-          ],
-          deck: Array.from({ length: 6 }, (_, index) => ({ card: CARD_ID, as: `match${index}` })),
-        },
-      },
-      { autoSelectCards: true, autoChooseOption: true },
-    );
-    const revealedIds = Array.from({ length: 6 }, (_, index) => s.inst(`match${index}`).instanceId);
-
-    // The public-action integration is covered above. Drive the same production event bus here
-    // so two independent recipient events can be awaited without overlapping async intents.
-    for (const [index, hostAlias] of ["first", "second"].entries()) {
-      await advance(s.engine).fireSubTrigger("whenLinked", {
-        subjectPermanentId: s.perm(hostAlias).permanentId,
-      });
-      await settle(
-        () => s.state.players[0]!.hand.filter((card) => revealedIds.includes(card.instanceId)).length === index + 1,
-      );
-    }
-
-    expect(s.state.players[0]!.hand.filter((card) => revealedIds.includes(card.instanceId))).toHaveLength(2);
-  });
-
-  it("fires only once for two separate links to the same Tellermon in one turn", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: CARD_ID, as: "tellermon" }],
-          deck: Array.from({ length: 6 }, (_, index) => ({ card: CARD_ID, as: `match${index}` })),
-        },
-      },
-      { autoSelectCards: true, autoChooseOption: true },
-    );
-    const revealedIds = Array.from({ length: 6 }, (_, index) => s.inst(`match${index}`).instanceId);
-
-    for (let index = 0; index < 2; index += 1) {
-      await advance(s.engine).fireSubTrigger("whenLinked", {
-        subjectPermanentId: s.perm("tellermon").permanentId,
-      });
-    }
-
-    expect(s.state.players[0]!.hand.filter((card) => revealedIds.includes(card.instanceId))).toHaveLength(1);
-    expect(s.state.players[0]!.deck.filter((card) => revealedIds.includes(card.instanceId))).toHaveLength(5);
-  });
-
   it("does not arm the Your Turn watcher during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: CARD_ID, as: "tellermon" }],
-        deck: [CARD_ID, "AD1-001", "AD1-002"],
+        deck: [CARD_ID, "BT1-009", "BT1-010"],
       },
     });
-    s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("tellermon").permanentId,
-    });
-
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

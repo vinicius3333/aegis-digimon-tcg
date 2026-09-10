@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentTargets = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 };
+const opponentTargets = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 } satisfies Target;
 const dataSquadDigimon = {
   filter: {
     controller: "mine",
@@ -11,20 +10,20 @@ const dataSquadDigimon = {
     nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
   },
   count: 1,
-};
+} satisfies Target;
 const dataSquadOption = {
   controller: "mine",
   zone: "hand",
   kind: ["Option"],
   nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
-};
+} satisfies Filter;
 const playCostCeiling = {
   base: 3,
   raise: 1,
   per: 1,
   filter: { controller: "any", kind: ["Digimon", "Tamer"], suspended: true },
   unit: "cards",
-};
+} satisfies NonNullable<Extract<Action, { kind: "PlayWithoutCost" }>["playCostCeiling"]>;
 const playOrUseDataSquad = {
   kind: "Modal",
   choose: 1,
@@ -49,21 +48,21 @@ const playOrUseDataSquad = {
       },
     ],
   ],
-};
+} satisfies Action;
 const reactPlay = {
   kind: "SubTrigger",
   event: "whenSuspended",
   sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
   optional: true,
   actions: [playOrUseDataSquad],
-};
+} satisfies Action;
 const reactTrash = {
   kind: "SubTrigger",
   event: "whenDigivolutionTrashed",
   sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
   optional: true,
   actions: [playOrUseDataSquad],
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     {

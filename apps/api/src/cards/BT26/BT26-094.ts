@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const dataSquad = { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] };
-const executeTarget = { filter: { controller: "mine", kind: ["Digimon"], ...dataSquad }, count: 1 };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const dataSquad: Pick<Filter, "nameOrTrait"> = { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] };
+const executeTarget: Target = { filter: { controller: "mine", kind: ["Digimon"], ...dataSquad }, count: 1 };
 const startCost = {
   kind: "place",
   target: { filter: { controller: "mine", zone: "hand", ...dataSquad }, count: 1 },
@@ -13,16 +12,14 @@ const startCost = {
   destination: "digivolutionStack",
   position: "bottom",
   faceDown: true,
-};
-const executeReaction = [
+} satisfies Action["cost"];
+const executeReaction: Action[] = [
   {
     kind: "CostGatedBlock",
     cost: { kind: "suspend", target: self },
     optional: true,
     abortOnDecline: true,
-    actions: [
-      { kind: "GainKeyword", target: executeTarget, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" },
-    ],
+    actions: [{ kind: "GainKeyword", target: executeTarget, keyword: { keyword: "Execute" }, duration: "forTheTurn" }],
   },
 ];
 

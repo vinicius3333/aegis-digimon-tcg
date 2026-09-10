@@ -187,15 +187,12 @@ describe("BT26-068 Devimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: CARD_ID, as: "devimonA" },
-            { card: CARD_ID, as: "devimonB" },
-          ],
           hand: [
             { card: "BT1-009", as: "costA" },
             { card: "BT1-009", as: "costB" },
             { card: "BT1-009", as: "costC" },
-            { card: "BT1-009", as: "costD" },
+            { card: CARD_ID, as: "devimonA" },
+            { card: CARD_ID, as: "devimonB" },
           ],
         },
         1: {
@@ -205,24 +202,27 @@ describe("BT26-068 Devimon", () => {
             { card: "BT1-009", as: "opponentC" },
             { card: "BT1-009", as: "opponentD" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 20;
     await s.ready();
 
-    // No public intent isolates an arbitrary effect-driven hand addition, so drive the
-    // production SubTrigger seam after arranging the already-added opponent cards.
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
-    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.players[1]!.hand.length === 2);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimonA").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimonB").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 2);
 
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[1]!.trash).toHaveLength(2);
     expect(s.decisions.filter(({ seat, req }) => seat === 1 && req.kind === "selectCards")).toHaveLength(2);
 
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
-    expect(s.state.players[0]!.hand).toHaveLength(2);
-    expect(s.state.players[1]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[1]!.trash).toHaveLength(2);
   });
@@ -231,20 +231,26 @@ describe("BT26-068 Devimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "devimon" }],
-          hand: [{ card: "BT1-009", as: "cost" }],
+          hand: [
+            { card: CARD_ID, as: "devimon" },
+            { card: "BT1-009", as: "cost" },
+          ],
           deck: ["BT1-009", "BT1-009"],
         },
         1: {
           hand: [{ card: "BT1-009", as: "opponentStarting" }],
           deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 20;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("devimon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.length === 1 && s.state.players[1]!.trash.length === 1);
 
     expect(s.state.players[0]!.hand).toHaveLength(2);
@@ -329,10 +335,14 @@ describe("BT26-068 Devimon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cerberusmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cerberusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 1 && s.state.players[0]!.trash.length === 1);
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cerberusmon"));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);

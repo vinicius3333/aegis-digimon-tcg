@@ -1,16 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const glowingDawn = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const glowingDawn: Filter = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon", "Tamer"],
   playCostLte: 5,
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 };
-const playGlowingDawn = {
+const playGlowingDawn: Action = {
   kind: "PlayWithoutCost",
   from: ["trash"],
   payCost: false,

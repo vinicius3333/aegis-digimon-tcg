@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const sevenCode = { nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
-const linkFromTrash = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const sevenCode: Filter = { nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
+const linkFromTrash: Action = {
   kind: "Link",
   target: {
     filter: {

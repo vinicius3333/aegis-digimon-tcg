@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
+const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 } satisfies Target;
 const setup = [
   { kind: "Suspend", target: opponentTarget },
   // "your deck's top card" is taken with no prompt. A loose `from: ["deck"]` target would
@@ -22,7 +21,7 @@ const setup = [
     duration: "untilOpponentTurnEnd",
     scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 },
   },
-];
+] satisfies Action[];
 export const compiled: CompiledCard = {
   keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
   effects: [

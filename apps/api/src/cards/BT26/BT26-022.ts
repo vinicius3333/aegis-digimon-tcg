@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const recoveryBody = [
   { kind: "SecurityManipulation", op: "toHand", controller: "mine", source: "securityTop", amount: 1 },
   { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 },
-];
+] satisfies Action[];
 
 const eligibleIliad = {
   controllerDefault: "mine",
@@ -22,7 +21,7 @@ const eligibleIliad = {
       nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
     },
   ],
-};
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }],

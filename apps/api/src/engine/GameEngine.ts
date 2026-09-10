@@ -701,6 +701,8 @@ export class GameEngine {
   private readonly resolvedBlitzOpportunities = new Set<string>();
   /** Blitz attackers explicitly accepted by their controller and awaiting declaration. */
   private readonly acceptedBlitzAttackers = new Set<string>();
+  /** Publicly played Rush attackers whose play crossed memory and still have their one action window. */
+  private readonly crossedMemoryRushAttackers = new Set<string>();
   private blitzDecisionInFlight = false;
   private matchSetupStarted = false;
   /** Guards {@link GameEngineHooks.onBothReady} against firing more than once. */
@@ -1592,6 +1594,7 @@ export class GameEngine {
           this.combat.attackedThisTurn.clear();
           this.resolvedBlitzOpportunities.clear();
           this.acceptedBlitzAttackers.clear();
+          this.crossedMemoryRushAttackers.clear();
           this.blitzDecisionInFlight = false;
         }
         await this.sweepDurations(boundary);
@@ -3832,7 +3835,12 @@ export class GameEngine {
     for (const attacker of player.battleArea) {
       // Once memory has crossed, only a Blitz opportunity explicitly accepted by the
       // player is actionable. Before acceptance the decision overlay owns the input.
-      if (this.memory.hasCrossedToOpponent() && !this.acceptedBlitzAttackers.has(attacker.permanentId)) continue;
+      if (
+        this.memory.hasCrossedToOpponent() &&
+        !this.acceptedBlitzAttackers.has(attacker.permanentId) &&
+        !this.isNewlyPlayedRushAttacker(attacker.permanentId)
+      )
+        continue;
       attacker.canAttackPlayer =
         validateAttack(deps, seat, {
           attackerPermanentId: attacker.permanentId,
@@ -6521,6 +6529,11 @@ export class GameEngine {
     // whether the restored-memory turn remains open.
     if (this.combat.isAttacking) return;
 
+    // A newly played Digimon that just received Rush remains an actionable Main verb even
+    // when the play that triggered the grant crossed memory. After that one attack resolves,
+    // the ordinary crossed-memory turn-end check runs again.
+    if (this.memory.hasCrossedToOpponent() && this.hasNewlyPlayedRushAttack(this.state.turnSeat)) return;
+
     // ＜Blitz＞ (§16-22): when memory has crossed to the opponent but the turn
     // player has an unsuspended Blitz Digimon that hasn't attacked this turn, keep
     // the Main phase open for one more attack. Skip the turn-end check so the
@@ -6564,6 +6577,34 @@ export class GameEngine {
     if (this.mainPhase.isOpen && !this.hasAnyMainPhaseAction(this.state.turnSeat)) {
       this.mainPhase.endPhaseRequested(this.state.turnSeat);
     }
+  }
+
+  private isNewlyPlayedRushAttacker(permanentId: string): boolean {
+    const permanent = this.access.permanentById(permanentId);
+    return (
+      permanent !== undefined &&
+      this.crossedMemoryRushAttackers.has(permanentId) &&
+      permanent.controllerSeat === this.state.turnSeat &&
+      permanent.enterFieldTurnCount === this.state.turnCount &&
+      !permanent.isSuspended &&
+      !this.combat.attackedThisTurn.has(permanentId) &&
+      this.continuous.hasKeyword(permanentId, "Rush")
+    );
+  }
+
+  private hasNewlyPlayedRushAttack(seat: Seat): boolean {
+    if (seat !== this.state.turnSeat) return false;
+    const player = this.state.players[seat];
+    if (player === undefined) return false;
+    const deps = this.attackDeps();
+    return player.battleArea.some(
+      (permanent) =>
+        this.isNewlyPlayedRushAttacker(permanent.permanentId) &&
+        validateAttack(deps, seat, {
+          attackerPermanentId: permanent.permanentId,
+          target: { kind: "player" },
+        }) === null,
+    );
   }
 
   /**
@@ -6613,7 +6654,11 @@ export class GameEngine {
 
   /** Enforce that a crossed-memory attack is the single Blitz window the player accepted. */
   private handleAttack(seat: Seat, intent: AttackIntent): IntentResult {
-    if (this.memory.hasCrossedToOpponent() && !this.acceptedBlitzAttackers.has(intent.attackerPermanentId)) {
+    if (
+      this.memory.hasCrossedToOpponent() &&
+      !this.acceptedBlitzAttackers.has(intent.attackerPermanentId) &&
+      !this.isNewlyPlayedRushAttacker(intent.attackerPermanentId)
+    ) {
       return { ok: false, reason: this.state.pendingDecision ? "decision-pending" : "wrong-phase" };
     }
     const deps = this.attackDeps();
@@ -6622,6 +6667,7 @@ export class GameEngine {
         ...deps,
         onCombatComplete: () => {
           this.acceptedBlitzAttackers.delete(intent.attackerPermanentId);
+          this.crossedMemoryRushAttackers.delete(intent.attackerPermanentId);
           this.resolvedBlitzOpportunities.add(intent.attackerPermanentId);
           this.syncAttackTargets();
           // Combat moves memory, so what the hand can afford moved with it.
@@ -7032,7 +7078,15 @@ export class GameEngine {
     }
     this.continueMainVerb(
       () => applyPlayCard(this.state, seat, intent, deps),
-      () => {},
+      () => {
+        if (!this.memory.hasCrossedToOpponent()) return;
+        const played = this.state.players[seat]?.battleArea.find(
+          (permanent) => permanent.topCard?.instanceId === intent.instanceId,
+        );
+        if (played !== undefined && this.continuous.hasKeyword(played.permanentId, "Rush")) {
+          this.crossedMemoryRushAttackers.add(played.permanentId);
+        }
+      },
       (err) => {
         logError("[engine] playCard apply failed:", err);
         this.hooks.emit({

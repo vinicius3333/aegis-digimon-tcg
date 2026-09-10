@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -39,12 +39,36 @@ describe("BT26-027 Petermon", () => {
             { card: "BT1-009", as: "nonTrait" },
           ],
           hand: [{ card: "BT26-027", as: "petermon" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
+          deck: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+          ],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "target" },
             { card: "BT26-034", as: "opponentVegetation" },
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
           ],
         },
       },
@@ -52,7 +76,8 @@ describe("BT26-027 Petermon", () => {
     );
     preferred.push(s.perm("vegetationCost").permanentId, s.perm("target").permanentId);
     s.state.memory = 4;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
       ok: true,
@@ -72,8 +97,8 @@ describe("BT26-027 Petermon", () => {
     );
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
 
-    s.state.turnSeat = 1;
-    s.state.phase = Phase.Main;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -84,22 +109,29 @@ describe("BT26-027 Petermon", () => {
     await settle(() => s.perm("target").isSuspended);
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may decline the suspension payment, and an already-suspended trait Digimon cannot pay it", async () => {
     const declined = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT26-027", as: "petermon" },
-            { card: "BT26-024", as: "cost" },
-          ],
+          battleArea: [{ card: "BT26-024", as: "cost" }],
+          hand: [{ card: "BT26-027", as: "petermon" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(declined.engine).fire(EffectTiming.OnPlay, declined.perm("petermon"));
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("petermon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(declined.perm("cost").isSuspended).toBe(false);
     expect(observe(declined.engine).keywordAmount(declined.perm("target"), "SecurityAttack")).toBe(0);
 
@@ -110,13 +142,41 @@ describe("BT26-027 Petermon", () => {
             { card: "BT26-027", as: "petermon", suspended: true },
             { card: "BT26-024", as: "suspendedCost", suspended: true },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(unpayable.engine).fire(EffectTiming.OnPlay, unpayable.perm("petermon"));
+    const unpayableLoop = unpayable.engine.startTurnLoop();
+    await advance(unpayable.engine).waitForMainPhase(0);
+    expect(
+      unpayable.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: unpayable.perm("suspendedCost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(
+      unpayable.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: unpayable.perm("petermon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    advance(unpayable.engine).endMainPhaseIfOpen(0);
+    await advance(unpayable.engine).waitForMainPhase(1);
     expect(observe(unpayable.engine).keywordAmount(unpayable.perm("target"), "SecurityAttack")).toBe(0);
+    advance(unpayable.engine).endMainPhaseIfOpen(1);
+    await advance(unpayable.engine).waitForMainPhase(0);
+    expect(unpayable.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await unpayableLoop;
   });
 
   it("resolves again at the start of the opponent's main phase and expires at that turn end", async () => {
@@ -128,20 +188,30 @@ describe("BT26-027 Petermon", () => {
             { card: "BT26-027", as: "petermon" },
             { card: "BT26-024", as: "cost" },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("cost").permanentId);
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("petermon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("cost").isSuspended).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
     advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 1);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("grants inherited Barrier only while Petermon is under another Digimon", async () => {

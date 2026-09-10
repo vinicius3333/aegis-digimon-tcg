@@ -70,7 +70,7 @@ describe("BT26-097 compiled fidelity", () => {
       {
         0: {
           hand: [{ card: "BT26-097", as: "option" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
           battleArea: [{ card: "BT26-030", as: "yellowSource" }],
         },
       },
@@ -109,28 +109,25 @@ describe("BT26-097 compiled fidelity", () => {
   it("adds itself to hand even when no eligible Security play exists", async () => {
     const s = setupEngine(
       {
-        0: {
+        0: { hand: [{ card: "BT25-093", as: "tsOption" }], battleArea: [{ card: "AD1-001", as: "attacker" }] },
+        1: {
           security: [{ card: "BT26-097", as: "option" }],
-          hand: [{ card: "BT25-093", as: "tsOption" }],
         },
-        1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    const optionId = s.inst("option").instanceId;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === optionId));
+    await settle(() => s.state.players[1]!.hand.some(({ cardId }) => cardId === "BT26-097"));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("tsOption").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("places the Tamer under and digivolves the same Aegiomon", async () => {

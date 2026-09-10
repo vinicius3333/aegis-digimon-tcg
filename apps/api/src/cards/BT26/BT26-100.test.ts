@@ -173,27 +173,26 @@ describe("BT26-100 compiled fidelity", () => {
   it("Q7177/Q7178 checks a face-up copy and activates its Security free play", async () => {
     const s = setupEngine(
       {
-        0: {
+        0: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+        1: {
           security: [{ card: "BT26-100", as: "darkField", faceUp: true }],
           trash: [{ card: "BT24-042", as: "titan" }],
         },
-        1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     const titanId = s.inst("titan").instanceId;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === titanId));
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === titanId));
 
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === titanId)).toBe(false);
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === titanId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

@@ -3,7 +3,9 @@ import { type PlayerState, EffectTiming, type Seat } from "@aegis/shared";
 // Self-register every compiled-IR card so the engine resolves BT1-085's StartOfYourTurn
 // SetMemory through the real interpreter (boot side-effect).
 import "../cards/index.js";
-import { setupEngine, type EngineSetup } from "./testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "./testkit/harness.js";
+import { advance } from "./testkit/advance.js";
+import { observe } from "./testkit/observe.js";
 
 /**
  * SYS-06 — turn-end / start-of-turn A3 harness.
@@ -178,5 +180,40 @@ describe("turn end harness — real loop fires OnEndTurn once with the ending se
     expect(h.endTurnFires[0]!.turnSeat).toBe(0); // turn 1 ended on seat 0
     expect(h.endTurnFires[1]!.turnSeat).toBe(1); // turn 2 ended on seat 1
     expect(h.startTurnFires).toBe(2); // one OnStartTurn per turn
+  });
+
+  it("keeps a newly played Rush attack open after its play crosses memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-078", as: "cherubimon" }],
+          hand: [{ card: "BT24-010", as: "playedTitan" }],
+        },
+        1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush"));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("playedTitan").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

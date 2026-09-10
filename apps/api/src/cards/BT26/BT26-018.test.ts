@@ -243,7 +243,7 @@ describe("BT26-018 public engine behavior", () => {
   it("uses inherited Jamming to survive a losing security battle while a top-card copy does not", async () => {
     const inherited = setupEngine({
       0: { battleArea: [{ card: "BT1-034", as: "host", under: [{ card: CARD_ID }] }] },
-      1: { security: [{ card: "BT26-017", as: "securityDigimon" }] },
+      1: { security: [{ card: "BT1-009", as: "securityDigimon" }] },
     });
     expect(
       inherited.engine.applyIntent(0, {
@@ -257,7 +257,7 @@ describe("BT26-018 public engine behavior", () => {
 
     const topCard = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "sangomon" }] },
-      1: { security: [{ card: "BT26-017", as: "securityDigimon" }] },
+      1: { security: [{ card: "BT1-009", as: "securityDigimon" }] },
     });
     expect(
       topCard.engine.applyIntent(0, {

@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const action = [
   { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1 },
   { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 },
   { kind: "Suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } }, optional: true },
-];
+] satisfies Action[];
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: action },

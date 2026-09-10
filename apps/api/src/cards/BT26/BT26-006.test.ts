@@ -303,7 +303,7 @@ describe("BT26-006 Monimon", () => {
             { card: "BT10-077", as: "handMaterial" },
           ],
         },
-        1: { security: [{ card: "BT1-001", as: "security" }] },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
@@ -357,7 +357,7 @@ describe("BT26-006 Monimon", () => {
           hand: [{ card: "EX10-058", as: "played" }],
           deck: [{ card: "BT1-010", as: "wouldBeDrawn" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );

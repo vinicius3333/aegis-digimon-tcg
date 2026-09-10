@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const self = { filter: { isSelfRef: true }, count: 1, isSelf: true } satisfies Target;
 const immuneAndDp = [
   {
     kind: "Restrict",
@@ -13,8 +12,8 @@ const immuneAndDp = [
     byOpponentEffectsOnly: true,
   },
   { kind: "ModifyDP", target: self, amount: 3000, duration: "untilOpponentTurnEnd" },
-];
-const unsuspend = { kind: "Unsuspend", target: self, optional: true };
+] satisfies Action[];
+const unsuspend = { kind: "Unsuspend", target: self, optional: true } satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     {

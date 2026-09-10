@@ -1,14 +1,13 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const jupitermon = {
+const opponentDigimon: Filter = { controller: "opponent", kind: ["Digimon"] };
+const jupitermon: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }],
 };
-const recovery = [
+const recovery: Action[] = [
   { kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1 },
   { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 2 },
 ];
@@ -18,7 +17,7 @@ export const compiled: CompiledCard = {
     { keyword: "Piercing", raw: "＜Piercing＞" },
     { keyword: "Reboot", raw: "＜Reboot＞" },
     { keyword: "Blocker", raw: "＜Blocker＞" },
-    { keyword: "Succession", raw: "＜Succession ([Jupitermon])＞" },
+    { keyword: "UseReq", raw: "＜Succession ([Jupitermon])＞" },
   ],
   effects: [
     { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },

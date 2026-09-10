@@ -1,17 +1,16 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CardEffect, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 // ＜Decode ([Plutomon])＞ is a bracket-only card reference (§2-3-1-2): exact name only, so
 // this card's own ZombiePlutomon copies in the digivolution stack do not qualify.
-const plutomon = {
+const plutomon: Filter = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Plutomon"], match: "nameExact" }],
 };
-const deleteLevel6 = {
+const deleteLevel6: Action = {
   kind: "CostGatedBlock",
   cost: { kind: "trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
   optional: true,
@@ -26,7 +25,7 @@ const deleteLevel6 = {
     },
   ],
 };
-const decode = {
+const decode: Action = {
   kind: "Replacement",
   event: "wouldLeavePlay",
   mode: "instead",
@@ -43,7 +42,7 @@ const decode = {
     },
   ],
 };
-const trimHands = [
+const trimHands: Action[] = [
   { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: "all", untilHandSize: 4 } },
   {
     kind: "Trash",
@@ -53,7 +52,10 @@ const trimHands = [
 ];
 // No [Once Per Turn] is printed on the On Play / When Digivolving / When Attacking clause, so the
 // shared key only collapses the three timings onto one ledger entry — it must not cap uses.
-const shared = { sharedUseKey: "bt26-079-trash-cost-delete", actions: [deleteLevel6] };
+const shared = { sharedUseKey: "bt26-079-trash-cost-delete", actions: [deleteLevel6] } satisfies Pick<
+  CardEffect,
+  "sharedUseKey" | "actions"
+>;
 
 export const compiled: CompiledCard = {
   keywords: [
@@ -89,9 +91,9 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "OnPlay", ...shared },
-    { trigger: "WhenDigivolving", ...shared },
-    { trigger: "WhenAttacking", ...shared },
+    { trigger: "OnPlay", frequency: "OncePerTurn", ...shared },
+    { trigger: "WhenDigivolving", frequency: "OncePerTurn", ...shared },
+    { trigger: "WhenAttacking", frequency: "OncePerTurn", ...shared },
     {
       trigger: "AllTurns",
       frequency: "OncePerTurn",

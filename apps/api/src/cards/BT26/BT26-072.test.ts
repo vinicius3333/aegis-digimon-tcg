@@ -59,7 +59,7 @@ describe("BT26-072 Peckmon", () => {
       0: {
         battleArea: [{ card: "BT26-036", as: "greenDataSquadBase" }],
         hand: [{ card: "BT26-072", as: "peckmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -81,7 +81,12 @@ describe("BT26-072 Peckmon", () => {
   it("publicly pays the hand-trash alternative to delete an opponent's level 4 or lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-072", as: "peckmon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+        0: {
+          hand: [
+            { card: "BT26-072", as: "peckmon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
         1: {
           battleArea: [
             { card: "BT1-014", as: "victim" },
@@ -93,12 +98,16 @@ describe("BT26-072 Peckmon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("peckmon"));
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peckmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("level5OrHigher").permanentId,
     ]);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("publicly pays the hand-trash alternative when digivolving", async () => {
@@ -108,7 +117,7 @@ describe("BT26-072 Peckmon", () => {
           battleArea: [{ card: "BT26-036", as: "base" }],
           hand: [
             { card: "BT26-072", as: "peckmon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
         1: { battleArea: [{ card: "BT1-014", as: "victim" }] },
@@ -129,23 +138,31 @@ describe("BT26-072 Peckmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("base").topCard.cardId).toBe("BT26-072");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.memory).toBe(0);
   });
 
   it("may decline both alternative costs without trashing or deleting", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-072", as: "peckmon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+        0: {
+          hand: [
+            { card: "BT26-072", as: "peckmon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-014", as: "victim" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peckmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("peckmon"));
-
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
@@ -154,25 +171,30 @@ describe("BT26-072 Peckmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-072", as: "peckmon" },
             {
               card: "BT26-094",
               as: "keenan",
               under: [
-                { card: "BT1-002", as: "oldBottom", faceUp: false },
-                { card: "BT1-003", as: "oldTop", faceUp: false },
+                { card: "BT1-010", as: "oldBottom", faceUp: false },
+                { card: "BT1-011", as: "oldTop", faceUp: false },
               ],
             },
           ],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-072", as: "peckmon" },
+            { card: "BT1-009", as: "cost" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
+    s.state.memory = 4;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("peckmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peckmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -181,22 +203,25 @@ describe("BT26-072 Peckmon", () => {
       s.inst("oldBottom").instanceId,
       s.inst("oldTop").instanceId,
     ]);
-    expect(s.perm("keenan").stack[0]).toMatchObject({ cardId: "BT1-001", faceUp: false });
+    expect(s.perm("keenan").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
 
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("keenan").permanentId, [s.inst("cost").instanceId], 0);
-    expect(s.state.players[0]!.trash.find(({ cardId }) => cardId === "BT1-001")?.faceUp).toBe(true);
+    expect(s.state.players[0]!.trash.find(({ cardId }) => cardId === "BT1-009")?.faceUp).toBe(true);
   });
 
   it("executes Blocker and prevents the security check", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-072", as: "peckmon" }], security: 1 },
-        1: { battleArea: [{ card: "BT26-060", as: "attacker" }] },
+        0: { battleArea: [{ card: "BT26-072", as: "peckmon" }], security: ["BT1-009"], deck: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT26-060", as: "attacker" }], deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -212,6 +237,8 @@ describe("BT26-072 Peckmon", () => {
       s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("peckmon").permanentId }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
     expect(s.state.players[0]!.security).toHaveLength(1);
   });

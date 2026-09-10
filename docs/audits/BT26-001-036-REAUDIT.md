@@ -83,3 +83,6 @@ resolved the environment issue and the focused run passed in full.
 ## Integrated verification — 2026-09-06
 
 All cards in this range passed in the final 104-file, 993-test collection run. The current per-card test counts and collection recalculation are recorded in `BT26-REAUDIT-20260905.md`. The detailed inspection above and the linked direct tests supply clause evidence; passing counts alone do not establish fidelity.
+
+Targeted collection-gate rerun on 2026-09-10: BT26-028, BT26-029, BT26-031,
+BT26-044, BT26-045, BT26-046, and BT26-047 passed serially together, 61/61 tests.

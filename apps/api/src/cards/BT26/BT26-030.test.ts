@@ -53,7 +53,7 @@ describe("BT26-030 Pumpkinmon", () => {
             { card: "BT26-030", as: "pumpkinmon" },
             { card: "BT24-019", as: "iliad" },
           ],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -66,7 +66,7 @@ describe("BT26-030 Pumpkinmon", () => {
 
     expect(Array.from(s.perm("iliad").keywords)).toEqual(expect.arrayContaining(["Execute", "Ascension"]));
     expect(Array.from(s.perm("pumpkinmon").keywords)).not.toEqual(expect.arrayContaining(["Execute", "Ascension"]));
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("makes the granted Execute attack, self-delete, and use the granted Ascension", async () => {
@@ -78,9 +78,9 @@ describe("BT26-030 Pumpkinmon", () => {
             { card: "BT26-030", as: "pumpkinmon" },
             { card: "BT24-019", as: "iliad" },
           ],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
         },
-        1: { security: ["BT1-002", "BT1-003"] },
+        1: { security: ["BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -104,7 +104,7 @@ describe("BT26-030 Pumpkinmon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-030", as: "pumpkinmon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -136,9 +136,9 @@ describe("BT26-030 Pumpkinmon", () => {
           battleArea: [{ card: "BT24-035", as: "tsBase" }],
           hand: [
             { card: "BT26-030", as: "pumpkinmon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
-          deck: ["BT1-002"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

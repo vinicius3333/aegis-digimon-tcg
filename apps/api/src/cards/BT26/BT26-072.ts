@@ -1,15 +1,18 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentLv4 = { controllerDefault: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } };
-const handCard = { controllerDefault: "mine", zone: "hand" };
-const deleteWithTrash = {
+const opponentLv4: Filter = {
+  controllerDefault: "opponent",
+  kind: ["Digimon"],
+  levelComparison: { op: "lte", value: 4 },
+};
+const handCard: Filter = { controllerDefault: "mine", zone: "hand" };
+const deleteWithTrash: Action = {
   kind: "Delete",
   target: { filter: opponentLv4, count: 1 },
   cost: { kind: "trash", target: { filter: handCard, count: 1 } },
 };
-const deleteWithKeenan = {
+const deleteWithKeenan: Action = {
   kind: "Delete",
   target: { filter: opponentLv4, count: 1 },
   cost: {
@@ -25,7 +28,7 @@ const deleteWithKeenan = {
     faceDown: true,
   },
 };
-const altCostDelete = {
+const altCostDelete: Action = {
   kind: "Modal",
   choose: 1,
   optional: true,

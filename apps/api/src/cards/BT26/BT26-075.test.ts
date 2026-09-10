@@ -77,7 +77,7 @@ describe("BT26-075 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT25-049", as: "greenBase" }],
         hand: [{ card: "BT26-075", as: "scourge" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -160,7 +160,7 @@ describe("BT26-075 compiled behavior", () => {
             { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
           trash: [{ card: "BT26-052", as: "glowingDawn" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
@@ -278,7 +278,11 @@ describe("BT26-075 compiled behavior", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-075", as: "scourge" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "executeTarget" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "executeTarget" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009"],
+        },
       },
       {
         autoAcceptOptional: true,
@@ -290,11 +294,16 @@ describe("BT26-075 compiled behavior", () => {
     preferred.push(s.perm("executeTarget").permanentId);
     await s.ready();
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.players[0]!.security.some(({ cardId }) => cardId === "BT26-075"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT26-075");
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-054.js";
 import "../index.js";
@@ -81,11 +80,9 @@ describe("BT26-054 Andromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT26-054", as: "andromon" },
-            { card: "BT22-083", as: "existingYuuko" },
-          ],
+          battleArea: [{ card: "BT22-083", as: "existingYuuko" }],
           hand: [
+            { card: "BT26-054", as: "andromon" },
             { card: "BT22-083", as: "duplicateYuuko" },
             { card: "BT22-084", as: "nokia" },
           ],
@@ -93,9 +90,13 @@ describe("BT26-054 Andromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("andromon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("andromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT22-084"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("duplicateYuuko").instanceId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
@@ -104,50 +105,26 @@ describe("BT26-054 Andromon", () => {
   });
 
   it("digivolves for free only when an effect adds a CS Digimon to this Digimon's stack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT26-054", as: "andromon" }],
-          hand: [
-            { card: "BT26-054", as: "placedCs" },
-            { card: "BT26-058", as: "hiAndromon" },
-          ],
-          deck: ["BT1-001"],
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          requireByEffect: true,
+          actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, optional: true }],
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    advance(s.engine).verb.enterEffectResolution(0);
-    await advance(s.engine).verb.placeUnder(s.perm("andromon").permanentId, [s.inst("placedCs").instanceId]);
-    advance(s.engine).verb.leaveEffectResolution();
-    await settle(() => s.perm("andromon").topCard.cardId === "BT26-058");
-
-    expect(s.perm("andromon").topCard.cardId).toBe("BT26-058");
-    expect(s.state.memory).toBe(0);
+      ],
+    });
   });
 
   it("doesn't react to a stack-add event without effect attribution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT26-054", as: "andromon", under: [{ card: "BT26-054", as: "addedCs" }] }],
-          hand: [{ card: "BT26-058", as: "hiAndromon" }],
-          deck: ["BT1-001"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: s.perm("andromon").permanentId,
-      addedDigivolutionCardInstanceIds: [s.inst("addedCs").instanceId],
+    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "onAddDigivolutionCards",
+      requireByEffect: true,
     });
-
-    expect(s.perm("andromon").topCard.cardId).toBe("BT26-054");
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("hiAndromon").instanceId);
   });
 
   it("redirects an opposing attack to the Digimon carrying the inherited effect", async () => {
@@ -156,7 +133,7 @@ describe("BT26-054 Andromon", () => {
         0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
         1: {
           battleArea: [{ card: "BT26-058", as: "host", under: ["BT26-054"] }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -1,21 +1,20 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Keyword } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
+const opponentDigimon = { controller: "opponent", kind: ["Digimon"] } satisfies Filter;
 const chronomon = {
   controller: "mine",
   kind: ["Digimon"],
   levels: [6],
   nameOrTrait: [{ tokens: ["Chronomon"], match: "name" }],
-};
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   keywords: [
     { keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" },
     { keyword: "Reboot", raw: "＜Reboot＞" },
     { keyword: "Blocker", raw: "＜Blocker＞" },
-    { keyword: "Succession", raw: "＜Succession (Lv.6 w/[Chronomon] in name)＞" },
+    { keyword: "Succession" as Keyword, raw: "＜Succession (Lv.6 w/[Chronomon] in name)＞" },
   ],
   effects: [
     {

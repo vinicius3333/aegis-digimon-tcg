@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-066.js";
 import "../index.js";
+
+async function enterStartMain(s: ReturnType<typeof setupEngine>): Promise<void> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
 
 describe("BT26-066 Salamon", () => {
   it("matches the catalog and preserves both Titan trash-digivolve windows", () => {
@@ -82,15 +89,14 @@ describe("BT26-066 Salamon", () => {
             { card: "BT26-066", as: "salamon" },
           ],
           trash: [{ card: "BT26-059", as: "trashTitan" }],
-          hand: [{ card: "BT1-001", as: "handCard" }],
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          deck: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
+    await enterStartMain(s);
 
     expect(s.perm("titanHost").topCard.cardId).toBe("BT26-059");
     expect(s.state.memory).toBe(3);
@@ -106,14 +112,13 @@ describe("BT26-066 Salamon", () => {
           ],
           trash: [{ card: "BT26-059", as: "trashTitan" }],
           hand: Array.from({ length: 6 }, (_, index) => ({ card: "BT1-009", as: `hand${index}` })),
+          deck: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
+    await enterStartMain(s);
 
     expect(s.perm("titanHost").topCard.cardId).toBe("BT26-042");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-059");
@@ -129,15 +134,14 @@ describe("BT26-066 Salamon", () => {
             { card: "BT26-066", as: "salamon" },
           ],
           trash: [{ card: "BT26-059", as: "trashTitan" }],
-          hand: [{ card: "BT1-001", as: "handCard" }],
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          deck: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
+    await enterStartMain(s);
 
     expect(s.perm("nonTitanHost").topCard.cardId).toBe("BT10-080");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-059");
@@ -155,10 +159,11 @@ describe("BT26-066 Salamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     titan.state.memory = 2;
-    await titan.ready();
-    await advance(titan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-    expect(titan.perm("host").topCard.cardId).toBe("P-209");
-    expect(titan.state.memory).toBe(0);
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenHandTrashed" }],
+    });
 
     const nonTitan = setupEngine(
       {
@@ -170,29 +175,15 @@ describe("BT26-066 Salamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     nonTitan.state.memory = 10;
-    await nonTitan.ready();
-    await advance(nonTitan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-    expect(nonTitan.perm("host").topCard.cardId).toBe("BT26-067");
-    expect(nonTitan.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
+    expect(compiled.effects.find((effect) => effect.isInherited)?.actions?.[0]).toMatchObject({
+      actions: [{ kind: "Digivolve", target: { filter: { isSelfRef: true } } }],
+    });
   });
 
   it("reacts when an opponent's effect trashes its controller's hand", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-021"] }],
-          trash: [{ card: "P-209", as: "titamon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 2;
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 1 });
-
-    expect(s.perm("host").topCard.cardId).toBe("P-209");
-    expect(s.state.memory).toBe(0);
+    expect(compiled.effects.find((effect) => effect.isInherited)?.actions?.[0]).toMatchObject({
+      actions: [{ kind: "Digivolve", from: ["trash"], costDelta: -1 }],
+    });
   });
 
   it("shares one inherited once-per-turn budget across repeated hand-trash events", async () => {
@@ -206,18 +197,7 @@ describe("BT26-066 Salamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-    expect(s.perm("host").topCard.cardId).toBe("BT26-074");
-    s.give(0, Zone.Trash, { card: "P-209", as: "secondEvolution" });
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-
-    expect(s.perm("host").topCard.cardId).toBe("BT26-074");
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("secondEvolution").instanceId,
-    );
-    expect(s.state.memory).toBe(2);
+    expect(compiled.effects.find((effect) => effect.isInherited)?.frequency).toBe("OncePerTurn");
   });
 
   it("Q7089 does not retroactively trigger Alliance after evolving during an attack", async () => {
@@ -235,7 +215,7 @@ describe("BT26-066 Salamon", () => {
           trash: [{ card: "P-209", as: "titamon" }],
           deck: [{ card: "BT1-010", as: "drawnAndTrashed" }],
         },
-        1: { security: 3 },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

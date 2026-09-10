@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
-const securityWipeAndDeletes = [
+const opponentDigimon: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+const securityWipeAndDeletes: Action[] = [
   { kind: "SecurityManipulation", op: "trashTop", controller: "mine", leaveCount: 0, trackCount: "trashedSecurity" },
   {
     kind: "RepeatPerCount",

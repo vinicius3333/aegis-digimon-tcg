@@ -1,16 +1,19 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Keyword } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], suspended: true };
-const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }] };
-const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
-const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] };
+const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], suspended: true } satisfies Filter;
+const playable = {
+  controller: "mine",
+  zone: "hand",
+  nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }],
+} satisfies Filter;
+const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } satisfies Filter;
+const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] } satisfies Filter;
 const ceresmon = {
   controller: "mine",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Ceresmon"], match: "nameExact" }],
-};
+} satisfies Filter;
 const digivolveBody = [
   {
     kind: "ModifyDP",
@@ -49,12 +52,12 @@ const digivolveBody = [
       ],
     ],
   },
-];
+] satisfies Action[];
 
 export const compiled: CompiledCard = {
   keywords: [
     { keyword: "Alliance", raw: "＜Alliance＞" },
-    { keyword: "Succession", raw: "＜Succession ([Ceresmon])＞" },
+    { keyword: "Succession" as Keyword, raw: "＜Succession ([Ceresmon])＞" },
   ],
   effects: [
     { trigger: "WhenDigivolving", actions: digivolveBody },

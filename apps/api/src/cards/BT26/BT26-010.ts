@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const handCost = {
@@ -10,7 +9,7 @@ const handCost = {
     { tokens: ["Open", "Open (App Name)"], match: "trait" },
     { tokens: ["Seven Code"], match: "trait" },
   ],
-};
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   effects: [

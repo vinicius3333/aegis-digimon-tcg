@@ -180,7 +180,7 @@ describe("BT26-038 Kuwagamon", () => {
       0: {
         battleArea: [{ card: "BT26-034", as: "tsBase" }],
         hand: [{ card: "BT26-038", as: "kuwagamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     legal.state.memory = 2;

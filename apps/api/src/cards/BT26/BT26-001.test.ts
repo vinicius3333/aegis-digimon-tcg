@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-001.js";
 import "../index.js";
 
 const CARD_ID = "BT26-001";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 describe("BT26-001 Yokomon", () => {
   it("encodes the inherited once-per-turn Chronomon-text digivolution watcher", () => {
@@ -81,9 +89,22 @@ describe("BT26-001 Yokomon", () => {
             { card: "ST18-15", as: "publicOrigin" },
             { card: "BT26-015", as: "candidate" },
           ],
-          deck: [{ card: "BT1-001", as: "evolutionDraw" }],
+          deck: [
+            { card: "BT1-009", as: "evolutionDraw" },
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+          ],
         },
-        1: { battleArea: [{ card: "ST18-03", as: "opponentTarget", suspended: true }] },
+        1: {
+          battleArea: [{ card: "ST18-03", as: "opponentTarget", suspended: true }],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: 5,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
@@ -114,7 +135,7 @@ describe("BT26-001 Yokomon", () => {
           battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [{ card: "BT26-060", as: "illegalChronomonText" }],
           trash: [{ card: "BT1-001", as: "moved" }],
-          deck: ["BT1-002"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -137,7 +158,7 @@ describe("BT26-001 Yokomon", () => {
           battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [{ card: "BT26-015", as: "candidate" }],
           trash: [{ card: "BT1-001", as: "moved" }],
-          deck: ["BT1-002"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -164,7 +185,11 @@ describe("BT26-001 Yokomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 3;
     await s.ready();
 
@@ -174,6 +199,8 @@ describe("BT26-001 Yokomon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("moved").instanceId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("spends its once-per-turn budget only after a successful evolution", async () => {
@@ -189,7 +216,7 @@ describe("BT26-001 Yokomon", () => {
             { card: "BT1-001", as: "move1" },
             { card: "BT1-002", as: "move2" },
           ],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -210,7 +237,7 @@ describe("BT26-001 Yokomon", () => {
       0: {
         battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
         hand: [{ card: "BT26-015", as: "candidate" }],
-        deck: [{ card: "BT1-001", as: "revealed" }],
+        deck: [{ card: "BT1-009", as: "revealed" }],
       },
     });
     s.state.memory = 3;
@@ -232,7 +259,7 @@ describe("BT26-001 Yokomon", () => {
             { card: "BT26-036", as: "revealer" },
             { card: "BT26-015", as: "candidate" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const linkedSource = {
+const linkedSource: Filter = {
   controllerDefault: "mine",
   zone: "digivolutionCards",
   hostFilter: { isSelfRef: true },
@@ -15,8 +14,8 @@ const linkedSource = {
     { tokens: ["Seven Code"], match: "trait" },
   ],
 };
-const opponentDigimon = { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 };
-const link = {
+const opponentDigimon: Target = { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 };
+const link: Action = {
   kind: "Link",
   target: { filter: linkedSource, count: 1 },
   recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -24,7 +23,7 @@ const link = {
   payCost: false,
   optional: true,
 };
-const battle = [
+const battle: Action[] = [
   {
     kind: "SubTrigger",
     event: "whenLinked",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-087.js";
@@ -53,7 +53,8 @@ describe("BT26-087 Toya Kuga", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("tsCost").instanceId);
@@ -61,6 +62,8 @@ describe("BT26-087 Toya Kuga", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("giantSlayer").instanceId)).toBe(
       true,
     );
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("trashes any TS card from hand to draw two on play", async () => {
@@ -72,13 +75,14 @@ describe("BT26-087 Toya Kuga", () => {
             { card: "BT26-088", as: "tsTamer" },
             { card: "BT1-009", as: "nonTs" },
           ],
-          deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }],
+          deck: [{ card: "BT1-009" }, { card: "BT1-010" }, { card: "BT1-011" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toya").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tsTamer").instanceId));
@@ -86,6 +90,8 @@ describe("BT26-087 Toya Kuga", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nonTs").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not return Giant Slayer when the TS return cost is unavailable", async () => {
@@ -94,12 +100,14 @@ describe("BT26-087 Toya Kuga", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-085")).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("cannot pay the start-main cost with a TS Tamer", async () => {
@@ -112,12 +120,13 @@ describe("BT26-087 Toya Kuga", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("tsTamer").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may decline each cost without moving cards or drawing", async () => {
@@ -133,37 +142,50 @@ describe("BT26-087 Toya Kuga", () => {
       },
       { autoDeclineOptional: true },
     );
-    await start.ready();
-    await advance(start.engine).fire(EffectTiming.OnStartMainPhase, start.perm("toya"));
+    const startLoop = start.engine.startTurnLoop();
+    await advance(start.engine).waitForMainPhase(0);
 
     expect(start.state.memory).toBe(0);
     expect(start.state.players[0]!.trash).toHaveLength(2);
     expect(start.state.players[0]!.hand).toHaveLength(0);
+    expect(start.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await startLoop;
 
     const onPlay = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-087", as: "toya" }],
-          hand: [{ card: "BT26-088", as: "tsCost" }],
-          deck: ["BT1-001", "BT1-002"],
+          hand: [
+            { card: "BT26-087", as: "toya" },
+            { card: "BT26-088", as: "tsCost" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true },
     );
-    await onPlay.ready();
-    await advance(onPlay.engine).fire(EffectTiming.OnPlay, onPlay.perm("toya"));
+    const onPlayLoop = onPlay.engine.startTurnLoop();
+    await advance(onPlay.engine).waitForMainPhase(0);
+    expect(onPlay.engine.applyIntent(0, { type: "playCard", instanceId: onPlay.inst("toya").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => onPlay.state.players[0]!.hand.length === 1);
 
     expect(onPlay.state.players[0]!.hand).toHaveLength(1);
     expect(onPlay.state.players[0]!.deck).toHaveLength(2);
     expect(onPlay.state.players[0]!.trash).toHaveLength(0);
+    advance(onPlay.engine).endMainPhaseIfOpen(0);
   });
 
   it("plays itself without paying its cost when checked in security", async () => {
     const s = setupEngine({
-      0: { security: [{ card: "BT26-087", as: "toya" }] },
-      1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+      0: { security: [{ card: "BT26-087", as: "toya" }], deck: ["BT1-011", "BT1-012"] },
+      1: { battleArea: [{ card: "AD1-001", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 0;
     const toyaId = s.inst("toya").instanceId;
 
     expect(
@@ -177,5 +199,7 @@ describe("BT26-087 Toya Kuga", () => {
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === toyaId)).toBe(false);
     expect(s.state.memory).toBe(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

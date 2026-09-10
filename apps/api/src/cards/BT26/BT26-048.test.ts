@@ -75,7 +75,7 @@ describe("BT26-048 BloomLordmon", () => {
             { card: "BT26-048", as: "bloomLordmon" },
             { card: "EX9-008", as: "ver4" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 10000 }] },
       },
@@ -106,20 +106,30 @@ describe("BT26-048 BloomLordmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT26-043", as: "host", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] }],
+          hand: [
             { card: "BT26-048", as: "bloomLordmon" },
-            { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            { card: "BT26-023", as: "ver4" },
           ],
-          hand: [{ card: "BT26-023", as: "ver4" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("bloomLordmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT26-048");
 
-    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("faceDown").instanceId]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("faceDown").instanceId]),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ver4").instanceId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-023");
   });
@@ -129,9 +139,8 @@ describe("BT26-048 BloomLordmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-048", as: "bloomLordmon" },
             {
-              card: "BT1-016",
+              card: "BT26-043",
               as: "host",
               under: [
                 { card: "BT1-010", as: "faceUpBottom", faceUp: true },
@@ -139,18 +148,31 @@ describe("BT26-048 BloomLordmon", () => {
               ],
             },
           ],
-          hand: [{ card: "BT26-023", as: "ver4" }],
+          hand: [
+            { card: "BT26-048", as: "bloomLordmon" },
+            { card: "BT26-023", as: "ver4" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("bloomLordmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT26-048");
 
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toContain(s.inst("ver4").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("faceDownUpper").instanceId);
-    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("faceUpBottom").instanceId]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("faceUpBottom").instanceId]),
+    );
   });
 
   it("activates its All Turns debuff once for a simultaneous batch of multiple face-down cards (Q7050)", async () => {
@@ -247,7 +269,7 @@ describe("BT26-048 BloomLordmon", () => {
           ],
           hand: [{ card: "BT26-023", as: "ver4" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -1,13 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentLevelFive = {
+const opponentLevelFive: Filter = {
   controllerDefault: "opponent",
   kind: ["Digimon"],
   levelComparison: { op: "lte", value: 5 },
 };
-const shamanOrTsTrash = {
+const shamanOrTsTrash: Filter = {
   controllerDefault: "mine",
   zone: "trash",
   nameOrTrait: [
@@ -15,15 +14,15 @@ const shamanOrTsTrash = {
     { tokens: ["TS"], match: "trait" },
   ],
 };
-const tsPlayable = {
+const tsPlayable: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
   playCostLte: 5,
 };
 
-const deleteOpponent = { kind: "Delete", target: { filter: opponentLevelFive, count: 1 } };
-const costChoice = {
+const deleteOpponent: Action = { kind: "Delete", target: { filter: opponentLevelFive, count: 1 } };
+const costChoice: Action = {
   kind: "Modal",
   choose: 1,
   optional: true,

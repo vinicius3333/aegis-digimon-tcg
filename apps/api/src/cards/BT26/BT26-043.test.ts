@@ -81,15 +81,16 @@ describe("BT26-043 Piximon", () => {
       0: {
         battleArea: [
           {
-            card: "BT26-043",
+            card: "BT26-040",
             as: "piximon",
             under: [
-              { card: "BT1-001", faceUp: false },
-              { card: "BT1-002", faceUp: false },
+              { card: "BT1-009", faceUp: false },
+              { card: "BT1-010", faceUp: false },
             ],
           },
         ],
-        deck: [{ card: "BT1-003", as: "newFaceDown" }],
+        hand: [{ card: "BT26-043", as: "newPiximon" }],
+        deck: ["BT1-011", { card: "BT1-012", as: "newFaceDown" }],
       },
       1: {
         battleArea: [
@@ -101,7 +102,16 @@ describe("BT26-043 Piximon", () => {
       },
     });
 
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("piximon"));
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("piximon").permanentId,
+        instanceId: s.inst("newPiximon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     let pending = s.state.pendingDecision!;
     expect(
@@ -123,9 +133,10 @@ describe("BT26-043 Piximon", () => {
         },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle();
 
     expect(s.perm("piximon").stack.filter(({ faceUp }) => !faceUp)).toHaveLength(3);
+    expect(s.perm("piximon").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("newFaceDown").instanceId);
     expect(s.perm("suspendOnly").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("suspendOnly"), "unsuspend")).toBe(false);
     for (const alias of ["lockA", "lockB", "lockC"]) {

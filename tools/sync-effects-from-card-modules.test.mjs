@@ -89,13 +89,16 @@ test("repeating a scoped replacement is byte-idempotent", () => {
   assert.equal(twice, once);
 });
 
-test("rejects a requested record that is absent", () => {
+test("inserts a requested record that is absent without changing existing records", () => {
   const document = `{
   "BT13-001": { "effects": [] }
 }
 `;
 
-  assert.throws(() => replaceTopLevelEntries(document, new Map([["BT10-001", "{}"]])), /BT10-001 is missing/);
+  const updated = replaceTopLevelEntries(document, new Map([["BT10-001", "{}"]]));
+
+  assert.deepEqual(JSON.parse(updated), { "BT13-001": { effects: [] }, "BT10-001": {} });
+  assert.equal(replaceTopLevelEntries(updated, new Map([["BT10-001", "{}"]])), updated);
 });
 
 test("rejects duplicate top-level effect keys", () => {

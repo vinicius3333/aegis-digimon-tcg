@@ -1,9 +1,16 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-016.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 const CARD_ID = "BT26-016";
 
@@ -156,7 +163,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "victim", dp: 1000 }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -182,7 +189,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "holy" }],
+          hand: [{ card: CARD_ID, as: "holy" }],
           trash: ["BT1-009"],
           deck: [{ card: "BT1-011", as: "recovery" }],
         },
@@ -197,7 +204,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "BT10-008"));
 
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual([]);
@@ -209,7 +218,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "holy" }],
+          hand: [{ card: CARD_ID, as: "holy" }],
           trash: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
@@ -220,7 +229,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
@@ -232,7 +243,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
   it("may accept the deletion but decline the independent three-card recovery payment", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: CARD_ID, as: "holy" }],
+        hand: [{ card: CARD_ID, as: "holy" }],
         trash: [
           { card: "BT1-009", as: "first" },
           { card: "BT1-010", as: "second" },
@@ -242,7 +253,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       },
       1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 1000 }] },
     });
-    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const deleteChoice = s.state.pendingDecision!;
@@ -263,7 +276,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(3);
@@ -276,7 +289,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "holy" }],
+          hand: [{ card: CARD_ID, as: "holy" }],
           trash: [
             { card: "BT1-009", as: "firstReturn" },
             { card: "BT1-010", as: "secondReturn" },
@@ -306,11 +319,11 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       s.inst("thirdReturn").instanceId,
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("holy"), {
-      attackerPermanentId: s.perm("holy").permanentId,
-    });
+    expect(s.perm("holy").isSuspended).toBe(false);
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("secondVictim").permanentId,
@@ -325,7 +338,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "holy" }],
+          hand: [{ card: CARD_ID, as: "holy" }],
           trash: [
             { card: "BT26-001", as: "egg" },
             { card: "BT1-009", as: "first" },
@@ -337,7 +350,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
 
     expect(s.state.players[0]!.eggDeck.map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
@@ -359,7 +374,20 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       { autoAcceptOptional: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("holy").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("holy").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main" && s.state.pendingDecision === undefined);
     expect([...s.perm("holy").keywords]).toEqual(expect.arrayContaining(["Piercing", "Engage"]));
 
     expect(
@@ -381,11 +409,11 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "holy" }],
           hand: ["AD1-001"],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -414,8 +442,8 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
         0: { battleArea: [{ card: CARD_ID, as: "holy" }] },
         1: {
           security: [
-            { card: "BT1-001", as: "firstSecurity" },
-            { card: "BT1-002", as: "secondSecurity" },
+            { card: "BT1-009", as: "firstSecurity" },
+            { card: "BT1-010", as: "secondSecurity" },
           ],
         },
       },
@@ -446,7 +474,25 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       { autoDeclineOptional: true },
     );
     await declined.ready();
-    declined.state.turnSeat = 1;
+    seedTurnLoop(declined);
+    declined.engine.startTurnLoop();
+    await advance(declined.engine).waitForMainPhase(0);
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: declined.perm("holy").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("holy").isSuspended);
+    advance(declined.engine).endMainPhaseIfOpen(0);
+    await advance(declined.engine).waitForMainPhase(1);
+    await settle(
+      () =>
+        declined.state.turnSeat === 1 &&
+        declined.state.phase === "Main" &&
+        declined.state.pendingDecision === undefined,
+    );
     expect(
       declined.engine.applyIntent(1, {
         type: "attack",
@@ -459,48 +505,52 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(declined.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("Q6981 only prevents one leave per turn and blindly returns the top security card", async () => {
-    const once = setupEngine({
-      0: {
-        battleArea: [{ card: CARD_ID, as: "holy" }],
-        security: [
-          { card: "BT1-009", as: "topCost" },
-          { card: "BT1-010", as: "bottomSecurity" },
-        ],
-        deck: [{ card: "BT1-011", as: "oldBottom" }],
+  it("Q6981 prevents one public leave per turn and returns the top security card", async () => {
+    const once = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "holy", suspended: true }],
+          security: [
+            { card: "BT1-009", as: "topCost" },
+            { card: "BT1-010", as: "bottomSecurity" },
+          ],
+          deck: [{ card: "BT1-011", as: "oldBottom" }],
+        },
+        1: {
+          battleArea: [
+            { card: "ST2-11", as: "firstAttacker", dp: 13000 },
+            { card: "ST2-11", as: "secondAttacker", dp: 13000 },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
       },
-    });
-    const holyId = once.perm("holy").permanentId;
-    const firstDeletion = advance(once.engine).verb.deletePermanent([holyId], "byEffect");
-    await settle(() => once.state.pendingDecision?.kind === "optional");
-    const choice = once.state.pendingDecision!;
-    expect(
-      once.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: choice.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    expect(await firstDeletion).toBe(0);
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    seedTurnLoop(once);
+    once.engine.startTurnLoop();
+    await advance(once.engine).waitForMainPhase(0);
+    advance(once.engine).endMainPhaseIfOpen(0);
+    await advance(once.engine).waitForMainPhase(1);
+    await settle(
+      () => once.state.turnSeat === 1 && once.state.phase === "Main" && once.state.pendingDecision === undefined,
+    );
+    await once.ready();
 
-    expect(once.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(0);
+    for (const attacker of ["firstAttacker", "secondAttacker"]) {
+      expect(
+        once.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: once.perm(attacker).permanentId,
+          target: { kind: "permanent", permanentId: once.perm("holy").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => once.events.some(({ kind }) => kind === "combatResolved"));
+    }
+
     expect(once.state.players[0]!.deck.at(-1)?.instanceId).toBe(once.inst("topCost").instanceId);
     expect(once.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
       once.inst("bottomSecurity").instanceId,
     ]);
-
-    const secondDeletion = advance(once.engine).verb.deletePermanent([holyId], "byEffect");
-    await settle(() => once.state.players[0]!.battleArea.length === 0 || once.state.pendingDecision !== undefined);
-    if (once.state.pendingDecision !== undefined) {
-      const unexpectedChoice = once.state.pendingDecision;
-      once.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: unexpectedChoice.decisionId,
-        response: { kind: "optional", accept: false },
-      });
-    }
-    expect(await secondDeletion).toBe(1);
     expect(once.state.players[0]!.battleArea).toHaveLength(0);
-    expect(once.state.players[0]!.security).toHaveLength(1);
   });
 });

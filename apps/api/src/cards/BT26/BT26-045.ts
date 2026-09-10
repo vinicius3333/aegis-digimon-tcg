@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const insectoidTitan = {
+const insectoidTitan: Target = {
   filter: {
     controller: "mine",
     kind: ["Digimon"],
@@ -13,7 +12,7 @@ const insectoidTitan = {
   },
   count: "all",
 };
-const freePlay = {
+const freePlay: Action = {
   kind: "PlayWithoutCost",
   target: {
     filter: {
@@ -53,9 +52,9 @@ export const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       actions: [
-        { kind: "GainKeyword", keyword: { keyword: "Alliance" }, target: insectoidTitan, duration: "untilEachTurnEnd" },
-        { kind: "GainKeyword", keyword: { keyword: "Piercing" }, target: insectoidTitan, duration: "untilEachTurnEnd" },
-        { kind: "GainKeyword", keyword: { keyword: "Vortex" }, target: insectoidTitan, duration: "untilEachTurnEnd" },
+        { kind: "GainKeyword", keyword: { keyword: "Alliance" }, target: insectoidTitan, duration: "forTheTurn" },
+        { kind: "GainKeyword", keyword: { keyword: "Piercing" }, target: insectoidTitan, duration: "forTheTurn" },
+        { kind: "GainKeyword", keyword: { keyword: "Vortex" }, target: insectoidTitan, duration: "forTheTurn" },
       ],
     },
   ],

@@ -62,7 +62,7 @@ describe("BT26-004 Pagumon", () => {
           hand: [{ card: "BT1-089", as: "tamerCard" }],
           deck: ["BT1-010"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -134,6 +134,71 @@ describe("BT26-004 Pagumon", () => {
 
     expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("refuses the second public attack in one turn and resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST2-11", as: "attacker", under: [CARD_ID] },
+            { card: "BT25-088", as: "tamer" },
+          ],
+          hand: [
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-010", as: "secondCost" },
+            { card: "BT1-011", as: "thirdCost" },
+          ],
+          deck: [
+            { card: "BT1-012", as: "firstDraw" },
+            { card: "BT1-013", as: "secondDraw" },
+            { card: "BT1-014", as: "thirdDraw" },
+          ],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = async () => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+    };
+
+    await attack();
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("firstCost").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("firstDraw").instanceId);
+
+    await attack();
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("firstCost").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondCost").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("secondDraw").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    await attack();
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("secondCost").instanceId,
+      s.inst("firstCost").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("thirdDraw").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not pay the hand-card cost or draw without an own Glowing Dawn Tamer", async () => {

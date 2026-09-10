@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const shambala = { nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] };
+const shambala: Pick<Filter, "nameOrTrait"> = { nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 
 export const compiled: CompiledCard = {
