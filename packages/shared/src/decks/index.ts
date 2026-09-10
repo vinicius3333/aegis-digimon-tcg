@@ -22,6 +22,7 @@ import bt22Catalog from "./data/bt22.json" with { type: "json" };
 import bt23Catalog from "./data/bt23.json" with { type: "json" };
 import bt24Catalog from "./data/bt24.json" with { type: "json" };
 import bt25Catalog from "./data/bt25.json" with { type: "json" };
+import bt26Catalog from "./data/bt26.json" with { type: "json" };
 import ex3Catalog from "./data/ex3.json" with { type: "json" };
 import ex4Catalog from "./data/ex4.json" with { type: "json" };
 import ex5Catalog from "./data/ex5.json" with { type: "json" };
@@ -85,6 +86,7 @@ const CATALOG_FILES: readonly CatalogFile[] = [
   bt23Catalog,
   bt24Catalog,
   bt25Catalog,
+  bt26Catalog,
   ex3Catalog,
   ex4Catalog,
   ex5Catalog,

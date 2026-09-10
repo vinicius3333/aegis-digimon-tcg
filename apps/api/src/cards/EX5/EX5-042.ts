@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -34,8 +33,17 @@ export const compiled: CompiledCard = {
               count: 1,
               to: "play",
             },
+            {
+              // The printed "add the rest to your hand" branch is represented as a
+              // second disposition slot. RevealAdd's rest field only supports deck/trash;
+              // this catch-all consumes the revealed card when the Fortitude play slot
+              // cannot take it.
+              filter: {},
+              count: 1,
+              to: "hand",
+            },
           ],
-          rest: "hand",
+          rest: "deckBottom",
         },
       ],
     },
@@ -59,8 +67,13 @@ export const compiled: CompiledCard = {
               count: 1,
               to: "play",
             },
+            {
+              filter: {},
+              count: 1,
+              to: "hand",
+            },
           ],
-          rest: "hand",
+          rest: "deckBottom",
         },
       ],
     },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -37,7 +36,7 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 { tokens: ["MetalGarurumon"], match: "nameExact" },
-                { tokens: ["X Antibody"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "trait", orPrevious: true },
               ],
             },
             raw: "[MetalGarurumon] or [X Antibody] is in this Digimon's digivolution cards",
@@ -54,24 +53,31 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              levelEq: "returnedDigimonLevel",
+              relativeTo: { attr: "level", op: "eq", selectionRef: "returnedDigimon" },
             },
             count: 1,
           },
+          allowCostWithoutTarget: true,
           cost: {
             kind: "return",
             target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                kind: ["Digimon"],
-              },
+              filter: { zone: "trash", controller: "mine", kind: ["Digimon"] },
               count: 1,
             },
             to: "deckBottom",
-            storeAs: "returnedDigimonLevel",
+            bindResultAs: "returnedDigimon",
             raw: "By returning 1 Digimon card from your trash to the bottom of the deck",
           },
+        },
+        {
+          kind: "Return",
+          condition: { kind: "ifThisEffectDidNotAct" },
+          target: {
+            filter: { zone: "trash", controller: "mine", kind: ["Digimon"] },
+            count: 1,
+          },
+          to: "deckBottom",
+          from: ["trash"],
         },
       ],
     },

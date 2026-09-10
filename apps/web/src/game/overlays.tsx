@@ -1169,6 +1169,13 @@ export function playerFacingEffectClause({
   return resolvedEffectClause(cardId, timing, isInherited === true);
 }
 
+/** One hint per destination: each already says where card 1 ends up. */
+function orderHintKey(destination: string | undefined) {
+  if (destination === "stackBottom") return "overlay.orderStackBottomHint";
+  if (destination === "deckBottom") return "overlay.orderDeckBottomHint";
+  return "overlay.orderCardsHint";
+}
+
 /**
  * DecisionOverlay below branches on request.kind via isOptional/isChoose/
  * isSelect/isOrderTriggers (mulligan is handled separately by
@@ -1444,6 +1451,7 @@ export function DecisionOverlay({
       >
         <div className="decision-overlay__heading">
           <div
+            className="decision-overlay__eyebrow"
             style={{
               fontSize: 11,
               fontWeight: 700,
@@ -1459,6 +1467,7 @@ export function DecisionOverlay({
             )}
           </div>
           <div
+            className="decision-overlay__title"
             style={{
               fontFamily: "var(--ds-font-display)",
               fontWeight: 700,
@@ -1475,14 +1484,16 @@ export function DecisionOverlay({
           size="sm"
           variant="secondary"
           icon={Icons.Map}
+          aria-label={t("overlay.viewBoard")}
           onClick={() => setIsViewingBoard(true)}
         >
-          {t("overlay.viewBoard")}
+          <span className="decision-overlay__view-board-label">{t("overlay.viewBoard")}</span>
         </Button>
       </div>
 
       {sourceEffectText ? (
         <div
+          className="decision-overlay__effect-text"
           style={{
             fontSize: 12,
             color: "var(--ds-fg-secondary)",
@@ -1491,8 +1502,6 @@ export function DecisionOverlay({
             borderRadius: 10,
             padding: "8px 12px",
             marginBottom: 14,
-            maxHeight: 72,
-            overflowY: "auto",
           }}
         >
           {sourceEffectText}
@@ -1669,15 +1678,8 @@ export function DecisionOverlay({
       {isOrderCards ? (
         <div style={{ marginBottom: 18 }}>
           <div style={{ fontSize: 12, color: "var(--ds-fg-secondary)", marginBottom: 10 }}>
-            {t(
-              request.options?.orderDestination === "stackBottom"
-                ? "overlay.orderStackBottomHint"
-                : "overlay.orderCardsHint",
-            )}
+            {t(orderHintKey(request.options?.orderDestination))}
           </div>
-          {request.options?.orderDestination === "deckBottom" ? (
-            <p className="decision-overlay__subtitle">{t("overlay.orderDeckBottomHint")}</p>
-          ) : null}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {cardOrder.map((instanceId, index) => {
               const card = candidates.find((candidate) => candidate.instanceId === instanceId);
@@ -1831,9 +1833,11 @@ export function DecisionOverlay({
         </div>
       ) : null}
       {isOrderCards ? (
-        <Button full icon={Icons.Check} onClick={() => onRespond({ kind: "orderCards", order: cardOrder })}>
-          {t("overlay.confirmOrder")}
-        </Button>
+        <div className="decision-overlay__footer">
+          <Button full icon={Icons.Check} onClick={() => onRespond({ kind: "orderCards", order: cardOrder })}>
+            {t("overlay.confirmOrder")}
+          </Button>
+        </div>
       ) : null}
     </div>
   );

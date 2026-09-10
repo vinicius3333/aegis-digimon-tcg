@@ -268,7 +268,7 @@ export interface PrimitivesEngine {
     permanentIds: string[],
     cause: import("./EffectContext.js").RemovalCause,
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean },
+    opts?: { isBounce?: boolean; playerAction?: boolean },
   ) => Promise<Set<string>>;
   /** The shared memory gauge (memory-gauge subsystem); single owner of memory math. */
   readonly memory: MemoryPort;
@@ -2355,12 +2355,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    */
   const movePermanentZone = async (permanentId: string, direction: "toBreeding" | "toBattle"): Promise<boolean> => {
     if (direction === "toBreeding") {
-      if (isRestricted(permanentId, "leaveBattleAreaExceptByDeletion")) return false;
       for (const owner of state.players) {
         const idx = owner.battleArea.findIndex((perm) => perm.permanentId === permanentId);
         if (idx < 0) continue;
         if (owner.breeding !== undefined) return false; // destination occupied (defensive)
-        const permanent = extractPermanentAt(owner, idx)!;
+        const permanent = owner.battleArea[idx]!;
+        const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
+        if (
+          permanent.topCard !== undefined &&
+          continuous.isPlayBlocked(effectSeat, requireCardDefinition(permanent.topCard.cardId), "move", true)
+        )
+          return false;
+        if (isRestricted(permanentId, "leaveBattleAreaExceptByDeletion")) return false;
+        const extracted = extractPermanentAt(owner, idx)!;
         // Comprehensive Rules §3-4-5-2: a Digimon in the breeding area can't be affected
         // by (and its battle-area effects don't run) effects unless they reference breeding.
         // Drop all three ledgers like any battle-area exit so its replacement/watcher
@@ -2371,11 +2378,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // flagged. A later toBattle re-derives continuous statics; subTrigger re-install on
         // return is a separate pre-existing gap (subTriggers are not recomputed).
         dropPermanentLedgers(permanentId);
-        permanent.inBreeding = true;
-        setBreeding(owner, permanent);
+        extracted.inBreeding = true;
+        setBreeding(owner, extracted);
         engine.emit({
           kind: "cardsMoved",
-          instanceIds: permanent.topCard ? [permanent.topCard.instanceId] : [],
+          instanceIds: extracted.topCard ? [extracted.topCard.instanceId] : [],
           from: Zone.BattleArea,
           to: Zone.Breeding,
         });

@@ -1345,8 +1345,9 @@ describe("EX3-055 Wormmon errata decisions", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText(/Arrange the cards in deck order/)).toBeTruthy();
+    expect(screen.getByText(/Arrange the cards going to the bottom of the deck/)).toBeTruthy();
     expect(screen.getByText(/Number 1 will be nearest the top/)).toBeTruthy();
+    expect(screen.queryByText(/Arrange the cards in deck order/)).toBeNull();
     expect((screen.getAllByRole("button", { name: /Move card down/ })[0] as HTMLButtonElement).disabled).toBe(false);
     expect((screen.getByRole("button", { name: "Confirm order" }) as HTMLButtonElement).disabled).toBe(false);
   });
@@ -2050,7 +2051,7 @@ describe("decision board preview", () => {
     });
 
     expect(screen.getByText("Choose the card order")).toBeTruthy();
-    expect(screen.getByText(/Arrange the cards in deck order/i)).toBeTruthy();
+    expect(screen.getByText(/Arrange the cards going to the bottom of the deck/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Confirm order" })).toBeTruthy();
     expectDracomonRevealText();
   });
@@ -2155,7 +2156,7 @@ describe("decision board preview", () => {
 
     if (kind === "orderCards") {
       expect(screen.getByText("Choose the card order")).toBeTruthy();
-      expect(screen.getByText(/Arrange the cards in deck order/i)).toBeTruthy();
+      expect(screen.getByText(/Arrange the cards going to the bottom of the deck/i)).toBeTruthy();
       expect(screen.getByRole("button", { name: "Confirm order" })).toBeTruthy();
     } else {
       expect(screen.getByText("Resolve effect")).toBeTruthy();

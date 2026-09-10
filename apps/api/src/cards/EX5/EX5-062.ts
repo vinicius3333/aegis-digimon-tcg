@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getCompiledCard } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -20,13 +19,13 @@ for (const effect of compiled.effects ?? []) {
 const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
 const watcherTrigger = watcher?.actions.find((action) => action.kind === "SubTrigger");
 const draw = watcher?.actions.find((action) => action.kind === "Draw");
-if (watcherTrigger?.kind === "SubTrigger" && draw?.kind === "Draw") {
+if (watcher !== undefined && watcherTrigger?.kind === "SubTrigger" && draw?.kind === "Draw") {
   watcherTrigger.sourceFilter = { ...(watcherTrigger.sourceFilter ?? {}), byEffect: true };
   draw.condition = { kind: "ifThisEffectDidNotDelete" };
   watcherTrigger.actions.push(draw);
   watcher.actions = [watcherTrigger];
 }
-if (watcher) watcher.frequency = "OncePerTurn";
+if (watcher !== undefined) watcher.frequency = "OncePerTurn";
 compiled.coverage = "full";
 compiled.residual = [];
 

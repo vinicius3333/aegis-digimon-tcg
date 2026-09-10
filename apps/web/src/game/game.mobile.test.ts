@@ -143,6 +143,25 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.decision-board-return > button \{[^}]*min-height:\s*44px/);
   });
 
+  it("spends the decision sheet on the targets, not on its header", () => {
+    // The header is one line — no gradient panel, no full-width row for the board
+    // pill — so the card grid and the confirm button keep the screen.
+    expect(portraitRules).toMatch(/\.decision-overlay__header \{[^}]*align-items:\s*center[^}]*flex-wrap:\s*nowrap/);
+    expect(portraitRules).toMatch(/\.decision-overlay__heading \{[^}]*padding:\s*0[^}]*background:\s*none/);
+    expect(portraitRules).toMatch(/\.decision-overlay__title \{[^}]*font-size:\s*0\.875rem/);
+    // The pill shares the header line but still answers to the touch floor.
+    expect(portraitRules).toMatch(
+      /\.decision-overlay__view-board \{[^}]*width:\s*auto[^}]*min-height:\s*44px[^}]*border-radius:\s*999px/,
+    );
+  });
+
+  it("lets the effect text flow whole instead of hiding its tail in a scroll box", () => {
+    // The wording the choice hinges on always reads in full at a denser size; the
+    // sheet's own scroll is the only scroll.
+    expect(portraitRules).toMatch(/\.decision-overlay__effect-text \{[^}]*font-size:\s*0\.6875rem/);
+    expect(portraitRules).not.toMatch(/\.decision-overlay__effect-text \{[^}]*max-height/);
+  });
+
   it("shrinks the board-mode decision rail so the phone board stays readable", () => {
     // The rail is the only way to answer a board-mode decision, so its actions must
     // never be pushed off: it takes a fraction of the width, shows the printed
@@ -547,6 +566,16 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
     expect(gameCss).toMatch(/\n\.board-prompt__grip,\n\.board-prompt-scrim \{[^}]*display:\s*none/);
   });
 
+  it("drops a yes/no prompt over the hand and keeps a hand selection above it", () => {
+    // The hand is what a selection picks from, so the hand-anchored rules stay the
+    // default; only a prompt answered with its own buttons may cover the hand.
+    expect(phonePortraitRules).toMatch(
+      /\.board-prompt\[data-variant="prompt"\] \{[^}]*bottom:\s*0;[^}]*padding-bottom:[^}]*safe-area-inset-bottom/,
+    );
+    expect(phonePortraitRules).toMatch(/\.board-prompt-scrim\[data-variant="prompt"\] \{[^}]*inset:\s*0;/);
+    expect(phonePortraitRules).not.toMatch(/\.board-prompt\[data-variant="selection"\]/);
+  });
+
   it("leaves the landscape phone with the left rail it was tuned for", () => {
     expect(landscapeRules).not.toMatch(/\.board-prompt \{/);
   });
@@ -701,16 +730,27 @@ describe("the phone hand strip during a board-mode selection", () => {
   });
 
   it("tells an eligible card from a picked one by colour, not by brightness", () => {
+    // One rim-and-glow language: eligible keeps the cyan "you may act" rim, only
+    // the chosen card turns gold, and the extra weight goes into lift and glow
+    // spread rather than into a thicker ring that would collide in the strip.
     expect(portraitRules).toMatch(
-      /\.game-hand-card--pickable \{[^}]*var\(--ds-accent\)[^}]*var\(--ds-accent-surface\)/,
+      /\.game-hand-card--pickable \{[^}]*var\(--ds-card-rim-ready\)[^}]*var\(--ds-card-glow-ready\)/,
     );
     expect(portraitRules).toMatch(
-      /\.game-hand-card--picked \{[^}]*var\(--ds-success\)[^}]*var\(--ds-success-surface\)/,
+      /\.game-hand-card--picked \{[^}]*var\(--ds-card-rim-attention\)[^}]*var\(--ds-card-glow-attention\)/,
     );
-    expect(portraitRules).toMatch(/\.game-hand-card--unpickable \{\s*opacity:\s*0\.32/);
+    expect(portraitRules).toMatch(/\.game-hand-card--picked \{[^}]*scale:\s*1\.03/);
+    // The strip clips its own overflow, so the row reserves the room the lift, the
+    // scale and the pick badge need above the cards.
+    expect(portraitRules).toMatch(/--game-hand-lift:\s*10px/);
+    expect(portraitRules).toMatch(/--game-hand-h:[^;]*var\(--game-hand-lift\)/);
+    expect(portraitRules).toMatch(/\[data-testid="hand"\] \{[^}]*padding:\s*var\(--game-hand-lift\)[^}]*!important/);
+    // Darkened and slightly smaller rather than greyed out and faded away.
+    expect(portraitRules).toMatch(/\.game-hand-card--unpickable \{\s*opacity:\s*0\.8/);
+    expect(gameCss).toMatch(/\.game-hand-card--unpickable > \* \{\s*filter:\s*brightness\(0\.55\)/);
     // The same three states exist outside the phone block, so the pointer layout
     // reads the selection the same way.
-    expect(gameCss).toMatch(/\.game-hand-card--pickable \{[^}]*var\(--ds-accent\)/);
+    expect(gameCss).toMatch(/\.game-hand-card--pickable \{[^}]*var\(--ds-card-rim-ready\)/);
   });
 
   it("keeps the pick-order badge inside the card the strip clips", () => {

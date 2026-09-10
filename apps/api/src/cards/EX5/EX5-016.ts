@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -24,6 +23,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By returning 1 of your Digimon to the hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -34,10 +35,12 @@ export const compiled: CompiledCard = {
           kind: "GainMemory",
           amount: 2,
           cost: {
-            kind: "place",
+            kind: "placeOwnTopAtStackBottom",
             target: {
               filter: {
+                isSelfRef: true,
                 controllerDefault: "mine",
+                zone: "battleArea",
                 kind: ["Digimon"],
                 nameOrTrait: [
                   {
@@ -49,10 +52,9 @@ export const compiled: CompiledCard = {
               count: 1,
             },
             raw: "By placing the top card of this Digimon with the [Night Claw]/[Light Fang] trait as this Digimon's bottom digivolution card",
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "self",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       isInherited: true,

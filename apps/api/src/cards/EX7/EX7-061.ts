@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -62,14 +61,14 @@ export const compiled: CompiledCard = {
               condition: { kind: "isYourTurn" },
               optional: true,
             },
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              condition: { kind: "isOpponentsTurn" },
+            },
           ],
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
-          amount: 1,
-          condition: { kind: "isOpponentsTurn" },
         },
       ],
     },

@@ -1,42 +1,48 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-043.js";
-import "./EX5-043.js";
+import "../index.js";
+
+const LEOPARDMON_X = "EX5-043";
 
 describe("EX5-043 Leopardmon (X Antibody)", () => {
-  it("registers once-per-turn When Digivolving and Main play effects plus the play-triggered bounce effect", () => {
-    const source = {
-      instanceId: "source",
-      cardId: "EX5-043",
-      ownerSeat: 0,
-      definition: {},
-      permanent: () => undefined,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => true,
-    } as never;
-    const module = getEffectModule("EX5-043")!;
-    expect(module.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]?.maxPerTurn).toBe(1);
-    expect(module.effectsForTiming(EffectTiming.OnDeclaration, source)[0]?.maxPerTurn).toBe(1);
-    expect(
-      compiled.effects
-        .filter((effect) => effect.trigger === "Main" || effect.trigger === "WhenDigivolving")
-        .map((effect) => effect.sharedUseKey),
-    ).toEqual(["ir-shared-0", "ir-shared-0"]);
-    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
-    expect(watcher?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenPlayed" });
-    for (const trigger of ["Main", "WhenDigivolving"] as const) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions).toContainEqual(
-        expect.objectContaining({
+  it("matches the catalog and encodes shared OPT play/reduction and bounce scaling", () => {
+    expect(getCardDefinition(LEOPARDMON_X)).toMatchObject({
+      cardId: LEOPARDMON_X,
+      nameEn: "Leopardmon (X Antibody)",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Holy Warrior", "Royal Knight", "X Antibody"],
+      evoCosts: [{ color: "Green", level: 5, memoryCost: 4 }],
+      effectText:
+        "[When Digivolving] [Main] [Once Per Turn] You may play 1 green Digimon card from your hand with the play cost reduced by 4. If a card with [Leopardmon]\u00a0in its name or [X Antibody] is in this Digimon's digivolution cards, further reduce it by 3.[Your Turn] [Once Per Turn] When one of your Digimon is played, you may return 1 of your opponent’s 5000 DP or lower Digimon to the hand. For each of your other Digimon, add 3000 to the maximum DP this effect can choose.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+
+    const playEffects = compiled.effects?.filter(
+      (effect) => effect.trigger === "Main" || effect.trigger === "WhenDigivolving",
+    );
+    expect(playEffects).toHaveLength(2);
+    for (const effect of playEffects ?? []) {
+      expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" });
+      expect(effect.actions).toEqual([
+        {
           kind: "PlayWithoutCost",
+          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Green"] }, count: 1 },
+          from: ["hand"],
+          payCost: true,
+          optional: true,
           reduceCostBy: 4,
           reduceCostByIf: {
             amount: 3,
-            condition: expect.objectContaining({
+            condition: {
               kind: "selfDigivolutionStackHasTrait",
               filter: {
                 nameOrTrait: [
@@ -44,69 +50,53 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
                   { tokens: ["X Antibody"], match: "nameExact" },
                 ],
               },
-            }),
+              raw: "a card with [Leopardmon] in its name or [X Antibody] is in this Digimon's digivolution cards",
+            },
           },
-        }),
-      );
+        },
+      ]);
     }
-    if (watcher === undefined) throw new Error("EX5-043 play watcher is missing");
-    const watcherAction = watcher.actions[0];
-    if (watcherAction?.kind !== "SubTrigger") throw new Error("EX5-043 play watcher action is missing");
-    expect(watcherAction.actions).toContainEqual(
-      expect.objectContaining({ kind: "Return", dpCeilingScaling: expect.objectContaining({ amount: 3000 }) }),
-    );
-  });
 
-  it("returns an opposing 5000 DP Digimon when your Digimon is played", async () => {
-    const s = setupEngine(
+    const watcher = compiled.effects?.find((effect) => effect.trigger === "YourTurn");
+    expect(watcher).toMatchObject({ frequency: "OncePerTurn" });
+    expect(watcher?.actions).toEqual([
       {
-        0: { battleArea: [{ card: "EX5-043", as: "source" }], hand: [{ card: "BT1-009", as: "played" }] },
-        1: { battleArea: [{ card: "BT1-021", dp: 5000, as: "target" }] },
+        kind: "SubTrigger",
+        event: "whenPlayed",
+        sourceFilter: { controller: "mine", kind: ["Digimon"] },
+        actions: [
+          {
+            kind: "Return",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } },
+              count: 1,
+            },
+            to: "hand",
+            optional: true,
+            dpCeilingScaling: {
+              amount: 3000,
+              per: 1,
+              filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
+              unit: "cards",
+            },
+          },
+        ],
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-021")).toBe(false);
+    ]);
   });
 
-  it("leaves an opposing 6000 DP Digimon when no other own Digimon raises the ceiling", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX5-043", as: "source" }], hand: [{ card: "BT1-009", as: "played" }] },
-        1: { battleArea: [{ card: "BT1-021", dp: 9000, as: "target" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle();
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId)).toBe(true);
-  });
-
-  it("shares one once-per-turn use between Main and When Digivolving", async () => {
+  it("publicly uses Main to play a green Digimon with the base cost reduction", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX5-043", as: "source" }],
-          hand: [
-            { card: "BT1-064", as: "first" },
-            { card: "BT1-064", as: "second" },
-          ],
+          battleArea: [{ card: LEOPARDMON_X, as: "source" }],
+          hand: [{ card: "EX5-049", as: "candidate" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 10;
+    s.state.memory = 3;
     await s.ready();
-
     const main = observe(s.engine)
       .activatableEffects(s.perm("source"))
       .find((entry) => /play/i.test(entry.description ?? ""));
@@ -119,12 +109,171 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("first").instanceId),
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("candidate").instanceId),
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("candidate").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("candidate").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 
-    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT1-064")).toHaveLength(1);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+  it("answers Q3621-Q3622: one stack match adds at most one further reduction of three", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: LEOPARDMON_X, as: "source", under: ["BT13-056", "BT22-052"] }],
+          hand: [{ card: "EX5-049", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const main = observe(s.engine)
+      .activatableEffects(s.perm("source"))
+      .find((entry) => /play/i.test(entry.description ?? ""));
+    if (main?.instanceId === undefined) throw new Error("EX5-043 Main effect is unavailable");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: main.instanceId,
+        effectKey: main.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("candidate").instanceId),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("candidate").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly plays through When Digivolving and shares its Once Per Turn use with Main", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-039", as: "base" }],
+          hand: [
+            { card: LEOPARDMON_X, as: "source" },
+            { card: "EX5-049", as: "first" },
+            { card: "EX5-049", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("first").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("first").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("second").instanceId);
+    expect(
+      observe(s.engine)
+        .activatableEffects(s.perm("base"))
+        .some((entry) => /play/i.test(entry.description ?? "")),
+    ).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("returns an ineligible non-green candidate to hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: LEOPARDMON_X, as: "source" }],
+        hand: [{ card: "BT1-035", as: "ineligible" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const main = observe(s.engine)
+      .activatableEffects(s.perm("source"))
+      .find((entry) => /play/i.test(entry.description ?? ""));
+    if (main?.instanceId === undefined) throw new Error("EX5-043 Main effect is unavailable");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: main.instanceId,
+        effectKey: main.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ineligible").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ineligible").instanceId),
+    ).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("returns one eligible opposing Digimon with the live +3000-per-other-own-Digimon ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: LEOPARDMON_X, as: "source" },
+            { card: "BT1-009", as: "other" },
+          ],
+          hand: [{ card: "BT1-064", as: "played" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-021", as: "highTarget", dp: 9000 },
+            { card: "BT1-021", as: "tooHigh", dp: 12000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("highTarget").instanceId));
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("highTarget").instanceId);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("tooHigh").instanceId),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not bounce an opposing Digimon above the base ceiling when no other Digimon are present", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: LEOPARDMON_X, as: "source" }], hand: [{ card: "BT1-064", as: "played" }] },
+        1: { battleArea: [{ card: "BT1-021", as: "target", dp: 9000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

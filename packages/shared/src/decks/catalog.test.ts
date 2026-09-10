@@ -14,7 +14,7 @@ import {
 } from "./index.js";
 
 /** Every catalog deck: the whole catalog is legal under the current banlist. */
-const CATALOG_AVAILABLE_DECKS = 337;
+const CATALOG_AVAILABLE_DECKS = 348;
 
 const futureDeck: FamousDeck = {
   deckId: "future-ex12-example",
@@ -29,7 +29,7 @@ const futureDeck: FamousDeck = {
 
 describe("famous deck catalog", () => {
   it("keeps the whole historical catalog available", () => {
-    expect(ALL_FAMOUS_DECKS).toHaveLength(337);
+    expect(ALL_FAMOUS_DECKS).toHaveLength(348);
     expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(CATALOG_AVAILABLE_DECKS);
   });
 
@@ -52,6 +52,7 @@ describe("famous deck catalog", () => {
     const groups = famousDeckGroups([...ALL_FAMOUS_DECKS, futureDeck]);
 
     expect(groups.map((group) => group.collection)).toEqual([
+      "BT26",
       "EX12",
       "BT25",
       "AD1",
@@ -119,6 +120,9 @@ describe("famous deck catalog", () => {
       "BT25",
       "BT25",
       "BT25",
+      "BT26",
+      "BT26",
+      "BT26",
       "EX4",
       "EX5",
       "EX6",
@@ -135,7 +139,7 @@ describe("famous deck catalog", () => {
   it("covers every booster collection represented in the registry", () => {
     const coveredCollections = new Set(ALL_FAMOUS_DECKS.map((deck) => deck.block));
     const expectedCollections = [
-      ...Array.from({ length: 25 }, (_, index) => `BT${index + 1}`),
+      ...Array.from({ length: 26 }, (_, index) => `BT${index + 1}`),
       ...Array.from({ length: 12 }, (_, index) => `EX${index + 1}`),
       "AD1",
       "RB1",
@@ -167,7 +171,7 @@ describe("famous deck catalog", () => {
   });
 
   it("keeps competitive meta decks distinct from official product recipes", () => {
-    expect(COMMUNITY_TOURNAMENT_DECKS).toHaveLength(289);
+    expect(COMMUNITY_TOURNAMENT_DECKS).toHaveLength(297);
     expect(COMMUNITY_TOURNAMENT_DECKS[0]).toMatchObject({
       block: "BT4",
       category: "tournament-result",
@@ -177,7 +181,7 @@ describe("famous deck catalog", () => {
 
   it("stores at least eight sourced tournament results for every collection released after BT10", () => {
     const collections = [
-      ...Array.from({ length: 15 }, (_, index) => `BT${index + 11}`),
+      ...Array.from({ length: 16 }, (_, index) => `BT${index + 11}`),
       ...Array.from({ length: 10 }, (_, index) => `EX${index + 3}`),
       "RB1",
       "AD1",

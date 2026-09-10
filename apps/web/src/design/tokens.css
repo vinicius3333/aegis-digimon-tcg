@@ -53,6 +53,18 @@
   --ds-on-info: #ffffff;
   --ds-info-surface: #dbeafe;
   --ds-info-border: #93b8f8;
+  /* Card highlight language. Every highlighted card — playable, offered,
+     chosen, attackable — wears the same thin rim plus soft glow, and differs
+     only in intensity and lift. Three saturated ring colours used to compete
+     with each other and with the card art, so the hue count is capped at one
+     "attention" tone, one "ready" tone and one "threat" tone. The light values
+     are deeper than the dark ones because a rim has to survive a white sheet. */
+  --ds-card-rim-attention: #d97706;
+  --ds-card-glow-attention: rgba(217, 119, 6, 0.38);
+  --ds-card-rim-ready: #0891b2;
+  --ds-card-glow-ready: rgba(8, 145, 178, 0.48);
+  --ds-card-rim-threat: #c2410c;
+  --ds-card-glow-threat: rgba(194, 65, 12, 0.32);
   --ds-brand-ink: #07152b;
   --ds-brand-ink-soft: #10233f;
   --ds-brand-on-ink: #f8fbff;
@@ -251,6 +263,14 @@
   --ds-brand-nav: #d5deeb;
   --ds-brand-nav-muted: #aebbd0;
   --ds-brand-subtitle: #9eabc0;
+
+  /* On the dark board the same rims read as light emission rather than ink. */
+  --ds-card-rim-attention: #ffc75a;
+  --ds-card-glow-attention: rgba(255, 176, 54, 0.5);
+  --ds-card-rim-ready: #6fe8f5;
+  --ds-card-glow-ready: rgba(39, 214, 232, 0.45);
+  --ds-card-rim-threat: #ff9061;
+  --ds-card-glow-threat: rgba(255, 110, 60, 0.42);
 
   /* Compatibility aliases resolve at :root, so dark mode must restate them. */
   --ds-background: var(--ds-bg);

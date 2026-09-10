@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -36,6 +35,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
+      frequency: "OncePerTurn",
       description:
         "[Your Turn] [Once Per Turn] While this Digimon has the [Four Sovereigns]/[God Beast] trait, it gains ＜Piercing＞.",
       actions: [

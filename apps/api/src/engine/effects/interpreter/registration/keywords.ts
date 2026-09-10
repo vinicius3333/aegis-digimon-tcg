@@ -262,6 +262,8 @@ function overclockTraitFrom(compiled: CompiledCard, definition: CardDefinition |
   for (const effect of compiled.effects) {
     for (const kw of effect.keywords ?? []) {
       if (kw.keyword !== "Overclock") continue;
+      const fromTraitFilter = kw.traitFilter?.[0];
+      if (fromTraitFilter) return fromTraitFilter;
       const qualifier = (kw as { qualifier?: string }).qualifier;
       if (qualifier) return qualifier;
       const fromRaw = parse(kw.raw);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getCompiledCard } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -32,7 +31,7 @@ for (const effect of compiled.effects ?? []) {
   }
 }
 const playWatcher = playTrigger?.actions.find((action) => action.kind === "SubTrigger");
-if (playWatcher?.kind === "SubTrigger") {
+if (playTrigger !== undefined && playWatcher?.kind === "SubTrigger") {
   const bounce = playWatcher.actions.find((action) => action.kind === "Return");
   if (bounce?.kind === "Return") {
     bounce.target.filter.dp = { op: "lte", value: 5000 };

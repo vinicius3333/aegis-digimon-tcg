@@ -37,6 +37,8 @@ export interface Target {
   allowUnaffectableChoice?: boolean;
   /** Default 1. `"all"` for "all ...". */
   count: number | "all";
+  /** Keep a continuous grant only while the originally selected target still matches. */
+  whileMatchesTargetFilter?: boolean;
   /** Who makes a non-trivial choice. Defaults to the effect's controller. */
   chooser?: "controller" | "opponent";
   /** Added to numeric `count` when the condition/scaling applies. */

@@ -1,9 +1,34 @@
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX7-073.js";
 
-describe("EX7-073", () => {
+describe("EX7-073 BeelStarmon (X Antibody)", () => {
+  it("matches the catalog, alternate evolution contract, and fully registered IR", () => {
+    expect(getCardDefinition("EX7-073")).toMatchObject({
+      cardId: "EX7-073",
+      nameEn: "BeelStarmon (X Antibody)",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      types: ["Wizard", "X Antibody", "Three Musketeers"],
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }],
+    });
+    expect(digivolutionRequirementsFor("EX7-073")).toContainEqual({
+      level: 6,
+      traits: ["Three Musketeers"],
+      cost: 1,
+      isAlternate: true,
+      excludeTraits: ["X Antibody"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(hasRegisteredCompiledCard("EX7-073")).toBe(true);
+  });
   it("may use a Three Musketeers Option from hand without cost when digivolving", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "UseOptionWithoutCost",
@@ -115,6 +140,52 @@ describe("EX7-073", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX7-068"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.memory).toBe(9);
+  });
+
+  it("uses the standard purple level-5 evolution for exactly 4 memory and preserves the stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-058", as: "host", under: ["EX7-054"] }],
+          hand: [{ card: "EX7-073", as: "evolution" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: false, autoOrderTriggers: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("evolution").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX7-054", "EX7-058"]);
+  });
+
+  it("rejects the alternate route when the level-6 Three Musketeers already has X Antibody", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX7-073", as: "host" }],
+        hand: [{ card: "EX7-073", as: "evolution" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolution").instanceId);
   });
 
   it.each([

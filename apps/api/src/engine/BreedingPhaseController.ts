@@ -12,7 +12,11 @@ import { Phase, type GameState, type Seat } from "@aegis/shared";
  *   - {@link TurnStateMachine.runBreedingPhase} calls {@link run}, which resolves when
  *     the player has taken an action or skipped.
  *   - The engine applies a breeding verb (hatchEgg / moveFromBreeding) as it arrives
- *     and then calls {@link actionTaken}, ending the window.
+ *     and then calls {@link actionTaken} with the promise of the triggers that action
+ *     fired. The action is spent at once (no second breeding verb is accepted) but the
+ *     window only ends once those triggers have settled, so the turn machine cannot
+ *     open Main — and fire [Start of Your Main Phase] — while a "when one of your
+ *     Digimon moves from the breeding area" watcher (BT16-082) is still resolving.
  *   - An `endPhase` intent during breeding (or no possible action at all) calls
  *     {@link skip}, ending the window with no action.
  *
@@ -23,12 +27,18 @@ import { Phase, type GameState, type Seat } from "@aegis/shared";
 export class BreedingPhaseController {
   private end: (() => void) | undefined;
   private activeSeat: Seat | undefined;
+  private actionSpent = false;
 
   constructor(private readonly state: GameState) {}
 
   /** Is the breeding window currently open (awaiting an action or skip)? */
   get isOpen(): boolean {
     return this.end !== undefined;
+  }
+
+  /** Has the open window's single breeding action already been taken (triggers may still be settling)? */
+  get isActionSpent(): boolean {
+    return this.end !== undefined && this.actionSpent;
   }
 
   /** The seat whose breeding window is open, if any. */
@@ -53,14 +63,21 @@ export class BreedingPhaseController {
   }
 
   /**
-   * End the window because the turn player took their one breeding action. Returns
-   * true when it closed an open window for `seat`; false otherwise.
+   * Spend the window's one breeding action. The window ends at once, or — when the action
+   * fired triggers — only after `triggersSettled` resolves. Returns true when it claimed an
+   * open, unspent window for `seat`; false otherwise.
    */
-  actionTaken(seat: Seat): boolean {
+  actionTaken(seat: Seat, triggersSettled?: Promise<void>): boolean {
     if (this.end === undefined) return false;
     if (this.activeSeat !== seat) return false;
     if (this.state.phase !== Phase.Breeding) return false;
-    this.finish();
+    if (this.actionSpent) return false;
+    if (triggersSettled === undefined) {
+      this.finish();
+      return true;
+    }
+    this.actionSpent = true;
+    void triggersSettled.finally(() => this.finish());
     return true;
   }
 
@@ -72,6 +89,7 @@ export class BreedingPhaseController {
     if (this.end === undefined) return false;
     if (this.activeSeat !== seat) return false;
     if (this.state.phase !== Phase.Breeding) return false;
+    if (this.actionSpent) return false;
     this.finish();
     return true;
   }
@@ -85,6 +103,7 @@ export class BreedingPhaseController {
     const resolve = this.end;
     this.end = undefined;
     this.activeSeat = undefined;
+    this.actionSpent = false;
     resolve?.();
   }
 }

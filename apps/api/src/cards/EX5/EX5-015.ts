@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -91,6 +90,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBeDeleted",
+          mode: "prevent",
           leaveCause: "byBattle",
           sourceFilter: {
             controllerDefault: "mine",
@@ -112,11 +112,10 @@ export const compiled: CompiledCard = {
                 excludeKind: ["DigiEgg"],
               },
               count: 2,
-              to: "deckBottom",
             },
+            to: "deckBottom",
             raw: "by returning 2 non-Digi-Egg cards from your trash to the bottom of the deck",
           },
-          outcome: "preventDeletion",
         },
       ],
       isInherited: true,

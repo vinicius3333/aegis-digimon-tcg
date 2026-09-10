@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const dedigivolve = {
@@ -7,7 +6,7 @@ const dedigivolve = {
   target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
   amount: 4,
   stopAtLevel: 3,
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [dedigivolve] },
@@ -28,6 +27,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },

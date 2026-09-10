@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const nsp = {
@@ -7,14 +6,14 @@ const nsp = {
   kind: ["Digimon"],
   playCostLte: 7,
   nameOrTrait: [{ tokens: ["NSp"], match: "trait" }],
-};
+} satisfies Filter;
 const reduction = {
   kind: "ModifyDP",
   target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
   amount: -7000,
   duration: "forTheTurn",
   scaling: { per: 1, filter: { controller: "mine", kind: ["Digimon"] }, unit: "cards" },
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     {

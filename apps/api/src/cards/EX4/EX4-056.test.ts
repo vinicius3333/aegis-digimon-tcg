@@ -108,7 +108,7 @@ describe("EX4-056 Crowmon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("subject").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("attackTarget").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("attackTarget").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("subject").topCard?.cardId === "BT13-089");

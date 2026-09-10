@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-070.js";
-import "./EX5-070.js";
 import "../index.js";
 
 describe("EX5-070 X Antibody Proto Form", () => {
@@ -116,25 +114,74 @@ describe("EX5-070 X Antibody Proto Form", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT9-011");
   });
 
-  it("returns a Digimon stack card and places Proto Form in security on a public leave", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX5-070", "BT1-009"] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
+  it("returns a Digimon stack card and places Proto Form in security after a public battle deletion", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX5-070", "BT1-009"], suspended: true }] },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 5000 }] },
+    });
     const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([hostId], "byBattle");
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.security[0]?.cardId).toBe("EX5-070");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
-  it("returns Proto Form from security through its public Security timing", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX5-070", as: "securityProto" }] } });
+  it("activates with only Proto Form in the stack (Q3680)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX5-070"], suspended: true }] },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 5000 }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityProto"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "EX5-070"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security[0]?.cardId).toBe("EX5-070");
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("returns Proto Form from security through a public security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX5-070", as: "securityProto" }] },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX5-070"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX5-070");
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

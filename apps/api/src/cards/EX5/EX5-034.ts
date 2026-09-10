@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -83,7 +82,6 @@ export const compiled: CompiledCard = {
               },
               optional: true,
               abortOnDecline: true,
-              reason: "applyBothEffects",
             },
             {
               kind: "ModifyDP",

@@ -1,11 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Banlist: Restricted to 1 copy (since 2024-03-01).
 // Fixes:
 // 1. [WhenDigivolving] GainMemory condition kind "selfDigivolutionStackHasTrait" is valid
-//    (confirmed in BT5-015); nameOrTrait match for Garurumon OR X Antibody.
+//    (confirmed in BT5-015); nameOrTrait matches an exact Garurumon name OR the X Antibody trait.
 // 2. [AllTurns] Replacement cost target: excludeKind:["DigiEgg"] (non-Digi-Egg cards), to: "deckBottom".
 // 3. Replacement outcome: "preventDeletion" (the actions[] field is replaced by outcome).
 // Q&A Q3562: cannot pay the cost and then allow deletion — must prevent if cost is paid.
@@ -42,7 +41,7 @@ export const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "nameExact",
+                  match: "trait",
                   orPrevious: true,
                 },
               ],
@@ -58,6 +57,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBeDeleted",
+          mode: "prevent",
           leaveCause: "byBattle",
           sourceFilter: {
             controllerDefault: "mine",
@@ -78,11 +78,10 @@ export const compiled: CompiledCard = {
                 excludeKind: ["DigiEgg"],
               },
               count: 2,
-              to: "deckBottom",
             },
+            to: "deckBottom",
             raw: "by returning 2 non-Digi-Egg cards from your trash to the bottom of the deck",
           },
-          outcome: "preventDeletion",
         },
       ],
       isInherited: true,

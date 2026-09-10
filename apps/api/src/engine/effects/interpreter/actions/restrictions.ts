@@ -5,7 +5,7 @@ import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { KIND_MAP } from "../maps.js";
 import { definitionMatches } from "../matching/definition.js";
-import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
@@ -53,13 +53,21 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
       const duration = toDuration(action.duration);
       const continuous = action.while !== undefined ? true : undefined;
-      const dynamicTargetFilter =
-        (action as typeof action & { whileMatchesTargetFilter?: boolean }).whileMatchesTargetFilter === true;
       const scaledTarget =
         scope.scale !== undefined && typeof action.target.count === "number"
           ? { ...action.target, count: action.target.count * scope.scale }
           : action.target;
       const filter = scaledTarget.filter;
+      const dynamicTargetFilter =
+        (action as typeof action & { whileMatchesTargetFilter?: boolean }).whileMatchesTargetFilter === true ||
+        // A continuous source-relative restriction is inherently live: "all opponent Digimon
+        // with as many or fewer digivolution cards as this Digimon" must reopen when either
+        // stack changes.  The compiler's permanent Restrict shape predates the explicit
+        // whileMatchesTargetFilter marker, so infer only this unambiguous all-target form and
+        // route it through the existing player-scoped predicate ledger.
+        (ctx.continuousPass === true &&
+          scaledTarget.count === "all" &&
+          filter?.digivolutionCardsCompareToSource !== undefined);
       const restriction = (
         action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
           ? "beReturned"
@@ -87,9 +95,16 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         filter !== undefined
       ) {
         for (const seat of seatsForController(ctx, filter)) {
+          const sourceKinds = (ctx.effectSourceKinds ?? ctx.source.definition.kinds).filter(
+            (kind) => kind === "Digimon" || kind === "Option",
+          );
           ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {
             const permanent = ctx.game.permanentById(permanentId);
-            return permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+            return (
+              permanent !== undefined &&
+              permanentMatchesFilter(ctx, permanent, filter, ctx.source) &&
+              !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
+            );
           });
         }
         return false;

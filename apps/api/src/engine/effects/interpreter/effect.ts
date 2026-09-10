@@ -36,6 +36,7 @@ import { canPayCost, payCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
+import { allowsOptionalProcessingCostWithoutTarget } from "./processingCondition.js";
 import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
@@ -822,7 +823,7 @@ export function canActivateEffect(
     if (!BOARD_TARGETED_ACTION_KINDS.has(action.kind)) return undefined;
     // Some rulings explicitly allow paying the processing cost even when the payload has no
     // target (BT15-009). Those actions opt out of declaration-time target gating.
-    if (action.kind !== "RawUnparsed" && action.allowCostWithoutTarget === true) return undefined;
+    if (allowsOptionalProcessingCostWithoutTarget(action)) return undefined;
     // A scaled/bound deletion can acquire its target only after a cost or earlier action has
     // produced the value it compares against. Keep those on the resolver's transactional
     // preflight; only statically answerable deletion targets are safe to gate here.
