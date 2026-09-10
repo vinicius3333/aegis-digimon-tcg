@@ -6,16 +6,39 @@ import { compiled } from "./BT9-034.js";
 describe("BT9-034 Salamon (X Antibody)", () => {
   it("matches catalog, alternate evolution, and Q1833 security IR", () => {
     expect(getCardDefinition("BT9-034")).toMatchObject({
-      cardId: "BT9-034", nameEn: "Salamon (X Antibody)", colors: ["Yellow"], kinds: ["Digimon"], level: 3,
-      playCost: 3, dp: 3000, evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }], forms: ["Rookie"],
-      attributes: ["Vaccine"], types: ["Mammal", "X Antibody"],
+      cardId: "BT9-034",
+      nameEn: "Salamon (X Antibody)",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 3000,
+      evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Mammal", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Salamon"], cost: 0, isAlternate: true }],
-      effects: [{ trigger: "WhenDigivolving", actions: [{
-        kind: "SecurityManipulation", op: "lookAndMayAddToHand", controller: "mine", source: "securityTop", amount: 1,
-        ifAddedToHand: [{ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 }],
-      }] }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Salamon"], cost: 0, isAlternate: true }],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "lookAndMayAddToHand",
+              controller: "mine",
+              source: "securityTop",
+              amount: 1,
+              ifAddedToHand: [
+                { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 },
+              ],
+            },
+          ],
+        },
+      ],
     });
   });
 

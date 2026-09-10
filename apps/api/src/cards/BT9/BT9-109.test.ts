@@ -146,15 +146,33 @@ describe("BT9-109 X Antibody (override)", () => {
 
   it("matches catalog values and waiver, security, placement, and inherited IR", () => {
     expect(getCardDefinition("BT9-109")).toMatchObject({
-      colors: ["White"], kinds: ["Option"], playCost: 0, types: ["X Antibody"],
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 0,
+      types: ["X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         { trigger: "Static", actions: [{ kind: "WaiveColorRequirement" }] },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "GainMemory", amount: 1 }, { kind: "AddToHandSelf" }] },
-        { trigger: "Main", actions: [{ kind: "PlaceUnder", position: "bottom", underFilter: { excludeCardsNamed: ["X Antibody"] } }] },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "GainMemory", amount: 1 }, { kind: "AddToHandSelf" }],
+        },
+        {
+          trigger: "Main",
+          actions: [{ kind: "PlaceUnder", position: "bottom", underFilter: { excludeCardsNamed: ["X Antibody"] } }],
+        },
         { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Restrict", restriction: "beTrashed" }] },
-        { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, optional: true, into: { traits: ["X Antibody"] } }] },
+        {
+          trigger: "WhenAttacking",
+          isInherited: true,
+          actions: [
+            { kind: "Digivolve", from: ["hand"], payCost: true, optional: true, into: { traits: ["X Antibody"] } },
+          ],
+        },
       ],
     });
   });
@@ -226,9 +244,8 @@ describe("BT9-109 X Antibody (override)", () => {
     const ctx = makeContext({ recorder, ownBattleArea: [host] });
     const effect = module!.effectsForTiming(EffectTiming.OnUseOption, makeSource())[0]!;
     // The only Digimon already carries an [X Antibody], so there is no legal target.
-    // Compiled modules defer permanent eligibility to public target resolution;
-    // the real-engine duplicate-target test below proves this illegal host is excluded.
-    expect(effect.canActivate(ctx)).toBe(true);
+    // The compiled activation predicate rejects the illegal host before target resolution.
+    expect(effect.canActivate(ctx)).toBe(false);
   });
 
   it("uses exact stack-card names: X Antibody excludes, X Antibody Proto Form does not", () => {

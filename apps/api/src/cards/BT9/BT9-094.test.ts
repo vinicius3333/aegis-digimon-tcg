@@ -6,12 +6,24 @@ import "./BT9-094.js";
 describe("BT9-094 Atomic Megalo Blaster", () => {
   it("matches catalog values and the capped deletion security IR", () => {
     expect(getCardDefinition("BT9-094")).toMatchObject({
-      colors: ["Red"], kinds: ["Option"], playCost: 6,
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 6,
       securityEffectText: "[Security] Activate this card's [Main] effect.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "Delete", target: { count: "all", totalDpCap: 10000, filter: { controller: "opponent", kind: ["Digimon"] } } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: { count: "all", totalDpCap: 10000, filter: { controller: "opponent", kind: ["Digimon"] } },
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
       ],
     });

@@ -8,23 +8,47 @@ import "./BT9-104.js";
 describe("BT9-104 X Digivolution!", () => {
   it("matches catalog values and waiver, reveal-digivolve, and security IR", () => {
     expect(getCardDefinition("BT9-104")).toMatchObject({
-      colors: ["Black"], kinds: ["Option"], playCost: 3, types: ["X Antibody"],
-      securityEffectText: "[Security] You may reveal the top 3 cards of your deck. Add 1 card with [X Antibody] in its traits among them to your hand. Trash the rest.",
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["X Antibody"],
+      securityEffectText:
+        "[Security] You may reveal the top 3 cards of your deck. Add 1 card with [X Antibody] in its traits among them to your hand. Trash the rest.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         {
           trigger: "Static",
-          actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } } }],
+          actions: [
+            {
+              kind: "WaiveColorRequirement",
+              condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+            },
+          ],
         },
         {
           trigger: "Main",
           actions: [
-            { kind: "RevealAdd", revealCount: 3, add: [{ to: "digivolve", optional: true, digivolveTarget: { filter: { kind: ["Digimon"] }, count: 1 } }], rest: "trash" },
-            { kind: "PlaceUnder", target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }, underFilter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [{ to: "digivolve", optional: true, digivolveTarget: { filter: { kind: ["Digimon"] }, count: 1 } }],
+              rest: "trash",
+            },
+            {
+              kind: "PlaceUnder",
+              target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+              underFilter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            },
           ],
         },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "RevealAdd", optional: true, revealCount: 3, rest: "trash" }] },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "RevealAdd", optional: true, revealCount: 3, rest: "trash" }],
+        },
       ],
     });
   });
@@ -126,12 +150,8 @@ describe("BT9-104 X Digivolution!", () => {
     // non-X-Antibody remainder is trashed, and the unchosen X Antibody is
     // placed under the evolved Digimon before Grademon's When Digivolving opens.
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("initialMiss").instanceId,
-    );
-    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("incompatibleX").instanceId,
-    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("initialMiss").instanceId);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("incompatibleX").instanceId);
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolution").instanceId);
   });
 });

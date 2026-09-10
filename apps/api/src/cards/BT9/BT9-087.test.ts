@@ -8,19 +8,47 @@ import "./BT9-087.js";
 describe("BT9-087 T.K. Takaishi & Izzy Izumi", () => {
   it("matches catalog values and the independent memory, DP, and security IR", () => {
     expect(getCardDefinition("BT9-087")).toMatchObject({
-      colors: ["Yellow", "Green"], kinds: ["Tamer"], playCost: 4,
+      colors: ["Yellow", "Green"],
+      kinds: ["Tamer"],
+      playCost: 4,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         {
           trigger: "StartOfYourMainPhase",
           actions: [
-            { kind: "GainMemory", condition: { kind: "youHave", filter: { levelComparison: { op: "gte", value: 5 } } } },
-            { kind: "GainMemory", condition: { kind: "opponentHas", filter: { levelComparison: { op: "gte", value: 5 } } } },
+            {
+              kind: "GainMemory",
+              condition: { kind: "youHave", filter: { levelComparison: { op: "gte", value: 5 } } },
+            },
+            {
+              kind: "GainMemory",
+              condition: { kind: "opponentHas", filter: { levelComparison: { op: "gte", value: 5 } } },
+            },
           ],
         },
-        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { colors: ["Yellow", "Green"] }, actions: [{ kind: "ModifyDP", amount: -1000, duration: "untilOpponentTurnEnd", optional: true, cost: { kind: "suspend" } }] }] },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenOneOfYoursDigivolves",
+              sourceFilter: { colors: ["Yellow", "Green"] },
+              actions: [
+                {
+                  kind: "ModifyDP",
+                  amount: -1000,
+                  duration: "untilOpponentTurnEnd",
+                  optional: true,
+                  cost: { kind: "suspend" },
+                },
+              ],
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });

@@ -7,15 +7,34 @@ import { compiled } from "./BT9-038.js";
 describe("BT9-038 Pegasusmon", () => {
   it("matches catalog, Patamon evolution, Armor Purge, and opponent-turn keyword IR", () => {
     expect(getCardDefinition("BT9-038")).toMatchObject({
-      cardId: "BT9-038", nameEn: "Pegasusmon", colors: ["Yellow", "Blue"], kinds: ["Digimon"], level: 4,
-      playCost: 5, dp: 5000, evoCosts: [{ color: "Yellow", level: 3, memoryCost: 3 }], forms: ["ArmorForm"],
-      attributes: ["Free"], types: ["Holy Beast"],
+      cardId: "BT9-038",
+      nameEn: "Pegasusmon",
+      colors: ["Yellow", "Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 3 }],
+      forms: ["ArmorForm"],
+      attributes: ["Free"],
+      types: ["Holy Beast"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Patamon"], cost: 2, isAlternate: true }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Patamon"], cost: 2, isAlternate: true }],
       effects: [
         { trigger: "Static", keywords: [{ keyword: "Armor Purge" }] },
-        { trigger: "WhenDigivolving", actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "untilOpponentTurnEnd" }] },
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "GainKeyword",
+              keyword: { keyword: "SecurityAttack", amount: -1 },
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
     });
   });

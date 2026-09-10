@@ -6,16 +6,41 @@ import { compiled } from "./BT9-042.js";
 describe("BT9-042 Raijinmon", () => {
   it("matches catalog and complete hand, evolution, and inherited IR contract", () => {
     expect(getCardDefinition("BT9-042")).toMatchObject({
-      cardId: "BT9-042", nameEn: "Raijinmon", colors: ["Yellow", "Black"], kinds: ["Digimon"], level: 6,
-      playCost: 11, dp: 11000,
-      evoCosts: [{ color: "Yellow", level: 5, memoryCost: 3 }, { color: "Black", level: 5, memoryCost: 3 }],
-      forms: ["Mega"], attributes: ["Virus"], types: ["Cyborg"],
+      cardId: "BT9-042",
+      nameEn: "Raijinmon",
+      colors: ["Yellow", "Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [
+        { color: "Yellow", level: 5, memoryCost: 3 },
+        { color: "Black", level: 5, memoryCost: 3 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Cyborg"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Hand", actions: [{ kind: "PlaceUnder", position: "bottom", cost: { kind: "payMemory", memory: 1 }, optional: true }] },
-        { trigger: "WhenDigivolving", actions: [{ kind: "Trash", optional: true, abortOnDecline: true }, { kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }] },
-        { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Hand",
+          actions: [{ kind: "PlaceUnder", position: "bottom", cost: { kind: "payMemory", memory: 1 }, optional: true }],
+        },
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            { kind: "Trash", optional: true, abortOnDecline: true },
+            { kind: "ModifyDP", amount: -4000, duration: "forTheTurn" },
+          ],
+        },
+        {
+          trigger: "WhenAttacking",
+          isInherited: true,
+          actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }],
+        },
       ],
     });
   });

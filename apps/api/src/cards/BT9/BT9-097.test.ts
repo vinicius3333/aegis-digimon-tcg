@@ -7,20 +7,34 @@ import "./BT9-097.js";
 describe("BT9-097 Metal Storm", () => {
   it("matches catalog values and exact-source reduction, return, and security IR", () => {
     expect(getCardDefinition("BT9-097")).toMatchObject({
-      colors: ["Blue"], kinds: ["Option"], playCost: 7,
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 7,
       securityEffectText: "[Security] Activate this card's [Main] effect.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         {
           trigger: "Static",
-          actions: [{
-            kind: "Replacement", event: "wouldBePlayed",
-            actions: [{
-              kind: "Replacement", mode: "reduceCost", amount: 2,
-              condition: { kind: "youHave", filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] } },
-            }],
-          }],
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              actions: [
+                {
+                  kind: "Replacement",
+                  mode: "reduceCost",
+                  amount: 2,
+                  condition: {
+                    kind: "youHave",
+                    filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
+                  },
+                },
+              ],
+            },
+          ],
         },
         {
           trigger: "Main",

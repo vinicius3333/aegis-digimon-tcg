@@ -6,13 +6,23 @@ import { compiled } from "./BT9-070.js";
 describe("BT9-070 Gazimon (X Antibody)", () => {
   it("matches catalog, Gazimon evolution, and exact three-card trash IR", () => {
     expect(getCardDefinition("BT9-070")).toMatchObject({
-      cardId: "BT9-070", nameEn: "Gazimon (X Antibody)", colors: ["Purple"], kinds: ["Digimon"], level: 3,
-      playCost: 3, dp: 3000, evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }], forms: ["Rookie"],
-      attributes: ["Virus"], types: ["Mammal", "X Antibody"],
+      cardId: "BT9-070",
+      nameEn: "Gazimon (X Antibody)",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 3000,
+      evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Mammal", "X Antibody"],
     });
     expect(compiled).toEqual({
       effects: [{ trigger: "WhenDigivolving", actions: [{ kind: "TrashTopDeck", controller: "mine", amount: 3 }] }],
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Gazimon"], cost: 0, isAlternate: true }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Gazimon"], cost: 0, isAlternate: true }],
     });
   });
 

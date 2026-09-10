@@ -24,15 +24,45 @@ const OPP_TAMER = "BT10-093"; // Yuu Amano
 describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tamer, automatic)", () => {
   it("matches catalog values and scaled cost, mass-effect, and end-turn IR", () => {
     expect(getCardDefinition("BT9-112")).toMatchObject({
-      colors: ["Purple", "Black"], kinds: ["Digimon"], level: 7, playCost: 20, dp: 15000,
-      evoCosts: [{ color: "Black", level: 6, memoryCost: 6 }, { color: "Purple", level: 6, memoryCost: 6 }], types: ["Unanalyzable", "X Program"],
+      colors: ["Purple", "Black"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 20,
+      dp: 15000,
+      evoCosts: [
+        { color: "Black", level: 6, memoryCost: 6 },
+        { color: "Purple", level: 6, memoryCost: 6 },
+      ],
+      types: ["Unanalyzable", "X Program"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", scaling: { unit: "cards", per: 1, filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } }, actions: [{ kind: "Replacement", mode: "reduceCost", amount: 3 }] }] },
-        { trigger: "OnPlay", actions: [{ kind: "DeDigivolve", amount: 1, target: { count: "all" } }, { kind: "Delete", target: { count: "all", filter: { levelComparison: { op: "lte", value: 4 } } } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              scaling: { unit: "cards", per: 1, filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } },
+              actions: [{ kind: "Replacement", mode: "reduceCost", amount: 3 }],
+            },
+          ],
+        },
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "DeDigivolve", amount: 1, target: { count: "all" } },
+            { kind: "Delete", target: { count: "all", filter: { levelComparison: { op: "lte", value: 4 } } } },
+          ],
+        },
         { trigger: "WhenDigivolving", actions: [{ kind: "DeDigivolve", amount: 1 }, { kind: "Delete" }] },
-        { trigger: "EndOfOpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "Delete", target: { count: "all", filter: { superlative: "lowestPlayCost" } } }] },
+        {
+          trigger: "EndOfOpponentsTurn",
+          frequency: "OncePerTurn",
+          actions: [{ kind: "Delete", target: { count: "all", filter: { superlative: "lowestPlayCost" } } }],
+        },
       ],
     });
   });

@@ -8,15 +8,43 @@ import { compiled } from "./BT9-031.js";
 describe("BT9-031 MetalGarurumon (X Antibody)", () => {
   it("matches catalog and complete Q1829/Q1830 IR", () => {
     expect(getCardDefinition("BT9-031")).toMatchObject({
-      cardId: "BT9-031", nameEn: "MetalGarurumon (X Antibody)", colors: ["Blue"], kinds: ["Digimon"], level: 6,
-      playCost: 12, dp: 12000, evoCosts: [{ color: "Blue", level: 5, memoryCost: 4 }], forms: ["Mega"],
-      attributes: ["Data"], types: ["Cyborg", "X Antibody"],
+      cardId: "BT9-031",
+      nameEn: "MetalGarurumon (X Antibody)",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [{ color: "Blue", level: 5, memoryCost: 4 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Cyborg", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["MetalGarurumon"], cost: 1, isAlternate: true }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["MetalGarurumon"], cost: 1, isAlternate: true }],
       effects: [
-        { trigger: "WhenDigivolving", actions: [{ kind: "Unsuspend" }, { kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }] },
-        { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenUnsuspended", actions: [{ kind: "Return", to: "hand", target: { filter: { superlative: "lowestLevel" }, count: "all" } }] }] },
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            { kind: "Unsuspend" },
+            { kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenUnsuspended",
+              actions: [
+                { kind: "Return", to: "hand", target: { filter: { superlative: "lowestLevel" }, count: "all" } },
+              ],
+            },
+          ],
+        },
       ],
     });
   });
