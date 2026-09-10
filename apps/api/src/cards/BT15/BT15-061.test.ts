@@ -34,31 +34,41 @@ describe("BT15-061", () => {
   });
 
   it("passes the inherited Reboot through a legal level 3-to-4-to-5 stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT15-055", as: "stack" }],
-        hand: [{ card: "BT15-061", as: "guardromon" }, { card: "BT15-062", as: "gigadramon" }],
-        deck: ["BT15-066", "BT15-066", "BT15-066", "BT15-066"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-055", as: "stack" }],
+          hand: [
+            { card: "BT15-061", as: "guardromon" },
+            { card: "BT15-062", as: "gigadramon" },
+          ],
+          deck: ["BT15-066", "BT15-066", "BT15-066", "BT15-066"],
+        },
+        1: { deck: ["BT15-055"] },
       },
-      1: { deck: ["BT15-055"] },
-    }, { autoDeclineOptional: true, autoSelectCards: true });
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("stack").permanentId,
-      instanceId: s.inst("guardromon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("stack").permanentId,
+        instanceId: s.inst("guardromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("stack").topCard?.cardId === "BT15-061");
     expect(s.perm("stack").topCard?.cardId).toBe("BT15-061");
     expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT15-055"]);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("stack").permanentId,
-      instanceId: s.inst("gigadramon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("stack").permanentId,
+        instanceId: s.inst("gigadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("stack").topCard?.cardId === "BT15-062");
     expect(s.perm("stack").topCard?.cardId).toBe("BT15-062");
     expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT15-055", "BT15-061"]);

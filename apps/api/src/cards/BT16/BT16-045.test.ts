@@ -99,7 +99,10 @@ describe("BT16-045", () => {
   it("naturally redirects an opponent attack to a suspended Insectoid host (Q2637)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-048", as: "host", under: ["BT16-045"], suspended: true }], security: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT16-048", as: "host", under: ["BT16-045"], suspended: true }],
+          security: ["BT1-001"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

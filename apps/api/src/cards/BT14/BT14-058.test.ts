@@ -53,7 +53,10 @@ describe("BT14-058", () => {
       {
         0: {
           battleArea: [{ card: "BT14-055", as: "base" }],
-          hand: [{ card: "BT14-058", as: "numemon" }, { card: "BT14-086", as: "satsuki" }],
+          hand: [
+            { card: "BT14-058", as: "numemon" },
+            { card: "BT14-086", as: "satsuki" },
+          ],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },

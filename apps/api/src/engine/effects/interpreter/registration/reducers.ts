@@ -71,6 +71,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT13-045", // 8+ Chessmon-name Digimon cards in trash -> self play cost -8
   "BT13-080", // delete one own level-2 Digimon in breeding -> self play cost -2
   "BT13-083", // delete one own level-3 Digimon -> self play cost -4
+  "BT13-086", // delete one own level-4 Digimon -> self play cost -6
   "BT13-111", // no battle-area Digimon; -2 per 5 combined trash cards (KB Q2364; §15-1-7)
   "BT2-099", // self Option use cost -1 per yellow Tamer
   "BT2-112", // opponent has a 10000+ DP Digimon -> -6

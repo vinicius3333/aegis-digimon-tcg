@@ -60,7 +60,9 @@ describe("BT14-006", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fifteen").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fifteen").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("host").topCard.cardId === "BT14-074");
 
     expect(s.perm("host").topCard.cardId).toBe("BT14-074");

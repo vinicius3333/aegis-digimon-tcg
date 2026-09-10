@@ -16,13 +16,15 @@ describe("BT14-056", () => {
   it("inherits once-per-turn leave-play prevention by deleting another D-Brigade Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldLeavePlay",
-        mode: "prevent",
-        leaveCause: "otherThanYourEffect",
-        actions: [{ kind: "Prevent", cost: { kind: "deleteOwn" } }],
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          leaveCause: "otherThanYourEffect",
+          actions: [{ kind: "Prevent", cost: { kind: "deleteOwn" } }],
+        },
+      ],
     }));
 
   it("naturally plays the matching D-Brigade card from the top-five reveal", async () => {
@@ -36,7 +38,9 @@ describe("BT14-056", () => {
       { autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("commandramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("commandramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT14-060"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-060")).toBe(true);
   });
@@ -65,9 +69,10 @@ describe("BT14-056", () => {
         target: { kind: "permanent", permanentId: hostId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
-      !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId),
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId)).toBe(false);

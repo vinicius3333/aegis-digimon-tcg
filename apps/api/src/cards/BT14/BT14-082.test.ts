@@ -6,7 +6,14 @@ import "../index.js";
 
 describe("BT14-082", () => {
   it("gives a Vaccine Digimon +2000 DP at the start of main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT14-082", as: "tai" }, { card: "P-074", as: "vaccine" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT14-082", as: "tai" },
+          { card: "P-074", as: "vaccine" },
+        ],
+      },
+    });
     await s.ready();
     const turn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main && s.perm("vaccine").currentDP === 9000);
@@ -18,7 +25,12 @@ describe("BT14-082", () => {
   it("scopes its security-removal watcher to the opponent's security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-082", as: "tai" }, { card: "BT14-071", as: "attacker" }] },
+        0: {
+          battleArea: [
+            { card: "BT14-082", as: "tai" },
+            { card: "BT14-071", as: "attacker" },
+          ],
+        },
         1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -44,7 +56,10 @@ describe("BT14-082", () => {
     }));
   it("plays from the security stack without paying the cost through a natural security check", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT14-071", as: "attacker" }] }, 1: { security: [{ card: "BT14-082", as: "securityTai" }] } },
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-082", as: "securityTai" }] },
+      },
       { autoOrderTriggers: true, autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(

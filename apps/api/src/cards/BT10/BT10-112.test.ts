@@ -153,7 +153,7 @@ describe("BT10-112 Jesmon GX", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await turn;
 
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blitz")).toBe(false);
+    expect(s.engine.hasAcceptedBlitzAttack(s.perm("base").permanentId)).toBe(false);
   });
 
   it("finishes a real Jesmon GX Blitz attack after borrowing Jesmon X's effect", async () => {

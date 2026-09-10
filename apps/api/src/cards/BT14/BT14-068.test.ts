@@ -92,9 +92,9 @@ describe("BT14-068", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-015"));
 
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
+    ).toBe(true);
 
     s.state.turnSeat = 0;
     await s.ready();

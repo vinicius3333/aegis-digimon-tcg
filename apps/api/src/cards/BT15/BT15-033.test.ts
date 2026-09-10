@@ -47,7 +47,9 @@ describe("BT15-033", () => {
         target: { kind: "permanent", permanentId: s.perm("host").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId));
+    await settle(() =>
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
@@ -107,12 +109,15 @@ describe("BT15-033", () => {
   });
 
   it("does not spend security or prevent deletion by an effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT15-034", as: "host", under: ["BT15-033"] }],
-        security: [{ card: "BT1-001", as: "security" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-034", as: "host", under: ["BT15-033"] }],
+          security: [{ card: "BT1-001", as: "security" }],
+        },
       },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
     await s.ready();
     const hostId = s.perm("host").permanentId;
 

@@ -28,7 +28,15 @@ describe("BT16-036", () => {
   });
 
   it("encodes the exact Yellow Lv.6 plus Black Lv.6 DNA requirement", () => {
-    const requirement = [{ cost: 0, materials: [{ color: "Yellow", level: 6 }, { color: "Black", level: 6 }] }];
+    const requirement = [
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 6 },
+          { color: "Black", level: 6 },
+        ],
+      },
+    ];
 
     expect(compiled.dnaDigivolveRequirement).toEqual(requirement);
     expect(dnaDigivolutionRequirementsFor("BT16-036")).toEqual(requirement);
@@ -144,7 +152,9 @@ describe("BT16-036", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("chaosmon").permanentId })).toEqual({
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("chaosmon").permanentId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
@@ -197,8 +207,12 @@ describe("BT16-036", () => {
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-036")).toBe(false);
-    expect(s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-013")?.stack).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-065")?.stack).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-013")?.stack,
+    ).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-065")?.stack,
+    ).toHaveLength(0);
   });
 
   it("keeps Barrier, Blocker, Partition, Boss, and D-Brigade active live", async () => {

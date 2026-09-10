@@ -34,18 +34,20 @@ describe("BT14-099", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[0]!.trash.some((card) => card.cardId === "BT1-003") &&
         observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack") === 1,
     );
 
-    expect(s.state.players[0]!.trash.filter((card) => ["BT1-001", "BT1-002", "BT1-003"].includes(card.cardId)).map((card) => card.cardId)).toEqual([
-      "BT1-001",
-      "BT1-002",
-      "BT1-003",
-    ]);
+    expect(
+      s.state.players[0]!.trash.filter((card) => ["BT1-001", "BT1-002", "BT1-003"].includes(card.cardId)).map(
+        (card) => card.cardId,
+      ),
+    ).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
     expect(observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack")).toBe(1);
     expect(
       s.engine.applyIntent(0, {
@@ -84,11 +86,11 @@ describe("BT14-099", () => {
         observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack") === 1,
     );
 
-    expect(s.state.players[1]!.trash.filter((card) => ["BT1-001", "BT1-002", "BT1-003"].includes(card.cardId)).map((card) => card.cardId)).toEqual([
-      "BT1-001",
-      "BT1-002",
-      "BT1-003",
-    ]);
+    expect(
+      s.state.players[1]!.trash.filter((card) => ["BT1-001", "BT1-002", "BT1-003"].includes(card.cardId)).map(
+        (card) => card.cardId,
+      ),
+    ).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
     expect(observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT14-099")).toBe(true);
   });

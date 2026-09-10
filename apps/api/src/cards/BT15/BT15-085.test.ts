@@ -65,8 +65,8 @@ describe("BT15-085", () => {
     await settle(() => s.perm("izzy").isSuspended);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("insect").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("insect").permanentId),
+    ).toBe(true);
   });
 });

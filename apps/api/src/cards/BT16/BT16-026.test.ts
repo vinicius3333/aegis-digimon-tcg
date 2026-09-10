@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-026.js";
@@ -22,7 +21,9 @@ describe("BT16-026", () => {
       isAce: true,
       overflowMemory: 4,
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Shakkoumon", "Zudomon"], cost: 3, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Shakkoumon", "Zudomon"], cost: 3, isAlternate: true },
+    ]);
   });
 
   it("models Blast Digivolve", () => {
@@ -66,7 +67,9 @@ describe("BT16-026", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("noSources"), "suspend"));
 
     expect(observe(s.engine).isRestricted(s.perm("noSources"), "suspend")).toBe(true);

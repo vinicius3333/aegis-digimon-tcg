@@ -79,9 +79,7 @@ describe("BT15-008", () => {
         s.engine.applyIntent(0, {
           type: "attack",
           attackerPermanentId: s.perm("attacker").permanentId,
-          target: attackPlayer
-            ? { kind: "player" }
-            : { kind: "permanent", permanentId: targetId },
+          target: attackPlayer ? { kind: "player" } : { kind: "permanent", permanentId: targetId },
         }),
       ).toEqual({ ok: true });
       await settle(() =>

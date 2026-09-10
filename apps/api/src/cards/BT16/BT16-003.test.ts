@@ -54,7 +54,9 @@ describe("BT16-003", () => {
       eligibleBlockerIds: [s.perm("blocker").permanentId],
     });
 
-    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => !observe(s.engine).isAttacking() && s.perm("blocker").isSuspended);

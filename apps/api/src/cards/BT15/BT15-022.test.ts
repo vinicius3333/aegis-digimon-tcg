@@ -66,8 +66,12 @@ describe("BT15-022", () => {
       { autoSelectCards: true },
     );
     normallyPlayed.state.memory = 10;
-    expect(normallyPlayed.engine.applyIntent(0, { type: "playCard", instanceId: normallyPlayed.inst("betamon").instanceId })).toEqual({ ok: true });
-    await settle(() => normallyPlayed.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-022"));
+    expect(
+      normallyPlayed.engine.applyIntent(0, { type: "playCard", instanceId: normallyPlayed.inst("betamon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      normallyPlayed.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-022"),
+    );
 
     expect(observe(normallyPlayed.engine).isRestricted(normallyPlayed.perm("target"), "attack")).toBe(false);
   });
@@ -84,14 +88,28 @@ describe("BT15-022", () => {
       1: { security: ["BT1-081"] },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("betamon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("betamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT15-022");
     s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("egg").inBreeding);
     s.state.phase = Phase.Main;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("hostCard").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("hostCard").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT15-023");
     const hostId = s.perm("egg").permanentId;
 

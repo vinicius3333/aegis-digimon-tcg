@@ -48,7 +48,9 @@ describe("BT15-021", () => {
     );
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("seaBeast").instanceId]);
@@ -92,9 +94,7 @@ describe("BT15-021", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT15-023", as: "host", under: ["BT15-002", "BT15-021"] },
-          ],
+          battleArea: [{ card: "BT15-023", as: "host", under: ["BT15-002", "BT15-021"] }],
         },
         1: {
           battleArea: [

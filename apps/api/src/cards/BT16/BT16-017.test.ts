@@ -28,7 +28,9 @@ describe("BT16-017", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("freeSubject").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("freeSubject").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("freeSubject").topCard?.cardId === "BT16-007");
 
     expect(s.state.memory).toBe(2);
@@ -44,7 +46,9 @@ describe("BT16-017", () => {
     s.state.memory = 2;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("subject").topCard?.cardId === "BT1-009");
 
     expect(s.state.memory).toBe(0);

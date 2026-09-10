@@ -109,13 +109,13 @@ describe("BT13-075 BT13-075", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(false);
   });
 
-  it("keeps a cost-9 opponent restricted after it digivolves into a cost-13 Digimon", async () => {
+  it("keeps a cost-9 opponent restricted after it digivolves into a cost-12 Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-075", as: "alphamon" }], trash: ["BT9-055"] },
         1: {
           battleArea: [{ card: "EX8-052", as: "lowCost" }],
-          hand: [{ card: "BT13-077", as: "highCost" }],
+          hand: [{ card: "BT13-075", as: "highCost" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -133,9 +133,9 @@ describe("BT13-075 BT13-075", () => {
         instanceId: s.inst("highCost").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("lowCost").topCard?.cardId === "BT13-077");
+    await settle(() => s.perm("lowCost").topCard?.cardId === "BT13-075");
 
-    expect(s.perm("lowCost").topCard?.cardId).toBe("BT13-077");
+    expect(s.perm("lowCost").topCard?.cardId).toBe("BT13-075");
     expect(observe(s.engine).isRestricted(s.perm("lowCost"), "attackPlayers")).toBe(true);
     expect(
       s.engine.applyIntent(1, {

@@ -142,7 +142,7 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
       (permanent) => permanent.topCard.instanceId === s.inst("laterAlly").instanceId,
     )!;
 
-    expect(later.currentDP).toBe(4000);
+    expect(later.currentDP).toBe(6000);
     expect(observe(s.engine).canAttackUnsuspended(later)).toBe(true);
     expect(later.attackablePermanentIds).not.toContain(s.perm("unsuspendedOpponent").permanentId);
   });

@@ -27,9 +27,7 @@ describe("BT16-018", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT16-017", as: "ally" },
-          ],
+          battleArea: [{ card: "BT16-017", as: "ally" }],
           hand: [{ card: "BT16-018", as: "source" }],
         },
         1: {
@@ -45,7 +43,9 @@ describe("BT16-018", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("ally"), "beDeletedInBattle"));
 
     expect(observe(s.engine).isRestricted(s.perm("ally"), "beDeletedInBattle")).toBe(true);

@@ -45,7 +45,9 @@ describe("BT14-098", () => {
     const firstVictimId = s.perm("firstVictim").permanentId;
     const secondVictimId = s.perm("secondVictim").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.perm("deDigivolveTarget").stack.length === 0 &&
@@ -60,7 +62,9 @@ describe("BT14-098", () => {
     expect(s.state.players[0]!.deck.slice(0, 3).map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT14-056", "BT14-060", "BT14-064"]),
     );
-    expect(s.state.players[0]!.trash.some((card) => ["BT14-056", "BT14-060", "BT14-064"].includes(card.cardId))).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => ["BT14-056", "BT14-060", "BT14-064"].includes(card.cardId))).toBe(
+      false,
+    );
   });
 
   it("naturally applies De-Digivolve and its deletion budget from a Security check", async () => {

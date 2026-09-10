@@ -8,9 +8,15 @@ import { compiled } from "./BT14-036.js";
 describe("BT14-036", () => {
   it("preserves Centarumon's catalog identity and both exact IR effects", () => {
     expect(getCardDefinition("BT14-036")).toMatchObject({
-      nameEn: "Centarumon", colors: ["Yellow"], level: 4, playCost: 5, dp: 5000,
+      nameEn: "Centarumon",
+      colors: ["Yellow"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
       evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
-      forms: ["Champion"], attributes: ["Data"], types: ["Beastkin"],
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Beastkin"],
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
@@ -22,7 +28,14 @@ describe("BT14-036", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -2000, duration: "forTheTurn" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -2000,
+          duration: "forTheTurn",
+        },
+      ],
     });
   });
 
@@ -66,16 +79,23 @@ describe("BT14-036", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "attack", attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("battleTarget").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 6000);
     await settle();
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
-    expect(s.engine.applyIntent(0, {
-      type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.perm("target").currentDP).toBe(6000);
     assertNoLoudGap(s);

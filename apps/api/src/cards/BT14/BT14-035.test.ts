@@ -8,12 +8,19 @@ import { compiled } from "./BT14-035.js";
 describe("BT14-035", () => {
   it("preserves Unimon's catalog identity and exact Barrier IR", async () => {
     expect(getCardDefinition("BT14-035")).toMatchObject({
-      nameEn: "Unimon", colors: ["Yellow"], level: 4, playCost: 4, dp: 5000,
+      nameEn: "Unimon",
+      colors: ["Yellow"],
+      level: 4,
+      playCost: 4,
+      dp: 5000,
       evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
-      forms: ["Champion"], attributes: ["Vaccine"], types: ["Mythical Beast"],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Mythical Beast"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [],
+      coverage: "full",
+      residual: [],
       effects: [{ trigger: "Static", actions: [], keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }],
     });
     const s = setupEngine({ 0: { battleArea: [{ card: "BT14-035", as: "unimon" }] } });
@@ -26,9 +33,13 @@ describe("BT14-035", () => {
       0: { battleArea: [{ card: "BT14-033", as: "base" }], hand: [{ card: "BT14-035", as: "unimon" }] },
     });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("unimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("unimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT14-035");
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT14-033");
@@ -43,12 +54,17 @@ describe("BT14-035", () => {
     });
     s.state.turnSeat = 1;
     const unimonId = s.perm("unimon").permanentId;
-    expect(s.engine.applyIntent(1, {
-      type: "attack", attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: unimonId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: unimonId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: unimonId, accept: true })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: unimonId, accept: true })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === unimonId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-001");
@@ -63,12 +79,17 @@ describe("BT14-035", () => {
     });
     s.state.turnSeat = 1;
     const unimonId = s.perm("unimon").permanentId;
-    expect(s.engine.applyIntent(1, {
-      type: "attack", attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: unimonId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: unimonId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: unimonId, accept: false })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: unimonId, accept: false })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== unimonId));
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT14-035");
