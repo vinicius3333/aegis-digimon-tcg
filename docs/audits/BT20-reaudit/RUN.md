@@ -48,4 +48,6 @@
 - Workspace typecheck passed after strict typing corrections in audit tests.
 - Static guards passed: 102 exclusive `registerIrCard` modules, zero `registerCard`, zero TypeScript suppressions, and clean `git diff --check`.
 - Effects reconciliation synchronized 102 records and reported 37 semantic BT20 changes with zero semantic or byte changes outside BT20 against base `5b3d42c9680a40dd094444d18fdd5d58c8184358`.
-- Delivery gates, commits, push, remote-SHA verification, and Orca completion remain pending until the final closeout steps are reproduced.
+- Atomic implementation commit `e540204fb` and evidence commit `b8ac12279` were pushed to `origin/audit-bt20-luna-20260910`; local and remote SHA both resolved to `b8ac12279665922d3184f94c024983979bc5b308` before delivery gates were awarded.
+- Delivery gates were awarded collection-wide after the green collection, mechanism, typecheck, lint, format, manifest, and static checks plus the verified push. The ledger is 1020/1020 with 102/102 cards at 10/10.
+- The final closeout evidence commit and Orca completion are the only remaining administrative steps at this checkpoint.
