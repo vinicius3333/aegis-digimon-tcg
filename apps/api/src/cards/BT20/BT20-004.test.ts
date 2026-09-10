@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
@@ -24,6 +25,12 @@ describe("BT20-004 Pinamon", () => {
       into: { nameOrTrait: [{ tokens: ["ACCEL"], match: "trait" }] },
       from: ["hand"],
     });
+  });
+
+  it("matches the ACCEL trait as an exact trait token", () => {
+    const reference = { tokens: ["ACCEL"], match: "trait" as const };
+    expect(matchNameOrTrait({ nameEn: "Synthetic ACCEL", types: ["ACCEL"] }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Synthetic Accelerated", types: ["Accelerated"] }, reference)).toBe(false);
   });
 
   it("observably digivolves its stack for 2 less only after an ACCEL Digimon is played", async () => {
@@ -122,18 +129,24 @@ describe("BT20-004 Pinamon", () => {
         0: {
           battleArea: [{ card: "BT20-030", as: "host", under: ["BT20-004"] }],
           hand: [{ card: "BT20-031", as: "evolution" }],
+          deck: ["BT1-009"],
         },
-        1: { hand: [{ card: "BT20-030", as: "opponentAccel" }] },
+        1: { hand: [{ card: "BT20-030", as: "opponentAccel" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentAccel").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => false, 20);
     expect(s.perm("host").topCard.cardId).toBe("BT20-030");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("pays the reduced nonzero cost for a legal ACCEL evolution", async () => {
@@ -194,6 +207,8 @@ describe("BT20-004 Pinamon", () => {
     );
     s.state.memory = 10;
 
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstAccel").instanceId })).toEqual({
       ok: true,
     });
@@ -209,20 +224,10 @@ describe("BT20-004 Pinamon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT20-031");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030"]);
 
-    // Complete both lifecycle promises through the production turn machine. As in the other
-    // focused reset proof, runOneTurn does not pass the memory gauge frame between seats.
-    s.state.memory = 0;
-    s.state.turnSeat = 1;
-    const opponentTurn = s.engine.runOneTurn();
+    // Complete a real opponent turn so the Once Per Turn watcher resets on the next owner turn.
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-    s.state.turnSeat = 0;
-    s.state.memory = -s.state.memory;
-    // Fund the next production turn before starting its asynchronous lifecycle. The turn
-    // machine owns the gauge frame while it advances through Active/Draw/Breeding.
-    s.state.memory = 10;
-    const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnAccel").instanceId })).toEqual({
@@ -230,8 +235,10 @@ describe("BT20-004 Pinamon", () => {
     });
     await settle(() => s.perm("host").topCard.cardId === "BT20-033");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030", "BT20-031"]);
-    expect(s.state.memory).toBe(6); // play cost 3 + LoaderLeomon's reduced evolution cost 1
+    expect(s.state.memory).toBe(1); // real turn-cycle pass memory funds play cost 3 + reduced evolution cost 1
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

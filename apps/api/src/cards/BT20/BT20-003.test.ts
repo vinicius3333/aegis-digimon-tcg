@@ -137,7 +137,8 @@ describe("BT20-003 Bibimon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT10-031", as: "host", under: ["BT14-087", "BT20-003"] },
+            { card: "BT10-031", as: "eijiHost", under: ["BT14-087"] },
+            { card: "BT10-031", as: "host", under: ["BT20-003"] },
             { card: "BT9-111", as: "ouryuken", under: ["BT20-005", "BT20-010", "BT20-012", "BT20-053", "BT20-056"] },
             { card: "BT17-086", as: "qualifyingTamer" },
           ],
@@ -147,13 +148,12 @@ describe("BT20-003 Bibimon", () => {
       },
       options,
     );
-    preferred.push(s.perm("host").stack[0]!.instanceId); // Reuse Eiji so its inherited effect can detach it on the next window.
+    preferred.push(s.perm("eijiHost").stack[0]!.instanceId); // Reuse Eiji so its inherited effect can detach it on the next window.
     s.state.memory = 3;
     await s.ready();
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
-
     async function chooseTrigger(cardId: string): Promise<void> {
       await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
       const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId);

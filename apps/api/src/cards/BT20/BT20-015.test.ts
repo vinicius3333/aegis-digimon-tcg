@@ -9,6 +9,10 @@ import { compiled } from "./BT20-015.js";
 
 describe("BT20-015 Hisyaryumon", () => {
   it("plays Dorumon or Ryudamon and only grants the attack bonus during an attack", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Ginryumon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["Chronicle"], cost: 3, isAlternate: true },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions[0]).toMatchObject({

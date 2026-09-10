@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -40,6 +41,13 @@ describe("BT20-014 SaviorHuckmon", () => {
         },
       ],
     });
+  });
+
+  it("treats the Jesmon destination as a name-containing reference, not an exact-name reference", () => {
+    const reference = { tokens: ["Jesmon"], match: "name" as const };
+    expect(matchNameOrTrait({ nameEn: "Jesmon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Jesmon GX" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Jespmon" }, reference)).toBe(false);
   });
 
   it.each(["play", "digivolve"] as const)("deletes an opposing Digimon at 5000 DP or less on %s", async (route) => {
@@ -113,14 +121,19 @@ describe("BT20-014 SaviorHuckmon", () => {
           { card: "BT20-017", as: "royalKnight", under: ["BT20-014"] },
           { card: "BT20-018", as: "chronicle", under: ["BT20-014"] },
         ],
+        deck: ["BT1-009"],
       },
+      1: { deck: ["BT1-009"] },
     });
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasKeyword(s.perm("royalKnight"), "Alliance")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("chronicle"), "Alliance")).toBe(false);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("royalKnight"), "Alliance")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
   it("keeps a 5001-DP opposing Digimon when SaviorHuckmon enters", async () => {
     const s = setupEngine(
@@ -170,8 +183,9 @@ describe("BT20-014 SaviorHuckmon", () => {
           { card: "BT20-014", as: "savior" },
           { card: "BT20-017", as: "jesmon" },
         ],
+        deck: ["BT1-009", "BT1-010"],
       },
-      1: { deck: ["BT20-010"], hand: ["BT20-010"] },
+      1: { deck: ["BT1-009", "BT1-010"] },
     });
     s.state.memory = 10;
     expect(
@@ -190,7 +204,7 @@ describe("BT20-014 SaviorHuckmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT20-017");
-    const turn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await settle(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("base").permanentId })).toEqual({
       ok: true,
@@ -198,13 +212,9 @@ describe("BT20-014 SaviorHuckmon", () => {
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(false);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

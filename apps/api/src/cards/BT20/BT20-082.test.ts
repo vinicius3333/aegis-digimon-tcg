@@ -1,11 +1,32 @@
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-082.js";
+import "../BT1/BT1-009.js";
+import "../BT1/BT1-020.js";
+import "../BT1/BT1-085.js";
+import "../ST1/ST1-16.js";
 import "./index.js";
 
 describe("BT20-082 DeathXmon", () => {
+  it("publishes the complete catalog identity and printed clauses", () => {
+    expect(getCardDefinition("BT20-082")).toMatchObject({
+      nameEn: "DeathXmon",
+      colors: ["Purple", "Black"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Unanalyzable", "X Program"],
+      evoCosts: [{ color: "Purple", level: 6, memoryCost: 5 }],
+      effectText: expect.stringContaining("returning 3 cards with [Dex]/[DeathX]"),
+    });
+    expect(getCardDefinition("BT20-082")?.effectText).toContain("[End of All Turns] [Once Per Turn]");
+  });
+
   it("has Security Attack +1, Reboot, and Blocker", () => {
     expect(
       compiled.effects
@@ -53,56 +74,111 @@ describe("BT20-082 DeathXmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-082", as: "deathx" }],
+          battleArea: [
+            { card: "BT20-082", as: "deathx" },
+            { card: "BT1-009", as: "lowestDecoy" },
+          ],
           trash: ["BT17-065", "BT17-067", "BT17-073"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("deathx").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-082"));
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    const deathxId = s.perm("deathx").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.deck.length === 5 &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009") &&
+        s.state.players[0]!.trash.filter((card) => card.cardId !== "BT1-009").length === 0,
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deathxId)).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT17-065", "BT17-067", "BT17-073"]),
     );
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
     const insufficient = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-082", as: "deathx" }],
+          battleArea: [
+            { card: "BT20-082", as: "deathx" },
+            { card: "BT1-009", as: "lowestDecoy" },
+          ],
           trash: ["BT17-065", "BT17-067"],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
-    await insufficient.ready();
-    await advance(insufficient.engine).verb.deletePermanent([insufficient.perm("deathx").permanentId], "byEffect");
-    await settle(() => insufficient.state.players[0]!.battleArea.length === 0);
-    expect(insufficient.state.players[0]!.battleArea).toHaveLength(0);
+    const insufficientId = insufficient.perm("deathx").permanentId;
+    const insufficientLoop = insufficient.engine.startTurnLoop();
+    await advance(insufficient.engine).waitForMainPhase(0);
+    advance(insufficient.engine).endMainPhaseIfOpen(0);
+    await advance(insufficient.engine).waitForMainPhase(1);
+    insufficient.state.memory = 10;
+    expect(
+      insufficient.engine.applyIntent(1, { type: "playCard", instanceId: insufficient.inst("gaia").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !insufficient.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === insufficientId),
+    );
     expect(insufficient.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT20-082", "BT17-065", "BT17-067"]),
     );
+    expect(insufficient.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await insufficientLoop;
   });
 
-  it("deletes every Digimon tied for the lowest level at End of All Turns", async () => {
+  it("deletes every tied lowest-level Digimon and re-arms at the next end of turn", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT20-082", as: "deathx" },
           { card: "BT20-077", as: "ownLowest" },
         ],
+        deck: ["BT1-009", "BT1-009"],
       },
-      1: { battleArea: [{ card: "BT20-079", as: "opponentLowest" }] },
+      1: {
+        battleArea: [{ card: "BT20-079", as: "opponentLowest" }],
+        hand: [{ card: "BT20-047", as: "nextLowest" }],
+        deck: ["BT1-009", "BT1-009"],
+      },
     });
     await s.ready();
-    await advance(s.engine).fireGlobal(EffectTiming.EndOfAllTurns);
-    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 0);
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-082"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("nextLowest").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-047"));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("reaches DeathXmon through its legal purple level-6 evolution route", async () => {
@@ -124,18 +200,34 @@ describe("BT20-082 DeathXmon", () => {
 
   it("publicly reboots and blocks during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-082", suspended: true, as: "deathx" }], security: ["BT1-010"] },
-      1: { battleArea: [{ card: "BT20-047", as: "attacker" }], security: ["BT1-010", "BT1-010"], deck: ["BT1-010"] },
+      0: {
+        battleArea: [
+          { card: "BT20-082", suspended: true, as: "deathx" },
+          { card: "BT1-010", as: "inert" },
+        ],
+        security: ["BT1-010", "BT1-010"],
+        deck: ["BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-020", as: "attacker" },
+          { card: "BT1-009", as: "lowestDecoy" },
+        ],
+        security: ["BT1-010", "BT1-010"],
+        deck: ["BT1-010", "BT1-010"],
+      },
     });
-    s.state.turnSeat = 1;
     await s.ready();
-    const opponentTurn = s.engine.runOneTurn();
+    const attackerId = s.perm("attacker").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("deathx").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
+        attackerPermanentId: attackerId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
@@ -147,8 +239,8 @@ describe("BT20-082 DeathXmon", () => {
     ).toMatchObject({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.state.players[1]!.security).toHaveLength(2);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("performs two security checks from Security Attack +1", async () => {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./BT20-008.js";
@@ -34,12 +33,17 @@ describe("BT20-008 Huckmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("huckmon"));
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nameMatch").instanceId));
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("nameMatch").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("traitMatch").instanceId);
-    expect(s.state.memory).toBe(1);
 
     const declined = setupEngine(
       {
@@ -54,10 +58,20 @@ describe("BT20-008 Huckmon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(declined.engine).fire(EffectTiming.OnStartMainPhase, declined.perm("huckmon"));
+    await declined.ready();
+    const declinedTurn = declined.engine.runOneTurn();
+    await advance(declined.engine).waitForMainPhase(0);
+    await settle(() =>
+      declined.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === "BT20-008" && event.timing === "OnStartMainPhase",
+      ),
+    );
+    expect(declined.state.memory).toBe(0);
+    advance(declined.engine).endMainPhaseIfOpen(0);
+    await declinedTurn;
     expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(declined.inst("cost").instanceId);
     expect(declined.state.players[0]!.deck.map((card) => card.instanceId)).toContain(declined.inst("top").instanceId);
-    expect(declined.state.memory).toBe(0);
   });
 
   it("observably buffs every allied Digimon and no opponent only during its controller's turn", async () => {
@@ -97,7 +111,12 @@ describe("BT20-008 Huckmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("huckmon"));
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("royalKnight").instanceId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("royalKnight").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
   });

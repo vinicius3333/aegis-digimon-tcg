@@ -1,5 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-034.js";
@@ -50,6 +52,56 @@ describe("BT20-034 Boutmon", () => {
       { level: 4, texts: ["Pulsemon"], cost: 3, isAlternate: true },
       { level: 4, traits: ["SEEKERS"], cost: 3, isAlternate: true },
     ]);
+  });
+
+  it("publishes Boutmon's catalog identity and both level-4 alternate routes", () => {
+    expect(getCardDefinition("BT20-034")).toMatchObject({
+      cardId: "BT20-034",
+      nameEn: "Boutmon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Green", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "Abadin Electronics", "SEEKERS"],
+    });
+    const bulkmon = getCardDefinition("BT20-032");
+    if (bulkmon === undefined) throw new Error("BT20-032 catalog definition is required for this boundary");
+    expect(matchingAlternateDigivolutionRequirement("BT20-034", bulkmon)).toMatchObject({
+      level: 4,
+      texts: ["Pulsemon"],
+      cost: 3,
+    });
+
+    const pulsemonNameOnly = {
+      ...bulkmon,
+      nameEn: "Pulsemon",
+      effectText: "[On Play] Draw 1.",
+      types: ["Other"],
+    };
+    expect(matchingAlternateDigivolutionRequirement("BT20-034", pulsemonNameOnly)).toMatchObject({
+      level: 4,
+      texts: ["Pulsemon"],
+      cost: 3,
+    });
+
+    const seekersOnly = {
+      ...bulkmon,
+      effectText: "[On Play] Draw 1.",
+      types: ["SEEKERS"],
+    };
+    expect(matchingAlternateDigivolutionRequirement("BT20-034", seekersOnly)).toMatchObject({
+      level: 4,
+      traits: ["SEEKERS"],
+      cost: 3,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-034", "BT20-024")).toBeUndefined();
   });
 
   it("has Fortitude and restricts an opponent after a Tamer enters its source stack", async () => {
@@ -198,7 +250,7 @@ describe("BT20-034 Boutmon", () => {
             { card: "BT20-010", as: "other" },
           ],
           hand: [{ card: "BT1-070", as: "playable" }],
-          deck: ["BT20-001", "BT20-001", "BT20-001", "BT20-001"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -229,7 +281,7 @@ describe("BT20-034 Boutmon", () => {
         1: {
           battleArea: [{ card: "BT20-071", as: "target" }],
           hand: [{ card: "BT20-035", as: "evolution" }],
-          security: ["BT20-001", "BT20-002", "BT20-003"],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -256,7 +308,7 @@ describe("BT20-034 Boutmon", () => {
       0: { battleArea: [{ card: "BT20-035", as: "host", under: ["BT20-034"] }] },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }],
-        security: ["BT20-001", "BT20-002"],
+        security: ["BT1-010", "BT1-010"],
       },
     });
     s.state.memory = 5;
@@ -405,7 +457,7 @@ describe("BT20-034 Boutmon", () => {
       },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }],
-        security: ["BT20-001", "BT20-002"],
+        security: ["BT1-010", "BT1-010"],
       },
     });
     s.state.memory = 5;

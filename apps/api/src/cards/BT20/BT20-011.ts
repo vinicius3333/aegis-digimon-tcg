@@ -34,6 +34,7 @@ const dnaBody = [
     into: {
       controllerDefault: "mine",
       kind: ["Digimon"],
+      zone: "hand",
       nameOrTrait: [
         { tokens: ["Imperialdramon"], match: "name" },
         { tokens: ["Free"], match: "trait" },

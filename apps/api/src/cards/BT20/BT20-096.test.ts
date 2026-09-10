@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT20-096.js";
@@ -6,6 +7,30 @@ import "./index.js";
 import "./BT20-062.js";
 
 describe("BT20-096 Black Sabbath", () => {
+  it("matches the complete catalog contract and has no residual IR", () => {
+    expect(getCardDefinition("BT20-096")).toMatchObject({
+      cardId: "BT20-096",
+      nameEn: "Black Sabbath",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 2,
+      evoCosts: [],
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["LIBERATOR"],
+      maxCountInDeck: 4,
+    });
+    const printed = getCardDefinition("BT20-096")!;
+    expect(printed.effectText!.replaceAll("\u00a0", " ")).toContain(
+      "[Trash] [Main] If you have 4 or fewer cards in your hand, by paying 6 cost, return this card to the bottom of the deck and delete 1 of your opponent's unsuspended Digimon.",
+    );
+    expect(printed.effectText!.replaceAll("\u00a0", " ")).toContain(
+      "[Main] Trash 1 card in your hand. Then, delete 1 of your opponent's level 4 or lower Digimon.",
+    );
+    expect(printed.securityEffectText).toBe("[Security] Delete 1 of your opponent's level 6 or lower Digimon.");
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("gates the trash activation's deletion on the 6-memory return cost", () => {
     const effect = compiled.effects.find((entry) => entry.isFromTrash);
     expect(effect).toMatchObject({
@@ -13,11 +38,16 @@ describe("BT20-096 Black Sabbath", () => {
         {
           kind: "Return",
           to: "deckBottom",
-          condition: { kind: "zoneCount", zone: "hand", op: "lte", value: 4 },
+          from: ["trash"],
+          condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 4 },
           cost: { kind: "payMemory", memory: 6 },
           abortOnDecline: true,
         },
-        { kind: "Delete", target: { filter: { controller: "opponent", unsuspended: true } } },
+        {
+          kind: "Delete",
+          condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 4 },
+          target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
+        },
       ],
     });
   });
@@ -26,12 +56,19 @@ describe("BT20-096 Black Sabbath", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Main" && !entry.isFromTrash)).toMatchObject({
       actions: [
         { kind: "Trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
-        { kind: "Delete", target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 4 } } } },
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+            count: 1,
+          },
+        },
       ],
     });
   });
 
   it("naturally trashes a hand card and deletes an opposing level 4 or lower Digimon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -41,19 +78,30 @@ describe("BT20-096 Black Sabbath", () => {
           ],
           battleArea: ["BT20-062"],
         },
-        1: { battleArea: [{ card: "BT20-062", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-066", as: "target" },
+            { card: "BT20-071", as: "tooHigh" },
+          ],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    const targetId = s.perm("target").permanentId;
+    const tooHighId = s.perm("tooHigh").permanentId;
+    // `autoSelectCards` sees both opposing candidates; put the level-4 target first.
+    // The level-5 peer is the printed upper-bound negative and must survive.
+    preferred.push(targetId);
     s.state.memory = 2;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
 
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-010");
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT20-062");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT20-066");
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === tooHighId)).toBe(true);
   });
 
   it.each([10, 5])(
@@ -61,7 +109,11 @@ describe("BT20-096 Black Sabbath", () => {
     async (memory) => {
       const s = setupEngine(
         {
-          0: { trash: [{ card: "BT20-096", as: "option" }], hand: ["BT1-010"], deck: ["BT1-010", "BT1-010"] },
+          0: {
+            trash: [{ card: "BT20-096", as: "option" }],
+            hand: Array(4).fill("BT1-010"),
+            deck: ["BT1-010", "BT1-010"],
+          },
           1: {
             battleArea: [
               { card: "BT20-062", as: "unsuspended" },
@@ -111,16 +163,7 @@ describe("BT20-096 Black Sabbath", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     const effects = JSON.parse(s.inst("option").activatableEffectsJson || "[]") as { effectKey: string }[];
-    if (effects[0]) {
-      expect(
-        s.engine.applyIntent(0, {
-          type: "activateEffect",
-          sourceInstanceId: optionId,
-          effectKey: effects[0].effectKey,
-        }),
-      ).toEqual({ ok: true });
-      await settle();
-    }
+    expect(effects).toHaveLength(0);
     expect(s.state.memory).toBe(10);
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === optionId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -139,13 +182,12 @@ describe("BT20-096 Black Sabbath", () => {
             { card: "BT20-045", as: "tooHigh" },
           ],
         },
-        1: { security: [{ card: "BT20-096", as: "securityOption" }], deck: ["BT20-001", "BT20-002"] },
+        1: { security: [{ card: "BT20-096", as: "securityOption" }], deck: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     const targetId = s.perm("securityTarget").permanentId;
     preferred.push(targetId);
-    s.state.turnSeat = 0;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {

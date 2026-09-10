@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-040.js";
 import "./index.js";
 
 describe("BT20-040 Coredramon", () => {
   it("reacts to blue Digimon with Dracomon or Examon in their text and optionally reduces Groundramon evolution", () => {
+    expect(getCardDefinition("BT20-040")).toMatchObject({
+      cardId: "BT20-040",
+      nameEn: "Coredramon",
+      colors: ["Green", "Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Green", level: 3, memoryCost: 3 },
+        { color: "Red", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Dragon"],
+    });
     expect(compiled.effects.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
       { keyword: "Raid", raw: "＜Raid＞" },
     ]);
@@ -28,7 +46,7 @@ describe("BT20-040 Coredramon", () => {
               reduceCost: 2,
               payCost: true,
               optional: true,
-              into: { nameOrTrait: [{ tokens: ["Groundramon"], match: "name" }] },
+              into: { nameOrTrait: [{ tokens: ["Groundramon"], match: "nameExact" }] },
             },
           ],
         },
@@ -38,6 +56,13 @@ describe("BT20-040 Coredramon", () => {
       trigger: "YourTurn",
       actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
     });
+  });
+
+  it("uses exact Groundramon matching for the evolution destination", () => {
+    const reference = { tokens: ["Groundramon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Groundramon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Groundramon X" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Groundramonmon" }, reference)).toBe(false);
   });
 
   it("evolves for 2 less only after a qualifying blue full-text Digimon is played", async () => {

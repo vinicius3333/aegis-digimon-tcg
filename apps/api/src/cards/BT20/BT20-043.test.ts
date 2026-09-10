@@ -1,5 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-043.js";
 import "./index.js";
@@ -48,6 +50,29 @@ describe("BT20-043 Varodurumon", () => {
     });
   });
 
+  it("publishes Varodurumon's catalog identity and exact ACCEL evolution route", () => {
+    expect(getCardDefinition("BT20-043")).toMatchObject({
+      cardId: "BT20-043",
+      nameEn: "Varodurumon",
+      colors: ["Green", "Yellow"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 4 },
+        { color: "Yellow", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Holy Bird", "ACCEL"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["ACCEL"], cost: 3, isAlternate: true }]);
+    const chaosmonName = { tokens: ["Chaosmon"], match: "name" as const };
+    expect(matchNameOrTrait({ nameEn: "Chaosmon: Valdur Arm" }, chaosmonName)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Valdur Arm" }, chaosmonName)).toBe(false);
+  });
+
   it("pays 7 with an ACCEL resident, suspends all opponents, and gives +3000 DP", async () => {
     const s = setupEngine(
       {
@@ -71,6 +96,17 @@ describe("BT20-043 Varodurumon", () => {
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
     expect(s.perm("accel").currentDP).toBe(9000);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("plays for the full cost without an allied ACCEL Digimon", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT20-043", as: "varodurumon" }] } });
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("varodurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-043"));
+    expect(s.state.memory).toBe(0);
   });
 
   it("suspends every opposing Digimon, buffs exactly one ally, and leaves the second ally unchanged", async () => {
@@ -159,6 +195,7 @@ describe("BT20-043 Varodurumon", () => {
   });
 
   it("publicly DNA digivolves at End of Your Turn, attacks, and applies inherited -4000 DP", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -168,10 +205,14 @@ describe("BT20-043 Varodurumon", () => {
           ],
           hand: [{ card: "BT16-036", as: "chaosmon" }],
         },
-        1: { battleArea: [{ card: "BT20-010", dp: 6000, suspended: true, as: "target" }] },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 6000, suspended: true, as: "target" }],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").permanentId);
     s.state.memory = 5;
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
@@ -235,6 +276,7 @@ describe("BT20-043 Varodurumon", () => {
     s.state.memory = 6;
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    const memoryAfterPlay: Array<number | undefined> = [];
     for (const expectedSecurity of [4, 3] as const) {
       expect(
         s.engine.applyIntent(0, {
@@ -245,14 +287,17 @@ describe("BT20-043 Varodurumon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.players[1]!.security.length === expectedSecurity);
       expect(s.perm("target").currentDP).toBe(5000);
+      const playResult =
+        expectedSecurity === 4
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })
+          : ({ ok: true } as const);
+      expect(playResult).toEqual({ ok: true });
       if (expectedSecurity === 4) {
-        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
-          ok: true,
-        });
         await settle(() => !s.perm("host").isSuspended && s.state.pendingDecision === undefined);
-        expect(s.state.memory).toBe(0);
       }
+      memoryAfterPlay.push(expectedSecurity === 4 ? s.state.memory : undefined);
     }
+    expect(memoryAfterPlay).toEqual([0, undefined]);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 

@@ -34283,7 +34283,7 @@
     "forms": ["-"],
     "attributes": ["-"],
     "types": ["LIBERATOR"],
-    "effectText": "[Main] By returning up to 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck, you may play 1 [Ghost] trait Digimon card of each returned card's level from your trash without paying the costs. Then, the Digimon this effect played gain ＜Rush＞ and ＜Blocker＞ until the end of your opponent's turn.",
+    "effectText": "[Main] By returning 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck, you may play 1 [Ghost] trait Digimon card of each returned card's level from your trash without paying the costs. Then, the Digimon this effect played gain ＜Rush＞ and ＜Blocker＞ until the end of your opponent's turn.",
     "securityEffectText": "[Security] You may play 1 level 5 or lower Digimon card with the [Ghost] trait from your trash without paying the cost.",
     "rarity": "U",
     "maxCountInDeck": 4,

@@ -147,9 +147,9 @@ describe("BT20-075 Loudmon", () => {
             { card: "BT20-047", as: "first" },
             { card: "BT20-063", as: "second" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-090"],
         },
-        1: { battleArea: [{ card: "BT20-010", dp: 4000, as: "target" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", dp: 4000, as: "target" }], security: ["BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

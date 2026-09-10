@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -48,6 +49,20 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
         { condition: { kind: "selfHasName", names: ["Jesmon GX"] } },
       ],
     });
+  });
+
+  it("publishes the exact Jesmon alternate route and card identity", () => {
+    expect(getCardDefinition("BT20-019")).toMatchObject({
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      attributes: ["Data"],
+      types: ["Holy Warrior", "X Antibody", "Royal Knight"],
+      evoCosts: [{ color: "Red", level: 5, memoryCost: 4 }],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Jesmon"], cost: 1, isAlternate: true }]);
   });
 
   it("grants temporary opponent-effect immunity when Jesmon is in the evolved stack", async () => {

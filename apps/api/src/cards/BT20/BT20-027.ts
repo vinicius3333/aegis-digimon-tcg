@@ -84,7 +84,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Wingdramon", "Groundramon"], cost: 3, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Wingdramon", "Groundramon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("BT20-027", compiled);

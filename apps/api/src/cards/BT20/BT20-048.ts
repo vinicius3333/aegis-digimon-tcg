@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 2,
+      colors: ["Black"],
       traits: ["X Antibody"],
       cost: 0,
       isAlternate: true,

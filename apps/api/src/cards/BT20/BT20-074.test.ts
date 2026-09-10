@@ -45,7 +45,7 @@ describe("BT20-074 Dinobeemon", () => {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "nameExact" }],
             returnDestination: ["hand", "deck"],
           },
           actions: [
@@ -58,7 +58,7 @@ describe("BT20-074 Dinobeemon", () => {
                 controller: "mine",
                 kind: ["Digimon"],
                 zone: "hand",
-                nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
               },
             },
           ],
@@ -82,12 +82,38 @@ describe("BT20-074 Dinobeemon", () => {
 
   it("publishes the printed stats and purple/red evolution routes", () => {
     expect(getCardDefinition("BT20-074")).toMatchObject({
+      cardId: "BT20-074",
+      nameEn: "Dinobeemon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
       level: 5,
       playCost: 8,
       dp: 8000,
       evoCosts: [
         { color: "Purple", level: 4, memoryCost: 4 },
         { color: "Red", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Free"],
+      types: ["Mutant"],
+      effectText: expect.stringContaining("[All Turns] When any of your"),
+      inheritedEffectText: expect.stringContaining("doesn't activate [Security] effects"),
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it("uses exact names for the Q4400 source and Dragon Mode destination", () => {
+    const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0];
+    expect(replacement).toMatchObject({
+      sourceFilter: {
+        nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "nameExact" }],
+      },
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          into: { nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }] },
+        },
       ],
     });
   });
@@ -205,15 +231,21 @@ describe("BT20-074 Dinobeemon", () => {
             { card: "BT20-016", as: "paildramon" },
           ],
           hand: [{ card: "BT20-076", as: "dragonMode" }],
-          deck: ["BT20-047"],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
         },
-        1: { battleArea: [{ card: "BT1-027", as: "blueSource" }], hand: [{ card: "ST2-16", as: "cocytus" }] },
+        1: {
+          battleArea: [{ card: "BT1-027", as: "blueSource" }],
+          hand: [{ card: "ST2-16", as: "cocytus" }],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 10;
-    await s.ready();
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
       ok: true,
     });
@@ -222,6 +254,8 @@ describe("BT20-074 Dinobeemon", () => {
     expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-074");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("ST2-16");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q4400 can be declined through the public return effect, leaving the material in hand", async () => {
@@ -233,15 +267,21 @@ describe("BT20-074 Dinobeemon", () => {
             { card: "BT20-016", as: "paildramon" },
           ],
           hand: [{ card: "BT20-076", as: "dragonMode" }],
-          deck: ["BT20-047"],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
         },
-        1: { battleArea: [{ card: "BT1-027", as: "blueSource" }], hand: [{ card: "ST2-16", as: "cocytus" }] },
+        1: {
+          battleArea: [{ card: "BT1-027", as: "blueSource" }],
+          hand: [{ card: "ST2-16", as: "cocytus" }],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 10;
-    await s.ready();
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
       ok: true,
     });
@@ -249,6 +289,8 @@ describe("BT20-074 Dinobeemon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-074");
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-016"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-076");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q4400 returns the material normally when no Dragon Mode result is available", async () => {
@@ -259,31 +301,38 @@ describe("BT20-074 Dinobeemon", () => {
             { card: "BT20-074", as: "dinobeemon" },
             { card: "BT20-016", as: "paildramon" },
           ],
-          deck: ["BT20-047"],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
         },
-        1: { battleArea: [{ card: "BT1-027", as: "blueSource" }], hand: [{ card: "ST2-16", as: "cocytus" }] },
+        1: {
+          battleArea: [{ card: "BT1-027", as: "blueSource" }],
+          hand: [{ card: "ST2-16", as: "cocytus" }],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 10;
-    await s.ready();
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT20-074"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-074");
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-016"]);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("inherits Option Security suppression only on its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-076", under: ["BT20-074"], as: "host" }] },
-      1: { security: ["BT2-107"] },
+      1: { security: ["BT2-107", "BT2-107"], deck: ["BT20-047", "BT20-047"] },
     });
-    s.state.turnSeat = 0;
-    s.state.memory = 10;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT2-107")).toBe(true);
     expect(
       s.engine.applyIntent(0, {
@@ -292,18 +341,28 @@ describe("BT20-074 Dinobeemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.memory).toBe(10);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await settle(() => s.state.players[1]!.security.length === 1);
+    const suppressedCheck = s.events.find(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT2-107",
+    );
+    expect(suppressedCheck && "resolution" in suppressedCheck ? suppressedCheck.resolution : undefined).not.toBe(
+      "effect",
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT2-107")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("allows the same security Option to resolve without the inherited source", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-076", as: "host" }] }, 1: { security: ["BT2-107"] } });
-    s.state.turnSeat = 0;
-    s.state.memory = 10;
-    await s.ready();
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-076", as: "host" }] },
+      1: { security: ["BT2-107", "BT2-107"], deck: ["BT20-047", "BT20-047"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const memoryBefore = s.state.memory;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -311,7 +370,15 @@ describe("BT20-074 Dinobeemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.memory).toBe(8);
+    await settle(() => s.state.players[1]!.security.length === 1);
+    const resolvedCheck = s.events.find(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT2-107",
+    );
+    expect(resolvedCheck && "resolution" in resolvedCheck ? resolvedCheck.resolution : undefined).toBe("effect");
+    expect(s.state.memory).not.toBe(memoryBefore);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

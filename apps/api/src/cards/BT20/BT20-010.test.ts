@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -15,7 +16,7 @@ describe("BT20-010 Ryudamon", () => {
       sourceFilter: { isSelfRef: true, zone: "battleArea" },
       into: {
         nameOrTrait: [
-          { tokens: ["Ginryumon"], match: "name" },
+          { tokens: ["Ginryumon"], match: "nameExact" },
           { tokens: ["Chronicle"], match: "trait" },
         ],
       },
@@ -68,13 +69,25 @@ describe("BT20-010 Ryudamon", () => {
     expect(breeding.state.memory).toBe(2);
   });
 
+  it("matches the bracketed Ginryumon destination as an exact name, not a substring", () => {
+    const reference = { tokens: ["Ginryumon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Ginryumon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Ginryumon X" }, reference)).toBe(false);
+  });
+
   it("observably grants its inherited host +2000 DP only during its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-012", dp: 4000, as: "host", under: ["BT20-010"] }] } });
-    await s.ready();
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-012", dp: 4000, as: "host", under: ["BT20-010"] }], deck: ["BT1-009"] },
+      1: { deck: ["BT1-009"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(6000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("reduces a legal Chronicle-only non-Ginryumon evolution and keeps the inherited source through the transition", async () => {
@@ -85,10 +98,13 @@ describe("BT20-010 Ryudamon", () => {
       0: {
         battleArea: [{ card: "BT20-010", as: "ryudamon" }],
         hand: [{ card: "BT20-051", as: "raptordramon" }],
+        deck: ["BT1-009"],
       },
+      1: { deck: ["BT1-009"] },
     });
     s.state.memory = 5;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -100,12 +116,14 @@ describe("BT20-010 Ryudamon", () => {
     expect(s.perm("ryudamon").stack.map((card) => card.cardId)).toEqual(["BT20-010"]);
     expect(s.state.memory).toBe(3); // printed cost 3, reduced by 1 from the battle-area Ryudamon
     expect(s.perm("ryudamon").currentDP).toBe(chronicle.dp + 2000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("ryudamon").currentDP).toBe(chronicle.dp);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("uses the public black X Antibody alternate route and excludes non-Chronicle destinations", async () => {
+  it("uses the public black X Antibody alternate route and does not reduce a non-Chronicle normal route", async () => {
     const alternate = setupEngine({
       0: { breeding: { card: "BT13-005", as: "egg" }, hand: [{ card: "BT20-010", as: "ryudamon" }] },
     });
@@ -124,7 +142,7 @@ describe("BT20-010 Ryudamon", () => {
     expect(alternate.state.memory).toBe(4);
 
     const excluded = setupEngine({
-      0: { battleArea: [{ card: "BT20-010", as: "ryudamon" }], hand: [{ card: "BT20-011", as: "nonChronicle" }] },
+      0: { battleArea: [{ card: "BT20-010", as: "ryudamon" }], hand: [{ card: "BT20-031", as: "nonChronicle" }] },
     });
     excluded.state.memory = 5;
     await excluded.ready();
@@ -133,10 +151,14 @@ describe("BT20-010 Ryudamon", () => {
         type: "digivolve",
         permanentId: excluded.perm("ryudamon").permanentId,
         instanceId: excluded.inst("nonChronicle").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => excluded.perm("ryudamon").topCard.cardId === "BT20-011");
-    expect(excluded.perm("ryudamon").topCard.cardId).toBe("BT20-011");
-    expect(excluded.state.memory).toBe(3);
+    await settle(() => excluded.perm("ryudamon").topCard.cardId === "BT20-031");
+    expect(excluded.perm("ryudamon").stack.map((card) => card.cardId)).toEqual(["BT20-010"]);
+    expect(excluded.state.memory).toBe(2); // normal Black Lv.3 cost 3; no Chronicle reduction applied
+    expect(
+      excluded.state.players[0]!.hand.some((card) => card.instanceId === excluded.inst("nonChronicle").instanceId),
+    ).toBe(false);
   });
 });

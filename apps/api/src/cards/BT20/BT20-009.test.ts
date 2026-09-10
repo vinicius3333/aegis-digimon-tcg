@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +8,18 @@ import { compiled } from "./BT20-009.js";
 
 describe("BT20-009 Veemon", () => {
   it("proves purple-play triggering and optional Free digivolution from hand", () => {
+    expect(getCardDefinition("BT20-009")).toMatchObject({
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      attributes: ["Free"],
+      evoCosts: [
+        { color: "Red", level: 2, memoryCost: 0 },
+        { color: "Purple", level: 2, memoryCost: 0 },
+      ],
+    });
     const effect = compiled.effects.find((entry) => !entry.isInherited);
     const watcher = effect?.actions[0];
     expect(watcher).toMatchObject({

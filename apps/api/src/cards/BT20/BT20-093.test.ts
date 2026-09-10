@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,11 +7,54 @@ import "./index.js";
 import "../ST2/ST2-16.js";
 import "../EX3/EX3-074.js";
 
+const DECK_FILLER = ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"];
+
 describe("BT20-093 Unleash the Dragon Gene", () => {
-  it("keeps the optional reduced play and mandatory placement sequence", () => {
+  it("matches the catalog and keeps the optional reduced play and mandatory placement sequence", () => {
+    expect(getCardDefinition("BT20-093")).toMatchObject({
+      cardId: "BT20-093",
+      nameEn: "Unleash the Dragon Gene",
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 2,
+      types: ["Option"],
+      effectText: expect.stringContaining("Dracomon"),
+      securityEffectText: expect.stringContaining("in its name"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((entry) => entry.trigger === "Main")).toMatchObject({
       actions: [
-        { kind: "PlayWithoutCost", from: ["hand"], payCost: true, reduceCostBy: 3, optional: true },
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 3,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
+            },
+            count: 1,
+          },
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Dracomon"], match: "name" }] },
+            count: 1,
+          },
+        },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     });
@@ -24,8 +68,25 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
           kind: "Replacement",
           event: "wouldLeavePlay",
           leaveCause: "otherThanBattle",
-          sourceFilter: { zone: "battleArea" },
-          actions: [{ kind: "DnaDigivolve", payCost: true, optional: true }],
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            zone: "battleArea",
+            nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
+          },
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              payCost: true,
+              optional: true,
+              materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Examon"], match: "nameExact" }],
+                zone: "hand",
+              },
+            },
+          ],
         },
       ],
     });
@@ -35,32 +96,50 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
     );
   });
 
-  it("naturally plays a Dracomon-text Digimon at the reduced cost and places itself", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-009", as: "redSource" }],
-          hand: [
-            { card: "BT20-093", as: "option" },
-            { card: "BT20-023", as: "coredramon" },
-          ],
-          deck: ["BT1-010"],
+  it("naturally plays Dracomon- and Examon-text Digimon at the reduced cost, then places itself", async () => {
+    for (const [candidate, memory] of [
+      ["BT20-023", 4],
+      ["EX3-074", 14],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-009", as: "redSource" },
+              { card: "BT1-027", as: "blueSource" },
+            ],
+            hand: [
+              { card: "BT20-093", as: "option" },
+              { card: candidate, as: "candidate" },
+            ],
+            deck: DECK_FILLER,
+          },
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 4;
-    await s.ready();
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = memory;
+      await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093"));
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093"));
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
-      expect.arrayContaining(["BT20-023", "BT20-093"]),
-    );
-    expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+        expect.arrayContaining([candidate, "BT20-093"]),
+      );
+      const printedPlayCost = getCardDefinition(candidate)?.playCost;
+      if (printedPlayCost === undefined) throw new Error(`catalog play cost missing for ${candidate}`);
+      expect(printedPlayCost).toBe(candidate === "BT20-023" ? 5 : 15);
+      const memoryEvents = s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "playCard");
+      expect(memoryEvents).toHaveLength(2);
+      const candidatePlay = memoryEvents[1];
+      if (candidatePlay?.kind !== "memoryChanged") throw new Error("candidate play did not emit memory change");
+      expect(candidatePlay.to - candidatePlay.from).toBe(-(printedPlayCost - 3));
+      expect(s.events.some((event) => event.kind === "memoryChanged" && event.reason === "payCost")).toBe(true);
+      // The observable gauge also includes card-resolution adjustments; the ordered
+      // play-card cost deltas are the payment evidence for the Option and candidate.
+    }
   });
 
   it("public Security plays a Dracomon-name card from hand or trash for free", async () => {
@@ -72,15 +151,18 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
             ...(zone === "hand"
               ? { hand: [{ card: "BT20-007", as: "dracomon" }] }
               : { trash: [{ card: "BT20-007", as: "dracomon" }] }),
+            deck: DECK_FILLER,
           },
-          1: { battleArea: [{ card: "BT20-047", as: "attacker" }] },
+          1: { battleArea: [{ card: "BT20-047", as: "attacker" }], deck: DECK_FILLER },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
       const optionId = s.inst("option").instanceId;
-      s.state.turnSeat = 1;
-      s.state.memory = 3;
       await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
@@ -91,7 +173,43 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
       expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-007")).toBe(true);
       expect(s.state.players[0]!.security).toHaveLength(0);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     }
+
+    const nearName = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT20-093", as: "option" }],
+          hand: [{ card: "BT20-023", as: "coredramon" }],
+          deck: DECK_FILLER,
+        },
+        1: { battleArea: [{ card: "BT20-047", as: "attacker" }], deck: DECK_FILLER },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = nearName.inst("option").instanceId;
+    await nearName.ready();
+    const loop = nearName.engine.startTurnLoop();
+    await advance(nearName.engine).waitForMainPhase(0);
+    advance(nearName.engine).endMainPhaseIfOpen(0);
+    await advance(nearName.engine).waitForMainPhase(1);
+    expect(
+      nearName.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: nearName.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      nearName.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId),
+    );
+    expect(nearName.state.players[0]!.hand.some((card) => card.cardId === "BT20-023")).toBe(true);
+    expect(nearName.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093")).toBe(
+      true,
+    );
+    expect(nearName.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it.each(["accept", "decline"] as const)(
@@ -130,17 +248,15 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
       const slayerCardId = s.perm("slayer").topCard.instanceId;
       preferred.push(slayerId, slayerCardId);
       s.state.memory = 10;
-      const ownTurn = s.engine.runOneTurn();
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
       expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX3-074")).toBe(true);
       advance(s.engine).endMainPhaseIfOpen(0);
-      await ownTurn;
-      s.state.turnSeat = 1;
-      s.state.memory = 7;
-      const opponentTurn = s.engine.runOneTurn();
       await advance(s.engine).waitForMainPhase(1);
+      s.state.memory = 7;
       options.autoDeclineOptional = route === "decline";
       options.autoAcceptOptional = route !== "decline";
       expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("return").instanceId })).toEqual({
@@ -157,8 +273,8 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
         !accepted,
       );
       expect(s.state.memory).toBe(0);
-      advance(s.engine).endMainPhaseIfOpen(1);
-      await opponentTurn;
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     },
   );
 
@@ -194,7 +310,7 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
     s.state.memory = 10;
     await s.ready();
 
-    const ownTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
@@ -224,13 +340,9 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
       true,
     );
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
 
     options.autoAcceptOptional = true;
     options.autoDeclineOptional = false;
-    s.state.turnSeat = 1;
-    s.state.memory = 7;
-    const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
@@ -245,8 +357,8 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === breakerId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX3-074")).toBe(true);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("declines the optional Main play for a nonmatching Digimon and still places the Option", async () => {

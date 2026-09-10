@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-070.js";
@@ -42,9 +43,28 @@ describe("BT20-070 Loogarmon", () => {
   });
 
   it("publishes stats and both exact cost-2 alternate evolution routes", async () => {
-    expect(getCardDefinition("BT20-070")).toMatchObject({ level: 4, playCost: 6, dp: 6000 });
+    expect(getCardDefinition("BT20-070")).toMatchObject({
+      cardId: "BT20-070",
+      nameEn: "Loogarmon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Dark Animal", "X Antibody", "SoC", "SEEKERS"],
+      evoCosts: [
+        { color: "Red", level: 3, memoryCost: 3 },
+        { color: "Yellow", level: 3, memoryCost: 3 },
+      ],
+      effectText: expect.stringContaining("By trashing 1 card in your hand"),
+      inheritedEffectText: "[Your Turn] This Digimon gets +2000 DP.",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Loogamon"], cost: 2, isAlternate: true },
+      { namesExact: ["Loogamon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["SEEKERS"], cost: 2, isAlternate: true },
     ]);
     for (const [base, requirementIndex] of [
@@ -71,6 +91,14 @@ describe("BT20-070 Loogarmon", () => {
       expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
       expect(s.state.memory).toBe(0);
     }
+  });
+
+  it("requires the exact Loogamon name for the named alternate route", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT20-070", "BT20-064")).toMatchObject({
+      cost: 2,
+      isAlternate: true,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-070", "BT20-071")).toBeUndefined();
   });
 
   it("on play and evolution pays one hand card to recover one SoC/SEEKERS card", async () => {
@@ -136,12 +164,20 @@ describe("BT20-070 Loogarmon", () => {
   });
 
   it("applies inherited +2000 only underneath a host on its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-071", under: ["BT20-070"], as: "host" }] } });
-    s.state.turnSeat = 0;
-    await s.ready();
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-071", under: ["BT20-070"], as: "host" }],
+        deck: ["BT20-047", "BT20-047"],
+      },
+      1: { deck: ["BT20-047", "BT20-047"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(9000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(7000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

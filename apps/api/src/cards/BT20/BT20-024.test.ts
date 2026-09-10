@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-024.js";
@@ -13,6 +14,19 @@ import "../BT1/BT1-036.js";
 
 describe("BT20-024 Seadramon (X Antibody)", () => {
   it("returns a level 3 Digimon and conditionally restricts a Tamer on both entry triggers", () => {
+    expect(getCardDefinition("BT20-024")).toMatchObject({
+      cardId: "BT20-024",
+      nameEn: "Seadramon (X Antibody)",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Aquatic", "X Antibody"],
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -44,33 +58,14 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "Draw", condition: { op: "lte", value: 7 } }],
     });
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Seadramon"], cost: 0, isAlternate: true }]);
   });
 
-  it("returns only the level-3 target to deck bottom and locks a Tamer when the source stack qualifies", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT20-024", as: "seadramonX", under: ["BT15-025"] }] },
-        1: {
-          battleArea: [
-            { card: "BT20-022", as: "level3" },
-            { card: "BT20-023", as: "level4" },
-            { card: "BT20-087", as: "tamer" },
-          ],
-          deck: ["BT1-010"],
-        },
-      },
-      { autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.perm("level3").permanentId, s.perm("tamer").permanentId);
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("seadramonX"));
-    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT20-022")).toBe(false);
-    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT20-022");
-    expect(s.perm("level4")).toBeDefined();
-
-    s.state.turnSeat = 1;
-    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId], 0);
-    expect(s.perm("tamer").isSuspended).toBe(false);
+  it("uses exact Seadramon matching for the alternate evolution route", () => {
+    const reference = { tokens: ["Seadramon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Seadramon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Seadramon (X Antibody)" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "MegaSeadramon" }, reference)).toBe(false);
   });
 
   it.each([
@@ -133,20 +128,6 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).verb.suspend([s.perm("tamer").permanentId], 0);
     expect(s.perm("tamer").isSuspended).toBe(true);
-  });
-
-  it("inherits Draw 1 once at the inclusive seven-card hand boundary", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-026", as: "host", under: ["BT20-024"] }],
-        hand: Array.from({ length: 7 }, () => "BT1-010"),
-        deck: ["BT1-010", "BT1-010"],
-      },
-    });
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[0]!.hand).toHaveLength(8);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[0]!.hand).toHaveLength(8);
   });
 
   it("draws from an actual public attack once at seven cards, then resets next turn", async () => {

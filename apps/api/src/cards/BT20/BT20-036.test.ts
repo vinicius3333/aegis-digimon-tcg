@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -11,6 +10,7 @@ import "../BT16/BT16-036.js";
 
 describe("BT20-036 BanchoLeomon", () => {
   it("de-digivolves and lowers DP on entry, then DNA-digivolves this Digimon with another before the attack", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["ACCEL"], cost: 3, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -59,6 +59,8 @@ describe("BT20-036 BanchoLeomon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({
       ok: true,
     });
@@ -66,19 +68,14 @@ describe("BT20-036 BanchoLeomon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("target").topCard.cardId).toBe("BT20-032");
     expect(s.perm("target").currentDP).toBe(1000);
-    const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
-    expect(s.perm("target").currentDP).toBe(1000);
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("target").currentDP).toBe(1000);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publicly evolves from a level-5 ACCEL Digimon and refuses the non-ACCEL play reduction", async () => {
@@ -98,6 +95,7 @@ describe("BT20-036 BanchoLeomon", () => {
       () => evolved.perm("loader").topCard.cardId === "BT20-036" && evolved.state.pendingDecision === undefined,
     );
     expect(evolved.perm("loader").stack.map((card) => card.cardId)).toEqual(["BT20-033"]);
+    expect(evolved.state.memory).toBe(-1);
     expect(evolved.perm("target").stack).toHaveLength(0);
     expect(evolved.perm("target").topCard.cardId).toBe("BT20-032");
     expect(evolved.perm("target").currentDP).toBe(1000);
@@ -115,6 +113,35 @@ describe("BT20-036 BanchoLeomon", () => {
         refused.state.pendingDecision === undefined,
     );
     expect(refused.state.memory).toBe(-5);
+
+    const invalidEvolution = setupEngine({
+      0: { battleArea: [{ card: "BT20-035", as: "nonAccelLevel5" }], hand: [{ card: "BT20-036", as: "bancho" }] },
+    });
+    invalidEvolution.state.memory = 3;
+    expect(
+      invalidEvolution.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalidEvolution.perm("nonAccelLevel5").permanentId,
+        instanceId: invalidEvolution.inst("bancho").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+
+    const breeding = setupEngine({
+      0: { breeding: { card: "BT20-033", as: "breedingAccel" }, hand: [{ card: "BT20-036", as: "bancho" }] },
+    });
+    breeding.state.memory = 3;
+    expect(
+      breeding.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: breeding.perm("breedingAccel").permanentId,
+        instanceId: breeding.inst("bancho").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => breeding.perm("breedingAccel").topCard.cardId === "BT20-036");
+    expect(breeding.state.memory).toBe(0);
+    expect(breeding.perm("breedingAccel").inBreeding).toBe(true);
   });
 
   it("redirects an opposing attack to the inherited host once on the opponent's turn", async () => {
@@ -123,17 +150,22 @@ describe("BT20-036 BanchoLeomon", () => {
         0: {
           battleArea: [{ card: "BT4-091", dp: 15000, as: "host", under: ["BT20-036"] }],
           security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
         1: {
           battleArea: [
             { card: "BT20-010", dp: 1000, as: "attacker" },
             { card: "BT20-010", dp: 3000, as: "secondAttacker" },
           ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -156,6 +188,10 @@ describe("BT20-036 BanchoLeomon", () => {
     await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
     expect(s.perm("secondAttacker")).toBeDefined();
     expect(s.state.players[0]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("resets inherited attack redirection on a later opponent turn", async () => {
@@ -176,10 +212,11 @@ describe("BT20-036 BanchoLeomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
-    const firstTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
@@ -192,19 +229,9 @@ describe("BT20-036 BanchoLeomon", () => {
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await firstTurn;
-
-    s.state.turnSeat = 0;
-    s.state.memory = -s.state.memory;
-    const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    const secondTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
@@ -217,7 +244,9 @@ describe("BT20-036 BanchoLeomon", () => {
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await secondTurn;
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("DNA digivolves itself with another Digimon at turn end, then attacks", async () => {
@@ -230,18 +259,27 @@ describe("BT20-036 BanchoLeomon", () => {
           ],
           hand: [{ card: "P-221", as: "chaosmon" }],
         },
-        1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }] },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("bancho"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-221") &&
         s.state.players[1]!.battleArea.length === 0,
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may decline the End of Your Turn DNA digivolution and attack", async () => {

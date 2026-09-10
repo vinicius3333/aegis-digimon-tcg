@@ -1,4 +1,6 @@
+import { getCardDefinition, type CardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-048.js";
@@ -37,6 +39,36 @@ describe("BT20-048 Dorumon", () => {
         },
       ],
     });
+  });
+
+  it("publishes Dorumon's catalog identity and the black level-2 X Antibody route", () => {
+    expect(getCardDefinition("BT20-048")).toMatchObject({
+      cardId: "BT20-048",
+      nameEn: "Dorumon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [
+        { color: "Black", level: 2, memoryCost: 1 },
+        { color: "Yellow", level: 2, memoryCost: 1 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Beast", "X Antibody", "Chronicle"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, colors: ["Black"], traits: ["X Antibody"], cost: 0, isAlternate: true },
+    ]);
+    expect(matchingAlternateDigivolutionRequirement("BT20-048", "BT13-005")).toMatchObject({
+      level: 2,
+      colors: ["Black"],
+      traits: ["X Antibody"],
+      cost: 0,
+    });
+    const nonBlackXAntibody = { ...getCardDefinition("BT13-005"), colors: ["Blue"] } as CardDefinition;
+    expect(matchingAlternateDigivolutionRequirement("BT20-048", nonBlackXAntibody)).toBeUndefined();
   });
 
   it("adds one X Antibody card and one Chronicle Tamer, then bottoms the nonmatch", async () => {

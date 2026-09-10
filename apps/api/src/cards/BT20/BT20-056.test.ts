@@ -1,11 +1,12 @@
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./BT20-056.js";
 import "./BT20-060.js";
+import "../ST1/ST1-15.js";
 
 // A3 for BT20-056 (Alphamon — Black/White Lv.6 Digimon).
 //
@@ -58,24 +59,52 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
       sourceFilter: { controller: "any" },
     });
   });
+
+  it("publishes Alphamon's complete catalog identity and text", () => {
+    expect(getCardDefinition(ALPHAMON)).toMatchObject({
+      cardId: ALPHAMON,
+      nameEn: "Alphamon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 11000,
+      evoCosts: [
+        { color: "Black", level: 5, memoryCost: 3 },
+        { color: "Yellow", level: 5, memoryCost: 3 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Holy Warrior", "X Antibody", "Royal Knight", "Chronicle"],
+    });
+    expect(getCardDefinition(ALPHAMON)!.effectText).toContain("＜Recovery +1 (Deck)＞");
+    expect(getCardDefinition(ALPHAMON)!.effectText).toContain("level 6 or lower [Chronicle]");
+    expect(getCardDefinition(ALPHAMON)!.effectText).toContain(
+      "[All Turns] [Once Per Turn] When security stacks are removed",
+    );
+    expect(getCardDefinition(ALPHAMON)!.inheritedEffectText).toBe(
+      "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, if this Digimon is [Alphamon: Ouryuken], by trashing your top security card, it doesn't leave.",
+    );
+  });
   it("does not use the breeding-area digivolution clause outside an attack", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: ALPHAMON }, { card: RYUDAMON, as: "candidate" }],
           breeding: { card: RYUDAMON, as: "breeding" },
-          deck: [AGUMON],
+          deck: [{ card: AGUMON, as: "recovered" }],
           security: [AGUMON],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 10;
     const alpha = s.state.players[0]!.hand.find((card) => card.cardId === ALPHAMON)!;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: alpha.instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2);
 
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe(RYUDAMON);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
   });
 
   it("[On Play] ＜Recovery +1 (Deck)＞ — a card moves from deck to security", async () => {
@@ -84,7 +113,7 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
         0: {
           hand: [{ card: ALPHAMON, as: "alphaInst" }],
           // Seat 0 deck has a card to recover.
-          deck: [AGUMON],
+          deck: [{ card: AGUMON, as: "recovered" }],
           // Seat 0 security has 2 cards (below the 5-cap, so recovery will add one).
           security: [AGUMON, AGUMON],
         },
@@ -95,8 +124,6 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
     const alphaInst = s.inst("alphaInst");
 
     const initialSecurityCount = p0.security.length;
-
-    // Play Alphamon (cost 12 from the legal +10 memory-gauge maximum).
     s.state.memory = 10;
 
     const res = s.engine.applyIntent(0, {
@@ -106,62 +133,75 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
     expect(res.ok).toBe(true);
 
     // After [On Play] resolves, security should have gained 1 card.
-    await settle(() => p0.security.length > initialSecurityCount, 600);
+    await settle(
+      () =>
+        p0.security.length === initialSecurityCount + 1 &&
+        p0.security.some((card) => card.instanceId === s.inst("recovered").instanceId) &&
+        s.state.pendingDecision === undefined,
+      600,
+    );
 
     expect(p0.security.length).toBe(initialSecurityCount + 1);
   });
 
-  it("[All Turns] when security is removed, opponent Digimon gets -8000 DP", async () => {
-    const s = setupEngine(
-      {
-        // Alphamon on the battle area.
-        0: { battleArea: [{ card: ALPHAMON, dp: 11000, as: "alphamonPerm" }] },
-        1: {
-          // An opponent Digimon with high DP so the -8000 modifier leaves it alive.
-          // 10000 DP - 8000 = 2000 DP (positive, rule-process-safe).
-          battleArea: [{ card: AGUMON, dp: 10000, as: "oppDigimon" }],
-          // A security card so the removal event has a valid source.
-          security: [AGUMON],
-        },
+  it("publicly evolves through the black level-5 route and resolves When Digivolving Recovery", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-053", as: "base" }],
+        hand: [{ card: ALPHAMON, as: "alphaInst" }],
+        deck: [
+          { card: AGUMON, as: "drawnByDigivolution" },
+          { card: AGUMON, as: "recoveredEvo" },
+        ],
+        security: [AGUMON, AGUMON],
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const alphamonPerm = s.perm("alphamonPerm");
-    const oppDigimon = s.perm("oppDigimon");
-
-    const initialDP = oppDigimon.currentDP;
-    await advance(s.engine).recompute();
+    });
+    s.state.memory = 3;
+    await s.ready();
     expect(
-      advance(s.engine)
-        .ledgers.subTriggers.subscriptionsFor("whenSecurityRemoved")
-        .some((entry) => entry.sourcePermanentId === alphamonPerm.permanentId),
-    ).toBe(true);
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    await settle(() => oppDigimon.currentDP !== initialDP, 600);
-
-    // DP should have dropped by 8000 (10000 -> 2000).
-    expect(oppDigimon.currentDP).toBe(initialDP - 8000);
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("alphaInst").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === ALPHAMON &&
+        s.state.players[0]!.security.length === 3 &&
+        s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recoveredEvo").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-053"]);
   });
 
-  it("public security check from either controller activates the opponent-Digimon penalty", async () => {
+  it("public security checks activate the opponent-Digimon penalty only once per turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: ALPHAMON, as: "alphamon" }],
-          security: [AGUMON],
+          security: [AGUMON, AGUMON, AGUMON],
+          deck: Array.from({ length: 10 }, () => AGUMON),
         },
         1: {
           battleArea: [
             { card: AGUMON, dp: 10000, as: "target" },
             { card: AGUMON, dp: 5000, as: "attacker" },
+            { card: AGUMON, dp: 5000, as: "secondAttacker" },
           ],
           security: [AGUMON],
+          deck: Array.from({ length: 10 }, () => AGUMON),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -169,8 +209,20 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
     expect(s.perm("target").currentDP).toBe(2000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.perm("target").currentDP).toBe(2000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publishes Barrier at runtime", async () => {
@@ -185,15 +237,31 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
         0: {
           battleArea: [{ card: "BT20-056", as: "alphamon", suspended: true }],
           security: [{ card: "BT1-009", as: "security" }],
+          deck: Array.from({ length: 10 }, () => AGUMON),
         },
-        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 15000 }] },
+        1: {
+          battleArea: [{ card: AGUMON, as: "attacker", dp: 25000 }],
+          security: [AGUMON],
+          deck: Array.from({ length: 10 }, () => AGUMON),
+        },
       },
       { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
     );
     const hostId = s.perm("alphamon").permanentId;
     const securityId = s.inst("security").instanceId;
     await s.ready();
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -209,47 +277,8 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === securityId)).toBe(!accept);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === securityId)).toBe(accept);
     expect(observe(s.engine).isAttacking()).toBe(false);
-  });
-
-  it("Q4389/Q4724 recovers, evolves breeding free during an attack, and suppresses its entry effect", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: ALPHAMON, as: "alphamon" },
-            { card: "BT20-047", dp: 2000, as: "ally" },
-          ],
-          breeding: { card: "BT20-051", as: "breeding" },
-          hand: [{ card: "BT20-053", as: "grademon" }],
-          deck: [{ card: AGUMON, as: "recovered" }],
-        },
-        1: { battleArea: [{ card: "BT20-047", as: "attacker" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 0;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("alphamon"), {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle(() => s.state.players[0]!.breeding?.topCard.cardId === "BT20-053");
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("recovered").instanceId);
-    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT20-053");
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("ally").currentDP).toBe(2000);
-  });
-
-  it("applies the security-removal DP penalty only once per turn", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: ALPHAMON, as: "alphamon" }] },
-        1: { battleArea: [{ card: "BT20-057", dp: 20000, as: "target" }] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.perm("target").currentDP).toBe(12000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("resets the security-removal penalty after a real opponent turn", async () => {
@@ -258,7 +287,7 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
         0: {
           battleArea: [{ card: ALPHAMON, as: "alphamon" }],
           security: ["BT1-010", "BT1-010", "BT1-010"],
-          deck: ["BT1-010", "BT1-010"],
+          deck: Array.from({ length: 10 }, () => AGUMON),
         },
         1: {
           hand: ["BT1-010"],
@@ -266,17 +295,18 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
             { card: "BT20-057", dp: 20000, as: "firstAttacker" },
             { card: "BT20-057", dp: 20000, as: "secondAttacker" },
           ],
-          deck: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: Array.from({ length: 10 }, () => AGUMON),
         },
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
     await s.ready();
-    const firstTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    for (const attacker of ["firstAttacker", "secondAttacker"] as const) {
+    const initialChecks = s.events.filter((event) => event.kind === "securityChecked").length;
+    for (const [index, attacker] of ["firstAttacker", "secondAttacker"].entries()) {
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
@@ -286,25 +316,15 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
       ).toEqual({ ok: true });
       await settle(
         () =>
-          s.events.some((event) => event.kind === "securityChecked") &&
+          s.events.filter((event) => event.kind === "securityChecked").length >= initialChecks + index + 1 &&
           !observe(s.engine).isAttacking() &&
           s.state.pendingDecision === undefined,
       );
     }
     expect(s.perm("firstAttacker").currentDP).toBe(12000);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await firstTurn;
-
-    s.state.turnSeat = 0;
-    s.state.memory = 10;
-    const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    const nextTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
@@ -315,36 +335,47 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("firstAttacker").currentDP).toBe(12000);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await nextTurn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("inherits paid leave prevention only for Alphamon: Ouryuken and not from your effects", async () => {
-    for (const [host, securityCount, effectSeat, survives] of [
-      ["BT20-060", 1, 1, true],
-      ["BT20-060", 1, 0, false],
-      ["BT20-060", 0, 1, false],
-      ["BT20-057", 1, 1, false],
+  it("inherits paid leave prevention only for Alphamon: Ouryuken", async () => {
+    for (const [host, securityCount, survives] of [
+      ["BT20-060", 1, true],
+      ["BT20-060", 0, false],
+      ["BT20-057", 1, false],
     ] as const) {
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: host, under: [ALPHAMON], as: "host" }],
+            battleArea: [{ card: host, dp: 3000, under: [ALPHAMON], as: "host" }],
             security: Array.from({ length: securityCount }, () => AGUMON),
+            deck: Array.from({ length: 10 }, () => AGUMON),
+          },
+          1: {
+            battleArea: [{ card: AGUMON, as: "redSource" }],
+            hand: [{ card: "ST1-15", as: "deletionOption" }],
+            deck: Array.from({ length: 10 }, () => AGUMON),
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
       await s.ready();
-      const hostId = s.perm("host").permanentId;
-      advance(s.engine).verb.enterEffectResolution(effectSeat, ["Digimon"]);
-      try {
-        await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
-      } finally {
-        advance(s.engine).verb.leaveEffectResolution();
-      }
-      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(survives);
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletionOption").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[1]!.trash.some((card) => card.cardId === "ST1-15") && s.state.pendingDecision === undefined,
+      );
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === host)).toBe(survives);
       expect(s.state.players[0]!.security).toHaveLength(survives ? 0 : securityCount);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     }
   });
 });

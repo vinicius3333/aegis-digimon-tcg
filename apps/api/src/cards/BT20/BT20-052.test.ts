@@ -1,5 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -47,19 +48,43 @@ describe("BT20-052 Oblivimon", () => {
     });
   });
 
-  it("plays itself free from face-up security at the end of the opponent's turn", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT20-052", as: "oblivimon", faceUp: true }] } });
-    await s.ready();
-    s.state.turnSeat = 1;
-    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("oblivimon"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-052"));
-    expect(s.state.players[0]!.security).toHaveLength(0);
+  it("publishes Oblivimon's catalog identity and exact Cyborg/Machine alternate route", () => {
+    expect(getCardDefinition("BT20-052")).toMatchObject({
+      cardId: "BT20-052",
+      nameEn: "Oblivimon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "LIBERATOR"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, traits: ["Cyborg", "Machine"], cost: 3, isAlternate: true },
+    ]);
+    expect(matchingAlternateDigivolutionRequirement("BT20-052", "BT20-050")).toMatchObject({
+      level: 4,
+      traits: ["Cyborg", "Machine"],
+      cost: 3,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-052", "BT20-049")).toMatchObject({
+      level: 4,
+      traits: ["Cyborg", "Machine"],
+      cost: 3,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-052", "BT20-010")).toBeUndefined();
   });
 
   it("naturally plays from face-up security at the opponent's turn end", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT20-052", as: "oblivimon", faceUp: true }] },
-      1: { deck: ["BT20-001"] },
+      1: { deck: ["BT1-010"] },
     });
     s.state.turnSeat = 1;
     await s.ready();
@@ -110,6 +135,27 @@ describe("BT20-052 Oblivimon", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT20-052"));
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: "BT20-052", faceUp: true });
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-050");
+  });
+
+  it("can decline the optional face-up-check placement", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-052", under: ["BT20-050"], as: "oblivimon" }] },
+        1: { security: [{ card: "BT20-047", faceUp: true }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("oblivimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-052");
   });
 
   it("does not place its top card when the security check is face-down", async () => {

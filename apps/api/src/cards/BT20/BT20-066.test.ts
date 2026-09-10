@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-066.js";
@@ -49,6 +50,10 @@ describe("BT20-066 Stingmon", () => {
 
   it("publishes the printed stats and purple/red evolution routes", () => {
     expect(getCardDefinition("BT20-066")).toMatchObject({
+      cardId: "BT20-066",
+      nameEn: "Stingmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
       level: 4,
       playCost: 4,
       dp: 4000,
@@ -56,7 +61,14 @@ describe("BT20-066 Stingmon", () => {
         { color: "Purple", level: 3, memoryCost: 2 },
         { color: "Red", level: 3, memoryCost: 2 },
       ],
+      forms: ["Champion"],
+      attributes: ["Free"],
+      types: ["Insectoid"],
+      effectText: expect.stringContaining("Delete 1 of your opponent's level 3 Digimon"),
+      inheritedEffectText: "＜Retaliation＞.",
     });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
   it("on play deletes level 3, then DNA digivolves exact materials into Imperialdramon", async () => {
@@ -100,7 +112,10 @@ describe("BT20-066 Stingmon", () => {
       {
         0: {
           battleArea: [{ card: "BT20-065", as: "base" }],
-          hand: [{ card: "BT20-066", as: "stingmon" }],
+          hand: [
+            { card: "BT20-066", as: "stingmon" },
+            { card: "BT20-047", as: "wrongNameAndTrait" },
+          ],
           deck: ["BT20-047"],
         },
         1: { battleArea: [{ card: "BT20-061", as: "level3" }] },
@@ -118,6 +133,7 @@ describe("BT20-066 Stingmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("base").topCard.cardId).toBe("BT20-066");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-065"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-047");
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -139,21 +155,26 @@ describe("BT20-066 Stingmon", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "BT6-108", as: "underworld" }, "BT1-009"],
+          security: [{ card: "BT6-108", as: "underworld" }, "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           trash: [{ card: "BT20-066", as: "stingmon" }],
           battleArea: [
             { card: "BT20-074", as: "dinobeemon" },
             { card: "BT20-016", as: "paildramon" },
           ],
           hand: [{ card: "BT20-076", as: "imperialdramon" }],
-          deck: ["BT20-010", "BT20-010"],
+          deck: ["BT20-010", "BT20-010", "BT20-010", "BT20-010", "BT20-010"],
         },
-        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 15000 }], deck: ["BT20-010", "BT20-010"] },
+        1: {
+          battleArea: [{ card: "BT20-076", as: "attacker", dp: 15000 }],
+          deck: ["BT20-010", "BT20-010", "BT20-010", "BT20-010", "BT20-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -175,5 +196,7 @@ describe("BT20-066 Stingmon", () => {
     );
     expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
     expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-076")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

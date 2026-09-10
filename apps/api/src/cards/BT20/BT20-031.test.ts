@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-031.js";
@@ -8,6 +9,22 @@ import "./index.js";
 
 describe("BT20-031 Liamon", () => {
   it("reduces one opposing Digimon by 3000 DP for the turn on both entry triggers", () => {
+    expect(getCardDefinition("BT20-031")).toMatchObject({
+      cardId: "BT20-031",
+      nameEn: "Liamon",
+      colors: ["Yellow", "Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 5000,
+      evoCosts: [
+        { color: "Yellow", level: 3, memoryCost: 3 },
+        { color: "Black", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast", "ACCEL"],
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -24,6 +41,12 @@ describe("BT20-031 Liamon", () => {
       { keyword: "Barrier", raw: "＜Barrier＞" },
     ]);
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["ACCEL"], cost: 2, isAlternate: true }]);
+  });
+
+  it("uses exact ACCEL trait matching for the alternate evolution route", () => {
+    const reference = { tokens: ["ACCEL"], match: "trait" as const };
+    expect(matchNameOrTrait({ nameEn: "Pinamon", types: ["ACCEL"] }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Pinamon", types: ["Accelerated"] }, reference)).toBe(false);
   });
 
   it("applies the -3000 DP turn modifier on play and when digivolving", async () => {

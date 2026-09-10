@@ -66,7 +66,7 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { names: ["Loogarmon"], cost: 3, isAlternate: true },
+    { namesExact: ["Loogarmon"], cost: 3, isAlternate: true },
     { level: 4, traits: ["SEEKERS"], cost: 3, isAlternate: true },
   ],
 };

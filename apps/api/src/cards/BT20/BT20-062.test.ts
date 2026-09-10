@@ -32,7 +32,22 @@ describe("BT20-062 Candlemon", () => {
   });
 
   it("publishes its stats and Retaliation deletes the Digimon that wins battle", async () => {
-    expect(getCardDefinition("BT20-062")).toMatchObject({ level: 3, playCost: 3, dp: 1000 });
+    expect(getCardDefinition("BT20-062")).toMatchObject({
+      cardId: "BT20-062",
+      nameEn: "Candlemon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Flame", "Ghost"],
+      evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
+      effectText: expect.stringContaining("Retaliation"),
+      inheritedEffectText: expect.stringContaining("level 4 or lower"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-062", as: "candlemon" }] },
       1: { battleArea: [{ card: "BT20-069", as: "winner", suspended: true }] },
@@ -94,7 +109,7 @@ describe("BT20-062 Candlemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX7-006", as: "yaamon" }],
+          breeding: { card: "EX7-006", as: "yaamon" },
           hand: [
             { card: "BT20-062", as: "candlemon" },
             { card: "BT20-069", as: "host" },

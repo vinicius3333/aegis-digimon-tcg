@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -27,7 +28,10 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
           op: "trashTop",
           controller: "opponent",
           amount: 1,
-          condition: { kind: "selfDigivolutionStackHasTrait" },
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }] },
+          },
         },
       ],
     });
@@ -53,6 +57,16 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
         expect.objectContaining({ keywords: [expect.objectContaining({ keyword: "Piercing" })] }),
       ]),
     );
+  });
+
+  it("uses an exact Dragon Mode name reference for evolution and the stack condition", () => {
+    const reference = { tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Imperialdramon: Dragon Mode" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Imperialdramon: Dragon Mode (X Antibody)" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Imperialdramon: Fighter Mode" }, reference)).toBe(false);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Imperialdramon: Dragon Mode"], cost: 2, isAlternate: true },
+    ]);
   });
 
   it("evolves from Dragon Mode for 2, trashes top security, and exposes Raid and Piercing", async () => {
@@ -393,30 +407,6 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
     await nextOwnTurn;
   });
 
-  it("once per turn deletes an opposing Digimon at the source-DP boundary after opponent security is removed", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT20-020", as: "fighterMode" }] },
-        1: {
-          battleArea: [
-            { card: "BT20-014", dp: 13000, as: "boundary" },
-            { card: "BT20-014", dp: 14000, as: "tooLarge" },
-            { card: "BT20-014", dp: 7000, as: "secondEligible" },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    const boundaryId = s.perm("boundary").permanentId;
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === boundaryId));
-    expect(s.perm("tooLarge")).toBeDefined();
-
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    await settle(() => false, 50);
-    expect(s.perm("secondEligible")).toBeDefined();
-  });
   it("naturally deletes an opposing Digimon after a security check within the source DP limit", async () => {
     // `tooLarge` (14000 DP) outguns the 13000-DP fighter, so with `autoSelectCards`
     // Raid's mandatory highest-DP redirect (§16-23-4) always sends the attack at

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-080.js";
 import "../BT14/BT14-087.js";
 import "../ST1/ST1-16.js";
+import "../BT2/BT2-107.js";
 import "../BT1/BT1-085.js";
 import "./index.js";
 
@@ -32,6 +34,32 @@ describe("BT20-080 Fenriloogamon", () => {
         },
       ],
     });
+  });
+
+  it("publishes the complete catalog identity and exact alternate evolution route", () => {
+    expect(getCardDefinition("BT20-080")).toMatchObject({
+      cardId: "BT20-080",
+      nameEn: "Fenriloogamon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Dark Animal", "X Antibody", "SoC", "SEEKERS"],
+      evoCosts: [
+        { color: "Red", level: 5, memoryCost: 4 },
+        { color: "Yellow", level: 5, memoryCost: 4 },
+      ],
+      effectText: expect.stringContaining("Soloogarmon"),
+      inheritedEffectText: expect.stringContaining("Fenriloogamon"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Soloogarmon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["SEEKERS"], cost: 3, isAlternate: true },
+    ]);
   });
 
   it("reactivates its When Digivolving effect and optionally attacks when a Tamer is placed under it", () => {
@@ -83,18 +111,23 @@ describe("BT20-080 Fenriloogamon", () => {
         0: {
           battleArea: [{ card: "BT20-071", as: "host" }],
           hand: [{ card: "BT20-080", as: "fenri" }],
-          trash: [{ card: "BT20-032", as: "seekers" }],
+          trash: [
+            { card: "BT20-032", as: "seekers" },
+            { card: "BT20-080", as: "tooHigh" },
+            { card: "BT20-047", as: "notMatching" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 4;
+    s.state.memory = 3;
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
         instanceId: s.inst("fenri").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-032"));
@@ -102,9 +135,12 @@ describe("BT20-080 Fenriloogamon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
       expect.arrayContaining(["BT20-080", "BT20-032"]),
     );
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-080", "BT20-047"]),
+    );
   });
 
-  it("accepts the alternate Soloogarmon route by name without requiring SEEKERS", async () => {
+  it("accepts the alternate Soloogarmon route by exact name without requiring SEEKERS", async () => {
     const s = setupEngine(
       {
         0: {
@@ -121,10 +157,31 @@ describe("BT20-080 Fenriloogamon", () => {
         type: "digivolve",
         permanentId: s.perm("soloogarmon").permanentId,
         instanceId: s.inst("fenri").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT20-080");
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-080");
+  });
+
+  it("accepts the alternate level-5 SEEKERS route at cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-034", as: "seekersBase" }],
+        hand: [{ card: "BT20-080", as: "fenri" }],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("seekersBase").permanentId,
+        instanceId: s.inst("fenri").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("seekersBase").topCard.cardId === "BT20-080");
+    expect(s.state.memory).toBe(0);
   });
 
   it("publicly Mind Links Eiji under Fenriloogamon, reactivates its effect, and allows declining the attack", async () => {
@@ -241,8 +298,8 @@ describe("BT20-080 Fenriloogamon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "ST1-16", as: "gaia" }, { card: "ST1-16", as: "gaia2" }, "BT1-010"],
-          security: ["BT1-009"],
+          hand: [{ card: "ST1-16", as: "gaia" }, "BT1-010"],
+          security: ["BT2-107"],
           deck: ["BT20-010", "BT20-010", "BT20-010"],
           battleArea: [
             { card: "BT20-081", under: ["BT20-080", "BT20-035"], as: "host" },
@@ -255,6 +312,8 @@ describe("BT20-080 Fenriloogamon", () => {
           battleArea: [
             { card: "BT20-071", dp: 1000, suspended: true, as: "targetOne" },
             { card: "BT20-047", dp: 1000, suspended: true, as: "targetTwo" },
+            // Keep this target below the 9000-DP attacker so the next-own-turn public
+            // attack proves the once-per-turn reset rather than a failed battle.
             { card: "BT20-010", dp: 1000, suspended: true, as: "targetThree" },
           ],
           deck: ["BT20-010", "BT20-010", "BT20-010"],
@@ -269,10 +328,10 @@ describe("BT20-080 Fenriloogamon", () => {
     const targetTwoId = s.perm("targetTwo").permanentId;
     const targetThreeId = s.perm("targetThree").permanentId;
     const gaiaId = s.inst("gaia").instanceId;
-    const gaia2Id = s.inst("gaia2").instanceId;
     const securityIds = s.state.players[1]!.security.map((card) => card.instanceId);
-    s.state.turnSeat = 0;
     s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: gaiaId })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetOneId));
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(1));
@@ -287,22 +346,29 @@ describe("BT20-080 Fenriloogamon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetTwoId));
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(1));
 
-    s.state.turnSeat = 1;
-    s.state.memory = 0;
-    const opponentTurn = s.engine.runOneTurn();
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: targetThreeId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("targetThree").isSuspended);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-
-    s.state.turnSeat = 0;
-    s.state.memory = 10;
-    const nextOwnTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     preferred.push(targetThreeId);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: gaia2Id })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerTwo").permanentId,
+        target: { kind: "permanent", permanentId: targetThreeId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetThreeId));
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(2));
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await nextOwnTurn;
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

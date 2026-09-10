@@ -1,5 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-022.js";
@@ -8,6 +10,19 @@ import "./index.js";
 
 describe("BT20-022 Crabmon (X Antibody)", () => {
   it("protects one of your Digimon from battle deletion on entry and draws at the inherited hand boundary", () => {
+    expect(getCardDefinition("BT20-022")).toMatchObject({
+      cardId: "BT20-022",
+      nameEn: "Crabmon (X Antibody)",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 4,
+      dp: 2000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Crustacean", "X Antibody"],
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
@@ -32,7 +47,14 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
         },
       ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Crabmon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Crabmon"], cost: 0, isAlternate: true }]);
+  });
+
+  it("uses exact Crabmon matching for the alternate evolution route", () => {
+    const reference = { tokens: ["Crabmon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Crabmon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Crabmon (X Antibody)" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Crabmon Ace" }, reference)).toBe(false);
   });
 
   it("protects the selected ally from battle deletion through the opponent's turn", async () => {
@@ -87,6 +109,29 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
     await settle(() => s.perm("crabmon").topCard.cardId === "BT20-022");
     expect(s.perm("crabmon").topCard.cardId).toBe("BT20-022");
     expect(s.perm("crabmon").stack.map((card) => card.cardId)).toEqual(["BT15-019"]);
+  });
+
+  it("does not apply battle-only protection to an opponent effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-010", as: "protected" }],
+          hand: [{ card: "BT20-022", as: "crabmonX" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crabmonX").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle"));
+
+    s.state.turnSeat = 1;
+    const removed = await advance(s.engine).verb.deletePermanent([s.perm("protected").permanentId], "byEffect");
+    expect(removed).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010")).toBe(false);
   });
 
   it("inherits Draw 1 at exactly 7 hand cards and only once per turn", async () => {

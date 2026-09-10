@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-081.js";
@@ -8,6 +9,20 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Counter")).toMatchObject({
       isFromHand: true,
       keywords: [{ keyword: "BlastDNADigivolve" }],
+    });
+  });
+
+  it("publishes ACE stats, evolution costs, and Overflow", () => {
+    expect(getCardDefinition("BT20-081")).toMatchObject({
+      level: 7,
+      playCost: 9,
+      dp: 16000,
+      isAce: true,
+      overflowMemory: 5,
+      evoCosts: [
+        { color: "Purple", level: 6, memoryCost: 6 },
+        { color: "Yellow", level: 6, memoryCost: 6 },
+      ],
     });
   });
 
@@ -82,6 +97,40 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
   });
 
+  it("resolves the same two-target reduction on public play and evolution timing", async () => {
+    for (const mode of ["play", "digivolve"] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            ...(mode === "digivolve" ? { battleArea: [{ card: "BT20-080", as: "host" }] } : {}),
+            hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+          },
+          1: {
+            battleArea: [
+              { card: "BT10-055", as: "first" },
+              { card: "BT8-017", as: "second" },
+              { card: "BT1-080", as: "third" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = mode === "play" ? 9 : 6;
+      const result =
+        mode === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takemikazuchi").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("host").permanentId,
+              instanceId: s.inst("takemikazuchi").instanceId,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.perm("first").currentDP === 3000 && s.perm("second").currentDP === 3000);
+      expect(s.perm("third").currentDP).toBe(12000);
+      expect(s.state.players[1]!.battleArea).toHaveLength(3);
+    }
+  });
+
   it("naturally gives two distinct opposing Digimon -10000, then deletes one after the Tamer check", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -129,7 +178,7 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
         0: {
           battleArea: [{ card: "BT20-080", under: ["BT20-085"], as: "host" }],
           hand: [{ card: "BT20-081", as: "takemikazuchi" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
           battleArea: [
@@ -158,7 +207,7 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-003"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
     // The reactivated When Digivolving effect applies its second -10000/delete pass,
     // so both opposing Digimon are gone after the attack.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -173,9 +222,9 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
             { card: "BT20-035", as: "kazuchimon" },
             { card: "BT20-081", as: "takemikazuchi" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -214,9 +263,9 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
             { card: "BT20-035", as: "kazuchimon" },
             { card: "BT20-081", as: "takemikazuchi" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -236,12 +285,14 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-080"]);
   });
 
-  it("does not offer Blast DNA for a wrong hand name or a breeding-area field material", async () => {
+  it("requires exact named materials and a battle-area field material", async () => {
     for (const setup of [
       {
-        battleArea: [{ card: "BT20-080", as: "field" }],
+        // The result names [Fenriloogamon] exactly; its near-name
+        // [Fenriloogamon: Takemikazuchi] must not fill that material slot.
+        battleArea: [{ card: "BT17-101", as: "nearName" }],
         hand: [
-          { card: "BT20-080", as: "wrong" },
+          { card: "BT20-035", as: "handMaterial" },
           { card: "BT20-081", as: "result" },
         ],
       },
@@ -254,7 +305,7 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
       },
     ]) {
       const s = setupEngine(
-        { 0: setup, 1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] } },
+        { 0: setup, 1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-009"] } },
         { autoDeclineOptional: true },
       );
       s.state.turnSeat = 1;

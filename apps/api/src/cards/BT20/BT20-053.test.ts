@@ -1,5 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,6 +9,26 @@ import "./index.js";
 
 describe("BT20-053 Grademon", () => {
   it("may play Dorumon or Ryudamon into an empty breeding area on play and digivolving", () => {
+    expect(getCardDefinition("BT20-053")).toMatchObject({
+      cardId: "BT20-053",
+      nameEn: "Grademon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Yellow", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Warrior", "X Antibody", "Chronicle"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Raptordramon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["Chronicle"], cost: 3, isAlternate: true },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "PlayWithoutCost",
@@ -55,6 +76,13 @@ describe("BT20-053 Grademon", () => {
         },
       ],
     });
+  });
+
+  it("requires an exact Raptordramon name for the named alternate route", () => {
+    const reference = { tokens: ["Raptordramon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Raptordramon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Raptordramon X" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Raptordramonmon" }, reference)).toBe(false);
   });
 
   it("plays Dorumon or Ryudamon free into empty breeding on both entry timings", async () => {
@@ -115,40 +143,6 @@ describe("BT20-053 Grademon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("rookie").instanceId);
   });
 
-  it("Q4721 grants +5000 DP and Digimon-effect immunity during an opponent attack", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT20-047", dp: 2000, as: "ally" },
-            { card: "BT20-053", as: "grademon" },
-          ],
-          breeding: { card: "BT20-048" },
-          security: ["BT20-047"],
-        },
-        1: { battleArea: [{ card: "BT20-047", as: "attacker" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.perm("ally").permanentId);
-    s.state.turnSeat = 1;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("grademon"), {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    expect(s.perm("ally").currentDP).toBe(7000);
-    expect(observe(s.engine).isRestrictedByEffect(s.perm("ally"), "beAffected", "Digimon")).toBe(true);
-  });
-
   it("naturally digivolves during an attack, grants +5000, and survives an opponent Digimon effect", async () => {
     const s = setupEngine(
       {
@@ -159,7 +153,7 @@ describe("BT20-053 Grademon", () => {
         1: {
           battleArea: [{ card: "BT20-010", suspended: true, as: "target" }],
           hand: [{ card: "BT20-033", as: "loader" }],
-          security: ["BT20-001"],
+          security: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

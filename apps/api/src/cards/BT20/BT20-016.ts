@@ -89,10 +89,11 @@ export const compiled: CompiledCard = {
           event: "wouldBeDeleted",
           sourceFilter: {
             controller: "mine",
+            kind: ["Digimon"],
             nameOrTrait: [
               {
                 tokens: ["Paildramon", "Dinobeemon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -108,10 +109,12 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
+                kind: ["Digimon"],
+                zone: "hand",
                 nameOrTrait: [
                   {
                     tokens: ["Imperialdramon: Dragon Mode"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

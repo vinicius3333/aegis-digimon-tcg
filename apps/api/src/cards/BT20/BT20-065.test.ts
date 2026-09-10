@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -22,13 +22,38 @@ import { compiled } from "./BT20-065.js";
 describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () => {
   it("publishes the printed stats and both zero-cost evolution routes", () => {
     expect(getCardDefinition("BT20-065")).toMatchObject({
+      nameEn: "Wormmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
       level: 3,
       playCost: 3,
       dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Free"],
+      types: ["Larva"],
       evoCosts: [
         { color: "Purple", level: 2, memoryCost: 0 },
         { color: "Red", level: 2, memoryCost: 0 },
       ],
+      effectText:
+        '[On Play] By trashing 1 card in your hand, give 1 of your opponent\'s Digimon "[On Deletion] Lose 1 memory." until the end of their turn.',
+      inheritedEffectText: "＜Retaliation＞.",
+    });
+  });
+
+  it("maps the cost, opposing-Digimon boundary, exact granted text, and duration", () => {
+    const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[0];
+    expect(action).toMatchObject({
+      kind: "GrantAuraToOpponents",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      effectText: "[On Deletion] Lose 1 memory.",
+      duration: "untilOpponentTurnEnd",
+      optional: true,
+      abortOnDecline: true,
+      cost: {
+        kind: "trash",
+        target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+      },
     });
   });
 
@@ -42,11 +67,15 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
   it("evolves publicly from a legal level-2 Purple source at zero cost", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT20-006", as: "demimeramon" }],
+        breeding: { card: "BT20-006", as: "demimeramon" },
         hand: [{ card: "BT20-065", as: "wormmon" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
+      1: { deck: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 0;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -55,8 +84,22 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("demimeramon").topCard.cardId === "BT20-065");
+    expect(s.perm("demimeramon").inBreeding).toBe(true);
     expect(s.perm("demimeramon").stack.map((card) => card.cardId)).toEqual(["BT20-006"]);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(
+      s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("demimeramon").permanentId }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("demimeramon").inBreeding).toBe(false);
+    expect(s.perm("demimeramon").stack.map((card) => card.cardId)).toEqual(["BT20-006"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("POSITIVE: paying the trash cost grants the effect; deleting the recipient costs 1 memory", async () => {
@@ -78,8 +121,6 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     const recipient = s.perm("recipient");
 
     s.state.memory = 5;
-    s.state.turnSeat = 0;
-
     const playRes = s.engine.applyIntent(0, { type: "playCard", instanceId: wormmon.instanceId });
     expect(playRes).toEqual({ ok: true });
 
@@ -157,8 +198,6 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     const recipient = s.perm("recipient");
 
     s.state.memory = 5;
-    s.state.turnSeat = 0;
-
     const playRes = s.engine.applyIntent(0, { type: "playCard", instanceId: wormmon.instanceId });
     expect(playRes).toEqual({ ok: true });
 
@@ -200,28 +239,27 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
             { card: "BT20-065", as: "wormmon" },
             { card: "BT1-085", as: "fodder" },
           ],
-          deck: ["BT20-001", "BT20-002"],
-          security: ["BT20-001", "BT20-002"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-085", "BT1-085"],
         },
         1: {
-          battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "recipient" }],
-          deck: ["BT20-001", "BT20-002"],
+          battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }],
+          deck: ["BT1-009", "BT1-009"],
           hand: ["BT20-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     s.state.memory = 5;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId));
 
-    s.state.turnSeat = 1;
-    s.state.memory = 5;
     const recipientId = s.perm("recipient").permanentId;
-    const opponentTurn = s.engine.runOneTurn();
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, { type: "attack", attackerPermanentId: recipientId, target: { kind: "player" } }),
@@ -230,12 +268,9 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-
-    s.state.turnSeat = 0;
-    s.state.memory = 5;
-    const nextOwnTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+
+    s.state.memory = 5;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -245,7 +280,7 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === recipientId));
     expect(s.state.memory).toBe(5);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await nextOwnTurn;
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -47,7 +47,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Imperialdramon: Dragon Mode"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -88,7 +88,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Imperialdramon: Dragon Mode"],
+      namesExact: ["Imperialdramon: Dragon Mode"],
       cost: 2,
       isAlternate: true,
     },

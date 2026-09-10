@@ -1,6 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-050.js";
 import "../BT1/BT1-036.js";
@@ -22,6 +23,34 @@ describe("BT20-050 HoverEspimon", () => {
       trigger: "AllTurns",
       actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
     });
+  });
+
+  it("publishes HoverEspimon's catalog identity and exact Cyborg/Machine alternate route", () => {
+    expect(getCardDefinition("BT20-050")).toMatchObject({
+      cardId: "BT20-050",
+      nameEn: "HoverEspimon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 3 },
+        { color: "Blue", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "LIBERATOR"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["Cyborg", "Machine"], cost: 2, isAlternate: true },
+    ]);
+    expect(matchingAlternateDigivolutionRequirement("BT20-050", "BT20-046")).toMatchObject({
+      level: 3,
+      traits: ["Cyborg", "Machine"],
+      cost: 2,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-050", "BT20-010")).toBeUndefined();
   });
 
   it("uses the Cyborg route for 2 and flips the next face-down security card", async () => {
@@ -72,22 +101,6 @@ describe("BT20-050 HoverEspimon", () => {
       }),
     ).toMatchObject({ ok: false });
     expect(invalid.perm("redBase").topCard.cardId).toBe("BT20-007");
-  });
-
-  it("draws exactly once across repeated end-of-attack windows in one turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-050", as: "hover" }],
-        deck: [
-          { card: "BT1-009", as: "first" },
-          { card: "BT1-010", as: "second" },
-        ],
-      },
-    });
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("hover"));
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("hover"));
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("first").instanceId]);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("second").instanceId]);
   });
 
   it("draws once across two public attacks, then draws again after the next turn", async () => {

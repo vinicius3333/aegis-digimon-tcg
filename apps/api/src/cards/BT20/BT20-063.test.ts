@@ -30,12 +30,21 @@ describe("BT20-063 Ghostmon", () => {
 
   it("publishes the printed stats and zero-cost purple evolution route", () => {
     expect(getCardDefinition("BT20-063")).toMatchObject({
+      cardId: "BT20-063",
+      nameEn: "Ghostmon",
       colors: ["Purple"],
+      kinds: ["Digimon"],
       level: 3,
       playCost: 3,
       dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Ghost", "LIBERATOR"],
       evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
     });
+    expect(getCardDefinition("BT20-063")?.effectText).toContain("Reveal the top 3 cards");
+    expect(getCardDefinition("BT20-063")?.effectText).toContain("Return the rest to the bottom of the deck");
+    expect(getCardDefinition("BT20-063")?.inheritedEffectText).toBe("[On Deletion] Gain 1 memory.");
   });
 
   it("on play adds separate Ghost and LIBERATOR matches and bottoms the nonmatch", async () => {
@@ -124,6 +133,26 @@ describe("BT20-063 Ghostmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("yaamon").topCard.cardId === "BT20-068");
-    expect(s.perm("yaamon").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX7-006", "BT20-063"]));
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("yaamon").stack.map((card) => card.cardId)).toEqual(["EX7-006", "BT20-063"]);
+  });
+
+  it("bottoms all three revealed cards when neither Ghost nor LIBERATOR is present", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-063", as: "ghostmon" }],
+          deck: ["BT20-047", "BT20-057", "BT20-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ghostmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 3 && s.state.players[0]!.hand.length === 0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT20-047", "BT20-057", "BT20-009"]);
   });
 });

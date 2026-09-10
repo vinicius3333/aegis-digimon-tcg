@@ -40,11 +40,22 @@ describe("BT20-077 HeavyMetaldramon", () => {
 
   it("publishes Blast/ACE/Overflow metadata and both alternate trait arms", async () => {
     expect(getCardDefinition("BT20-077")).toMatchObject({
+      nameEn: "HeavyMetaldramon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
       level: 6,
       playCost: 7,
       dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Evil Dragon", "LIBERATOR"],
+      evoCosts: [
+        { color: "Purple", level: 5, memoryCost: 4 },
+        { color: "Red", level: 5, memoryCost: 4 },
+      ],
       isAce: true,
       overflowMemory: 4,
+      effectText: expect.stringContaining("remove 2000 from this effect's DP maximum"),
     });
     expect(compiled.effects.find((effect) => effect.trigger === "Counter")).toMatchObject({
       isFromHand: true,
@@ -132,17 +143,25 @@ describe("BT20-077 HeavyMetaldramon", () => {
       {
         0: {
           battleArea: [{ card: "BT20-075", as: "base" }],
-          hand: [{ card: "BT20-077", as: "heavy" }, "BT20-047", "BT20-047", "BT20-047", "BT20-047"],
-          deck: ["BT20-047"],
+          hand: [
+            { card: "BT20-077", as: "heavy" },
+            "BT20-047",
+            "BT20-047",
+            "BT20-047",
+            "BT20-047",
+            "BT20-063",
+            "BT20-063",
+          ],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
           trash: [
             { card: "BT20-074", as: "eight" },
-            { card: "BT20-070", as: "six" },
+            { card: "BT20-061", as: "eligible" },
           ],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("six").instanceId);
+    preferred.push(s.inst("eligible").instanceId);
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -152,9 +171,10 @@ describe("BT20-077 HeavyMetaldramon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-070"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-061"));
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eight").instanceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-074")).toBe(false);
   });
 
   it("continuously grants both trait arms +2000 DP, Rush, and Blocker while excluding nonmatches", async () => {
@@ -219,13 +239,21 @@ describe("BT20-077 HeavyMetaldramon", () => {
             { card: "BT20-075", as: "darkDragon" },
           ],
           security: ["BT1-010"],
+          deck: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-071", dp: 7000, as: "attacker" }], security: ["BT1-010"] },
+        1: {
+          battleArea: [{ card: "BT20-071", dp: 7000, as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("darkDragon"), "Blocker")).toBe(true);
     expect(
       s.engine.applyIntent(1, {
@@ -240,6 +268,8 @@ describe("BT20-077 HeavyMetaldramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publicly Blast Digivolves from a legal level-5 trait source, trashes to four, and completes the Blocker window", async () => {
@@ -270,9 +300,12 @@ describe("BT20-077 HeavyMetaldramon", () => {
     const baseId = s.inst("base").instanceId;
     const heavyId = s.inst("heavy").instanceId;
     const entryCandidateId = s.inst("entryCandidate").instanceId;
-    s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -295,7 +328,7 @@ describe("BT20-077 HeavyMetaldramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(3);
     expect(s.perm("base").topCard.cardId).toBe("BT20-077");
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === heavyId)).toBe(false);
@@ -309,13 +342,34 @@ describe("BT20-077 HeavyMetaldramon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("base").topCard.cardId).toBe("BT20-077");
     expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("charges Overflow -4 when the ACE leaves battle", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-077", as: "heavy" }] } });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-077", dp: 9000, as: "heavy" }], deck: ["BT1-010"] },
+        1: { hand: [{ card: "BT20-076", as: "remover" }], deck: ["BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("heavy").permanentId], "byEffect");
-    expect(s.state.memory).toBe(-4);
+    const heavyId = s.perm("heavy").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    const before = s.state.memory;
+    expect(s.perm("heavy").currentDP).toBe(11000);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === heavyId));
+    expect(s.state.memory).toBe(before - 7 + 4);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

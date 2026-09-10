@@ -44,11 +44,22 @@ describe("BT20-072 Phantomon", () => {
 
   it("publishes stats, evolution, and live Execute", async () => {
     expect(getCardDefinition("BT20-072")).toMatchObject({
+      cardId: "BT20-072",
+      nameEn: "Phantomon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
       level: 5,
       playCost: 7,
       dp: 7000,
       evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Ghost", "LIBERATOR"],
+      effectText: expect.stringContaining("＜Execute＞"),
+      inheritedEffectText: expect.stringContaining("[On Deletion] You may play 1 level 4 or lower"),
     });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-072", as: "phantomon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("phantomon"), "Execute")).toBe(true);
@@ -57,13 +68,11 @@ describe("BT20-072 Phantomon", () => {
   it("executes its end-of-turn attack and then reaches the printed self-deletion", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-072", as: "phantomon" }], deck: ["BT20-001", "BT20-002"] },
-        1: { security: ["BT20-001"], deck: ["BT20-001", "BT20-002"] },
+        0: { battleArea: [{ card: "BT20-072", as: "phantomon" }], deck: ["BT20-047", "BT20-047"] },
+        1: { security: ["BT20-047"], deck: ["BT20-047", "BT20-047"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-    await s.ready();
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -80,7 +89,7 @@ describe("BT20-072 Phantomon", () => {
           0: {
             battleArea: [
               inherited
-                ? { card: "BT20-078", under: ["BT20-072"], as: "subject", suspended: true }
+                ? { card: "BT20-076", under: ["BT20-072"], as: "subject", suspended: true }
                 : { card: "BT20-072", as: "subject", suspended: true },
             ],
             trash: [
@@ -88,25 +97,62 @@ describe("BT20-072 Phantomon", () => {
               { card: "BT20-072", as: "level5" },
               { card: "BT20-047", as: "nonGhost" },
             ],
+            deck: ["BT20-047", "BT20-047"],
           },
-          1: { battleArea: [{ card: "BT20-069", dp: 15000, as: "attacker" }] },
+          1: {
+            battleArea: [{ card: "BT20-069", dp: 15000, as: "attacker" }],
+            deck: ["BT20-047", "BT20-047"],
+            security: ["BT20-047", "BT20-047"],
+          },
         },
-        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+        { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
       );
       preferred.push(s.inst("eligible").instanceId);
-      await s.ready();
-      s.state.turnSeat = 1;
+      const subjectPermanentId = s.perm("subject").permanentId;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: subjectPermanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("subject").isSuspended);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      const refusalResult = inherited
+        ? undefined
+        : await (async () => {
+            await settle(() => s.state.pendingDecision?.kind === "optional");
+            return s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: s.state.pendingDecision!.decisionId,
+              response: { kind: "optional", accept: false },
+            });
+          })();
+      expect(refusalResult).toEqual(inherited ? undefined : { ok: true });
+      await advance(s.engine).waitForMainPhase(1);
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
           attackerPermanentId: s.perm("attacker").permanentId,
-          target: { kind: "permanent", permanentId: s.perm("subject").permanentId },
+          target: { kind: "permanent", permanentId: subjectPermanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
         }),
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-068"));
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-068"]);
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("level5").instanceId);
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nonGhost").instanceId);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     }
   });
 
@@ -116,18 +162,42 @@ describe("BT20-072 Phantomon", () => {
         0: {
           battleArea: [{ card: "BT20-072", as: "phantomon", suspended: true }],
           trash: [{ card: "BT20-068", as: "eligible" }],
+          deck: ["BT20-047", "BT20-047"],
         },
-        1: { battleArea: [{ card: "BT20-069", dp: 15000, as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT20-069", dp: 15000, as: "attacker" }],
+          deck: ["BT20-047", "BT20-047"],
+          security: ["BT20-047", "BT20-047"],
+        },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
+    const subjectPermanentId = s.perm("phantomon").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: subjectPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("phantomon").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("phantomon").permanentId },
+        target: { kind: "permanent", permanentId: subjectPermanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -140,5 +210,7 @@ describe("BT20-072 Phantomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("phantomon").instanceId));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

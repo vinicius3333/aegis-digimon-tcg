@@ -8,6 +8,29 @@ import "./index.js";
 import "./BT20-078.js";
 
 describe("BT20-073 MetalPhantomon", () => {
+  it("publishes the complete catalog identity and printed clauses", () => {
+    expect(getCardDefinition("BT20-073")).toMatchObject({
+      nameEn: "MetalPhantomon",
+      colors: ["Purple", "Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Cyborg", "X-Antibody", "Ghost"],
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Black", level: 4, memoryCost: 4 },
+      ],
+      effectText: expect.stringContaining("By deleting 1 of your Digimon"),
+      inheritedEffectText: "[On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+    });
+    expect(getCardDefinition("BT20-073")?.effectText).toContain("＜Blocker＞");
+    expect(getCardDefinition("BT20-073")?.effectText).toContain("[On Play] [When Digivolving]");
+    expect(getCardDefinition("BT20-073")?.effectText).toContain("delete 1 of your opponent's level 5 or lower Digimon");
+  });
+
   it("has Blocker", () => {
     expect(compiled.effects.find((effect) => !effect.isInherited)).toMatchObject({
       trigger: "Static",
@@ -15,44 +38,31 @@ describe("BT20-073 MetalPhantomon", () => {
     });
   });
 
-  it("costs one own Digimon to delete one opposing level 5 or lower Digimon on play and digivolving", () => {
+  it("maps exact cost, opposing level boundary, and inherited target", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [
-          {
-            kind: "Delete",
-            optional: true,
-            abortOnDecline: true,
-            cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
-            target: {
-              filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
-              count: 1,
-            },
-          },
-        ],
+      const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0];
+      expect(action).toMatchObject({
+        kind: "Delete",
+        optional: true,
+        abortOnDecline: true,
+        cost: {
+          kind: "deleteOwn",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+        },
+        target: {
+          filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+          count: 1,
+        },
       });
     }
-  });
-
-  it("inherits De-Digivolve 1 against one opposing Digimon on deletion", () => {
-    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
-      trigger: "OnDeletion",
-      actions: [
-        { kind: "DeDigivolve", amount: 1, target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
-      ],
+    expect(compiled.effects.find((effect) => effect.isInherited)?.actions[0]).toMatchObject({
+      kind: "DeDigivolve",
+      amount: 1,
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     });
   });
 
   it("publishes the printed stats, evolution routes, and live Blocker", async () => {
-    expect(getCardDefinition("BT20-073")).toMatchObject({
-      level: 5,
-      playCost: 7,
-      dp: 7000,
-      evoCosts: [
-        { color: "Purple", level: 4, memoryCost: 4 },
-        { color: "Black", level: 4, memoryCost: 4 },
-      ],
-    });
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-073", as: "metal" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("metal"), "Blocker")).toBe(true);
@@ -99,6 +109,7 @@ describe("BT20-073 MetalPhantomon", () => {
           !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level5PermanentId),
       );
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-076"]);
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-063")).toBe(true);
     }
   });
 
@@ -112,32 +123,77 @@ describe("BT20-073 MetalPhantomon", () => {
     );
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-073"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-073")).toBe(true);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-063");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-071");
   });
 
-  it("when inherited, de-digivolves the chosen opponent by exactly 1 on host deletion", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-078", under: ["BT20-073"], as: "host" }] },
-      1: { battleArea: [{ card: "BT20-071", under: ["BT20-070"], as: "target" }] },
-    });
+  it("when inherited, de-digivolves the chosen opponent by exactly 1 on a public effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-078", dp: 11000, under: ["BT20-073"], as: "host" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-071", under: ["BT20-070"], as: "target" }],
+          hand: [{ card: "BT20-076", as: "remover" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    const hostId = s.perm("host").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+    await settle(() => s.perm("target").topCard.cardId === "BT20-070");
     expect(s.perm("target").topCard.cardId).toBe("BT20-070");
     expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publicly builds a purple level-4 to MetalPhantomon stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-068", as: "base" }],
-        hand: [
-          { card: "BT20-073", as: "metal" },
-          { card: "BT20-078", as: "next" },
-        ],
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-068", as: "base" },
+            { card: "BT20-063", as: "cost" },
+          ],
+          hand: [
+            { card: "BT20-073", as: "metal" },
+            { card: "BT20-078", as: "next" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-071", as: "level5" },
+            { card: "BT20-076", as: "level6" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("cost").permanentId, s.perm("level5").permanentId);
     s.state.memory = 8;
     await s.ready();
     expect(

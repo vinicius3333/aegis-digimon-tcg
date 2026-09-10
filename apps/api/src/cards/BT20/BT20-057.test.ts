@@ -157,7 +157,7 @@ describe("BT20-057 Gankoomon", () => {
   it("uses the public Blocker window and Reboot lifecycle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-057", as: "gankoomon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT20-057", as: "gankoomon" }], security: ["BT1-090"] },
         1: { battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }] },
       },
       { autoSelectCards: true },

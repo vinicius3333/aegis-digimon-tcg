@@ -1,6 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-085.js";
 import "./index.js";
@@ -9,6 +10,30 @@ import "./BT20-047.js";
 import "../ST18/ST18-10.js";
 
 describe("BT20-085 Shoto Kazama", () => {
+  it("matches the catalog and treats the bracketed Tamer name as exact", () => {
+    expect(getCardDefinition("BT20-085")).toMatchObject({
+      cardId: "BT20-085",
+      nameEn: "Shoto Kazama",
+      colors: ["Green"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      evoCosts: [],
+      types: ["LIBERATOR"],
+      maxCountInDeck: 4,
+    });
+    const printed = getCardDefinition("BT20-085")!;
+    expect(printed.effectText!.replaceAll("\u00a0", " ")).toContain(
+      "By returning this Tamer to the bottom of the deck, you may play 1 [Shoto Kazama] from your hand without paying the cost.",
+    );
+    expect(printed.effectText!.replaceAll("\u00a0", " ")).toContain(
+      "until the end of their turn, 1 of your Digimon with the [Vortex Warriors] trait gets +2000 DP.",
+    );
+    expect(printed.securityEffectText).toBe("[Security] Play this card without paying the cost.");
+    const reference = { tokens: ["Shoto Kazama"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Shoto Kazama" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Shoto Kazama Jr." }, reference)).toBe(false);
+  });
+
   it("models the Start of Main Phase bottom-deck cost and gated follow-up", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(effect?.actions[0]).toMatchObject({
@@ -20,8 +45,18 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(effect?.actions[1]).toMatchObject({
       kind: "PlayWithoutCost",
       condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "youHaveNone" }] },
-      target: { filter: { levels: [3], nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }] } },
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          levels: [3],
+          nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }],
+        },
+      },
       from: ["trash"],
+    });
+    expect(effect?.actions[0]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "nameExact" }] } },
     });
     expect(effect?.actions).toHaveLength(2);
   });
@@ -30,8 +65,18 @@ describe("BT20-085 Shoto Kazama", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn");
     expect(effect).toMatchObject({
       actions: [
-        { kind: "Suspend", cost: { kind: "suspend", target: { isSelf: true } }, abortOnDecline: true },
-        { kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" },
+        {
+          kind: "Suspend",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          cost: { kind: "suspend", target: { isSelf: true } },
+          abortOnDecline: true,
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait" }] } },
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
+        },
       ],
     });
   });
@@ -53,13 +98,15 @@ describe("BT20-085 Shoto Kazama", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await declined.ready();
-    await advance(declined.engine).fireGlobal(EffectTiming.StartOfYourMainPhase);
+    const declinedTurn = declined.engine.startTurnLoop();
+    await advance(declined.engine).waitForMainPhase(0);
     expect(declined.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-085"]);
     expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       declined.inst("replacement").instanceId,
     );
     expect(declined.state.players[0]!.trash.map((card) => card.instanceId)).toContain(declined.inst("bird").instanceId);
+    expect(declined.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await declinedTurn;
 
     const preferred: string[] = [];
     const accepted = setupEngine(
@@ -78,8 +125,8 @@ describe("BT20-085 Shoto Kazama", () => {
     preferred.push(accepted.inst("replacement").instanceId);
     const originalShotoInstanceId = accepted.inst("shoto").instanceId;
     const replacementInstanceId = accepted.inst("replacement").instanceId;
-    await accepted.ready();
-    await advance(accepted.engine).fireGlobal(EffectTiming.StartOfYourMainPhase);
+    const acceptedTurn = accepted.engine.startTurnLoop();
+    await advance(accepted.engine).waitForMainPhase(0);
     await settle(
       () =>
         accepted.state.players[0]!.deck.some((card) => card.instanceId === originalShotoInstanceId) &&
@@ -98,6 +145,8 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(accepted.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       accepted.inst("notReentered").instanceId,
     );
+    expect(accepted.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await acceptedTurn;
   });
 
   it("separates the opposing suspend target from the own Vortex Warriors DP target", async () => {
@@ -121,20 +170,26 @@ describe("BT20-085 Shoto Kazama", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
-
+    // The public one-turn driver leaves the next seat's Main phase open in this
+    // harness. The resolved event proves the End-of-Your-Turn effect completed;
+    // the opponent's sole legal target has then naturally passed its unsuspend
+    // phase, while this Tamer remains suspended until its owner's next turn.
     expect(s.perm("shoto").isSuspended).toBe(true);
-    expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("vortex").currentDP).toBe(9000);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "BT20-085", timing: "OnEndTurn" }),
+    );
 
-    // The printed duration is through the opponent's turn, so use a real turn
-    // boundary before asserting that the inherited DP returns to its base value.
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    const opponentTurn = s.engine.runOneTurn();
+    // Continue seat 1 -> seat 0 through the public loop. The opponent turn
+    // exercises the printed duration boundary without mutating turn ownership
+    // or memory.
+    const turnLoop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("vortex").currentDP).toBe(7000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
   });
 
   it("plays the exact Shoto instance from a public security check without cost", async () => {

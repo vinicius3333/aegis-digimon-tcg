@@ -22,7 +22,7 @@ import "../BT14/BT14-087.js";
 // FAILS-WHEN-REVERTED: on Soloogarmon [On Play], a controller Digimon's DP increases by 3000,
 //   proving the trash-hand-and-grant-raid effect resolved.
 
-// BT20-071 = Soloogarmon (Purple Lv.6, dp 9000, playCost 9)
+// BT20-071 = Soloogarmon (Purple/Red Lv.5, dp 7000, playCost 7)
 const SOLOOGARMON = "BT20-071";
 // BT20-032 = Bulkmon (Lv.4, SEEKERS trait — base to digivolve Soloogarmon onto)
 const BULKMON = "BT20-032";
@@ -35,11 +35,13 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
   it("compiles the hand cost, Tamer-stack trigger, and inherited Option suppression", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 }, optional: true, abortOnDecline: true },
-      { kind: "ModifyDP", amount: 3000 },
-      { kind: "GainKeyword", keyword: { keyword: "Raid" } },
-    ]);
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions).toMatchObject([
+        { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 }, optional: true, abortOnDecline: true },
+        { kind: "ModifyDP", amount: 3000, duration: "forTheTurn" },
+        { kind: "GainKeyword", keyword: { keyword: "Raid" }, duration: "forTheTurn" },
+      ]);
+    }
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
@@ -48,7 +50,18 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     });
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "YourTurn",
-      actions: [{ kind: "DisableSecurityEffect", sourceKind: "option", condition: { kind: "selfHasTrait" } }],
+      actions: [
+        {
+          kind: "DisableSecurityEffect",
+          sourceKind: "option",
+          duration: "permanent",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["SoC", "SEEKERS"], match: "trait" }] },
+          },
+        },
+      ],
     });
   });
 
@@ -142,9 +155,26 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
   });
 
   it("publishes stats and both exact cost-3 alternate evolution routes", async () => {
-    expect(getCardDefinition("BT20-071")).toMatchObject({ level: 5, playCost: 7, dp: 7000 });
+    expect(getCardDefinition("BT20-071")).toMatchObject({
+      cardId: "BT20-071",
+      nameEn: "Soloogarmon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Dark Animal", "X Antibody", "SoC", "SEEKERS"],
+      evoCosts: [
+        { color: "Red", level: 4, memoryCost: 4 },
+        { color: "Yellow", level: 4, memoryCost: 4 },
+      ],
+      effectText: expect.stringContaining("When Tamer cards are placed"),
+      inheritedEffectText: expect.stringContaining("doesn't activate [Security] effects on Option cards"),
+    });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Loogarmon"], cost: 3, isAlternate: true },
+      { namesExact: ["Loogarmon"], cost: 3, isAlternate: true },
       { level: 4, traits: ["SEEKERS"], cost: 3, isAlternate: true },
     ]);
     for (const [base, requirementIndex] of [
@@ -170,34 +200,59 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       await settle(() => s.perm("base").topCard.cardId === "BT20-071");
       expect(s.state.memory).toBe(0);
     }
+
+    const nearName = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-071", as: "base" }],
+        hand: [{ card: "BT20-071", as: "candidate" }],
+      },
+    });
+    nearName.state.memory = 3;
+    expect(
+      nearName.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: nearName.perm("base").permanentId,
+        instanceId: nearName.inst("candidate").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
-  it("deletes only a 6000-DP-or-less opponent when a Tamer is placed under itself", async () => {
+  it("deletes only a 6000-DP-or-less opponent when a Tamer is publicly placed under itself", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-071", as: "source" }],
-          hand: [
-            { card: "BT20-089", as: "tamer" },
-            { card: "BT20-047", as: "digimon" },
+          battleArea: [
+            { card: "BT20-071", as: "source" },
+            { card: "BT14-087", as: "eiji" },
           ],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
         },
         1: {
           battleArea: [
             { card: "BT20-070", dp: 6000, as: "six" },
             { card: "BT20-071", dp: 7000, as: "seven" },
           ],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("six").permanentId);
     await s.ready();
-    await advance(s.engine).verb.placeUnder(s.perm("source").permanentId, [s.inst("tamer").instanceId]);
+    const eiji = s.perm("eiji");
+    const sourceInstanceId = eiji.topCard.instanceId;
+    const entry = observe(s.engine)
+      .activatableEffects(eiji)
+      .find((effect) => effect.instanceId === sourceInstanceId);
+    expect(entry, "BT14-087's public Mind Link must be available").toBeDefined();
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-071"]);
-    await advance(s.engine).verb.placeUnder(s.perm("source").permanentId, [s.inst("digimon").instanceId]);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("source").stack.some((card) => card.cardId === "BT14-087")).toBe(true);
   });
 
   it("inherits Option Security suppression only for a SoC/SEEKERS host on its controller's turn", async () => {
@@ -205,13 +260,26 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       ["BT20-080", true],
       ["BT20-059", false],
     ] as const) {
-      const s = setupEngine({ 0: { battleArea: [{ card: host, under: ["BT20-071"], as: "host" }] } });
-      s.state.turnSeat = 0;
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: host, under: ["BT20-071"], as: "host" }],
+          hand: ["BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-047", as: "dummy" }],
+          hand: ["BT1-010"],
+          deck: ["BT20-047", "BT20-047", "BT20-047", "BT20-047", "BT20-047"],
+        },
+      });
       await s.ready();
-      expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(expected);
-      s.state.turnSeat = 1;
-      await advance(s.engine).recompute();
-      expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(false);
+      const turns = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT2-107")).toBe(expected);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT2-107")).toBe(false);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await turns;
     }
   });
 
@@ -253,17 +321,24 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
   });
 
   it("actually suppresses an Option security effect only for the qualifying inherited host", async () => {
-    for (const [host, expectedMemory] of [
-      ["BT20-080", 0],
-      ["BT20-059", -2],
+    for (const [host, securitySuppressed] of [
+      ["BT20-080", true],
+      ["BT20-059", false],
     ] as const) {
       const s = setupEngine({
-        0: { battleArea: [{ card: host, under: ["BT20-071"], as: "host" }] },
-        1: { security: [{ card: "BT2-107", as: "optionSecurity" }] },
+        0: {
+          battleArea: [{ card: host, under: ["BT20-071"], as: "host" }],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
+        },
+        1: {
+          security: [{ card: "BT2-107", as: "optionSecurity" }],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
+        },
       });
       s.state.memory = 0;
-      s.state.turnSeat = 0;
       await s.ready();
+      const ownTurn = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
       expect(
         s.engine.applyIntent(0, {
           type: "attack",
@@ -274,8 +349,19 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       await settle(() =>
         s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "BT2-107"),
       );
-      expect(s.state.memory).toBe(expectedMemory);
+      const checked = [...s.events]
+        .reverse()
+        .find((event) => event.kind === "securityChecked" && event.revealedCardId === "BT2-107");
+      const resolution = checked && "resolution" in checked ? checked.resolution : undefined;
+      expect(resolution === "effect").toBe(!securitySuppressed);
+      const gainEvents = s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory");
+      expect(gainEvents).toHaveLength(securitySuppressed ? 0 : 1);
+      const gain = gainEvents[0];
+      const gainDelta = gain?.kind === "memoryChanged" ? gain.to - gain.from : undefined;
+      expect(gainDelta).toBe(securitySuppressed ? undefined : -2);
       expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await ownTurn;
     }
   });
 });

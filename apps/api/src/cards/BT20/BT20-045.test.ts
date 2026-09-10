@@ -180,7 +180,7 @@ describe("BT20-045 Examon ACE", () => {
             { card: "BT20-011", dp: 8000, as: "highA" },
             { card: "BT20-012", dp: 8000, as: "highB" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -274,7 +274,7 @@ describe("BT20-045 Examon ACE", () => {
     const raid = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-045", as: "examon" }] },
-        1: { battleArea: [{ card: "BT20-010", dp: 10000, as: "raidTarget" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", dp: 10000, as: "raidTarget" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -294,7 +294,7 @@ describe("BT20-045 Examon ACE", () => {
     const pierce = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-045", as: "examon" }] },
-        1: { battleArea: [{ card: "BT20-010", dp: 10000, suspended: true, as: "target" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT20-010", dp: 10000, suspended: true, as: "target" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -314,7 +314,7 @@ describe("BT20-045 Examon ACE", () => {
   it("uses public Blocker and Evade combat decisions", async () => {
     const blocker = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-045", as: "examon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT20-045", as: "examon" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }] },
       },
       { autoDeclineOptional: true },
@@ -378,11 +378,11 @@ describe("BT20-045 Examon ACE", () => {
               { card: "BT20-045", suspended: true, as: "examon" },
               ...(suspendingSeat === 0 ? [{ card: "BT20-010", as: "trigger" }] : []),
             ],
-            security: ["BT1-001"],
+            security: ["BT1-009"],
           },
           1: {
             battleArea: suspendingSeat === 1 ? [{ card: "BT20-010", as: "trigger" }] : [],
-            security: ["BT1-001"],
+            security: ["BT1-009"],
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
@@ -400,10 +400,12 @@ describe("BT20-045 Examon ACE", () => {
       // trigger permanent suspends itself on attack declaration), which makes Examon's
       // ＜Blocker＞ eligible when seat 1 attacks. The block-window contract is a first-class
       // intent, not a `respondDecision` round-trip, so it needs an explicit decline here.
+      let blockDeclineResult: unknown = { ok: true };
       if (suspendingSeat === 1) {
         await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-        expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+        blockDeclineResult = s.engine.applyIntent(0, { type: "declineBlock" });
       }
+      expect(blockDeclineResult).toEqual({ ok: true });
       // Player-directed, unblocked attacks resolve through a security check rather than
       // `combatResolved` (that event only fires for a resolved Digimon-vs-Digimon battle).
       await settle(() => s.events.some((event) => event.kind === "securityChecked"));
@@ -420,12 +422,12 @@ describe("BT20-045 Examon ACE", () => {
             { card: "BT20-010", as: "firstTrigger" },
             { card: "BT20-010", as: "secondTrigger" },
           ],
-          security: ["BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           hand: ["BT20-010"],
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           deck: ["BT20-010", "BT20-010", "BT20-010", "BT20-010"],
         },
       },

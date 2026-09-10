@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,6 +8,19 @@ import "./index.js";
 
 describe("BT20-049 Blimpmon", () => {
   it("prevents one opposing Digimon from attacking players through the opponent's turn", () => {
+    expect(getCardDefinition("BT20-049")).toMatchObject({
+      cardId: "BT20-049",
+      nameEn: "Blimpmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Machine"],
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -26,6 +40,37 @@ describe("BT20-049 Blimpmon", () => {
       trigger: "Static",
       keywords: [{ keyword: "Reboot" }],
     });
+  });
+
+  it("pays exact printed play and evolution costs across the memory boundary", async () => {
+    const play = setupEngine({
+      0: { hand: [{ card: "BT20-049", as: "blimpmon" }] },
+    });
+    play.state.memory = 3;
+    await play.ready();
+    expect(play.engine.applyIntent(0, { type: "playCard", instanceId: play.inst("blimpmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => play.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-049"));
+    expect(play.state.memory).toBe(-1);
+    expect(play.state.players[0]!.hand).not.toContain(play.inst("blimpmon"));
+
+    const evolve = setupEngine({
+      0: { battleArea: [{ card: "BT20-047", as: "base" }], hand: [{ card: "BT20-049", as: "blimpmon" }] },
+    });
+    evolve.state.memory = 1;
+    await evolve.ready();
+    expect(
+      evolve.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolve.perm("base").permanentId,
+        instanceId: evolve.inst("blimpmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => evolve.perm("base").topCard.cardId === "BT20-049");
+    expect(evolve.state.memory).toBe(-1);
+    expect(evolve.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-047"]);
+    expect(evolve.state.players[0]!.hand).not.toContain(evolve.inst("blimpmon"));
   });
 
   it("restricts exactly one opposing Digimon after both play and evolution", async () => {
@@ -119,8 +164,8 @@ describe("BT20-049 Blimpmon", () => {
         0: { hand: [{ card: "BT20-049", as: "blimpmon" }] },
         1: {
           battleArea: [{ card: "BT1-010", as: "attacker" }],
-          hand: [{ card: "BT20-001", as: "playable" }],
-          deck: ["BT20-001", "BT20-001", "BT20-001"],
+          hand: [{ card: "BT1-010", as: "playable" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoSelectCards: true },

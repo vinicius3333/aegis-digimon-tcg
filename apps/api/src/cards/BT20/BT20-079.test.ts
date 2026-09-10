@@ -1,15 +1,34 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-079.js";
 import "./index.js";
 
 describe("BT20-079 Necromon", () => {
   it("has Security Attack +1 and Execute", () => {
-    expect(
-      compiled.effects
-        .filter((effect) => effect.trigger === "Static")
-        .flatMap((effect) => effect.keywords?.map((keyword) => keyword.keyword)),
-    ).toEqual(["SecurityAttack", "Execute"]);
+    expect(compiled.effects.filter((effect) => effect.trigger === "Static")).toMatchObject([
+      { keywords: [{ keyword: "SecurityAttack", amount: 1 }] },
+      { keywords: [{ keyword: "Execute" }] },
+    ]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
+  it("publishes the complete catalog identity and printed clauses", () => {
+    expect(getCardDefinition("BT20-079")).toMatchObject({
+      cardId: "BT20-079",
+      nameEn: "Necromon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Ghost", "LIBERATOR"],
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }],
+      effectText: expect.stringContaining("lowest level"),
+    });
+    expect(getCardDefinition("BT20-079")?.inheritedEffectText).toBeUndefined();
   });
 
   it("deletes one opposing lowest-level Digimon on play and digivolving", () => {
@@ -57,7 +76,11 @@ describe("BT20-079 Necromon", () => {
       {
         0: {
           hand: [{ card: "BT20-079", as: "necromon" }],
-          trash: [{ card: "BT20-072", as: "ghost" }],
+          trash: [
+            { card: "BT20-072", as: "ghost" },
+            { card: "BT20-079", as: "tooHigh" },
+            { card: "BT20-047", as: "notGhost" },
+          ],
         },
         1: {
           battleArea: [
@@ -84,6 +107,47 @@ describe("BT20-079 Necromon", () => {
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-076"]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-072");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-079", "BT20-047"]),
+    );
+  });
+
+  it("offers both simultaneous On Play effects for controller ordering (Q4403)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-079", as: "necromon" }],
+          trash: [{ card: "BT20-072", as: "ghost" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-071", as: "lowest" },
+            { card: "BT20-076", as: "higher" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("necromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const ordering = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)?.req;
+    expect(ordering?.kind).toBe("orderTriggers");
+    expect(ordering?.options?.triggerKeys).toHaveLength(2);
+    expect(ordering?.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT20-079", "BT20-079"]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering!.decisionId,
+        response: { kind: "orderTriggers", order: [ordering!.options!.triggerKeys![1]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-079", "BT20-072"]),
+    );
   });
 
   it("publicly deletes exactly one Digimon when the lowest level is tied", async () => {

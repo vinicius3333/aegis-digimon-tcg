@@ -5,6 +5,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Warriors] trait (which belongs to the +2000 DP leg on YOUR Digimon) onto the
 // opponent-suspend target and dropped the DP leg entirely. The sequencing guards
 // below also preserve both "by" costs before resolving their following clauses.
+// Bracketed [Shoto Kazama] is an exact card-name reference, not an "in its name"
+// substring condition.
 // "By suspending this Tamer, suspend 1 of your opponent's Digimon and, until the
 // end of their turn, 1 of your Digimon with the [Vortex Warriors] trait gets
 // +2000 DP."
@@ -21,7 +23,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Shoto Kazama"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -1,5 +1,7 @@
 import { advance } from "../../engine/testkit/advance.js";
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-044.js";
@@ -8,6 +10,25 @@ import "../BT1/BT1-036.js";
 
 describe("BT20-044 Breakdramon", () => {
   it("suspends two opposing Digimon or Tamers and offers an attack on play and digivolving", () => {
+    expect(getCardDefinition("BT20-044")).toMatchObject({
+      cardId: "BT20-044",
+      nameEn: "Breakdramon",
+      colors: ["Green", "Red"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 4 },
+        { color: "Red", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Machine Dragon"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Groundramon", "Wingdramon"], cost: 3, isAlternate: true },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -238,13 +259,15 @@ describe("BT20-044 Breakdramon", () => {
             target: { kind: "player" },
           }),
         ).toEqual({ ok: true });
+        let blockDeclineResult: unknown = { ok: true };
         if (!inherited) {
           await settle(
             () =>
               s.events.filter((event) => event.kind === "blockWindowOpened").length >= (alias === "battle3" ? 1 : 2),
           );
-          expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+          blockDeclineResult = s.engine.applyIntent(0, { type: "declineBlock" });
         }
+        expect(blockDeclineResult).toEqual({ ok: true });
         // Both attacks here are player-directed (unblocked, no Digimon battle), so they
         // resolve through a security check rather than `combatResolved` (that event only
         // fires for a resolved Digimon-vs-Digimon battle; see combat/controller.ts's
@@ -375,5 +398,13 @@ describe("BT20-044 Breakdramon", () => {
     await settle(() => s.perm("groundramon").topCard.cardId === "BT20-044");
     expect(s.perm("groundramon").stack.map((card) => card.cardId)).toEqual(["BT20-042"]);
     expect(s.state.memory).toBe(2);
+  });
+  it("requires exact bracketed Groundramon or Wingdramon alternate-evolution names", () => {
+    for (const token of ["Groundramon", "Wingdramon"] as const) {
+      const reference = { tokens: [token], match: "nameExact" as const };
+      expect(matchNameOrTrait({ nameEn: token }, reference)).toBe(true);
+      expect(matchNameOrTrait({ nameEn: `${token} X` }, reference)).toBe(false);
+      expect(matchNameOrTrait({ nameEn: `${token}mon` }, reference)).toBe(false);
+    }
   });
 });

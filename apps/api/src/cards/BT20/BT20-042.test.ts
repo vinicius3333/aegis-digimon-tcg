@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-042.js";
@@ -9,6 +11,23 @@ import "./index.js";
 
 describe("BT20-042 Groundramon", () => {
   it("suspends and prevents unsuspending one opponent Digimon or Tamer on play and digivolving", () => {
+    expect(getCardDefinition("BT20-042")).toMatchObject({
+      cardId: "BT20-042",
+      nameEn: "Groundramon",
+      colors: ["Green", "Red"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Green", level: 4, memoryCost: 4 },
+        { color: "Red", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Earth Dragon"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Coredramon"], cost: 3, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -39,6 +58,13 @@ describe("BT20-042 Groundramon", () => {
         },
       ],
     });
+  });
+
+  it("requires the exact bracketed Coredramon alternate-evolution name", () => {
+    const reference = { tokens: ["Coredramon"], match: "nameExact" as const };
+    expect(matchNameOrTrait({ nameEn: "Coredramon" }, reference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Coredramon X" }, reference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Coredramonmon" }, reference)).toBe(false);
   });
 
   it("trashes the opponent's top security when this battle-area Digimon deletes in battle", () => {
@@ -227,7 +253,7 @@ describe("BT20-042 Groundramon", () => {
       0: { battleArea: [{ card: "BT20-044", dp: 12000, under: ["BT20-042"], as: "host" }] },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }],
-        security: ["BT20-001", "BT20-002"],
+        security: ["BT1-010", "BT1-010"],
       },
     });
     s.state.memory = 5;
