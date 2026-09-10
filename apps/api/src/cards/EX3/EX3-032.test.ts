@@ -1,8 +1,9 @@
-import { EffectDuration, getCardDefinition, type DecisionResponse } from "@aegis/shared";
+import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT2/BT2-018.js";
 import "./EX3-032.js";
 
 function respond(s: EngineSetup, response: DecisionResponse): void {
@@ -39,12 +40,15 @@ describe("EX3-032 Majiramon", () => {
       rarity: "C",
       imageId: "EX3-032",
     });
+    expect(getCardDefinition("EX3-032")!.effectText).toBe(
+      "[On Play] 1 of your opponent's Digimon gains ＜Security Attack -2＞ (This Digimon checks 2 fewer security cards) until the end of your opponent's turn. If you have a Digimon with [Four Sovereigns] in its traits in play, gain 2 memory.",
+    );
 
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-031", as: "base" }],
         hand: [{ card: "EX3-032", as: "majiramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -60,7 +64,8 @@ describe("EX3-032 Majiramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-032");
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-031"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("Deva/Four Sovereigns family: targets exactly 1 opponent Digimon and gains 2 memory", async () => {
@@ -122,11 +127,11 @@ describe("EX3-032 Majiramon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX3-032", as: "majiramon" }],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-010"],
       },
       1: {
         battleArea: [
-          { card: "BT1-028", dp: 10000, as: "attacker" },
+          { card: "BT2-018", dp: 10000, as: "attacker" },
           { card: "BT1-010", as: "bystander" },
         ],
       },
@@ -134,8 +139,6 @@ describe("EX3-032 Majiramon", () => {
     s.state.memory = 10;
     await s.ready();
     const attackerId = s.perm("attacker").permanentId;
-    advance(s.engine).ledgers.continuous.addKeywordGrant(attackerId, "SecurityAttack", EffectDuration.Permanent, 1);
-
     const play = s.engine.applyIntent(0, {
       type: "playCard",
       instanceId: s.inst("majiramon").instanceId,
@@ -162,11 +165,11 @@ describe("EX3-032 Majiramon", () => {
       {
         0: {
           hand: [{ card: "EX3-032", as: "majiramon" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "target" }],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true },
@@ -256,7 +259,13 @@ describe("EX3-032 Majiramon", () => {
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     respond(s, { kind: "chooseTargets", instanceIds: [s.perm("selected").permanentId] });
     await settle(() => observe(s.engine).keywordAmount(s.perm("selected"), "SecurityAttack") === -2);
-    await advance(s.engine).verb.playInstances([s.inst("entrant").instanceId]);
+    s.state.turnSeat = 1;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("entrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("entrant").instanceId),
+    );
     const entrant = s.state.players[1]!.battleArea.find(
       ({ topCard }) => topCard.instanceId === s.inst("entrant").instanceId,
     )!;
@@ -311,5 +320,27 @@ describe("EX3-032 Majiramon", () => {
 
     expect(s.state.memory).toBe(5);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-032")).toHaveLength(0);
+  });
+
+  it("rejects an unrelated blue level 3 evolution source without changing memory or stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "invalidBase" }],
+        hand: [{ card: "EX3-032", as: "majiramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("majiramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-028");
+    expect(s.perm("invalidBase").stack).toHaveLength(0);
   });
 });

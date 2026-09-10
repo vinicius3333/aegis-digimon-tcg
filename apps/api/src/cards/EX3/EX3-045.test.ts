@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -25,11 +25,15 @@ describe("EX3-045 Hydramon", () => {
       rarity: "SR",
       imageId: "EX3-045-Errata",
     });
+    expect(getCardDefinition("EX3-045")!.effectText).toBe(
+      "[When Digivolving] You may suspend 1 Digimon.[All Turns] [Once Per Turn] When an opponent's Digimon becomes suspended, for each other suspended Digimon with [Vegetation], [Plant], or [Fairy] in one of their traits you have in play, gain 1 memory.[End of Your Turn] [Once Per turn] If you have 2 or more suspended Digimon with [Vegetation], [Plant], or [Fairy] in one of their traits, return 1 of your opponent's suspended Digimon to the bottom of its owner's deck.",
+    );
+    expect(getCardDefinition("EX3-045")!.inheritedEffectText).toBeUndefined();
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-043", as: "base" }],
         hand: [{ card: "EX3-045", as: "hydramon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 6;
@@ -55,6 +59,7 @@ describe("EX3-045 Hydramon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").topCard.cardId).toBe("EX3-045");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-043"]);
   });
 
   it("may suspend exactly 1 chosen Digimon on digivolution, including an opponent's", async () => {
@@ -64,7 +69,7 @@ describe("EX3-045 Hydramon", () => {
         0: {
           battleArea: [{ card: "EX3-043", as: "base" }],
           hand: [{ card: "EX3-045", as: "hydramon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-010"],
         },
         1: {
           battleArea: [
@@ -102,12 +107,35 @@ describe("EX3-045 Hydramon", () => {
     expect(targetRequest.options!.candidateInstanceIds).not.toContain(s.perm("alreadySuspended").permanentId);
   });
 
+  it("rejects a non-green level-5 evolution source without changing the stack or memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "base" }],
+        hand: [{ card: "EX3-045", as: "hydramon" }],
+        deck: ["BT1-012"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hydramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-028");
+    expect(s.perm("base").stack).toHaveLength(0);
+  });
+
   it("can decline the optional When Digivolving suspension without opening a target choice", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-043", as: "base" }],
         hand: [{ card: "EX3-045", as: "hydramon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-011"],
       },
       1: { battleArea: [{ card: "BT1-028", as: "opponent" }] },
     });
@@ -251,14 +279,14 @@ describe("EX3-045 Hydramon", () => {
           { card: "EX3-045", as: "hydramon" },
           { card: "BT1-047", suspended: true, as: "fairy" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
       1: {
         battleArea: [
           { card: "BT1-028", as: "firstOpponent" },
           { card: "BT1-029", as: "secondOpponent" },
         ],
-        deck: ["BT1-004", "BT1-005", "BT1-006"],
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
       },
     });
     await s.ready();
@@ -290,10 +318,10 @@ describe("EX3-045 Hydramon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-028", under: ["BT1-003"], suspended: true, as: "chosen" },
+            { card: "BT1-028", under: ["BT1-009"], suspended: true, as: "chosen" },
             { card: "BT1-029", suspended: true, as: "untouched" },
           ],
-          deck: ["BT1-004"],
+          deck: ["BT1-011"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -301,16 +329,14 @@ describe("EX3-045 Hydramon", () => {
     preferred.push(s.perm("chosen").permanentId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("hydramon"));
-    await settle(
-      () =>
-        !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-028") &&
-        s.state.players[1]!.deck.some(({ cardId }) => cardId === "BT1-028") &&
-        s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-003"),
-    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("hydramon").permanentId, s.perm("vegetation").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-028");
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-003");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-029")).toBe(true);
     expect(s.decisions.find(({ req }) => req.sourceCardId === "EX3-045")?.req).toMatchObject({
       kind: "chooseTargets",
@@ -333,8 +359,8 @@ describe("EX3-045 Hydramon", () => {
       await s.ready();
       if (opponentTurn) s.state.turnSeat = 1;
 
-      await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("hydramon"));
-      await settle();
+      const activeSeat = opponentTurn ? 1 : 0;
+      await advance(s.engine).runTurn(activeSeat);
 
       expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-028")).toBe(true);
       expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-045")).toHaveLength(0);

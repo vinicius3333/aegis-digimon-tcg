@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -22,8 +22,12 @@ describe("EX3-022 MegaSeadramon", () => {
       rarity: "R",
       imageId: "EX3-022-Errata",
     });
-    expect(definition.effectText).toContain("from 1 of your blue Digimon's digivolution cards");
-    expect(definition.inheritedEffectText).toContain("[Once Per Turn]");
+    expect(definition.effectText).toBe(
+      "[When Attacking] You may play 1 blue level 3 Digimon card from 1 of your blue Digimon's digivolution cards without paying its memory cost.",
+    );
+    expect(definition.inheritedEffectText).toBe(
+      "[When Attacking] [Once Per Turn] You may play 1 blue level 3 Digimon card from 1 of your blue Digimon's digivolution cards without paying its memory cost.",
+    );
   });
 
   it("digivolves normally from a blue level 4 for 3 memory", async () => {
@@ -47,6 +51,7 @@ describe("EX3-022 MegaSeadramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-022");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-019"]);
   });
 
   it("Aquatic family: offers only blue level 3 sources under blue Digimon and plays the chosen card for free", async () => {
@@ -59,6 +64,7 @@ describe("EX3-022 MegaSeadramon", () => {
             under: [
               { card: "BT1-029", as: "aquaticLineGabumon" },
               { card: "EX3-019", as: "invalidBlueLevel4" },
+              { card: "BT1-086", as: "invalidBlueTamer" },
             ],
             as: "aquaticHost",
           },
@@ -102,6 +108,7 @@ describe("EX3-022 MegaSeadramon", () => {
       expect.arrayContaining([s.inst("aquaticLineGabumon").instanceId, s.inst("otherEligible").instanceId]),
     );
     expect(payload.candidateInstanceIds).not.toContain(s.inst("invalidBlueLevel4").instanceId);
+    expect(payload.candidateInstanceIds).not.toContain(s.inst("invalidBlueTamer").instanceId);
     expect(payload.candidateInstanceIds).not.toContain(s.inst("invalidBlueUnderRed").instanceId);
     expect(payload.candidateInstanceIds).not.toContain(s.inst("invalidRedLevel3").instanceId);
     expect(payload.candidateInstanceIds.sort()).toEqual(
@@ -109,9 +116,14 @@ describe("EX3-022 MegaSeadramon", () => {
     );
     expect(payload.visibleInstanceIds).toEqual(
       expect.arrayContaining(
-        ["aquaticLineGabumon", "otherEligible", "invalidBlueLevel4", "invalidBlueUnderRed", "invalidRedLevel3"].map(
-          (alias) => s.inst(alias).instanceId,
-        ),
+        [
+          "aquaticLineGabumon",
+          "otherEligible",
+          "invalidBlueLevel4",
+          "invalidBlueTamer",
+          "invalidBlueUnderRed",
+          "invalidRedLevel3",
+        ].map((alias) => s.inst(alias).instanceId),
       ),
     );
     expect(s.decisions.at(-1)!.req).toMatchObject({
@@ -244,7 +256,7 @@ describe("EX3-022 MegaSeadramon", () => {
     expect(s.perm("sourceHost").stack).toHaveLength(0);
   });
 
-  it("two inherited copies each activate once, then both remain exhausted for the turn", async () => {
+  it("two inherited copies each activate once during the same attack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -286,9 +298,6 @@ describe("EX3-022 MegaSeadramon", () => {
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.events.filter(({ kind }) => kind === "securityChecked").length === 1);
     await settle(() => s.state.phase === "Main");
-    await settle(() => false, 50);
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("inheritedHost"));
     expect(s.perm("sourceHost").stack).toHaveLength(1);
   });
 

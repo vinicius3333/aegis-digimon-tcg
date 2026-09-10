@@ -27,7 +27,7 @@ describe("EX3-035 Goldramon", () => {
       0: {
         battleArea: [{ card: "BT1-057", as: "base" }],
         hand: [{ card: "EX3-035", as: "goldramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     evolution.state.memory = 3;
@@ -41,6 +41,7 @@ describe("EX3-035 Goldramon", () => {
     ).toEqual({ ok: true });
     await settle(() => evolution.perm("base").topCard.cardId === "EX3-035");
     expect(evolution.state.memory).toBe(0);
+    expect(evolution.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-057"]);
 
     const play = setupEngine({ 0: { hand: [{ card: "EX3-035", as: "goldramon" }] } });
     play.state.memory = 12;
@@ -50,6 +51,27 @@ describe("EX3-035 Goldramon", () => {
     });
     await settle(() => play.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-035"));
     expect(play.state.memory).toBe(0);
+  });
+
+  it("rejects a non-yellow level 5 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-035", as: "goldramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("goldramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-035");
   });
 
   it("Q2613/Four Great Dragons family: returns Trial or a Digimon after one optional confirmation", async () => {
@@ -64,7 +86,7 @@ describe("EX3-035 Goldramon", () => {
             { card: "EX3-036", as: "magnadramon" },
             { card: "BT1-010", as: "unrelated" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -116,8 +138,8 @@ describe("EX3-035 Goldramon", () => {
           hand: [{ card: "BT16-014", as: "goldramonX" }],
           trash: [{ card: "EX3-069", as: "trial" }],
           deck: [
-            { card: "BT1-001", as: "digivolutionDraw" },
-            { card: "BT1-002", as: "trialDraw" },
+            { card: "BT1-009", as: "digivolutionDraw" },
+            { card: "BT1-010", as: "trialDraw" },
           ],
         },
       },
@@ -215,7 +237,7 @@ describe("EX3-035 Goldramon", () => {
           battleArea: [{ card: "EX3-034", as: "base" }],
           hand: [{ card: "EX3-035", as: "goldramon" }],
           trash: [{ card: "EX3-036", as: "magnadramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -232,7 +254,7 @@ describe("EX3-035 Goldramon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001") &&
+        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-009") &&
         s.decisions.some(({ req }) => req.sourceCardId === "EX3-035" && req.kind === "optional"),
     );
 
@@ -255,14 +277,14 @@ describe("EX3-035 Goldramon", () => {
             { card: "EX3-025", as: "azulongmon" },
             { card: "EX3-064", as: "megidramon" },
           ],
-          deck: [{ card: "BT1-001", as: "deckTop" }],
+          deck: [{ card: "BT1-009", as: "deckTop" }],
         },
         1: {
           battleArea: [
             { card: "BT1-010", dp: 10000, as: "chosenTarget" },
             { card: "BT1-011", dp: 10000, as: "unchosenTarget" },
           ],
-          security: ["BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoSelectCards: true, autoOrderCards: false, preferInstanceIds: preferred },
@@ -342,7 +364,7 @@ describe("EX3-035 Goldramon", () => {
           battleArea: [{ card: "EX3-035", as: "goldramon" }],
           trash: ["EX3-036", "EX3-025", "EX3-064"],
         },
-        1: { security: [{ card: "BT1-002", as: "onlySecurity" }] },
+        1: { security: [{ card: "BT1-010", as: "onlySecurity" }] },
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
@@ -374,7 +396,7 @@ describe("EX3-035 Goldramon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", dp: 6000, as: "target" }],
-          security: ["BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
@@ -440,7 +462,7 @@ describe("EX3-035 Goldramon", () => {
           { card: "BT1-010", dp: 10000, as: "chosenTarget" },
           { card: "BT1-011", dp: 10000, as: "otherTarget" },
         ],
-        security: ["BT1-002", "BT1-003", "BT1-004"],
+        security: ["BT1-010", "BT1-011", "BT1-012"],
       },
     });
     await s.ready();
@@ -492,7 +514,7 @@ describe("EX3-035 Goldramon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", dp: 10000, as: "target" }],
-          security: ["BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true },
@@ -520,12 +542,12 @@ describe("EX3-035 Goldramon", () => {
       {
         0: {
           battleArea: [{ card: "EX3-035", as: "goldramon" }],
-          deck: ["BT1-001", "BT1-006"],
+          deck: ["BT1-009", "BT1-014"],
         },
         1: {
           battleArea: [{ card: "BT1-010", dp: 10000, as: "target" }],
-          security: ["BT1-002", "BT1-003"],
-          deck: ["BT1-004", "BT1-005"],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013"],
         },
       },
       { autoSelectCards: true },

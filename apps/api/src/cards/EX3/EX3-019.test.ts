@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT12/BT12-028.js";
 import "../BT4/BT4-011.js";
-import "./EX3-019.js";
+import { compiled } from "./EX3-019.js";
 
 function opponentTurn<T extends ReturnType<typeof setupEngine>>(s: T, memory: number): T {
   s.state.turnSeat = 1;
@@ -27,6 +27,45 @@ describe("EX3-019 Paledramon", () => {
       effectText: "[When Digivolving] Trash any digivolution card of 1 of your opponent's Digimon.",
       inheritedEffectText:
         "[Opponent's Turn] When an opponent's Digimon with no digivolution cards would digivolve, increase the digivolution cost by 1.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                count: 1,
+              },
+              amount: 1,
+              choose: true,
+            },
+          ],
+        },
+        {
+          trigger: "OpponentsTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              sourceFilter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },
+              actions: [
+                {
+                  kind: "Replacement",
+                  event: "wouldDigivolve",
+                  mode: "increaseCost",
+                  amount: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
     });
   });
 
@@ -125,6 +164,8 @@ describe("EX3-019 Paledramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("bottom").instanceId));
 
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-029"]);
     expect(s.perm("withSources").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("top").instanceId);
     expect(s.perm("withSources").stack.map(({ instanceId }) => instanceId)).not.toContain(s.inst("bottom").instanceId);
   });
@@ -146,6 +187,55 @@ describe("EX3-019 Paledramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-019");
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("empty").stack).toHaveLength(0);
+  });
+
+  it("rejects a red level 3 and a blue level 4 as evolution sources", async () => {
+    for (const [source, alias] of [
+      ["BT1-009", "wrongColor"],
+      ["BT1-032", "wrongLevel"],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: source, as: alias }],
+          hand: [{ card: "EX3-019", as: "paledramon" }],
+        },
+      });
+      s.state.memory = 2;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(alias).permanentId,
+          instanceId: s.inst("paledramon").instanceId,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.perm(alias).topCard.cardId).toBe(source);
+      expect(s.inst("paledramon").cardId).toBe("EX3-019");
+      expect(s.state.memory).toBe(2);
+    }
+  });
+
+  it("Q3386 charges once per inherited copy and completes at the resulting cost", async () => {
+    const s = opponentTurn(
+      setupEngine({
+        0: { battleArea: [{ card: "EX3-021", under: ["EX3-019", "EX3-019"], as: "dragon" }] },
+        1: { battleArea: [{ card: "BT1-029", as: "base" }], hand: [{ card: "BT1-032", as: "evolver" }] },
+      }),
+      6,
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-032");
+    expect(s.state.memory).toBe(-10);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-029"]);
   });
 
   it("Q3386 stacks two inherited copies in the same stack and Q3391 preserves the hand when the result is unaffordable", async () => {

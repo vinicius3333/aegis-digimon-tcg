@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Hand-fixed IR for EX3-008 (Flamedramon).
 // Errata (2022-11-11): second WD option is DNA digivolve (this Digimon + another).
 // Inherited [End of Your Turn]: this Digimon + 1 other may DNA digivolve into a Digimon
-// card in hand for the cost. Both effects are optional and must specify from:['hand'].
+// card in hand for the cost. DnaDigivolve result filters default to the hand zone.
 // KB Q3374: you CAN use the inherited effect after the WD effect triggers end of turn.
 // KB Q3375: the target base Digimon for the first WD option does NOT need to be purple.
 export const compiled: CompiledCard = {

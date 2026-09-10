@@ -24,7 +24,7 @@ describe("EX3-038 Pomumon", () => {
       0: {
         breeding: { card: "BT1-007", as: "base" },
         hand: [{ card: "EX3-038", as: "pomumon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 1;
@@ -40,6 +40,28 @@ describe("EX3-038 Pomumon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-038");
 
     expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-007"]);
+  });
+
+  it("rejects a non-green level 2 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-038", as: "pomumon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("pomumon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-038");
   });
 
   it("suspends exactly 1 chosen opposing Digimon when an effect suspends itself on its turn", async () => {
@@ -153,7 +175,7 @@ describe("EX3-038 Pomumon", () => {
       0: { battleArea: [{ card: "EX3-038", as: "pomumon" }] },
       1: {
         battleArea: [{ card: "BT1-028", as: "opponent" }],
-        security: ["BT1-003"],
+        security: ["BT1-011"],
       },
     });
     await s.ready();

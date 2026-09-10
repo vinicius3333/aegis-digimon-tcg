@@ -156166,7 +156166,7 @@
             "controller": "mine",
             "amount": 1,
             "condition": {
-              "kind": "selfTopHasText",
+              "kind": "selfHasTrait",
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Dragon"], "match": "traitContains" },
@@ -156451,6 +156451,7 @@
       },
       {
         "trigger": "WhenAttacking",
+        "isInherited": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -156784,7 +156785,7 @@
           {
             "kind": "DnaDigivolve",
             "materials": [
-              { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              { "filter": { "isSelfRef": true }, "zone": "battleArea", "count": 1 },
               {
                 "filter": {
                   "controller": "mine",
@@ -156792,6 +156793,7 @@
                   "kind": ["Digimon"],
                   "nameOrTrait": [{ "tokens": ["Dramon"], "match": "name" }]
                 },
+                "zone": "battleArea",
                 "count": 1
               }
             ],
@@ -157569,7 +157571,7 @@
           },
           {
             "kind": "SubTrigger",
-            "event": "whenPlacedInBattleArea",
+            "event": "whenOptionPlayed",
             "sourceFilter": {
               "controller": "mine",
               "nameOrTrait": [{ "tokens": ["Trial of the Four Great Dragons"], "match": "name" }]
@@ -157608,7 +157610,7 @@
           },
           {
             "kind": "SubTrigger",
-            "event": "whenPlacedInBattleArea",
+            "event": "whenOptionPlayed",
             "sourceFilter": {
               "controller": "mine",
               "nameOrTrait": [{ "tokens": ["Trial of the Four Great Dragons"], "match": "name" }]
@@ -157759,7 +157761,6 @@
               },
               "count": 1
             },
-            "from": ["hand"],
             "condition": {
               "kind": "allOf",
               "conditions": [
@@ -157971,7 +157972,7 @@
           {
             "kind": "DnaDigivolve",
             "materials": [
-              { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              { "filter": { "isSelfRef": true }, "zone": "battleArea", "count": 1 },
               {
                 "filter": {
                   "controller": "mine",
@@ -157979,6 +157980,7 @@
                   "kind": ["Digimon"],
                   "nameOrTrait": [{ "tokens": ["Dramon"], "match": "name" }]
                 },
+                "zone": "battleArea",
                 "count": 1
               }
             ],
@@ -158127,8 +158129,7 @@
               "nameOrTrait": [
                 { "tokens": ["Dramon"], "match": "name" },
                 { "tokens": ["Examon"], "match": "name" }
-              ],
-              "survivedBattle": true
+              ]
             },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
@@ -158147,8 +158148,7 @@
               "nameOrTrait": [
                 { "tokens": ["Dramon"], "match": "name" },
                 { "tokens": ["Examon"], "match": "name" }
-              ],
-              "survivedBattle": true
+              ]
             },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
@@ -159584,7 +159584,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "names": ["Dragon Mode"], "cost": 2, "isAlternate": true }]
   },
   "EX3-074": {
     "effects": [

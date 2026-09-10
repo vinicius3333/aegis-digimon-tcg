@@ -1,10 +1,74 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-022.js";
-import "./EX3-015.js";
+import { compiled } from "./EX3-015.js";
 
 describe("EX3-015 Crabmon", () => {
+  it("matches the catalog identity and the complete typed IR", () => {
+    expect(getCardDefinition("EX3-015")).toMatchObject({
+      cardId: "EX3-015",
+      nameEn: "Crabmon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Crustacean"],
+      imageId: "EX3-015",
+    });
+    expect(getCardDefinition("EX3-015")!.effectText).toContain("1 of your blue Digimon gains ＜Jamming＞ for the turn");
+    expect(getCardDefinition("EX3-015")!.effectText).toContain(
+      "place 1 blue level 5 or lower Digimon card from your hand under that Digimon as its bottom digivolution card",
+    );
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "SelectBind",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] },
+                count: 1,
+                bindAs: "jammingTarget",
+              },
+            },
+            {
+              kind: "GainKeyword",
+              target: { fromSelectionRef: "jammingTarget", filter: {}, count: 1 },
+              keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
+              duration: "forTheTurn",
+            },
+            {
+              kind: "PlaceUnder",
+              target: {
+                filter: {
+                  zone: "hand",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                  levelComparison: { op: "lte", value: 5 },
+                },
+                count: 1,
+              },
+              underSelectionRef: "jammingTarget",
+              position: "bottom",
+              optional: true,
+              condition: { kind: "playedFromZone", zone: "digivolutionCards" },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it("publishes a sourced action containing only the controller's blue Digimon", async () => {
     const s = setupEngine({
       0: {
@@ -59,6 +123,47 @@ describe("EX3-015 Crabmon", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("blueLevel5").instanceId)).toBe(
       true,
     );
+  });
+
+  it("digivolves from the printed blue level-2 route and rejects a red level-2 source", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-003", as: "blueEgg" },
+        hand: [{ card: "EX3-015", as: "crabmon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueEgg").permanentId,
+        instanceId: s.inst("crabmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "EX3-015");
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.breeding?.stack.map(({ cardId }) => cardId)).toEqual(["BT1-003"]);
+
+    const invalid = setupEngine({
+      0: {
+        breeding: { card: "BT1-001", as: "redEgg" },
+        hand: [{ card: "EX3-015", as: "crabmon" }],
+      },
+    });
+    invalid.state.memory = 1;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("redEgg").permanentId,
+        instanceId: invalid.inst("crabmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-001");
+    expect(invalid.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-015");
+    expect(invalid.state.memory).toBe(1);
   });
 
   it("Q3378/Aqua trait: when played from digivolution cards, places the hand card under the Digimon that received Jamming", async () => {

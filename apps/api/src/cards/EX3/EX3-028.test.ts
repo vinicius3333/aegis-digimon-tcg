@@ -54,15 +54,16 @@ describe("EX3-028 Patamon", () => {
       rarity: "C",
       imageId: "EX3-028-Errata",
     });
-    expect(definition.effectText).toContain("[Angel], [Cherub], [Throne], [Authority], [Seraph] or [Virtue]");
-    expect(definition.effectText).toContain("other than [Three Great Angels]");
+    expect(definition.effectText).toBe(
+      "[On Play] Reveal the top 4 cards of your deck. Add 1 yellow card with [Angel], [Cherub], [Throne], [Authority], [Seraph] or [Virtue], other than [Three Great Angels], in one of its traits and 1 card with the [Four Great Dragons] trait among them to your hand. Place the rest at the bottom of your deck in any order.",
+    );
     expect(definition.inheritedEffectText).toBeUndefined();
 
     const s = setupEngine({
       0: {
         breeding: { card: "BT1-005", as: "base" },
         hand: [{ card: "EX3-028", as: "patamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     await s.ready();
@@ -77,7 +78,8 @@ describe("EX3-028 Patamon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-028");
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-005"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("Four Great Dragons/Angel family: forces both independent adds, exposes the full reveal, and orders the rest", async () => {
@@ -385,5 +387,27 @@ describe("EX3-028 Patamon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(order);
+  });
+
+  it("rejects an unrelated blue level 3 evolution source without changing memory or stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "invalidBase" }],
+        hand: [{ card: "EX3-028", as: "patamon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("patamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-029");
+    expect(s.perm("invalidBase").stack).toHaveLength(0);
   });
 });

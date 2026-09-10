@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const dragonTraits = [
+const dragonTraits: NonNullable<Filter["nameOrTrait"]> = [
   { tokens: ["Rock Dragon"], match: "trait" },
   { tokens: ["Earth Dragon"], match: "trait" },
   { tokens: ["Machine Dragon"], match: "trait" },
@@ -34,7 +33,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "ActivateEffect",
-              target: { sourceRef: "triggerSubject" },
+              target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
               effectType: "OnPlay",
               count: 1,
               asEffectOf: "this Tamer",

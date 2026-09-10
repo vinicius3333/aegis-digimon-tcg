@@ -2,9 +2,11 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { compiled } from "./EX3-013.js";
+import "../BT11/BT11-072.js";
 import "../BT12/BT12-072.js";
+import "../ST1/ST1-16.js";
 import "../ST2/ST2-16.js";
-import "./EX3-013.js";
 
 describe("EX3-013 Chaosdramon", () => {
   it("has its official dual-color identity and evolution costs", () => {
@@ -25,6 +27,55 @@ describe("EX3-013 Chaosdramon", () => {
       types: ["Machine"],
       rarity: "SR",
       imageId: "EX3-013",
+    });
+  });
+
+  it("publishes the placement, de-digivolution, and leave-play replacement clauses", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Machinedramon"], cost: 1, isAlternate: true }]);
+    expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "DeDigivolve",
+          amount: 1,
+          optional: true,
+          abortOnDecline: true,
+          scaling: { per: 1, usePaidCount: true, unit: "cards" },
+          cost: {
+            kind: "place",
+            target: {
+              count: 3,
+              upTo: true,
+              distinctCardNumbers: true,
+              from: ["hand", "trash"],
+              filter: { colors: ["Red", "Black"], levels: [5] },
+            },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+          },
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving" });
+    expect(compiled.effects[1]?.actions).toEqual(compiled.effects[0]?.actions);
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourceFilter: { isSelfRef: true },
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: { count: 2, filter: { isSelfRef: true, kind: ["Digimon"], levels: [5] } },
+          },
+        },
+      ],
     });
   });
 
@@ -89,6 +140,10 @@ describe("EX3-013 Chaosdramon", () => {
     await settle(() => s.perm("target").topCard.cardId === "BT1-009");
 
     const chaosdramon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-013")!;
+    expect(s.state.memory).toBe(0);
+    expect(chaosdramon.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-021", "BT2-060", "BT2-061"]),
+    );
     expect(chaosdramon.stack.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(materialIds));
     expect(chaosdramon.stack).toHaveLength(3);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("ineligible").instanceId)).toBe(
@@ -216,6 +271,75 @@ describe("EX3-013 Chaosdramon", () => {
     expect(s.inst("cyborg").cardId).toBe("BT1-021");
   });
 
+  it.each([
+    ["red", "BT1-021"],
+    ["black", "BT2-060"],
+  ])(
+    "digivolves from a %s level 5 for the catalogued cost and preserves the source stack",
+    async (_color, baseCard) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [{ card: "EX3-013", as: "chaosdramon" }],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("chaosdramon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX3-013");
+      expect(s.state.memory).toBe(1);
+      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCard]);
+    },
+  );
+
+  it("supports the alternate Machinedramon route for 1 and rejects an unrelated level 5", async () => {
+    const alternate = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-072", as: "machinedramon" }],
+        hand: [{ card: "EX3-013", as: "chaosdramon" }],
+      },
+    });
+    alternate.state.memory = 2;
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("machinedramon").permanentId,
+        instanceId: alternate.inst("chaosdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => alternate.perm("machinedramon").topCard.cardId === "EX3-013");
+    expect(alternate.state.memory).toBe(1);
+    expect(alternate.perm("machinedramon").stack.map(({ cardId }) => cardId)).toEqual(["BT11-072"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "notMachinedramon" }],
+        hand: [{ card: "EX3-013", as: "chaosdramon" }],
+      },
+    });
+    invalid.state.memory = 2;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("notMachinedramon").permanentId,
+        instanceId: invalid.inst("chaosdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.state.memory).toBe(2);
+    expect(invalid.perm("notMachinedramon").topCard.cardId).toBe("BT1-038");
+  });
+
   it("trashes exactly 2 level 5 digivolution cards to prevent battle deletion", async () => {
     const s = setupEngine(
       {
@@ -338,20 +462,30 @@ describe("EX3-013 Chaosdramon", () => {
             },
           ],
         },
-        1: { security: ["BT1-010", "BT1-011"] },
+        1: {
+          battleArea: ["BT1-009"],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          security: ["BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
     await s.ready();
     const chaosId = s.perm("chaosX").permanentId;
+    const securityTopId = s.state.players[1]!.security[0]!.instanceId;
 
-    await advance(s.engine).verb.deletePermanent([chaosId]);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(chaosId);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT1-021", "BT2-060"]),
-    );
+    expect(s.perm("chaosX").topCard.cardId).toBe("BT12-072");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-021", "BT2-060"]);
+    expect(s.perm("chaosX").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-013"]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityTopId);
   });
 
   it("Q2213: gains EX3-013's When Digivolving effect as soon as BT12-072 digivolution is confirmed", async () => {
@@ -380,6 +514,9 @@ describe("EX3-013 Chaosdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard.cardId === "BT1-009");
 
+    expect(s.state.memory).toBe(8);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-021", "EX3-013"]);
+    expect(s.perm("base").topCard.cardId).toBe("BT12-072");
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("material").instanceId)).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./EX3-062.js";
+import { compiled } from "./EX3-062.js";
 
 interface DecisionPayload {
   candidateInstanceIds?: string[];
@@ -56,12 +56,45 @@ describe("EX3-062 WarGrowlmon", () => {
     expect(definition.evoCosts).toEqual([{ color: "Purple", level: 4, memoryCost: 4 }]);
     expect(definition.effectText).toContain("Digivolve: 3 from Lv.4 if name contains [Growlmon]");
     expect(definition.effectText).toContain("Trash the top 3 cards of both players' decks");
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ level: 4, names: ["Growlmon"], cost: 3, isAlternate: true }],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            { kind: "TrashTopDeck", controller: "both", amount: 3 },
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Guilmon", "Takato Matsuki"], match: "nameExact" }],
+                },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              payCost: false,
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  { kind: "zoneCount", seat: "mine", zone: "trash", op: "gte", value: 5 },
+                  { kind: "zoneCount", seat: "opponent", zone: "trash", op: "gte", value: 5 },
+                ],
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    });
 
     const alternate = setupEngine({
       0: {
         battleArea: [{ card: "EX3-057", as: "growlmon" }],
         hand: [{ card: "EX3-062", as: "warGrowlmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-011"],
       },
     });
     alternate.state.memory = 3;
@@ -76,12 +109,13 @@ describe("EX3-062 WarGrowlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => alternate.perm("growlmon").topCard.cardId === "EX3-062");
     expect(alternate.state.memory).toBe(0);
+    expect(alternate.perm("growlmon").stack.map(({ cardId }) => cardId)).toEqual(["EX3-057"]);
 
     const printed = setupEngine({
       0: {
         battleArea: [{ card: "EX3-058", as: "purpleLevel4" }],
         hand: [{ card: "EX3-062", as: "warGrowlmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-011"],
       },
     });
     printed.state.memory = 4;
@@ -95,6 +129,7 @@ describe("EX3-062 WarGrowlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => printed.perm("purpleLevel4").topCard.cardId === "EX3-062");
     expect(printed.state.memory).toBe(0);
+    expect(printed.perm("purpleLevel4").stack.map(({ cardId }) => cardId)).toEqual(["EX3-058"]);
   });
 
   it("rejects a red level 4 whose name does not contain Growlmon", async () => {
@@ -115,6 +150,8 @@ describe("EX3-062 WarGrowlmon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("redLevel4").topCard.cardId).toBe("EX3-008");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("warGrowlmon").instanceId);
   });
 
@@ -128,19 +165,19 @@ describe("EX3-062 WarGrowlmon", () => {
             { card: "EX2-056", as: "takato" },
           ],
           deck: [
-            { card: "BT1-001", as: "draw" },
+            { card: "BT1-011", as: "draw" },
             { card: "EX3-056", as: "milledGuilmon" },
             { card: "BT1-021", as: "cyborgPeer" },
-            { card: "BT1-002", as: "thirdMill" },
-            { card: "BT1-003", as: "remaining" },
+            { card: "BT1-012", as: "thirdMill" },
+            { card: "BT1-013", as: "remaining" },
           ],
           trash: ["BT1-004", "BT1-005"],
         },
         1: {
           deck: [
-            { card: "BT1-006", as: "opponentFirst" },
-            { card: "BT1-007", as: "opponentSecond" },
-            { card: "BT1-008", as: "opponentThird" },
+            { card: "BT1-010", as: "opponentFirst" },
+            { card: "BT1-011", as: "opponentSecond" },
+            { card: "BT1-012", as: "opponentThird" },
             { card: "BT1-009", as: "opponentRemaining" },
           ],
         },
@@ -200,10 +237,10 @@ describe("EX3-062 WarGrowlmon", () => {
             { card: "EX2-056", as: "takato" },
             { card: "EX3-056", as: "guilmon" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
-          deck: ["BT1-005", "BT1-006", "BT1-007"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
           trash: ["BT1-008", "BT1-009"],
         },
       },
@@ -243,10 +280,10 @@ describe("EX3-062 WarGrowlmon", () => {
             { card: "EX3-062", as: "warGrowlmon" },
             { card: "EX2-056", as: "takato" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           trash: ["BT1-005", "BT1-006"],
         },
-        1: { deck: ["BT1-007", "BT1-008", "BT1-009"] },
+        1: { deck: ["BT1-011", "BT1-012", "BT1-009"] },
       },
       { autoSelectCards: false },
     );
@@ -280,11 +317,11 @@ describe("EX3-062 WarGrowlmon", () => {
           { card: "EX3-062", as: "warGrowlmon" },
           { card: "EX2-056", as: "takato" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         trash: ["BT1-005"],
       },
       1: {
-        deck: ["BT1-006", "BT1-007", "BT1-008"],
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
         trash: ["BT1-009"],
       },
     });
@@ -319,10 +356,10 @@ describe("EX3-062 WarGrowlmon", () => {
           { card: "EX3-062", as: "warGrowlmon" },
           { card: "BT9-009", as: "guilmonX" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         trash: ["BT1-005", "BT1-006"],
       },
-      1: { deck: ["BT1-007", "BT1-008", "BT1-009"] },
+      1: { deck: ["BT1-011", "BT1-012", "BT1-009"] },
     });
     s.state.memory = 3;
     await s.ready();
@@ -352,10 +389,10 @@ describe("EX3-062 WarGrowlmon", () => {
             { card: "EX3-062", as: "warGrowlmon" },
             { card: "EX2-056", as: "takato" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-011", "BT1-012"],
         },
         1: {
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-013", "BT1-014"],
           trash: ["BT1-005", "BT1-006", "BT1-007"],
         },
       },

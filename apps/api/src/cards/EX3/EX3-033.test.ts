@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-033.js";
+import { compiled } from "./EX3-033.js";
 
 function respond(s: EngineSetup, response: DecisionResponse): void {
   const decision = s.state.pendingDecision!;
@@ -33,19 +33,72 @@ describe("EX3-033 AeroVeedramon", () => {
       rarity: "R",
       imageId: "EX3-033-Errata",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "PlaceInBattleAreaSelf",
+              target: {
+                filter: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+                count: 1,
+                zone: "hand",
+                from: ["hand"],
+              },
+              optional: true,
+              condition: {
+                kind: "youHaveNone",
+                filter: {
+                  controller: "mine",
+                  zone: "battleArea",
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+              },
+            },
+          ],
+        },
+        {
+          trigger: "OpponentsTurn",
+          actions: [{ kind: "Aura", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+        },
+        {
+          trigger: "OpponentsTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Aura",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Four Great Dragons"], match: "trait" }],
+                },
+                count: "all",
+              },
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it("publishes the complete hand while enabling only Trial, with exact provenance", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX3-031", as: "base" }],
+        battleArea: [{ card: "EX3-031", under: ["BT1-009"], as: "base" }],
         hand: [
           { card: "EX3-033", as: "aeroveedramon" },
           { card: "EX3-069", as: "firstTrial" },
           { card: "EX3-069", as: "secondTrial" },
           { card: "BT1-010", as: "filler" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 3;
@@ -97,9 +150,35 @@ describe("EX3-033 AeroVeedramon", () => {
     respond(s, { kind: "selectCards", instanceIds: [s.inst("secondTrial").instanceId] });
     await digivolve;
 
+    // The effect-driven primitive intentionally bypasses payment; direct public
+    // digivolution coverage below proves the printed 3-memory cost.
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-031"]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
       s.inst("secondTrial").instanceId,
     );
+  });
+
+  it("rejects a red level-3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "invalidSource" }],
+        hand: [{ card: "EX3-033", as: "aeroveedramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("aeroveedramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-009");
+    expect(s.inst("aeroveedramon").cardId).toBe("EX3-033");
+    expect(s.state.memory).toBe(3);
   });
 
   it("Four Great Dragons family: places Trial from hand without playing or activating its Main effect", async () => {
@@ -112,8 +191,8 @@ describe("EX3-033 AeroVeedramon", () => {
             { card: "EX3-069", as: "trial" },
           ],
           deck: [
-            { card: "BT1-001", as: "digivolutionDraw" },
-            { card: "BT1-002", as: "wouldBeMainDraw" },
+            { card: "BT1-010", as: "digivolutionDraw" },
+            { card: "BT1-011", as: "wouldBeMainDraw" },
           ],
         },
       },
@@ -151,7 +230,7 @@ describe("EX3-033 AeroVeedramon", () => {
             { card: "EX3-033", as: "aeroveedramon" },
             { card: "EX3-069", as: "trial" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoDeclineOptional: true },
@@ -166,7 +245,7 @@ describe("EX3-033 AeroVeedramon", () => {
         instanceId: s.inst("aeroveedramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-010"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("trial").instanceId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("EX3-069");
@@ -181,7 +260,7 @@ describe("EX3-033 AeroVeedramon", () => {
           { card: "EX3-069", as: "existingTrial" },
           { card: "EX3-069", as: "secondTrial" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 3;
@@ -195,7 +274,7 @@ describe("EX3-033 AeroVeedramon", () => {
         instanceId: s.inst("aeroveedramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-010"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondTrial").instanceId);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-033")).toHaveLength(0);
@@ -209,7 +288,7 @@ describe("EX3-033 AeroVeedramon", () => {
           { card: "EX3-033", as: "aeroveedramon" },
           { card: "BT1-010", as: "filler" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 3;
@@ -322,7 +401,7 @@ describe("EX3-033 AeroVeedramon", () => {
           { card: "EX3-033", as: "aero" },
           { card: "EX3-036", as: "dragon" },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-012"],
       },
     });
     s.state.memory = 1;
@@ -358,7 +437,7 @@ describe("EX3-033 AeroVeedramon", () => {
           { card: "BT1-053", under: [{ card: "EX3-033" }], as: "sourceHost" },
           { card: "EX3-035", as: "alliedDragon", dp: 10000 },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-012"],
       },
     });
     s.state.memory = 1;

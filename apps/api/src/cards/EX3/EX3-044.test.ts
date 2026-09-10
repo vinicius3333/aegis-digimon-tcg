@@ -1,11 +1,11 @@
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT2/BT2-054.js";
 import "./EX3-024.js";
-import "./EX3-044.js";
+import { compiled } from "./EX3-044.js";
 import "../index.js"; // the full catalog is registered in a real match
 
 const mainEffect =
@@ -30,15 +30,69 @@ describe("EX3-044 Breakdramon", () => {
       rarity: "R",
       imageId: "EX3-044",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [
+        { names: ["Groundramon"], cost: 3, isAlternate: true },
+        { names: ["Wingdramon"], cost: 3, isAlternate: true },
+      ],
+      effects: [
+        {
+          trigger: "AllTurns",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenSuspended",
+              sourceFilter: { isSelfRef: true },
+              actions: [
+                {
+                  kind: "Suspend",
+                  target: {
+                    filter: { controller: "opponent", kind: ["Digimon"], suspended: false },
+                    count: 1,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenDeletesInBattle",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  { tokens: ["Dramon"], match: "name" },
+                  { tokens: ["Examon"], match: "name" },
+                ],
+              },
+              actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          frequency: "OncePerTurn",
+        },
+      ],
+    });
   });
 
   it("digivolves from Groundramon or Wingdramon for alternate cost 3", async () => {
     for (const baseCard of ["EX3-041", "EX3-020"]) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCard, as: "base" }],
+          battleArea: [{ card: baseCard, under: ["BT1-009"], as: "base" }],
           hand: [{ card: "EX3-044", as: "breakdramon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 3;
@@ -54,16 +108,37 @@ describe("EX3-044 Breakdramon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "EX3-044");
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", baseCard]);
     }
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-044", as: "breakdramon" }],
+      },
+    });
+    invalid.state.memory = 3;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongSource").permanentId,
+        instanceId: invalid.inst("breakdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.memory).toBe(3);
+    expect(invalid.perm("wrongSource").topCard.cardId).toBe("BT1-009");
+    expect(invalid.inst("breakdramon").cardId).toBe("EX3-044");
   });
 
   it("uses printed cost 4 from unrelated green and blue level 5 Digimon", async () => {
     for (const baseCard of ["EX3-043", "BT1-038"]) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCard, as: "base" }],
+          battleArea: [{ card: baseCard, under: ["BT1-010"], as: "base" }],
           hand: [{ card: "EX3-044", as: "breakdramon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-010"],
         },
       });
       s.state.memory = 4;
@@ -78,6 +153,7 @@ describe("EX3-044 Breakdramon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "EX3-044");
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", baseCard]);
     }
   });
 
@@ -155,14 +231,14 @@ describe("EX3-044 Breakdramon", () => {
       {
         0: {
           battleArea: [{ card: "EX3-044", as: "breakdramon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
         },
         1: {
           battleArea: [
             { card: "BT1-028", as: "firstTarget" },
             { card: "BT1-029", as: "secondTarget" },
           ],
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
+          deck: ["BT1-009", "BT1-010", "BT1-014"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -208,7 +284,9 @@ describe("EX3-044 Breakdramon", () => {
     s.state.memory = -3;
     await s.ready();
 
-    const flow = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("slayerdramon"));
+    // Start a real opponent turn so the production Start of Opponent's Main Phase
+    // trigger drives Q3399's simultaneous-resolution ordering.
+    const flow = s.engine.runOneTurn();
     await settle(() => s.state.pendingDecision?.kind === "optional");
     let pending = s.state.pendingDecision!;
     expect(
@@ -271,7 +349,7 @@ describe("EX3-044 Breakdramon", () => {
       0: { battleArea: [{ card: "EX3-044", as: "breakdramon" }] },
       1: {
         battleArea: [{ card: "BT1-028", suspended: true, as: "defender" }],
-        security: ["BT1-003", "BT1-004"],
+        security: ["BT1-011", "BT1-012"],
       },
     });
     await s.ready();
@@ -310,7 +388,7 @@ describe("EX3-044 Breakdramon", () => {
           { card: "BT1-028", suspended: true, as: "firstDefender" },
           { card: "BT1-029", suspended: true, as: "secondDefender" },
         ],
-        security: ["BT1-003", "BT1-004", "BT1-005"],
+        security: ["BT1-011", "BT1-012", "BT1-013"],
       },
     });
     await s.ready();
@@ -355,7 +433,7 @@ describe("EX3-044 Breakdramon", () => {
           { card: "BT14-015", dp: 15000, as: "secondDramon" },
           { card: "BT1-009", dp: 15000, as: "nextTurnDramon" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-011", "BT1-012", "BT1-013"],
       },
       1: {
         battleArea: [
@@ -363,8 +441,8 @@ describe("EX3-044 Breakdramon", () => {
           { card: "BT1-029", suspended: true, as: "secondDefender" },
           { card: "BT1-030", suspended: true, as: "nextTurnDefender" },
         ],
-        security: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
-        deck: ["BT1-007", "BT1-008", "BT1-009"],
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        deck: ["BT1-013", "BT1-014", "BT1-009"],
       },
     });
     await s.ready();
@@ -427,7 +505,7 @@ describe("EX3-044 Breakdramon", () => {
       },
       1: {
         battleArea: [{ card: "BT1-028", dp: 12000, suspended: true, as: "defender" }],
-        security: ["BT1-003", "BT1-004"],
+        security: ["BT1-011", "BT1-012"],
       },
     });
     await s.ready();

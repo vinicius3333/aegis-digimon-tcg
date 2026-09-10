@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -20,8 +20,86 @@ describe("EX3-008 Flamedramon", () => {
       attributes: ["Free"],
       types: ["Dragonkin"],
       imageId: "EX3-008-Errata",
+      effectText:
+        "[When Digivolving] Activate 1 of the effects below.・You may digivolve 1 of your other Digimon into a level 4 purple Digimon card with the [Free] trait from your trash for the cost.・You may DNA digivolve this Digimon and one of your other Digimon may DNA digivolve into a Digimon card in your hand for the cost.",
+      inheritedEffectText:
+        "[End of Your Turn] This Digimon and one of your other Digimon may DNA digivolve into a Digimon card in your hand for the cost.",
     });
-    expect(getCardDefinition("EX3-008")!.effectText).toContain("Activate 1 of the effects below");
+  });
+
+  it("publishes the errata branches and inherited clause as complete compiled IR", () => {
+    expect(getCompiledCard("EX3-008")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "Modal",
+              choose: 1,
+              labels: [
+                "Digivolve 1 of your other Digimon into a purple level 4 [Free] Digimon from your trash",
+                "DNA digivolve this Digimon and 1 of your other Digimon into a Digimon in your hand",
+              ],
+              options: [
+                [
+                  {
+                    kind: "Digivolve",
+                    target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
+                    into: {
+                      filter: {
+                        controller: "mine",
+                        kind: ["Digimon"],
+                        colors: ["Purple"],
+                        levels: [4],
+                        nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+                      },
+                      count: 1,
+                    },
+                    from: ["trash"],
+                    payCost: true,
+                    optional: true,
+                  },
+                ],
+                [
+                  {
+                    kind: "DnaDigivolve",
+                    materials: [
+                      { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
+                      {
+                        filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+                        count: 1,
+                        zone: "battleArea",
+                      },
+                    ],
+                    into: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+                    payCost: true,
+                    optional: true,
+                  },
+                ],
+              ],
+            },
+          ],
+        },
+        {
+          trigger: "EndOfYourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              materials: [
+                { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
+                { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1, zone: "battleArea" },
+              ],
+              into: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              payCost: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it.each([
@@ -156,16 +234,20 @@ describe("EX3-008 Flamedramon", () => {
     expect(zero.decisions).toHaveLength(0);
   });
 
-  it("digivolves a non-purple partner into a purple level 4 Free card from trash for its cost", async () => {
+  it("Q3375: allows a non-purple other Digimon to digivolve into the purple level 4 Free card", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT1-009", as: "base" },
-            { card: "EX3-055", as: "partner" },
+            { card: "BT1-010", as: "partner" },
           ],
           hand: [{ card: "EX3-008", as: "flamedramon" }],
-          trash: [{ card: "EX3-058", as: "shadramon" }],
+          trash: [
+            { card: "EX3-058", as: "shadramon" },
+            { card: "BT10-075", as: "wrongTrait" },
+            { card: "BT13-011", as: "wrongColor" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -182,7 +264,10 @@ describe("EX3-008 Flamedramon", () => {
     ).toEqual({ ok: true });
 
     await settle(() => s.perm("partner").topCard.cardId === "EX3-058");
-    expect(s.perm("partner").stack.map(({ cardId }) => cardId)).toContain("EX3-055");
+    expect(s.perm("partner").stack.map(({ cardId }) => cardId)).toContain("BT1-010");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT10-075", "BT13-011"]),
+    );
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-058")).toBe(false);
     expect(s.state.memory).toBe(2);
   });
@@ -352,7 +437,10 @@ describe("EX3-008 Flamedramon", () => {
       },
     });
     await inherited.ready();
-    await advance(inherited.engine).fire(EffectTiming.OnEndTurn, inherited.perm("host"));
+    const inheritedTurn = inherited.engine.runOneTurn();
+    await advance(inherited.engine).waitForMainPhase(0);
+    advance(inherited.engine).endMainPhaseIfOpen(0);
+    await inheritedTurn;
     expect(inherited.state.pendingDecision).toBeUndefined();
     expect(inherited.decisions.filter(({ req }) => req.sourceCardId === "EX3-008")).toHaveLength(0);
   });
@@ -378,7 +466,9 @@ describe("EX3-008 Flamedramon", () => {
     const secondCompatiblePartnerId = s.perm("secondCompatiblePartner").permanentId;
     const incompatiblePartnerId = s.perm("incompatiblePartner").permanentId;
 
-    const resolution = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    const resolution = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
       s.engine.applyIntent(0, {

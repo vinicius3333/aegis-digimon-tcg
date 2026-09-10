@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -15,11 +15,31 @@ describe("EX3-067 Sourai", () => {
       kinds: ["Option"],
       playCost: 4,
       rarity: "U",
+      maxCountInDeck: 4,
       imageId: "EX3-067",
     });
-    expect(definition.effectText).toContain("Trash the top 4 digivolution cards");
-    expect(definition.effectText).toContain("all of your opponent's Digimon with no digivolution cards can't attack");
+    expect(definition.effectText).toBe(
+      "[Main] Trash the top 4 digivolution cards of 1 of your opponent's Digimon. Until the end of your opponent's turn, all of your opponent's Digimon with no digivolution cards can't attack.",
+    );
     expect(definition.securityEffectText).toBe("[Security] Activate this card's [Main] effect.");
+    expect(getCompiledCard("EX3-067")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "TrashDigivolution", amount: 4, fromTop: true },
+            { kind: "Restrict", restriction: "attack", duration: "untilOpponentTurnEnd" },
+          ],
+        },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "ActivateMain" }],
+        },
+      ],
+    });
   });
 
   it("trashes exactly the top 4 sources from the chosen opposing Digimon", async () => {
@@ -30,8 +50,8 @@ describe("EX3-067 Sourai", () => {
       },
       1: {
         battleArea: [
-          { card: "BT1-025", under: ["BT1-001", "BT1-009", "BT1-015", "BT1-020", "BT1-021"], as: "chosen" },
-          { card: "BT1-026", under: ["BT1-002", "BT1-010"], as: "untouched" },
+          { card: "BT1-025", under: ["BT1-010", "BT1-009", "BT1-015", "BT1-020", "BT1-021"], as: "chosen" },
+          { card: "BT1-026", under: ["BT1-011", "BT1-010"], as: "untouched" },
         ],
       },
     });
@@ -64,12 +84,12 @@ describe("EX3-067 Sourai", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-067"));
 
-    expect(s.perm("chosen").stack.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
-    expect(s.perm("untouched").stack.map(({ cardId }) => cardId)).toEqual(["BT1-002", "BT1-010"]);
+    expect(s.perm("chosen").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.perm("untouched").stack.map(({ cardId }) => cardId)).toEqual(["BT1-011", "BT1-010"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT1-009", "BT1-015", "BT1-020", "BT1-021"]),
     );
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(observe(s.engine).isRestricted(s.perm("chosen"), "attack")).toBe(false);
     assertNoLoudGap(s);
   });
@@ -84,9 +104,9 @@ describe("EX3-067 Sourai", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-025", under: ["BT1-001", "BT1-009", "BT1-015"], as: "stripped" },
+            { card: "BT1-025", under: ["BT1-010", "BT1-009", "BT1-015"], as: "stripped" },
             { card: "BT1-028", as: "alreadyEmpty" },
-            { card: "BT1-026", under: ["BT1-002"], as: "stillLoaded" },
+            { card: "BT1-026", under: ["BT1-012"], as: "stillLoaded" },
           ],
         },
       },
@@ -137,12 +157,12 @@ describe("EX3-067 Sourai", () => {
         0: {
           battleArea: [{ card: "BT1-028", as: "blueSource" }],
           hand: [{ card: "EX3-067", as: "sourai" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT1-029", as: "locked" }],
-          deck: ["BT1-001", "BT1-002"],
-          security: ["BT1-001"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-011"],
         },
       },
       { autoSelectCards: true },
@@ -186,18 +206,32 @@ describe("EX3-067 Sourai", () => {
   it("Security activates the same Main sequence without paying cost or meeting color", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "EX3-067", faceUp: true, as: "securitySourai" }] },
-        1: { battleArea: [{ card: "BT1-025", under: ["BT1-001", "BT1-009"], as: "target" }] },
+        0: {
+          battleArea: [
+            { card: "BT1-028", as: "attacker" },
+            { card: "BT1-025", under: ["BT1-010", "BT1-009"], as: "target" },
+          ],
+          security: ["BT1-011"],
+        },
+        1: { security: [{ card: "EX3-067", as: "securitySourai" }] },
       },
       { autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securitySourai"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 0);
 
     expect(s.perm("target").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 });

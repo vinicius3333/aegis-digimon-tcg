@@ -1,7 +1,7 @@
 import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./EX3-029.js";
+import { compiled } from "./EX3-029.js";
 
 function payload(s: EngineSetup): Record<string, unknown> {
   return JSON.parse(s.state.pendingDecision!.payloadJson) as Record<string, unknown>;
@@ -35,12 +35,41 @@ describe("EX3-029 Airdramon", () => {
       rarity: "C",
       imageId: "EX3-029",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "toHand",
+              controller: "mine",
+              amount: 1,
+              chooseFromSecurity: true,
+              bindResultAs: "selectedSecurity",
+            },
+            {
+              kind: "ConditionalBranch",
+              condition: {
+                kind: "bindingContains",
+                ref: "selectedSecurity",
+                filter: { colors: ["Yellow"] },
+              },
+              ifTrue: [{ kind: "Recover", amount: 1 }],
+            },
+            { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
+          ],
+        },
+      ],
+    });
 
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX3-027", as: "base" }],
+        battleArea: [{ card: "EX3-027", under: ["BT1-009"], as: "base" }],
         hand: [{ card: "EX3-029", as: "airdramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 2;
@@ -56,7 +85,30 @@ describe("EX3-029 Airdramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-029");
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-027"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-010");
+  });
+
+  it("rejects a red level-3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "invalidSource" }],
+        hand: [{ card: "EX3-029", as: "airdramon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("airdramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-009");
+    expect(s.inst("airdramon").cardId).toBe("EX3-029");
+    expect(s.state.memory).toBe(2);
   });
 
   it("privately searches all security, adds the chosen yellow card, recovers and shuffles", async () => {
@@ -68,7 +120,7 @@ describe("EX3-029 Airdramon", () => {
           { card: "BT1-009", as: "redSecurity" },
           { card: "BT1-045", as: "yellowSecurity" },
         ],
-        deck: [{ card: "BT1-001", as: "recovery" }],
+        deck: [{ card: "BT1-010", as: "recovery" }],
       },
     });
     s.state.memory = 10;
@@ -145,7 +197,7 @@ describe("EX3-029 Airdramon", () => {
         0: {
           hand: [{ card: "EX3-029", as: "airdramon" }],
           security: [{ card: "BT10-055", as: "yellowMythicalBeast" }, "BT1-009"],
-          deck: [{ card: "BT1-001", as: "recovery" }],
+          deck: [{ card: "BT1-010", as: "recovery" }],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -173,7 +225,7 @@ describe("EX3-029 Airdramon", () => {
         0: {
           hand: [{ card: "EX3-029", as: "airdramon" }],
           security: [{ card: "BT1-009", as: "redChoice" }, "BT1-045"],
-          deck: [{ card: "BT1-001", as: "deckTop" }],
+          deck: [{ card: "BT1-011", as: "deckTop" }],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -237,7 +289,7 @@ describe("EX3-029 Airdramon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX3-029", as: "airdramon" }],
-        deck: [{ card: "BT1-001", as: "deckTop" }],
+        deck: [{ card: "BT1-012", as: "deckTop" }],
       },
     });
     s.state.memory = 10;

@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -29,13 +29,14 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
       playCost: 8,
       types: ["Four Great Dragons"],
       rarity: "R",
+      maxCountInDeck: 4,
       imageId: "EX3-069",
     });
-    expect(definition.effectText).toContain("＜Draw 1＞. Then, place this card in your battle area");
-    expect(definition.effectText).toContain("＜Delay＞");
-    expect(definition.effectText).toContain("can't digivolve to level 7");
-    expect(definition.effectText).toContain("at the next end of your opponent's turn");
+    expect(definition.effectText).toBe(
+      "[Main] ＜Draw 1＞. Then, place this card in your battle area.[Main] ＜Delay＞ (By trashing this card in your battle area, activate the effect below. You can't activate this effect the turn this card enters play.)・Play 1 Digimon card with [Four Great Dragons] in its traits from your hand without paying the cost. The Digimon played by this effect can't digivolve to level 7, and at the next end of your opponent's turn, delete that Digimon.",
+    );
     expect(definition.securityEffectText).toBe("[Security] Place this card in its owner's battle area.");
+    expect(getCompiledCard("EX3-069")).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("Main draws exactly 1, pays 8 memory, and places Trial instead of trashing it", async () => {
@@ -44,8 +45,8 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
         battleArea: [{ card: "EX3-034", as: "yellowSource" }],
         hand: [{ card: "EX3-069", as: "trial" }],
         deck: [
-          { card: "BT1-001", as: "drawn" },
-          { card: "BT1-002", as: "remaining" },
+          { card: "BT1-009", as: "drawn" },
+          { card: "BT1-010", as: "remaining" },
         ],
       },
     });
@@ -93,21 +94,23 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
 
   it("Security places Trial without drawing, paying memory, or activating Main", async () => {
     const s = setupEngine({
-      0: {
-        security: [{ card: "EX3-069", faceUp: true, as: "securityTrial" }],
-        deck: [{ card: "BT1-001", as: "wouldBeDrawn" }],
-      },
+      0: { battleArea: [{ card: "BT1-028", as: "attacker" }], security: ["BT1-009"] },
+      1: { security: [{ card: "EX3-069", as: "securityTrial" }] },
     });
+    s.state.turnSeat = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTrial"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-069"));
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX3-069");
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(
-      s.inst("wouldBeDrawn").instanceId,
-    );
-    expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX3-069");
+    expect(s.state.players[1]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
@@ -197,10 +200,10 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
             { card: "EX3-025", as: "azulongmon" },
             { card: "BT1-009", as: "addedSource" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
           battleArea: [{ card: "BT1-010", as: "unrelatedOwn" }],
         },
-        1: { deck: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -254,7 +257,7 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
             { card: "EX3-025", as: "azulongmon" },
             { card: "BT1-084", as: "omnimon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -350,9 +353,9 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
             { card: "EX3-025", as: "azulongmon" },
             { card: "BT1-084", as: "omnimon" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
-        1: { deck: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );

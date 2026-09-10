@@ -1,10 +1,57 @@
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-021.js";
 
 describe("EX3-021 CrysPaledramon", () => {
+  it("matches the catalog printing and publishes both When Digivolving clauses", () => {
+    expect(getCardDefinition("EX3-021")).toMatchObject({
+      cardId: "EX3-021",
+      nameEn: "CrysPaledramon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Dragonkin"],
+      effectText:
+        "[When Digivolving] Trash any 2 digivolution cards under 1 of your opponent's Digimon. Then, 1 of your opponent's Digimon with no digivolution cards can't attack or block until the end of your opponent's turn.",
+    });
+    expect(getCompiledCard("EX3-021")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                count: 1,
+              },
+              amount: 2,
+              choose: true,
+            },
+            {
+              kind: "Restrict",
+              target: {
+                filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] },
+                count: 1,
+              },
+              restriction: "attackOrBlock",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it("digivolves normally from a blue level 4 for 3 memory", async () => {
     const s = setupEngine({
       0: {
@@ -26,6 +73,28 @@ describe("EX3-021 CrysPaledramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-021");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-032"]);
+  });
+
+  it("rejects a level-5 source and keeps CrysPaledramon in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "wrongLevel" }],
+        hand: [{ card: "EX3-021", as: "crysPaledramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongLevel").permanentId,
+        instanceId: s.inst("crysPaledramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongLevel").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-021");
   });
 
   it("Q3393 lets the player trash any 2 non-adjacent sources and exposes friendly UI decisions", async () => {
@@ -40,14 +109,14 @@ describe("EX3-021 CrysPaledramon", () => {
           {
             card: "BT1-033",
             under: [
-              { card: "BT1-003", as: "bottom" },
+              { card: "BT1-009", as: "bottom" },
               { card: "BT1-029", as: "lowerMiddle" },
               { card: "BT1-030", as: "upperMiddle" },
               { card: "BT1-031", as: "top" },
             ],
             as: "sourceHost",
           },
-          { card: "BT1-033", under: ["BT1-003"], as: "otherSourceHost" },
+          { card: "BT1-033", under: ["BT1-009"], as: "otherSourceHost" },
           { card: "BT1-032", as: "emptyTarget" },
           { card: "BT1-032", as: "otherEmptyTarget" },
         ],

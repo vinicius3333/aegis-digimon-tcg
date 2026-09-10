@@ -1,6 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-071.js";
 
@@ -14,11 +13,27 @@ describe("EX3-071 Laser Cannon", () => {
       kinds: ["Option"],
       playCost: 5,
       rarity: "C",
+      maxCountInDeck: 4,
       imageId: "EX3-071",
     });
-    expect(definition.effectText).toContain("＜De-Digivolve 1＞");
-    expect(definition.effectText).toContain("delete 1 of your opponent's Digimon with a play cost of 5 or less");
+    expect(definition.effectText).toBe(
+      "[Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. (Trash 1 card from the top of 1 of your opponent's Digimon. Stop trashing when you would trash a level 3 card or the Digimon's last card.) Then, delete 1 of your opponent's Digimon with a play cost of 5 or less.",
+    );
     expect(definition.securityEffectText).toBe("[Security] Activate this card's [Main] effect.");
+    expect(getCompiledCard("EX3-071")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "DeDigivolve", amount: 1 },
+            { kind: "Delete", target: { filter: { playCostLte: 5 } } },
+          ],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
   });
 
   it("De-Digivolves the chosen stack, then deletes the resulting cost-5 Digimon", async () => {
@@ -147,18 +162,32 @@ describe("EX3-071 Laser Cannon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { security: [{ card: "EX3-071", faceUp: true, as: "cannon" }] },
-        1: { battleArea: [{ card: "EX3-053", under: ["EX3-049"], as: "target" }] },
+        0: {
+          battleArea: [
+            { card: "BT1-028", as: "attacker" },
+            { card: "EX3-053", under: ["EX3-049"], as: "target" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { security: [{ card: "EX3-071", as: "cannon" }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId);
+    const targetId = s.perm("target").permanentId;
+    s.state.turnSeat = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("cannon"));
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== targetId));
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

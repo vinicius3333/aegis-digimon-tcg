@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // The shared interpreter executes this reviewed IR; removing the generated header
 // keeps the compiler from overwriting the verified errata behavior.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

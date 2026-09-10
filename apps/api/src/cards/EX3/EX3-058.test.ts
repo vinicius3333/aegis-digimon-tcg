@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-008.js";
@@ -28,6 +28,101 @@ describe("EX3-058 Shadramon", () => {
       inheritedEffectText:
         "[End of Your Turn] This Digimon and one of your other Digimon may DNA digivolve into a Digimon card in your hand for the cost.",
     });
+    expect(getCardDefinition("EX3-058")!.effectText).toBe(
+      "[When Digivolving] Activate 1 of the effects below.・You may digivolve 1 of your other Digimon into a level 4 red Digimon card with the [Free] trait from your trash for the cost.・You may DNA digivolve this Digimon and one of your other Digimon may DNA digivolve into a Digimon card in your hand for the cost.",
+    );
+    expect(getCompiledCard("EX3-058")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "Modal",
+              choose: 1,
+              options: [
+                [
+                  {
+                    kind: "Digivolve",
+                    target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
+                    into: {
+                      filter: {
+                        zone: "trash",
+                        controller: "mine",
+                        kind: ["Digimon"],
+                        colors: ["Red"],
+                        levels: [4],
+                        nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+                      },
+                      count: 1,
+                    },
+                    from: ["trash"],
+                    payCost: true,
+                  },
+                ],
+                [
+                  {
+                    kind: "DnaDigivolve",
+                    materials: [
+                      { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
+                      {
+                        filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+                        count: 1,
+                        zone: "battleArea",
+                      },
+                    ],
+                    into: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"] }, count: 1 },
+                    payCost: true,
+                  },
+                ],
+              ],
+            },
+          ],
+        },
+        {
+          trigger: "EndOfYourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              materials: [
+                { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
+                { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1, zone: "battleArea" },
+              ],
+              into: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"] }, count: 1 },
+              payCost: true,
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("rejects a non-red/non-purple level 3 source without moving Shadramon or memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "invalidSource" }],
+        hand: [{ card: "EX3-058", as: "shadramon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("shadramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-028");
+    expect(s.perm("invalidSource").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-058");
+  });
+
+  it("matches the first branch's non-red partner boundary", async () => {
     expect(getCardDefinition("EX3-058")!.effectText).toContain(
       "a level 4 red Digimon card with the [Free] trait from your trash",
     );

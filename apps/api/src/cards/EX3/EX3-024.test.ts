@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -45,7 +45,9 @@ describe("EX3-024 Slayerdramon", () => {
       imageId: "EX3-024-Errata",
     });
     expect(definition.effectText).toContain("Digivolve: 3 from [Wingdramon] or [Groundramon]");
-    expect(definition.effectText).toContain("your opponent attacks with 1 of their Digimon");
+    expect(definition.effectText).toBe(
+      "Digivolve: 3 from [Wingdramon] or [Groundramon][All Turns][Once Per Turn] When this Digimon becomes suspended, unsuspend it.[Start of Opponent's Main Phase] By suspending 1 of your Digimon with [Dramon] or [Examon] in its name, your opponent attacks with 1 of their Digimon.",
+    );
     expect(definition.inheritedEffectText).toBe(
       "[Start of Opponent's Main Phase] By suspending 1 of your Digimon with [Dramon] or [Examon] in its name, your opponent attacks with 1 of their Digimon.",
     );
@@ -166,7 +168,8 @@ describe("EX3-024 Slayerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("slayerdramon"));
+    const flow = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("cost").isSuspended).toBe(true);
     expect(s.perm("cannotAttack").isSuspended).toBe(false);
@@ -176,6 +179,8 @@ describe("EX3-024 Slayerdramon", () => {
         ({ req }) => req.seat === 1 && req.options?.candidateInstanceIds?.includes(s.perm("cannotAttack").permanentId),
       ),
     ).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await flow;
   });
 
   it("Q3398 can pay the cost with no opposing Digimon and then ends without an attack", async () => {
@@ -197,10 +202,13 @@ describe("EX3-024 Slayerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("slayerdramon"));
+    const flow = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("dramonCost").isSuspended).toBe(true);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-024")).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await flow;
   });
 
   it("Q3399 resolves When Attacking before the cost Digimon's when-suspended trigger", async () => {
@@ -208,15 +216,16 @@ describe("EX3-024 Slayerdramon", () => {
       0: {
         battleArea: [
           { card: "EX3-024", as: "slayerdramon" },
-          { card: "EX3-020", as: "otherCost" },
+          { card: "EX3-074", as: "examonCost" },
         ],
         security: ["BT8-090"],
       },
       1: {
         battleArea: [
-          { card: "BT1-040", as: "attacker" },
+          { card: "BT13-026", as: "attacker" },
           { card: "BT1-029", as: "otherAttacker" },
         ],
+        deck: ["BT1-009"],
       },
     });
     s.state.turnSeat = 1;
@@ -238,11 +247,12 @@ describe("EX3-024 Slayerdramon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: cost.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("slayerdramon").permanentId] },
+        response: { kind: "chooseTargets", instanceIds: [s.perm("examonCost").permanentId] },
       }),
     ).toEqual({ ok: true });
     const attacker = await waitForNewDecision(s, count++);
-    expect(s.perm("slayerdramon").isSuspended).toBe(true);
+    // The suspend cost was paid by Examon; Slayerdramon itself is not the cost target.
+    expect(s.perm("examonCost").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
     expect(
       s.engine.applyIntent(1, {
@@ -252,29 +262,35 @@ describe("EX3-024 Slayerdramon", () => {
       }),
     ).toEqual({ ok: true });
     const target = await waitForNewDecision(s, count++);
-    expect(s.perm("slayerdramon").isSuspended).toBe(true);
+    expect(s.perm("examonCost").isSuspended).toBe(true);
+    expect(candidateIds(target)).toContain(s.perm("examonCost").permanentId);
     expect(
       s.engine.applyIntent(1, {
         type: "respondDecision",
         decisionId: target.decisionId,
-        response: { kind: "selectCards", instanceIds: ["player"] },
+        response: { kind: "selectCards", instanceIds: [s.perm("examonCost").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        mainPhase.isOpen &&
-        s.state.memory === 3 &&
-        !s.perm("slayerdramon").isSuspended &&
-        s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-024").length >= 2,
-    );
+    const examonTarget = await waitForNewDecision(s, count++);
+    expect(examonTarget.seat).toBe(0);
+    expect(candidateIds(examonTarget)).toContain(s.perm("otherAttacker").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: examonTarget.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("otherAttacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => mainPhase.isOpen && s.state.pendingDecision === undefined);
 
-    expect(s.state.memory).toBe(3);
-    expect(s.perm("slayerdramon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("examonCost").isSuspended).toBe(false);
+    expect(s.perm("otherAttacker").isSuspended).toBe(true);
     const whenAttacking = s.events.findIndex(
-      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-040",
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT13-026",
     );
     const whenSuspended = s.events.findIndex(
-      (event, index) => index > whenAttacking && event.kind === "effectResolved" && event.sourceCardId === "EX3-024",
+      (event, index) => index > whenAttacking && event.kind === "effectResolved" && event.sourceCardId === "EX3-074",
     );
     expect(whenAttacking).toBeGreaterThanOrEqual(0);
     expect(whenSuspended).toBeGreaterThan(whenAttacking);
@@ -293,14 +309,14 @@ describe("EX3-024 Slayerdramon", () => {
             { card: "EX3-041", as: "secondCost" },
           ],
           security: ["BT8-090", "BT8-090"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
             { card: "BT1-030", as: "firstAttacker" },
             { card: "BT1-029", as: "secondAttacker" },
           ],
-          deck: ["BT1-002"],
+          deck: ["BT1-010"],
         },
       },
       { autoOrderTriggers: false },
@@ -440,6 +456,42 @@ describe("EX3-024 Slayerdramon", () => {
     expect(s.perm("slayerdramon").isSuspended).toBe(true);
   });
 
+  it("Q3394 uses its All Turns unsuspend after inherited Evade pays by suspension", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-024", under: ["EX3-020"], as: "slayerdramon" }],
+          security: ["BT8-090"],
+        },
+        1: {
+          battleArea: ["BT1-009"],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondEvade",
+        permanentId: s.perm("slayerdramon").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !s.perm("slayerdramon").isSuspended);
+
+    expect(s.perm("slayerdramon").isSuspended).toBe(false);
+    expect(s.perm("slayerdramon").stack.map(({ cardId }) => cardId)).toEqual(["EX3-020"]);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-024")).toBe(false);
+  });
+
   it("provides the same opponent-chosen forced attack from its inherited effect", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -462,12 +514,15 @@ describe("EX3-024 Slayerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("inheritedHost"));
+    const flow = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("cost").isSuspended).toBe(true);
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.decisions.at(0)!.req.sourceCardId).toBe("EX3-024");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await flow;
   });
 
   it("declining the optional activation pays no cost and causes no attack", async () => {
@@ -484,7 +539,7 @@ describe("EX3-024 Slayerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    const flow = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("slayerdramon"));
+    const flow = s.engine.runOneTurn();
     const optional = await waitForNewDecision(s, 0);
     expect(
       s.engine.applyIntent(0, {
@@ -493,6 +548,8 @@ describe("EX3-024 Slayerdramon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
     await flow;
 
     expect(s.perm("cost").isSuspended).toBe(false);
@@ -545,6 +602,30 @@ describe("EX3-024 Slayerdramon", () => {
       await settle(() => s.perm("base").topCard.instanceId === s.inst("slayerdramon").instanceId);
 
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCard]);
     },
   );
+
+  it("rejects an unrelated level-5 as the alternate evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "invalidBase" }],
+        hand: [{ card: "EX3-024", as: "slayerdramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("slayerdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-029");
+    expect(s.perm("invalidBase").stack).toHaveLength(0);
+  });
 });
