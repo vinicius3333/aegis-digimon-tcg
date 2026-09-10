@@ -439,6 +439,19 @@
 .decision-overlay__view-board {
   flex: none;
 }
+/* The confirm stays reachable while a long list scrolls under it. It reaches
+   into the panel's bottom padding (22px inline on the panel) so nothing shows
+   through beneath it. */
+.decision-overlay {
+  --decision-overlay-pad-bottom: 22px;
+}
+.decision-overlay__footer {
+  position: sticky;
+  bottom: calc(-1 * var(--decision-overlay-pad-bottom));
+  margin-bottom: calc(-1 * var(--decision-overlay-pad-bottom));
+  padding: var(--ds-space-2) 0 var(--decision-overlay-pad-bottom);
+  background: var(--ds-surface);
+}
 .decision-board-return {
   position: fixed;
   /* Keep the pending decision's only exit away from mobile browser chrome and
@@ -672,6 +685,11 @@
 .board-prompt__grip,
 .board-prompt-scrim {
   display: none;
+}
+.board-prompt__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
 }
 .board-prompt__eyebrow {
   margin: 0;
@@ -4731,18 +4749,20 @@ button.side-panel__name:focus-visible {
     width: auto;
     min-height: 44px;
     flex: none;
-    padding-inline: var(--ds-space-3);
+    padding-inline: var(--ds-space-2);
     border-radius: 999px;
     font-size: 0.625rem;
     letter-spacing: 0.04em;
   }
-  /* The effect text is the wording the choice hinges on: it flows at a denser size
-     instead of hiding its tail behind an inner scrollbar. The cap only catches
-     pathologically long text, and by then the sheet's own scroll takes over. */
+  /* The board button keeps its icon only; its label is the accessible name. */
+  .decision-overlay__view-board-label {
+    display: none;
+  }
+  /* The effect text is the wording the choice hinges on: it flows at a denser
+     size and always in full; the sheet's own scroll is the only scroll. */
   .decision-overlay__effect-text {
     padding: var(--ds-space-2) !important;
     margin-bottom: var(--ds-space-2) !important;
-    max-height: 42dvh !important;
     font-size: 0.6875rem !important;
     line-height: 1.4 !important;
   }
@@ -4784,6 +4804,7 @@ button.side-panel__name:focus-visible {
     display: grid;
     padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)
       max(var(--ds-space-4), env(safe-area-inset-bottom));
+    min-width: 44px;
     gap: var(--ds-space-3);
     grid-template-rows: minmax(0, 1fr) auto auto;
     place-items: center;
@@ -4801,6 +4822,14 @@ button.side-panel__name:focus-visible {
   .card-zoom > button {
     min-height: 44px;
     padding: var(--ds-space-2) var(--ds-space-6);
+  .decision-overlay {
+    --decision-overlay-pad-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
+  }
+  .decision-overlay__order-row > .aegis-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
     color: var(--ds-brand-on-ink);
     font-size: var(--ds-text-sm);
     font-weight: 700;
@@ -5087,6 +5116,30 @@ button.side-panel__name:focus-visible {
      a notice or a reveal panel, so each keeps its compact chip — the chrome has
      no room for a 44px one — and carries a 44px target behind it.
 
+  /* A yes/no prompt is answered with the sheet's own buttons, so the hand under
+     it is dead weight: the sheet drops to the screen edge and the board above
+     it gets the height. A selection keeps the hand-anchored rules above, since
+     the hand is what it picks from. */
+  .board-prompt[data-variant="prompt"] {
+    bottom: 0;
+    max-height: calc(100dvh - 4rem);
+    padding-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
+  }
+  .board-prompt-scrim[data-variant="prompt"] {
+    inset: 0;
+  }
+  /* The source card and the question share a line: the clause below is what
+     the player reads, and it always shows in full. */
+  .board-prompt__heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--ds-space-2);
+    row-gap: 0;
+  }
+  .board-prompt__text {
+    font-size: var(--ds-text-sm);
+  }
      The notice's target grows down and left from the corner the chip sits in
      rather than around it: the stack clips to its own band, and a target centred
      on a chip that close to the top edge would have lost a quarter of itself. */

@@ -499,7 +499,7 @@ export const en = {
   "overlay.triggerSourceHand": "Hand",
   "overlay.selectCardsSubtitle": "Select {count} card(s).",
   "overlay.selectCardsRangeSubtitle": "Select {range} card(s).",
-  "overlay.orderDeckBottomHint": "Cards with lower numbers are placed on top.",
+  "overlay.orderDeckBottomHint": "Arrange the cards going to the bottom of the deck. Number 1 will be nearest the top.",
   "overlay.openDecisionDialog": "Open the decision dialog",
   "overlay.chooseTargetsSubtitle": "Choose {count} target(s).",
   "overlay.chooseTargetsRangeSubtitle": "Choose {range} target(s).",

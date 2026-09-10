@@ -505,7 +505,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.triggerSourceHand": "Mão",
   "overlay.selectCardsSubtitle": "Selecione {count} carta(s).",
   "overlay.selectCardsRangeSubtitle": "Selecione {range} carta(s).",
-  "overlay.orderDeckBottomHint": "As cartas com números menores ficam por cima.",
+  "overlay.orderDeckBottomHint": "Organize as cartas que vão para o fundo do deck. A carta 1 fica mais perto do topo.",
   "overlay.openDecisionDialog": "Abrir a janela da decisão",
   "overlay.chooseTargetsSubtitle": "Escolha {count} alvo(s).",
   "overlay.chooseTargetsRangeSubtitle": "Escolha {range} alvo(s).",

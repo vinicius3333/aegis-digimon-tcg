@@ -23,7 +23,14 @@ function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   }, [onOpenDialog]);
 }
 
+/** What the viewer answers the decision with. A `selection` picks cards from
+    the hand, so the phone sheet must leave the hand uncovered; a `prompt` is
+    answered with the sheet's own buttons, so the sheet may cover the hand and
+    give the board the space instead. */
+type BoardPromptVariant = "prompt" | "selection";
+
 function BoardPromptRail({
+  variant,
   label,
   eyebrow,
   prompt,
@@ -33,6 +40,7 @@ function BoardPromptRail({
   showDialogButton,
   children,
 }: {
+  variant: BoardPromptVariant;
   label: string;
   eyebrow?: ReactNode;
   prompt: string;
@@ -50,8 +58,8 @@ function BoardPromptRail({
     <>
       {/* Phone only (see game.css): dims the board under the sheet, not the hand
           a selection picks from nor the notices that explain the decision. */}
-      <div className="board-prompt-scrim" aria-hidden />
-      <section className="board-prompt" aria-label={label} data-testid="board-prompt">
+      <div className="board-prompt-scrim" data-variant={variant} aria-hidden />
+      <section className="board-prompt" aria-label={label} data-testid="board-prompt" data-variant={variant}>
         <div className="board-prompt__grip" aria-hidden />
         {onOpenDialog && showDialogButton ? (
           <Button
@@ -65,10 +73,12 @@ function BoardPromptRail({
             {t("overlay.openDecisionDialog")}
           </Button>
         ) : null}
-        {eyebrow ? <p className="board-prompt__eyebrow">{eyebrow}</p> : null}
-        <p className="board-prompt__text" aria-live="polite">
-          {prompt}
-        </p>
+        <div className="board-prompt__heading">
+          {eyebrow ? <p className="board-prompt__eyebrow">{eyebrow}</p> : null}
+          <p className="board-prompt__text" aria-live="polite">
+            {prompt}
+          </p>
+        </div>
         {clause ? <p className="board-prompt__clause">{clause}</p> : null}
         {detail ? <p className="board-prompt__detail">{detail}</p> : null}
         <div className="board-prompt__actions">{children}</div>
@@ -103,6 +113,7 @@ export function BoardSelectionRail({
   const { t } = useTranslation();
   return (
     <BoardPromptRail
+      variant="selection"
       label={t("overlay.handSelection")}
       eyebrow={t("overlay.handSelection")}
       prompt={prompt}
@@ -144,6 +155,7 @@ export function BoardOptionalPrompt({
   const sourceName = sourceCardId ? cardDisplayName(sourceCardId, t) : undefined;
   return (
     <BoardPromptRail
+      variant="prompt"
       label={sourceName ? t("overlay.cardEffect", { name: sourceName }) : t("overlay.useEffectPrompt")}
       // The clause below is the card's own printed text, which names other cards
       // only as prose this client cannot resolve to ids. The source is the one card
