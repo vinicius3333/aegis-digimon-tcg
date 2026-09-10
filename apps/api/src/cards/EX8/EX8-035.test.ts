@@ -7,16 +7,29 @@ import "./index.js";
 import { compiled } from "./EX8-035.js";
 
 describe("EX8-035", () => {
-  it("has a security effect that gives two opposing Digimon Security Attack -1 and returns itself to hand", () =>
+  it("has the exact security, disabled-timing, and alternate-evolution contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ cost: 3, isAlternate: true, level: 5, traits: ["DS"] }]);
     expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions).toMatchObject([
-      { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 }, target: { count: 2 } },
+      {
+        kind: "GainKeyword",
+        keyword: { keyword: "SecurityAttack", amount: -1 },
+        duration: "forTheTurn",
+        target: { count: 2, filter: { controller: "opponent", kind: ["Digimon"] } },
+      },
       { kind: "AddToHandSelf" },
-    ]));
-  it("disables opposing Digimon When Digivolving effects while you have at least 1 memory", () =>
+    ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
-      condition: { kind: "memoryAtLeast", value: 1 },
-      actions: [{ kind: "DisableTimingEffect", timings: ["whenDigivolving"], target: { count: "all" } }],
-    }));
+      condition: { kind: "memoryAtLeast", value: 1, controller: "mine" },
+      actions: [
+        {
+          kind: "DisableTimingEffect",
+          timings: ["whenDigivolving"],
+          duration: "permanent",
+          target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"] } },
+        },
+      ],
+    });
+  });
 
   it("disables an opposing Digimon's When Digivolving timing at one memory", async () => {
     const s = setupEngine({
@@ -119,7 +132,7 @@ describe("EX8-035", () => {
         },
         1: {
           battleArea: [{ card: "EX8-008", as: "base" }],
-          hand: [{ card: "EX8-059", as: "evolver" }, "BT1-001"],
+          hand: [{ card: "EX8-059", as: "evolver" }, "BT1-045"],
           deck: ["BT1-028", "BT1-037"],
         },
       },
@@ -139,7 +152,7 @@ describe("EX8-035", () => {
     await settle(() => digivolve.perm("base").topCard.cardId === "EX8-059");
     await settle(() => digivolve.state.pendingDecision === undefined);
     expect(digivolve.state.pendingDecision).toBeUndefined();
-    expect(digivolve.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-028"]);
+    expect(digivolve.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-028"]);
 
     const preferInstanceIds: string[] = [];
     const attack = setupEngine(
