@@ -55,3 +55,26 @@ Workers must run `node tools/kb/query.mjs card <ID>` and record all returned Q&A
 | EX8-049 | None returned | [EX8-049 report](EX8-049.md) |
 | EX8-050 | None returned | [EX8-050 report](EX8-050.md) |
 | EX8-051 | None returned | [EX8-051 report](EX8-051.md) |
+| EX8-052 | Q3934; Q3935 | [EX8-052 report](EX8-052.md) |
+| EX8-053 | None returned | [EX8-053 report](EX8-053.md) |
+| EX8-054 | None returned | [EX8-054 report](EX8-054.md) |
+| EX8-055 | Q3938; Q3940 | [EX8-055 report](EX8-055.md) |
+| EX8-056 | None returned | [EX8-056 report](EX8-056.md) |
+| EX8-057 | None returned | [EX8-057 report](EX8-057.md) |
+| EX8-058 | None returned | [EX8-058 report](EX8-058.md) |
+| EX8-059 | None returned | [EX8-059 report](EX8-059.md) |
+| EX8-060 | Q3941-Q3944 | [EX8-060 report](EX8-060.md) |
+| EX8-061 | Q3945-Q3947 | [EX8-061 report](EX8-061.md) |
+| EX8-062 | Q3948-Q3951 | [EX8-062 report](EX8-062.md) |
+| EX8-063 | Q4739 | [EX8-063 report](EX8-063.md) |
+| EX8-064 | Q3951 | [EX8-064 report](EX8-064.md) |
+| EX8-065 | Q3952; Q4274; Q5194 | [EX8-065 report](EX8-065.md) |
+| EX8-067 | Q3953 | [EX8-067 report](EX8-067.md) |
+| EX8-068 | Q3954-Q3961 | [EX8-068 report](EX8-068.md) |
+| EX8-069 | Q3962-Q3968 | [EX8-069 report](EX8-069.md) |
+| EX8-070 | None returned | [EX8-070 report](EX8-070.md) |
+| EX8-071 | Q3969-Q3974 | [EX8-071 report](EX8-071.md) |
+| EX8-072 | Q4740; Q5730; Q5731 | [EX8-072 report](EX8-072.md) |
+| EX8-073 | Q3975 | [EX8-073 report](EX8-073.md) |
+| EX8-074 | Q3985-Q3988; Q4442; Q4443; Q6721 | [EX8-074 report](EX8-074.md) |
+| EX8-066 | None returned | [EX8-066 report](EX8-066.md) |
