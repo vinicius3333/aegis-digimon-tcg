@@ -33,7 +33,6 @@ type EventPort = (event: ServerEvent) => void;
 interface DeletionMove {
   cards: CardInstance[];
   from: Zone.BattleArea | Zone.Breeding;
-  eggDeckCards: CardInstance[];
 }
 
 /**
@@ -560,7 +559,6 @@ export class GameStateAccess {
         continue;
       }
       const cards: CardInstance[] = [...target.stack, ...(target.topCard ? [target.topCard] : []), ...target.linked];
-      const eggDeckCards: CardInstance[] = [];
       for (const card of cards) {
         // CR §4-20-5: a token leaving the field is removed from the game instead of trashed —
         // dropping it here (inserting into no zone) is that removal; every other leaving card
@@ -569,24 +567,19 @@ export class GameStateAccess {
         if (def !== undefined && isTokenDefinition(def)) {
           continue;
         }
-        if (def?.kinds.includes(CardKind.DigiEgg) === true) {
-          // A Digi-Egg leaving the field returns face-down to the bottom of its owner's
-          // Digi-Egg deck, including when the leave is a deletion (CR §4-3-1 / §4-18).
-          card.faceUp = false;
-          insertCard(this.player(card.ownerSeat), Zone.EggDeck, card);
-          eggDeckCards.push(card);
-        } else {
-          insertCard(this.player(card.ownerSeat), Zone.Trash, card);
-        }
+        // CR §4-15-1/§4-16-1: deletion trashes every non-token card carried by the
+        // permanent. The Digi-Egg redirect in §3-1-3-9 applies only when a Digi-Egg
+        // would enter a private area; trash is a public area.
+        insertCard(this.player(card.ownerSeat), Zone.Trash, card);
       }
       if (inBreeding) {
         player.breeding = undefined;
       } else {
         extractPermanentAt(player, index);
       }
-      return { cards, from: inBreeding ? Zone.Breeding : Zone.BattleArea, eggDeckCards };
+      return { cards, from: inBreeding ? Zone.Breeding : Zone.BattleArea };
     }
-    return { cards: [], from: Zone.BattleArea, eggDeckCards: [] };
+    return { cards: [], from: Zone.BattleArea };
   }
 
   /**
@@ -601,23 +594,16 @@ export class GameStateAccess {
     for (const from of [Zone.BattleArea, Zone.Breeding] as const) {
       const trashedInstanceIds = moves
         .filter((move) => move.from === from)
-        .flatMap((move) =>
-          move.cards.filter((card) => !move.eggDeckCards.includes(card)).map((card) => card.instanceId),
-        );
+        .flatMap((move) => move.cards.map((card) => card.instanceId));
       if (trashedInstanceIds.length > 0)
         this.emit({ kind: "cardsMoved", instanceIds: trashedInstanceIds, from, to: Zone.Trash });
-      const eggDeckInstanceIds = moves
-        .filter((move) => move.from === from)
-        .flatMap((move) => move.eggDeckCards.map((card) => card.instanceId));
-      if (eggDeckInstanceIds.length > 0)
-        this.emit({ kind: "cardsMoved", instanceIds: eggDeckInstanceIds, from, to: Zone.EggDeck });
     }
   }
 
   /**
    * Remove a permanent from its controller's battle area OR breeding slot (CR §3-4-4: the
-   * field is divided into the breeding area and the battle area), sending ordinary cards to
-   * their owners' trash and Digi-Egg cards to the bottom of their owners' Digi-Egg decks.
+   * field is divided into the breeding area and the battle area), sending every non-token card
+   * to its owner's trash.
    * Mirrors the net
    * effect of rule implementation.Destroy for the core loop (deletion timing/replacement
    * effects are layered in by later subsystems).

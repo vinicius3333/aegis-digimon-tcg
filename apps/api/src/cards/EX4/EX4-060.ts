@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -64,7 +63,7 @@ const compiled: CompiledCard = {
               op: "addBottom",
               controller: "mine",
               amount: 1,
-              source: "this",
+              source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               faceDown: true,
             },
           ],

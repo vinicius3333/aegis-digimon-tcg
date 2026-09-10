@@ -10,7 +10,7 @@ describe("EX6-021 ArkhaiAngemon", () => {
       kind: "CostGatedBlock",
       optional: true,
       abortOnDecline: true,
-      cost: { kind: "securityToHand", position: "topOrBottom" },
+      cost: { kind: "securityToHand", position: "choice" },
       actions: [
         { kind: "ModifyDP", amount: -4000 },
         { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false },

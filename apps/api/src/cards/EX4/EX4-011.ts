@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -66,11 +65,11 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          dpCeiling: 7000,
+          ...{ dpCeiling: 7000 },
           dpCeilingScaling: {
             per: 10,
             amount: 2000,
-            filter: { zone: "trash", controllerDefault: "both" },
+            filter: { zone: "trash" },
             unit: "cards",
           },
         },

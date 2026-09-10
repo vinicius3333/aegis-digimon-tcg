@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -73,7 +72,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigimonWouldLeave",
-          delayArmedIntrinsic: true,
           leaveCause: "otherThanYourEffect",
           sourceFilter: {
             controller: "mine",
@@ -98,6 +96,7 @@ export const compiled: CompiledCard = {
           ],
         },
       ],
+      keywords: [{ keyword: "Delay" }],
     },
     {
       trigger: "Security",

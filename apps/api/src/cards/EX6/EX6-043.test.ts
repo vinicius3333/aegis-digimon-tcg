@@ -22,7 +22,7 @@ describe("EX6-043 Diaboromon", () => {
     expect(allTurns?.[0]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
-      actions: [{ kind: "ActivateEffect", effectType: "WhenDigivolving", inherited: false }],
+      actions: [{ kind: "ActivateEffect", effectType: "WhenDigivolving" }],
     });
     expect(allTurns?.[1]?.actions[0]).toMatchObject({
       kind: "GainKeyword",

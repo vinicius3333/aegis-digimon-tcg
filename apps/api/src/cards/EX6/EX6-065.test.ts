@@ -16,11 +16,12 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     ]);
   });
   it("arms Delay when your Digimon would leave and uses the armed delayed play from its stack", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
+    const delayEffect = compiled.effects?.find((entry) => entry.trigger === "AllTurns");
+    expect(delayEffect?.keywords).toEqual([{ keyword: "Delay" }]);
+    expect(delayEffect?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenDigimonWouldLeave",
       leaveCause: "otherThanYourEffect",
-      delayArmedIntrinsic: true,
       actions: [
         {
           kind: "PlayWithoutCost",

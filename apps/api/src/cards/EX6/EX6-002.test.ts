@@ -15,11 +15,11 @@ describe("EX6-002 Yokomon", () => {
           kind: "PlaceUnder",
           optional: true,
           position: "bottom",
+          underFilter: { isSelfRef: true },
           target: {
             count: 1,
             from: ["hand"],
             filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"], levels: [3] },
-            underFilter: { isSelfRef: true },
           },
         },
       ],

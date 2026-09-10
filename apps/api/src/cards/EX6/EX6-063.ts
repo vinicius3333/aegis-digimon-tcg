@@ -1,10 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, GainMemoryAction } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /** HAND-FIXED IR: the played/digivolved subject must have one printed Angel trait. */
-const angelTrait = { nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels"], match: "trait" }] };
-const gainMemory = {
+const angelTrait: Filter = {
+  nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels"], match: "trait" }],
+};
+const gainMemory: GainMemoryAction = {
   kind: "GainMemory",
   amount: 1,
   condition: { kind: "triggerSubjectMatchesFilter", filter: angelTrait },

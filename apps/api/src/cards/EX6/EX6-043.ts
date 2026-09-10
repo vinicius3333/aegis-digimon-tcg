@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -52,7 +51,6 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               effectType: "WhenDigivolving",
-              inherited: false,
               optional: true,
             },
           ],

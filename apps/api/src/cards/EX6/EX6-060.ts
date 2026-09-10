@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — do not regenerate.
 // Suspend-trash cost modeling: trash-cost drives suspend (scaling residual; count:1 max approx).
 // AllTurns Replacement: otherThanBattle leaveCause, breeding area underFilter zone,

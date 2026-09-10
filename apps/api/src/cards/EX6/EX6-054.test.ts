@@ -22,8 +22,7 @@ describe("EX6-054 Lucemon: Chaos Mode", () => {
       optional: true,
       cost: {
         kind: "return",
-        destination: "deck",
-        position: "bottom",
+        to: "deckBottom",
         target: {
           filter: {
             zone: ["trash", "digivolutionCards"],

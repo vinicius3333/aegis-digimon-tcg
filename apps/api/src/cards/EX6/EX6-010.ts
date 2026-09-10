@@ -1,22 +1,26 @@
-// @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CardEffect, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-010")!;
 const generatedMain = generated.effects.find((effect) => effect.trigger === "Main")!;
 const generatedDisable = generated.effects.find((effect) => effect.trigger === "YourTurn")!;
+const generatedMainAction = generatedMain.actions[0];
+
+if (generatedMainAction?.kind !== "Delete") {
+  throw new Error("EX6-010 expected its generated Main action to be Delete");
+}
 
 /** EX6-010 — Durandamon, with its placement cost and security-disable clause structured. */
 export const compiled: CompiledCard = {
   ...generated,
-  effects: generated.effects.map((effect) => {
+  effects: generated.effects.map((effect): CardEffect => {
     if (effect === generatedMain) {
       return {
         ...effect,
         effectKey: "EX6-010/main-place-and-delete",
         actions: [
           {
-            ...generatedMain.actions[0],
+            ...generatedMainAction,
             target: {
               filter: {
                 controller: "opponent",
@@ -68,7 +72,7 @@ export const compiled: CompiledCard = {
             kind: "DisableSecurityEffect",
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             sourceKind: "any",
-            duration: "untilEachTurnEnd",
+            duration: "forTheTurn",
             condition: {
               kind: "selfHasName",
               names: ["RagnaLoardmon"],

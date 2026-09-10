@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CardEffect, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-070")!;
@@ -15,9 +14,9 @@ const isDelayedDeleteEffect = (effect: (typeof generated.effects)[number]) => {
   }
 
   const action = effect.actions[0];
-  const filter = action?.target?.filter;
+  if (action?.kind !== "Delete") return false;
+  const filter = action.target.filter;
   return (
-    action.kind === "Delete" &&
     action.requiresDelayArmed === true &&
     action.optional === true &&
     action.target?.count === 1 &&
@@ -35,7 +34,7 @@ export const compiled: CompiledCard = {
   effects: [
     ...generated.effects
       .filter((effect) => !isDelayedDeleteEffect(effect))
-      .map((effect) =>
+      .map((effect): CardEffect =>
         effect.trigger === "EndOfOpponentsTurn"
           ? {
               ...effect,

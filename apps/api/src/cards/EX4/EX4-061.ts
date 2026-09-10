@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for EX4-061 (Matt Ishida & Tai Kamiya).
 // Text: "[Your Turn][Once Per Turn] When one of your Digimon digivolves, if you have
 // 1 or fewer Digimon, you may play 1 [Gabumon] if that Digimon has [Greymon] in its

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
@@ -9,7 +8,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfOpponentTurn" as SubTriggerEvent,
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -40,11 +39,11 @@ export const compiled: CompiledCard = {
             digivolutionStackNameOrTrait: [
               {
                 tokens: ["Bird"],
-                match: "traitContains",
+                match: "traitContains" as "trait",
               },
               {
                 tokens: ["Avian"],
-                match: "traitContains",
+                match: "traitContains" as "trait",
               },
             ],
           },

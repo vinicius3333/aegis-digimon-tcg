@@ -14,7 +14,7 @@ describe("EX6-030 Dominimon", () => {
     expect(text).toContain("trashSecurityTop");
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       { kind: "SearchSecurity", then: { optional: true } },
-      { kind: "ModifyDP", amount: -7000, duration: "untilEachTurnEnd" },
+      { kind: "ModifyDP", amount: -7000, duration: "forTheTurn" },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Replacement",

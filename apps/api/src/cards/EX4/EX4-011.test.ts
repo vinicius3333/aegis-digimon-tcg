@@ -225,7 +225,7 @@ describe("EX4-011 ChaosGallantmon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
       kind: "Delete",
       dpCeiling: 7000,
-      dpCeilingScaling: { per: 10, amount: 2000, unit: "cards", filter: { zone: "trash", controllerDefault: "both" } },
+      dpCeilingScaling: { per: 10, amount: 2000, unit: "cards", filter: { zone: "trash" } },
     });
   });
 

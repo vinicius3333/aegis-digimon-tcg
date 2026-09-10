@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -127,8 +126,7 @@ export const compiled: CompiledCard = {
               count: 1,
               source: "thisDigimon",
             },
-            destination: "deck",
-            position: "bottom",
+            to: "deckBottom",
             raw: "by returning 1 [Lucemon] from this Digimon's digivolution cards or from your trash to the bottom of the deck",
           },
           actions: [

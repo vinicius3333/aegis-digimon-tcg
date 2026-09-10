@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type Action, type CardEffect, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-073")!;
@@ -9,11 +8,11 @@ const placedCountSource = "ex6-073-placed";
 /** EX6-073 — Ogudomon, with the 7-minus-deleted security count structured. */
 export const compiled: CompiledCard = {
   ...generated,
-  effects: generated.effects.map((effect) => ({
+  effects: generated.effects.map((effect): CardEffect => ({
     ...effect,
     actions: effect.actions
       .filter((action) => !(action.kind === "RawUnparsed" && action.text.includes("reduce the cards trashed by 1")))
-      .map((action) => {
+      .map((action): Action => {
         if (action.kind === "PlaceUnder") {
           return {
             ...action,
@@ -33,7 +32,7 @@ export const compiled: CompiledCard = {
             ...action,
             target: action.target,
             cost:
-              action.cost?.kind === "return"
+              action.cost?.kind === "return" && action.cost.target
                 ? {
                     ...action.cost,
                     position: "bottom",

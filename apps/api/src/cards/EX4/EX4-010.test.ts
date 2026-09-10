@@ -35,7 +35,7 @@ describe("EX4-010 BlackWarGrowlmon", () => {
       kind: "Delete",
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 0, upTo: true, totalDpCap: 3000 },
       dpCeiling: 3000,
-      totalDpCapScaling: { per: 10, amount: 2000, unit: "cards", filter: { zone: "trash", controllerDefault: "both" } },
+      totalDpCapScaling: { per: 10, amount: 2000, unit: "cards", filter: { zone: "trash" } },
     });
   });
 

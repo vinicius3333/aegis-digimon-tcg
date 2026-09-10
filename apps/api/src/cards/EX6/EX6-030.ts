@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CardEffect, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-030")!;
@@ -8,7 +7,7 @@ const generatedWhenDigivolving = generated.effects.find((effect) => effect.trigg
 /** EX6-030 — Dominimon, with security search/play and security-cost prevention structured. */
 export const compiled: CompiledCard = {
   ...generated,
-  effects: generated.effects.map((effect) => {
+  effects: generated.effects.map((effect): CardEffect => {
     if (effect === generatedWhenDigivolving) {
       return {
         ...effect,
@@ -31,7 +30,7 @@ export const compiled: CompiledCard = {
             kind: "ModifyDP",
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             amount: -7000,
-            duration: "untilEachTurnEnd",
+            duration: "forTheTurn",
           },
         ],
       };

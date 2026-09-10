@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -16,7 +15,7 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "securityToHand",
             controller: "mine",
-            position: "topOrBottom",
+            position: "choice",
             raw: "By adding the top or bottom card of your security stack to the hand",
           },
           optional: true,
@@ -67,7 +66,7 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "securityToHand",
             controller: "mine",
-            position: "topOrBottom",
+            position: "choice",
             raw: "By adding the top or bottom card of your security stack to the hand",
           },
           optional: true,

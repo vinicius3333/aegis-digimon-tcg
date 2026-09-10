@@ -1,6 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const stopAtLevel3 = { stopAtLevel: 3 };
 
 // Hand-fixed IR for EX4-036 (BlackRapidmon).
 // Text:
@@ -35,7 +36,7 @@ export const compiled: CompiledCard = {
           },
           fromTop: true,
           amount: 99,
-          stopAtLevel: 3,
+          ...stopAtLevel3,
         },
         {
           kind: "DeDigivolve",
@@ -94,7 +95,7 @@ export const compiled: CompiledCard = {
     },
     {
       level: 4,
-      multicolor: true,
+      ...{ multicolor: true },
       colorCount: 2,
       colors: ["Green"],
       cost: 3,

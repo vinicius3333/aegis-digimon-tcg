@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for EX6-056 — do not regenerate.
 // OnPlay+WhenDigivolving DeDigivolve: removed levels:[3] (no target-level restriction in text).
 // AllTurns Replacement: sourceFilter restricted to self (isSelfRef), otherThanBattle leaveCause,

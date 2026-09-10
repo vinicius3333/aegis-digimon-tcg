@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
@@ -35,7 +34,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfOpponentTurn" as SubTriggerEvent,
           actions: [
             {
               kind: "PlayWithoutCost",

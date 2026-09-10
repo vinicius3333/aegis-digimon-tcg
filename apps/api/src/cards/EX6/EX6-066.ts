@@ -1,4 +1,3 @@
-// @ts-nocheck
 // EX6-066 Sea of Destruction — hand-fixed IR.
 // KB Q3817: "the placed card" refers to the Digimon placed from hand (the cost card),
 // not the blue host Digimon. Return targets all opponent Digimon at that placed card's level.

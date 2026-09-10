@@ -12,12 +12,13 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
     expect(text).toContain("Seven Great Demon Lords");
     expect(text).toContain("Gate of Deadly Sins");
     expect(text).toContain("onDeletionOf");
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
+    const delayEffect = compiled.effects?.find((entry) => entry.trigger === "AllTurns");
+    expect(delayEffect?.keywords).toEqual([{ keyword: "Delay" }]);
+    expect(delayEffect?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       actions: [
         {
           kind: "PlayWithoutCost",
-          source: "breeding",
           target: {
             filter: {
               zone: "digivolutionCards",

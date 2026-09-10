@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 

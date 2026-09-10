@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -31,7 +30,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          delayArmedIntrinsic: true,
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -54,6 +52,7 @@ export const compiled: CompiledCard = {
           ],
         },
       ],
+      keywords: [{ keyword: "Delay" }],
     },
     { trigger: "Security", actions: [{ kind: "PlaceInBattleAreaSelf" }], isSecurity: true },
   ],

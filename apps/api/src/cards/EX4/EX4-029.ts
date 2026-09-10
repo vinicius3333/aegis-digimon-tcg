@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -73,7 +72,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      multicolor: true,
+      ...{ multicolor: true },
       colorCount: 2,
       colors: ["Green"],
       cost: 3,

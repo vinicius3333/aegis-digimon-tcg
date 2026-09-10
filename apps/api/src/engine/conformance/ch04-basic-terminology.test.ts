@@ -10,7 +10,7 @@ import {
   requireCardDefinition,
   type Seat,
 } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { definitionMatches } from "../effects/interpreter.js";
 import { getEffectModule } from "../effects/registry.js";
@@ -388,6 +388,24 @@ describe("§4-6-8 Stacked Cards, cont'd (comprehensive-0076)", () => {
     expect(trashedIds).toEqual(expect.arrayContaining([top.instanceId, under.instanceId]));
     expect(p0.trash.map((c) => c.instanceId)).toEqual(expect.arrayContaining([top.instanceId, under.instanceId]));
     expect(p0.battleArea.length).toBe(0);
+  });
+
+  it("4-15-1: deleting a battle-area Digimon trashes its Digi-Egg digivolution card", () => {
+    cite(
+      "comprehensive-0076",
+      "4-15-1 deletion trashes the card; 3-1-3-9 redirects Digi-Egg cards only when placing them in private areas",
+    );
+
+    const s = setup({
+      0: { battleArea: [{ card: "BT1-030", as: "host", under: [{ card: "EX4-001", as: "egg" }] }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    const eggId = s.inst("egg").instanceId;
+
+    new GameStateAccess(s.state).deletePermanent(hostId);
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === eggId)).toBe(true);
+    expect(s.state.players[0]!.eggDeck.some(({ instanceId }) => instanceId === eggId)).toBe(false);
   });
 
   it("4-6-10: a face-down digivolution card is hidden from the opponent, but its own controller may see it", () => {
@@ -1115,7 +1133,7 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
   it("4-21-4: a single multicolor Digimon/Tamer can meet the requirement for more than 1 color at once", async () => {
     cite(
       "comprehensive-0091",
-      "4-21-4 'A multicolor Digimon or multicolor Tamer can meet the color requirements for " + "multiple colors.'",
+      "4-21-4 'A multicolor Digimon or multicolor Tamer can meet the color requirements for multiple colors.'",
     );
 
     const s = setup(

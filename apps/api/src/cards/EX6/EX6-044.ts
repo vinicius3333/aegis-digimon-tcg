@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-preserved override (not generator-owned): identical IR to what
 // runtime effect records currently emits for EX6-044, but `compiled` is exported
 // because EX6-044.test.ts imports it directly (`import { compiled as EX6_044 }`).

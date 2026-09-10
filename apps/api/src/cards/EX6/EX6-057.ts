@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, GainTriggeredEffectAction, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
-const grant = {
+const target: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+const grant: GainTriggeredEffectAction = {
   kind: "GainTriggeredEffect",
   target,
   gainedTrigger: "EndOfYourTurn",
@@ -22,7 +21,6 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           sourceFilter: { isSelfRef: true },
           leaveCause: "otherThanBattle",
-          frequency: "OncePerTurn",
           actions: [
             {
               kind: "Delete",
@@ -48,7 +46,6 @@ export const compiled: CompiledCard = {
           // itself is excluded (same wording as EX9-033/BT24-079).
           sourceFilter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
-          frequency: "OncePerTurn",
         },
       ],
       frequency: "OncePerTurn",

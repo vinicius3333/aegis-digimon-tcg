@@ -1,6 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const preventNextUnsuspend = { preventUnsuspend: "opponentNextUnsuspendPhase" };
 
 export const compiled: CompiledCard = {
   effects: [
@@ -67,7 +68,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          preventUnsuspend: "opponentNextUnsuspendPhase",
+          ...preventNextUnsuspend,
           condition: {
             kind: "ifThisEffectDidNotDelete",
             raw: "no Digimon was deleted by this effect",
@@ -101,7 +102,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          preventUnsuspend: "opponentNextUnsuspendPhase",
+          ...preventNextUnsuspend,
           condition: {
             kind: "ifThisEffectDidNotDelete",
             raw: "no Digimon was deleted by this effect",
