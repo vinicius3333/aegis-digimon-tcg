@@ -83,14 +83,14 @@ describe("EX1-049 MetalTyrannomon", () => {
       0: {
         battleArea: [{ card: "BT11-072", as: "host", under: ["EX1-049"] }],
         hand: ["BT1-009"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
       1: {
         battleArea: [{ card: "BT1-070", as: "target", suspended: true, dp: 1000 }],
         hand: ["BT1-009"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     const loop = s.engine.startTurnLoop();
@@ -117,14 +117,14 @@ describe("EX1-049 MetalTyrannomon", () => {
       0: {
         battleArea: [{ card: "BT11-111", as: "host", under: ["EX1-049"] }],
         hand: ["BT1-009"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
       1: {
         battleArea: [{ card: "BT1-070", as: "target", suspended: true, dp: 1000 }],
         hand: ["BT1-009"],
-        deck: ["BT1-001", "BT1-002"],
-        security: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     const loop = s.engine.startTurnLoop();

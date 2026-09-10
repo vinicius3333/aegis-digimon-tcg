@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-067.js";
 
@@ -38,21 +36,6 @@ describe("EX1-067 Baptism by Fire!", () => {
       s.perm("tooLargeBlocker").permanentId,
       s.perm("nonBlocker").permanentId,
     ]);
-  });
-
-  it("activates the same deletion effect from security", async () => {
-    const s = setupEngine(
-      {
-        0: { security: [{ card: "EX1-067", as: "option", faceUp: true }] },
-        1: { battleArea: [{ card: "BT1-072", as: "blocker" }] },
-      },
-      { autoSelectCards: true },
-    );
-    const blockerId = s.perm("blocker").topCard.instanceId;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === blockerId)).toBe(true);
   });
 
   it("activates Main and deletes an eligible Blocker during a real security check", async () => {

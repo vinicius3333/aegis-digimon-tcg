@@ -101,6 +101,46 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("cost").instanceId)).toBe(true);
   });
 
+  it("may decline the reduction cost and then pays the printed evolution cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "EX1-052", as: "evo" },
+            { card: "EX1-050", as: "cost" },
+          ],
+          battleArea: [
+            { card: "EX1-047", as: "base" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const before = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evo").instanceId);
+
+    expect(s.state.memory).toBe(before - 3);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+  });
+
   it("does not trash a different-color Digimon or reduce the evolution", async () => {
     const s = setupEngine(
       {
@@ -377,8 +417,8 @@ describe("EX1-071 Win Rate: 60%!", () => {
             { card: "BT6-018", as: "bond" },
             { card: "BT1-020", as: "redCost" },
           ],
-          deck: ["BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
@@ -421,7 +461,7 @@ describe("EX1-071 Win Rate: 60%!", () => {
             { card: "EX2-070", as: "plugIn" },
             { card: "BT11-041", as: "tooExpensive" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -501,13 +541,13 @@ describe("EX1-071 Win Rate: 60%!", () => {
             { card: "BT10-050", as: "greenBase" },
             { card: "BT1-085", as: "tamer" },
           ],
-          deck: ["BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT8-057", as: "shivamon" }],
-          deck: ["BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },

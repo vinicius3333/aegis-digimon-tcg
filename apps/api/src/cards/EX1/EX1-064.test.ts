@@ -9,7 +9,7 @@ describe("EX1-064 Piedmon", () => {
         0: {
           hand: [{ card: "EX1-064", as: "piedmon" }],
           battleArea: [{ card: "EX1-056", as: "purpleSource" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -42,7 +42,7 @@ describe("EX1-064 Piedmon", () => {
         0: {
           hand: [{ card: "EX1-064", as: "piedmon" }],
           battleArea: [{ card: "EX1-056", as: "purpleSource" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "onlyTarget" }] },
       },
@@ -64,7 +64,7 @@ describe("EX1-064 Piedmon", () => {
         0: {
           hand: [{ card: "EX1-064", as: "piedmon" }],
           battleArea: [{ card: "EX1-056", as: "purpleSource" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -98,7 +98,7 @@ describe("EX1-064 Piedmon", () => {
             { card: "BT2-067", as: "firstAttacker", dp: 10000 },
             { card: "BT1-011", as: "secondAttacker", dp: 10000 },
           ],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [

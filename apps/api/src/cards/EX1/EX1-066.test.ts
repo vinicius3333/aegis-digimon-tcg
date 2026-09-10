@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-066.js";
 
@@ -25,7 +23,7 @@ describe("EX1-066 Analog Youth", () => {
           battleArea: [{ card: "EX1-056", as: "source" }],
           deck: [
             { card: "BT1-009", as: "digimon" },
-            { card: "BT1-001", as: "egg" },
+            { card: "EX1-068", as: "fillerOption" },
             { card: "EX1-067", as: "option" },
           ],
         },
@@ -42,7 +40,11 @@ describe("EX1-066 Analog Youth", () => {
     expect(search.sourceCardId).toBe("EX1-066");
     expect(search.options?.candidateInstanceIds).toEqual([s.inst("digimon").instanceId]);
     expect(search.options?.visibleInstanceIds).toEqual(
-      expect.arrayContaining([s.inst("digimon").instanceId, s.inst("egg").instanceId, s.inst("option").instanceId]),
+      expect.arrayContaining([
+        s.inst("digimon").instanceId,
+        s.inst("fillerOption").instanceId,
+        s.inst("option").instanceId,
+      ]),
     );
     expect(
       s.engine.applyIntent(0, {
@@ -55,7 +57,7 @@ describe("EX1-066 Analog Youth", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("digimon").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("egg").instanceId, s.inst("option").instanceId]),
+      expect.arrayContaining([s.inst("fillerOption").instanceId, s.inst("option").instanceId]),
     );
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
@@ -218,13 +220,6 @@ describe("EX1-066 Analog Youth", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.eggDeck).toHaveLength(1);
-  });
-
-  it("plays itself from security", async () => {
-    const s = setupEngine({ 1: { security: [{ card: "EX1-066", as: "analog", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("analog"));
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "EX1-066")).toBe(true);
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("plays itself when revealed by a real security check", async () => {

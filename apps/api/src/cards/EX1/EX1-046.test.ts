@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-046.js";
 
@@ -129,5 +130,86 @@ describe("EX1-046 Kurisarimon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === same2Id));
     expect(s.perm("host").isSuspended).toBe(true);
+  });
+
+  it("resets its once-per-turn trigger on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-051", as: "host", suspended: true, under: ["EX1-046"] },
+          { card: "BT2-062", as: "same1" },
+          { card: "BT5-067", as: "same2" },
+          { card: "BT2-062", as: "same3" },
+        ],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-070", as: "firstWinner", suspended: true, dp: 7000 },
+          { card: "BT1-070", as: "hostTarget", suspended: true, dp: 1000 },
+          { card: "BT1-070", as: "secondWinner", suspended: true, dp: 7000 },
+          { card: "BT1-070", as: "thirdWinner", suspended: true, dp: 7000 },
+        ],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("same1").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("hostTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("same2").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT5-067"));
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("thirdWinner").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("thirdWinner").isSuspended);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("same3").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("thirdWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

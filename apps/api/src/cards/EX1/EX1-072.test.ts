@@ -13,14 +13,14 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
       0: {
         hand: [{ card: "EX1-072", as: "shutdown" }],
         battleArea: [{ card: "BT11-095", as: "blueSource" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
       },
       1: {
         hand: [{ card: "BT10-100", as: "opponentOption" }],
         battleArea: [{ card: "BT10-029", as: "yellowSource" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -96,14 +96,14 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
         0: {
           hand: [{ card: "EX1-072", as: "shutdown" }],
           battleArea: [{ card: "BT11-095", as: "blueSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           hand: [{ card: "BT10-100", as: "opponentOption" }],
           battleArea: [{ card: "BT10-029", as: "yellowSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -156,14 +156,14 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
         0: {
           hand: [{ card: "EX1-072", as: "shutdown" }],
           battleArea: [{ card: "BT11-095", as: "blueSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           hand: [{ card: "BT10-100", as: "boost" }],
           battleArea: [{ card: "BT10-029", as: "yellowSource" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoOrderTriggers: true },
@@ -181,6 +181,7 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     const [delay] = observe(s.engine).activatableEffects(
       s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-100")!,

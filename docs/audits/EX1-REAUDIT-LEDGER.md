@@ -2,7 +2,7 @@
 
 Rubric columns are scored 0–2. Workers award at most 8/10; delivery gates are awarded only after full closeout, atomic commits, and push.
 
-Current aggregate: 336/730; 0/73 cards at 10/10.
+Current aggregate: 584/730; 0/73 cards at 10/10.
 
 | Card    | Status  | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report                           |
 | ------- | ------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | -------------------------------- |
@@ -48,34 +48,34 @@ Current aggregate: 336/730; 0/73 cards at 10/10.
 | EX1-040 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-040.md) |
 | EX1-041 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-041.md) |
 | EX1-042 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-042.md) |
-| EX1-043 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-043.md) |
-| EX1-044 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-044.md) |
-| EX1-045 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-045.md) |
-| EX1-046 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-046.md) |
-| EX1-047 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-047.md) |
-| EX1-048 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-048.md) |
-| EX1-049 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-049.md) |
-| EX1-050 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-050.md) |
-| EX1-051 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-051.md) |
-| EX1-052 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-052.md) |
-| EX1-053 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-053.md) |
-| EX1-054 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-054.md) |
-| EX1-055 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-055.md) |
-| EX1-056 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-056.md) |
-| EX1-057 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-057.md) |
-| EX1-058 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-058.md) |
-| EX1-059 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-059.md) |
-| EX1-060 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-060.md) |
-| EX1-061 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-061.md) |
-| EX1-062 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-062.md) |
-| EX1-063 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-063.md) |
-| EX1-064 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-064.md) |
-| EX1-065 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-065.md) |
-| EX1-066 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-066.md) |
-| EX1-067 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-067.md) |
-| EX1-068 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-068.md) |
-| EX1-069 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-069.md) |
-| EX1-070 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-070.md) |
-| EX1-071 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-071.md) |
-| EX1-072 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-072.md) |
-| EX1-073 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-073.md) |
+| EX1-043 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-043.md) |
+| EX1-044 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-044.md) |
+| EX1-045 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-045.md) |
+| EX1-046 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-046.md) |
+| EX1-047 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-047.md) |
+| EX1-048 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-048.md) |
+| EX1-049 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-049.md) |
+| EX1-050 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-050.md) |
+| EX1-051 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-051.md) |
+| EX1-052 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-052.md) |
+| EX1-053 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-053.md) |
+| EX1-054 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-054.md) |
+| EX1-055 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-055.md) |
+| EX1-056 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-056.md) |
+| EX1-057 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-057.md) |
+| EX1-058 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-058.md) |
+| EX1-059 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-059.md) |
+| EX1-060 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-060.md) |
+| EX1-061 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-061.md) |
+| EX1-062 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-062.md) |
+| EX1-063 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-063.md) |
+| EX1-064 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-064.md) |
+| EX1-065 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-065.md) |
+| EX1-066 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-066.md) |
+| EX1-067 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-067.md) |
+| EX1-068 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-068.md) |
+| EX1-069 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-069.md) |
+| EX1-070 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-070.md) |
+| EX1-071 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-071.md) |
+| EX1-072 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-072.md) |
+| EX1-073 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-073.md) |

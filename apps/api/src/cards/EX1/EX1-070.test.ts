@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -27,28 +26,6 @@ describe("EX1-070 Fight for Your Pride!", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-057"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => observe(s.engine).hasKeyword(p, "Blocker")));
     expect(s.state.players[0]!.battleArea.some((p) => observe(s.engine).hasKeyword(p, "Blocker"))).toBe(true);
-  });
-
-  it("plays a purple level-4-or-lower Digimon from its owner's trash in security", async () => {
-    const s = setupEngine(
-      {
-        1: {
-          security: [{ card: "EX1-070", as: "option", faceUp: true }],
-          trash: [
-            { card: "EX1-057", as: "eligible" },
-            { card: "EX1-061", as: "tooHigh" },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    const eligibleId = s.inst("eligible").instanceId;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === eligibleId)).toBe(true);
-    expect(s.state.players[1]!.trash.some((c) => c.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("plays a purple level-4-or-lower Digimon during a real security check", async () => {
@@ -112,12 +89,12 @@ describe("EX1-070 Fight for Your Pride!", () => {
             { card: "EX1-056", as: "purpleSource" },
           ],
           trash: [{ card: "EX1-057", as: "played" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, preferInstanceIds },

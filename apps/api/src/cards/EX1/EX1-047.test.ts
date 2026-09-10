@@ -7,7 +7,7 @@ import "./EX1-047.js";
 
 describe("EX1-047 Guardromon", () => {
   it("has Blocker and can't attack on your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-047", as: "guardromon" }] }, 1: { security: ["BT1-001"] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-047", as: "guardromon" }] }, 1: { security: ["BT1-009"] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("guardromon"), "Blocker")).toBe(true);
     expect(
@@ -27,7 +27,7 @@ describe("EX1-047 Guardromon", () => {
           hand: [{ card: "BT1-068", as: "machine" }],
           deck: ["BT1-009", "BT1-010"],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -51,7 +51,7 @@ describe("EX1-047 Guardromon", () => {
           hand: [{ card: "BT1-068", as: "machine" }],
           deck: ["BT1-009", "BT1-010"],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -77,7 +77,7 @@ describe("EX1-047 Guardromon", () => {
           hand: [{ card: "BT1-009", as: "wrongTrait" }],
           deck: ["BT1-010", "BT1-011"],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -108,8 +108,8 @@ describe("EX1-047 Guardromon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-072", as: "blocker" }],
-          security: ["BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
