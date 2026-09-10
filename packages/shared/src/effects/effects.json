@@ -178322,7 +178322,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "suspend",
-            "duration": "whileCondition",
+            "duration": "permanent",
             "while": { "kind": "memoryAtLeast", "value": 1, "controller": "mine" }
           }
         ]
@@ -178535,6 +178535,7 @@
             "kind": "Return",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
               "totalPlayCostBudget": 14,
               "upTo": true
             },
@@ -178564,12 +178565,19 @@
             "grant": "immuneToOpponentDigimonEffects",
             "tokens": [],
             "condition": { "kind": "memoryAtLeast", "value": 1, "controller": "mine" }
-          },
+          }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "condition": { "kind": "memoryAtMost", "value": 1, "controller": "mine" },
+        "actions": [
           {
-            "kind": "Aura",
+            "kind": "DisableTimingEffect",
+            "whileMatchesTargetFilter": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "effect": { "kind": "restriction", "restriction": "activateOnPlay" },
-            "while": { "kind": "memoryAtMost", "value": 1, "controller": "mine" }
+            "timings": ["onPlay"],
+            "duration": "permanent"
           }
         ]
       },
@@ -179487,7 +179495,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["Mineral"], "cost": 2, "isAlternate": true }]
   },
   "EX8-049": {
     "effects": [
@@ -179611,11 +179620,18 @@
             "kind": "SecurityManipulation",
             "op": "trash",
             "controller": "opponent",
-            "target": { "filter": { "controller": "opponent" }, "count": 1 },
             "from": ["security"],
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Option"] }, "count": 1 }
+              "target": {
+                "filter": {
+                  "zone": "battleArea",
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "placedInBattleAreaByEffect": true
+                },
+                "count": 1
+              }
             }
           }
         ],
@@ -179665,7 +179681,15 @@
             "amount": 2,
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Option"] }, "count": 1 },
+              "target": {
+                "filter": {
+                  "zone": "battleArea",
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "placedInBattleAreaByEffect": true
+                },
+                "count": 1
+              },
               "raw": "By trashing 1 of your Option cards in the battle area"
             },
             "optional": true,
@@ -180052,11 +180076,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }]
-            },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "DnaDigivolve",
@@ -180067,24 +180087,31 @@
                   "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }]
                 },
                 "payCost": true,
-                "optional": true
+                "optional": true,
+                "bindResultAs": "dnaDigivolvedByThisEffect",
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }] },
+                  "raw": "any of them have the [NSo] trait"
+                }
               },
               {
                 "kind": "Attack",
-                "target": { "filter": { "dnaDigivolvedByThisEffect": true }, "count": 1 },
+                "target": { "filter": { "boundRef": "dnaDigivolvedByThisEffect" }, "count": 1 },
                 "withoutSuspending": false,
-                "optional": true
+                "optional": true,
+                "condition": {
+                  "kind": "bindingExists",
+                  "ref": "dnaDigivolvedByThisEffect",
+                  "raw": "that DNA digivolved Digimon"
+                }
               }
             ]
           },
           {
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
-            "sourceFilter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }]
-            },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "DnaDigivolve",
@@ -180095,13 +180122,24 @@
                   "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }]
                 },
                 "payCost": true,
-                "optional": true
+                "optional": true,
+                "bindResultAs": "dnaDigivolvedByThisEffect",
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }] },
+                  "raw": "any of them have the [NSo] trait"
+                }
               },
               {
                 "kind": "Attack",
-                "target": { "filter": { "dnaDigivolvedByThisEffect": true }, "count": 1 },
+                "target": { "filter": { "boundRef": "dnaDigivolvedByThisEffect" }, "count": 1 },
                 "withoutSuspending": false,
-                "optional": true
+                "optional": true,
+                "condition": {
+                  "kind": "bindingExists",
+                  "ref": "dnaDigivolvedByThisEffect",
+                  "raw": "that DNA digivolved Digimon"
+                }
               }
             ]
           }
@@ -180236,7 +180274,7 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "sourceFilter": { "controllerDefault": "both", "excludeSelf": true, "kind": ["Digimon"] },
+            "sourceFilter": { "controllerDefault": "any", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -180380,7 +180418,7 @@
                 "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }]
               },
               "count": "all",
-              "totalPlayCost": 10
+              "totalPlayCostBudget": 10
             },
             "from": ["trash"],
             "payCost": false,
@@ -180395,7 +180433,7 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "sourceFilter": { "controllerDefault": "both", "excludeSelf": true, "kind": ["Digimon"] },
+            "sourceFilter": { "controllerDefault": "any", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "Trash",
@@ -180607,6 +180645,7 @@
                   "from": ["trash"]
                 },
                 "underFilter": { "isTriggerSource": true },
+                "position": "bottom",
                 "cost": {
                   "kind": "suspend",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -180821,7 +180860,7 @@
             "kind": "Restrict",
             "target": { "fromSelectionRef": "thatDigimon", "filter": {}, "count": 1 },
             "restriction": "cannotReturnToHandOrDeck",
-            "byOpponentOnly": true,
+            "byOpponentEffectsOnly": true,
             "duration": "untilOpponentTurnEnd"
           },
           {
@@ -181167,7 +181206,7 @@
             "amount": 3000,
             "scaling": {
               "per": 1,
-              "filter": { "controllerDefault": "both", "excludeSelf": true, "suspended": true, "kind": ["Digimon"] },
+              "filter": { "controllerDefault": "any", "excludeSelf": true, "suspended": true, "kind": ["Digimon"] },
               "unit": "cards"
             }
           },
@@ -181187,7 +181226,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controllerDefault": "both", "kind": ["Digimon"] },
+            "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "ActivateEffect",
