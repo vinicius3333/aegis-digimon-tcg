@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,46 +8,81 @@ import "./index.js";
 import { compiled } from "./EX8-022.js";
 
 describe("EX8-022", () => {
-  it("has Ice Clad and trashes 2 digivolution cards from an opposing Digimon on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toContainEqual({
-      keyword: "IceClad",
-      raw: "＜Ice Clad＞",
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
-      kind: "TrashDigivolution",
-      amount: 2,
-      target: { count: 1 },
-      fromTop: false,
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({
-      kind: "GainMemory",
-      amount: 1,
-      condition: { kind: "opponentHasNone" },
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-022")).toMatchObject({
+      cardId: "EX8-022",
+      nameEn: "Frigimon",
+      colors: ["Blue", "Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Blue", level: 3, memoryCost: 3 },
+        { color: "Yellow", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Ice-Snow", "LIBERATOR"],
+      effectText: expect.stringContaining("＜Ice Clad＞"),
+      inheritedEffectText:
+        "[When Attacking] Give 1 of your opponent's Digimon ＜Security Attack -1＞until the end of their turn.",
     });
   });
-  it("inherits Security Attack -1 against an opposing Digimon when attacking", () =>
+  it("traces Ice Clad, both trash/memory trigger branches, and inherited Security Attack reduction", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
+      { keyword: "IceClad", raw: "＜Ice Clad＞" },
+    ]);
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions).toMatchObject([
+        {
+          kind: "TrashDigivolution",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 2,
+          fromTop: false,
+        },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHasNone",
+            filter: { digivolutionCards: "hasAny", controllerDefault: "opponent", kind: ["Digimon"] },
+          },
+        },
+      ]);
+    }
     expect(compiled.effects?.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
       kind: "GainKeyword",
-      keyword: { keyword: "SecurityAttack", amount: -1 },
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
       duration: "untilOpponentTurnEnd",
-    }));
+    });
+  });
   it("exposes Ice Clad on live state", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX8-022", as: "frigimon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("frigimon"), "IceClad")).toBe(true);
   });
   it("reduces an opposing Digimon's Security Attack during a real host attack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-022", as: "frigimon" }] }],
-        security: ["BT1-045"],
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-022", as: "frigimon" }] }],
+          security: ["BT1-045"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "opponent" },
+            { card: "BT1-010", as: "otherOpponent" },
+          ],
+          security: ["BT1-045", "BT1-046"],
+          deck: ["BT1-046", "BT1-045"],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT1-009", as: "opponent" }],
-        security: ["BT1-045", "BT1-046"],
-        deck: ["BT1-046", "BT1-045"],
-      },
-    });
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("opponent").permanentId);
     await s.ready();
 
     expect(
@@ -162,6 +197,27 @@ describe("EX8-022", () => {
     await settle(() => s.perm("target").stack.length === 0 && s.state.memory === 1);
 
     expect(s.state.players[1]!.trash).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("uses the standard Blue level-3 route for 3 memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-030", as: "blueBase" }],
+        hand: [{ card: "EX8-022", as: "frigimon" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("frigimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueBase").topCard.instanceId === s.inst("frigimon").instanceId);
     expect(s.state.memory).toBe(1);
   });
 
