@@ -13,30 +13,50 @@ describe("EX8-034", () => {
       from: ["hand"],
       payCost: false,
       optional: true,
-      target: { count: 1, filter: { playCostLte: 3 } },
+      target: {
+        count: 1,
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          playCostLte: 3,
+          nameOrTrait: [{ tokens: ["NSo"], match: "trait" }],
+        },
+      },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "SecurityAttack", amount: -1 },
-      target: { count: 2 },
+      duration: "untilOpponentTurnEnd",
+      target: { count: 2, filter: { controller: "opponent", kind: ["Digimon"] } },
     });
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: -4000,
+          duration: "forTheTurn",
+          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+        },
+      ],
     });
   });
   it("gives two opposing Digimon Security Attack -1 when deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-034", as: "mammoth" }] },
-      1: {
-        battleArea: [
-          { card: "AD1-001", as: "one" },
-          { card: "EX8-040", as: "two" },
-        ],
-        security: 1,
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-034", as: "mammoth" }] },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "one" },
+            { card: "EX8-040", as: "two" },
+            { card: "BT1-045", as: "three" },
+          ],
+          security: 1,
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("mammoth").permanentId]);
@@ -47,6 +67,7 @@ describe("EX8-034", () => {
     );
     expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(-1);
+    expect(observe(s.engine).keywordAmount(s.perm("three"), "SecurityAttack")).toBe(0);
     s.state.memory = 0;
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
@@ -56,7 +77,7 @@ describe("EX8-034", () => {
 
   it("Security Attack -1 suppresses an actual opposing security check", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-034", as: "mammoth" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "EX8-034", as: "mammoth" }], security: ["BT1-045"] },
       1: { battleArea: [{ card: "AD1-001", as: "one" }] },
     });
     s.state.turnSeat = 1;
@@ -87,6 +108,7 @@ describe("EX8-034", () => {
           hand: [
             { card: "EX8-008", as: "allowed" },
             { card: "EX8-010", as: "tooExpensive" },
+            { card: "BT1-045", as: "offTrait" },
           ],
         },
       },
@@ -94,12 +116,14 @@ describe("EX8-034", () => {
     );
     const allowedInstanceId = s.inst("allowed").instanceId;
     const tooExpensiveInstanceId = s.inst("tooExpensive").instanceId;
+    const offTraitInstanceId = s.inst("offTrait").instanceId;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mammoth"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === allowedInstanceId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === allowedInstanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === tooExpensiveInstanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === offTraitInstanceId)).toBe(true);
   });
 
   it("plays the eligible NSo card through a real digivolution", async () => {
@@ -111,6 +135,7 @@ describe("EX8-034", () => {
             { card: "EX8-034", as: "mammoth" },
             { card: "EX8-008", as: "allowed" },
             { card: "EX8-010", as: "tooExpensive" },
+            { card: "BT1-045", as: "offTrait" },
           ],
         },
       },
@@ -127,13 +152,14 @@ describe("EX8-034", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-008"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-008")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("offTrait").instanceId)).toBe(true);
   });
 
   it("applies the inherited -4000 DP on a real attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST3-10", as: "host", under: ["EX8-034"] }] },
-        1: { battleArea: [{ card: "EX8-029", as: "target" }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "EX8-029", as: "target" }], security: ["BT1-045", "BT1-045"] },
       },
       { autoSelectCards: true },
     );
