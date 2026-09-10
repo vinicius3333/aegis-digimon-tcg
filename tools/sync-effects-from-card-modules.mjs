@@ -173,10 +173,14 @@ export function topLevelEntryRanges(document) {
 export function replaceTopLevelEntries(document, replacements) {
   const originalRanges = topLevelEntryRanges(document);
   const edits = [];
+  const additions = [];
 
   for (const [key, value] of replacements) {
     const range = originalRanges.get(key);
-    if (!range) throw new Error(`${key} is missing from effects.json.`);
+    if (!range) {
+      additions.push([key, value]);
+      continue;
+    }
     edits.push({ ...range, key, value });
   }
 
@@ -184,6 +188,13 @@ export function replaceTopLevelEntries(document, replacements) {
   let updated = document;
   for (const edit of edits) {
     updated = `${updated.slice(0, edit.start)}${edit.value}${updated.slice(edit.end)}`;
+  }
+  if (additions.length > 0) {
+    const closingBrace = updated.lastIndexOf("}");
+    if (closingBrace < 0) throw new Error("effects.json must contain a top-level object.");
+    const hasEntries = topLevelEntryRanges(updated).size > 0;
+    const rendered = additions.map(([key, value]) => `  ${JSON.stringify(key)}: ${value}`).join(",\n");
+    updated = `${updated.slice(0, closingBrace).trimEnd()}${hasEntries ? "," : ""}\n${rendered}\n${updated.slice(closingBrace)}`;
   }
 
   JSON.parse(updated);
@@ -278,7 +289,8 @@ function verifyScopeAgainstBase(document, set, base, baseDocument = readEffectsA
   if (scope.outsideSet.length > 0) {
     throw new Error(`Found semantic changes outside ${set}: ${scope.outsideSet.join(", ")}`);
   }
-  if (!outsideSetBytesMatch(baseDocument, document, set)) {
+  const baseHasSetRecords = [...topLevelEntryRanges(baseDocument).keys()].some((key) => key.startsWith(`${set}-`));
+  if (baseHasSetRecords && !outsideSetBytesMatch(baseDocument, document, set)) {
     throw new Error(`Found byte changes outside ${set}.`);
   }
   console.log(
@@ -373,7 +385,7 @@ async function main() {
   if (cardIds.length === 0) throw new Error(`No catalog cards found for ${set}.`);
   const current = readFileSync(EFFECTS_PATH, "utf8");
   const keyDiff = setRecordKeyDiff(current, set, cardIds);
-  if (keyDiff.missing.length > 0 || keyDiff.extra.length > 0) {
+  if (keyDiff.extra.length > 0 || (check && keyDiff.missing.length > 0)) {
     throw new Error(
       `${set} effects.json keys do not match the card catalog. Missing: ${keyDiff.missing.join(", ") || "none"}; extra: ${keyDiff.extra.join(", ") || "none"}.`,
     );
