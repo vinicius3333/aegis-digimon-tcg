@@ -13,3 +13,4 @@
 - Post-sync exact collection passed 113/113 files and 631/631 tests with one worker and no file parallelism. All 112 rows therefore reached worker-cap 8/10 (896/1120).
 - `effects:check:set` passed with the expected one BT11 semantic change and zero semantic/byte changes outside BT11. The affected 12-file mechanism manifest passed 12/12 files and 316/316 tests. Full workspace `pnpm typecheck` passed for shared, API, and web.
 - Static closeout passed: Oxlint and Oxfmt checks on the changed BT11 module/test, `git diff --check`, and the scoped `@ts-nocheck`/`registerCard(` sweep are clean.
+- Delivery commits `fa02f8a4a` and `cf38fb471` were pushed to `origin/audit-bt11-luna-20260910`. Final delivery credit raises all 112 cards to 10/10 for 1120/1120 aggregate; this ledger/RUN update is the final atomic evidence commit.
