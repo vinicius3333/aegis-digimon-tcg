@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          raw: "By trashing 1 [TS] trait card from your hand, ＜Draw 1＞ and gain 1 memory.",
           actions: [
             { kind: "Draw", controller: "mine", amount: 1 },
             { kind: "GainMemory", amount: 1 },

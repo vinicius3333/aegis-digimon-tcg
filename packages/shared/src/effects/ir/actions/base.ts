@@ -47,6 +47,9 @@ export interface ActionBase {
    * candidates. Used only where a card ruling explicitly permits that processing condition.
    */
   allowCostWithoutTarget?: boolean;
-  /** Diagnostic / provenance text from runtime record (ignored at runtime). */
+  /**
+   * The printed sub-clause this action encodes. Never changes resolution; when the action
+   * asks the player something, the prompt shows this sentence instead of an engine summary.
+   */
   raw?: string;
 }

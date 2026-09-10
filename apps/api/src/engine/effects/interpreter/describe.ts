@@ -3,9 +3,11 @@
 import type { Action, CardEffect, Cost } from "@aegis/shared";
 
 /**
- * Turn an IR identifier into a readable phrase ("GainMemory" -> "Gain memory").
- * This is the last resort for {@link describeAction}: every prompt it produces is
- * shown to a player, so a bare internal identifier must never reach the client.
+ * Turn an IR identifier into a readable phrase ("payMemory" -> "Pay memory").
+ * Last resort for {@link describeCost} only. {@link describeAction} deliberately does
+ * not use it: the client drops a bare identifier prompt and shows the printed clause
+ * instead, while a spaced-out identifier ("Cost gated block") reads as card text and
+ * reaches the player.
  */
 export function humanizeIdentifier(identifier: string): string {
   const words = identifier.replace(/([a-z0-9])([A-Z])/g, "$1 $2").split(" ");
@@ -26,13 +28,49 @@ export function printedClause(raw: string | undefined): string | undefined {
   return /^[a-z][A-Za-z0-9]*$/.test(text) ? undefined : text;
 }
 
+const costVerbByKind: Partial<Record<Cost["kind"], string>> = {
+  trash: "Trash",
+  suspend: "Suspend",
+  unsuspend: "Unsuspend",
+  return: "Return",
+  place: "Place",
+  deleteOwn: "Delete",
+  reveal: "Reveal",
+};
+
 /** Short human description of an activation cost for an optional prompt / log. */
 export function describeCost(cost: Cost): string {
-  return printedClause(cost.raw) ?? humanizeIdentifier(cost.kind);
+  const printed = printedClause(cost.raw);
+  if (printed !== undefined) return printed;
+  if (cost.kind === "compound" && cost.costs?.length) return cost.costs.map(describeCost).join(" and ");
+  if (cost.kind === "payMemory" && cost.memory !== undefined) return `Pay ${cost.memory} memory`;
+  const verb = costVerbByKind[cost.kind];
+  const count = cost.target?.count;
+  if (verb !== undefined && count !== undefined) {
+    const zone = cost.target?.filter?.zone;
+    const upTo = cost.target?.upTo ? "up to " : "";
+    return `${verb} ${upTo}${String(count)} card(s)${zone === "hand" ? " from hand" : ""}`;
+  }
+  return humanizeIdentifier(cost.kind);
 }
 
-/** Short human description of an action for an optional prompt / log. */
+/**
+ * Short human description of an action for an optional prompt / log.
+ *
+ * A printed `raw` sub-clause wins, so a card whose effect asks twice ("You may delete...
+ * Then, by returning 3 cards..., ＜Recovery +1＞") prompts each question with its own
+ * sentence. An unmapped kind falls through as its bare identifier, which the client
+ * replaces with its generic prompt over the printed clause.
+ */
 export function describeAction(action: Action): string {
+  const printed = action.kind === "RawUnparsed" ? undefined : printedClause(action.raw);
+  if (printed !== undefined) return printed;
+  const cost = "cost" in action && action.kind !== "CostGatedBlock" ? (action.cost as Cost | undefined) : undefined;
+  const body = describeActionBody(action);
+  return cost === undefined ? body : `By paying: ${describeCost(cost)} → ${body}`;
+}
+
+function describeActionBody(action: Action): string {
   switch (action.kind) {
     case "Draw":
       return `Draw ${action.amount}`;
@@ -74,8 +112,37 @@ export function describeAction(action: Action): string {
       return "DNA digivolve";
     case "DeDigivolve":
       return "De-Digivolve";
+    case "CostGatedBlock":
+      return `By paying: ${describeCost(action.cost)} → ${action.actions.map(describeAction).join(", ")}`;
+    case "SecurityManipulation":
+      return describeSecurityManipulation(action);
     default:
-      return humanizeIdentifier(action.kind);
+      return action.kind;
+  }
+}
+
+function describeSecurityManipulation(action: Extract<Action, { kind: "SecurityManipulation" }>): string {
+  const amount = action.amount ?? 1;
+  const whose = action.controller === "opponent" ? "opponent's" : "your";
+  switch (action.op) {
+    case "addTop":
+    case "addBottom":
+    case "addTopOrBottom":
+      return action.controller === "opponent"
+        ? `Add ${amount} card(s) to the opponent's security`
+        : `＜Recovery +${amount}＞`;
+    case "trashTop":
+      return `Trash ${action.upTo ? "up to " : ""}${amount} of ${whose} top security card(s)`;
+    case "revealTop":
+    case "revealBottom":
+      return `Reveal ${whose} ${action.op === "revealTop" ? "top" : "bottom"} security card`;
+    case "flipUp":
+    case "flipFaceUp":
+      return `Flip ${whose} security card face up`;
+    case "moveTopToBottom":
+      return `Move ${whose} top security card to the bottom`;
+    default:
+      return action.kind;
   }
 }
 

@@ -22,6 +22,7 @@ const recovery = {
   source: "deck",
   amount: 1,
   optional: true,
+  raw: "By returning 3 cards in trashes to the bottom of the deck, ＜Recovery +1＞.",
   cost: {
     kind: "return",
     target: { filter: trashPool, count: 3 },
