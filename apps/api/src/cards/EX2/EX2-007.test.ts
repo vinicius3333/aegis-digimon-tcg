@@ -2,22 +2,22 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import "./EX2-007.js";
+import { compiled } from "./EX2-007.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../ST9/ST9-10.js";
+import "../BT8/BT8-071.js";
 
 // EX2-007 (Mother D-Reaper) — KB-grounded behavior tests.
 //
 // Three clauses:
 //   1. Registration + timing routing: [Main] must route to OnDeclaration;
 //      [All Turns] static restrictions route to None.
-//   2. [Your Turn] cost-reduction effect — the IR's Replacement action carries a
-//      condition of kind:"raw" which evaluates to false (evaluateCondition line 571).
-//      The hand-written module replaces that inert path with a live cost modifier.
+//   2. [Your Turn] cost-reduction effect — the compiled Replacement action scopes the
+//      played card to the [D-Reaper] trait and scales from this card's stack.
 //      KB basis: printed text "[Your Turn][Once Per Turn] When you would play a
 //      card with [D-Reaper] in its traits from your hand, you may reduce its play
-//      cost by 1 for each of this Digimon's digivolution cards." and documented behavior source
+//      cost by 1 for each of this Digimon's digivolution cards.".
 
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -66,6 +66,29 @@ function makeSource(opts: { stackSize?: number; isOnBattle?: boolean; isOwnersTu
 describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
   const module = getEffectModule("EX2-007");
 
+  it("compiles all three printed clauses without a handwritten registration", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "Restrict", restriction: "attack" }),
+        expect.objectContaining({ kind: "GrantImmunity", immuneFrom: "opponentEffects" }),
+      ]),
+    );
+    expect(compiled.effects[1]).toMatchObject({ trigger: "Main", frequency: "OncePerTurn" });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          sourceFilter: { nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }] },
+          scaling: { unit: "digivolutionCards", per: 1 },
+        },
+      ],
+    });
+  });
+
   it("is registered", () => {
     expect(module, "EX2-007 must be registered on import").toBeDefined();
   });
@@ -89,7 +112,7 @@ describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
 
 describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
   it("cannot attack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-007", as: "mother" }] }, 1: { security: ["BT1-001"] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-007", as: "mother" }] }, 1: { security: ["BT1-009"] } });
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -103,8 +126,8 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
   it("is not affected by an opponent's On Play effect", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX2-007", as: "mother" }], deck: ["BT1-001"] },
-        1: { hand: [{ card: "ST9-10", as: "snimon" }], deck: ["BT1-001", "BT1-001"] },
+        0: { battleArea: [{ card: "EX2-007", as: "mother" }], deck: ["BT1-010"] },
+        1: { hand: [{ card: "ST9-10", as: "snimon" }], deck: ["BT1-011", "BT1-012"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -244,5 +267,38 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["EX2-001", "EX2-002"]),
     );
+  });
+
+  it("cannot activate the Main placement effect from the breeding area (Q3277)", async () => {
+    const s = setupEngine({ 0: { breeding: "EX2-007", hand: [{ card: "EX2-046", as: "searcher" }] } });
+    await s.ready();
+    const sourceInstanceId = s.state.players[0]!.breeding!.topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId,
+        effectKey: "EX2-007/ir-27-0",
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("does not reduce a D-Reaper play when Psychemon prevents cost reductions (Q3283)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother", under: ["EX2-046"] }],
+          hand: [{ card: "EX2-047", as: "pendulumFeet" }],
+        },
+        1: { battleArea: ["BT8-071"] },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pendulumFeet").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX2-047"));
+    expect(s.state.memory).toBe(0);
   });
 });
