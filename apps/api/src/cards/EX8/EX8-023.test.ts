@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,6 +7,28 @@ import "./index.js";
 import { compiled } from "./EX8-023.js";
 
 describe("EX8-023", () => {
+  it("matches committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-023")).toMatchObject({
+      cardId: "EX8-023",
+      nameEn: "PolarBearmon",
+      colors: ["Blue", "Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Blue", level: 4, memoryCost: 4 },
+        { color: "Yellow", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Ice-Snow", "LIBERATOR"],
+      effectText: expect.stringContaining("Trash any 2 digivolution cards"),
+      inheritedEffectText:
+        "[Your Turn] While your opponent has no Digimon with digivolution cards, this Digimon with the [Ice-Snow]\u00a0trait gains ＜Piercing＞and ＜Security Attack +1＞.",
+    });
+  });
+
   it("inherits conditional Piercing and Security Attack +1", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
@@ -48,6 +70,29 @@ describe("EX8-023", () => {
       restriction: "cannotActivateWhenDigivolving",
       target: { sameTarget: true },
     });
+  });
+
+  it("uses Ice Clad source count to win a lower-DP battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-023", as: "polar", dp: 1000, under: ["BT1-001"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 15000, suspended: true }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("polar"), "IceClad")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("polar").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
   it("trashes two opposing digivolution cards and applies both printed restrictions on play", async () => {
     const s = setupEngine(
@@ -119,7 +164,7 @@ describe("EX8-023", () => {
         0: {
           battleArea: [
             { card: "EX8-023", as: "polar" },
-            { card: "BT1-024", as: "victim", under: ["BT1-009", "AD1-001"] },
+            { card: "BT1-024", as: "victim" },
           ],
         },
         1: {
@@ -149,7 +194,10 @@ describe("EX8-023", () => {
     expect(s.perm("penguinmon").stack).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(true);
-    expect(s.perm("victim").stack).toHaveLength(2);
+    expect(s.perm("victim").stack).toHaveLength(0);
+    // EX8-022 would gain memory here if its When Digivolving effect were allowed to
+    // activate. The restriction blocks the timing entirely (Q3884-Q3888).
+    expect(s.state.memory).toBe(0);
 
     s.state.memory = 0;
     s.state.turnSeat = 1;
@@ -213,5 +261,30 @@ describe("EX8-023", () => {
     ).toEqual({ ok: true });
     await settle(() => evolution.perm("frigimon").topCard.instanceId === evolution.inst("polar").instanceId);
     expect(evolution.state.memory).toBe(0);
+  });
+
+  it("accepts the printed standard level-4 evolution route", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-022", as: "frigimon" }], hand: [{ card: "EX8-023", as: "polar" }] },
+        1: {
+          battleArea: [{ card: "EX8-022", as: "stacked-opponent", under: ["BT1-004", "BT1-028"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("frigimon").permanentId,
+        instanceId: s.inst("polar").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("frigimon").topCard.instanceId === s.inst("polar").instanceId);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("stacked-opponent").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("stacked-opponent"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("stacked-opponent"), "cannotActivateWhenDigivolving")).toBe(true);
   });
 });
