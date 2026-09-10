@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,7 +12,7 @@ export const compiled: CompiledCard = {
       keywords: [
         {
           keyword: "Overclock",
-          qualifier: "Puppet",
+          traitFilter: ["Puppet"],
           raw: "＜Overclock ([Puppet] trait)＞",
         },
       ],
@@ -38,7 +37,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 excludeSelf: true,
-                kindOrToken: ["Digimon", "Token"],
+                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Puppet"],
@@ -56,7 +55,7 @@ export const compiled: CompiledCard = {
       keywords: [
         {
           keyword: "Overclock",
-          qualifier: "Puppet",
+          traitFilter: ["Puppet"],
           raw: "＜Overclock ([Puppet] trait)＞",
         },
       ],

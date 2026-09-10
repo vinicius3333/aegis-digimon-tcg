@@ -59,7 +59,7 @@ describe("EX7-022 ShogunGekomon", () => {
               count: "all",
             },
             restriction: "attackTargetChange",
-            duration: "whileInPlay",
+            duration: "forTheTurn",
           },
         ],
       },

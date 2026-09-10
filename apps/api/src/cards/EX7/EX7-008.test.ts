@@ -24,7 +24,7 @@ describe("EX7-008 ToyAgumon", () => {
             rest: "deckBottom",
             add: [
               { count: 1, to: "hand", filter: { nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }] } },
-              { count: 1, to: "hand", filter: { kind: ["Option"], costComparison: { op: "eq", value: 6 } } },
+              { count: 1, to: "hand", filter: { kind: ["Option"], playCostOneOf: [6] } },
             ],
           },
         ],

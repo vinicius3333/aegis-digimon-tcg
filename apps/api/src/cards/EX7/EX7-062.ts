@@ -1,8 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const evilTraits = [{ tokens: ["Evil", "Dark Dragon", "Evil Dragon"], match: "trait" }];
+const evilTraits: NonNullable<Filter["nameOrTrait"]> = [
+  { tokens: ["Evil", "Dark Dragon", "Evil Dragon"], match: "trait" },
+];
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 5, traits: ["Dark Dragon", "Evil Dragon"], cost: 4, isAlternate: true }],
   effects: [

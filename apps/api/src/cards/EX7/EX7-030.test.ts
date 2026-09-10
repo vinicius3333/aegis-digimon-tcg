@@ -36,7 +36,7 @@ describe("EX7-030 Cendrillmon", () => {
         {
           trigger: "Static",
           actions: [],
-          keywords: [{ keyword: "Overclock", qualifier: "Puppet", raw: "＜Overclock ([Puppet] trait)＞" }],
+          keywords: [{ keyword: "Overclock", traitFilter: ["Puppet"], raw: "＜Overclock ([Puppet] trait)＞" }],
         },
         {
           trigger: "EndOfYourTurn",
@@ -52,7 +52,7 @@ describe("EX7-030 Cendrillmon", () => {
                   filter: {
                     controller: "mine",
                     excludeSelf: true,
-                    kindOrToken: ["Digimon", "Token"],
+                    kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }],
                     allowTokens: true,
                   },
@@ -62,7 +62,7 @@ describe("EX7-030 Cendrillmon", () => {
               },
             },
           ],
-          keywords: [{ keyword: "Overclock", qualifier: "Puppet", raw: "＜Overclock ([Puppet] trait)＞" }],
+          keywords: [{ keyword: "Overclock", traitFilter: ["Puppet"], raw: "＜Overclock ([Puppet] trait)＞" }],
         },
         {
           trigger: "StartOfYourMainPhase",
