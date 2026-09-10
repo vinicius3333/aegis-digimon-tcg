@@ -15,6 +15,7 @@ import { compiled } from "./EX8-031.js";
 
 describe("EX8-031", () => {
   it("recovers a name-only Plug-In through actual Renamon evolution", async () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Renamon"], cost: 0, isAlternate: true }]);
     const s = setupEngine(
       {
         0: {
@@ -47,12 +48,28 @@ describe("EX8-031", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Return",
       to: "hand",
-      target: { count: 1 },
+      target: {
+        count: 1,
+        filter: {
+          zone: "trash",
+          controller: "mine",
+          kind: ["Option"],
+          nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }],
+        },
+      },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "Return",
       to: "hand",
-      target: { count: 1 },
+      target: {
+        count: 1,
+        filter: {
+          zone: "trash",
+          controller: "mine",
+          kind: ["Option"],
+          nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }],
+        },
+      },
     });
   });
   it("inherits a once-per-turn -2000 DP trigger for using an Option with use cost 2 or more", () => {
