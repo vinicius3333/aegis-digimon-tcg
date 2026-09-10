@@ -2,8 +2,41 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-040.js";
+import "./BT2-036.js";
+import "./BT2-038.js";
 
 describe("BT2-040 Ophanimon", () => {
+  it("evolves legally from a registered yellow level-5 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-036", as: "base" }],
+        hand: [
+          { card: "BT2-038", as: "source" },
+          { card: "BT2-040", as: "ophanimon" },
+        ],
+      },
+    });
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("source").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ophanimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("ophanimon").instanceId);
+  });
+
   it("places itself face down in security on deletion", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT2-040", as: "ophanimon" }], security: ["BT1-010"] } });
     const id = s.perm("ophanimon").topCard.instanceId;

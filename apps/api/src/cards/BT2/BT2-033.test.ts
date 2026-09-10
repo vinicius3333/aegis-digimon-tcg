@@ -3,6 +3,28 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-033.js";
 
 describe("BT2-033 Agumon", () => {
+  it("digivolves legally from a yellow level 2 and keeps its inherited source", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT2-003", as: "base" },
+        hand: [{ card: "BT2-033", as: "agumon" }],
+      },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("agumon").instanceId);
+
+    expect(s.perm("base").topCard.cardId).toBe("BT2-033");
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT2-003")).toBe(true);
+  });
+
   it("draws when its host attacks while its controller has 3 yellow Tamers in play", async () => {
     const s = setupEngine({
       0: {

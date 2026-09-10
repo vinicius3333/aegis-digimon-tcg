@@ -1,8 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-009.js";
 
 describe("BT2-009 Guilmon", () => {
+  it("digivolves from a red level 2 for 0 memory and draws 1", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "base" }],
+        hand: [{ card: "BT2-009", as: "guilmon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("guilmon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base")).toMatchObject({ baseDP: 3000, currentDP: 3000 });
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+  });
+
   it("gives +1000 DP during its turn at the 5-card opponent-trash threshold", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-013", as: "host", under: ["BT2-009"] }] },

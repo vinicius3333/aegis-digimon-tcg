@@ -1,3 +1,4 @@
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -181,5 +182,72 @@ describe("BT2-078 WereGarurumon", () => {
 
     expect(s.perm("wereGarurumon").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("proves the legal purple stack and public inherited attack-unsuspend cost", async () => {
+    const deck = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"];
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT2-007", as: "egg" }],
+          hand: [
+            { card: "BT2-069", as: "level3" },
+            { card: "BT2-074", as: "level4" },
+            { card: "BT2-078", as: "wereGarurumon" },
+            { card: "BT2-079", as: "host" },
+          ],
+          battleArea: [{ card: "BT2-068", as: "cost" }],
+          deck,
+        },
+        1: { security: ["BT1-010", "BT1-011", "BT1-012"], deck },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const costPermanentId = s.perm("cost").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    s.state.memory = 10;
+    const breedingPermanentId = s.state.players[0]!.breeding!.permanentId;
+    for (const alias of ["level3", "level4", "wereGarurumon", "host"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: breedingPermanentId,
+          instanceId: s.inst(alias).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.state.players[0]!.breeding!.topCard.instanceId === s.inst(alias).instanceId,
+      );
+    }
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: breedingPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("host").isSuspended &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== costPermanentId),
+    );
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT2-068")).toBe(true);
+    expect(s.perm("host").stack.some(({ cardId }) => cardId === "BT2-078")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

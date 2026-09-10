@@ -5,6 +5,27 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-035.js";
 
 describe("BT2-035 GeoGreymon", () => {
+  it("digivolves legally from a yellow level 3 and preserves the source stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-033", as: "base" }],
+        hand: [{ card: "BT2-035", as: "geogreymon" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("geogreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("geogreymon").instanceId);
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT2-033")).toBe(true);
+  });
+
   it("gives an opposing Digimon -2000 DP when attacking with 3 yellow Tamers", async () => {
     const s = setupEngine(
       {
