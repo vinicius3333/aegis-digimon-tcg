@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const freeSource = {
+const freeSource: Condition = {
   kind: "selfDigivolutionStackHasTrait",
   filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] },
 };

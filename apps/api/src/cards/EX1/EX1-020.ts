@@ -1,8 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
@@ -12,7 +11,8 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-          actions: [{ kind: "Draw", amount: 2 }],
+          optional: true,
+          actions: [{ kind: "Draw", controller: "mine", amount: 2 }],
         },
       ],
     },
