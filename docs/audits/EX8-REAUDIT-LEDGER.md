@@ -2,7 +2,7 @@
 
 Base SHA: `2c851acd73948611728b9c7e2c3c785d98b1087a`
 
-Current aggregate: 120/740; 0/74 cards at 10/10.
+Current aggregate: 376/740; 0/74 cards at 10/10.
 
 | Card | Report | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
@@ -21,38 +21,38 @@ Current aggregate: 120/740; 0/74 cards at 10/10.
 | EX8-013 | [report](EX8-reaudit/EX8-013.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
 | EX8-014 | [report](EX8-reaudit/EX8-014.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
 | EX8-015 | [report](EX8-reaudit/EX8-015.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
-| EX8-016 | [report](EX8-reaudit/EX8-016.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-017 | [report](EX8-reaudit/EX8-017.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-018 | [report](EX8-reaudit/EX8-018.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-019 | [report](EX8-reaudit/EX8-019.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-020 | [report](EX8-reaudit/EX8-020.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-021 | [report](EX8-reaudit/EX8-021.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-022 | [report](EX8-reaudit/EX8-022.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-023 | [report](EX8-reaudit/EX8-023.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-024 | [report](EX8-reaudit/EX8-024.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-025 | [report](EX8-reaudit/EX8-025.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-026 | [report](EX8-reaudit/EX8-026.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-027 | [report](EX8-reaudit/EX8-027.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-028 | [report](EX8-reaudit/EX8-028.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-029 | [report](EX8-reaudit/EX8-029.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-030 | [report](EX8-reaudit/EX8-030.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-031 | [report](EX8-reaudit/EX8-031.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-032 | [report](EX8-reaudit/EX8-032.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-033 | [report](EX8-reaudit/EX8-033.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-034 | [report](EX8-reaudit/EX8-034.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-035 | [report](EX8-reaudit/EX8-035.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-036 | [report](EX8-reaudit/EX8-036.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-037 | [report](EX8-reaudit/EX8-037.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-038 | [report](EX8-reaudit/EX8-038.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-039 | [report](EX8-reaudit/EX8-039.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-040 | [report](EX8-reaudit/EX8-040.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-041 | [report](EX8-reaudit/EX8-041.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-042 | [report](EX8-reaudit/EX8-042.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-043 | [report](EX8-reaudit/EX8-043.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-044 | [report](EX8-reaudit/EX8-044.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-045 | [report](EX8-reaudit/EX8-045.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-046 | [report](EX8-reaudit/EX8-046.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-047 | [report](EX8-reaudit/EX8-047.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
+| EX8-016 | [report](EX8-reaudit/EX8-016.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-017 | [report](EX8-reaudit/EX8-017.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-018 | [report](EX8-reaudit/EX8-018.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-019 | [report](EX8-reaudit/EX8-019.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-020 | [report](EX8-reaudit/EX8-020.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-021 | [report](EX8-reaudit/EX8-021.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-022 | [report](EX8-reaudit/EX8-022.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-023 | [report](EX8-reaudit/EX8-023.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-024 | [report](EX8-reaudit/EX8-024.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-025 | [report](EX8-reaudit/EX8-025.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-026 | [report](EX8-reaudit/EX8-026.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted after fixture correction; gates pending |
+| EX8-027 | [report](EX8-reaudit/EX8-027.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-028 | [report](EX8-reaudit/EX8-028.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-029 | [report](EX8-reaudit/EX8-029.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-030 | [report](EX8-reaudit/EX8-030.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted after fixture correction; gates pending |
+| EX8-031 | [report](EX8-reaudit/EX8-031.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-032 | [report](EX8-reaudit/EX8-032.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-033 | [report](EX8-reaudit/EX8-033.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-034 | [report](EX8-reaudit/EX8-034.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-035 | [report](EX8-reaudit/EX8-035.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-036 | [report](EX8-reaudit/EX8-036.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-037 | [report](EX8-reaudit/EX8-037.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-038 | [report](EX8-reaudit/EX8-038.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-039 | [report](EX8-reaudit/EX8-039.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-040 | [report](EX8-reaudit/EX8-040.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-041 | [report](EX8-reaudit/EX8-041.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-042 | [report](EX8-reaudit/EX8-042.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-043 | [report](EX8-reaudit/EX8-043.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-044 | [report](EX8-reaudit/EX8-044.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-045 | [report](EX8-reaudit/EX8-045.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-046 | [report](EX8-reaudit/EX8-046.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-047 | [report](EX8-reaudit/EX8-047.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
 | EX8-048 | [report](EX8-reaudit/EX8-048.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
 | EX8-049 | [report](EX8-reaudit/EX8-049.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
 | EX8-050 | [report](EX8-reaudit/EX8-050.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
