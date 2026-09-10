@@ -60,7 +60,7 @@ describe("P-153 MagnaGarurumon", () => {
       ],
     });
     expect(runtimeCompiledCard("P-153")!.digivolutionRequirement).toEqual([
-      { names: ["MagnaGarurumon"], minColors: 3, cost: 2, isAlternate: true },
+      { names: ["MagnaGarurumon"], colorCount: 3, cost: 2, isAlternate: true },
     ]);
   });
 

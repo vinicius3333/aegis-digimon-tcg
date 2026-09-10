@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -23,7 +22,12 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
-              orTo: "placeUnder",
+              orDispositions: [
+                {
+                  to: "placeUnder",
+                  underFilter: { isSelfRef: true },
+                },
+              ],
             },
           ],
           rest: "deckTopOrBottom",
@@ -66,7 +70,12 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
-              orTo: "placeUnder",
+              orDispositions: [
+                {
+                  to: "placeUnder",
+                  underFilter: { isSelfRef: true },
+                },
+              ],
             },
           ],
           rest: "deckTopOrBottom",

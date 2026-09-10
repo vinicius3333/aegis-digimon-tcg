@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const mainActions = [
+const mainActions: Action[] = [
   {
     kind: "PlaceUnder",
     target: { filter: { controller: "mine" }, count: 1 },

@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const aquaOrSeaAnimal = {
-  kind: ["Digimon"] as const,
-  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" as const }],
+const aquaOrSeaAnimal: Filter = {
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
 };
 
 const compiled: CompiledCard = {

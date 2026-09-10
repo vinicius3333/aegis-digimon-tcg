@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -63,8 +62,15 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "security",
-                position: ["top", "bottom"],
+                position: "top",
               },
+              orFilters: [
+                {
+                  controller: "mine",
+                  zone: "security",
+                  position: "bottom",
+                },
+              ],
               count: 1,
             },
             raw: "By trashing your top or bottom security card",
@@ -92,8 +98,15 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "security",
-                position: ["top", "bottom"],
+                position: "top",
               },
+              orFilters: [
+                {
+                  controller: "mine",
+                  zone: "security",
+                  position: "bottom",
+                },
+              ],
               count: 1,
             },
             raw: "By trashing your top or bottom security card",

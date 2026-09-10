@@ -15,7 +15,7 @@ describe("P-167 Landramon", () => {
             kind: "RevealAdd",
             revealCount: 3,
             rest: "deckTopOrBottom",
-            add: [{ count: 1, to: "hand", orTo: "placeUnder" }],
+            add: [{ count: 1, to: "hand", orDispositions: [{ to: "placeUnder", underFilter: { isSelfRef: true } }] }],
             cost: {
               kind: "trash",
               target: {

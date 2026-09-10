@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-206.js";
 
@@ -61,8 +62,8 @@ describe("P-206 Digimon Liberator", () => {
           kind: "PlayWithoutCost",
           from: ["hand"],
           payCost: true,
-          reduceCost: 4,
-          target: { count: 1, filter: { kind: ["Tamer"], sameColorAsAnyOfYourDigimon: true } },
+          reduceCostBy: 4,
+          target: { count: 1, filter: { kind: ["Tamer"] } },
         },
       ],
     });
@@ -95,5 +96,45 @@ describe("P-206 Digimon Liberator", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
     ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  const activateDelayWithTamer = async (tamerCardId: string) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-206", as: "option" },
+            { card: "BT1-009", as: "digimon" },
+          ],
+          hand: [{ card: tamerCardId, as: "tamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const delay = observe(s.engine)
+      .activatableEffects(s.perm("option"))
+      .find((effect) => /delay/i.test(effect.description ?? ""))!;
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delay.instanceId!,
+        effectKey: delay.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    return s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId,
+    );
+  };
+
+  it("plays a Delay Tamer sharing a color with your Digimon", async () => {
+    expect(await activateDelayWithTamer("BT1-085")).toBe(true);
+  });
+
+  it("cannot play a Delay Tamer whose colors match none of your Digimon", async () => {
+    expect(await activateDelayWithTamer("BT1-086")).toBe(false);
   });
 });

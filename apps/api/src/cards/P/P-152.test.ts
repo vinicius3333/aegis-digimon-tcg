@@ -42,8 +42,8 @@ describe("P-152 Shoutmon + Dorulu Cannon", () => {
   it("encodes both zero-cost named digivolution paths, Rule names, and DigiXros materials", () => {
     const compiled = runtimeCompiledCard("P-152")!;
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Shoutmon"], playCostLte: 4, cost: 0, isAlternate: true },
-      { names: ["Dorulumon"], playCostLte: 4, cost: 0, isAlternate: true },
+      { names: ["Shoutmon"], basePlayCostMax: 4, cost: 0, isAlternate: true },
+      { names: ["Dorulumon"], basePlayCostMax: 4, cost: 0, isAlternate: true },
     ]);
     expect(compiled.effects).toEqual(
       expect.arrayContaining([

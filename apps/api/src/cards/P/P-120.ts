@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -23,13 +22,6 @@ const compiled: CompiledCard = {
         {
           kind: "ModifySecurityDP",
           controller: "opponent",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: "all",
-          },
           amount: -2000,
           duration: "permanent",
         },

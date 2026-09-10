@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -42,7 +41,7 @@ const compiled: CompiledCard = {
                 count: 1,
               },
               amount: 2000,
-              duration: "untilTurnEnd",
+              duration: "forTheTurn",
             },
           ],
           cost: {

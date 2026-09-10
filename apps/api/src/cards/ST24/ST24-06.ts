@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // ST24-06 RizeGreymon
@@ -14,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.
 // Q6211: must trash all 2 required cards (can't partially meet "by" condition)
 // Q6212: can trash cards from under multiple Tamers (total 2)
-const playOrUseDataSquad = {
+const playOrUseDataSquad: Action = {
   kind: "Modal",
   choose: 1,
   labels: ["Play a DATA SQUAD card", "Use a DATA SQUAD Option"],

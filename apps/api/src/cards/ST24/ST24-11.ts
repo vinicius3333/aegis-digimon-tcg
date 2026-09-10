@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const suspendAndRestrict = {
+const suspendAndRestrict: { actions: Action[] } = {
   actions: [
     {
       kind: "Suspend",

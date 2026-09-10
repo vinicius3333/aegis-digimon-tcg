@@ -90,6 +90,13 @@ export interface BoardPredicates {
   /** Candidate color matches at least one color in the source Digimon's stack (EX9-074). */
   colorMatchesAnyDigivolutionCard?: boolean;
   /**
+   * Candidate shares at least one color with a Digimon the EFFECT'S CONTROLLER has in the
+   * battle area (P-206's ＜Delay＞ "with the same color as any of your Digimon"). Controlling
+   * no battle-area Digimon makes every candidate fail. Applies to loose cards (hand/trash/...)
+   * as well as permanents, so a PlayWithoutCost candidate list honors it.
+   */
+  sharesColorWithControllersBattleAreaDigimon?: boolean;
+  /**
    * The STACK contains a card of one of these kinds (BT17-090). Distinct from
    * `digivolutionCards:"hasAny"`, which only asks whether the stack is non-empty.
    */

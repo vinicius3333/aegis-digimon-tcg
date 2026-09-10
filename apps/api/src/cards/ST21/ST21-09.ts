@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — generator must preserve this file.
 // ST21-09 Lillymon
 // [On Play][When Digivolving] Suspend all of opponent's 5000 DP or lower Digimon. Then, for

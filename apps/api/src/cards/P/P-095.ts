@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for P-095.
 // runtime-effect fix: the [Main] effect also prevents the chosen opponent Digimon from
 // activating its [When Digivolving] effects until the end of the opponent's turn. The
@@ -50,6 +49,10 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
             fromSelectionRef: "P095Target",
             count: 1,
           },
@@ -59,6 +62,10 @@ const compiled: CompiledCard = {
         {
           kind: "DisableTimingEffect",
           target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
             fromSelectionRef: "P095Target",
             count: 1,
           },

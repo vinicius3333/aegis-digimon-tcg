@@ -1,14 +1,13 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const fallenAngel = {
+const fallenAngel: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   levelComparison: { op: "lte", value: 5 },
   nameOrTrait: [{ tokens: ["Fallen Angel"], match: "trait" }],
 };
-const handAtLeastSix = {
+const handAtLeastSix: Condition = {
   kind: "zoneCount",
   seat: "opponent",
   zone: "hand",
@@ -16,7 +15,7 @@ const handAtLeastSix = {
   value: 6,
   raw: "your opponent has 6 or more cards in their hand",
 };
-const handAtMostFive = {
+const handAtMostFive: Condition = {
   kind: "zoneCount",
   seat: "opponent",
   zone: "hand",
@@ -89,7 +88,6 @@ const compiled: CompiledCard = {
           kind: "Trash",
           target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
           chooser: "opponent",
-          untilHandSize: 5,
           condition: handAtLeastSix,
         },
         {

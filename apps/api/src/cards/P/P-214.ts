@@ -1,52 +1,51 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const seadramonText = [{ tokens: ["Seadramon"], match: "text" as const }];
 
-const tuckAndReturn = {
-  kind: "CostGatedBlock" as const,
+const tuckAndReturn: Action = {
+  kind: "CostGatedBlock",
   optional: true,
   abortOnDecline: true,
   cost: {
-    kind: "place" as const,
+    kind: "place",
     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
     underFilter: {
-      controller: "mine" as const,
+      controller: "mine",
       excludeSelf: true,
-      kind: ["Digimon"] as const,
+      kind: ["Digimon"],
       nameOrTrait: seadramonText,
     },
-    destination: "digivolutionStack" as const,
+    destination: "digivolutionStack",
     targetIsPermanent: true,
-    position: "bottom" as const,
-    host: "target" as const,
+    position: "bottom",
+    host: "target",
     raw: "by placing this Digimon under another Digimon with Seadramon in its text",
   },
   actions: [
     {
-      kind: "SelectBind" as const,
+      kind: "SelectBind",
       target: {
         filter: {
-          controller: "mine" as const,
-          kind: ["Digimon"] as const,
+          controller: "mine",
+          kind: ["Digimon"],
           nameOrTrait: seadramonText,
         },
         count: 1,
+        bindAs: "seadramonLevel",
       },
-      bindAs: "seadramonLevel",
     },
     {
-      kind: "Return" as const,
+      kind: "Return",
       target: {
         filter: {
-          controller: "opponent" as const,
-          kind: ["Digimon"] as const,
-          levelComparison: { op: "lte" as const, relativeToSelectionRef: "seadramonLevel" },
+          controller: "opponent",
+          kind: ["Digimon"],
+          relativeTo: { attr: "level", op: "lte", selectionRef: "seadramonLevel" },
         },
         count: 1,
       },
-      to: "deckBottom" as const,
+      to: "deckBottom",
     },
   ],
 };

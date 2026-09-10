@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for ST20-01.
 // runtime-effect fix: the +1000 DP applies only while "This Digimon with the [ADVENTURE]
 // trait" — the trait gate was missing. Added a selfTopHasText condition requiring the

@@ -138,6 +138,13 @@ export interface GainKeywordAction extends ActionBase {
   duration: EffectDurationRef;
   /** Apply the grant to the controller's current and future Digimon for the duration. */
   playerWide?: boolean;
+  /**
+   * Force the player-scoped grant path (current and future Digimon of one seat) even outside a
+   * Security timing. Only honored for count-all Security Attack grants on Digimon.
+   */
+  playerScoped?: boolean;
+  /** Seat that receives a player-scoped grant; defaults to the source's controller. */
+  playerScopedController?: "mine" | "opponent";
   /** Apply the filtered grant to matching permanents that enter before the duration expires. */
   includeLaterEntrants?: boolean;
   /**

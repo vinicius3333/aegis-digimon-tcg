@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for P-107 — Delay Digivolve requires paying cost.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

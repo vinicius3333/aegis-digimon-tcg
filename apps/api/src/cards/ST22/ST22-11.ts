@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -86,7 +85,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
-          target: { fromSelectionRef: "rebootRecipient" },
+          target: { filter: {}, count: 1, fromSelectionRef: "rebootRecipient" },
           amount: 3000,
           duration: "untilOpponentTurnEnd",
         },

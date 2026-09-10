@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — generator must preserve this file (was AUTO-GENERATED FROM IR).
 // Fix 1: Suspend+Restrict payload moved from [Hand]/[Counter] to WhenDigivolving
 //   (KB Q828-Q830: it is this card's WHEN DIGIVOLVING effect).

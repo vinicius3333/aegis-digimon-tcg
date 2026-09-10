@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-AUTHORED OVERRIDE: preserves the printed self play-cost reduction.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

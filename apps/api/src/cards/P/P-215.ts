@@ -1,51 +1,50 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const traits = [{ tokens: ["Ice-Snow", "Mineral", "Rock"], match: "trait" as const }];
 
-const placeAndProtect = {
-  kind: "CostGatedBlock" as const,
+const placeAndProtect: Action = {
+  kind: "CostGatedBlock",
   optional: true,
   abortOnDecline: true,
   cost: {
-    kind: "place" as const,
+    kind: "place",
     target: {
       filter: {
-        controller: "mine" as const,
-        kind: ["Digimon"] as const,
-        levelComparison: { op: "lte" as const, value: 4 },
+        controller: "mine",
+        kind: ["Digimon"],
+        levelComparison: { op: "lte", value: 4 },
         nameOrTrait: traits,
       },
       count: 1,
-      from: ["hand", "trash"] as const,
+      from: ["hand", "trash"],
     },
-    destination: "digivolutionStack" as const,
-    position: "bottom" as const,
-    host: "self" as const,
+    destination: "digivolutionStack",
+    position: "bottom",
+    host: "self",
     raw: "by placing 1 level 4 or lower Ice-Snow, Mineral, or Rock card under this Digimon",
   },
   actions: [
     {
-      kind: "SelectBind" as const,
+      kind: "SelectBind",
       target: {
-        filter: { controller: "mine" as const, kind: ["Digimon"] as const, nameOrTrait: traits },
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: traits },
         count: 1,
+        bindAs: "protectedDigimon",
       },
-      bindAs: "protectedDigimon",
     },
     {
-      kind: "Restrict" as const,
+      kind: "Restrict",
       target: { filter: {}, count: 1, fromSelectionRef: "protectedDigimon" },
-      restriction: "beReturned" as const,
-      duration: "untilOpponentTurnEnd" as const,
+      restriction: "beReturned",
+      duration: "untilOpponentTurnEnd",
       byOpponentEffectsOnly: true,
     },
     {
-      kind: "Restrict" as const,
+      kind: "Restrict",
       target: { filter: {}, count: 1, fromSelectionRef: "protectedDigimon" },
-      restriction: "cantBeDeDigivolved" as const,
-      duration: "untilOpponentTurnEnd" as const,
+      restriction: "cantBeDeDigivolved",
+      duration: "untilOpponentTurnEnd",
       byOpponentEffectsOnly: true,
     },
   ],

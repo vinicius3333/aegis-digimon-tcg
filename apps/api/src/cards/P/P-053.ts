@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for P-053.
 // runtime-effect fix: the [When Attacking] effect also lowers ALL opponent Security Digimon
 // by -2000 for the turn ("1 of your opponent's Digimon AND all of your opponent's

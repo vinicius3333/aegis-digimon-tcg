@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed: conditional -3000 targets opponent Digimon (total -6000, per KB Q858);
 // condition counts both players' Digimon (KB Q857); inherited cost allows Token OR Puppet Digimon.
 import type { CompiledCard } from "@aegis/shared";
@@ -28,7 +27,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameAsPrev: true,
+            sameTarget: true,
           },
           amount: -3000,
           duration: "forTheTurn",
@@ -63,7 +62,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameAsPrev: true,
+            sameTarget: true,
           },
           amount: -3000,
           duration: "forTheTurn",

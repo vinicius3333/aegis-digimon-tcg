@@ -39,12 +39,16 @@ describe("BT23-013 Jesmon", () => {
       expect(actions[1]).toMatchObject({ kind: "Modal", optional: true, choose: 1, options: expect.any(Array) });
       expect(actions[1].options[0][0]).toMatchObject({
         kind: "PlayToken",
-        token: {
-          name: "Atho, René & Por",
-          dp: 6000,
-          color: "White",
-          keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
-        },
+        tokens: [
+          {
+            name: "Atho, René & Por",
+            dp: 6000,
+            color: "White",
+            keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
+          },
+        ],
+        count: 1,
+        payCost: false,
       });
       expect(actions[1].options[1][0]).toMatchObject({
         kind: "PlayWithoutCost",

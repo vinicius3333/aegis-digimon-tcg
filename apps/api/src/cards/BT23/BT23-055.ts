@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override: audit findings verified against engine — IR is faithful.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

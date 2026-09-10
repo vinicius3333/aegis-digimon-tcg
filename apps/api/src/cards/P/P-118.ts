@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -28,7 +27,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
-              mandatory: true,
             },
             {
               filter: {
@@ -38,11 +36,9 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
-              mandatory: true,
             },
           ],
           rest: "deckBottom",
-          addAsManyAsPossible: true,
         },
       ],
     },
@@ -53,27 +49,19 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "DnaDigivolve",
-          materials: [
-            {
-              filter: { isSelfRef: true },
-              count: 1,
-              isSelf: true,
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              includesSelf: true,
             },
-            {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                excludeSelf: true,
-              },
-              count: 1,
-            },
-          ],
+            count: 2,
+          },
           into: {
             controller: "mine",
             kind: ["Digimon"],
             zone: "hand",
           },
-          from: ["hand"],
           payCost: true,
           optional: true,
         },

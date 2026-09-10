@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for LM-042 — faithful to printed text.
 // Audit fix (LM audit): "Then, until their turn ends, 1 of their Digimon or Tamers can't
 // activate [When Digivolving] effects or unsuspend" is a FRESH choice — the printed text says

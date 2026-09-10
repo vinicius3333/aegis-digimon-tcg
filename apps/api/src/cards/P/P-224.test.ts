@@ -11,7 +11,7 @@ describe("P-224 Kotone Amano", () => {
           {
             kind: "Draw",
             amount: 1,
-            condition: { kind: "handSizeAtMost", value: 7 },
+            condition: { kind: "handAtMost", value: 7 },
             optional: true,
             abortOnDecline: true,
             cost: {
@@ -39,7 +39,7 @@ describe("P-224 Kotone Amano", () => {
           kind: "PlayWithoutCost",
           from: ["underTamer"],
           payCost: true,
-          costOverride: { kind: "reduceCost", amount: 1 },
+          reduceCostBy: 1,
           cost: { kind: "suspend", target: { count: 1, isSelf: true, filter: { isSelfRef: true } } },
           target: {
             count: 1,

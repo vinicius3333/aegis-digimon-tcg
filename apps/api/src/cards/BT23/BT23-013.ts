@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -49,17 +48,21 @@ export const compiled: CompiledCard = {
             [
               {
                 kind: "PlayToken",
-                token: {
-                  name: "Atho, René & Por",
-                  kind: "Digimon",
-                  color: "White",
-                  dp: 6000,
-                  keywords: [
-                    { keyword: "Reboot" },
-                    { keyword: "Blocker" },
-                    { keyword: "Decoy", colors: ["Red", "Black"] },
-                  ],
-                },
+                tokens: [
+                  {
+                    name: "Atho, René & Por",
+                    kind: "Digimon",
+                    color: "White",
+                    dp: 6000,
+                    keywords: [
+                      { keyword: "Reboot" },
+                      { keyword: "Blocker" },
+                      { keyword: "Decoy", colors: ["Red", "Black"] },
+                    ],
+                  },
+                ],
+                count: 1,
+                payCost: false,
               },
             ],
             [
@@ -103,17 +106,21 @@ export const compiled: CompiledCard = {
             [
               {
                 kind: "PlayToken",
-                token: {
-                  name: "Atho, René & Por",
-                  kind: "Digimon",
-                  color: "White",
-                  dp: 6000,
-                  keywords: [
-                    { keyword: "Reboot" },
-                    { keyword: "Blocker" },
-                    { keyword: "Decoy", colors: ["Red", "Black"] },
-                  ],
-                },
+                tokens: [
+                  {
+                    name: "Atho, René & Por",
+                    kind: "Digimon",
+                    color: "White",
+                    dp: 6000,
+                    keywords: [
+                      { keyword: "Reboot" },
+                      { keyword: "Blocker" },
+                      { keyword: "Decoy", colors: ["Red", "Black"] },
+                    ],
+                  },
+                ],
+                count: 1,
+                payCost: false,
               },
             ],
             [

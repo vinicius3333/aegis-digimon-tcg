@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,6 +18,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q5426: [Once Per Turn] count occurs as soon as you choose to activate the effect.
 //
 // Fixes vs prior IR:
+// - UseOptionWithoutCost carries `filter`/`from` at the action level: the interpreter
+//   reads those first, and the printed clause has no use-cost ceiling.
 // - OnPlay/WhenDigivolving: changed Trash+activate to UseOptionWithoutCost with proper
 //   trait filters and "from hand or under Tamers" (from:["hand","underTamers"]).
 // - AllTurns: added missing whenOptionUsed SubTrigger alongside whenSecurityRemoved.
@@ -29,15 +30,12 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
-          target: {
-            filter: {
-              kind: ["Option"],
-              playCostLte: 99,
-              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
-            },
-            count: 1,
-            from: ["hand", "underTamers"],
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
           },
+          from: ["hand", "underTamers"],
           payCost: false,
           optional: true,
         },
@@ -48,15 +46,12 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
-          target: {
-            filter: {
-              kind: ["Option"],
-              playCostLte: 99,
-              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
-            },
-            count: 1,
-            from: ["hand", "underTamers"],
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
           },
+          from: ["hand", "underTamers"],
           payCost: false,
           optional: true,
         },

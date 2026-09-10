@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR: the inherited watcher requires an effect-driven play (Q4184).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

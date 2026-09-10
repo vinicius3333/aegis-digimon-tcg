@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for ST8-12 (V-Wing Blade, Option).
 // Fix: "Trash all of the digivolution cards of that Digimon" means the digivolution
 // stack of the RETURNED opponent Digimon, not the player's own Digimon.

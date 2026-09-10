@@ -38,13 +38,13 @@ describe("BT23-004 DemiMeramon", () => {
           },
           {
             kind: "GainKeyword",
-            target: { fromSelectionRef: "demimeramonGhost" },
+            target: { filter: {}, count: 1, fromSelectionRef: "demimeramonGhost" },
             keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
             duration: "untilOpponentTurnEnd",
           },
           {
             kind: "GainKeyword",
-            target: { fromSelectionRef: "demimeramonGhost" },
+            target: { filter: {}, count: 1, fromSelectionRef: "demimeramonGhost" },
             keyword: { keyword: "Retaliation", raw: "＜Retaliation＞" },
             duration: "untilOpponentTurnEnd",
           },

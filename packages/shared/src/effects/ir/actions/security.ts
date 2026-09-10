@@ -132,9 +132,11 @@ export interface SecurityManipulationAction extends ActionBase {
   /** For toHand: take the first face-down card scanning from the requested edge. */
   faceDownOnly?: boolean;
   /**
-   * For placeAsSecurity only: place FACE UP (BT25-102). A face-up security card stays revealed
-   * but otherwise behaves normally, and a shuffle re-hides it (KB Q6484-6487). Never set for
-   * non-security placements, so it stays out of the structural signature for ordinary matching.
+   * For placeAsSecurity and the addTop/addBottom/addTopOrBottom placements: place FACE UP
+   * (BT25-102, P-181 "place this card face up as your bottom security card"). A face-up security
+   * card stays revealed but otherwise behaves normally, and a shuffle re-hides it (KB
+   * Q6484-6487). Never set for non-security placements, so it stays out of the structural
+   * signature for ordinary matching. `faceDown: true` wins over it.
    */
   faceUp?: boolean;
   /** For addTop/addBottom/addTopOrBottom: explicitly return a revealed card face down. */

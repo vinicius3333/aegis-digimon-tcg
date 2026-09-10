@@ -30,7 +30,7 @@ describe("P-181 Royal Base", () => {
     expect(runtimeCompiledCard("P-181")!.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
       actions: [
         { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true },
-        { kind: "SecurityManipulation", op: "addBottom", controller: "mine", source: "this" },
+        { kind: "SecurityManipulation", op: "addBottom", controller: "mine", faceUp: true, source: { isSelf: true } },
       ],
     });
   });
@@ -84,6 +84,9 @@ describe("P-181 Royal Base", () => {
     });
     await settle();
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-005")).toBe(true);
+    const placed = s.state.players[0]!.security.at(-1)!;
+    expect(placed.instanceId).toBe(s.inst("source").instanceId);
+    expect(placed.faceUp).toBe(true);
   });
 
   it("plays a Royal Base Digimon from hand without cost when checked from Security", async () => {

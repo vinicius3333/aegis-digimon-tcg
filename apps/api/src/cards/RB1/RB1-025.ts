@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const suspendAndReward = [
+const suspendAndReward: Action[] = [
   {
     kind: "Suspend",
     target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
@@ -44,7 +43,7 @@ export const compiled: CompiledCard = {
         {
           kind: "GrantCanAttackUnsuspended",
           target: { filter: {}, count: 1, fromSelectionRef: "angoramonAttacker" },
-          duration: "untilEndAttack",
+          duration: "untilEndOfAttack",
         },
         {
           kind: "Attack",

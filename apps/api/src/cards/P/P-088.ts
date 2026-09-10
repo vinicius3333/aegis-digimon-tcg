@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -53,15 +52,14 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               dp: { op: "lte", value: 6000 },
             },
-            count: {
-              kind: "conditional",
+            count: 1,
+            countModifier: {
+              amount: 1,
               condition: {
                 kind: "selfDpAtLeast",
                 value: 12000,
                 raw: "this Digimon has 12000 DP or more",
               },
-              then: 2,
-              else: 1,
             },
           },
         },

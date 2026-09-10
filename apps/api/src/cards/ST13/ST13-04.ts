@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -70,8 +69,8 @@ const compiled: CompiledCard = {
               filter: {
                 isSelfRef: true,
               },
+              zone: "battleArea",
               count: 1,
-              isSelf: true,
             },
             {
               filter: {
@@ -80,6 +79,7 @@ const compiled: CompiledCard = {
                 zone: "battleArea",
                 excludeSelf: true,
               },
+              zone: "battleArea",
               count: 1,
             },
           ],

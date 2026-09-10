@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for ST5-14 (Tai Kamiya, Tamer).
 // Fix: trigger fires specifically when the player uses <Blocker> to suspend one of
 // their Digimon, not on a generic OpponentsTurn. The combat controller fires the

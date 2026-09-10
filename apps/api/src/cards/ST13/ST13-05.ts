@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — source placement must happen under Durandamon itself.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

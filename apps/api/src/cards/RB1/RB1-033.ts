@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, SubTriggerAction } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const suspendToDraw = {
+const suspendToDraw: Pick<SubTriggerAction, "condition" | "cost" | "optional" | "abortOnDecline" | "actions"> = {
   condition: {
     kind: "zoneCount",
     seat: "mine",

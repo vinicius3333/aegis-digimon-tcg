@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -20,7 +19,6 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          resultRef: "deletedByThisEffect",
         },
         {
           // Draw 1 only if no Digimon was deleted by the preceding Delete action.

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — generator must preserve this file (was AUTO-GENERATED FROM IR).
 // Fixes to the [Your Turn][Once Per Turn] effect: (1) "Then, 1 of your Digimon may
 // attack" sat as a SIBLING forced Attack of the SubTrigger (firing immediately on

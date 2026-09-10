@@ -216,4 +216,10 @@ export interface PlayTokenAction extends ActionBase {
   placedAs?: "opponentDigimon";
   /** Play the token already suspended. */
   suspended?: boolean;
+  /**
+   * Store the permanent ids of the tokens this action played, so a later action's
+   * `filter.boundRef` affects exactly those tokens ("delete THAT token" — P-165) rather than
+   * every identically named token on the board.
+   */
+  bindResultAs?: string;
 }

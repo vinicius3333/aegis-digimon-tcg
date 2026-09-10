@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -31,7 +30,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
-              mandatory: true,
             },
             {
               filter: {
@@ -45,7 +43,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
-              mandatory: true,
             },
           ],
           rest: "deckBottom",
@@ -127,6 +124,7 @@ const compiled: CompiledCard = {
                 ],
               },
               from: ["hand"],
+              payCost: true,
               reduceCost: 3,
               ignoreRequirements: false,
               optional: true,

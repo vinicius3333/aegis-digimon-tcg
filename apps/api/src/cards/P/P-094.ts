@@ -1,21 +1,17 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const budgetDelete = {
-  kind: "Delete" as const,
-  target: {
-    filter: { controller: "opponent" as const, kind: ["Digimon", "Tamer"] as const },
-    count: "all" as const,
-    upTo: true,
-    totalPlayCostBudget: 3,
-  },
+const budgetDelete: Action = {
+  kind: "DeleteBudget",
+  filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+  budget: 3,
+  upTo: true,
   scaling: {
     per: 1,
     filter: {
-      nameOrTrait: [{ tokens: ["Vemmon"], match: "name" as const }],
+      nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
     },
-    unit: "digivolutionCards" as const,
+    unit: "digivolutionCards",
     budgetAdd: 1,
   },
 };

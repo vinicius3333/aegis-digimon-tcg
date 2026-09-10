@@ -958,6 +958,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // effect's controller activates it (KB Q5800). Otherwise it enters under the source's seat.
       const placementSeat =
         action.placedAs === "opponentDigimon" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+      const playedTokenIds: string[] = [];
       for (let i = 0; i < count; i++) {
         for (const tokenRef of tokenNames) {
           // The catalog sometimes carries the complete synthetic-token descriptor rather
@@ -965,7 +966,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // registry while preserving the card's authored stats for future token metadata.
           const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
           const registryName = tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
-          await ctx.fx.playToken(placementSeat, registryName, {
+          const token = await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,
             ...(typeof tokenRef === "string" || tokenRef.keywords === undefined
@@ -978,7 +979,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                   })),
                 }),
           });
+          if (token !== undefined) playedTokenIds.push(token.permanentId);
         }
+      }
+      // "delete that token" (P-165): bind the tokens this action produced so a following
+      // action's `filter.boundRef` cannot reach an identically named token already in play.
+      if (action.bindResultAs !== undefined) {
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(action.bindResultAs, new Set(playedTokenIds));
       }
       return false;
     }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -10,7 +9,7 @@ const deDigivolveAndDelete: Action[] = [
   },
   {
     kind: "Delete",
-    target: { filter: { controller: "both", kind: ["Digimon"] }, count: 1 },
+    target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 },
     optional: true,
   },
 ];

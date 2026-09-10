@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for P-115 — do not regenerate.
 // OnDeletion PlayWithoutCost: ["Amano"] too broad; errata names are "Nene Amano" and "Yuu Amano".
 import type { CompiledCard } from "@aegis/shared";

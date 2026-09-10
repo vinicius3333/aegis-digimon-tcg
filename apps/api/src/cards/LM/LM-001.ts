@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for LM-001 — do not regenerate.
 // [Hand][Counter] parenthetical "(Your Digimon may digivolve into this card without
 // paying the cost)" = BlastDigivolve keyword mechanic (same as ＜Blast Digivolve＞).

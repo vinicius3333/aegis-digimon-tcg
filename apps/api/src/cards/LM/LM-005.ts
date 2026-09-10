@@ -1,4 +1,3 @@
-// @ts-nocheck
 // LM-005 Amphimon — hand-fixed IR.
 // KB Q3994: trash 2 blue cards => trash 1 under each of 2 Digimon/Tamers (usePaidCount scales).
 // KB Q3995: WhenAttacking SecurityAttack+1 can fire multiple times in a turn if Digimon attacks again.

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -69,10 +68,11 @@ const compiled: CompiledCard = {
             {
               kind: "ModifyDP",
               target: {
-                filter: {
-                  triggerSubject: true,
-                },
+                // The digivolving Digimon itself: `filter.triggerSubject` was never read, so the
+                // buff landed on an arbitrary candidate. `sourceRef` is the typed construct.
+                filter: {},
                 count: 1,
+                sourceRef: "triggerSubject",
               },
               amount: 2000,
               duration: "forTheTurn",

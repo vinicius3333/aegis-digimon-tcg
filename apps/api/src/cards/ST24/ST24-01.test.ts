@@ -47,7 +47,10 @@ describe("ST24-01 Koromon", () => {
         },
         1: { security: ["BT1-090", "BT1-090"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // The paid digivolve matches both ST24-03's printed EvoCost and its [Digivolve]
+      // Lv.3 w/[DATA SQUAD] alternate requirement, so the engine asks which to use.
+      // Both are cost 2, which the printed "-2" reduction takes to 0 either way.
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const costId = s.inst("cost").instanceId;
     await s.ready();

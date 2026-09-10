@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-AUTHORED OVERRIDE: KB Q719 binds the freeze to the suspended target and DNA only.
 // KB Q720 counts only the colors of the inherited effect's host top card.
 import type { CompiledCard } from "@aegis/shared";

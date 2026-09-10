@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — generator must preserve this file (was AUTO-GENERATED FROM IR).
 // Fix: the [When Attacking] gate "if this Digimon has a [Garurumon] digivolution card"
 // was left as an unevaluable raw condition (the effect never fired). Compiled to the

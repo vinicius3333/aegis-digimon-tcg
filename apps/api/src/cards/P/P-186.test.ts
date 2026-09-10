@@ -16,7 +16,7 @@ describe("P-186 Gallantmon", () => {
             {
               mode: "reduceCost",
               amount: 2,
-              scaling: { per: 5, unit: "cards", filter: { zone: "trash", controller: "both" } },
+              scaling: { per: 5, unit: "cards", filter: { zone: "trash", controller: "any" } },
             },
           ],
         },

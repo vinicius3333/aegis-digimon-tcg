@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed: Restrict target is self (immuneToOpponentEffects on THIS Digimon);
 // condition uses kind:isDnaDigivolving for structured evaluation.
 import type { CompiledCard } from "@aegis/shared";

@@ -1,9 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const option = { kind: ["Option"], nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }] };
-const line = { tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" };
+const option: Filter = { kind: ["Option"], nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }] };
+const line: NonNullable<Filter["nameOrTrait"]>[number] = {
+  tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"],
+  match: "name",
+};
 const compiled: CompiledCard = {
   effects: [
     {
@@ -52,10 +54,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "UseOptionWithoutCost",
-              target: {
-                filter: { zone: "underThisTamer", controller: "mine", ...option, playCostLteAttackerLevel: true },
-                count: 1,
-              },
+              filter: { zone: "underThisTamer", controller: "mine", ...option, playCostLteAttackerLevel: true },
               from: ["underThisTamer"],
               payCost: false,
               optional: true,
@@ -66,7 +65,6 @@ const compiled: CompiledCard = {
               },
             },
           ],
-          frequency: "OncePerTurn",
         },
       ],
     },

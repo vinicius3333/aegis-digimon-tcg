@@ -1,4 +1,3 @@
-// @ts-nocheck
 // AUTO-GENERATED FROM IR — audited against ST4-06 catalog text.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

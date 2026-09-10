@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for ST23-01 (Kekkomon, DigiEgg).
 // Fix: cost "by trashing the bottom face-down card from under any of your Tamers"
 // targets a digivolution card beneath a Tamer (zone:"digivolutionCards" +
@@ -31,6 +30,7 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           reduceCost: 2,
           optional: true,
           cost: {

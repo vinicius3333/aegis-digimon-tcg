@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,7 @@ const compiled: CompiledCard = {
           amount: 1,
           controller: "mine",
           condition: {
-            kind: "handSizeAtMost",
+            kind: "handAtMost",
             value: 7,
             raw: "if you have 7 or fewer cards in your hand",
           },
@@ -50,7 +49,7 @@ const compiled: CompiledCard = {
           amount: 1,
           controller: "mine",
           condition: {
-            kind: "handSizeAtMost",
+            kind: "handAtMost",
             value: 7,
             raw: "if you have 7 or fewer cards in your hand",
           },
@@ -102,10 +101,7 @@ const compiled: CompiledCard = {
           },
           from: ["underTamer"],
           payCost: true,
-          costOverride: {
-            kind: "reduceCost",
-            amount: 1,
-          },
+          reduceCostBy: 1,
           cost: {
             kind: "suspend",
             target: {

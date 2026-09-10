@@ -189,6 +189,24 @@ function lastDeletedDPBound(ctx: EffectContext): number | undefined {
   return ctx.game.permanentById(id)?.currentDP;
 }
 
+/**
+ * Colors of every Digimon the effect's controller has in the battle area, used by
+ * `sharesColorWithControllersBattleAreaDigimon`. Reads live (granted) colors where the engine
+ * exposes them, so a color-changed Digimon counts as the color it currently is.
+ */
+export function controllersBattleAreaDigimonColors(ctx: EffectContext): Set<CardColor> {
+  const colors = new Set<CardColor>();
+  for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
+    if (permanent.topCard === undefined) continue;
+    const definition = ctx.game.definitionOf(permanent.topCard);
+    if (!definition.kinds.includes(CardKind.Digimon)) continue;
+    const effective =
+      typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : definition.colors;
+    for (const color of effective) colors.add(color);
+  }
+  return colors;
+}
+
 export function permanentMatchesFilter(
   ctx: EffectContext,
   permanent: Permanent,
@@ -309,6 +327,15 @@ export function permanentMatchesFilter(
       typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
     if (!effectiveColors.some((color) => sourceColors.has(color))) return false;
     const { colorMatchesAnyDigivolutionCard: _colorMatch, ...rest } = filter;
+    filter = rest;
+  }
+
+  if (filter.sharesColorWithControllersBattleAreaDigimon === true) {
+    const boardColors = controllersBattleAreaDigimonColors(ctx);
+    const effectiveColors =
+      typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
+    if (!effectiveColors.some((color) => boardColors.has(color))) return false;
+    const { sharesColorWithControllersBattleAreaDigimon: _sharesColor, ...rest } = filter;
     filter = rest;
   }
 

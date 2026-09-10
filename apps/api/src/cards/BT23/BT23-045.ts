@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const ELIGIBLE_COST_CARD = {
+const ELIGIBLE_COST_CARD: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   nameOrTrait: [
@@ -16,7 +15,7 @@ const ELIGIBLE_COST_CARD = {
   ],
 };
 
-const RETURN_TARGET = {
+const RETURN_TARGET: Target = {
   filter: {
     controller: "opponent",
     kind: ["Digimon"],
@@ -31,7 +30,7 @@ const RETURN_TARGET = {
 const PLACEMENT_RAW =
   "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card";
 
-const HAS_ELIGIBLE_TRASH_CARD = {
+const HAS_ELIGIBLE_TRASH_CARD: Condition = {
   kind: "selfHasMinTrash",
   count: 1,
   filter: ELIGIBLE_COST_CARD,
@@ -43,8 +42,8 @@ const HAS_ELIGIBLE_TRASH_CARD = {
  * placement; when only the hidden hand can pay, the controller may still decline. The two
  * branches are mutually exclusive on the same trash check, so exactly one ever resolves.
  */
-const returnByPlacement = () =>
-  structuredClone([
+const returnByPlacement = (): Action[] =>
+  structuredClone<Action[]>([
     {
       kind: "Return",
       target: RETURN_TARGET,

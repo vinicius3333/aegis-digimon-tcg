@@ -1,6 +1,6 @@
-// @ts-nocheck
-// Hand-fixed: 3rd effect targets Tamer only with color-match restriction (same color as
-// any of your Digimon); cost reduction 4 encoded as reduceCost on PlayWithoutCost.
+// Hand-fixed: 3rd effect targets Tamer only with color-match restriction (same color as any
+// of your battle-area Digimon, via `sharesColorWithControllersBattleAreaDigimon`); cost
+// reduction 4 encoded as reduceCost on PlayWithoutCost.
 // The first effect's printed "you can ignore" is a card-use permission: choosing
 // to play the card exercises it, so the interpreter must not open a separate prompt.
 import type { CompiledCard } from "@aegis/shared";
@@ -63,13 +63,13 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              sameColorAsAnyOfYourDigimon: true,
+              sharesColorWithControllersBattleAreaDigimon: true,
             },
             count: 1,
           },
           from: ["hand"],
           payCost: true,
-          reduceCost: 4,
+          reduceCostBy: 4,
           optional: true,
         },
       ],

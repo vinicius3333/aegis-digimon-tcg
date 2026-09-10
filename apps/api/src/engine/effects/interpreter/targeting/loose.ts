@@ -3,7 +3,11 @@
 import type { EffectContext, SeatScopedDecisionApi } from "../../EffectContext.js";
 import { peekCheckedCard } from "../../../security/checkedCard.js";
 import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
-import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import {
+  controllersBattleAreaDigimonColors,
+  permanentMatchesFilter,
+  seatsForController,
+} from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
@@ -417,6 +421,12 @@ function candidateLooseInstancesIncludingReserved(
           const referenceColors =
             ctx.game.effectiveColors?.(reference) ?? ctx.game.definitionOf(reference.topCard).colors;
           if (!def.colors.some((color) => referenceColors.includes(color))) continue;
+        }
+        // "with the same color as any of your Digimon" (P-206): a hand/trash candidate is only
+        // playable while the controller has a battle-area Digimon sharing one of its colors.
+        if (matchedFilter?.sharesColorWithControllersBattleAreaDigimon === true) {
+          const boardColors = controllersBattleAreaDigimonColors(ctx);
+          if (!def.colors.some((color) => boardColors.has(color))) continue;
         }
         if (
           matchedFilter?.sameColorAsReturned === true &&

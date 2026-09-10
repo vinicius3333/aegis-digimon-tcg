@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for P-153 — faithful text encoding.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -82,7 +81,7 @@ const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       names: ["MagnaGarurumon"],
-      minColors: 3,
+      colorCount: 3,
       cost: 2,
       isAlternate: true,
     },

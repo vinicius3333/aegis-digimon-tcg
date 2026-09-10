@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-AUTHORED OVERRIDE: Reboot is a granted keyword, not an immediate unsuspend.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

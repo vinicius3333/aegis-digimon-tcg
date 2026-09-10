@@ -66,8 +66,11 @@ describe("BT23-050 Ankylomon", () => {
       expect(actions[1]).toMatchObject({
         kind: "DnaDigivolve",
         materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
-        into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Shakkoumon"], match: "nameExact" }] },
-        from: ["hand"],
+        into: {
+          controllerDefault: "mine",
+          nameOrTrait: [{ tokens: ["Shakkoumon"], match: "nameExact" }],
+          zone: "hand",
+        },
         payCost: true,
         condition: { kind: "isYourTurn" },
         optional: true,

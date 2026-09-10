@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -136,7 +135,6 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "immuneToOpponentDigimonEffects",
-          duration: "whileCondition",
           condition: {
             // `selfIsSuspended` is the supported condition kind; `isSelfSuspended` is not one,
             // and an unknown kind evaluates to false, so the immunity never armed.

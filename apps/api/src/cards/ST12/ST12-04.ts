@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-AUTHORED OVERRIDE: the inherited aura evaluates the current host's name and traits.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

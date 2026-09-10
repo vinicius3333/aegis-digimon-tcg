@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -50,10 +49,10 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          byEffect: true,
           sourceFilter: {
             excludeSelf: true,
             kind: ["Digimon"],
+            byEffect: true,
           },
           actions: [
             {
@@ -63,20 +62,24 @@ const compiled: CompiledCard = {
                   controller: "opponent",
                   kind: ["Digimon"],
                   playCostLte: 3,
-                  playCostLteScaling: {
-                    addPerCount: 2,
-                    filter: {
-                      controller: "mine",
-                      nameOrTrait: [
-                        {
-                          tokens: ["Diaboromon"],
-                          match: "name",
-                        },
-                      ],
-                    },
-                  },
                 },
                 count: 1,
+              },
+              playCostCeiling: {
+                base: 3,
+                raise: 2,
+                per: 1,
+                unit: "cards",
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Diaboromon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                raw: "For each of your [Diaboromon], add 2 to this effect's play cost maximum.",
               },
               optional: true,
             },

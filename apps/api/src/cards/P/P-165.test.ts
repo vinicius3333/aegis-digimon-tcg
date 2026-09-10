@@ -18,12 +18,16 @@ describe("P-165 ShoeShoemon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "PlayToken", tokens: ["Familiar Token"], count: 1, payCost: false },
+          { kind: "PlayToken", tokens: ["Familiar Token"], count: 1, payCost: false, bindResultAs: "familiarToken" },
           {
             kind: "DelayedDelete",
             timing: "endOfOpponentTurn",
             target: {
-              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }] },
+              filter: {
+                controller: "mine",
+                boundRef: "familiarToken",
+                nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }],
+              },
               count: 1,
             },
           },
@@ -122,5 +126,35 @@ describe("P-165 ShoeShoemon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "TOKEN-Familiar-Token")).toBe(false);
+  });
+
+  it("deletes only the token this effect played, leaving another Familiar Token alone", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-165", as: "shoe" },
+            { card: "TOKEN-Familiar-Token", as: "olderToken" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoe"));
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "TOKEN-Familiar-Token").length === 2,
+    );
+    const playedToken = s.state.players[0]!.battleArea.find(
+      (p) => p.topCard?.cardId === "TOKEN-Familiar-Token" && p.permanentId !== s.perm("olderToken").permanentId,
+    )!;
+    expect(playedToken).toBeDefined();
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+
+    const remaining = s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "TOKEN-Familiar-Token");
+    expect(remaining.map((p) => p.permanentId)).toEqual([s.perm("olderToken").permanentId]);
   });
 });

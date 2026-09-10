@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for P-015 — faithful De-Digivolve keyword encoding.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

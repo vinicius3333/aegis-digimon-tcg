@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-AUTHORED OVERRIDE: the bottom-deck clause is DNA-only (KB Q709).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

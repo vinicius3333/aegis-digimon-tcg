@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for LM-006.
 // runtime-effect fix: "none of their Digimon with no digivolution cards can attack" restricts
 // EVERY such opponent Digimon, not a single chosen one. Changed both Restrict targets

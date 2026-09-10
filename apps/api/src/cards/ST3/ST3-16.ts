@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const main = {
+const main: Action = {
   kind: "ModifyDP",
   target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
   amount: -10000,

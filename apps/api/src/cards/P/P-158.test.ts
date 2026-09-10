@@ -46,7 +46,7 @@ describe("P-158 Jeri (Fake)", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       cost: { kind: "return", to: "deckBottom", target: { isSelf: true } },
-      playCostCeiling: { base: 3, unit: "digivolutionCardsOfFiltered" },
+      playCostCeiling: { base: 3, unit: "digivolutionCards" },
     });
     expect(compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",

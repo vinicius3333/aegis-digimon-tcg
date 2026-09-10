@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for P-183 — trashTop security for attack-target-switched trigger.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

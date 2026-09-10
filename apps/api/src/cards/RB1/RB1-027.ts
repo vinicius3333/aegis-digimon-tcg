@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -14,8 +13,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - [On Play][When Digivolving]: last action was "addTop" — should be "addTopOrBottom"
 //   (KB Q4102: the effect activator chooses top or bottom).
 // - "face down" placement: add faceDown:true to the SecurityManipulation action.
-// - [All Turns] Aura was missing "can't be deleted by your opponent's effects" —
-//   added a second Aura for GrantStatic immuneToOpponentDeleteEffects while Tamer present.
+// - [All Turns] the "can't be deleted by your opponent's effects" half was encoded as an Aura
+//   grant the interpreter never reads; it is now a continuous Restrict beDeleted
+//   (byOpponentEffectsOnly) gated on the same Tamer condition.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -25,7 +25,6 @@ const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "revealTop",
           controller: "opponent",
-          source: "security",
         },
         {
           kind: "GainMemory",
@@ -63,7 +62,6 @@ const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "revealTop",
           controller: "opponent",
-          source: "security",
         },
         {
           kind: "GainMemory",
@@ -124,7 +122,9 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "Aura",
+          // "can't be deleted by your opponent's effects": Aura carries no immunity grant, so
+          // this is a continuous Restrict scoped to opponent-controlled effects.
+          kind: "Restrict",
           target: {
             filter: {
               isSelfRef: true,
@@ -132,10 +132,9 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          effect: {
-            kind: "grant",
-            grant: "immuneToOpponentDeleteEffects",
-          },
+          restriction: "beDeleted",
+          byOpponentEffectsOnly: true,
+          duration: "permanent",
           while: {
             kind: "zoneCount",
             seat: "mine",

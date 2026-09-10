@@ -26,7 +26,7 @@ describe("P-215 Icemon", () => {
           },
         },
         actions: [
-          { kind: "SelectBind", bindAs: "protectedDigimon" },
+          { kind: "SelectBind", target: { bindAs: "protectedDigimon" } },
           {
             kind: "Restrict",
             restriction: "beReturned",

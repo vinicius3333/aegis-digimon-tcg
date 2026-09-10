@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const mother = {
-  controller: "mine" as const,
-  kind: ["Digimon"] as const,
-  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" as const }],
+const mother: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
 };
 
 const compiled: CompiledCard = {
@@ -56,7 +55,7 @@ const compiled: CompiledCard = {
             raise: 1,
             per: 1,
             filter: mother,
-            unit: "digivolutionCardsOfFiltered",
+            unit: "digivolutionCards",
           },
         },
       ],

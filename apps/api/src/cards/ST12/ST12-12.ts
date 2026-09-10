@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-AUTHORED OVERRIDE — maintained as a direct implementation (the AUTO-GENERATED header is
 // intentionally removed). The runtime record double-emitted the [On Play] "By trashing 1 card
 // in your hand, ＜Draw 2＞. (Draw 2 cards from your deck.)" as TWO Draw-2 actions — one

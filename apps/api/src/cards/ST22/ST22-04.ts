@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -32,6 +31,8 @@ const compiled: CompiledCard = {
         {
           kind: "DisableTimingEffect",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "onPlayTarget",
           },
           timings: ["whenDigivolving"],
@@ -58,6 +59,8 @@ const compiled: CompiledCard = {
         {
           kind: "DisableTimingEffect",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "whenDigivolvingTarget",
           },
           timings: ["whenDigivolving"],

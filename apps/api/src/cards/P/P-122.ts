@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for P-122 — look at security, add yellow/black multicolor card, conditional Recovery.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -17,10 +16,9 @@ const compiled: CompiledCard = {
             multicolor: true,
           },
           count: 1,
-          from: ["security"],
+          searchZone: "security",
           to: "hand",
           optional: true,
-          look: true,
         },
         {
           kind: "SecurityManipulation",

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-fixed IR for P-092 — non-inherited digivolve ignores requirements per card text.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

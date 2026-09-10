@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -17,7 +16,6 @@ const compiled: CompiledCard = {
               excludeSelf: true,
               kind: ["Digimon"],
               isSameName: true,
-              sameNameAs: "sourceTopCard",
             },
             count: "all",
           },
