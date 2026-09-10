@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -60,12 +59,6 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["NSo"],
-                match: "trait",
-              },
-            ],
           },
           actions: [
             {
@@ -89,17 +82,30 @@ export const compiled: CompiledCard = {
               },
               payCost: true,
               optional: true,
+              bindResultAs: "dnaDigivolvedByThisEffect",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [{ tokens: ["NSo"], match: "trait" }],
+                },
+                raw: "any of them have the [NSo] trait",
+              },
             },
             {
               kind: "Attack",
               target: {
                 filter: {
-                  dnaDigivolvedByThisEffect: true,
+                  boundRef: "dnaDigivolvedByThisEffect",
                 },
                 count: 1,
               },
               withoutSuspending: false,
               optional: true,
+              condition: {
+                kind: "bindingExists",
+                ref: "dnaDigivolvedByThisEffect",
+                raw: "that DNA digivolved Digimon",
+              },
             },
           ],
         },
@@ -109,12 +115,6 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["NSo"],
-                match: "trait",
-              },
-            ],
           },
           actions: [
             {
@@ -138,17 +138,30 @@ export const compiled: CompiledCard = {
               },
               payCost: true,
               optional: true,
+              bindResultAs: "dnaDigivolvedByThisEffect",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [{ tokens: ["NSo"], match: "trait" }],
+                },
+                raw: "any of them have the [NSo] trait",
+              },
             },
             {
               kind: "Attack",
               target: {
                 filter: {
-                  dnaDigivolvedByThisEffect: true,
+                  boundRef: "dnaDigivolvedByThisEffect",
                 },
                 count: 1,
               },
               withoutSuspending: false,
               optional: true,
+              condition: {
+                kind: "bindingExists",
+                ref: "dnaDigivolvedByThisEffect",
+                raw: "that DNA digivolved Digimon",
+              },
             },
           ],
         },

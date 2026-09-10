@@ -1,21 +1,83 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, PlayerState } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-066.js";
 import "./index.js";
 
 describe("EX8-066", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-066")).toMatchObject({
+      cardId: "EX8-066",
+      nameEn: "Suzune Kazuki",
+      colors: ["Blue"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["LIBERATOR"],
+      effectText: expect.stringContaining("gain 1 memory"),
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(getCardDefinition("EX8-066")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("registers the printed start-main memory gain", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")).toMatchObject({
-      actions: [{ kind: "GainMemory", amount: 1 }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } },
+        },
+      ],
     });
   });
   it("registers the All Turns Ice-Snow play and digivolve watcher", () => {
-    expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions).toHaveLength(2);
+    const actions = compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions ?? [];
+    expect(actions).toHaveLength(2);
+    for (const event of ["whenPlayed", "whenOneOfYoursDigivolves"] as const) {
+      expect(actions).toContainEqual({
+        kind: "SubTrigger",
+        event,
+        sourceFilter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
+        },
+        actions: [
+          {
+            kind: "TrashDigivolution",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              count: 1,
+            },
+            amount: 1,
+            cost: {
+              kind: "suspend",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              raw: "by suspending this Tamer",
+            },
+            optional: true,
+            abortOnDecline: true,
+          },
+        ],
+      });
+    }
   });
   it("registers the printed security play effect", () => {
-    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({ isSecurity: true });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+    });
   });
   it("plays the exact security Tamer into the battle area without cost", async () => {
     const s = setupEngine({

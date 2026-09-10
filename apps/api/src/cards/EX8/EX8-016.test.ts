@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -10,6 +10,27 @@ import "./index.js";
 import { compiled } from "./EX8-016.js";
 
 describe("EX8-016", () => {
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-016")).toMatchObject({
+      cardId: "EX8-016",
+      nameEn: "Dinomon",
+      colors: ["Red", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      evoCosts: [
+        { color: "Red", level: 5, memoryCost: 5 },
+        { color: "Green", level: 5, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Dinosaur", "LIBERATOR"],
+      effectText:
+        "[Digivolve]Lv.5 w/[Tyrannomon]\u00a0in its name: Cost 4 [Digivolve]Lv.5 w/[Dinosaur]\u00a0trait: Cost 4 \n\n＜Security Attack +1＞.\n＜Fortitude＞ (When this Digimon with digivolution cards is deleted, play this card without paying the cost)\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, delete 1 of your opponent's suspended Digimon with the lowest DP.\n[Opponent's Turn] While this Digimon is suspended, all of your opponent's Digimon can only attack suspended Digimon.",
+    });
+  });
+
   it("has Security Attack +1 and Fortitude, and deletes the lowest-DP suspended opposing Digimon after suspending one", () => {
     expect(
       compiled.effects?.filter((entry) => entry.trigger === "Static").flatMap((entry) => entry.keywords ?? []),
@@ -225,6 +246,52 @@ describe("EX8-016", () => {
     await settle(() => named.perm("masterTyrannomon").topCard.instanceId === named.inst("dinomon").instanceId);
     expect(named.state.memory).toBe(0);
     expect(named.perm("masterTyrannomon").topCard.cardId).toBe("EX8-016");
+  });
+
+  it("supports the standard Red and Green level-5 evolution routes for exactly 5", async () => {
+    const red = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-024", as: "redBase" }],
+          hand: [{ card: "EX8-016", as: "dinomon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "redTarget", suspended: true }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await red.ready();
+    red.state.memory = 5;
+    expect(
+      red.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: red.perm("redBase").permanentId,
+        instanceId: red.inst("dinomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => red.perm("redBase").topCard.cardId === "EX8-016");
+    expect(red.state.memory).toBe(0);
+
+    const green = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-076", as: "greenBase" }],
+          hand: [{ card: "EX8-016", as: "dinomon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "greenTarget", suspended: true }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await green.ready();
+    green.state.memory = 5;
+    expect(
+      green.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: green.perm("greenBase").permanentId,
+        instanceId: green.inst("dinomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => green.perm("greenBase").topCard.cardId === "EX8-016");
+    expect(green.state.memory).toBe(0);
   });
 
   it("does not replay without digivolution cards", async () => {

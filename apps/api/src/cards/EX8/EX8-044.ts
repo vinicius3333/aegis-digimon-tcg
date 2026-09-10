@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
@@ -42,7 +41,7 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               suspendedByThisEffect: true,
               kind: ["Digimon"],
-            },
+            } as Filter & { suspendedByThisEffect: true },
             unit: "cards",
           },
         },
@@ -72,7 +71,7 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               suspendedByThisEffect: true,
               kind: ["Digimon"],
-            },
+            } as Filter & { suspendedByThisEffect: true },
             unit: "cards",
           },
         },

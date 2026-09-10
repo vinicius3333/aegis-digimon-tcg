@@ -6,21 +6,28 @@ import "./index.js";
 import { compiled } from "./EX8-040.js";
 
 describe("EX8-040", () => {
-  it("inherits +2000 DP during your turn", () =>
+  it("matches the exact evolution, suspension, and inherited turn-gate contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["NSp"], cost: 2, isAlternate: true }]);
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
-      actions: [{ kind: "ModifyDP", amount: 2000 }],
-    }));
-  it("may suspend one Digimon on play and digivolving", () => {
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 2000,
+          duration: "permanent",
+          target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
+        },
+      ],
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Suspend",
       optional: true,
-      target: { count: 1 },
+      target: { count: 1, filter: { controllerDefault: "any", kind: ["Digimon"] } },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "Suspend",
       optional: true,
-      target: { count: 1 },
+      target: { count: 1, filter: { controllerDefault: "any", kind: ["Digimon"] } },
     });
   });
   it("suspends the forced opposing Digimon on play", async () => {

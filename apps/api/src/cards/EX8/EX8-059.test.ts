@@ -1,28 +1,52 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, PlayerState } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-059.js";
 
 describe("EX8-059", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-059")).toMatchObject({
+      cardId: "EX8-059",
+      nameEn: "Devimon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Fallen Angel", "NSo"],
+      effectText: expect.stringContaining("give 1 of your opponent's Digimon"),
+      inheritedEffectText: expect.stringContaining("Draw 1"),
+    });
+    expect(getCardDefinition("EX8-059")?.securityEffectText).toBeUndefined();
+  });
+
   it("makes an opposing Digimon gain an On Deletion effect that trashes a card in your hand on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
-      kind: "GrantAuraToOpponents",
-      effectText: "[On Deletion] Trash 1 card in your hand.",
-      optional: true,
-      cost: { kind: "trash" },
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
-      kind: "GrantAuraToOpponents",
-    });
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "GrantAuraToOpponents",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        effectText: "[On Deletion] Trash 1 card in your hand.",
+        optional: true,
+        abortOnDecline: true,
+        cost: {
+          kind: "trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
+      });
+    }
   });
   it("inherits draw 1 then trash 1 when attacking", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
+      isInherited: true,
       actions: [
-        { kind: "Draw", amount: 1 },
-        { kind: "Trash", target: { count: 1 } },
+        { kind: "Draw", controller: "mine", amount: 1 },
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
       ],
     }));
   it("exposes the level-3 NSo evolution route for cost 2", () =>
@@ -151,7 +175,7 @@ describe("EX8-059", () => {
         0: {
           battleArea: [{ card: "BT19-062", as: "attacker", under: ["EX8-059"] }],
           hand: [{ card: "BT1-010", as: "filler" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { security: ["BT1-016"] },
       },
@@ -220,5 +244,28 @@ describe("EX8-059", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("lineage").stack.map((card) => card.cardId)).toEqual(["EX8-008", "EX8-059"]);
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("evolves through the standard Purple level-3 route for 2 memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-057", as: "base" }],
+        hand: [{ card: "EX8-059", as: "devimon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("devimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-059");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-057"]);
   });
 });

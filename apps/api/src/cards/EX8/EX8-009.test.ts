@@ -1,10 +1,53 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-009.js";
 
 describe("EX8-009", () => {
+  it("matches the catalog's Guilmon (X Antibody) identity, evolution paths, and text", () =>
+    expect(getCardDefinition("EX8-009")).toMatchObject({
+      cardId: "EX8-009",
+      nameEn: "Guilmon (X Antibody)",
+      colors: ["Red", "Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [
+        { color: "Red", level: 2, memoryCost: 1 },
+        { color: "Purple", level: 2, memoryCost: 1 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Dark Dragon", "X Antibody"],
+      effectText:
+        "[Digivolve][Gigimon]/[Guilmon]: Cost 0 \n\n[On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 card with [Growlmon]/[Gallantmon]\u00a0in its name and 1 [X Antibody] among them to the hand. Return the rest to the bottom of the deck.",
+      inheritedEffectText: "[Your Turn] [Once Per Turn] When any of your opponent's Digimon is deleted, gain 1 memory.",
+    }));
+
+  it("matches the catalog's Guilmon (X Antibody) identity, evolution paths, and text", () =>
+    expect(getCardDefinition("EX8-009")).toMatchObject({
+      cardId: "EX8-009",
+      nameEn: "Guilmon (X Antibody)",
+      colors: ["Red", "Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [
+        { color: "Red", level: 2, memoryCost: 1 },
+        { color: "Purple", level: 2, memoryCost: 1 },
+      ],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Dark Dragon", "X Antibody"],
+      effectText:
+        "[Digivolve][Gigimon]/[Guilmon]: Cost 0 \n\n[On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 card with [Growlmon]/[Gallantmon]\u00a0in its name and 1 [X Antibody] among them to the hand. Return the rest to the bottom of the deck.",
+      inheritedEffectText: "[Your Turn] [Once Per Turn] When any of your opponent's Digimon is deleted, gain 1 memory.",
+    }));
+
   it("reveals 3 for Growlmon/Gallantmon and X Antibody cards on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
@@ -84,13 +127,40 @@ describe("EX8-009", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
 
+  it("still adds X Antibody when no Growlmon or Gallantmon is revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-009", as: "guilmon" }],
+          deck: [
+            { card: "AD1-001", as: "decoy" },
+            { card: "BT10-016", as: "xantibody" },
+            { card: "BT1-045", as: "anchor" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-016"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT10-016"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["AD1-001", "BT1-045"]);
+  });
+
   it("gains memory for only the first opposing deletion during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-009", as: "guilmon" }] }] },
+      0: {
+        deck: ["BT1-045"],
+        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-009", as: "guilmon" }] }],
+      },
       1: {
         battleArea: [
           { card: "BT1-009", as: "opponent1" },
           { card: "BT1-010", as: "opponent2" },
+          { card: "BT1-011", as: "opponent3" },
         ],
       },
     });
@@ -102,6 +172,16 @@ describe("EX8-009", () => {
     expect(s.state.memory).toBe(1);
     await advance(s.engine).verb.deletePermanent([s.perm("opponent2").permanentId], "byEffect");
     expect(s.state.memory).toBe(1);
+
+    // The production turn loop clears the once-per-turn ledger at Active phase.
+    s.state.phase = Phase.End;
+    const nextTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main && s.state.turnCount === 1);
+    await advance(s.engine).verb.deletePermanent([s.perm("opponent3").permanentId], "byEffect");
+    await settle(() => s.state.memory === 2);
+    expect(s.state.memory).toBe(2);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await nextTurn;
   });
 
   it("does not gain memory on the opponent's turn or when its host is deleted simultaneously (Q3874)", async () => {
@@ -148,6 +228,42 @@ describe("EX8-009", () => {
     await settle(() => s.perm("gigimon").topCard.instanceId === s.inst("guilmon").instanceId);
     expect(s.state.memory).toBe(0);
     expect(s.perm("gigimon").topCard.cardId).toBe("EX8-009");
+  });
+
+  it.each([
+    ["BT1-001", "red Yokomon"],
+    ["BT2-007", "purple Pagumon"],
+  ] as const)("digivolves for 1 from the printed %s standard path (%s)", async (egg, _label) => {
+    const s = setupEngine({
+      0: { breeding: { card: egg, as: "egg" }, hand: [{ card: "EX8-009", as: "guilmon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.instanceId === s.inst("guilmon").instanceId);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual([egg]);
+  });
+
+  it("rejects a green Lv.2 standard path", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT1-007", as: "greenEgg" }, hand: [{ card: "EX8-009", as: "guilmon" }] },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenEgg").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("finds both When Digivolving matches from a battle-area Guilmon base", async () => {

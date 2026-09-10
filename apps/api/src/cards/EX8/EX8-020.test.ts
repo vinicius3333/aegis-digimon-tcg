@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,11 +8,35 @@ import "./index.js";
 import { compiled } from "./EX8-020.js";
 
 describe("EX8-020", () => {
-  it("inherits a once-per-turn draw when attacking with seven or fewer cards in hand", () =>
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-020")).toMatchObject({
+      cardId: "EX8-020",
+      nameEn: "Dolphmon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 1 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Sea Animal", "DS"],
+      effectText: expect.stringContaining("[Digivolve]Lv.3 w/[DS]"),
+      inheritedEffectText: "[When Attacking] [Once Per Turn] If you have 7 or fewer cards in your hand, ＜Draw 1＞.",
+    });
+  });
+  it("traces the inherited once-per-turn hand-gated draw", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }],
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 },
+        },
+      ],
     }));
   it("registers the DS trait on live Dolphmon state", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX8-020", as: "dolphmon" }] } });
@@ -49,6 +73,47 @@ describe("EX8-020", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[0]!.hand).toHaveLength(7);
+  });
+
+  it("resets the inherited once-per-turn draw on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "host", under: ["EX8-020"] }],
+        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
+        deck: ["AD1-001", "AD1-002", "AD1-003"],
+      },
+      1: { security: 3, deck: ["BT1-045"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 8);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+
+    s.state.phase = Phase.End;
+    const nextTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main && s.state.turnCount === 1);
+    await advance(s.engine).verb.trash([s.state.players[0]!.hand[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 8);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await nextTurn;
   });
 
   it("does not draw above the seven-card boundary", async () => {

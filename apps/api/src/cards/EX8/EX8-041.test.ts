@@ -7,18 +7,24 @@ import "./index.js";
 import { compiled } from "./EX8-041.js";
 
 describe("EX8-041", () => {
-  it("inherits Retaliation", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
-      keyword: "Retaliation",
-      raw: "＜Retaliation＞",
-    }));
-
-  it("suspends an opposing Tamer and prevents it from unsuspending on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "Suspend", target: { count: 1 } },
-      { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+  it("matches the exact Reptile evolution, Tamer targeting, and Retaliation contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Reptile"], cost: 2, isAlternate: true }]);
+    const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions).toEqual([
+      { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 } },
+      {
+        kind: "Restrict",
+        target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 },
+        restriction: "unsuspend",
+        duration: "untilOpponentTurnEnd",
+      },
     ]);
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toHaveLength(2);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toEqual(onPlay?.actions);
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }],
+    });
   });
   it("suspends an opposing Tamer and prevents its unsuspension in a live On Play resolution", async () => {
     const s = setupEngine(

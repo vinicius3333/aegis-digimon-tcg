@@ -1,17 +1,89 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming, PlayerState } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-063.js";
 
 describe("EX8-063", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-063")).toMatchObject({
+      cardId: "EX8-063",
+      nameEn: "Barbamon (X Antibody)",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Demon Lord", "Seven Great Demon Lords", "X Antibody"],
+    });
+    expect(getCardDefinition("EX8-063")?.effectText).toContain("trash 1 card in their hand");
+    expect(getCardDefinition("EX8-063")?.effectText).toContain("trash their top security card");
+    expect(getCardDefinition("EX8-063")?.securityEffectText).toBeUndefined();
+  });
+
   it("registers the once-per-turn opponent discard-or-Fallen Angel effect when digivolving and attacking", () => {
-    expect(compiled.effects.filter((entry) => entry.frequency === "OncePerTurn")).toHaveLength(3);
+    const triggerEffects = compiled.effects.filter(
+      (entry) => entry.trigger === "WhenDigivolving" || entry.trigger === "WhenAttacking",
+    );
+    expect(triggerEffects).toHaveLength(2);
+    for (const entry of triggerEffects) {
+      expect(entry).toMatchObject({
+        frequency: "OncePerTurn",
+        sharedUseKey: "opponent-discard-or-fallen-angel",
+        actions: [
+          {
+            kind: "Trash",
+            chooser: "opponent",
+            target: { controller: "opponent", filter: { zone: "hand" }, count: 1 },
+            optional: true,
+          },
+          {
+            kind: "PlayWithoutCost",
+            from: ["trash"],
+            payCost: false,
+            optional: true,
+            condition: { kind: "ifThisEffectDidNotAct" },
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                playCostLte: 7,
+                nameOrTrait: [{ tokens: ["Fallen Angel"], match: "trait" }],
+              },
+              count: 1,
+            },
+          },
+        ],
+      });
+    }
   });
   it("registers the once-per-turn opponent-hand-trash security watcher", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenHandTrashed" }],
+      condition: {
+        kind: "anyOf",
+        conditions: [
+          {
+            kind: "selfDigivolutionStackMatchesFilter",
+            filter: { nameOrTrait: [{ tokens: ["Barbamon"], match: "name" }] },
+          },
+          {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+          },
+        ],
+      },
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenHandTrashed",
+          handTrashedController: "opponent",
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
+        },
+      ],
     });
   });
   it("exposes the Barbamon-name evolution route for cost 1", () =>
@@ -115,35 +187,35 @@ describe("EX8-063", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX8-059"]);
   });
 
-  it.each([["X Antibody trait", "EX8-063", ["BT10-080"]]])(
-    "trashes top security after opponent discard with the %s stack gate",
-    async (_gate, hostCardId, under) => {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [{ card: hostCardId, as: "barbamonX", under }],
-          },
-          1: {
-            hand: [{ card: "BT1-010", as: "discard" }],
-            security: [{ card: "BT1-011", as: "security" }],
-          },
+  it.each([
+    ["X Antibody trait", "EX8-063", ["BT10-080"]],
+    ["Barbamon name", "EX8-063", ["EX6-059"]],
+  ])("trashes top security after opponent discard with the %s stack gate", async (_gate, hostCardId, under) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: hostCardId, as: "barbamonX", under }],
         },
-        { autoAcceptOptional: true, autoSelectCards: true },
-      );
-      await s.ready();
-      await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
-      await settle(
-        () =>
-          s.state.players[1]!.security.length === 0 &&
-          s.state.players[1]!.hand.length === 0 &&
-          s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011"),
-      );
+        1: {
+          hand: [{ card: "BT1-010", as: "discard" }],
+          security: [{ card: "BT1-011", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.state.players[1]!.hand.length === 0 &&
+        s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011"),
+    );
 
-      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-        expect.arrayContaining(["BT1-010", "BT1-011"]),
-      );
-    },
-  );
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-010", "BT1-011"]),
+    );
+  });
 
   it("does not trash security without a Barbamon-name or X Antibody source", async () => {
     const s = setupEngine(
@@ -168,7 +240,7 @@ describe("EX8-063", () => {
         0: {
           battleArea: [{ card: "EX8-063", as: "barbamonX", under: ["BT10-080"] }],
           hand: [{ card: "BT1-009", as: "ownDiscard" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           hand: [
@@ -230,5 +302,28 @@ describe("EX8-063", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("barbamon").stack.map((card) => card.cardId)).toEqual(["EX6-059"]);
+  });
+
+  it("digivolves through the standard Purple level-5 route for 4 memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-060", as: "base" }],
+        hand: [{ card: "EX8-063", as: "barbamonX" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("barbamonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-063");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-060"]);
   });
 });

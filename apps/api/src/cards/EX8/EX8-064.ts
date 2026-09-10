@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -53,7 +52,7 @@ export const compiled: CompiledCard = {
               ],
             },
             count: "all",
-            totalPlayCost: 10,
+            totalPlayCostBudget: 10,
           },
           from: ["trash"],
           payCost: false,
@@ -72,7 +71,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: {
-            controllerDefault: "both",
+            controllerDefault: "any",
             excludeSelf: true,
             kind: ["Digimon"],
           },

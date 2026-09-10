@@ -6,20 +6,56 @@ import "./index.js";
 import { compiled } from "./EX8-053.js";
 
 describe("EX8-053", () => {
-  it("has Blocker, gains +5000 DP when the opponent has a 13000 DP or higher Digimon, and plays a Mineral/Rock Digimon costing 8 or less on deletion", () => {
+  it("matches the committed catalog identity, printed clauses, and no inherited/Security text", () => {
+    expect(getCardDefinition("EX8-053")).toMatchObject({
+      cardId: "EX8-053",
+      nameEn: "BanchoGolemon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Black", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Mineral", "Boss"],
+      effectText:
+        "＜Blocker＞ \n[All Turns] While your opponent has a Digimon with 13000 DP or more, this Digimon gets +5000 DP.\n[On Deletion] Reveal the top 3 cards of your deck. You may play 1 [Mineral]/[Rock] trait Digimon card with a play cost of 8 or less among them without paying the cost. Trash the rest.",
+    });
+    expect(getCardDefinition("EX8-053")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("EX8-053")?.securityEffectText).toBeUndefined();
+  });
+
+  it("traces Blocker, the exact 13000-DP aura boundary, and optional reveal play", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static" && entry.keywords)?.keywords).toContainEqual({
       keyword: "Blocker",
       raw: "＜Blocker＞",
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Aura",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       effect: { kind: "modifyDP", amount: 5000 },
-      while: { kind: "opponentHas" },
+      while: {
+        kind: "opponentHas",
+        filter: { controllerDefault: "opponent", kind: ["Digimon"], dp: { op: "gte", value: 13000 } },
+      },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
       revealCount: 3,
-      add: [{ count: 1, to: "play", optional: true }],
+      add: [
+        {
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            playCostLte: 8,
+            nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+          },
+          count: 1,
+          to: "play",
+          optional: true,
+        },
+      ],
       rest: "trash",
     });
   });

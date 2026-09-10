@@ -1,25 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { getCardDefinition, PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-068.js";
 
 describe("EX8-068", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-068")).toMatchObject({
+      cardId: "EX8-068",
+      nameEn: "Deep Savers",
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 2,
+      dp: 0,
+      evoCosts: [],
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["DS"],
+      effectText: expect.stringContaining("no face-up security cards"),
+      securityEffectText: expect.stringContaining("level 5 or lower Digimon"),
+    });
+    expect(getCardDefinition("EX8-068")?.effectText).toContain("bottom security card");
+    expect(getCardDefinition("EX8-068")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("waives its color requirement with no face-up security cards and protects DS Digimon from battle deletion at 1 or more memory", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "noFaceUpSecurity" },
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      condition: { kind: "noFaceUpSecurity", raw: "you have no face-up security cards" },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Aura",
+      target: {
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
+        count: "all",
+      },
       effect: { kind: "restriction", restriction: "beDeletedInBattle" },
       while: { kind: "memoryAtLeast", value: 1 },
     });
   });
   it("takes the bottom security card to hand and places itself face-up at the bottom", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
-      { kind: "SecurityManipulation", op: "toHand", toTop: false },
-      { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false, faceUp: true },
+      { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: false },
+      {
+        kind: "SecurityManipulation",
+        op: "placeAsSecurity",
+        controller: "mine",
+        toTop: false,
+        faceUp: true,
+      },
     ]);
   });
   it("plays an optional level 5 or lower DS Digimon from hand on security", () =>
@@ -31,7 +61,15 @@ describe("EX8-068", () => {
           from: ["hand"],
           payCost: false,
           optional: true,
-          target: { filter: { levelComparison: { op: "lte", value: 5 } } },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
+              nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
+            },
+            count: 1,
+          },
         },
       ],
     }));
@@ -39,7 +77,14 @@ describe("EX8-068", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
-        1: { security: [{ card: "EX8-068", as: "securityCard" }], hand: [{ card: "EX8-058", as: "dsCard" }] },
+        1: {
+          security: [{ card: "EX8-068", as: "securityCard", faceUp: true }],
+          hand: [
+            { card: "EX8-058", as: "dsCard" },
+            { card: "EX8-026", as: "tooHigh" },
+            { card: "BT1-010", as: "offTrait" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -56,6 +101,8 @@ describe("EX8-068", () => {
     await settle(() => player.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
     expect(player.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(player.hand.some((card) => card.instanceId === instanceId)).toBe(false);
+    expect(player.hand.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
+    expect(player.hand.some((card) => card.instanceId === s.inst("offTrait").instanceId)).toBe(true);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
   it("prevents battle deletion of an own DS Digimon while memory is at least 1", async () => {
@@ -82,12 +129,29 @@ describe("EX8-068", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(false);
   });
+  it("waives the blue color requirement while the security stack has no face-up cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "red" }],
+        hand: [{ card: "EX8-068", as: "option" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("option").instanceId);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+  });
   it("does not waive the color requirement while security contains a face-up card", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-010", as: "red" }],
         hand: [{ card: "EX8-068", as: "option" }],
-        security: [{ card: "BT1-002", as: "faceUp", faceUp: true }],
+        security: [{ card: "BT1-010", as: "faceUp", faceUp: true }],
       },
     });
     s.state.memory = 10;
@@ -130,8 +194,8 @@ describe("EX8-068", () => {
         battleArea: ["BT1-030"],
         hand: [{ card: "EX8-068", as: "option" }],
         security: [
-          { card: "BT1-001", as: "top" },
-          { card: "BT1-002", as: "bottom" },
+          { card: "BT1-009", as: "top" },
+          { card: "BT1-010", as: "bottom" },
         ],
       },
     });

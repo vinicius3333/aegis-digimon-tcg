@@ -7,19 +7,32 @@ import "./index.js";
 import { compiled } from "./EX8-046.js";
 
 describe("EX8-046", () => {
-  it("draws 2 on deletion by trashing a Mineral or Rock card from hand", () =>
+  it("matches the exact deletion cost, draw, and inherited evolution contract", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "Draw",
+      controller: "mine",
       amount: 2,
       optional: true,
       abortOnDecline: true,
-      cost: { kind: "trash", target: { count: 1 } },
-    }));
-  it("inherits Blocker", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
-      keyword: "Blocker",
-      raw: "＜Blocker＞",
-    }));
+      cost: {
+        kind: "trash",
+        raw: "By trashing 1 card with the [Mineral]/[Rock] trait in your hand",
+        target: {
+          count: 1,
+          filter: {
+            zone: "hand",
+            controller: "mine",
+            nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+          },
+        },
+      },
+    });
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    });
+  });
   it("trashes a Mineral/Rock card and draws two cards when deleted", async () => {
     const s = setupEngine(
       {
@@ -99,11 +112,30 @@ describe("EX8-046", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 
+  it("evolves through the standard black level-2 route at zero memory", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT9-005", as: "base" }, hand: [{ card: "EX8-046", as: "gotsumon" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gotsumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-046");
+    expect(s.perm("base").topCard.cardId).toBe("EX8-046");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-005"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("intercepts a real attack with inherited Blocker on a legal black host", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX8-048", as: "host", under: ["EX8-046"] }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
     });

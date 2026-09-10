@@ -1,11 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-018.js";
 
 describe("EX8-018", () => {
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-018")).toMatchObject({
+      cardId: "EX8-018",
+      nameEn: "Gomamon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Sea Beast", "DS"],
+      effectText:
+        "[Digivolve]Lv.2 w/[DS]\u00a0trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [DS]\u00a0trait and 1 card with the [Sea Beast]/[Plesiosaur]\u00a0trait among them to the hand. Return the rest to the bottom of the deck.",
+      inheritedEffectText: "[When Attacking] [Once Per Turn] If you have 7 or fewer cards in your hand, ＜Draw 1＞.",
+    });
+  });
+
   it("reveals 3 for a DS card and a Sea Beast/Plesiosaur card", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
@@ -126,6 +145,45 @@ describe("EX8-018", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[0]!.hand).toHaveLength(8);
+  });
+
+  it("resets the once-per-turn inherited draw on the owner's next turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-037", as: "host", under: ["EX8-018"] }],
+        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
+        deck: ["AD1-001", "AD1-002", "AD1-003"],
+      },
+      1: { security: 3 },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 8);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.trash([s.state.players[0]!.hand[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 8);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses the exact level-2 DS alternate route and rejects a non-DS base", async () => {

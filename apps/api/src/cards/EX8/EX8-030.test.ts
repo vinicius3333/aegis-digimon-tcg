@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -7,6 +8,25 @@ import "../BT17/BT17-087.js";
 import { compiled } from "./EX8-030.js";
 
 describe("EX8-030", () => {
+  it("matches committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-030")).toMatchObject({
+      cardId: "EX8-030",
+      nameEn: "Tapirmon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast", "NSo"],
+      effectText:
+        "[Digivolve]Lv.2 w/[NSo]\u00a0trait: Cost 0 \n\n[All Turns] Your opponent can't gain memory other than by Tamer effects.",
+    });
+    expect(getCardDefinition("EX8-030")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("allows memory from a Tamer treated as a Digimon during its actual attack (Q3914)", async () => {
     const s = setupEngine(
       {
@@ -17,7 +37,7 @@ describe("EX8-030", () => {
           ],
           hand: [{ card: "BT17-087", as: "playedMarcus" }],
         },
-        1: { battleArea: [{ card: "EX8-030", as: "tapirmon" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "EX8-030", as: "tapirmon" }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -42,6 +62,12 @@ describe("EX8-030", () => {
   });
 
   it("evolves from an off-color NSo egg for zero and draws the evolution card", async () => {
+    expect(digivolutionRequirementsFor("EX8-030")).toContainEqual({
+      level: 2,
+      traits: ["NSo"],
+      cost: 0,
+      isAlternate: true,
+    });
     const s = setupEngine({
       0: {
         breeding: { card: "EX8-006", as: "egg" },
@@ -86,7 +112,7 @@ describe("EX8-030", () => {
   ])("blocks only opposing Digimon memory during a real attack: opposing=$opposing", async ({ opposing, memory }) => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX8-021", as: "attacker" }, ...(!opposing ? [{ card: "EX8-030" }] : [])] },
-      1: { battleArea: opposing ? [{ card: "EX8-030" }] : [], security: ["BT1-001"] },
+      1: { battleArea: opposing ? [{ card: "EX8-030" }] : [], security: ["BT1-009"] },
     });
     await s.ready();
     expect(

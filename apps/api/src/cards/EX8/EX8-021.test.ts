@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,6 +7,24 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-021.js";
 
 describe("EX8-021", () => {
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-021")).toMatchObject({
+      cardId: "EX8-021",
+      nameEn: "Seadramon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Aquatic", "DS"],
+      effectText: "[Digivolve]Lv.3 w/[DS]\u00a0trait: Cost 2 \n\n[When Attacking] [Once Per Turn] Gain 1 memory.",
+      inheritedEffectText: "＜Jamming＞.",
+    });
+  });
+
   it("gains 1 memory once per turn as a top card and inherits Jamming", () => {
     const whenAttacking = compiled.effects?.find((entry) => entry.trigger === "WhenAttacking");
     expect(whenAttacking).toMatchObject({
@@ -27,7 +45,10 @@ describe("EX8-021", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
   });
   it("gains memory only once across two attacks as the live top card", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-021", as: "seadramon" }] }, 1: { security: 2 } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-021", as: "seadramon" }], deck: ["BT1-045", "BT1-046"] },
+      1: { security: 3, deck: ["BT1-045"] },
+    });
     await s.ready();
     s.state.memory = 0;
     expect(
@@ -37,7 +58,7 @@ describe("EX8-021", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1);
+    await settle(() => s.state.players[1]!.security.length === 2);
     await advance(s.engine).verb.unsuspend([s.perm("seadramon").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -46,8 +67,24 @@ describe("EX8-021", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.memory).toBe(1);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("seadramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 4);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not inherit the memory effect but inherited Jamming survives security battle", async () => {
@@ -107,5 +144,23 @@ describe("EX8-021", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("uses the standard Blue level-3 route for exactly 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-030", as: "gomamon" }], hand: [{ card: "EX8-021", as: "seadramon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gomamon").permanentId,
+        instanceId: s.inst("seadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gomamon").topCard.instanceId === s.inst("seadramon").instanceId);
+    expect(s.perm("gomamon").topCard.cardId).toBe("EX8-021");
+    expect(s.state.memory).toBe(0);
   });
 });

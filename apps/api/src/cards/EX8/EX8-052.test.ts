@@ -1,24 +1,66 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-052.js";
 
 describe("EX8-052", () => {
+  it("matches the catalog identity and printed routes", () => {
+    expect(getCardDefinition("EX8-052")).toMatchObject({
+      cardId: "EX8-052",
+      nameEn: "Cyberdramon (X Antibody)",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 9,
+      dp: 9000,
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg", "X Antibody"],
+      effectText: expect.stringContaining("[Cyberdramon]/[X Antibody]"),
+      inheritedEffectText: expect.stringContaining("top security card"),
+    });
+    expect(getCardDefinition("EX8-052")?.securityEffectText).toBeUndefined();
+  });
   it("may play a Device Option from hand or trash when Cyberdramon or X Antibody is in its stack", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlaceInBattleAreaSelf",
-      target: { from: ["hand", "trash"] },
+      target: {
+        filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }] },
+        count: 1,
+        from: ["hand", "trash"],
+      },
       optional: true,
-      condition: { kind: "anyOf" },
+      condition: {
+        kind: "anyOf",
+        conditions: [
+          {
+            kind: "selfDigivolutionStackCountAtLeast",
+            count: 1,
+            filter: { nameOrTrait: [{ tokens: ["Cyberdramon"], match: "name" }] },
+          },
+          {
+            kind: "selfDigivolutionStackCountAtLeast",
+            count: 1,
+            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+          },
+        ],
+      },
     }));
   it("can de-digivolve by 2 by trashing an Option in the battle area", () => {
     expect(compiled.effects?.filter((entry) => entry.trigger === "WhenDigivolving")[1]?.actions[0]).toMatchObject({
       kind: "DeDigivolve",
       amount: 2,
       optional: true,
-      cost: { kind: "trash" },
+      cost: {
+        kind: "trash",
+        target: {
+          filter: { zone: "battleArea", controller: "mine", kind: ["Option"], placedInBattleAreaByEffect: true },
+          count: 1,
+        },
+      },
     });
   });
   it("inherits a once-per-turn attack effect that trashes an Option to trash the opponent's top security", () =>
@@ -31,21 +73,32 @@ describe("EX8-052", () => {
           op: "trash",
           controller: "opponent",
           from: ["security"],
-          cost: { kind: "trash" },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { zone: "battleArea", controller: "mine", kind: ["Option"], placedInBattleAreaByEffect: true },
+              count: 1,
+            },
+          },
         },
       ],
     }));
   it("trashes the exact opposing security card after paying with an Option", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "AD1-001", as: "host", under: ["EX8-052"] },
-          { card: "EX8-070", as: "option" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-001", as: "host", under: ["EX8-052"] },
+            { card: "EX8-070", as: "option" },
+            { card: "EX8-070", as: "option2" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       },
-      1: { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
-    });
+      { autoSelectCards: true },
+    );
     s.perm("option").placedByEffect = true;
+    s.perm("option2").placedByEffect = true;
     const securityInstanceId = s.state.players[1]!.security[0]!.instanceId;
     await s.ready();
 
@@ -72,6 +125,11 @@ describe("EX8-052", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("option2").instanceId,
+      ),
+    ).toBe(true);
   });
 
   it("uses the Cyberdramon route and places a Device Option from hand in battle", async () => {

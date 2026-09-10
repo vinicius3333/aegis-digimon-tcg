@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -9,6 +9,30 @@ import "./EX8-059.js";
 import { compiled } from "./EX8-073.js";
 
 describe("EX8-073", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-073")).toMatchObject({
+      cardId: "EX8-073",
+      nameEn: "Gallantmon (X Antibody)",
+      colors: ["Red", "Blue", "Yellow"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Red", level: 5, memoryCost: 4 },
+        { color: "Blue", level: 5, memoryCost: 4 },
+        { color: "Yellow", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Holy Warrior", "X Antibody", "Royal Knight"],
+      effectText: expect.stringContaining("+4000 DP"),
+    });
+    expect(getCardDefinition("EX8-073")?.effectText).toContain("10000 DP or less");
+    expect(getCardDefinition("EX8-073")?.effectText).toContain("0 or less memory");
+    expect(getCardDefinition("EX8-073")?.securityEffectText).toBeUndefined();
+    expect(getCardDefinition("EX8-073")?.inheritedEffectText).toBeUndefined();
+  });
   it("gains +4000 DP when Gallantmon or X Antibody is in its digivolution cards when digivolving or attacking", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       { kind: "ModifyDP", amount: 4000, condition: { kind: "anyOf" } },
@@ -18,6 +42,25 @@ describe("EX8-073", () => {
       { kind: "ModifyDP", amount: 4000, condition: { kind: "anyOf" } },
       { kind: "ModifyDP", amount: -4000, target: { filter: { controller: "opponent" } } },
     ]);
+    for (const trigger of ["WhenDigivolving", "WhenAttacking"] as const) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        duration: "untilOpponentTurnEnd",
+        condition: {
+          kind: "anyOf",
+          conditions: [
+            {
+              kind: "selfDigivolutionStackMatchesFilter",
+              filter: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "name" }] },
+            },
+            {
+              kind: "selfDigivolutionStackHasTrait",
+              filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            },
+          ],
+        },
+      });
+    }
   });
   it("once per turn deletes an opposing Digimon up to 10000 DP or trashes one if deletion fails, and grants immunity at 0 or less memory", () => {
     expect(
@@ -31,7 +74,9 @@ describe("EX8-073", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "GrantStatic",
       grant: "immuneToOpponentDigimonEffects",
-      condition: { kind: "memoryAtMost", value: 0 },
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      duration: "permanent",
+      condition: { kind: "memoryAtMost", value: 0, controller: "mine" },
     });
   });
 
@@ -55,7 +100,7 @@ describe("EX8-073", () => {
         },
         1: {
           battleArea: [{ card: "AD1-001", as: "target", dp: 15000 }],
-          security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
+          security: [{ card: "BT1-009", as: "topSecurity" }, "BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -97,13 +142,40 @@ describe("EX8-073", () => {
     expect(s.perm("target").currentDP).toBe(12000);
   });
 
+  it("applies the attacking modifiers through a real player attack and expires them", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }] },
+        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 20000 }], security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").currentDP === 16000 && s.perm("target").currentDP === 16000);
+    expect(s.perm("source").currentDP).toBe(16000);
+    expect(s.perm("target").currentDP).toBe(16000);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("source").currentDP).toBe(12000);
+    expect(s.perm("target").currentDP).toBe(20000);
+  });
+
   it("mandatorily deletes the exact 10000-DP boundary without taking the fallback", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-073", as: "source", suspended: true }] },
         1: {
           battleArea: [{ card: "AD1-001", as: "target", dp: 10000 }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -127,8 +199,8 @@ describe("EX8-073", () => {
           ],
           hand: [{ card: "BT18-099", as: "protection-cost" }],
           security: [
-            { card: "BT1-001", as: "fallback-security" },
-            { card: "BT1-002", as: "other-security" },
+            { card: "BT1-009", as: "fallback-security" },
+            { card: "BT1-010", as: "other-security" },
           ],
         },
       },
@@ -156,14 +228,20 @@ describe("EX8-073", () => {
           battleArea: [
             { card: "BT1-010", as: "first" },
             { card: "BT1-010", as: "second" },
+            { card: "BT1-010", as: "next-turn" },
           ],
         },
       },
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
     await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("source"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 

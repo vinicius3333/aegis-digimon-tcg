@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -7,12 +7,80 @@ import "./index.js";
 import { compiled } from "./EX8-065.js";
 
 describe("EX8-065", () => {
+  it("matches the committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-065")).toMatchObject({
+      cardId: "EX8-065",
+      nameEn: "Ryutaro Williams",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["LIBERATOR"],
+      evoCosts: [],
+      effectText:
+        "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When one of your Digimon with [Tyrannomon]\u00a0in its name attacks, by suspending this Tamer, that Digimon may digivolve into a Digimon card with [Tyrannomon]\u00a0in its name or the [Dinosaur]\u00a0trait in the hand with the digivolution cost reduced by 1.",
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+  });
   it("gains 1 memory at the start of the main phase when the opponent has a Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({
       kind: "GainMemory",
       amount: 1,
       condition: { kind: "opponentHas" },
     }));
+  it("traces the exact security, memory, and attack-time digivolution IR", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toEqual({
+      trigger: "Security",
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+      isSecurity: true,
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toEqual({
+      kind: "GainMemory",
+      amount: 1,
+      condition: {
+        kind: "opponentHas",
+        filter: { controllerDefault: "opponent", kind: ["Digimon"] },
+        raw: "your opponent has a Digimon",
+      },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toEqual({
+      kind: "SubTrigger",
+      event: "whenAttacking",
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }],
+      },
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              { tokens: ["Tyrannomon"], match: "name" },
+              { tokens: ["Dinosaur"], match: "trait" },
+            ],
+          },
+          from: ["hand"],
+          payCost: true,
+          reduceCost: 1,
+          optional: true,
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
+          abortOnDecline: true,
+        },
+      ],
+    });
+  });
   it("may digivolve a Tyrannomon or Dinosaur attacker from hand by suspending this Tamer", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -66,7 +134,7 @@ describe("EX8-065", () => {
           ],
           hand: [{ card: "BT1-024", as: "tyrannomon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -99,7 +167,7 @@ describe("EX8-065", () => {
           ],
           hand: [{ card: "EX7-035", as: "dinosaur" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -124,7 +192,7 @@ describe("EX8-065", () => {
         ],
         hand: [{ card: "BT1-024", as: "tyrannomon" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     declined.state.memory = 3;
     await declined.ready();
@@ -148,5 +216,35 @@ describe("EX8-065", () => {
     expect(declined.perm("attacker").topCard.cardId).toBe("BT1-016");
     expect(declined.perm("tamer").isSuspended).toBe(false);
     expect(declined.state.memory).toBe(3);
+  });
+
+  it("does not offer the effect when a non-Tyrannomon Digimon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", dp: 10000 },
+            { card: "EX8-065", as: "tamer" },
+          ],
+          hand: [{ card: "BT1-024", as: "evolution" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-010");
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-024");
   });
 });

@@ -1,29 +1,74 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../../cards/EX12/EX12-028.js";
 import "./index.js";
 import { compiled } from "./EX8-026.js";
 
 describe("EX8-026", () => {
+  it("matches the complete printed catalog identity and text", () => {
+    const card = getCardDefinition("EX8-026");
+    expect(card).toMatchObject({
+      cardId: "EX8-026",
+      nameEn: "MetalSeadramon",
+      colors: ["Blue", "Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 7,
+      dp: 12000,
+      evoCosts: [
+        { color: "Blue", level: 5, memoryCost: 4 },
+        { color: "Black", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Cyborg", "DS", "Aquatic"],
+      isAce: true,
+      overflowMemory: 4,
+    });
+    expect(card?.effectText).toContain("[Hand] [Counter] ＜Blast Digivolve＞");
+    expect(card?.effectText).toContain("＜De-Digivolve1＞ 1 of your opponent's Digimon");
+    expect(card?.effectText).toContain("play cost of 7 or less");
+    expect(card?.effectText).toContain("While you have 1 or more memory, none of your opponent's Digimon can suspend.");
+    expect(card?.effectText).toContain("[Rule] Trait: Has the [Aquatic] type.");
+  });
   it("has Blast Digivolve, de-digivolves and bottom-decks an opposing Digimon on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords?.[0]).toMatchObject({
       keyword: "BlastDigivolve",
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Counter")).toMatchObject({
+      isFromHand: true,
+      actions: [],
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "DeDigivolve", amount: 1 },
-      { kind: "Return", to: "deckBottom", target: { filter: { playCostLte: 7 } } },
+      {
+        kind: "DeDigivolve",
+        amount: 1,
+        target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+      },
+      {
+        kind: "Return",
+        to: "deckBottom",
+        target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 7 } },
+      },
     ]);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toEqual(
+      compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions,
+    );
   });
   it("prevents opposing Digimon from suspending while you have at least 1 memory and grants Aquatic", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Restrict",
+      target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"] } },
       restriction: "suspend",
-      while: { kind: "memoryAtLeast", value: 1 },
+      duration: "permanent",
+      while: { kind: "memoryAtLeast", value: 1, controller: "mine" },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Rule")?.actions[0]).toMatchObject({
       kind: "GrantStatic",
+      target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
       tokens: ["Aquatic"],
     });
   });
@@ -59,18 +104,52 @@ describe("EX8-026", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "AD1-004")).toBe(true);
   });
 
+  it("does not bottom-deck an opposing Digimon above the inclusive play-cost-7 limit", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
+        1: { battleArea: [{ card: "AD1-002", as: "overLimit" }], deck: ["BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-002")).toBe(true);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it.each([
+    ["EX8-024", "blueBase"],
+    ["EX12-028", "blackBase"],
+  ] as const)("uses the standard %s level-5 evolution route", async (baseCard, alias) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: baseCard, as: alias }], hand: [{ card: "EX8-026", as: "metal" }] },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(alias).permanentId,
+        instanceId: s.inst("metal").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm(alias).topCard?.cardId === "EX8-026");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm(alias).stack.map((card) => card.cardId)).toEqual([baseCard]);
+  });
+
   it("Blast Digivolves from hand over a legal DS level 5 during Counter", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-010", as: "attacker" }],
-        security: ["BT1-001"],
-        deck: ["BT1-002"],
+        security: ["BT1-009"],
+        deck: ["BT1-010"],
       },
       1: {
         battleArea: [{ card: "EX8-024", as: "base" }],
         hand: [{ card: "EX8-026", as: "metal" }],
-        security: ["BT1-001"],
-        deck: ["BT1-002"],
+        security: ["BT1-009"],
+        deck: ["BT1-010"],
       },
     });
     await s.ready();

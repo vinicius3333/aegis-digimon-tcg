@@ -6,29 +6,42 @@ import "./index.js";
 import { compiled } from "./EX8-047.js";
 
 describe("EX8-047", () => {
-  it("inherits deletion from a Mineral/Rock host when this card is trashed", () =>
-    expect(compiled.effects?.filter((entry) => entry.isInherited)).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          trigger: "Static",
-          actions: [expect.objectContaining({ kind: "SubTrigger", event: "onDigivolutionCardsDiscardedBatch" })],
-        }),
-      ]),
-    ));
-  it("reveals 3 for Mineral/Rock and LIBERATOR cards", () =>
+  it("matches the exact reveal, rule-trait, and discarded-source contract", () => {
+    const inherited = compiled.effects?.find((entry) => entry.isInherited);
+    expect(inherited).toMatchObject({ trigger: "Static", isInherited: true });
+    expect(inherited?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "onDigivolutionCardsDiscardedBatch",
+      sourceFilter: { isSelfRef: true },
+      hostFilter: { nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] },
+      actions: [
+        {
+          kind: "Delete",
+          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 } },
+        },
+      ],
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
       revealCount: 3,
       add: [
-        { count: 1, to: "hand" },
-        { count: 1, to: "hand" },
+        {
+          count: 1,
+          to: "hand",
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] },
+        },
+        {
+          count: 1,
+          to: "hand",
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+        },
       ],
       rest: "deckBottom",
-    }));
-  it("gains Mineral as a rule trait", () => {
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "Rule")?.actions[0]).toMatchObject({
       kind: "GrantStatic",
       tokens: ["Mineral"],
+      target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
     });
   });
   it.each(["EX8-048", "EX8-050"])("reveals %s and LIBERATOR matches and bottoms the rest", async (match) => {
@@ -40,7 +53,7 @@ describe("EX8-047", () => {
             { card: match, as: "mineral" },
             { card: "EX8-065", as: "liberator" },
             { card: "AD1-001", as: "rest" },
-            { card: "BT1-001", as: "anchor" },
+            { card: "BT1-009", as: "anchor" },
           ],
         },
       },

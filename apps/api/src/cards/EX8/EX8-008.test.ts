@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +7,25 @@ import { compiled } from "./EX8-008.js";
 import "./index.js";
 
 describe("EX8-008", () => {
+  it("matches the catalog identity, effects, and alternate evolution requirement", () => {
+    expect(getCardDefinition("EX8-008")).toMatchObject({
+      cardId: "EX8-008",
+      nameEn: "Candlemon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Flame", "NSo"],
+      evoCosts: [{ color: "Red", level: 2, memoryCost: 0 }],
+      effectText: "[Digivolve]Lv.2 w/[NSo]\u00a0trait: Cost 0 \n\n[On Deletion] Gain 1 memory.",
+      inheritedEffectText: "[Your Turn] This Digimon gets +2000 DP.",
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["NSo"], cost: 0, isAlternate: true }]);
+  });
+
   it("gains 1 memory on deletion", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "GainMemory",
@@ -19,13 +39,13 @@ describe("EX8-008", () => {
     }));
   it("applies inherited DP on a live host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-008", as: "candle" }] }] },
+      0: { battleArea: [{ card: "BT1-014", as: "host", under: [{ card: "EX8-008", as: "candle" }] }] },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(6000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("host").currentDP).toBe(3000);
+    expect(s.perm("host").currentDP).toBe(4000);
   });
 
   it("gains 1 memory when deleted", async () => {

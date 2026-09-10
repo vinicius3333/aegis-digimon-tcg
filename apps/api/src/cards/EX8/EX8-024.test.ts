@@ -1,42 +1,66 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX8-024.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("EX8-024", () => {
-  it("unsuspends one of your Digimon on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
-      kind: "Unsuspend",
-      target: { count: 1 },
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
-      kind: "Unsuspend",
-      target: { count: 1 },
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-024")).toMatchObject({
+      cardId: "EX8-024",
+      nameEn: "MegaSeadramon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Aquatic", "DS"],
+      effectText: expect.stringContaining("[On Play] [When Digivolving] 1 of your Digimon unsuspends."),
+      inheritedEffectText:
+        "[When Attacking] [Once Per Turn] By placing 1 of your other Digimon as this Digimon's bottom digivolution card, it unsuspends.",
     });
   });
-  it("gates the attack restriction at the printed one-memory threshold", () =>
+  it("traces unsuspend triggers, the one-memory suspension restriction, and inherited placement cost", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "Unsuspend",
+        target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+      });
+    }
     expect(
       compiled.effects?.find((entry) => entry.trigger === "WhenAttacking" && !entry.isInherited)?.actions[0],
     ).toMatchObject({
       kind: "Restrict",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
       restriction: "suspend",
-      condition: { kind: "memoryAtLeast", value: 1 },
       duration: "untilOpponentTurnEnd",
-    }));
-  it("inherits the optional other-Digimon placement cost that unsuspends the host", () =>
+      condition: { kind: "memoryAtLeast", value: 1 },
+    });
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
       actions: [
         {
           kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           optional: true,
-          cost: { kind: "place", targetIsPermanent: true, destination: "digivolutionStack", position: "bottom" },
+          abortOnDecline: true,
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+          },
         },
       ],
-    }));
+    });
+  });
   it("unsuspends an allied Digimon on play", async () => {
     const s = setupEngine(
       {
@@ -211,5 +235,84 @@ describe("EX8-024", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.perm("ally").isSuspended);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("uses the standard Blue level-4 route for 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-037", as: "blueBase" }],
+        hand: [{ card: "EX8-024", as: "megaSeadramon" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("megaSeadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueBase").topCard.instanceId === s.inst("megaSeadramon").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("resets the inherited placement effect after the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT8-030", as: "host", under: ["EX8-024"] },
+            { card: "EX8-017", as: "firstOther" },
+            { card: "EX8-017", as: "secondOther" },
+          ],
+          deck: ["BT1-045"],
+        },
+        1: { security: 3, deck: ["BT1-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstOtherId = s.inst("firstOther").instanceId;
+    const secondOtherId = s.inst("secondOther").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === firstOtherId));
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondOtherId)).toBe(
+      true,
+    );
+
+    s.state.phase = Phase.End;
+    const nextTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main && s.state.turnCount === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === secondOtherId));
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(secondOtherId);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await nextTurn;
   });
 });

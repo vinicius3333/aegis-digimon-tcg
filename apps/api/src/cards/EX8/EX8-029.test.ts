@@ -2,10 +2,34 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { getCardDefinition } from "@aegis/shared";
 import "./index.js";
 import { compiled } from "./EX8-029.js";
 
 describe("EX8-029", () => {
+  it("matches committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-029")).toMatchObject({
+      cardId: "EX8-029",
+      nameEn: "Aegisdramon",
+      colors: ["Blue", "Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Blue", level: 6, memoryCost: 5 },
+        { color: "Black", level: 6, memoryCost: 5 },
+        { color: "Yellow", level: 6, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg", "DS", "Aquatic"],
+      effectText:
+        "[When Digivolving] Return up to 14 play cost's total worth of your opponent's Digimon to the bottom of the deck. If DNA digivolving, you may play up to 12 play cost's total worth of [DS]\u00a0trait cards from this Digimon's digivolution cards without paying the costs.\n[All Turns] While you have 1 or more memory, none of your [DS]\u00a0trait Digimon are affected by your opponent's Digimon's effects. While you have 1 or less, none of your opponent's Digimon can activate [On Play] effects.\n[Rule] Trait: Has the [Aquatic] type.",
+    });
+    expect(getCardDefinition("EX8-029")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("returns opposing Digimon up to total play cost 14 and plays DS cards from digivolution cards when DNA digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "Return",
@@ -21,10 +45,23 @@ describe("EX8-029", () => {
     });
   });
   it("grants DS immunity with memory and restricts opposing On Play effects at low memory, plus Aquatic", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions).toMatchObject([
+    const allTurns = compiled.effects?.filter((entry) => entry.trigger === "AllTurns") ?? [];
+    expect(allTurns).toHaveLength(2);
+    expect(allTurns[0]?.actions).toMatchObject([
       { kind: "GrantStatic", grant: "immuneToOpponentDigimonEffects", condition: { kind: "memoryAtLeast", value: 1 } },
-      { kind: "Aura", while: { kind: "memoryAtMost", value: 1 } },
     ]);
+    expect(allTurns[1]).toMatchObject({
+      condition: { kind: "memoryAtMost", value: 1, controller: "mine" },
+      actions: [
+        {
+          kind: "DisableTimingEffect",
+          whileMatchesTargetFilter: true,
+          timings: ["onPlay"],
+          duration: "permanent",
+          target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"] } },
+        },
+      ],
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "Rule")?.actions[0]).toMatchObject({
       kind: "GrantStatic",
       tokens: ["Aquatic"],
@@ -40,12 +77,12 @@ describe("EX8-029", () => {
 
     s.state.memory = 1;
     await advance(s.engine).recompute();
-    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay"));
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(true);
+    await settle(() => observe(s.engine).timingEffectDisabled(s.perm("opponent"), "onPlay"));
+    expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "onPlay")).toBe(true);
 
     s.state.memory = 2;
     await advance(s.engine).recompute();
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(false);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "onPlay")).toBe(false);
   });
 
   it("blocks a real opposing On Play draw at low memory", async () => {
@@ -148,18 +185,18 @@ describe("EX8-029", () => {
     s.state.memory = -1;
     await advance(s.engine).recompute();
 
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(true);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "onPlay")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("ds"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("nonDs"), "beAffected", "Digimon")).toBe(false);
 
     s.state.memory = 0;
     await advance(s.engine).recompute();
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(true);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "onPlay")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("ds"), "beAffected", "Digimon")).toBe(false);
 
     s.state.memory = -2;
     await advance(s.engine).recompute();
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(false);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "onPlay")).toBe(false);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("ds"), "beAffected", "Digimon")).toBe(true);
   });
 

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
@@ -43,10 +42,7 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "trash",
             target: {
-              filter: {
-                zone: "digivolutionCards",
-                boundTo: "thatDigimon",
-              },
+              filter: { zone: "digivolutionCards", boundTo: "thatDigimon" } as Filter & { boundTo: string },
               count: 1,
             },
             raw: "By trashing any 1 digivolution card of 1 of your Digimon with the [Mineral]/[Rock] trait",
@@ -101,7 +97,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           restriction: "cannotReturnToHandOrDeck",
-          byOpponentOnly: true,
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
         },
         {

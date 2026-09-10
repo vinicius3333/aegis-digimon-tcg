@@ -1,27 +1,79 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, PlayerState } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-067.js";
 
 describe("EX8-067", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-067")).toMatchObject({
+      cardId: "EX8-067",
+      nameEn: "Close",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      dp: 0,
+      evoCosts: [],
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["LIBERATOR"],
+      effectText: expect.stringContaining("set your memory to 3"),
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(getCardDefinition("EX8-067")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("sets memory to 3 at the start of your turn when it is 2 or less", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourTurn")?.actions[0]).toMatchObject({
       kind: "SetMemory",
       value: 3,
-      condition: { kind: "memoryAtMost", value: 2 },
+      condition: { kind: "memoryAtMost", value: 2, controller: "mine" },
     }));
   it("places up to 2 Mineral/Rock cards from trash under a Mineral/Rock Digimon by suspending itself when one digivolves", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenOneOfYoursDigivolves",
-      actions: [{ kind: "PlaceUnder", optional: true, cost: { kind: "suspend" } }],
+      sourceFilter: {
+        controllerDefault: "mine",
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+      },
+      actions: [
+        {
+          kind: "PlaceUnder",
+          optional: true,
+          abortOnDecline: true,
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+            },
+            count: 2,
+            upTo: true,
+            from: ["trash"],
+          },
+          underFilter: { isTriggerSource: true },
+          position: "bottom",
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
+        },
+      ],
     }));
   it("plays itself from security without paying its cost", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
       isSecurity: true,
-      actions: [{ kind: "PlayWithoutCost", payCost: false }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
     }));
   it("moves the exact security Tamer into the battle area during a security check", async () => {
     const s = setupEngine({
@@ -75,9 +127,7 @@ describe("EX8-067", () => {
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("base").topCard?.cardId).toBe("EX8-048");
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["EX8-047", "EX8-049", "EX8-050"]),
-    );
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-050", "EX8-049", "EX8-047"]);
     expect(s.state.players[0]!.trash.some((card) => ["EX8-049", "EX8-050"].includes(card.cardId))).toBe(false);
   });
   it("sets memory across the printed boundary without reducing a higher value", async () => {
@@ -116,7 +166,46 @@ describe("EX8-067", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").stack.some((card) => card.cardId === "BT9-005"));
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT9-005", "BT13-061"]));
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT13-061", "BT9-005", "EX8-047"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-010");
+  });
+
+  it("may decline the placement without suspending or moving a trash card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-047", as: "base" },
+            { card: "EX8-067", as: "tamer" },
+          ],
+          hand: [{ card: "EX8-048", as: "evolving" }],
+          trash: ["EX8-049"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-047"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX8-049");
   });
 });

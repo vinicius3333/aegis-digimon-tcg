@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -7,6 +7,24 @@ import "./index.js";
 import { compiled } from "./EX8-027.js";
 
 describe("EX8-027", () => {
+  it("matches committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-027")).toMatchObject({
+      cardId: "EX8-027",
+      nameEn: "Plesiomon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Blue", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Plesiosaur", "DS"],
+      effectText: expect.stringContaining("2 of your Digimon may DNA digivolve"),
+    });
+    expect(getCardDefinition("EX8-027")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("plays a level 4 or lower Digimon from its digivolution cards when digivolving", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
@@ -19,6 +37,7 @@ describe("EX8-027", () => {
   it("can DNA digivolve into DS and attack after another DS Digimon is played or digivolves", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions ?? [];
     expect(actions).toHaveLength(2);
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({ frequency: "OncePerTurn" });
     expect(actions[0]).toMatchObject({
       kind: "SubTrigger",
       actions: [{ kind: "DnaDigivolve" }, { kind: "Attack", optional: true }],
@@ -87,6 +106,32 @@ describe("EX8-027", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
+  it("does not react to a played non-DS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-027", as: "plesiomon" }],
+          hand: [
+            { card: "BT1-009", as: "nonDs" },
+            { card: "EX8-029", as: "aegis" },
+          ],
+        },
+        1: { security: 1 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonDs").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("nonDs").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("aegis").instanceId)).toBe(true);
+  });
+
   it("triggers from Plesiomon's own play, DNA digivolves into DS, and attacks (Q3894)", async () => {
     const s = setupEngine(
       {
@@ -107,9 +152,10 @@ describe("EX8-027", () => {
     });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("aegis").instanceId),
-    ).toBe(true);
+    const dna = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("aegis").instanceId,
+    );
+    expect(dna).toBeDefined();
   });
 
   it("triggers from Plesiomon's own digivolution and exposes the exact DS route (Q3895)", async () => {
@@ -150,6 +196,26 @@ describe("EX8-027", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("aegis").instanceId),
     ).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("accepts the standard Blue level-5 evolution route at cost 3", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-024", as: "base" }], hand: [{ card: "EX8-027", as: "plesiomon" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plesiomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("plesiomon").instanceId);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack).toHaveLength(1);
   });
 
   it("offers an order decision when two Plesiomon watchers trigger together (Q3896)", async () => {

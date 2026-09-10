@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const stackGate = {
@@ -14,7 +13,7 @@ const stackGate = {
       filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
     },
   ],
-};
+} satisfies Condition;
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
