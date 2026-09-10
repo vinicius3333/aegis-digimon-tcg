@@ -1,11 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-011.js";
 
 describe("EX8-011", () => {
+  it("matches the catalog's Tyrannomon identity, evolution paths, and text", () =>
+    expect(getCardDefinition("EX8-011")).toMatchObject({
+      cardId: "EX8-011",
+      nameEn: "Tyrannomon",
+      colors: ["Red", "Green"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Red", level: 3, memoryCost: 3 },
+        { color: "Green", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Dinosaur", "LIBERATOR"],
+      effectText:
+        "[Digivolve]Lv.3 w/[Reptile]\u00a0trait: Cost 2 \n\n[Security] At the end of the battle, play this card without paying the cost.\n[Start of Your Main Phase] [When Digivolving] This Digimon gets +3000 DP until the end of your opponent's turn.",
+      inheritedEffectText: "[Your Turn] This Digimon gets +2000 DP.",
+    }));
+
   it("plays itself from security and gains +3000 DP at the start of the main phase and when digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -107,6 +128,30 @@ describe("EX8-011", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("gabumon").currentDP).toBe(8000);
+  });
+
+  it.each([
+    ["BT1-009", "red Lv.3", 8000],
+    ["EX8-039", "green Lv.3", 10000],
+  ] as const)("digivolves for 3 through the printed %s standard path (%s)", async (source, _label, expectedDP) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: source, as: "source" }],
+        hand: [{ card: "EX8-011", as: "tyrannomon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX8-011");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("source").currentDP).toBe(expectedDP);
   });
 
   it("rejects the alternate route for an off-color non-Reptile level 3", async () => {
