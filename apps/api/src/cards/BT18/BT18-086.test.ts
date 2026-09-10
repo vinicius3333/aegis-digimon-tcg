@@ -72,7 +72,7 @@ describe("BT18-086 Lucemon: Larva", () => {
     const s = setupEngine({
       0: {
         // Keep a second security card so the post-check assertions can inspect the trash.
-        security: [{ card: "BT18-086", as: "larva", faceUp: true }, "BT1-001"],
+        security: [{ card: "BT18-086", as: "larva", faceUp: true }, "BT1-010"],
         trash: [{ card: "BT18-082", as: "variant" }],
       },
       1: { battleArea: [{ card: "BT1-060", as: "attacker" }] },
@@ -135,9 +135,9 @@ describe("BT18-086 Lucemon: Larva", () => {
         0: {
           breeding: { card: "BT18-086", as: "larva" },
           battleArea: [{ card: "BT18-101", as: "satan" }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
-        1: { hand: [{ card: "BT18-019", as: "millenniummon" }], security: ["BT1-002"] },
+        1: { hand: [{ card: "BT18-019", as: "millenniummon" }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );

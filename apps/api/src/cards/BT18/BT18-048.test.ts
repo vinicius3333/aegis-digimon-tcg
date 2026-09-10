@@ -71,9 +71,10 @@ describe("BT18-048 Kazemon", () => {
           hand: [
             { card: "BT18-047", as: "hybrid" },
             { card: "BT18-047", as: "secondHybrid" },
+            { card: "BT1-030", as: "nonHybrid" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
@@ -105,6 +106,7 @@ describe("BT18-048 Kazemon", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("secondHybrid").instanceId)).toBe(
       true,
     );
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("nonHybrid").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 

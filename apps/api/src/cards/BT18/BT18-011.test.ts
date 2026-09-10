@@ -32,7 +32,7 @@ describe("BT18-011 Agunimon", () => {
           battleArea: [{ card: "BT12-013", as: "burning" }],
           hand: [{ card: "BT18-011", as: "agunimon" }],
           trash: ["BT12-009"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -57,7 +57,7 @@ describe("BT18-011 Agunimon", () => {
           battleArea: [{ card: "BT12-013", as: "burning" }],
           hand: [{ card: "BT18-011", as: "agunimon" }],
           trash: [{ card: "BT18-017", as: "tenWarriors" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -87,7 +87,7 @@ describe("BT18-011 Agunimon", () => {
             { card: "BT18-087", as: "plainTamer" },
             { card: "BT18-088", as: "inheritedTamer" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -114,7 +114,7 @@ describe("BT18-011 Agunimon", () => {
           battleArea: [{ card: "BT12-013", as: "burning" }],
           hand: [{ card: "BT18-011", as: "agunimon" }],
           trash: [{ card: "BT12-009", as: "hybrid" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: false },
@@ -149,7 +149,7 @@ describe("BT18-011 Agunimon", () => {
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: "BT18-011", as: "agunimon" }],
-        deck: [{ card: "BT1-001", as: "draw" }],
+        deck: [{ card: "BT1-009", as: "draw" }],
       },
     });
     s.state.memory = 5;
@@ -163,7 +163,7 @@ describe("BT18-011 Agunimon", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT18-011");
     expect(s.state.memory).toBe(expectedMemory);
     expect(s.perm("base").stack.at(-1)?.cardId).toBe(baseCard);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("grants its host 2000 DP only during its controller's turn", async () => {

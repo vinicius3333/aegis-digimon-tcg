@@ -36,7 +36,7 @@ describe("BT18-069 Knightmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-069", as: "knightmon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -16,7 +16,7 @@ describe("BT18-006 Frimon", () => {
       {
         0: {
           battleArea: [{ card: "BT3-078", dp: 4000, suspended: true, as: "host", under: ["BT18-006"] }],
-          deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }, { card: "BT1-004" }],
+          deck: [{ card: "BT1-009" }, { card: "BT1-010" }, { card: "BT1-011" }, { card: "BT1-012" }],
         },
         1: {
           battleArea: [
@@ -44,11 +44,26 @@ describe("BT18-006 Frimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT3-078", dp: 4000, as: "host", under: ["BT18-006"] }],
-        deck: [{ card: "BT1-001", as: "top" }],
+        deck: [{ card: "BT1-009", as: "top" }],
       },
     });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("trashes exactly one card for one distinct opponent color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT3-078", dp: 4000, as: "host", under: ["BT18-006"] }],
+        deck: [{ card: "BT1-009" }, { card: "BT1-010" }],
+      },
+      1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
+    });
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
   });
 });

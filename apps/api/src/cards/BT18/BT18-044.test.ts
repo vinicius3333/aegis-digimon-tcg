@@ -13,7 +13,7 @@ describe("BT18-044 FunBeemon", () => {
             { card: "BT18-044", as: "funbeemon" },
             { card: "BT18-046", as: "royalBase" },
           ],
-          security: [{ card: "BT1-001", as: "topSecurity" }],
+          security: [{ card: "BT1-009", as: "topSecurity" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -23,7 +23,7 @@ describe("BT18-044 FunBeemon", () => {
     });
     await settle(() => s.state.players[0]!.security.at(-1)?.instanceId === s.inst("royalBase").instanceId);
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT18-046");
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT18-046")).toBe(false);
@@ -35,7 +35,7 @@ describe("BT18-044 FunBeemon", () => {
       {
         0: {
           hand: [{ card: "BT18-044", as: "funbeemon" }],
-          security: [{ card: "BT1-001", as: "topSecurity" }],
+          security: [{ card: "BT1-009", as: "topSecurity" }],
         },
       },
       { autoSelectCards: true },

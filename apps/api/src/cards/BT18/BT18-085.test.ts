@@ -23,7 +23,7 @@ describe("BT18-085 Zanbamon", () => {
   it("scales both Security Attack and DP from distinct colors in the opponent's trash", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT18-085", as: "zanbamon" }] },
-      1: { trash: ["BT1-001", "BT1-003", "BT1-005", "BT1-007"] },
+      1: { trash: ["BT1-009", "BT1-030", "BT1-050", "BT1-078"] },
     });
     const baseDP = s.perm("zanbamon").baseDP;
 
@@ -39,20 +39,37 @@ describe("BT18-085 Zanbamon", () => {
         battleArea: [{ card: "BT10-079", as: "sandiramon" }],
         hand: [{ card: "BT18-085", as: "zanbamon" }],
       },
-      1: { trash: ["BT1-001", "BT1-003", "BT1-005", "BT1-007"] },
+      1: { trash: ["BT1-009", "BT1-030", "BT1-050", "BT1-078"] },
     });
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("sandiramon").permanentId,
-      instanceId: s.inst("zanbamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sandiramon").permanentId,
+        instanceId: s.inst("zanbamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("sandiramon").topCard?.cardId === "BT18-085");
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("sandiramon").currentDP).toBe(16000);
     expect(observe(s.engine).keywordAmount(s.perm("sandiramon"), "SecurityAttack")).toBe(2);
+  });
+
+  it("has no scaling with zero colors and only one color gives no Security Attack", async () => {
+    const zero = setupEngine({ 0: { battleArea: [{ card: "BT18-085", as: "zero" }] } });
+    await zero.engine.recomputeContinuousEffects();
+    expect(zero.perm("zero").currentDP).toBe(12000);
+    expect(observe(zero.engine).keywordAmount(zero.perm("zero"), "SecurityAttack")).toBe(0);
+
+    const one = setupEngine({
+      0: { battleArea: [{ card: "BT18-085", as: "one" }] },
+      1: { trash: ["BT1-009"] },
+    });
+    await one.engine.recomputeContinuousEffects();
+    expect(one.perm("one").currentDP).toBe(12000);
+    expect(observe(one.engine).keywordAmount(one.perm("one"), "SecurityAttack")).toBe(0);
   });
 });

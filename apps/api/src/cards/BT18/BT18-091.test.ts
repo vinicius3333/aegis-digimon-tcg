@@ -56,7 +56,7 @@ describe("BT18-091 J.P. Shibayama", () => {
             { card: "BT18-094", as: "tamerOne" },
             { card: "BT18-094", as: "tamerTwo" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
         1: {
           battleArea: [
@@ -124,9 +124,9 @@ describe("BT18-091 J.P. Shibayama", () => {
             { card: "BT18-063", as: "beetlemon" },
             { card: "BT18-094", as: "tamer" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 1000 }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 1000 }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );

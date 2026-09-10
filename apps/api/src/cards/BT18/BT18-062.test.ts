@@ -100,7 +100,7 @@ describe("BT18-062 Gladimon", () => {
             { card: "BT18-062", as: "gladimon" },
             { card: "BT18-099", as: "cost" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -149,7 +149,7 @@ describe("BT18-062 Gladimon", () => {
             { card: "BT18-099", as: "cost" },
           ],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

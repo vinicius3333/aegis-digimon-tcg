@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT18-019.js";
 import { compiled } from "./BT18-084.js";
 
 describe("BT18-084 AncientSphinxmon", () => {
@@ -77,14 +78,21 @@ describe("BT18-084 AncientSphinxmon", () => {
     });
     s.state.memory = 8;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("ancient").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("duskmon").instanceId, s.inst("velgrmon").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("ancient").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("duskmon").instanceId, s.inst("velgrmon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-084"));
 
-    expect(s.perm("ancient").stack.map((card) => card.cardId).sort()).toEqual(["BT18-078", "BT18-079"]);
+    expect(
+      s
+        .perm("ancient")
+        .stack.map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["BT18-078", "BT18-079"]);
     expect(s.state.memory).toBe(0);
   });
 
@@ -100,14 +108,17 @@ describe("BT18-084 AncientSphinxmon", () => {
     });
     s.state.memory = 20;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("ancient").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("duskmonA").instanceId, s.inst("duskmonB").instanceId] },
-    })).toEqual({ ok: false, reason: "invalid-material" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("ancient").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("duskmonA").instanceId, s.inst("duskmonB").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
   });
 
   it("naturally plays a qualifying source from its own stack when deleted", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -115,15 +126,18 @@ describe("BT18-084 AncientSphinxmon", () => {
         },
         1: { hand: [{ card: "BT18-019", as: "millenniummon" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     s.state.turnSeat = 1;
     s.state.memory = 14;
+    preferInstanceIds.push(s.perm("ancient").permanentId);
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("millenniummon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("duskmon").instanceId));
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("millenniummon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-078"));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("duskmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-078")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT18-084")).toBe(true);
   });
 });

@@ -43,9 +43,9 @@ describe("BT18-090 Zoe Orimoto", () => {
         0: {
           battleArea: [{ card: "BT18-090", as: "zoe" }],
           hand: [{ card: "BT18-011", as: "hybrid" }, { card: "BT1-010" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
-        1: { deck: ["BT1-003"] },
+        1: { deck: ["BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -53,13 +53,12 @@ describe("BT18-090 Zoe Orimoto", () => {
     s.state.memory = 0;
     await s.ready();
     const turn = s.engine.runOneTurn();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    for (let i = 0; i < 500 && !mainPhase.isOpen; i++) await Promise.resolve();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    s.engine.applyIntent(0, { type: "endPhase" });
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
 
@@ -70,14 +69,20 @@ describe("BT18-090 Zoe Orimoto", () => {
     });
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zoe").instanceId));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zoe").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zoe").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zoe").instanceId)).toBe(
+      true,
+    );
   });
 
   it("naturally plays an inherited-effect Tamer after a battle deletion", async () => {
@@ -96,15 +101,47 @@ describe("BT18-090 Zoe Orimoto", () => {
     );
     s.state.turnSeat = 0;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("inheritedTamer").instanceId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("inheritedTamer").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("inheritedTamer").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("inheritedTamer").instanceId),
+    ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("plainTamer").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("allows the inherited Tamer play to be declined after battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-060", as: "host", under: ["BT18-090"] }],
+          hand: [{ card: "BT18-088", as: "inheritedTamer" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 3000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("inheritedTamer").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-088")).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

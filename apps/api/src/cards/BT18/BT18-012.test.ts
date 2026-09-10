@@ -52,7 +52,7 @@ describe("BT18-012 Grumblemon", () => {
         0: {
           battleArea: [{ card: "BT18-014", as: "gigasmon" }],
           hand: [{ card: "BT18-012", as: "grumblemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-030", dp: 3000, as: "target" }] },
       },

@@ -12,7 +12,7 @@ describe("BT18-042 MagnaGarurumon", () => {
           battleArea: [{ card: "BT1-060", as: "host" }],
           hand: [{ card: "BT18-042", as: "magna" }],
           deck: ["BT1-009"],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-060", as: "target" }] },
       },
@@ -47,7 +47,7 @@ describe("BT18-042 MagnaGarurumon", () => {
         0: {
           battleArea: [{ card: "BT1-060", as: "base", under: [{ card: "BT1-009", as: "level3Source" }] }],
           hand: [{ card: "BT18-042", as: "source" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -137,7 +137,7 @@ describe("BT18-042 MagnaGarurumon", () => {
         battleArea: [{ card: "BT7-087", as: "koji", under: hybrids }],
         hand: [{ card: "BT18-042", as: "magna" }],
         deck: [{ card: "BT1-009", as: "evolutionDraw" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-060", as: "wouldMatch" }] },
     });

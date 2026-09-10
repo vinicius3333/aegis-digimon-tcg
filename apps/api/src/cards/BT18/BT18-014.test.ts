@@ -46,7 +46,7 @@ describe("BT18-014 Gigasmon", () => {
             { card: "BT1-030", as: "ally" },
           ],
           hand: [{ card: "BT18-014", as: "gigasmon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },

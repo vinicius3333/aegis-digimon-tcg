@@ -33,7 +33,7 @@ describe("BT18-001 DemiMeramon", () => {
           ],
         },
         1: {
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
           battleArea: [
             { card: "BT1-030", dp: 3000, as: "small" },
             { card: "BT1-030", dp: 3000, as: "secondSmall" },
@@ -90,5 +90,49 @@ describe("BT18-001 DemiMeramon", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+  });
+
+  it("resets the inherited once-per-turn deletion across complete turns", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-016", as: "host", under: ["BT18-001"] },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          deck: ["BT1-009", "BT1-013"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-013"],
+          security: ["BT1-009", "BT1-009"],
+          battleArea: [
+            { card: "BT1-030", dp: 3000, as: "first" },
+            { card: "BT1-030", dp: 3000, as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" as const },
+      });
+    const firstId = s.perm("first").permanentId;
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

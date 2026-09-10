@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-049.js";
@@ -33,6 +34,10 @@ describe("BT18-049 Zephyrmon", () => {
     await settle(() => s.perm("target").currentDP === 6000);
 
     expect(s.perm("target").currentDP).toBe(6000);
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(3000);
     assertNoLoudGap(s);
   });
 
@@ -44,7 +49,7 @@ describe("BT18-049 Zephyrmon", () => {
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: "BT18-049", as: "zephyrmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 5;
@@ -74,7 +79,7 @@ describe("BT18-049 Zephyrmon", () => {
             { card: "BT1-030", as: "target" },
           ],
           hand: [{ card: "BT18-049", as: "zephyrmon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
       },

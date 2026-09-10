@@ -45,7 +45,7 @@ describe("BT18-063 Beetlemon", () => {
       0: {
         battleArea: [{ card: "BT18-091", as: "jp", enteredThisTurn: true }],
         hand: [{ card: "BT18-063", as: "beetlemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { security: ["BT1-010"] },
     });
@@ -83,7 +83,7 @@ describe("BT18-063 Beetlemon", () => {
       0: {
         battleArea: [{ card: "BT18-067", as: "metalKabuterimon" }],
         hand: [{ card: "BT18-063", as: "beetlemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -110,7 +110,7 @@ describe("BT18-063 Beetlemon", () => {
             { card: "BT18-059", as: "base" },
           ],
           hand: [{ card: "BT18-063", as: "destination" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { security: ["BT1-010", "BT1-011"] },
       },

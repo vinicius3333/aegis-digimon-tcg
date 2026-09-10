@@ -66,7 +66,7 @@ describe("BT18-053 JetSilphymon", () => {
             { card: "BT18-048", as: "kazemon" },
             { card: "BT18-049", as: "zephyrmon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
       },
@@ -120,6 +120,47 @@ describe("BT18-053 JetSilphymon", () => {
     expect(s.perm("zoe").topCard?.cardId).toBe("BT18-090");
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("kazemon").instanceId);
     expect(s.state.memory).toBe(5);
+    assertNoLoudGap(s);
+  });
+
+  it("selects a mixed green/red Tamer and places both named sources under that chosen Tamer", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-090", as: "zoe" },
+            { card: "AD1-022", as: "mixedTamer" },
+          ],
+          hand: [{ card: "BT18-053", as: "jetsilphymon" }],
+          trash: [
+            { card: "BT18-048", as: "kazemon" },
+            { card: "BT18-049", as: "zephyrmon" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+    );
+    preferredInstanceIds.push(
+      s.perm("mixedTamer").topCard!.instanceId,
+      s.inst("kazemon").instanceId,
+      s.inst("zephyrmon").instanceId,
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const effect = JSON.parse(s.inst("jetsilphymon").activatableEffectsJson || "[]") as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("jetsilphymon").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mixedTamer").topCard?.cardId === "BT18-053");
+    expect(s.perm("mixedTamer").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["AD1-022", "BT18-048", "BT18-049"]),
+    );
+    expect(s.perm("zoe").topCard?.cardId).toBe("BT18-090");
     assertNoLoudGap(s);
   });
 

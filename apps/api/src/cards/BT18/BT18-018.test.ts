@@ -79,7 +79,7 @@ describe("BT18-018 EmperorGreymon", () => {
             },
           ],
           hand: [{ card: "BT18-018", as: "emperor" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -122,7 +122,7 @@ describe("BT18-018 EmperorGreymon", () => {
             },
           ],
           hand: [{ card: "BT18-018", as: "emperor" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { security: [{ card: "BT1-030", as: "security" }] },
       },

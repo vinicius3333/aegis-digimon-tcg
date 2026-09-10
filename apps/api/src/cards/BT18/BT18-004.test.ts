@@ -32,15 +32,15 @@ describe("BT18-004 Puroromon", () => {
             { card: "BT1-030", as: "nonRoyal" },
             { card: "BT18-044", as: "royal" },
           ],
-          security: [{ card: "BT1-001", as: "top" }],
-          deck: ["BT1-002"],
+          security: [{ card: "BT1-009", as: "top" }],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     await s.ready();
     await advance(s.engine).runTurn(0);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT18-044");
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonRoyal").instanceId)).toBe(true);
@@ -52,8 +52,8 @@ describe("BT18-004 Puroromon", () => {
         0: {
           battleArea: [{ card: "BT1-064", as: "host", under: ["BT18-004"] }],
           hand: [{ card: "BT18-044", as: "royal" }],
-          security: [{ card: "BT1-001", as: "top" }],
-          deck: ["BT1-002"],
+          security: [{ card: "BT1-009", as: "top" }],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

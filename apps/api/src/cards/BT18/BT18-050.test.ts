@@ -17,7 +17,10 @@ describe("BT18-050 Petaldramon", () => {
       {
         0: {
           hand: [{ card: "BT18-050", as: "petaldramon" }],
-          battleArea: [{ card: "BT18-047", as: "vegetation", suspended: true }],
+          battleArea: [
+            { card: "BT18-047", as: "vegetation", suspended: true },
+            { card: "BT1-078", as: "nearTrait", suspended: true },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
@@ -30,6 +33,7 @@ describe("BT18-050 Petaldramon", () => {
     await settle(() => !s.perm("vegetation").isSuspended);
 
     expect(s.perm("vegetation").isSuspended).toBe(false);
+    expect(s.perm("nearTrait").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -56,6 +60,25 @@ describe("BT18-050 Petaldramon", () => {
     assertNoLoudGap(s);
   });
 
+  it("may refuse the optional unsuspend without changing a qualifying Plant", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-050", as: "petaldramon" }],
+          battleArea: [{ card: "BT18-047", as: "vegetation", suspended: true }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petaldramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("vegetation").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it("digivolves from Arbormon for 1 and unsuspends a qualifying Plant", async () => {
     const preferredInstanceIds: string[] = [];
     const s = setupEngine(
@@ -63,7 +86,7 @@ describe("BT18-050 Petaldramon", () => {
         0: {
           battleArea: [{ card: "BT18-047", as: "arbormon", suspended: true }],
           hand: [{ card: "BT18-050", as: "petaldramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
@@ -97,7 +120,7 @@ describe("BT18-050 Petaldramon", () => {
             { card: "BT1-030", as: "first" },
             { card: "BT1-030", as: "second" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-011", "BT1-011"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },

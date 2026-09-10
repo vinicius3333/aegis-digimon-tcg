@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT18-002.js";
 
 describe("BT18-002 Chapmon", () => {
@@ -32,5 +33,21 @@ describe("BT18-002 Chapmon", () => {
     const alone = setupEngine({ 0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-002"] }] } });
     await alone.engine.recomputeContinuousEffects();
     expect(alone.perm("host").currentDP).toBe(3000);
+  });
+
+  it("removes the aura when the only other blue Digimon leaves", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-030", as: "host", under: ["BT18-002"] },
+          { card: "BT1-030", as: "other" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(4000);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("other").permanentId], "byEffect")).toBe(1);
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(3000);
   });
 });

@@ -23,7 +23,7 @@ describe("BT18-013 Deltamon", () => {
         0: {
           hand: [
             { card: "BT18-013", as: "deltamon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: ["BT18-015"],
         },
@@ -36,7 +36,7 @@ describe("BT18-013 Deltamon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-015"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT18-015")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("selects the Wicked God branch of the OR trait filter and rejects a nonmatching card", async () => {
@@ -46,7 +46,7 @@ describe("BT18-013 Deltamon", () => {
         0: {
           hand: [
             { card: "BT18-013", as: "deltamon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: [
             { card: "BT1-030", as: "nonmatching" },
@@ -74,7 +74,7 @@ describe("BT18-013 Deltamon", () => {
         0: {
           hand: [
             { card: "BT18-013", as: "deltamon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: [{ card: "BT18-015", as: "target" }],
         },
@@ -108,10 +108,10 @@ describe("BT18-013 Deltamon", () => {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [
             { card: "BT18-013", as: "deltamon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: [{ card: "BT18-015", as: "target" }],
-          deck: ["BT1-002"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

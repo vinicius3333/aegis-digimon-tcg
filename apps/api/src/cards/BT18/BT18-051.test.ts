@@ -25,7 +25,7 @@ describe("BT18-051 Entmon", () => {
         0: {
           battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
           hand: [{ card: "EX3-045", as: "hydramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -97,7 +97,7 @@ describe("BT18-051 Entmon", () => {
       0: {
         battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
         hand: [{ card: "BT1-081", as: "hercules" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     await s.ready();

@@ -139,7 +139,7 @@ describe("BT18-055 AncientTroymon", () => {
       0: {
         battleArea: [{ card: "BT18-051", as: "entmon" }],
         hand: [{ card: "BT18-055", as: "ancient" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     await s.ready();

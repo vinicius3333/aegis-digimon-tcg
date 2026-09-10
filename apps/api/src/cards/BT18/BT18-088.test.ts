@@ -55,7 +55,7 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto", () => {
           trash: ["BT18-011", "BT18-012", "BT18-014"],
           hand: [{ card: "BT1-010" }],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -97,7 +97,7 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-011", as: "host", under: ["BT18-088"] }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -113,7 +113,7 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-060", as: "host", under: ["BT18-088"] }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -28,7 +28,7 @@ describe("BT18-033 Patamon", () => {
         0: {
           hand: [{ card: "BT18-033", as: "patamon" }],
           trash: [{ card: "BT1-063", as: "seraphimon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

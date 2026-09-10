@@ -41,7 +41,7 @@ describe("BT18-064 Mercurymon", () => {
       0: {
         battleArea: [{ card: "BT18-066", as: "sephirothmon" }],
         hand: [{ card: "BT18-064", as: "mercurymon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -56,7 +56,7 @@ describe("BT18-064 Mercurymon", () => {
     await settle(() => s.perm("sephirothmon").topCard.cardId === "BT18-064");
     expect(s.state.memory).toBe(3);
     expect(s.perm("sephirothmon").stack.map(({ cardId }) => cardId)).toContain("BT18-066");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(observe(s.engine).isRestricted(s.perm("sephirothmon"), "beReturned")).toBe(true);
     assertNoLoudGap(s);
   });
@@ -84,7 +84,7 @@ describe("BT18-064 Mercurymon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT18-064", as: "mercurymon" }] },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

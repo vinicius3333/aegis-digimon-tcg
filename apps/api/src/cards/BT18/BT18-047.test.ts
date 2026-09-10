@@ -106,7 +106,7 @@ describe("BT18-047 Arbormon", () => {
             { card: "BT1-030", as: "firstTarget" },
             { card: "BT1-030", as: "secondTarget" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-011", "BT1-011"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },

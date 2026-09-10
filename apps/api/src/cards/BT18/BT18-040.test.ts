@@ -8,7 +8,7 @@ describe("BT18-040 Dynasmon", () => {
   it("has Raid and pays the exact security cost to give an opponent -6000 DP", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT18-040", as: "dynasmon" }], security: ["BT1-001"] },
+        0: { hand: [{ card: "BT18-040", as: "dynasmon" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-060", as: "target", dp: 10000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -128,7 +128,7 @@ describe("BT18-040 Dynasmon", () => {
         1: {
           battleArea: [{ card: "BT1-060", as: "base" }],
           hand: [{ card: "BT18-040", as: "dynasmon" }],
-          security: [{ card: "BT1-001", as: "securityCost" }, "BT1-001"],
+          security: [{ card: "BT1-009", as: "securityCost" }, "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

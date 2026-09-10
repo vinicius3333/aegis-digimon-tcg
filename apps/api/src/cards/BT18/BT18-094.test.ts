@@ -67,7 +67,7 @@ describe("BT18-094 Koichi Kimura", () => {
         0: {
           battleArea: [{ card: "BT18-094", as: "koichi" }],
           hand: [{ card: "BT18-063", as: "hybrid" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -95,7 +95,7 @@ describe("BT18-070 RhinoKabuterimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-070"] }] },
-        1: { battleArea: [{ card: "BT1-078", as: "target" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-078", as: "target" }], security: ["BT1-010"] },
       },
       { autoSelectCards: true },
     );

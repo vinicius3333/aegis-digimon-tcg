@@ -103,13 +103,13 @@ describe("BT18-099 Fist of Athena", () => {
   it("arms Delay after a natural target switch and applies both delayed keywords to one Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-004", as: "raid" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "AD1-004", as: "raid" }], security: ["BT1-010"] },
         1: {
           battleArea: [
             { card: "BT18-099", as: "option" },
             { card: "BT1-009", as: "defender" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

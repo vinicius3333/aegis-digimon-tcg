@@ -151,7 +151,7 @@ describe("BT18-098 Dragon's Roar", () => {
   it("naturally resolves Security by deleting the attacking Digimon and recovering from an empty stack", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "BT18-098", as: "option" }], deck: [{ card: "BT1-001", as: "recovery" }] },
+        0: { security: [{ card: "BT18-098", as: "option" }], deck: [{ card: "BT1-010", as: "recovery" }] },
         1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

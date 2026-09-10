@@ -20,17 +20,16 @@ describe("BT18-087 Owen Dreadnought", () => {
   it("sets memory to 3 at the natural start of your turn when memory is 2 or less", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT18-087", as: "owen" }], hand: [{ card: "BT1-010" }] },
-      1: { deck: ["BT1-001"] },
+      1: { deck: ["BT1-010"] },
     });
     s.state.memory = 2;
     s.state.turnSeat = 0;
     await s.ready();
     const turn = s.engine.runOneTurn();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    for (let i = 0; i < 500 && !mainPhase.isOpen; i++) await Promise.resolve();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(3);
-    s.engine.applyIntent(0, { type: "endPhase" });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
 
@@ -49,7 +48,7 @@ describe("BT18-087 Owen Dreadnought", () => {
             { card: "BT1-010", as: "low", dp: 4000 },
             { card: "BT1-010", as: "high", dp: 5000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
@@ -59,12 +58,16 @@ describe("BT18-087 Owen Dreadnought", () => {
     s.state.turnSeat = 0;
     s.state.memory = 1;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.perm("owen").isSuspended && !s.state.players[1]!.battleArea.some((perm) => perm.permanentId === lowId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("owen").isSuspended && !s.state.players[1]!.battleArea.some((perm) => perm.permanentId === lowId),
+    );
 
     expect(s.perm("owen").isSuspended).toBe(true);
     expect(() => s.perm("low")).toThrow();
@@ -78,12 +81,16 @@ describe("BT18-087 Owen Dreadnought", () => {
     });
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId)).toBe(
       true,

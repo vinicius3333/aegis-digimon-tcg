@@ -32,12 +32,12 @@ describe("BT18-034 Lucemon", () => {
         0: {
           hand: [
             { card: "BT18-034", as: "lucemon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
-          deck: ["BT1-002"],
-          security: ["BT1-003"],
+          deck: ["BT1-009"],
+          security: ["BT1-010"],
         },
-        1: { security: ["BT1-003"] },
+        1: { security: ["BT1-010"] },
       },
       { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
     );
@@ -55,7 +55,7 @@ describe("BT18-034 Lucemon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-002");
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
     assertNoLoudGap(s);
   });
 
@@ -65,10 +65,10 @@ describe("BT18-034 Lucemon", () => {
         0: {
           hand: [
             { card: "BT18-034", as: "lucemon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
-          deck: ["BT1-002"],
-          security: ["BT1-003"],
+          deck: ["BT1-009"],
+          security: ["BT1-010"],
         },
         1: { security: [] },
       },
@@ -82,10 +82,10 @@ describe("BT18-034 Lucemon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
     );
-    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT1-002"));
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT1-009"));
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-002");
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
