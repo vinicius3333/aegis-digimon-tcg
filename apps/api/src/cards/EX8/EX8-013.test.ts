@@ -1,11 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-013.js";
 
 describe("EX8-013", () => {
+  it("matches the catalog identity and printed clauses", () => {
+    expect(getCardDefinition("EX8-013")).toMatchObject({
+      cardId: "EX8-013",
+      nameEn: "SkullMeramon",
+      colors: ["Red"],
+      level: 5,
+      playCost: 5,
+      dp: 7000,
+      evoCosts: [{ color: "Red", level: 4, memoryCost: 3 }],
+      effectText: "[Digivolve]Lv.4 w/[NSo]\u00a0trait: Cost 3",
+      inheritedEffectText: "＜Security Attack +1＞.",
+    });
+  });
+
   it("inherits Security Attack +1", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
       keyword: "SecurityAttack",
@@ -55,6 +69,27 @@ describe("EX8-013", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("devimon").topCard.instanceId === s.inst("skullMeramon").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("uses the standard Red level-4 route for exactly 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST1-07", as: "greymon" }],
+        hand: [{ card: "EX8-013", as: "skullMeramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greymon").permanentId,
+        instanceId: s.inst("skullMeramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greymon").topCard.instanceId === s.inst("skullMeramon").instanceId);
     expect(s.state.memory).toBe(0);
   });
 
