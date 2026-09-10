@@ -1,22 +1,82 @@
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-012.js";
 
 describe("EX8-012", () => {
-  it("registers the draw/trash digivolving effect", () =>
-    expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions.slice(0, 2)).toHaveLength(2));
-  it("registers the once-per-turn inherited opponent-deletion memory effect", () =>
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-012")).toMatchObject({
+      cardId: "EX8-012",
+      nameEn: "Growlmon (X Antibody)",
+      colors: ["Red", "Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [
+        { color: "Red", level: 3, memoryCost: 3 },
+        { color: "Purple", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Dark Dragon", "X Antibody"],
+      effectText: expect.stringContaining("[Digivolve][Growlmon]: Cost 0"),
+      inheritedEffectText: "[Your Turn] [Once Per Turn] When any of your opponent's Digimon is deleted, gain 1 memory.",
+    });
+  });
+
+  it("traces the mandatory draw/trash, stack gate, temporary recovery, and inherited trigger IR", () => {
+    const whenDigivolving = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(whenDigivolving).toMatchObject({
+      actions: [
+        { kind: "Draw", controller: "mine", amount: 1 },
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+        {
+          kind: "GainTriggeredEffect",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          gainedTrigger: "OnDeletion",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "selfDigivolutionStackMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "name" }] },
+              },
+              {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+              },
+            ],
+          },
+          gainedActions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
+    });
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-    }));
-  it("keeps the conditional Guilmon recovery branch attached to digivolution", () => {
-    expect(compiled.effects[0]?.actions[2]).toMatchObject({
-      kind: "GainTriggeredEffect",
-      gainedTrigger: "OnDeletion",
-      duration: "untilOpponentTurnEnd",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          fireCondition: { kind: "selfIsInBattleArea" },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     });
   });
 
@@ -230,7 +290,9 @@ describe("EX8-012", () => {
     });
     await oncePerTurn.ready();
     await advance(oncePerTurn.engine).verb.deletePermanent([oncePerTurn.perm("first").permanentId], "byEffect");
+    await settle(() => oncePerTurn.state.memory === 1);
     await advance(oncePerTurn.engine).verb.deletePermanent([oncePerTurn.perm("second").permanentId], "byEffect");
+    await settle(() => oncePerTurn.state.memory === 1);
     expect(oncePerTurn.state.memory).toBe(1);
 
     const opponentTurn = setupEngine({
@@ -252,5 +314,37 @@ describe("EX8-012", () => {
       "byEffect",
     );
     expect(simultaneous.state.memory).toBe(0);
+  });
+
+  it("resets the inherited once-per-turn memory gain on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-045"],
+        battleArea: [{ card: "BT1-024", as: "host", under: ["EX8-012"] }],
+      },
+      1: {
+        deck: ["BT1-045"],
+        battleArea: [
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-010", as: "second" },
+        ],
+      },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId], "byEffect");
+    await settle(() => s.state.memory === 1);
+
+    s.state.phase = Phase.End;
+    const nextTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main && s.state.turnCount === 1);
+    await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect");
+    await settle(() => s.state.memory === 2);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT1-024");
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await nextTurn;
   });
 });
