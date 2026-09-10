@@ -34,6 +34,7 @@ export interface CatalogDeck {
   formatBlock: string;
   colors: string[];
   sourceType: "community_tournament_deck" | "product_recipe";
+  sourceUrl?: string;
   approximation?: string;
   tournament?: CatalogTournament;
   mainDeck: CatalogEntry[];
@@ -125,6 +126,7 @@ export function catalogDeck(value: unknown): FamousDeck {
     colors: value.colors.map(catalogColor),
     source: catalogSource(value),
     sourceType: value.sourceType,
+    sourceUrl: value.sourceUrl,
     category: value.sourceType === "product_recipe" ? "official-recipe" : "tournament-result",
     approximation: value.approximation,
     mainDeck: catalogEntries(value.mainDeck),
