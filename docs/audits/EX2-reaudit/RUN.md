@@ -32,3 +32,20 @@
 - `EX2-003` improved to 7/8 but still used direct phase mutation that left public digivolution in `wrong-phase`; the lane was directed to copy EX2-005's real turn-loop pattern.
 - `EX2-006` improved to 4/5 with the same direct-phase-mutation defect and received the same correction.
 - `EX2-008` improved from 7/9 to 8/9; its remaining assertion resolves an alias after that permanent was correctly deleted. Returned to capture identity before deletion.
+
+## First atomic checkpoint
+
+- `EX2-001` through `EX2-006`, `EX2-008`, `EX2-009`, and `EX2-010` have accepted 8/10 card evidence before delivery gates; all focused tests, scoped lint/format, fixture scans and diff checks pass.
+- `EX2-007` focused suite passes 12/12 after a typed IR conversion, but it remains at 7/10 because several indexed interaction rulings still need direct confirmation.
+- API typecheck passed with a 4096 MB heap after removing suppression from EX2-001 through EX2-011.
+- Atomic checkpoint `678273a53` commits EX2-001 through EX2-010 plus the audit ledger, KB index, run log, review notes and worker brief.
+- `EX2-011` passes 8 tests with one retained Q3295 seam: a generic deletion-ceiling bonus incorrectly affects `totalDpCapFromSourceDp`. A single serialized Luna engine lane owns the investigation; Oxlint remains red until the skipped test is flipped.
+
+## Second atomic checkpoint preparation
+
+- The Q3295 shared targeting seam was fixed in commit `e9ea49d62`; EX2-011 plus the interpreter regression suite pass 223 tests.
+- EX2-011 through EX2-012 and EX2-014 through EX2-021 have reproducible 8/10 card evidence before delivery gates.
+- EX2-013 initially exposed a retained-red turn-loop scenario. Investigation proved there was no engine defect: the fixture attempted to gain above the memory cap, used a stale Option-cost endpoint, and observed memory after unrelated gauge movement. The corrected public loop passes 5/5 and proves first activation, same-turn suppression, and next-owner-turn reset.
+- Focused coordinator results: EX2-012 9/9, EX2-013 5/5, EX2-014 5/5, EX2-015 6/6, EX2-016 7/7, EX2-017 6/6, EX2-018 7/7, EX2-019 6/6, EX2-020 6/6, and EX2-021 5/5. EX2-011 is covered by the 223-test mechanism run above.
+- Every accepted card in this checkpoint passes scoped Oxlint, Oxfmt, fixture-policy scanning, and `git diff --check`; all use typed compiled IR with exclusive `registerIrCard` registration.
+- API typecheck passed after EX2-011 through EX2-021 stabilized. Ledger aggregate is 167/740; delivery remains 0/2 for every card until collection-wide gates, commit chain, and branch push complete.

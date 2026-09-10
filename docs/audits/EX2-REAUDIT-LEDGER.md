@@ -2,7 +2,7 @@
 
 Base: e66ac37dbb3c649a74678e9926edd722b8735066. Prior scores are not inherited.
 
-Current aggregate: 79/740; 0/74 cards at 10/10.
+Current aggregate: 167/740; 0/74 cards at 10/10.
 
 | Card | Name | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -16,17 +16,17 @@ Current aggregate: 79/740; 0/74 cards at 10/10.
 | EX2-008 | Guilmon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3289/Q3290/Q3301, reveal buckets, public attacks and real OPT reset pass 9 focused tests; final gates pending |
 | EX2-009 | Growlmon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; thresholds, legal stack, public attack decisions and real OPT reset pass 8 focused tests; final gates pending |
 | EX2-010 | WarGrowlmon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3291-Q3293, public deletion boundaries and legal inherited stack pass 6 focused tests; final gates pending |
-| EX2-011 | Gallantmon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-012 | Megidramon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-013 | Labramon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-014 | IceDevimon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-015 | Seasarmon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-016 | Gorillamon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-017 | Leomon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-018 | MarineAngemon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-019 | Renamon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-020 | Lopmon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX2-021 | Kyubimon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
+| EX2-011 | Gallantmon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3294-Q3297 and shared relative-DP ceiling seam pass 223 focused/interpreter tests; final gates pending |
+| EX2-012 | Megidramon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3298-Q3303, alias, Decoy, mill and public deletion paths pass 9 focused tests; final gates pending |
+| EX2-013 | Labramon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; inherited Jamming gain, same-turn OPT suppression, next-owner-turn reset and legal/illegal evolution pass 5 focused tests; final gates pending |
+| EX2-014 | IceDevimon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3305-Q3306, inherited retaliation, On Deletion draw and evolution legality pass 5 focused tests; final gates pending |
+| EX2-015 | Seasarmon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3307-Q3308, inherited unsuspend, legal stronger-battle target and evolution legality pass 6 focused tests; final gates pending |
+| EX2-016 | Gorillamon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3309-Q3311, optional blue level-3 free play and legal/illegal evolution paths pass 7 focused tests; final gates pending |
+| EX2-017 | Leomon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3312, conditional Blocker, On Deletion payoff and legal/illegal evolution paths pass 6 focused tests; final gates pending |
+| EX2-018 | MarineAngemon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3304, scaled source-free opponent recovery, security cap and legal/illegal evolution paths pass 7 focused tests; final gates pending |
+| EX2-019 | Renamon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; inherited Option reveal/reduction, threshold, same-turn OPT suppression, next-turn reset and evolution paths pass 6 focused tests; final gates pending |
+| EX2-020 | Lopmon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; Q3314, conditional recovery, Tamer/security negatives and legal/illegal evolution paths pass 6 focused tests; final gates pending |
+| EX2-021 | Kyubimon | 2 | 2 | 2 | 2 | 0 | 8/10 | Re-reviewed; inherited Option reveal/reduction, threshold, unpaid Option, OPT/reset and evolution paths pass 5 focused tests; final gates pending |
 | EX2-022 | Antylamon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
 | EX2-023 | Taomon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
 | EX2-024 | Sakuyamon | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
