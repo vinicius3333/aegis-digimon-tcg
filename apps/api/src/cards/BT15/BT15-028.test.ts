@@ -58,7 +58,9 @@ describe("BT15-028", () => {
     s.state.memory = 6;
     const removedIds = [s.inst("bottom").instanceId, s.inst("middle").instanceId, s.inst("top").instanceId];
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-086"));
 
     expect(s.perm("target").stack).toHaveLength(0);
@@ -71,19 +73,17 @@ describe("BT15-028", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-028", as: "divermon" }, { card: "BT1-086", as: "blueMatt" }],
+          hand: [
+            { card: "BT15-028", as: "divermon" },
+            { card: "BT1-086", as: "blueMatt" },
+          ],
         },
         1: {
           battleArea: [
             {
               card: "BT15-030",
               as: "target",
-              under: [
-                "BT15-002",
-                "BT15-019",
-                "BT15-023",
-                { card: "BT15-027", as: "top" },
-              ],
+              under: ["BT15-002", "BT15-019", "BT15-023", { card: "BT15-027", as: "top" }],
             },
           ],
         },
@@ -92,7 +92,9 @@ describe("BT15-028", () => {
     );
 
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").stack.length === 1);
 
     expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
@@ -104,14 +106,19 @@ describe("BT15-028", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-028", as: "divermon" }, { card: "BT1-086", as: "blueMatt" }],
+          hand: [
+            { card: "BT15-028", as: "divermon" },
+            { card: "BT1-086", as: "blueMatt" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-086")).toBe(true);

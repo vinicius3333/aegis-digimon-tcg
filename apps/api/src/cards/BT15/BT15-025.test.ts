@@ -72,15 +72,35 @@ describe("BT15-025", () => {
       1: { security: ["BT1-081"] },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("rookie").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("rookie").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT15-019");
     s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("egg").inBreeding);
     s.state.phase = Phase.Main;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("seadramon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("seadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT15-025");
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("hostCard").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("hostCard").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT15-027");
     const hostId = s.perm("egg").permanentId;
 

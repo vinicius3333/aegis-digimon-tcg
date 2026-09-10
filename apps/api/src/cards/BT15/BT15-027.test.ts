@@ -57,7 +57,9 @@ describe("BT15-027", () => {
     );
 
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
@@ -73,19 +75,16 @@ describe("BT15-027", () => {
       {
         0: {
           hand: [{ card: "BT15-027", as: "scorpiomon" }],
-          deck: [
-            { card: "BT15-031", as: "onlyHit" },
-            "BT15-025",
-            "BT1-009",
-            "BT1-097",
-          ],
+          deck: [{ card: "BT15-031", as: "onlyHit" }, "BT15-025", "BT1-009", "BT1-097"],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
 
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("onlyHit").instanceId]);
@@ -134,11 +133,13 @@ describe("BT15-027", () => {
     s.state.phase = Phase.Main;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT15-031")?.summoningSick).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT15-031")?.summoningSick,
+    ).toBe(true);
     const moved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT15-031")!;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: moved.permanentId, target: { kind: "player" } })).toMatchObject({
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: moved.permanentId, target: { kind: "player" } }),
+    ).toMatchObject({
       ok: false,
     });
   });
@@ -179,9 +180,7 @@ describe("BT15-027", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-001"] },
       1: {
-        battleArea: [
-          { card: "BT15-031", as: "host", under: ["BT15-025", "BT15-027"], dp: 11000 },
-        ],
+        battleArea: [{ card: "BT15-031", as: "host", under: ["BT15-025", "BT15-027"], dp: 11000 }],
         security: ["BT1-001"],
       },
     });
