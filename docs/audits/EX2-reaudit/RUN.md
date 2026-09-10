@@ -57,3 +57,14 @@
 - Every EX2 module now has zero `@ts-nocheck`, exactly one `registerIrCard`, and no `registerCard` registration.
 - All 74 cards have reproducible 8/10 evidence before delivery gates. Ledger aggregate is 592/740; final 2/2 delivery credit remains blocked on the serialized collection/typecheck/effects/gate run, atomic commits, and pushed branch.
 - Broad final validation is temporarily paused because an unrelated external `tsc --watch` reduced immediately free memory below 1 GiB; no external process was killed.
+
+## Final closeout
+
+- Full EX2 collection passed: 85 files / 494 tests, one worker and no file parallelism.
+- Required collection/mechanism regression passed: 221 files / 2,556 tests, zero failures. The known AD1-002 unsupported-effect diagnostic was emitted by a green scenario and did not fail the suite.
+- Focused Digi-Egg/Retaliation compatibility passed: 5 files / 45 tests.
+- `pnpm effects:sync:set -- --set EX2 --base e66ac37dbb3c649a74678e9926edd722b8735066` and the matching `effects:check:set` passed: 10 EX2 semantic changes, 74 records synchronized, zero semantic or byte changes outside EX2.
+- `pnpm typecheck` passed for shared, API, and web. Changed-file Oxlint has zero errors; Oxfmt and `git diff --check` pass.
+- Static inventory confirms zero EX2 `@ts-nocheck`, zero EX2 `registerCard`, and exactly 74 EX2 modules using `registerIrCard`.
+- Atomic commits `0bdb52a2c` (engine seams), `3568e5ad2` (cards/effects), and `9ecd98f8b` (audit evidence) were pushed to `origin/audit-ex2-luna-20260909` after the earlier two audit checkpoints and targeting fix.
+- Delivery credit awarded 2/2 to all 74 cards: ledger 740/740, 74/74 at 10/10.
