@@ -7442,14 +7442,16 @@ export class GameEngine {
    */
   private handleHatchEgg(seat: Seat, intent: HatchEggIntent): IntentResult {
     void intent;
+    if (this.breeding.isActionSpent) return { ok: false, reason: this.breedingActionSpentReason() };
     const result = applyHatchEgg(this.state, seat, this.breedingDeps());
     if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
-    this.breeding.actionTaken(seat);
-    // "[All Turns] when YOU hatch [a Digi-Egg] in the breeding area" (BT17-093). Fire-and-forget
-    // from this sync intent handler, mirroring the OnMove fire in handleMoveFromBreeding.
-    void this.fireSubTrigger("whenHatch", { subjectPermanentId: result.outcome.permanentId }).catch((err) => {
+    // "[All Turns] when YOU hatch [a Digi-Egg] in the breeding area" (BT17-093). Fired from
+    // this sync intent handler without awaiting; the breeding window stays open until the
+    // fire settles (see handleMoveFromBreeding).
+    const fired = this.fireSubTrigger("whenHatch", { subjectPermanentId: result.outcome.permanentId }).catch((err) => {
       logError("[engine] hatchEgg fire failed:", err);
     });
+    this.breeding.actionTaken(seat, fired);
     return { ok: true };
   }
 
@@ -7458,24 +7460,25 @@ export class GameEngine {
    * success, closes the open breeding window (the single breeding action is spent).
    */
   private handleMoveFromBreeding(seat: Seat, intent: MoveFromBreedingIntent): IntentResult {
+    if (this.breeding.isActionSpent) return { ok: false, reason: this.breedingActionSpentReason() };
     const result = applyMoveFromBreeding(this.state, seat, intent, this.breedingDeps());
     if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
-    this.breeding.actionTaken(seat);
     const movedPermanentId = result.outcome.permanentId;
     // The breeding -> battle move fires the OnMove timing, the broad entry timing/bus, then
     // the two movement SubTrigger events below so reactive watchers execute (both fired unconditionally:
     // a watcher's sourceFilter (isSelfRef / controller matching) gates which side reacts):
     //   whenMovedFromBreeding         — "when one of YOUR Digimon moves from breeding" (BT16-082)
     //   whenOpponentMovedFromBreeding — "when your OPPONENT moves a Digimon from breeding" (BT5-044, BT11-087)
-    // Fire-and-forget from this sync intent handler, mirroring the OnDraw fire in drawCards —
-    // but unlike drawCards (which is itself awaited by its own caller), this handler must return
-    // its IntentResult synchronously, so the fires are chained into one promise: sequential
-    // internal ordering (each begins only after the previous settles) with a single .catch(logError)
-    // so a thrown error surfaces as a log instead of an unhandled rejection. Un-awaited/uncaught
-    // fires here previously risked exactly the race P-130's fix eliminated for movePermanentZone:
-    // a nested fire clobbering the then-shared engine trigger field out of order (each window
-    // now carries its own trigger payload in its environment).
-    void this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
+    // This handler must return its IntentResult synchronously, so the fires are chained into one
+    // promise: sequential internal ordering (each begins only after the previous settles) with a
+    // single .catch(logError) so a thrown error surfaces as a log instead of an unhandled rejection.
+    // Un-awaited/uncaught fires here previously risked exactly the race P-130's fix eliminated for
+    // movePermanentZone: a nested fire clobbering the then-shared engine trigger field out of order
+    // (each window now carries its own trigger payload in its environment).
+    // The chain is handed to the breeding window, which closes only once it settles: closing it
+    // synchronously let the turn machine open Main and fire [Start of Your Main Phase] while
+    // BT16-082's move watcher was still resolving.
+    const fired = this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
       .then(() =>
         this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
           subjectPermanentId: movedPermanentId,
@@ -7493,7 +7496,17 @@ export class GameEngine {
       .catch((err) => {
         logError("[engine] moveFromBreeding fire failed:", err);
       });
+    this.breeding.actionTaken(seat, fired);
     return { ok: true };
+  }
+
+  /**
+   * The turn's one breeding action is already taken and its triggers are still settling
+   * (BT16-082's reveal, BT17-093's hatch watcher). A decision those triggers opened is the
+   * more specific refusal, matching the breeding verbs' own validation order.
+   */
+  private breedingActionSpentReason(): RejectReason {
+    return this.state.pendingDecision !== undefined ? "decision-pending" : "wrong-phase";
   }
 
   /**
