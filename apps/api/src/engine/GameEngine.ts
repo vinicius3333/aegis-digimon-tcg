@@ -91,7 +91,7 @@ import {
   effectiveTraits,
 } from "./effects/continuous.js";
 import { blastDnaChoices } from "./actions/blastDnaDigivolve.js";
-import { linkMax } from "./effects/mindLink.js";
+import { linkEligible, linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
@@ -257,6 +257,7 @@ export function securityStrikeCount(saGrants: ReadonlyArray<{ amount?: number }>
 }
 
 const NO_DIGIVOLVE_TARGETS: readonly string[] = [];
+const NO_LINK_TARGETS: readonly string[] = [];
 
 /** `CardInstance.projectedPlayCost` sentinel: this card has no projectable play cost right now. */
 const NO_PROJECTED_COST = -1;
@@ -3396,6 +3397,7 @@ export class GameEngine {
       this.syncRestrictions();
       this.syncAttackTargets();
       this.syncHandAffordances();
+      this.syncLinkTargets();
     });
     this.recomputeInFlight = task;
     try {
@@ -7337,9 +7339,62 @@ export class GameEngine {
         }
         return grant.amount;
       },
+      canLeaveBattleArea: (permanentId) =>
+        !this.continuous.hasRestriction(permanentId, "leaveBattleAreaExceptByDeletion"),
       link: (targetPermanentId, instanceIds) => this.primitives.link(targetPermanentId, instanceIds),
       ruleProcess: () => this.ruleProcess(),
     };
+  }
+
+  /**
+   * Publish, on every card the turn player could declare a link with (hand cards and
+   * battle-area top cards, §6-5-1-4), the battle-area Digimon that `validateLinkCard`
+   * accepts as its recipient right now. Cleared on every other instance so a card that
+   * changed zones never keeps a stale affordance.
+   */
+  private syncLinkTargets(): void {
+    const seat = this.state.turnSeat;
+    const turnPlayer = this.state.phase === Phase.Main ? this.state.players[seat] : undefined;
+    const deps = turnPlayer === undefined ? undefined : this.linkCardDeps();
+    const sources = new Set<CardInstance>();
+    if (turnPlayer !== undefined) {
+      for (const instance of turnPlayer.hand) sources.add(instance);
+      for (const permanent of turnPlayer.battleArea) sources.add(permanent.topCard);
+    }
+    for (const player of this.state.players) {
+      const loose = [
+        ...player.hand,
+        ...player.deck,
+        ...player.eggDeck,
+        ...player.security,
+        ...player.trash,
+        ...player.delayZone,
+        ...(player.resolvingOption !== undefined ? [player.resolvingOption] : []),
+      ];
+      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
+        loose.push(permanent.topCard, ...permanent.stack, ...permanent.linked);
+      }
+      for (const instance of loose) {
+        if (!sources.has(instance)) replaceIfChanged(instance.linkTargetPermanentIds, NO_LINK_TARGETS);
+      }
+    }
+    if (turnPlayer === undefined || deps === undefined) return;
+    for (const instance of sources) {
+      const targets: string[] = [];
+      const definition = lookupDefinition(instance.cardId);
+      if (definition !== undefined && linkEligible(definition)) {
+        for (const recipient of turnPlayer.battleArea) {
+          const check = validateLinkCard(
+            this.state,
+            seat,
+            { type: "linkCard", instanceId: instance.instanceId, targetPermanentId: recipient.permanentId },
+            deps,
+          );
+          if (check.ok) targets.push(recipient.permanentId);
+        }
+      }
+      replaceIfChanged(instance.linkTargetPermanentIds, targets);
+    }
   }
 
   /**
@@ -7827,6 +7882,7 @@ function mapLinkReason(reason: LinkCardRejection): RejectReason {
       return "insufficient-memory";
     case "no-such-player":
     case "game-over":
+    case "illegal-target":
       return "illegal-target";
     default: {
       const exhaustive: never = reason;

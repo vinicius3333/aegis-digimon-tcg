@@ -4,6 +4,7 @@ import {
   type CardInstance,
   type GameState,
   type Permanent,
+  type PlayerState,
   type Seat,
 } from "@aegis/shared";
 import { definitionOf } from "../cards/cardData.js";
@@ -38,7 +39,7 @@ import { findBattleAreaPermanent, findInHand, playerAt } from "./digivolveState.
 
 export interface LinkCardIntent {
   type: "linkCard";
-  /** The hand instance to link. */
+  /** The card to link: a hand instance, or the top card of one of the actor's other battle-area permanents. */
   instanceId: string;
   /** The actor's own battle-area Digimon to link it to. */
   targetPermanentId: string;
@@ -55,6 +56,7 @@ export type LinkCardRejection =
   | "not-linkable"
   | "no-such-permanent"
   | "not-controller"
+  | "illegal-target"
   | "link-requirement-unmet"
   | "insufficient-memory";
 
@@ -63,8 +65,10 @@ export type LinkCardCheck =
   | { ok: false; reason: LinkCardRejection }
   | {
       ok: true;
-      /** The hand card being linked. */
+      /** The card being linked (from hand or a battle-area top). */
       instance: CardInstance;
+      /** The battle-area permanent the linked card currently tops, when linking from the field. */
+      sourcePermanent?: Permanent;
       /** Static definition of the card being linked. */
       definition: CardDefinition;
       /** The battle-area Digimon receiving the link. */
@@ -95,6 +99,12 @@ export interface LinkCardDeps {
   linkRequirementSatisfied(hostDefinition: CardDefinition, linkedCard: CardInstance): boolean;
   /** Largest currently available recipient reduction, used by declaration legality. */
   linkCostReduction(targetPermanentId: string, cardTraits: readonly string[]): number;
+  /**
+   * Whether a battle-area permanent may leave the battle area to become a link card
+   * (§6-5-1-4 links "a card from the hand or battle area"). A "can't leave except by
+   * deletion" restriction on the source refuses the declaration.
+   */
+  canLeaveBattleArea?(permanentId: string): boolean;
   /** Offer and consume the matching optional once-per-turn reduction at declaration. */
   resolveLinkCostReduction(targetPermanentId: string, cardTraits: readonly string[]): Promise<number>;
   /**
@@ -133,7 +143,7 @@ export function validateLinkCard(
   state: GameState,
   seat: Seat,
   intent: LinkCardIntent,
-  deps: Pick<LinkCardDeps, "maxAffordable" | "linkRequirementSatisfied" | "linkCostReduction">,
+  deps: Pick<LinkCardDeps, "maxAffordable" | "linkRequirementSatisfied" | "linkCostReduction" | "canLeaveBattleArea">,
 ): LinkCardCheck {
   // 1. Game state gates.
   if (state.gameOver) return { ok: false, reason: "game-over" };
@@ -145,12 +155,22 @@ export function validateLinkCard(
   const player = playerAt(state, seat);
   if (player === undefined) return { ok: false, reason: "no-such-player" };
 
-  // 2. The card to link must be in this seat's hand (the battle-area-topCard half
-  //    of §6-5-1-4 is explicitly out of scope for this verb).
-  const found = findInHand(player, intent.instanceId);
-  if (found === undefined) return { ok: false, reason: "card-not-in-zone" };
+  // 2. §6-5-1-4: the card to link is in this seat's hand, or is the top card of one of
+  //    this seat's own battle-area permanents (its stack and link cards are trashed by the
+  //    Link primitive when it leaves).
+  const inHand = findInHand(player, intent.instanceId)?.instance;
+  const sourcePermanent = inHand === undefined ? findBattleAreaTop(player, intent.instanceId) : undefined;
+  const instance = inHand ?? sourcePermanent?.topCard;
+  if (instance === undefined) return { ok: false, reason: "card-not-in-zone" };
+  if (sourcePermanent !== undefined) {
+    if (sourcePermanent.controllerSeat !== seat) return { ok: false, reason: "not-controller" };
+    if (sourcePermanent.permanentId === intent.targetPermanentId) return { ok: false, reason: "illegal-target" };
+    if (deps.canLeaveBattleArea?.(sourcePermanent.permanentId) === false) {
+      return { ok: false, reason: "illegal-target" };
+    }
+  }
 
-  const definition = definitionOf(found.instance.cardId);
+  const definition = definitionOf(instance.cardId);
   // Server-authoritative <Link> eligibility (KB Q4881): only a card carrying the
   // Link mechanic (a printed linkRequirement) may be linked.
   if (!linkEligible(definition)) return { ok: false, reason: "not-linkable" };
@@ -164,7 +184,7 @@ export function validateLinkCard(
 
   // 4. §10-1-3-1: the chosen Digimon must meet the link card's requirement.
   const hostDefinition = definitionOf(permanent.topCard.cardId);
-  if (!deps.linkRequirementSatisfied(hostDefinition, found.instance)) {
+  if (!deps.linkRequirementSatisfied(hostDefinition, instance)) {
     return { ok: false, reason: "link-requirement-unmet" };
   }
 
@@ -175,7 +195,12 @@ export function validateLinkCard(
     return { ok: false, reason: "insufficient-memory" };
   }
 
-  return { ok: true, instance: found.instance, definition, permanent, cost };
+  return { ok: true, instance, sourcePermanent, definition, permanent, cost };
+}
+
+/** The actor's battle-area permanent whose top card is `instanceId`, if any. */
+function findBattleAreaTop(player: PlayerState, instanceId: string): Permanent | undefined {
+  return player.battleArea.find((permanent) => permanent.topCard?.instanceId === instanceId);
 }
 
 /**

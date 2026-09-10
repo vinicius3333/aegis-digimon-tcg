@@ -42,6 +42,15 @@ export class CardInstance extends Schema {
   @type("int8") projectedPlayCost = -1;
   // Own permanents this hand card may legally digivolve onto right now.
   @type(["string"]) digivolveTargetPermanentIds = new ArraySchema<string>();
+  // Own battle-area Digimon this card may legally be linked to right now (§6-5-1-4 /
+  // §10-1), projected for the turn player's hand cards and battle-area top cards during
+  // the Main phase by GameEngine.syncLinkTargets, and empty everywhere else. The client
+  // must not rebuild link legality from the printed requirement: cost reductions, memory
+  // and the source's own leave restrictions are already resolved here. Published like
+  // `digivolveTargetPermanentIds` rather than under `PRIVATE_VIEW_TAG`: a view-tagged
+  // primitive array breaks the client decoder in the scenario suite, so this shares
+  // that projection's exposure of which hand cards have a legal recipient.
+  @type(["string"]) linkTargetPermanentIds = new ArraySchema<string>();
   /** Legal App Fusion routes for this hand card, visible only with the owner's hand view. */
   @view(PRIVATE_VIEW_TAG) @type([AppFusionRoute]) appFusionRoutes = new ArraySchema<AppFusionRoute>();
 }
