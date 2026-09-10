@@ -1,11 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-062.js";
 
 describe("EX8-062", () => {
+  it("matches the committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-062")).toMatchObject({
+      cardId: "EX8-062",
+      nameEn: "Piedmon",
+      colors: ["Purple", "Yellow"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 7,
+      dp: 12000,
+      evoCosts: [
+        { color: "Purple", level: 5, memoryCost: 4 },
+        { color: "Yellow", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Wizard", "NSo"],
+      effectText:
+        "[Digivolve]Lv.5 w/[NSo]\u00a0trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] Activate the effect below 4 times:\n・1 of your opponent's Digimon gets -2000 DP for the turn.\n[All Turns] [Once Per Turn] When other Digimon are deleted, you may play 1 level 4 or lower [NSo]\u00a0trait Digimon card from your trash without paying the cost.",
+      isAce: true,
+      overflowMemory: 4,
+    });
+    expect(getCardDefinition("EX8-062")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("EX8-062")?.securityEffectText).toBeUndefined();
+  });
   it("has Blast Digivolve and gives four opposing Digimon -2000 DP on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords?.[0]).toMatchObject({
       keyword: "BlastDigivolve",
@@ -16,13 +40,21 @@ describe("EX8-062", () => {
       amount: -2000,
       duration: "forTheTurn",
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toEqual(
+      Array.from({ length: 4 }, () => ({
+        kind: "ModifyDP",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        amount: -2000,
+        duration: "forTheTurn",
+      })),
+    );
   });
   it("has the all-turns deletion response that may play an NSo Digimon from trash", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
-      sourceFilter: { controllerDefault: "both", excludeSelf: true },
+      sourceFilter: { controllerDefault: "any", excludeSelf: true },
       actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }],
     });
   });
@@ -33,6 +65,27 @@ describe("EX8-062", () => {
       cost: 3,
       isAlternate: true,
     }));
+  it("accepts a standard Yellow level-5 evolution route for 4 memory", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-059", as: "yellowBase" }], hand: [{ card: "EX8-062", as: "piedmon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("piedmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard.cardId === "EX8-062" && s.perm("target").currentDP === 4000);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT1-059"]);
+  });
   it("applies the four sequential -2000 DP reductions to an opposing Digimon", async () => {
     const s = setupEngine(
       {
