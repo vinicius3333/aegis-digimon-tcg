@@ -9,4 +9,3 @@ For every printed clause, trace concrete executable IR and observable behavioral
 Production modules must register only with `registerIrCard(cardId, compiled)`. Flag `@ts-nocheck`, `registerCard`, `RawUnparsed`, residual clauses, casts that conceal invalid IR, and catalog/persisted IR mismatches.
 
 Write one report per card in `docs/audits/BT18-reaudit/<CARD-ID>.md`, scoring catalog/rules, IR trace, behavior, and peer/stack from 0-2 each; workers award no delivery-gate credit. Run only focused tests, one file at a time, with `--maxWorkers=1 --no-file-parallelism`. Do not run Git writes, collection tests, or typecheck. Do not edit outside assigned modules, tests, and reports.
-

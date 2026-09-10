@@ -106,4 +106,3 @@ Generated from committed `data/kb/qa.json` for the independent re-audit.
 | BT18-100 | Gospel of the Fallen Angel | Q3052 |
 | BT18-101 | Lucemon: Satan Mode | Q3053 |
 | BT18-102 | Susanoomon | Q3054, Q3055, Q3056, Q3057, Q6665, Q6666, Q6667, Q6668, Q6669, Q6670 |
-
