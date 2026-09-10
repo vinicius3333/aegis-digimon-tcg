@@ -38,7 +38,7 @@ const PINNED_FINGERPRINTS: Readonly<Record<string, string>> = {
   "bt6-red-jesmon@1": "fcac45d1a0b4b652",
   "bt6-blue-bond-of-friendship@1": "3aa88a3d9c960729",
   "ex1-blue-hybrid@1": "76cc4b644867c119",
-  "ex1-lilith-loop@1": "3e4095216bd2ab02",
+  "ex1-lilith-loop@2": "2c2d419504213001",
   "bt7-blue-hybrid@1": "a59e51a65c19f9dd",
   "bt7-red-jesmon@1": "a6fb767e981f4485",
   "bt8-mastemon@1": "d536deb382c1f4c2",

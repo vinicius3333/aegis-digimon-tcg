@@ -40,7 +40,7 @@ export const EX1_DECKS: readonly MetaDeck[] = [
   }),
   defineMetaDeck({
     deckId: "ex1-lilith-loop",
-    revision: 1,
+    revision: 2,
     name: "Lilith Loop",
     block: "EX1",
     archetype: "Purple Lilithmon",
@@ -48,7 +48,7 @@ export const EX1_DECKS: readonly MetaDeck[] = [
     source:
       "1st place, LATAM Final Championship 2021, 2022-01-30 (600+ players); the deck also took 3rd/4th at the NA and Oceania championships.",
     approximation:
-      "Jack Raid (BT4-111) is capped at 1 (restricted 2025-03-28) where the list ran 4, and Mega Digimon Fusion! (BT5-109) is banned (2022-02-25) where it ran 2. The five freed slots went to Impmon (BT6-068), DemiDevimon (BT2-067) and Underworld's Call (BT6-108) — all already in the list.",
+      "Jack Raid (BT4-111) is capped at 1 (restricted 2025-03-28) where the list ran 4, and Mega Digimon Fusion! (BT5-109) is banned (2022-02-25) where it ran 2. The five freed slots went to Impmon (BT6-068), DemiDevimon (BT2-067) and Underworld's Call (BT6-108) — all already in the list. Analog Youth (EX1-066) is capped at 1 (restricted 2026-09-01) where the list ran 3; the two freed slots went to Takumi Aiba (BT5-091).",
     mainDeck: [
       { cardId: "BT2-067", count: 2 }, // DemiDevimon
       { cardId: "BT3-076", count: 1 }, // Candlemon
@@ -63,8 +63,8 @@ export const EX1_DECKS: readonly MetaDeck[] = [
       { cardId: "BT6-077", count: 3 }, // Rebellimon
       { cardId: "BT3-091", count: 4 }, // Lilithmon
       { cardId: "BT5-087", count: 3 }, // Omnimon Zwart
-      { cardId: "BT5-091", count: 2 }, // Takumi Aiba
-      { cardId: "EX1-066", count: 3 }, // Analog Youth
+      { cardId: "BT5-091", count: 4 }, // Takumi Aiba
+      { cardId: "EX1-066", count: 1 }, // Analog Youth (banlist: 1)
       { cardId: "BT4-111", count: 1 }, // Jack Raid (banlist: 1)
       { cardId: "P-040", count: 2 }, //   Purple Memory Boost!
       { cardId: "BT6-108", count: 2 }, // Underworld's Call
