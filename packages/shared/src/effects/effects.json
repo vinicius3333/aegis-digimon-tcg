@@ -159086,6 +159086,7 @@
         "trigger": "OnDeletion",
         "actions": [
           {
+            "from": ["hand"],
             "kind": "PlaceInBattleAreaSelf",
             "target": {
               "filter": {
@@ -159095,7 +159096,6 @@
               },
               "count": 1
             },
-            "from": ["hand"],
             "optional": true,
             "condition": {
               "kind": "youHaveNone",
@@ -159146,7 +159146,7 @@
             "actions": [
               {
                 "kind": "ActivateEffect",
-                "target": { "sourceRef": "triggerSubject" },
+                "target": { "sourceRef": "triggerSubject", "filter": {}, "count": 1 },
                 "effectType": "OnPlay",
                 "count": 1,
                 "asEffectOf": "this Tamer",
