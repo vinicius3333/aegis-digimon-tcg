@@ -69,3 +69,15 @@
 - Worker Vitest remains prohibited. The coordinator waits whenever another audit worktree owns the single serial Vitest slot.
 - A full disk temporarily blocked atomic writes. Only ignored, reproducible `apps/api/dist` build output was removed; no source or user data was deleted. Free disk recovered from about 120 MiB to 12 GiB.
 - Remaining red cards are held below 10/10 and remain assigned to Luna correction lanes; collection/mechanism/broad gates are still pending.
+
+## 2026-09-09 final coordinator gate
+
+- All 74 cards are accepted at 10/10: aggregate 740/740.
+- Complete EX5 collection: 74 files and 548 tests passed serially with one worker.
+- Mechanism regression: 4 files and 512 tests passed serially.
+- Broad engine regression: 229 files and 6,778 tests passed serially.
+- Workspace TypeScript check passed.
+- Effects synchronization check reports 14 semantic EX5 changes, zero semantic or byte changes outside EX5, and 74 synchronized records; its 18 tool tests pass.
+- Scoped Oxlint and Oxfmt checks pass, as does `git diff --check`.
+- Final fixture review removed illegal Digi-Egg placements and direct internal timing/verb proof; affected focused tests pass through public game flows.
+- Independent review findings were resolved before delivery; the final branch is ready for push.
