@@ -143,6 +143,26 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.decision-board-return > button \{[^}]*min-height:\s*44px/);
   });
 
+  it("spends the decision sheet on the targets, not on its header", () => {
+    // The header is one line — no gradient panel, no full-width row for the board
+    // pill — so the card grid and the confirm button keep the screen.
+    expect(portraitRules).toMatch(/\.decision-overlay__header \{[^}]*align-items:\s*center[^}]*flex-wrap:\s*nowrap/);
+    expect(portraitRules).toMatch(/\.decision-overlay__heading \{[^}]*padding:\s*0[^}]*background:\s*none/);
+    expect(portraitRules).toMatch(/\.decision-overlay__title \{[^}]*font-size:\s*0\.875rem/);
+    // The pill shares the header line but still answers to the touch floor.
+    expect(portraitRules).toMatch(
+      /\.decision-overlay__view-board \{[^}]*width:\s*auto[^}]*min-height:\s*44px[^}]*border-radius:\s*999px/,
+    );
+  });
+
+  it("lets the effect text flow instead of hiding its tail in a scroll box", () => {
+    // The wording the choice hinges on reads whole: denser type and a cap that only
+    // pathological text reaches, by which point the sheet's own scroll takes over.
+    expect(portraitRules).toMatch(
+      /\.decision-overlay__effect-text \{[^}]*max-height:\s*42dvh[^}]*font-size:\s*0\.6875rem/,
+    );
+  });
+
   it("shrinks the board-mode decision rail so the phone board stays readable", () => {
     // The rail is the only way to answer a board-mode decision, so its actions must
     // never be pushed off: it takes a fraction of the width, shows the printed

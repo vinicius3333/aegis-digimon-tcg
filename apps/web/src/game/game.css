@@ -4702,12 +4702,49 @@ button.side-panel__name:focus-visible {
     min-width: 0;
     overflow-wrap: anywhere;
   }
+  /* The card grid and the confirm button are what the player answers with, so the
+     header gives up its gradient panel and becomes a single line: the source card
+     over the prompt, with the board pill beside it. */
   .decision-overlay__header {
-    align-items: flex-start !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: var(--ds-space-2) !important;
+    margin-bottom: var(--ds-space-2) !important;
+  }
+  .decision-overlay__heading {
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    border-bottom: 0;
+    background: none;
+  }
+  .decision-overlay__eyebrow {
+    font-size: 0.625rem !important;
+    letter-spacing: 0.08em !important;
+  }
+  .decision-overlay__title {
+    margin-top: 0 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.25 !important;
   }
   .decision-overlay__view-board {
-    width: 100%;
+    width: auto;
     min-height: 44px;
+    flex: none;
+    padding-inline: var(--ds-space-3);
+    border-radius: 999px;
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+  }
+  /* The effect text is the wording the choice hinges on: it flows at a denser size
+     instead of hiding its tail behind an inner scrollbar. The cap only catches
+     pathologically long text, and by then the sheet's own scroll takes over. */
+  .decision-overlay__effect-text {
+    padding: var(--ds-space-2) !important;
+    margin-bottom: var(--ds-space-2) !important;
+    max-height: 42dvh !important;
+    font-size: 0.6875rem !important;
+    line-height: 1.4 !important;
   }
   /* DecisionOverlay is portalled into document.body. Anchor it below the fixed
      opponent row; bottom-anchored controls can sit underneath iOS browser chrome. */

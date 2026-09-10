@@ -1444,6 +1444,7 @@ export function DecisionOverlay({
       >
         <div className="decision-overlay__heading">
           <div
+            className="decision-overlay__eyebrow"
             style={{
               fontSize: 11,
               fontWeight: 700,
@@ -1459,6 +1460,7 @@ export function DecisionOverlay({
             )}
           </div>
           <div
+            className="decision-overlay__title"
             style={{
               fontFamily: "var(--ds-font-display)",
               fontWeight: 700,
@@ -1483,6 +1485,7 @@ export function DecisionOverlay({
 
       {sourceEffectText ? (
         <div
+          className="decision-overlay__effect-text"
           style={{
             fontSize: 12,
             color: "var(--ds-fg-secondary)",
