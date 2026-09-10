@@ -331,6 +331,7 @@ export interface PrimitivesEngine {
 
 /** The slice of MemoryGauge the primitives use (memory-gauge subsystem owns the impl). */
 export interface MemoryPort {
+  memoryFor(seat: Seat): number;
   gainMemory(amount: number, reason?: string): void;
   addMemoryForSeat(seat: Seat, amount: number, reason?: string, opts?: { isTamerEffect?: boolean }): void;
   setMemory(value: number, reason?: string): void;
@@ -895,7 +896,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       originZone,
       true,
     );
-    return cost >= 0 && cost <= engine.memory.maxCostFor(controllerSeat);
+    // A paid effect may cross the gauge from the controller's side, but it cannot start a
+    // second payment after an enclosing action has already crossed to the opponent.
+    return (
+      cost >= 0 &&
+      (cost === 0 || engine.memory.memoryFor(controllerSeat) >= 0) &&
+      cost <= engine.memory.maxCostFor(controllerSeat)
+    );
   };
 
   const effectivePlayCost: NonNullable<Primitives["effectivePlayCost"]> = (permanent) => {
@@ -3070,7 +3077,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         );
         // A borrowed Option is used by the resolving effect's controller, not by the card's
         // owner (which may differ for a card captured under a Digimon's stack/link list).
-        if (engine.memory.maxCostFor(ctx.source.ownerSeat) < cost) return [];
+        if (engine.memory.memoryFor(ctx.source.ownerSeat) < 0 || engine.memory.maxCostFor(ctx.source.ownerSeat) < cost)
+          return [];
         if (cost > 0) engine.memory.pay(ctx.source.ownerSeat, cost, "useOption");
       }
       wasUnderCard =
