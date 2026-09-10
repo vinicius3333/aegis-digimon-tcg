@@ -10,7 +10,6 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
-          target: { filter: { controller: "opponent" }, count: 1 },
           from: ["security"],
           cost: {
             kind: "trash",

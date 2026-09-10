@@ -58,7 +58,7 @@ describe("EX8-064", () => {
       target: {
         filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["NSo"], match: "trait" }] },
         count: "all",
-        totalPlayCost: 10,
+        totalPlayCostBudget: 10,
       },
       condition: { kind: "isDnaDigivolving", raw: "DNA digivolving" },
     });
@@ -68,7 +68,7 @@ describe("EX8-064", () => {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { controllerDefault: "both", excludeSelf: true, kind: ["Digimon"] },
+          sourceFilter: { controllerDefault: "any", excludeSelf: true, kind: ["Digimon"] },
           actions: [
             {
               kind: "Trash",

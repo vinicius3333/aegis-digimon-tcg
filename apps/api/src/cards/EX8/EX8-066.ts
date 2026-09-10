@@ -1,5 +1,29 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const iceSnowTriggers: Action[] = (["whenPlayed", "whenOneOfYoursDigivolves"] as const).map((event): Action => ({
+  kind: "SubTrigger",
+  event,
+  sourceFilter: {
+    controller: "mine",
+    kind: ["Digimon"],
+    nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
+  },
+  actions: [
+    {
+      kind: "TrashDigivolution",
+      target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+      amount: 1,
+      cost: {
+        kind: "suspend",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        raw: "by suspending this Tamer",
+      },
+      optional: true,
+      abortOnDecline: true,
+    },
+  ],
+}));
 
 export const compiled: CompiledCard = {
   effects: [
@@ -15,31 +39,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [
-        ...(["whenPlayed", "whenOneOfYoursDigivolves"] as const).map((event) => ({
-          kind: "SubTrigger",
-          event,
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
-          },
-          actions: [
-            {
-              kind: "TrashDigivolution",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
-              amount: 1,
-              cost: {
-                kind: "suspend",
-                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-                raw: "by suspending this Tamer",
-              },
-              optional: true,
-              abortOnDecline: true,
-            },
-          ],
-        })),
-      ],
+      actions: [...iceSnowTriggers],
     },
     {
       trigger: "Security",

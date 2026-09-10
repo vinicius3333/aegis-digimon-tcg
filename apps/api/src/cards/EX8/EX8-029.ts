@@ -4,9 +4,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Digivolving]: Return "up to 14 play cost's total worth" uses
 // Return.totalPlayCostBudget:14 — new capability (see LANE_E.md).
 // PlayMultiple from digivolutionCards: from:["digivolutionCards"] corrected from "digivolution".
-// [All Turns] Aura: "none of your opponent's Digimon can activate [On Play] effects"
-// — restriction:"activateOnPlay", targets ALL opponent Digimon (count:"all"),
-// while condition: memoryAtMost:1 per KB Q3899.
+// [All Turns] DisableTimingEffect: "none of your opponent's Digimon can activate [On Play]
+// effects" targets all opposing Digimon and is gated by an entry-level memoryAtMost:1
+// condition per KB Q3899. The player-scoped form keeps the prohibition live for entrants.
 // GrantStatic: immuneToOpponentDigimonEffects is already correct per KB.
 export const compiled: CompiledCard = {
   effects: [
@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               kind: ["Digimon"],
             },
+            count: "all",
             totalPlayCostBudget: 14,
             upTo: true,
           },
@@ -71,8 +72,19 @@ export const compiled: CompiledCard = {
             controller: "mine",
           },
         },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      condition: {
+        kind: "memoryAtMost",
+        value: 1,
+        controller: "mine",
+      },
+      actions: [
         {
-          kind: "Aura",
+          kind: "DisableTimingEffect",
+          whileMatchesTargetFilter: true,
           target: {
             filter: {
               controller: "opponent",
@@ -80,15 +92,8 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          effect: {
-            kind: "restriction",
-            restriction: "activateOnPlay",
-          },
-          while: {
-            kind: "memoryAtMost",
-            value: 1,
-            controller: "mine",
-          },
+          timings: ["onPlay"],
+          duration: "permanent",
         },
       ],
     },

@@ -1,13 +1,13 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CardEffect, CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const fallenAngel = {
+const fallenAngel: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   playCostLte: 7,
   nameOrTrait: [{ tokens: ["Fallen Angel"], match: "trait" }],
 };
-const stackGate = {
+const stackGate: Condition = {
   kind: "anyOf",
   conditions: [
     { kind: "selfDigivolutionStackMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Barbamon"], match: "name" }] } },
@@ -17,7 +17,7 @@ const stackGate = {
 
 export const compiled: CompiledCard = {
   effects: [
-    ...(["WhenDigivolving", "WhenAttacking"] as const).map((trigger) => ({
+    ...(["WhenDigivolving", "WhenAttacking"] as const).map((trigger): CardEffect => ({
       trigger,
       frequency: "OncePerTurn",
       sharedUseKey: "opponent-discard-or-fallen-angel",

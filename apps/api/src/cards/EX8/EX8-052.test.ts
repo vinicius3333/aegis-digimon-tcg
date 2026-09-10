@@ -72,7 +72,6 @@ describe("EX8-052", () => {
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
-          target: { filter: { controller: "opponent" }, count: 1 },
           from: ["security"],
           cost: {
             kind: "trash",
