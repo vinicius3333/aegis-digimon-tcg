@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,15 @@ export const compiled: CompiledCard = {
           from: ["security"],
           cost: {
             kind: "trash",
-            target: { filter: { zone: "battleArea", controller: "mine", kind: ["Option"] }, count: 1 },
+            target: {
+              filter: {
+                zone: "battleArea",
+                controller: "mine",
+                kind: ["Option"],
+                placedInBattleAreaByEffect: true,
+              },
+              count: 1,
+            },
           },
         },
       ],
@@ -85,6 +92,7 @@ export const compiled: CompiledCard = {
                 zone: "battleArea",
                 controller: "mine",
                 kind: ["Option"],
+                placedInBattleAreaByEffect: true,
               },
               count: 1,
             },
