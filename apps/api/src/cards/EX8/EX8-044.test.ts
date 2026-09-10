@@ -6,29 +6,60 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX8-044.js";
 
 describe("EX8-044", () => {
-  it("has Blast Digivolve and may suspend up to 3 Digimon, gaining memory for suspended opposing Digimon", () => {
+  it("matches the exact Counter, suspension-scaling, evolution, and inherited-limit contract", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["NSp"], cost: 3, isAlternate: true }]);
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords?.[0]).toMatchObject({
       keyword: "BlastDigivolve",
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Counter")).toMatchObject({ isFromHand: true });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "Suspend", optional: true, target: { count: 3, upTo: true } },
-      { kind: "GainMemory", amount: 1, scaling: { per: 1 } },
+      {
+        kind: "Suspend",
+        optional: true,
+        target: { count: 3, upTo: true, filter: { controllerDefault: "any", kind: ["Digimon"] } },
+      },
+      {
+        kind: "GainMemory",
+        amount: 1,
+        scaling: {
+          per: 1,
+          filter: { controller: "opponent", suspendedByThisEffect: true, kind: ["Digimon"] },
+          unit: "cards",
+        },
+      },
     ]);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toEqual(
+      compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions,
+    );
   });
-  it("applies an All Turns once-per-turn effect when suspended that grants Piercing and +3000 DP", () =>
+  it("applies an All Turns once-per-turn effect when suspended that grants Piercing and +3000 DP", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
       actions: [
-        { kind: "SelectBind", target: { bindAs: "suspensionBuffTarget" } },
+        {
+          kind: "SelectBind",
+          target: { count: 1, bindAs: "suspensionBuffTarget", filter: { controller: "mine", kind: ["Digimon"] } },
+        },
         {
           kind: "GainKeyword",
           keyword: { keyword: "Piercing" },
           target: { filter: { boundRef: "suspensionBuffTarget" } },
+          duration: "untilOpponentTurnEnd",
         },
-        { kind: "ModifyDP", amount: 3000, target: { filter: { boundRef: "suspensionBuffTarget" } } },
+        {
+          kind: "ModifyDP",
+          amount: 3000,
+          target: { count: 1, filter: { boundRef: "suspensionBuffTarget" } },
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-    }));
+    });
+  });
 
   it("gains memory only for the opposing Digimon newly suspended by this effect", async () => {
     const s = setupEngine(
@@ -178,13 +209,13 @@ describe("EX8-044", () => {
             { card: "BT1-009", as: "attacker" },
             { card: "BT1-010", as: "other" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
         1: {
           battleArea: [{ card: "EX8-042", as: "base" }],
           hand: [{ card: "EX8-044", as: "hercules" }],
-          deck: ["BT1-001"],
-          security: ["BT1-001"],
+          deck: ["BT1-009"],
+          security: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -253,9 +284,9 @@ describe("EX8-044", () => {
             { card: "EX8-044", as: "hercules" },
             { card: "AD1-001", as: "ally" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
