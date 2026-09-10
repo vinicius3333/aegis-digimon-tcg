@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-074.js";
@@ -6,6 +7,27 @@ import "../BT8/BT8-071.js";
 import "./EX8-073.js";
 
 describe("EX8-074", () => {
+  it("matches the committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-074")).toMatchObject({
+      cardId: "EX8-074",
+      nameEn: "MedievalGallantmon",
+      colors: ["Green", "Red"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 3 },
+        { color: "Red", level: 5, memoryCost: 3 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Warrior", "Witchelny", "Vortex Warriors"],
+      effectText:
+        "When this card would be played, by suspending 2 Digimon, reduce the play cost by 4.\n＜Alliance＞.\n＜Vortex＞ \n[When Digivolving] You may suspend 1 Digimon. Then, you may delete 1 of your opponent's 8000 DP or lower Digimon. For each other suspended Digimon, add 3000 to this DP deletion effect's maximum.\n[All Turns] [Once Per Turn] When Digimon are played, you may activate 1 of this Digimon's [When Digivolving] effects.",
+    });
+    expect(getCardDefinition("EX8-074")?.securityEffectText).toBeUndefined();
+  });
   it("reduces its play cost by 4 by suspending 2 Digimon and has Alliance and Vortex", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "Replacement",
@@ -32,7 +54,7 @@ describe("EX8-074", () => {
       scaling: {
         per: 1,
         unit: "cards",
-        filter: { controllerDefault: "both", excludeSelf: true, suspended: true, kind: ["Digimon"] },
+        filter: { controllerDefault: "any", excludeSelf: true, suspended: true, kind: ["Digimon"] },
       },
     });
     expect(actions[2]).toMatchObject({
@@ -43,7 +65,7 @@ describe("EX8-074", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
-      sourceFilter: { controllerDefault: "both", kind: ["Digimon"] },
+      sourceFilter: { controllerDefault: "any", kind: ["Digimon"] },
       actions: [
         {
           kind: "ActivateEffect",
@@ -259,7 +281,7 @@ describe("EX8-074", () => {
             { card: "BT1-010", as: "second-suspended", suspended: true },
           ],
           hand: [{ card: "EX8-074", as: "medieval" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: { battleArea: [{ card: "AD1-001", as: "14000-dp-target", dp: 14000 }] },
       },

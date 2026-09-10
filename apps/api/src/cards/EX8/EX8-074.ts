@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -83,7 +82,7 @@ export const compiled: CompiledCard = {
           scaling: {
             per: 1,
             filter: {
-              controllerDefault: "both",
+              controllerDefault: "any",
               excludeSelf: true,
               suspended: true,
               kind: ["Digimon"],
@@ -115,7 +114,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: {
-            controllerDefault: "both",
+            controllerDefault: "any",
             kind: ["Digimon"],
           },
           actions: [
