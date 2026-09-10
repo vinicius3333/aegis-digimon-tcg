@@ -49,3 +49,11 @@
 - Focused coordinator results: EX2-012 9/9, EX2-013 5/5, EX2-014 5/5, EX2-015 6/6, EX2-016 7/7, EX2-017 6/6, EX2-018 7/7, EX2-019 6/6, EX2-020 6/6, and EX2-021 5/5. EX2-011 is covered by the 223-test mechanism run above.
 - Every accepted card in this checkpoint passes scoped Oxlint, Oxfmt, fixture-policy scanning, and `git diff --check`; all use typed compiled IR with exclusive `registerIrCard` registration.
 - API typecheck passed after EX2-011 through EX2-021 stabilized. Ledger aggregate is 167/740; delivery remains 0/2 for every card until collection-wide gates, commit chain, and branch push complete.
+
+## Full-card evidence checkpoint preparation
+
+- EX2-022 through EX2-074 were re-audited with typed compiled IR, exclusive `registerIrCard`, sanitized fixtures, per-card reports, and coordinator-run focused tests.
+- The remaining shared seams were resolved with focused regression evidence: opponent-turn unsuspend watcher lifecycle (EX2-037), nested modal reactivation continuation (EX2-038), verified self-reducer registration (EX2-041), post-interruption digivolution affordability and retained Blitz (EX2-056/Q3348), detached-target digivolution cancellation (EX2-064/Q3350), and Digi-Egg deletion routing (EX2-007/Q3281).
+- Every EX2 module now has zero `@ts-nocheck`, exactly one `registerIrCard`, and no `registerCard` registration.
+- All 74 cards have reproducible 8/10 evidence before delivery gates. Ledger aggregate is 592/740; final 2/2 delivery credit remains blocked on the serialized collection/typecheck/effects/gate run, atomic commits, and pushed branch.
+- Broad final validation is temporarily paused because an unrelated external `tsc --watch` reduced immediately free memory below 1 GiB; no external process was killed.
