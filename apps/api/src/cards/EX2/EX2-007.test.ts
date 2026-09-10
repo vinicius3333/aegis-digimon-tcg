@@ -151,7 +151,7 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("owner deletion routes Mother face-down to the bottom of the Digi-Egg deck (Q3280/Q3281)", async () => {
+  it("owner deletion trashes Mother, because the Digi-Egg redirect covers private areas only (Q3280/Q3281)", async () => {
     const preferred: string[] = [];
     let motherId: string | undefined;
     const movementEvents: Array<{ from: string; to: string }> = [];
@@ -208,10 +208,11 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
       eggDeck: s.state.players[0]!.eggDeck.some((card) => card.instanceId === motherId),
       trash: s.state.players[0]!.trash.some((card) => card.instanceId === motherId),
     };
-    expect(movementEvents.at(-1)).toEqual({ from: "battleArea", to: "eggDeck" });
-    expect(locations).toEqual({ hand: false, deck: false, eggDeck: true, trash: false });
-    expect(locations.eggDeck).toBe(true);
-    expect(s.state.players[0]!.eggDeck.find((card) => card.instanceId === motherId)?.faceUp).toBe(false);
+    // Q3281 redirects Mother only when she would be moved to the hand, deck, or security
+    // stack; CR §3-1-3-9 limits that redirect to private areas, so a deletion still trashes
+    // her (the trash holds Digi-Egg cards, as the trash-targeting rulings confirm).
+    expect(movementEvents.at(-1)).toEqual({ from: "battleArea", to: "trash" });
+    expect(locations).toEqual({ hand: false, deck: false, eggDeck: false, trash: true });
   });
 
   it("may decline the first D-Reaper reduction and use it for the second play (Q3282)", async () => {

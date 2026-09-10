@@ -81,7 +81,7 @@ describe("GameStateAccess deletion narration", () => {
     expect(events).toEqual([{ kind: "cardsMoved", instanceIds: ["breeding-1-top"], from: "breeding", to: "trash" }]);
   });
 
-  it("routes a deleted Digi-Egg face-down to the bottom of its owner's egg deck", () => {
+  it("trashes a deleted Digi-Egg, because the Digi-Egg redirect covers private areas only", () => {
     const state = makeState();
     const existingEgg = new CardInstance();
     existingEgg.instanceId = "existing-egg";
@@ -95,13 +95,12 @@ describe("GameStateAccess deletion narration", () => {
 
     access.deletePermanent("egg-battle");
 
+    // CR §3-1-3-9 redirects a Digi-Egg only when it would enter a private area; the trash
+    // is public, so deletion (CR §4-15-1) trashes it like any other card.
     expect(state.players[0]!.battleArea).toHaveLength(0);
-    expect(state.players[0]!.trash).toHaveLength(0);
-    expect(state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual(["existing-egg", "egg-battle-top"]);
-    expect(state.players[0]!.eggDeck.at(-1)?.faceUp).toBe(false);
-    expect(events).toEqual([
-      { kind: "cardsMoved", instanceIds: ["egg-battle-top"], from: "battleArea", to: "eggDeck" },
-    ]);
+    expect(state.players[0]!.trash.map((card) => card.instanceId)).toEqual(["egg-battle-top"]);
+    expect(state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual(["existing-egg"]);
+    expect(events).toEqual([{ kind: "cardsMoved", instanceIds: ["egg-battle-top"], from: "battleArea", to: "trash" }]);
   });
 
   it("publishes one event per origin zone for a simultaneous batch", () => {

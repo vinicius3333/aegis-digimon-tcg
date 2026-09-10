@@ -349,7 +349,11 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
 
   it("Q5183 digivolves a [Mineral] host into a [Mineral]+[LIBERATOR] hand card for 3 less, and trashes itself", async () => {
     const preferInstanceIds: string[] = [];
-    const s = setupEngine(delayBoard(BOTH_TRAITS), { ...ACCEPT, preferInstanceIds });
+    // EX8-048's compiled requirement list carries a trait-gated alternate at the same cost as
+    // its printed Black Lv.3 route, so the digivolve asks which requirement to declare.
+    // `autoChooseOption` takes option 0, the printed route; both cost 2, so the memory maths
+    // below is the same either way.
+    const s = setupEngine(delayBoard(BOTH_TRAITS), { ...ACCEPT, autoChooseOption: true, preferInstanceIds });
     await s.ready();
     // Two [Mineral] Digimon exist once Landramon lands; the Delay must reach the Lv.3 host.
     preferInstanceIds.push(s.inst("host").instanceId, s.perm("host").permanentId);

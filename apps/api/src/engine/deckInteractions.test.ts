@@ -58,6 +58,29 @@ function candidatesFor(deck: FamousDeck): string[] {
   return selected;
 }
 
+/** Vanilla level-3 Digimon used only as board colour sources for the play-time colour gate. */
+const COLOR_SOURCES: Record<string, string> = {
+  Red: "BT1-009",
+  Blue: "BT1-027",
+  Yellow: "BT1-045",
+  Green: "BT1-064",
+  Black: "BT2-052",
+  Purple: "BT11-075",
+};
+
+/**
+ * DUAL cards carry an Option-side colour requirement that the play-time colour gate applies
+ * to both faces, so the board has to offer those colours or the play is rejected before any
+ * effect runs. Ordinary cards keep the plain single-ally board.
+ */
+function colorSourcesFor(cardId: string): { card: string; as: string }[] {
+  const required = getCardDefinition(cardId)?.optionColorRequirements ?? [];
+  return required.flatMap((color, index) => {
+    const source = COLOR_SOURCES[color];
+    return source === undefined ? [] : [{ card: source, as: `colorSource${index}` }];
+  });
+}
+
 function interactionBoard(cardId: string) {
   return {
     0: {
@@ -65,7 +88,7 @@ function interactionBoard(cardId: string) {
       deck: ["BT1-009", "BT1-027", "BT1-009", "BT1-027"],
       trash: ["BT1-009", "BT1-027"],
       security: ["BT1-090", "BT1-090", "BT1-090"],
-      battleArea: [{ card: "BT1-009", as: "ally" }],
+      battleArea: [{ card: "BT1-009", as: "ally" }, ...colorSourcesFor(cardId)],
     },
     1: {
       deck: ["BT1-009", "BT1-027", "BT1-009"],

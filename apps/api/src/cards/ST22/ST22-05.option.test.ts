@@ -60,10 +60,11 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
+    // describeAction leaves an unmapped action kind as its bare identifier on purpose: the
+    // client replaces that with its own generic prompt over the printed clause (e136a94b5).
     await settle(
       () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.promptText === "Use option without cost",
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.promptText === "UseOptionWithoutCost",
     );
     const useOption = s.state.pendingDecision!;
     expect(
@@ -77,7 +78,7 @@ describe("ST22-05 Sakuyamon Option-use windows", () => {
     expect(
       s.decisions.some(
         ({ req }) =>
-          req.kind === "optional" && req.sourceCardId === "ST22-05" && req.promptText === "Use option without cost",
+          req.kind === "optional" && req.sourceCardId === "ST22-05" && req.promptText === "UseOptionWithoutCost",
       ),
     ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);

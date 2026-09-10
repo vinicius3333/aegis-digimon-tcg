@@ -1075,3 +1075,52 @@ describe("loose-anchored SubTrigger location check (CR §15-4-4-3)", () => {
     expect(fireCount).toBe(1); // frozen context, deliberately zone-blind
   });
 });
+
+describe("whenPlayed watchers of a play made inside a resolving effect", () => {
+  it("resolves with the played card's own [On Play], and keeps its once-per-turn budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-031", as: "giga", under: ["BT20-026"] },
+            { card: "BT20-027", as: "watcherHost", under: ["BT20-025"] },
+          ],
+          hand: [{ card: "BT20-028", as: "gigaEvolution" }],
+        },
+        1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-013", "BT20-014"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    // Both halves of the play event are recorded: the watcher notes how many of the played card's
+    // own [On Play] announcements it can already see when its body runs.
+    const onPlayAnnouncementsSeen: number[] = [];
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "whenPlayed",
+      sourcePermanentId: s.perm("watcherHost").permanentId,
+      once: false,
+      oncePerTurnKey: "test/nested-play-watcher",
+      description: "test: watcher for a play made inside a resolving effect",
+      run: async () => {
+        onPlayAnnouncementsSeen.push(
+          s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-026").length,
+        );
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("giga").permanentId,
+        instanceId: s.inst("gigaEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT20-026"));
+
+    // FAILS-WHEN-REVERTED: fire the entry window's watchers on the trailing bus instead of parking
+    // them next to the parked [On Play] => the watcher runs before that [On Play] is even
+    // announced => `[0]` => RED.
+    expect(onPlayAnnouncementsSeen).toEqual([1]);
+  });
+});

@@ -522,10 +522,24 @@ export class GameEngine {
    * cleared when the outermost one closes.
    */
   private readonly consumedSubTriggerKeys = new Set<string>();
+  /**
+   * How many resolution loops that DRAIN the pending pool ({@link pendingWindowCollected}) are on
+   * the stack. Parking a watcher only makes sense while one of them is running: with no draining
+   * loop above it, a parked watcher would never be resolved at all.
+   */
+  private pendingPoolDrainDepth = 0;
   /** Nesting depth of {@link withPendingSubTriggers} windows. */
   private subTriggerWindowDepth = 0;
   /** Watchers armed for the event of the enclosing window, offered to that window's resolver. */
   private pendingWindowSubTriggers: ArmedSubTrigger[] = [];
+  /**
+   * Watchers parked next to {@link pendingNestedTimingEffects} by
+   * {@link parkArmedForEnclosingWindow}. Kept in a field of its own rather than in
+   * {@link pendingWindowSubTriggers}: that list is SWAPPED per window, so a nested window would
+   * drop entries pushed into the copy it discards on exit, while the parked half of an event
+   * must survive exactly as long as the printed half it is simultaneous with.
+   */
+  private parkedEntrySubTriggers: ArmedSubTrigger[] = [];
   /** Printed timing effects triggered inside the currently resolving effect body. */
   private pendingNestedTimingEffects: CollectedEffect[] = [];
   /**
@@ -596,11 +610,31 @@ export class GameEngine {
     return isOutermost;
   }
 
+  /**
+   * Run one resolution loop, marking that a pool-draining loop is on the stack while it does
+   * (see {@link pendingPoolDrainDepth}).
+   */
+  private async withPendingPoolDrain(draining: boolean, body: () => Promise<void>): Promise<void> {
+    if (!draining) return body();
+    this.pendingPoolDrainDepth += 1;
+    try {
+      await body();
+    } finally {
+      this.pendingPoolDrainDepth -= 1;
+    }
+  }
+
   /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
   private endResolvingWindow(wasOutermost: boolean): void {
     if (!wasOutermost) return;
     this.pendingNestedTimingEffects = [];
     this.pendingWindowSubTriggers = [];
+    this.parkedEntrySubTriggers = [];
+    // Claims outlive an inner window when parked watchers are still queued (see
+    // `parkArmedForEnclosingWindow`); the queue itself ends here, so the claims do too — but only
+    // once no timing window is still folding watchers, since such a window's trailing bus fire
+    // relies on the claims its own resolver just recorded.
+    if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
     this.activeWindowToken = undefined;
   }
 
@@ -2518,10 +2552,12 @@ export class GameEngine {
       // {@link withTriggeredMutations}).
       const runWindow = async (): Promise<void> =>
         this.withTriggeredMutations(async () => {
-          await runTiming(
-            timing,
-            this.effectEnvironment(trigger),
-            this.resolutionDeps(listWindowCandidates, { outermost: wasOutermostWindow }),
+          await this.withPendingPoolDrain(wasOutermostWindow, () =>
+            runTiming(
+              timing,
+              this.effectEnvironment(trigger),
+              this.resolutionDeps(listWindowCandidates, { outermost: wasOutermostWindow }),
+            ),
           );
           if (wasOutermostWindow) {
             await this.flushDeferredTimingWindows();
@@ -2995,23 +3031,49 @@ export class GameEngine {
     return permanentIdentityOf(pending.source) === identityAtDefer;
   }
 
+  /** Armed watchers as collected effects the resolver can order against the printed ones. */
+  private armedAsPendingCollected(items: readonly ArmedSubTrigger[]): CollectedEffect[] {
+    return items.map((item) => {
+      const collected = this.subTriggerAsCollected(item);
+      return {
+        ...collected,
+        // The resolver announces what it resolves, so this body must not announce itself.
+        effect: {
+          ...collected.effect,
+          resolve: async () => {
+            // Retire the pending trigger before its body can open another window, mirroring
+            // `resolutionDeps.onResolving` for the printed half of the same pool.
+            this.parkedEntrySubTriggers = this.parkedEntrySubTriggers.filter((entry) => entry !== item);
+            await this.fireOneSubTrigger(item, { announce: false });
+          },
+        },
+      };
+    });
+  }
+
+  /**
+   * The parked half of an entry event (see {@link parkArmedForEnclosingWindow}). Offered to EVERY
+   * resolution loop, outermost or not: unlike the enclosing window's own watchers these belong to
+   * an event that already happened inside the running body, and the loop that drains them is not
+   * always the outermost one (a replacement play's loop, EX11-058). A parked watcher already
+   * claimed its identity, so the consumed-key filter would hide it and is not applied here.
+   */
+  private parkedEntryCollected(): CollectedEffect[] {
+    return this.armedAsPendingCollected(
+      this.parkedEntrySubTriggers.filter((item) => this.subTriggerStillActivatable(item)),
+    );
+  }
+
   private pendingWindowCollected(): CollectedEffect[] {
-    const subTriggers = this.pendingWindowSubTriggers
-      .filter(
-        (item) =>
-          !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
-      )
-      .map((item) => {
-        const collected = this.subTriggerAsCollected(item);
-        return {
-          ...collected,
-          // The resolver announces what it resolves, so this body must not announce itself.
-          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item, { announce: false }) },
-        };
-      });
     return [
       ...this.pendingNestedTimingEffects.filter((pending) => this.nestedTriggerSourceStillResident(pending)),
-      ...subTriggers,
+      ...this.parkedEntryCollected(),
+      ...this.armedAsPendingCollected(
+        this.pendingWindowSubTriggers.filter(
+          (item) =>
+            !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
+        ),
+      ),
     ];
   }
 
@@ -3031,6 +3093,13 @@ export class GameEngine {
     opts: {
       busTrigger?: () => TriggerInfo | undefined;
       onlyInitiallyArmed?: boolean;
+      /**
+       * True when this event's OWN printed effects were parked for the enclosing window
+       * instead of resolving here (see {@link shouldDeferNestedTiming}). The watchers armed by
+       * the SAME event are simultaneous with those printed effects (CR §15-4), so they must be
+       * parked next to them rather than fired on the trailing bus, which would run them first.
+       */
+      parkArmedToEnclosingWindow?: () => boolean;
     } = {},
   ): Promise<void> {
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
@@ -3054,20 +3123,60 @@ export class GameEngine {
       return;
     }
     const enclosing = this.pendingWindowSubTriggers;
+    const parkedPrintedEffectsBefore = this.pendingNestedTimingEffects.length;
     this.pendingWindowSubTriggers = [...enclosing, ...armed];
     this.subTriggerWindowDepth += 1;
     try {
-      await fireWindows();
+      try {
+        await fireWindows();
+      } finally {
+        this.pendingWindowSubTriggers = enclosing;
+      }
+      // Park only when the enclosing resolution is going to continue past this play and drain the
+      // pool: either this event's own printed half just went there, or a used Option is still
+      // routing its clauses. Otherwise nothing would ever pick the parked watchers up — the play
+      // seams that resolve outside a continuing resolution (a replacement effect applying
+      // mid-play, EX11-058) have no later pass — so those resolve their watchers where they stand.
+      const enclosingResolutionContinues =
+        this.pendingNestedTimingEffects.length > parkedPrintedEffectsBefore || this.optionResolutionDepth > 0;
+      if (
+        opts.parkArmedToEnclosingWindow?.() === true &&
+        this.pendingPoolDrainDepth > 0 &&
+        enclosingResolutionContinues
+      ) {
+        this.parkArmedForEnclosingWindow(armed);
+        return;
+      }
+      // The bus still runs: normally it resolves the armed watchers the windows did not reach
+      // and any watcher armed while they were resolving. Entry windows opt into the trigger-time
+      // snapshot because an inherited effect acquired during this very play event did not exist
+      // when the event happened and cannot retroactively trigger (BT13-013, Q2272).
+      //
+      // It runs INSIDE the window depth so whatever it fires is recorded as consumed: a play seam
+      // publishes its play event twice (this entry window, then the trailing `whenPlayed` bus that
+      // a multi-card play needs), and without that record the second publication fires the same
+      // watcher again (BT20-028 Q4321).
+      await busFire();
     } finally {
-      this.pendingWindowSubTriggers = enclosing;
       this.subTriggerWindowDepth -= 1;
     }
-    // The bus still runs: normally it resolves the armed watchers the windows did not reach
-    // and any watcher armed while they were resolving. Entry windows opt into the trigger-time
-    // snapshot because an inherited effect acquired during this very play event did not exist
-    // when the event happened and cannot retroactively trigger (BT13-013, Q2272).
-    await busFire();
-    if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
+    if (this.subTriggerWindowDepth === 0 && this.parkedEntrySubTriggers.length === 0)
+      this.consumedSubTriggerKeys.clear();
+  }
+
+  /**
+   * Hand watchers armed by one event to the window that is holding that event's printed
+   * effects, so both halves stay simultaneous and the turn player orders them together
+   * (CR §15-4). They keep the `occurrence` captured when they were armed, so their shared
+   * `[Once Per Turn]` budget stays keyed to their own event rather than to whichever window
+   * ends up resolving them. Each is claimed as consumed on the way in: the same event is
+   * republished by the play seam's trailing bus, which would otherwise arm a second copy for
+   * the same window to resolve (P-098 Q4184).
+   */
+  private parkArmedForEnclosingWindow(armed: readonly ArmedSubTrigger[]): void {
+    const parked = armed.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+    for (const item of parked) this.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub));
+    this.parkedEntrySubTriggers.push(...parked);
   }
 
   /**
@@ -4014,13 +4123,15 @@ export class GameEngine {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
-      await runTiming(
-        timing,
-        this.effectEnvironment(trigger),
-        this.resolutionDeps(() => this.instancesById([sourceInstanceId]), {
-          outermost: wasOutermostWindow,
-          extraPending,
-        }),
+      await this.withPendingPoolDrain(wasOutermostWindow, () =>
+        runTiming(
+          timing,
+          this.effectEnvironment(trigger),
+          this.resolutionDeps(() => this.instancesById([sourceInstanceId]), {
+            outermost: wasOutermostWindow,
+            extraPending,
+          }),
+        ),
       );
       if (wasOutermostWindow) {
         await this.flushDeferredTimingWindows();
@@ -4068,16 +4179,18 @@ export class GameEngine {
     }
     try {
       await this.recomputeContinuousEffects();
-      await runTiming(
-        timing,
-        this.effectEnvironment(trigger),
-        this.resolutionDeps(
-          () => {
-            const scoped: CardInstance[] = [];
-            this.collectPermanentInstances(permanent, scoped);
-            return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
-          },
-          { outermost: wasOutermostWindow, extraPending },
+      await this.withPendingPoolDrain(wasOutermostWindow, () =>
+        runTiming(
+          timing,
+          this.effectEnvironment(trigger),
+          this.resolutionDeps(
+            () => {
+              const scoped: CardInstance[] = [];
+              this.collectPermanentInstances(permanent, scoped);
+              return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
+            },
+            { outermost: wasOutermostWindow, extraPending },
+          ),
         ),
       );
       if (wasOutermostWindow) {
@@ -4138,7 +4251,12 @@ export class GameEngine {
         // its triggered On Play effect can activate. Keep the play-event snapshot above so
         // other when-played watchers still observe the event even if a 0-DP entrant is deleted
         // here and its own On Play source becomes ineligible (EX4-074 Q3523).
-        await this.ruleProcess();
+        //
+        // A play performed BY an effect still resolving is the exception (BT24-041 Q5629): no
+        // state-based action may run between that effect's clauses, so the 0-DP entrant stays
+        // on the field until the whole effect finishes and the outer sweep deletes it. This
+        // mirrors the guarded `ruleProcess` seam the interpreter itself is given.
+        if (this.effectResolutionDepth === 0 && this.optionResolutionDepth === 0) await this.ruleProcess();
         await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
         await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
           ...scopedTrigger,
@@ -4149,6 +4267,11 @@ export class GameEngine {
       {
         onlyInitiallyArmed: true,
         busTrigger: () => playedEventTrigger,
+        // A play performed by a still-resolving effect parks the entering card's own [On Play]
+        // for the enclosing window. Its `whenPlayed` watchers triggered on that same entry and
+        // are simultaneous with it (CR §15-4), so they follow it there instead of resolving
+        // first on the trailing bus (BT20-028 Q4321).
+        parkArmedToEnclosingWindow: () => this.shouldDeferNestedTiming(),
       },
     );
   }
@@ -4219,9 +4342,7 @@ export class GameEngine {
           enteredByEffect: ownerSeat,
           ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
           ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
-          ...(opts?.digiXrosMaterialCount !== undefined
-            ? { digiXrosMaterialCount: opts.digiXrosMaterialCount }
-            : {}),
+          ...(opts?.digiXrosMaterialCount !== undefined ? { digiXrosMaterialCount: opts.digiXrosMaterialCount } : {}),
           ...(opts?.playedByEffectSourceCardId !== undefined
             ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
             : {}),
@@ -4850,7 +4971,7 @@ export class GameEngine {
             betweenEffects: () => this.settleBetweenEffects(),
             collectPending: () => [...this.pendingWindowCollected(), ...(opts.extraPending ?? [])],
           }
-        : {}),
+        : { collectPending: () => this.parkedEntryCollected() }),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
       ruleProcess: () =>
@@ -5663,10 +5784,12 @@ export class GameEngine {
                 framework,
                 this.resolutionDeps(() => [], { outermost }),
               );
-              await resolveTiming(EffectTiming.OnSecurityCheck, {
-                ...env,
-                collect: () => [...initial, ...this.pendingWindowCollected()],
-              });
+              await this.withPendingPoolDrain(outermost, () =>
+                resolveTiming(EffectTiming.OnSecurityCheck, {
+                  ...env,
+                  collect: () => [...initial, ...this.pendingWindowCollected()],
+                }),
+              );
               if (outermost) {
                 await this.flushDeferredTimingWindows();
                 await this.flushDeferredSecurityRemovalTriggers();
@@ -6532,11 +6655,6 @@ export class GameEngine {
     // whether the restored-memory turn remains open.
     if (this.combat.isAttacking) return;
 
-    // A newly played Digimon that just received Rush remains an actionable Main verb even
-    // when the play that triggered the grant crossed memory. After that one attack resolves,
-    // the ordinary crossed-memory turn-end check runs again.
-    if (this.memory.hasCrossedToOpponent() && this.hasNewlyPlayedRushAttack(this.state.turnSeat)) return;
-
     // ＜Blitz＞ (§16-22): when memory has crossed to the opponent but the turn
     // player has an unsuspended Blitz Digimon that hasn't attacked this turn, keep
     // the Main phase open for one more attack. Skip the turn-end check so the
@@ -6592,21 +6710,6 @@ export class GameEngine {
       !permanent.isSuspended &&
       !this.combat.attackedThisTurn.has(permanentId) &&
       this.continuous.hasKeyword(permanentId, "Rush")
-    );
-  }
-
-  private hasNewlyPlayedRushAttack(seat: Seat): boolean {
-    if (seat !== this.state.turnSeat) return false;
-    const player = this.state.players[seat];
-    if (player === undefined) return false;
-    const deps = this.attackDeps();
-    return player.battleArea.some(
-      (permanent) =>
-        this.isNewlyPlayedRushAttacker(permanent.permanentId) &&
-        validateAttack(deps, seat, {
-          attackerPermanentId: permanent.permanentId,
-          target: { kind: "player" },
-        }) === null,
     );
   }
 

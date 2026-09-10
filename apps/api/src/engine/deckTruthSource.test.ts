@@ -50,9 +50,9 @@ function declaredTriggerCount(cardId: string): number {
 describe("deck truth source — every catalogued deck is traceable", () => {
   it("has the expected newest-to-oldest catalog boundary", () => {
     const blocks = new Set(ALL_FAMOUS_DECKS.map((deck) => deck.block));
-    expect(blocks.has("BT25")).toBe(true);
+    expect(blocks.has("BT26")).toBe(true);
     expect(blocks.has("BT1")).toBe(true);
-    expect(blocks.has("BT26")).toBe(false);
+    expect(blocks.has("BT27")).toBe(false);
   });
 
   it("maps every playable effect card to an executable module and a declared timing", () => {

@@ -62,10 +62,20 @@ export function describeCost(cost: Cost): string {
  * sentence. An unmapped kind falls through as its bare identifier, which the client
  * replaces with its generic prompt over the printed clause.
  */
+/**
+ * The Cost object an action pays before resolving. Digivolve-style actions carry a
+ * numeric memory `cost` that is part of the evolution, not a paid Cost, so it is excluded.
+ */
+function actionPaidCost(action: Action): Cost | undefined {
+  if (!("cost" in action) || action.kind === "CostGatedBlock") return undefined;
+  const cost: unknown = action.cost;
+  return typeof cost === "object" && cost !== null && "kind" in cost ? (cost as Cost) : undefined;
+}
+
 export function describeAction(action: Action): string {
   const printed = action.kind === "RawUnparsed" ? undefined : printedClause(action.raw);
   if (printed !== undefined) return printed;
-  const cost = "cost" in action && action.kind !== "CostGatedBlock" ? (action.cost as Cost | undefined) : undefined;
+  const cost = actionPaidCost(action);
   const body = describeActionBody(action);
   return cost === undefined ? body : `By paying: ${describeCost(cost)} → ${body}`;
 }

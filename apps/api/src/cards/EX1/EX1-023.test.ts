@@ -101,6 +101,7 @@ describe("EX1-023 Elecmon", () => {
           battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }],
           hand: ["BT1-009"],
           deck: ["BT1-009", "BT1-009"],
+          eggDeck: ["BT1-002"],
         },
         1: {
           battleArea: [
@@ -113,7 +114,16 @@ describe("EX1-023 Elecmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    // The seeded egg deck makes every one of seat 0's breeding phases hatchable, so the
+    // window really opens and has to be skipped publicly before Main can be awaited.
+    // (The deleted host's own Digi-Egg is no help here: it goes to the trash, CR §4-15-1.)
+    const skipBreeding = () =>
+      settle(() => {
+        if (s.state.phase !== Phase.Breeding) return false;
+        return s.engine.applyIntent(0, { type: "endPhase" }).ok;
+      });
     const loop = s.engine.startTurnLoop();
+    await skipBreeding();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -126,12 +136,7 @@ describe("EX1-023 Elecmon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.turnSeat === 0);
-    // The deleted host returned its Digi-Egg to the Egg Deck, so the next breeding
-    // phase now has a legal hatch. Publicly skip that phase before awaiting Main.
-    await settle(() => {
-      if (s.state.phase !== Phase.Breeding) return false;
-      return s.engine.applyIntent(0, { type: "endPhase" }).ok;
-    });
+    await skipBreeding();
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

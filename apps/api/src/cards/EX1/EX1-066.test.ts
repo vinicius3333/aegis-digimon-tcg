@@ -125,8 +125,10 @@ describe("EX1-066 Analog Youth", () => {
     expect(s.perm("analog").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
-    // The deleted stack's Digi-Egg returns face-down to the Egg Deck.
-    expect(s.state.players[0]!.eggDeck).toHaveLength(2);
+    // The deleted stack's Digi-Egg is trashed: CR §3-1-3-9 redirects a Digi-Egg only into
+    // private areas, and the trash is public.
+    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-001")).toBe(true);
   });
 
   it("does not trigger when a level-5 Digimon without sources is deleted", async () => {

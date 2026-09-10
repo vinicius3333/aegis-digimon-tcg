@@ -182,7 +182,11 @@ describe("BT21-102 Tai Kamiya", () => {
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-009"),
     );
     await settle();
-    expect(s.state.memory).toBe(10);
+    // The Hero enters without paying: no play cost may reach the gauge. Asserting the gauge
+    // value itself would instead read whatever the turn loop has done with it by now — with
+    // no legal action left, the turn auto-ends and passes memory to the opponent.
+    const paidPlayCost = () => s.events.some((event) => event.kind === "memoryChanged" && event.reason === "playCard");
+    expect(paidPlayCost()).toBe(false);
 
     expect(
       s.engine.applyIntent(0, {
@@ -191,7 +195,7 @@ describe("BT21-102 Tai Kamiya", () => {
         effectKey: `BT21-102/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toMatchObject({ ok: false });
-    expect(s.state.memory).toBe(10);
+    expect(paidPlayCost()).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(taiInstanceId);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;

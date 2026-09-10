@@ -637,9 +637,41 @@ function hostPreflight(ctx: EffectContext, action: Extract<Action, { kind: "Plac
     return triggerPermanentId !== undefined && ctx.game.permanentById(triggerPermanentId) !== undefined;
   }
   if (action.underFilter !== undefined) {
-    return candidatePermanents(ctx, { filter: action.underFilter, count: 1 }).length > 0;
+    return candidatePermanents(ctx, { filter: preflightHostFilter(action.underFilter), count: 1 }).length > 0;
   }
   return undefined;
+}
+
+/** Filter keys that describe the host's CURRENT digivolution cards rather than its identity. */
+const DIGIVOLUTION_STACK_CONDITION_KEYS = [
+  "digivolutionStackKind",
+  "digivolutionStackKindExclude",
+  "digivolutionStackNameOrTrait",
+] as const;
+
+/**
+ * The destination filter to preflight a PlaceUnder activation against.
+ *
+ * A SELF-REFERENTIAL host is not chosen from the board — it IS the source's own permanent — so
+ * the digivolution-stack keys on such a filter state a CONDITION on that fixed host ("...as the
+ * bottom digivolution card of this Digimon with no Tamer cards in its digivolution cards",
+ * BT20-003). Placement conditions are checked when the effect RESOLVES, not when it triggers:
+ * the clause carries no "if" gate, so it activates alongside every other effect at its timing
+ * and the turn player orders the whole simultaneous set (CR §15-4). Preflighting the stack
+ * condition made BT20-003 miss its own [End of Your Turn] window whenever an earlier effect in
+ * that window — BT14-087's inherited "play 1 [Eiji Nagasumi] from this Digimon's digivolution
+ * cards" — was what made the placement legal. `runPlaceUnder` re-reads the full `underFilter`
+ * and places nothing when the condition is still unmet at resolution.
+ *
+ * Every other key (and every non-self host, which really is a board scan the effect needs a
+ * candidate for — BT17-050/Q2803) is preflighted unchanged.
+ */
+function preflightHostFilter(underFilter: Filter): Filter {
+  if (underFilter.isSelfRef !== true) return underFilter;
+  if (!DIGIVOLUTION_STACK_CONDITION_KEYS.some((key) => underFilter[key] !== undefined)) return underFilter;
+  const relaxed = { ...underFilter };
+  for (const key of DIGIVOLUTION_STACK_CONDITION_KEYS) delete relaxed[key];
+  return relaxed;
 }
 
 /**

@@ -116,7 +116,9 @@ describe("BT2-076 Pumpkinmon", () => {
           deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      // Omnimon's [When Attacking] effect is optional even with no level 6 digivolution card
+      // to return (Q943), so its attack opens a prompt this scenario must answer.
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("secondDraw").instanceId);
     const loop = s.engine.startTurnLoop();

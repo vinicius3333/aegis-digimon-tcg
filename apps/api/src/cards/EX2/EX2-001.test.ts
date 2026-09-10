@@ -153,11 +153,10 @@ describe("EX2-001 Gigimon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     // EX2-008 is 1,000 DP and ties the 1,000-DP security Digimon, so the real security
-    // battle deletes the host. The inherited EX2-001 source then leaves the field through
-    // the canonical Digi-Egg deletion route and returns face-down to the egg deck.
-    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
-    expect(s.state.players[0]!.eggDeck.at(-1)?.instanceId).toBe(eggInstanceId);
-    expect(s.state.players[0]!.eggDeck.at(-1)?.faceUp).toBe(false);
+    // battle deletes the host. The inherited EX2-001 source is trashed with it: CR §3-1-3-9
+    // redirects a Digi-Egg only into private areas, and the trash is public.
+    expect(s.state.players[0]!.eggDeck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === eggInstanceId)).toBe(true);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

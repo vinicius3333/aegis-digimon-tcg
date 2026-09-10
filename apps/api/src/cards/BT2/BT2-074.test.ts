@@ -62,19 +62,24 @@ describe("BT2-074 Devimon", () => {
 
   it("proves the legal purple hatch stack, turn cycle, move, and inherited Retaliation", async () => {
     const deck = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"];
-    const s = setupEngine({
-      0: {
-        eggDeck: [{ card: "BT2-007", as: "egg" }],
-        hand: [
-          { card: "BT2-069", as: "level3" },
-          { card: "BT2-074", as: "devimon" },
-          { card: "BT2-075", as: "host" },
-        ],
-        security: ["BT1-010"],
-        deck,
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT2-007", as: "egg" }],
+          hand: [
+            { card: "BT2-069", as: "level3" },
+            { card: "BT2-074", as: "devimon" },
+            { card: "BT2-075", as: "host" },
+          ],
+          security: ["BT1-010"],
+          deck,
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "opponent" }], deck },
       },
-      1: { battleArea: [{ card: "BT1-084", as: "opponent" }], deck },
-    });
+      // Omnimon's [When Attacking] effect is optional even with no level 6 digivolution card
+      // to return (Q943), so its attack opens a prompt this scenario must answer.
+      { autoDeclineOptional: true },
+    );
     const loop = s.engine.startTurnLoop();
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });

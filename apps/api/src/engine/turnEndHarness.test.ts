@@ -182,7 +182,10 @@ describe("turn end harness — real loop fires OnEndTurn once with the ending se
     expect(h.startTurnFires).toBe(2); // one OnStartTurn per turn
   });
 
-  it("keeps a newly played Rush attack open after its play crosses memory", async () => {
+  // CR §16-15-1 gives ＜Rush＞ one power only: the Digimon may attack the turn it was played.
+  // It is not a Main-phase extension like ＜Blitz＞ (§16-22), so once the play crosses the gauge
+  // the turn ends as soon as processing resolves (§6-1-4-1) and the Rush attack never happens.
+  it("ends the turn when a newly played Rush Digimon's play crosses memory", async () => {
     const s = setupEngine(
       {
         0: {
@@ -201,16 +204,20 @@ describe("turn end harness — real loop fires OnEndTurn once with the ending se
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush"));
+    let rushPermanentId = "";
+    await settle(() => {
+      const granted = observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush");
+      if (granted) rushPermanentId = s.perm("playedTitan").permanentId;
+      return granted;
+    });
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("playedTitan").permanentId,
+        attackerPermanentId: rushPermanentId,
         target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+      }).ok,
+    ).toBe(false);
 
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

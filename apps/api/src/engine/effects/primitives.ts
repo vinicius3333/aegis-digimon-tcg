@@ -896,11 +896,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       originZone,
       true,
     );
-    // A paid effect may cross the gauge from the controller's side, but it cannot start a
-    // second payment after an enclosing action has already crossed to the opponent.
+    // An Option an effect uses cannot start its own payment once the enclosing action has
+    // already crossed the gauge to the opponent. Every other effect-driven play still pays
+    // across the gauge: CR §6-1-4-1 ends the turn only once all processing has resolved, so a
+    // Digimon an effect plays at negative memory is still paid out of the remaining gauge.
     return (
       cost >= 0 &&
-      (cost === 0 || engine.memory.memoryFor(controllerSeat) >= 0) &&
+      (cost === 0 || opts?.useAsOption !== true || engine.memory.memoryFor(controllerSeat) >= 0) &&
       cost <= engine.memory.maxCostFor(controllerSeat)
     );
   };
