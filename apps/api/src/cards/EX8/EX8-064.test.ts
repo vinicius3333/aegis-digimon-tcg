@@ -1,11 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { dnaDigivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-064.js";
 
 describe("EX8-064", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-064")).toMatchObject({
+      cardId: "EX8-064",
+      nameEn: "Boltboutamon",
+      colors: ["Purple", "Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Purple", level: 6, memoryCost: 5 },
+        { color: "Black", level: 6, memoryCost: 5 },
+        { color: "Yellow", level: 6, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Wizard", "NSo"],
+      effectText: expect.stringContaining("De-Digivolve3"),
+    });
+    expect(getCardDefinition("EX8-064")?.effectText).toContain("DNA digivolving");
+    expect(getCardDefinition("EX8-064")?.effectText).toContain("top security card");
+    expect(getCardDefinition("EX8-064")?.securityEffectText).toBeUndefined();
+  });
+
   it("exposes the printed Piedmon plus Myotismon DNA route for cost 0", () => {
     expect(dnaDigivolutionRequirementsFor("EX8-064")).toEqual([
       { cost: 0, materials: [{ names: ["Piedmon"] }, { names: ["Myotismon"] }] },
@@ -13,20 +37,30 @@ describe("EX8-064", () => {
   });
   it("de-digivolves an opposing Digimon by 3 and gives all opposing Digimon -6000 DP when digivolving", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions ?? [];
-    expect(actions[0]).toMatchObject({ kind: "DeDigivolve", amount: 3 });
+    expect(actions[0]).toMatchObject({
+      kind: "DeDigivolve",
+      amount: 3,
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+    });
     expect(actions[1]).toMatchObject({
       kind: "ModifyDP",
       amount: -6000,
       duration: "forTheTurn",
-      target: { count: "all" },
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
     });
   });
   it("plays NSo cards from trash up to total play cost 10 during DNA digivolving and inherits security trash after another Digimon is deleted", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[2]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["trash"],
-      target: { totalPlayCost: 10 },
-      condition: { kind: "isDnaDigivolving" },
+      payCost: false,
+      optional: true,
+      target: {
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["NSo"], match: "trait" }] },
+        count: "all",
+        totalPlayCost: 10,
+      },
+      condition: { kind: "isDnaDigivolving", raw: "DNA digivolving" },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
@@ -34,8 +68,16 @@ describe("EX8-064", () => {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { controllerDefault: "both", excludeSelf: true },
-          actions: [{ kind: "Trash" }],
+          sourceFilter: { controllerDefault: "both", excludeSelf: true, kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "Trash",
+              target: {
+                filter: { zone: "security", controller: "opponent", position: "top" },
+                count: 1,
+              },
+            },
+          ],
         },
       ],
     });
@@ -159,17 +201,29 @@ describe("EX8-064", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-064", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim" },
+            { card: "BT1-009", as: "secondVictim" },
+          ],
+          security: ["BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const securityInstanceId = s.state.players[1]!.security[0]!.instanceId;
+    const secondSecurityInstanceId = s.state.players[1]!.security[1]!.instanceId;
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
 
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityInstanceId)).toBe(true);
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(secondSecurityInstanceId);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("secondVictim").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondVictim").instanceId));
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
