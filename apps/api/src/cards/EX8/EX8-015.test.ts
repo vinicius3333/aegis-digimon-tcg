@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,28 @@ import { compiled } from "./EX8-015.js";
 import "./index.js";
 
 describe("EX8-015", () => {
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-015")).toMatchObject({
+      cardId: "EX8-015",
+      nameEn: "WarGrowlmon (X Antibody)",
+      colors: ["Red", "Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [
+        { color: "Red", level: 4, memoryCost: 4 },
+        { color: "Purple", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "X Antibody"],
+      effectText:
+        "[Digivolve][WarGrowlmon]: Cost 1 \n\n[When Digivolving] Until the end of your opponent's turn, this Digimon can't be returned to the hand or deck and it gets +3000 DP. Then, if [WarGrowlmon]/[X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with 10000 DP or less.",
+      inheritedEffectText: "＜Security Attack +1＞.",
+    });
+  });
+
   it("gains DP, blocks return, and conditionally deletes up to 10000 DP when digivolving", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       { kind: "Restrict", restriction: "beReturned", duration: "untilOpponentTurnEnd" },
@@ -57,6 +79,8 @@ describe("EX8-015", () => {
         deck: ["BT1-045"],
         battleArea: [
           { card: "BT1-024", as: "boundary" },
+          // Neutral 15000-DP fixture: avoids unrelated optional effects that historically
+          // caused this boundary proof to time out when AD1-004 was registered.
           { card: "BT1-084", as: "above" },
         ],
       },
@@ -82,6 +106,10 @@ describe("EX8-015", () => {
 
     await advance(s.engine).verb.returnToHand([s.perm("warGrowlmon").topCard.instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    const deckLengthWhileRestricted = s.state.players[0]!.deck.length;
+    await advance(s.engine).verb.returnToDeck([s.perm("warGrowlmon").topCard.instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(deckLengthWhileRestricted);
 
     s.state.memory = 0;
     s.state.turnSeat = 1;
