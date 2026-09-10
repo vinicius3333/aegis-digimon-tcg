@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase, type DecisionResponse } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard, Phase, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -55,11 +55,62 @@ describe("EX3-026 Aegisdramon", () => {
     expect(definition.effectText).toContain("[Opponent's Turn][Once Per Turn]");
     expect(definition.inheritedEffectText).toBeUndefined();
 
+    expect(getCompiledCard("EX3-026")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                  levels: [3],
+                  hostFilter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Blue"] },
+                },
+                count: 1,
+                orFilters: [
+                  { nameOrTrait: [{ tokens: ["Seadramon"], match: "name" }] },
+                  { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }] },
+                ],
+              },
+            },
+          ],
+        },
+        {
+          trigger: "OpponentsTurn",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { controllerDefault: "opponent", kind: ["Digimon"] },
+              actions: [
+                {
+                  kind: "ActivateEffect",
+                  effectType: "WhenDigivolving",
+                  optional: true,
+                  preserveOncePerTurnOnDecline: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-023", as: "base" }],
         hand: [{ card: "EX3-026", as: "aegisdramon" }],
-        deck: [{ card: "BT1-001", as: "evolutionDraw" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 4;
@@ -76,6 +127,28 @@ describe("EX3-026 Aegisdramon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("evolutionDraw").instanceId]);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-023"]);
+  });
+
+  it("rejects a non-level-6 evolution source and keeps Aegisdramon in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "wrongLevel" }],
+        hand: [{ card: "EX3-026", as: "aegisdramon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongLevel").permanentId,
+        instanceId: s.inst("aegisdramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongLevel").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-026");
   });
 
   it("Aqua/Sea Animal family: offers every errata OR branch only from a blue Digimon's sources", async () => {
@@ -195,8 +268,8 @@ describe("EX3-026 Aegisdramon", () => {
       },
       1: {
         hand: [
-          { card: "BT1-010", as: "firstOpponentPlay" },
-          { card: "BT1-011", as: "secondOpponentPlay" },
+          { card: "BT1-009", as: "firstOpponentPlay" },
+          { card: "BT1-012", as: "secondOpponentPlay" },
         ],
       },
     });
@@ -318,8 +391,8 @@ describe("EX3-026 Aegisdramon", () => {
       0: { battleArea: [{ card: "EX3-026", under: [{ card: "BT1-029" }], as: "aegisdramon" }] },
       1: {
         hand: [
-          { card: "BT1-010", as: "firstOpponentPlay" },
-          { card: "BT1-011", as: "secondOpponentPlay" },
+          { card: "BT1-009", as: "firstOpponentPlay" },
+          { card: "BT1-012", as: "secondOpponentPlay" },
         ],
       },
     });
@@ -398,7 +471,7 @@ describe("EX3-026 Aegisdramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-026", under: [{ card: "BT1-029" }], as: "aegisdramon" }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
       1: {
         hand: [
@@ -409,17 +482,19 @@ describe("EX3-026 Aegisdramon", () => {
         // Deep enough to survive Agumon's own [On Play] reveal of 5 plus the turn draws:
         // decking out would freeze the turn before the next opponent Main phase.
         deck: [
-          "BT1-004",
-          "BT1-005",
-          "BT1-006",
-          "BT1-007",
-          "BT1-008",
+          "BT1-012",
+          "BT1-013",
+          "BT1-014",
+          "BT1-012",
+          "BT1-013",
+          "BT1-014",
           "BT1-009",
-          "BT1-004",
-          "BT1-005",
-          "BT1-006",
-          "BT1-007",
-          "BT1-008",
+          "BT1-012",
+          "BT1-013",
+          "BT1-014",
+          "BT1-012",
+          "BT1-013",
+          "BT1-014",
           "BT1-009",
         ],
       },

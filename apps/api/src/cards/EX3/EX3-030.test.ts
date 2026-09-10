@@ -51,7 +51,7 @@ describe("EX3-030 Gatomon", () => {
       0: {
         battleArea: [{ card: "EX3-027", as: "base" }],
         hand: [{ card: "EX3-030", as: "gatomon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -66,7 +66,30 @@ describe("EX3-030 Gatomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX3-030");
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-027"]);
+  });
+
+  it("rejects a non-yellow level 3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-030", as: "gatomon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("gatomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-030");
   });
 
   it("Angel/Four Great Dragons family: the errata search adds both mandatory categories", async () => {
@@ -302,7 +325,7 @@ describe("EX3-030 Gatomon", () => {
           { card: "EX3-036", as: "secondDragon" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-010"] },
     });
     s.state.turnCount = 1;
     await s.ready();
@@ -349,9 +372,9 @@ describe("EX3-030 Gatomon", () => {
           { card: "EX3-035", as: "firstDragon" },
           { card: "EX3-036", as: "nextTurnDragon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
-      1: { deck: ["BT1-003", "BT1-004"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
 
@@ -385,7 +408,7 @@ describe("EX3-030 Gatomon", () => {
         ],
         hand: [
           { card: "EX3-035", as: "firstDragon" },
-          { card: "EX3-036", as: "secondDragon" },
+          { card: "EX3-035", as: "secondDragon" },
           { card: "EX3-034", as: "laterDragon" },
         ],
       },
@@ -460,6 +483,7 @@ describe("EX3-030 Gatomon", () => {
           { card: "EX3-035", as: "secondDragon" },
           { card: "BT1-053", as: "simultaneousUnrelated" },
         ],
+        deck: ["BT1-009", "BT1-012", "BT1-013", "BT1-014"],
       },
     });
     await s.ready();
