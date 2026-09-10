@@ -81,6 +81,8 @@ describe("BT16-072", () => {
       () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093").length === 1,
     );
 
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093")).toHaveLength(
+      1,
+    );
   });
 });
