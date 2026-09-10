@@ -85,3 +85,4 @@
 - `pnpm effects:check:set -- --set EX1` initially found stale generated records. `pnpm effects:sync:set -- --set EX1` synchronized all 73 records; the repeated check passed with all records current.
 - The serialized broad engine suite passed 233/235 files and 6923/6925 tests. Both reproducible reds are unchanged, out-of-scope baseline files: `deckTruthSource.test.ts` still expects BT26 to be absent despite the current catalog, and the BT26 BeelStarmon deck interaction fails on BT25-085. Neither test nor its data source differs from `origin/main`, and no EX1 failure occurred.
 - Final EX1 Oxlint, Oxfmt (157 files), and `git diff --check` passed.
+- Atomic audit commits are `ac36ffe90`, `678f7bc4e`, `c78b31582`, and `44e9530f2`, followed by the ledger closeout commit. The completed branch is delivered as `origin/audit-ex1-luna-20260909`; all 73 cards receive the final 2/2 delivery-gate score.
